@@ -1,0 +1,260 @@
+#This is parallel version to make backgound files, well not really parallel but
+# Glens batch version.
+
+trig=t8_0r5a15_0d4_0s0p0
+
+##########################First create source file.
+#	if [ ! -e "prh.VHDF5" ]; then
+#		cd $strip/protons
+#		pfile='cmsum_p_490d20s17spec_'$trig'.VHDF5'
+#		he4file='../he4/cmsum_he4_490d20s17spec_'$trig'.VHDF5'
+#create working file
+#	cp $pfile phe4.VHDF5
+#add he4 file to it
+#	~/local/src/VHDF5/VHDF5Append -i  $he4file    -o phe4.VHDF5
+#randomize it
+#	~/local/src/VHDF5/VHDF5Select -i  phe4.VHDF5 -o phr.VHDF5 -r 
+
+#		rsh gaea cp $whip/protons/phr.VHDF5 /raid/sembrosk/strip/protons/
+#		rsh knyr cp $whipp/protons/phr.VHDF5 /scratch/sembrosk/strip/protons/
+#		rsh saji cp $whipp/protons/phr.VHDF5 /scratch/sembrosk/strip/protons/
+#	fi
+###############Enable which nodes we are going to work on.
+
+
+
+#enableKNYR1="on"
+#enableKNYR2="on"
+enableKNYR3="on"
+enableKNYR4="on"
+#enableSAJI1="on"
+#enableSAJI2="on"
+enableSAJI3="on"
+enableSAJI4="on"
+#enableGAEA1="on"
+#enableGAEA2="on"
+#enableGAEA3="on"
+enableGAEA4="on"
+enableGAEA5="on"
+#enableGAEA6="on"
+#enableGAEA7="on"
+#enableGAEA8="on"
+
+
+jitter=1.02
+scratch="/scratch/sembrosk/whipple/protons"
+raid="/raid/sembrosk/strip/protons"
+
+
+#knyr CPU1######################################################
+let istart=35
+let nfiles=485
+let i=istart
+
+#80
+rate=4.04
+rvalue=0
+if [ -n "$enableKNYR1" ]; then
+	rsh knyr time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_knyr1.ran $scratch/1 >>~/pp_knyr1.log &
+fi
+
+#knyr CPU2######################################################
+let istart=505
+let nfiles=495
+let i=istart
+
+#80
+rate=4.04
+rvalue=0
+if [ -n "$enableKNYR2" ]; then
+	rsh knyr time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_knyr2.ran $scratch/2 >>~/pp_knyr2.log &
+fi
+#knyr CPU3######################################################
+let istart=3
+let nfiles=497
+let i=istart
+
+#81
+rate=6.06
+rvalue=1
+if [ -n "$enableKNYR3" ]; then
+	rsh knyr time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_knyr3.ran $scratch/3 >>~/pp_knyr3.log &
+fi
+
+#knyr CPU4######################################################
+let istart=504
+let nfiles=496
+let i=istart
+
+#81
+rate=6.06
+rvalue=1
+if [ -n "$enableKNYR4" ]; then
+	rsh knyr time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_knyr4.ran $scratch/4 >>~/pp_knyr4.log &
+fi
+
+###########################################################################
+#saji CPU1######################################################
+let istart=0
+let nfiles=500
+let i=istart
+
+#82
+rate=8.08
+rvalue=2
+if [ -n "$enableSAJI1" ]; then
+	rsh saji time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_saji1.ran $scratch/1 >>~/pp_saji1.log &
+fi
+
+#saji CPU2######################################################
+let istart=500
+let nfiles=500
+let i=istart
+
+#82
+rate=8.08
+rvalue=2
+if [ -n "$enableSAJI2" ]; then
+	rsh saji time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_saji2.ran $scratch/2 >>~/pp_saji2.log &
+fi
+
+#saji CPU3######################################################
+let istart=0
+let nfiles=500
+let i=istart
+
+#83
+rate=10.1
+rvalue=3
+if [ -n "$enableSAJI3" ]; then
+	rsh saji time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_saji3.ran $scratch/3 >>~/pp_saji3.log &
+fi
+
+#saji CPU4######################################################
+let istart=500
+let nfiles=500
+let i=istart
+
+#83
+rate=10.1
+rvalue=3
+if [ -n "$enableSAJI4" ]; then
+	rsh saji time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_saji4.ran $scratch/4 >>~/pp_saji4.log &
+fi
+############################################################################
+
+#gaea CPU1######################################################
+let istart=13
+let nfiles=987
+let i=istart
+
+#84
+rate=12.12
+rvalue=4
+if [ -n "$enableGAEA1" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea1.ran $raid/1 >>~/pp_gaea1.log &
+fi
+
+#gaea CPU2######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#85
+rate=14.13
+rvalue=5
+if [ -n "$enableGAEA2" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea2.ran $raid/2 >>~/pp_gaea2.log &
+fi
+
+#gaea CPU3######################################################
+#let i=i+nfiles
+let istart=0
+let nfiles=1000
+let i=istart
+
+#86
+rate=16.15
+rvalue=6
+if [ -n "$enableGAEA3" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea3.ran $raid/3 >>~/pp_gaea3.log &
+fi
+
+#gaea CPU4######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#87
+rate=18.17
+rvalue=7
+if [ -n "$enableGAEA4" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea4.ran $raid/4 >>~/pp_gaea4.log &
+fi
+
+#gaea CPU6######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#88
+rate=20.19
+rvalue=8
+if [ -n "$enableGAEA5" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea5.ran $raid/5 >>~/pp_gaea5.log &
+fi
+
+
+#gaea CPU7######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#89
+rate=22.21
+rvalue=9
+if [ -n "$enableGAEA6" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea6.ran $raid/6 >>~/pp_gaea6.log &
+fi
+
+
+#gaea CPU8######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#90
+rate=24.23
+rvalue=10
+if [ -n "$enableGAEA7" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea7.ran $raid/7 >>~/pp_gaea7.log &
+fi
+
+#gaea CPU8######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#91
+rate=26.25
+rvalue=11
+if [ -n "$enableGAEA8" ]; then
+	rsh gaea time ~/local/src/KASCADE/pp.scr  $rvalue $i  $nfiles $rate \
+	$jitter VHDF5Background_gaea8.ran $raid/8 >>~/pp_gaea8.log &
+fi
+

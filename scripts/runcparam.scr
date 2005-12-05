@@ -1,0 +1,14 @@
+{
+while read n2file onfile offfile; do
+echo n2file:$n2file
+echo onfile:$onfile
+echo offfile:$offfile
+	padpar=$offfile
+	runfile=$onfile.hdf
+	hrcpath=/raid/sembroski/whipple/crab_00-01/
+	./cparam -g $hrcpath -n $n2file -i $padpar -p $runfile
+	padpar=$onfile
+	runfile=$offfile.hdf
+	./cparam -g $hrcpath -n $n2file -i $padpar -p $runfile
+done
+} < datafiles

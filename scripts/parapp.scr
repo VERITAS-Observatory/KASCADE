@@ -1,0 +1,467 @@
+#This is PBS version to make backgound files
+#!/bin/sh
+
+
+#Specify which nodes are to be used
+#enableKNYR1="on"
+#enableKNYR2="on"
+#enableKNYR3="on"
+#enableKNYR4="on"
+#enableSAJI1="on"
+#enableSAJI2="on"
+#enableSAJI3="on"
+#enableSAJI4="on"
+#enableGAEA1="on"
+enableGAEA2="on"
+enableGAEA3="on"
+enableGAEA4="on"
+#enableGENERAL1="on"
+#enableGENERAL2="on"
+#enableGENERAL3="on"
+#enableGENERAL4="on"
+
+#jitter=1.02
+jitter=.0439
+scratch="/scratch/sembrosk/whipple/protons"
+raid="/raid/sembrosk/strip/protons"
+whip="/project/veritas/sembrosk/whipple"
+
+#knyr CPU1######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#81cut
+rate=.263
+rvalue=1
+if [ -n "$enableKNYR1" ]; then    #build the PBS job file for knyr1
+    ndname=knyr
+    ndnum=1
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+
+#knyr CPU2######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#82cut
+rate=.351
+rvalue=2
+if [ -n "$enableKNYR2" ]; then
+    ndname=knyr
+    ndnum=2
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#knyr CPU3######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#83cut
+rate=.439
+rvalue=3
+if [ -n "$enableKNYR3" ]; then
+    ndname=knyr
+    ndnum=3
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+ 
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#knyr CPU4######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#84cut
+rate=.527
+rvalue=4
+if [ -n "$enableKNYR4" ]; then
+    ndname=knyr
+    ndnum=4
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+###########################################################################
+
+#saji CPU1######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#85cut
+rate=.616
+rvalue=5
+if [ -n "$enableSAJI1" ]; then
+    ndname=saji
+    ndnum=1
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#saji CPU2######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#86cut
+rate=.703
+rvalue=6
+if [ -n "$enableSAJI2" ]; then
+    ndname=saji
+    ndnum=2
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#saji CPU3######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#87cut
+rate=.791
+rvalue=7
+if [ -n "$enableSAJI3" ]; then
+    ndname=saji
+    ndnum=3
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#saji CPU4######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#88cut
+rate=.882
+rvalue=8
+if [ -n "$enableSAJI4" ]; then
+    ndname=saji
+    ndnum=4
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+############################################################################
+
+#gaea CPU1######################################################
+let istart=579
+let nfiles=1000-istart+1
+let i=istart
+
+#89cut
+rate=.967
+rvalue=9
+if [ -n "$enableGAEA1" ]; then
+    ndname=gaea
+    ndnum=1
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#gaea CPU2######################################################
+let istart=0
+let nfiles=1
+let i=istart
+
+#90cut
+rate=1.055
+rvalue=10
+if [ -n "$enableGAEA2" ]; then
+    ndname=gaea
+    ndnum=2
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#gaea CPU3######################################################
+let istart=0
+let nfiles=1
+let i=istart
+
+#91cut
+rate=1.143
+rvalue=11
+if [ -n "$enableGAEA3" ]; then
+    ndname=gaea
+    ndnum=3
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+
+#gaea CPU4######################################################
+let istart=0
+let nfiles=1
+let i=istart
+
+
+#92
+rate=1.23
+rvalue=12
+if [ -n "$enableGAEA4" ]; then
+    ndname=gaea
+    ndnum=4
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:$ndname                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#General cluster #1 ######################################################
+let istart=0
+let nfiles=1000
+let i=istart
+
+#80cut
+rate=0.175
+rvalue=0
+if [ -n "$enableGENERAL1" ]; then
+    ndname=gen
+    ndnum=1
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l mem=512mb                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:opteron                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+#General cluster #2 ######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#89
+rate=22.21
+rvalue=9
+if [ -n "$enableGENERAL2" ]; then
+    ndname=gen
+    ndnum=2
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l mem=512mb                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1                                >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#General cluster #3 ######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#92
+rate=28.27
+rvalue=12
+if [ -n "$enableGENERAL3" ]; then
+    ndname=gen
+    ndnum=3
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l mem=512mb                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1                                >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi
+
+#General cluster #4 ######################################################
+let istart=0
+let nfiles=1000-istart
+let i=istart
+
+#91
+rate=26.25
+rvalue=11
+if [ -n "$enableGENERAL4" ]; then
+    ndname=gen
+    ndnum=4
+    astroNode=$ndname$ndnum
+    echo "#"PBS -N $astroNode'_pp'                         >~/pp_$astroNode.pbs
+    echo "#"PBS -e $astroNode'_pp'.err                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -o $astroNode'_pp'.log                    >>~/pp_$astroNode.pbs
+    echo "#"PBS -W qos=astro                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l mem=512mb                              >>~/pp_$astroNode.pbs
+    echo "#"PBS -l walltime=100:00:00                     >>~/pp_$astroNode.pbs
+    echo "#"PBS -l nodes=1:opteron                        >>~/pp_$astroNode.pbs
+    echo time ~/local/src/KASCADE/pp.scr $rvalue $i \\    >>~/pp_$astroNode.pbs
+    echo $nfiles $rate $jitter \\                         >>~/pp_$astroNode.pbs
+    echo VHDF5Background_$astroNode'.ran' \\              >>~/pp_$astroNode.pbs
+    echo   $whip'/protons/'$astroNode \\                  >>~/pp_$astroNode.pbs
+    echo " >>~/pp_"$astroNode".log "                      >>~/pp_$astroNode.pbs
+
+    qsub ~/pp_$astroNode.pbs
+fi

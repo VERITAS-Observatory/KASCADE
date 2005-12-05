@@ -1,0 +1,615 @@
+#!/bin/bash
+
+#rm *.o
+#make kasSumMHDF5
+
+
+srcdir="/home/sembrosk/local/src/KASCADE"
+
+
+#20 deg Gammas file Veritas. 12m diam 12x13.86 sposize_ew,ns=.02
+#
+date
+sumdir="/gaea/raid/sembrosk/veritas/gamma"
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_20gev20v   1    1 $sumdir NEW    1
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_20gev20v   2  100 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_24gev20v   1  100 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_28gev20v   1  100 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_34gev20v   1  100 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_41gev20v   1  100 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_49gev20v   1  100 $sumdir APPEND 1
+
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_58gev20v   1    1 $sumdir NEW    2
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_58gev20v   2  100 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_70gev20v   1  100 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  g_499d20   g_84gev20v   1   75 $sumdir APPEND 2
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_100gev20v   1    1 $sumdir NEW    3
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_100gev20v   2   75 $sumdir APPEND 3
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_120gev20v   1   50 $sumdir APPEND 3
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_143gev20v   1    1 $sumdir NEW    4
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_143gev20v   2   50 $sumdir APPEND 4
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_172gev20v   1   50 $sumdir APPEND 4
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_172gev20v   41  41 $sumdir NEW    5
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_172gev20v   42  50 $sumdir APPEND 5
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_205gev20v   1   50 $sumdir APPEND 5
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_246gev20v   1    1 $sumdir NEW    6
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_246gev20v   2   30 $sumdir APPEND 6
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_294gev20v   1   20 $sumdir APPEND 6
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_294gev20v  21   21 $sumdir NEW    7
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_294gev20v  22   30 $sumdir APPEND 7
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_353gev20v   1   30 $sumdir APPEND 7
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_422gev20v   1    1 $sumdir NEW    8
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_422gev20v   2   30 $sumdir APPEND 8
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_505gev20v   1   15 $sumdir APPEND 8
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_505gev20v  16   16 $sumdir NEW    9
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_505gev20v  17   30 $sumdir APPEND 9
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_605gev20v   1   20 $sumdir APPEND 9
+
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_605gev20v  21   21 $sumdir NEW    10
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_605gev20v  22   30 $sumdir APPEND 10
+#$srcdir/kasSumMHDF5.scr  g_499d20  g_867gev20v   1   30 $sumdir APPEND 10
+
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_1243gev20v   1    1 $sumdir NEW    11
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_1243gev20v   2   20 $sumdir APPEND 11
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_1781gev20v   1   20 $sumdir APPEND 11
+
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_2553gev20v   1    1 $sumdir NEW    12
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_2553gev20v   2   10 $sumdir APPEND 12
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_3660gev20v   1   10 $sumdir APPEND 12
+#$srcdir/kasSumMHDF5.scr  g_499d20 g_5246gev20v   1   10 $sumdir APPEND 12
+
+
+
+#20 deg Full Proton file Veritas. 12m diam 12x13.86 sposize_ew,ns=.02
+date
+sumdir="/gaea/raid/sembrosk/veritas/fullproton"
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_20gev20v   1     1 $sumdir NEW    1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_20gev20v   2  1000 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_24gev20v   1  1000 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_28gev20v   1  1000 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_34gev20v   1  1000 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_41gev20v   1   500 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_49gev20v   1   500 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_58gev20v   1   500 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_70gev20v   1   500 $sumdir APPEND 1
+
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_84gev20v   1     1 $sumdir NEW    2
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_84gev20v   2   250 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_100gev20v   1   373 $sumdir APPEND 2
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_120gev20v   1     1 $sumdir NEW    3
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_120gev20v   2   200 $sumdir APPEND 3
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_143gev20v   1    60 $sumdir APPEND 3
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_143gev20v   61   61 $sumdir NEW    4
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_143gev20v   62  200 $sumdir APPEND 4
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_172gev20v   1   200 $sumdir APPEND 4
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_205gev20v   1     1 $sumdir NEW    5
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_205gev20v   2   200 $sumdir APPEND 5
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_246gev20v   1    25 $sumdir APPEND 5
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_246gev20v   26   26 $sumdir NEW    6
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_246gev20v   27  100 $sumdir APPEND 6
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_294gev20v   1    50 $sumdir APPEND 6
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_294gev20v  51    51 $sumdir NEW    7
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_294gev20v  52   100 $sumdir APPEND 7
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_353gev20v   1    50 $sumdir APPEND 7
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_353gev20v  51    51 $sumdir NEW    8
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_353gev20v  52   100 $sumdir APPEND 8
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   1    25 $sumdir APPEND 8
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   26   26 $sumdir NEW    9
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   27   85 $sumdir APPEND 9
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   86   86 $sumdir NEW    10
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   87  100 $sumdir APPEND 10
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   1    30 $sumdir APPEND 10
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   31   31 $sumdir NEW    11
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   32   75 $sumdir APPEND 11
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   1     1 $sumdir NEW    12
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   2    30 $sumdir APPEND 12
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   31    31 $sumdir NEW    13
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   32    50 $sumdir APPEND 13
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_867gev20v   1     10 $sumdir APPEND 13
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_867gev20v   11    11 $sumdir NEW    14
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_867gev20v   32    50 $sumdir APPEND 14
+
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   1      1 $sumdir NEW    15
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   2     15 $sumdir APPEND 15
+
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   16    16 $sumdir NEW    16
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   17    25 $sumdir APPEND 16
+
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   26    26 $sumdir NEW    17
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   27    30 $sumdir APPEND 17
+
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_20gev20v 1001  1001 $sumdir NEW    18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_20gev20v 1002  5000 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_24gev20v 1001  3000 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_28gev20v 1001  2000 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_34gev20v 1001  2300 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_41gev20v  501  1000 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_49gev20v  501  1050 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_58gev20v  501   525 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_70gev20v  501   625 $sumdir APPEND 18
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_84gev20v  251   275 $sumdir APPEND 18
+
+#
+#**********************************************************************#
+
+#1/10 size 20 deg Proton file Veritas. 12m diam 12x13.86 sposize_ew,ns=.02
+sumdir="/gaea/raid/sembrosk/veritas/sampleproton"
+
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_20gev20v   1    1 $sumdir NEW    1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_20gev20v   2  500 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_24gev20v   1  300 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_28gev20v   1  200 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_34gev20v   1  230 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_41gev20v   1  100 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_49gev20v   1  105 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_58gev20v   1   53 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_70gev20v   1   63 $sumdir APPEND 1
+
+
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_84gev20v   1    1 $sumdir NEW    2
+#$srcdir/kasSumMHDF5.scr  p_499d20   p_84gev20v   2   28 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_100gev20v   1   37 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_120gev20v   1   20 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_143gev20v   1    6 $sumdir APPEND 2
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_143gev20v   7    7 $sumdir NEW    3
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_143gev20v   8   20 $sumdir APPEND 3
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_172gev20v   1   20 $sumdir APPEND 3
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_205gev20v   1    1 $sumdir NEW    4
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_205gev20v   2   20 $sumdir APPEND 4
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_246gev20v   1    4 $sumdir APPEND 4
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_246gev20v   5    5 $sumdir NEW    5
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_246gev20v   6   10 $sumdir APPEND 5
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_294gev20v   1   10 $sumdir APPEND 5
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_353gev20v   1    1 $sumdir NEW    6
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_353gev20v   2   10 $sumdir APPEND 6
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   1    2 $sumdir APPEND 6
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   3    3 $sumdir NEW    7
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_422gev20v   4   10 $sumdir APPEND 7
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   1    1 $sumdir NEW    8
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   2    6 $sumdir APPEND 8
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   7    7 $sumdir NEW    9
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_505gev20v   8    8 $sumdir APPEND 9
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   1    3 $sumdir APPEND 9
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   4    4 $sumdir NEW    10
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_605gev20v   5    5 $sumdir APPEND 10
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_867gev20v   1    2 $sumdir APPEND 10
+
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_867gev20v   3    3 $sumdir NEW    11
+#$srcdir/kasSumMHDF5.scr  p_499d20  p_867gev20v   4    5 $sumdir APPEND 11
+
+#
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   1    1 $sumdir NEW    12
+#$srcdir/kasSumMHDF5.scr  p_499d20 p_1243gev20v   2    3 $sumdir APPEND 12
+
+
+
+#20 deg Whipple 10m Gammas file .17 deg spotsize: for energy spectrum analysis
+#sumdir="/project/veritas/sembrosk/whipple/gammas"
+#49
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_84gev20w    1   1 $sumdir NEW 1 
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_84gev20w    2  50 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_100gev20w   1  50 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_120gev20w   1  50 $sumdir APPEND 1
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_143gev20w   1  50 $sumdir APPEND 1
+
+#56
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_172gev20w   1   1 $sumdir NEW 2
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_172gev20w   2  50 $sumdir APPEND 2
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_205gev20w   1  50 $sumdir APPEND 2
+
+#41
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_246gev20w   1   1 $sumdir NEW 3
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_246gev20w   2  50 $sumdir APPEND 3
+
+#55
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_294gev20w   1   1 $sumdir NEW 4
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_294gev20w   2  50 $sumdir APPEND 4
+
+#53
+##$srcdir/kasSumMHDF5.scr  g_490d20s17 g_353gev20w   1   1 $sumdir NEW 5
+##$srcdir/kasSumMHDF5.scr  g_490d20s17 g_353gev20w   2  40 $sumdir APPEND 5
+
+#55
+##$srcdir/kasSumMHDF5.scr  g_490d20s17 g_353gev20w   41 41 $sumdir NEW 6
+##$srcdir/kasSumMHDF5.scr  g_490d20s17 g_353gev20w   42 54 $sumdir APPEND 6
+##$srcdir/kasSumMHDF5.scr  g_490d20s17 g_422gev20w   1  20 $sumdir APPEND 6
+
+#60
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_422gev20w   21 21 $sumdir NEW 7
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_422gev20w   22 30 $sumdir APPEND 7
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_505gev20w   1  24 $sumdir APPEND 7
+
+#49
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_505gev20w  25  25 $sumdir NEW 8
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_505gev20w  26  30 $sumdir APPEND 8
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_605gev20w   1  19 $sumdir APPEND 8
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_867gev20w   1   5 $sumdir APPEND 8
+
+#63
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_867gev20w     6  6 $sumdir NEW 9
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_867gev20w     7 30 $sumdir APPEND 9
+
+#59
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_867gev20w  31  31 $sumdir NEW 10
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_867gev20w  32  37 $sumdir APPEND 10
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_1243gev20w 1   10 $sumdir APPEND 10
+
+#55
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_1781gev20w 1   1 $sumdir NEW 11
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_1781gev20w 2   6 $sumdir APPEND 11
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_2553gev20w 1   6 $sumdir APPEND 11
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_3660gev20w 1   2 $sumdir APPEND 11
+
+#54
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_3660gev20w 3  3 $sumdir NEW 12
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_3660gev20w 4  6 $sumdir APPEND 12
+#$srcdir/kasSumMHDF5.scr  g_490d20s17 g_5246gev20w 1  6 $sumdir APPEND 12
+##******************************************************************************
+
+#1 deg Whipple 10m Gammas file .17 deg spotsize:
+#02/03/05 gamma files (drift scan analysis)
+#sumdir="/project/veritas/sembrosk/whipple/strip/gammas"
+#sumdir="/scratch/sembrosk/strip/gammas"
+sumdir="/project/veritas/sembrosk/whipple/gammas"
+#dr="20w"
+#out="g_490d20s17t"$t
+
+#t=1
+#p=1
+
+
+#d=1                         #on source
+
+#d=2                         #0.22 deg dec offset
+#d=3                         #0.44 deg dec offset 
+#d=4                         #0.66 deg dec offset
+#d=5                         #0.88 deg dec offset
+#d=6                         #1.10 deg dec offset
+#d=7                         #1.32 deg dec offset 
+#d=8                         #1.54 deg dec offset
+#d=9                         #1.76 deg dec offset
+#d=10                        #1.98 deg dec offset
+d=11                        #2.20 deg dec offset 
+
+#r="1w"
+
+#sCut="F"
+sCut="T"
+
+
+
+#let step=2
+#while [ $step -le 5 ] ; do
+#t=$step
+#p=1
+#d=$step                     #on source
+
+dr="1w_d"$d
+out="g_490d20s17d"$d"spec"
+
+
+#1
+#$srcdir/kasSumMHDF5.scr $out g_84gev$dr   1   1 $sumdir NEW    1 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_84gev$dr   2  50 $sumdir APPEND 1 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_100gev$dr  1  40 $sumdir APPEND 1 $sCut 
+
+#2
+#$srcdir/kasSumMHDF5.scr $out g_100gev$dr 41  41 $sumdir NEW    2 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_100gev$dr 42  50 $sumdir APPEND 2 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_120gev$dr  1  50 $sumdir APPEND 2 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_143gev$dr  1  40 $sumdir APPEND 2 $sCut
+
+#3
+#$srcdir/kasSumMHDF5.scr $out g_143gev$dr 41  41 $sumdir NEW    3 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_143gev$dr 42  50 $sumdir APPEND 3 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_172gev$dr  1  50 $sumdir APPEND 3 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_205gev$dr  1  50 $sumdir APPEND 3 $sCut
+
+#4
+#$srcdir/kasSumMHDF5.scr $out g_246gev$dr  1  1  $sumdir NEW    4 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_246gev$dr  2  50 $sumdir APPEND 4 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_294gev$dr  1  50 $sumdir APPEND 4 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_353gev$dr  1  30 $sumdir APPEND 4 $sCut
+
+
+
+
+#5
+#$srcdir/kasSumMHDF5.scr $out g_353gev$dr  31 31 $sumdir NEW    5 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_353gev$dr  32 54 $sumdir APPEND 5 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_422gev$dr  1  30 $sumdir APPEND 5 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_505gev$dr  1  30 $sumdir APPEND 5 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_605gev$dr  1  19 $sumdir APPEND 5 $sCut
+#$srcdir/kasSumMHDF5.scr $out g_867gev$dr  1  10 $sumdir APPEND 5 $sCut 
+
+
+#6
+#$srcdir/kasSumMHDF5.scr $out g_867gev$dr  11 11 $sumdir NEW    6 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_867gev$dr  12 37 $sumdir APPEND 6 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_1243gev$dr 1  11 $sumdir APPEND 6 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_1781gev$dr 1  10 $sumdir APPEND 6 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_2553gev$dr 1   6 $sumdir APPEND 6 $sCut 
+
+#7
+#$srcdir/kasSumMHDF5.scr $out g_3660gev$dr 1   1 $sumdir NEW    7 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_3660gev$dr 2   6 $sumdir APPEND 7 $sCut 
+#$srcdir/kasSumMHDF5.scr $out g_5246gev$dr 1   6 $sumdir APPEND 7 $sCut 
+
+
+#   let step=step+1     #next file
+
+#done
+
+#**********************************************************************
+#1 deg Whipple Proton file .17 deg spotsize: for energy spectrum analysis
+#For drift scan
+#New mfiles as of 16/02/05
+#Make cm files less than 2.2 GBytes
+
+sumdir="/project/veritas/sembrosk/whipple/protons"
+#sumdir="/project/veritas/sembrosk/whipple/strip/protons"
+#sumdir="/scratch/sembrosk/strip/protons"
+t=5
+p=5
+#dr="20w"
+dr="1w"
+out="p_490d20s17spec"
+#out="p_490d20s17"
+sCut="T"
+#sCut="F"
+date
+#Test file.
+#$srcdir/kasSumMHDF5.scr $out p_143gev$dr   1    1 $sumdir NEW    30 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_143gev$dr   2  200 $sumdir APPEND 30 $sCut
+
+#Proton 
+#1
+#$srcdir/kasSumMHDF5.scr $out p_20gev$dr    1     1 $sumdir NEW    1 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_20gev$dr    2 13800 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_24gev$dr    1  8300 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_28gev$dr    1  5400 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_34gev$dr    1  6400 $sumdir APPEND 1 $sCut
+
+#2
+#$srcdir/kasSumMHDF5.scr $out p_41gev$dr    1     1 $sumdir NEW    2 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_41gev$dr    2  2800 $sumdir APPEND 2 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_49gev$dr    1  2900 $sumdir APPEND 2 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_58gev$dr    1  1430 $sumdir APPEND 2 $sCut
+
+#3
+#$srcdir/kasSumMHDF5.scr $out p_70gev$dr    1     1 $sumdir NEW    3 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_70gev$dr    2  1750 $sumdir APPEND 3 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_84gev$dr    1   775 $sumdir APPEND 3 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_100gev$dr   1   300 $sumdir APPEND 3 $sCut
+
+#4
+#$srcdir/kasSumMHDF5.scr $out p_100gev$dr 301  301 $sumdir NEW    4 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_100gev$dr 302  800 $sumdir APPEND 4 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_120gev$dr   1  480 $sumdir APPEND 4 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_143gev$dr   1  385 $sumdir APPEND 4 $sCut
+
+#5
+#$srcdir/kasSumMHDF5.scr $out p_205gev$dr   1    1 $sumdir NEW    5 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_205gev$dr   2  500 $sumdir APPEND 5 $sCut
+
+
+#6
+#$srcdir/kasSumMHDF5.scr $out p_205gev$dr 501  501 $sumdir NEW    6 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_205gev$dr 502  584 $sumdir APPEND 6 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_294gev$dr   1  165 $sumdir APPEND 6 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_422gev$dr   1   40 $sumdir APPEND 6 $sCut
+
+#7
+#$srcdir/kasSumMHDF5.scr $out p_422gev$dr  41   41 $sumdir NEW    7 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_422gev$dr  42  140 $sumdir APPEND 7 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_605gev$dr   1   25 $sumdir APPEND 7 $sCut
+
+#8
+#$srcdir/kasSumMHDF5.scr $out p_605gev$dr  26   26 $sumdir NEW    8 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_605gev$dr  27   55 $sumdir APPEND 8 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_867gev$dr   1   35 $sumdir APPEND 8 $sCut
+
+#9
+#$srcdir/kasSumMHDF5.scr $out p_1243gev$dr  1    1 $sumdir NEW    9 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_1243gev$dr  2   16 $sumdir APPEND 9 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_1781gev$dr  1   10 $sumdir APPEND 9 $sCut
+
+#10
+#$srcdir/kasSumMHDF5.scr $out p_2553gev$dr  1    1 $sumdir NEW    10 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_2553gev$dr  2   10 $sumdir APPEND 10 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_3660gev$dr  1   10 $sumdir APPEND 10 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_5246gev$dr  1   10 $sumdir APPEND 10 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_7519gev$dr  1   10 $sumdir APPEND 10 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_10777gev$dr 1   10 $sumdir APPEND 10 $sCut
+
+
+#****************************************************************************
+#1 deg Helium (He4) file .17 deg spotsize: for energy spectrum analysis
+#17/02/05
+sumdir="/project/veritas/sembrosk/whipple/he4"
+dr="1w"
+out="he4_490d20s17spec"
+sCut="T"
+#HE4 file #1.
+#$srcdir/kasSumMHDF5.scr $out he4_49gev$dr   1    1 $sumdir NEW    1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_49gev$dr   2 2500 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_58gev$dr   1 1590 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_70gev$dr   1 1630 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_84gev$dr   1  860 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_100gev$dr  1  800 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_120gev$dr  1  550 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_143gev$dr  1  400 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_205gev$dr  1  680 $sumdir APPEND 1 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_294gev$dr  1  100 $sumdir APPEND 1 $sCut
+
+#HE4 file #2.
+#$srcdir/kasSumMHDF5.scr $out he4_294gev$dr 101 101 $sumdir NEW    2 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_294gev$dr 102 200 $sumdir APPEND 2 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_422gev$dr   1 175 $sumdir APPEND 2 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_605gev$dr   1  70 $sumdir APPEND 2 $sCut
+
+#HE4 file #3
+#$srcdir/kasSumMHDF5.scr $out he4_867gev$dr  1   1 $sumdir NEW    3 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_867gev$dr  2  50 $sumdir APPEND 3 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_1243gev$dr 1  25 $sumdir APPEND 3 $sCut
+
+#HE$ file #4
+#$srcdir/kasSumMHDF5.scr $out he4_1781gev$dr 1   1 $sumdir NEW    4 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_1781gev$dr 2  15 $sumdir APPEND 4 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_2553gev$dr 1  10 $sumdir APPEND 4 $sCut
+
+#HE4 file #5.
+#$srcdir/kasSumMHDF5.scr $out he4_3660gev$dr 1   1 $sumdir NEW    5 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_3660gev$dr 2  10 $sumdir APPEND 5 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_5246gev$dr 1  10 $sumdir APPEND 5 $sCut
+
+#HE4 file #6
+#$srcdir/kasSumMHDF5.scr $out he4_7519gev$dr  1   1 $sumdir NEW    6 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_7519gev$dr  2  10 $sumdir APPEND 6 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_10777gev$dr 1  10 $sumdir APPEND 6 $sCut
+
+#**********************************************************************
+#1 deg Whipple Proton file .17 deg spotsize: for 5% energy spectrum analysis
+#For drift scan
+#New mfiles as of 16/02/05
+#Make cm files less than 2.2 GBytes
+
+sumdir="/project/veritas/sembrosk/whipple/protons"
+#sumdir="/project/veritas/sembrosk/whipple/strip/protons"
+#sumdir="/scratch/sembrosk/strip/protons"
+t=5
+p=5
+#dr="20w"
+dr="1w"
+out="p_490d20s17spec"
+#out="p_490d20s17"
+sCut="T"
+#sCut="F"
+date
+
+#Proton 
+#1
+#$srcdir/kasSumMHDF5.scr $out p_20gev$dr    1     1 $sumdir NEW    21 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_20gev$dr    2   690 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_24gev$dr    1   415 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_28gev$dr    1   270 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_34gev$dr    1   320 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_41gev$dr    1    50 $sumdir APPEND 21 $sCut
+
+#2
+#$srcdir/kasSumMHDF5.scr $out p_41gev$dr   51    51 $sumdir NEW    22 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_41gev$dr   52   140 $sumdir APPEND 22 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_49gev$dr    1   145 $sumdir APPEND 22 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_58gev$dr    1    72 $sumdir APPEND 22 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_70gev$dr    1    10 $sumdir APPEND 22 $sCut
+
+#3
+#$srcdir/kasSumMHDF5.scr $out p_70gev$dr   21    21 $sumdir NEW    23 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_70gev$dr   22    88 $sumdir APPEND 23 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_84gev$dr    1    39 $sumdir APPEND 23 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_100gev$dr   1    30 $sumdir APPEND 23 $sCut
+
+#4
+$srcdir/kasSumMHDF5.scr $out p_100gev$dr  31    31 $sumdir NEW    24 $sCut
+$srcdir/kasSumMHDF5.scr $out p_100gev$dr  32    40 $sumdir APPEND 24 $sCut
+$srcdir/kasSumMHDF5.scr $out p_120gev$dr   1    24 $sumdir APPEND 24 $sCut
+$srcdir/kasSumMHDF5.scr $out p_143gev$dr   1    19 $sumdir APPEND 24 $sCut
+$srcdir/kasSumMHDF5.scr $out p_205gev$dr   1    15 $sumdir APPEND 24 $sCut
+
+#5
+$srcdir/kasSumMHDF5.scr $out p_205gev$dr  16    16 $sumdir NEW    25 $sCut
+$srcdir/kasSumMHDF5.scr $out p_205gev$dr  17    29 $sumdir APPEND 25 $sCut
+$srcdir/kasSumMHDF5.scr $out p_294gev$dr   1     8 $sumdir APPEND 25 $sCut
+
+#6
+$srcdir/kasSumMHDF5.scr $out p_422gev$dr    1    1 $sumdir  NEW    26 $sCut
+$srcdir/kasSumMHDF5.scr $out p_422gev$dr    2    7 $sumdir  APPEND 26 $sCut
+$srcdir/kasSumMHDF5.scr $out p_605gev$dr    1    1 $sumdir  APPEND 26 $sCut
+
+
+#7
+#$srcdir/kasSumMHDF5.scr $out p_605gev$dr   2    2 $sumdir  NEW    27 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_867gev$dr   1    2 $sumdir  APPEND 27 $sCut
+
+#8
+#$srcdir/kasSumMHDF5.scr $out p_1243gev$dr  1    1 $sumdir  NEW    28 $sCut
+
+#9
+#$srcdir/kasSumMHDF5.scr $out p_1781gev$dr  1    1 $sumdir  NEW    29 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_2553gev$dr  1    1 $sumdir  APPEND 29 $sCut
+
+#10
+#$srcdir/kasSumMHDF5.scr $out p_3660gev$dr  1    1 $sumdir  NEW    30 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_5246gev$dr  1    1 $sumdir  APPEND 30 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_7519gev$dr  1    1 $sumdir  APPEND 30 $sCut
+#$srcdir/kasSumMHDF5.scr $out p_10777gev$dr 1    1 $sumdir  APPEND 30 $sCut
+
+
+#****************************************************************************
+#1 deg Helium (He4) file .17 deg spotsize: for energy spectrum analysis
+#17/02/05  5%
+sumdir="/project/veritas/sembrosk/whipple/he4"
+dr="1w"
+out="he4_490d20s17spec"
+sCut="T"
+#HE4 file #1.
+#$srcdir/kasSumMHDF5.scr $out he4_49gev$dr   1    1 $sumdir NEW    21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_49gev$dr   2  125 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_58gev$dr   1   80 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_70gev$dr   1   82 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_84gev$dr   1   43 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_100gev$dr  1   40 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_120gev$dr  1   28 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_143gev$dr  1   20 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_205gev$dr  1   34 $sumdir APPEND 21 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_294gev$dr  1   10 $sumdir APPEND 21 $sCut
+
+#HE4 file #2.
+#$srcdir/kasSumMHDF5.scr $out he4_422gev$dr   1   1 $sumdir NEW    22 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_422gev$dr   2   9 $sumdir APPEND 22 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_605gev$dr   1   4 $sumdir APPEND 22 $sCut
+
+#HE4 file #3
+#$srcdir/kasSumMHDF5.scr $out he4_867gev$dr  1   1 $sumdir NEW    23 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_867gev$dr  2   3 $sumdir APPEND 23 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_1243gev$dr 1   2 $sumdir APPEND 23 $sCut
+
+#HE$ file #4
+#$srcdir/kasSumMHDF5.scr $out he4_1781gev$dr 1   1 $sumdir NEW    24 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_2553gev$dr 1   1 $sumdir APPEND 24 $sCut
+
+#HE4 file #5.
+#$srcdir/kasSumMHDF5.scr $out he4_3660gev$dr 1   1 $sumdir NEW    25 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_5246gev$dr 1   1 $sumdir APPEND 25 $sCut
+
+#HE4 file #6
+#$srcdir/kasSumMHDF5.scr $out he4_7519gev$dr  1   1 $sumdir NEW    26 $sCut
+#$srcdir/kasSumMHDF5.scr $out he4_10777gev$dr 1   1 $sumdir APPEND 26 $sCut
+

@@ -1,0 +1,111 @@
+#!/bin/bash
+#This is for gaea/saji/knyr.
+#This script reads from a trigger input file (specified by $1) the
+#triggers to run kasaom on.
+
+#$1: triggerSpecification file name:format in this file is the same as the way 
+#things are specified in the first columns of the ratios (results) file: 
+#flags T R A D S P
+
+#start with a loop over the read in from the trigger specificasiton file.
+
+triggerSpecificationFile=$1
+echo trigspecfile:$triggerSpecificationFile
+#Pointer to which cpu to use
+i='0' 
+enablegaea1="on"
+enablegaea2="on"
+enablegaea3="on"
+enablegaea4="on"
+enableknyr1="on"
+enableknyr2="on"
+enableknyr3="on"
+enableknyr4="on"
+enablesaji1="on"
+enablesaji2="on"
+enablesaji3="on"
+enablesaji4="on"
+
+{
+while read flags T R A D S P; do
+
+#make this into the trigger specification string
+#We use the pattern matching stuff here see bash book pg 97
+#We assume that T R A D S P will always be of form 4.0 or 0.5
+trigger=t${T%.*}'_'${T#*.}
+trigger=$trigger'r'${R#*.}
+trigger=$trigger'a'${A%.*}'_'${A#*.}
+trigger=$trigger'd'${D%.*}'_'${D#*.}
+trigger=$trigger's'${S#*.}
+trigger=$trigger'p'${P%.*}'_'${P#*.}
+echo trigger:$trigger
+#build the .par file name
+filename='kasaomegah_'$trigger'.par'
+#build the file
+./buildKasaomegaPar.scr $filename $T $R $A h
+
+#Okay, we are ready to rock.
+#Get cpu to use (Theres probably a more elegant way to do this I know).
+#We need pairs of CPUs (p and he4)
+i=$((i+1))
+#echo i:$i
+if [ $i = 1 ];then
+	cpu='gaea'
+	punit='1'
+	he4unit='2'
+fi
+if [ $i = 2 ];then
+	cpu='gaea'
+	punit='3'
+	he4unit='4'
+fi
+if [ $i = 3 ];then
+	cpu='knyr'
+	punit='1'
+	he4unit='2'
+fi
+if [ $i = 4 ];then
+	cpu='knyr'
+	punit='3'
+	he4unit='4'
+fi
+if [ $i = 5 ];then
+	cpu='saji'
+	punit='1'
+	he4unit='2'
+fi
+if [ $i = 6 ];then
+	cpu='saji'
+	punit='3'
+	he4unit='4'
+fi
+#echo pcpu/unit $cpu$punit
+#echo he4cpu/unit $cpu$he4unit
+
+#setup indices
+#samples:
+istart='21'
+ipend='26'
+ihe4end='25'
+pdatadir="/project/veritas/sembrosk/whipple/protons"
+he4datadir="/project/veritas/sembrosk/whipple/he4"
+
+#do it: Protons first
+#if [ -n "$enable$cpu$punit" ]; then
+    echo starting on $cpu$punit
+    rsh $cpu time ~/local/src/KASCADE/kasaom.scr cmsum_p_490d20s17 $istart \
+	$ipend  $pdatadir p $trigger $D $S $P $punit \
+	>>~/kasaom_$cpu$punit'_p.log'  &
+#fi
+#and now he4
+#if [ -n "$enable$cpu$he4unit" ]; then
+    echo starting on $cpu$he4unit
+    rsh $cpu time ~/local/src/KASCADE/kasaom.scr cmsum_he4_490d20s17 $istart \
+	$ihe4end $he4datadir he4 $trigger $D $S $P $he4unit \
+	>>~/kasaom_$cpu$he4unit'_he4.log'  &
+#fi
+
+#and thats it. go get another
+
+done
+} < $triggerSpecificationFile

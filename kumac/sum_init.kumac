@@ -1,0 +1,176 @@
+macro sum_init
+|For Horseshoe Canyon (Kitt Peak) VERITAS 499 telescope.
+|27/05/03 GHS
+|Update to lastest proton spectra from: Weibel-Smith et.al. Astronomy and 
+|Astrophysics, 300(1), pg.389-398,Feb. 1, 1998
+
+*Misc defn.
+vec/cr par(2) r 100 -2
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*	Gammas
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+alias/cr g_title '''VERITAS 12m  1776m Gammas'''
+alias/cr dir$g	  /gaea/raid/sembroski/veritas/gamma/       |Directory of Gamma files
+
+        g_energies=26
+	vec/cr g_num(1) r [g_energies]		|Number of different energies
+	vec/cr g_gev([g_energies]) r		|Shower energies in GeV
+	vec/cr g_nshowers([g_energies]) r	|Number at each energy
+|	New gamma flux from Dave Lewis 15/5/96
+	vec/cr g_alpha(1) r -2.45		|Spectral index for gammas.
+	vec/cr g_phi0(1) r 7.16e-3		|Spectral Amplitude for gammas
+						|Units=/m**2/sec/GeV
+	vec/cr g_area_solid(1) r 166.28		|Area for gridpoint for VERITAS
+	vec/cr g_sparse(1) r 100.0		|No sparse grid for VERITAS
+
+	vec/cr g_weight([g_energies])		|Weights to use at each energy
+	vec/cr g_gweight([g_energies])		|Plot Weights to use at each
+						| energy
+|As of 18/04/01
+	vec/in g_gev       20  24  28  34  41  49  58  70 84 100 120 143 172 _
+205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246
+	vec/in g_nshowers 100 100 100 100 100 100 100 100 75  75  50  50  50 _
+ 50  30  30  30  30  30  30  30  20    20   10   10   10
+
+	exec dir$paw//dist.kumac type=g n=[g_energies]
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*   Protons
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*	alias/cr p_title '''VERITAS 12m 1776m Protons'''
+*	alias/cr dir$p	  /gaea/raid/sembroski/veritas/proton/  |Directory of Proton
+	alias/cr dir$p	  /gaea/raid/sembroski/veritas/fullproton/  |Directory of Proton
+
+	p_energies=22
+	vec/cr p_num(1) r [p_energies]		|Number of different energies
+	vec/cr p_gev([p_energies]) r		|Shower energies in GeV
+
+*Flux parameters As of Feb. 1 1998:See Wiebel-Sooth ref above
+	vec/cr p_alpha(1) r -2.77		|Spectral index for protons.
+	vec/cr p_phi0(1) r 2.35e4		|Spectral Amplitude for protons
+						|Units=/m**2/sec/sr/GeV
+	vec/cr p_area_solid(1) r 0.0634 	|Area-solid angle for 'VT'
+	vec/cr p_sparse(1) r 100.0		|No sparse grid for VERITAS
+	vec/cr p_nshowers([p_energies]) r	|Number at each energy
+	vec/cr p_weight([p_energies])		|Weights to use at each energy
+	vec/cr p_gweight([p_energies])		|Plot Weights to use at each
+						| energy
+	vec/in p_gev        20   24   28   34   41   49  58  70  84 100 120 _
+143 172 205 246 294 353 422 505 605 867 1243
+	vec/in p_nshowers 5000 3000 2000 2300 1000 1050 525 625 275 373 200 _
+200 200 200 100 100 100 100  75  50  50   30
+
+	exec dir$paw//dist.kumac type=p	n=[p_energies]   |Get the weights.
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*   Helium 4 (Aplha's) A=4, Z=2
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	alias/cr he4_title '''Whipple 10m 2320m Helium'''
+					  |Directory of he4 showers
+	alias/cr dir$he4 /gaea/raid/sembroski/he4/
+
+	he4_energies=17
+	vec/cr he4_num(1) r [he4_energies]	|Number of different energies
+
+*Flux parameters As of Feb. 1 1998:See Wiebel-Sooth ref above
+	vec/cr he4_alpha(1) r -2.64		|Spectral index for Helium
+	vec/cr he4_phi0(1) r 5.98e3		|Spectral Amplitude Helium
+						|Units=/m**2/sec/sr/GeV
+	vec/cr he4_area_solid(1) r 0.0634	|Area-solid angle for 'VT'
+	vec/cr he4_sparse(1) r 100.0		|No sparse grid for VERITAS
+	vec/cr he4_weight([he4_energies])	|Weights to use at each energy
+	vec/cr he4_gweight([he4_energies])	|Plot Weights to use at each
+						|energy
+	vec/cr he4_gev([he4_energies]) r	|Shower energies in GeV
+	vec/cr he4_nshowers([he4_energies]) r	|Number at each energy
+
+	vec/in he4_gev       49  58  70  84 100 120 143 205 294 422 605 867 _
+1243 1781 2553 3660 5246 
+	vec/in he4_nshowers 300 200 200 100  60  60  60  60  50  40  30  15 _
+  10   10   10   10   10 
+						|Get the weights.
+	exec dir$paw//dist.kumac type=he4 n=[he4_energies]
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*   CNO-S group  Z=6-16 Use Nitrogen 14 showers to represent this group.
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	alias/cr n14_title '''Whipple 10m 2320m CNO-S Group'''
+					  |Directory of N14 showers
+	alias/cr dir$n14 /gaea/raid/sembroski/n14/
+
+	n14_energies=10
+	vec/cr n14_num(1) r [n14_energies]	|Number of different energies
+
+*Flux parameters As of Feb. 1 1998:See Wiebel-Sooth ref above
+	vec/cr n14_alpha(1) r -2.67		|Spectral index for CNO-S
+	vec/cr n14_phi0(1) r 5.83e3		|Spectral Amplitude CNO-S
+						|Units=/m**2/sec/sr/GeV
+	vec/cr n14_area_solid(1) r 0.0634	|Area-solid angle for 'VT'
+	vec/cr n14_sparse(1) r 100.0		|No sparse grid for VERITAS
+	vec/cr n14_weight([n14_energies])	|Weights to use at each energy
+	vec/cr n14_gweight([n14_energies])	|Plot Weights to use at each
+						|energy
+	vec/cr n14_gev([n14_energies]) r	|Shower energies in GeV
+	vec/cr n14_nshowers([n14_energies]) r	|Number at each energy
+
+	vec/in n14_gev      143 205 294 422 605 867 1243 1781 2553 3660  
+	vec/in n14_nshowers  60  60  50  50  30  15   20   15   10   10  
+						|Get the weights.
+	exec dir$paw//dist.kumac type=n14 n=[n14_energies]
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*   Iron Group: Z=17-26 Use Iron 56 showeres to represent this group
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+* Updated 09/08/01
+	alias/cr fe56_title '''Whipple 10m 2320m Iron Group'''
+					  |Directory of fe56 showers
+	alias/cr dir$fe56 /gaea/raid/sembroski/fe56/
+
+	fe56_energies=10
+	vec/cr fe56_num(1) r [fe56_energies]	|Number of different energies
+	vec/cr fe56_gev([fe56_energies]) r	|Shower energies in GeV
+
+*Flux parameters As of Feb. 1 1998:See Wiebel-Sooth ref above
+	vec/cr fe56_alpha(1) r -2.60		|Spectral index for Iron Group
+	vec/cr fe56_phi0(1) r 1.04e3		|Spectral Amplitude Iron Group
+						|Units=/m**2/sec/sr/GeV
+	vec/cr fe56_area_solid(1) r 0.0634	|Area-solid angle for 'VT'
+	vec/cr fe56_sparse(1) r 100.0		|No sparse grid for VERITAS
+	vec/cr fe56_nshowers([fe56_energies]) r	|Number at each energy
+	vec/cr fe56_weight([fe56_energies])	|Weights to use at each energy
+	vec/cr fe56_gweight([fe56_energies])	|Plot Weights to use at each
+						|energy
+	vec/in fe56_gev      422 605 867 1243 1781 2553 3660 5246 7519 10777
+	vec/in fe56_nshowers  50  30  30   20   15   20   10   10   10    10
+						|Get the weights.
+	exec dir$paw//dist.kumac type=fe56 n=[fe56_energies]
+
+*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+*|Diffuse Electrons
+*       e_energies=6
+*	vec/cr e_num(1) r [e_energies]		|Number of different energies
+*	vec/cr e_gev([e_energies]) r		|Shower energies in GeV
+*|	Electron flux from Lang pg. 471 (from Earl 1961)
+*	vec/cr e_alpha(1) r -2.6		|Spectral index for electrons.
+*	vec/cr e_phi0(1) r 1.3e2	        |/m**2/sr/sec/GeV
+*                                            	|Electron Spectral Amplitude 
+*	vec/cr e_area_solid(1) r 0.071		|Area-solid angle for  VERITAS
+*	vec/cr e_sparse(1) r 100.0		|No sparse grid for VERITAS
+*	vec/cr e_nshowers([e_energies]) r	|Number at each energy
+*	vec/cr e_weight([e_energies])		|Weights to use at each energy
+*	vec/cr e_gweight([e_energies])		|Plot Weights to use at each
+*						| energy
+*|As of ??/9/96 GHS
+*        vec/input e_gev    10  15  25 35 50 75
+*        vec/in e_nshowers 100 100 100 75 50 12
+
+return

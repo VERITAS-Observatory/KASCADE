@@ -1,0 +1,204 @@
+#!/bin/bash
+#This runs production kascade on LINUX. This is the drift scan version.
+#Arguments are:
+#$0 ./kasall.scr
+#$1 particle type h=hadron g=gamma
+#$2 particle species p=proton g=gamma fe56=iron 
+#$3 primary Energy in gev (integer only)
+#$4 input parameter file specification
+#$5 Lowest flie id
+#$6 Highest file id.
+#$7 working disk directory.(Where output files go)
+#$8 gamma driftmode flag (T or F)(for kastrigger)
+#$9 id number of this run on this machine (1 to 4).used to specify random seed
+
+echo "**********************************************************************"
+echo "**********************************************************************"
+
+echo $0 $1 $2 $3 $4 $5 $6 $7  $8 $9
+
+d="debug"
+    homedir='/home/sembrosk/local/src/KASCADE'
+    srcdir=$homedir
+    year="00"
+    hrcdir='/project/veritas/sembrosk/whipple/crab_00-01'
+
+echo src dir is $srcdir
+echo hrc year is $year
+#The following is screwy and theres probably a better way to get the host name
+#into a variabl
+hostname>g.tmp
+read host <g.tmp
+
+while [ -z "$host" ]; 
+do
+    echo "Failed to get hostname:id: "${10}" Retrying"
+    hostname>g.tmp
+    read host <g.tmp
+done
+
+cd $srcdir
+echo Running on $host
+echo Directory is `pwd`
+
+
+#All auxillary files are in srcdir.
+#All data kept in $7. Make sure directory exists, if not create it.
+       mkdir -vp $7
+
+i="$5"
+while test $i -le $6
+do
+        primary=$2'_'$3'gev'$4
+#KASCADE
+        kascaderanseedfile=kascade$host'_'$9'.ran'
+	if [ ! -e "$kascaderanseedfile" ]; then
+	   cp -v kascade.ran $kascaderanseedfile  #Create a file to overwrite
+	   let seed=$(date +%s)+$$                #Add in process id ($$)
+	./randomCreateRanluxSeed -s $seed -o $kascaderanseedfile
+	                    #date +%s give NUmber of seconds from jan 0 1970
+	fi
+        kascadeparfile=$2$4.par         #Greneric input par file.
+   	segfile=$7/$primary'seg.d'$i	#Name of output seg file.
+	if [ -e "$segfile" ]; then
+	    rm $segfile
+	fi
+echo Kascade Starts	
+
+    $srcdir/kascade -e $3 -r $kascaderanseedfile -p $kascadeparfile \
+             -o $segfile -d $i
+
+echo Kaslite starts
+
+
+
+#KASLITE
+        kasliteranseedfile=kaslite$host'_'$9'.ran'
+	if [ ! -e "$kasliteranseedfile" ]; then
+	   cp -v kaslite.ran $kasliteranseedfile #Create a file to overwrite
+	   let seed=$(date +%s)+$$                #Add in process id
+	   ./randomCreateRanluxSeed -s $seed -o $kasliteranseedfile
+	                    #date +%s give NUmber of seconds from jan 0 1970
+	fi
+	kasliteparfile="kaslite.inp"
+	hrcyear=$hrcdir'/hrc'$year
+	pefile=$7/$primary'pe.d'$i        #Name of output pe file.
+	pefilehead=$pefile'.head'
+	if [ -e "$pefile" ]; then
+	    rm $pefile
+        fi
+	if [ -e "$pefilehead" ]; then
+	    rm $pefilehead
+        fi
+
+echo Calling Kaslite
+	$srcdir/kaslite -r $kasliteranseedfile -p $kasliteparfile \
+ 		-i $segfile -o $pefile  
+
+echo Kaslite ends
+
+	rm $segfile		#Remove segment file
+
+#KASSRTMRG
+	
+	kassrtmrgparfile="kassrtmrg.inp"
+	pesfileb=$7/$primary'pes.d'$i        #Name of output pes bin file.
+	pesfilebhead=$pesfileb'.head'
+	pesfileh=$7/$primary'pes.h'$i       #Name of output pes HDF5 file.
+
+	if [ -e "$pesfileb" ]; then
+	    rm $pesfileb
+	fi
+	if [ -e "$pesfilebhead" ]; then
+	    rm $pesfilebhead
+	fi
+	if [ -e "$pesfileh" ]; then
+	    rm $pesfileh
+	fi
+
+	$srcdir/kassrtmrg -p $kassrtmrgparfile -i $pefile -o $pesfileb
+
+	rm $pefile		#Delete pe file
+	rm $pefilehead		#Delete pe head file
+
+
+#KASTRIGGER
+        kastriggerranseedfile=kastrigger$host'_'$9'.ran'
+	if [ ! -e "$kastriggerranseedfile" ]; then
+	  cp -v kastrigger.ran $kastriggerranseedfile 
+                            #Create a file to overwrite
+	   let seed=$(date +%s)+$$                #Add in process id
+	   ./randomCreateRanluxSeed -s $seed -o $kastriggerranseedfile
+	                    #date +%s give NUmber of seconds from jan 0 1970
+	fi
+	kastrigger_par_file="kastrig"$1$4".par"
+  #For doing a range of mount elevations.
+#	let step=1
+	let step=11
+	while [ $step -le "11" ] ; do
+#	while [ $step -le "6" ] ; do
+	    if [ $step -eq "1" ] ; then elevation="88.99"; fi
+            if [ $step -eq "2" ] ; then elevation="88.77"; fi
+	    if [ $step -eq "3" ] ; then elevation="88.55"; fi
+	    if [ $step -eq "4" ] ; then elevation="88.33"; fi
+	    if [ $step -eq "5" ] ; then elevation="88.11"; fi
+	    if [ $step -eq "6" ] ; then elevation="87.89"; fi
+            if [ $step -eq "7" ] ; then elevation="87.67"; fi
+	    if [ $step -eq "8" ] ; then elevation="87.45"; fi
+	    if [ $step -eq "9" ] ; then elevation="87.23"; fi
+	    if [ $step -eq "10" ] ; then elevation="87.01"; fi
+	    if [ $step -eq "11" ] ; then elevation="86.79"; fi
+
+	    mfileb=$7/m$primary'_d'$step'.d'$i  #Name of output binary  m file.
+	    mfileh=$7/m$primary'_d'$step'.h'$i  #Name of output hdf5  m file.
+	    if [ -e "$mfileb" ]; then
+		rm $mfileb
+	    fi
+	    if [ -e "$mfileh" ]; then
+		rm $mfileh
+	    fi
+	    if [ -e "$pesfile.gz" ]; then
+		gunzip $pesfile.gz
+	    fi
+	    $srcdir/kastrigger -r $kastriggerranseedfile \
+                           -p $kastrigger_par_file \
+			   -c $hrcyear -i $pesfileb -s $mfileh -d $8 \
+			   -e $elevation
+# -w T
+#Note: we are NOT cutting by spectrum (-w T option)
+#We will cut by weight in kas08.scr/kasSumMHDF5.scr
+
+#M2HDF5
+	    if [ -e "$mfileb" ]; then
+	    $srcdir/m2hdf5 -i $mfileb -o $mfileh	#Make new file.
+	    fi
+	    if [ -e "$mfileh" ]; then
+		rm $mfileb
+		if [ -e "$mfileh.gz" ]; then
+		    rm $mfileh.gz
+		fi
+		gzip  $mfileh         #compress the output HDF M file
+	    fi
+
+         mv $mfileh.gz  /project/veritas/sembrosk/whipple/gammas/
+ 
+	    let step=step+1     #next elevation
+	done
+
+
+	if [ -e "$pesfileb.gz" ]; then
+           rm $pesfileb.gz
+			#Remove any previous version of output
+	fi
+	rm $pesfileb
+	rm $pesfilebhead
+        i=$((i+1))			#do next shower
+done
+
+
+
+
+
+
+
+

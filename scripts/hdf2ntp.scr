@@ -1,0 +1,83 @@
+#!/bin/bash
+#$0 ./hdf2ntp.scr
+#$1 Run  gt014245
+#$2 data directory /home/sembroski/analysis
+#$3 debug  or  nodebug  or blank  (also means no debug)
+#rm *.o
+d="debug"
+#if [ -n "$3" ]; then
+#   if [ $3 = $d ]; then
+#    rm *.o
+#    make -f Makefile_sngld hdf2ntp
+#   fi
+#else
+#    make -f Makefile_sngl hdf2ntp
+#fi
+
+
+if [ -n "$2" ]; then
+    datadir=$2
+else
+    datadir="/data/sembroski"
+fi
+
+rm hdf.in
+ln -s $datadir/$1'p.hdf' hdf.in
+
+rm ntupple.out1
+ln -s $datadir/$1'p.ntp' ntupple.out1
+
+#if [ -n  "$3" ]; then
+#    if [ $3 = $d ]; then
+#	xfx ./hdf2ntp
+#    fi
+#else
+
+	./hdf2ntp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,422 @@
+#This is PBS version to run kasaomega
+#!/bin/sh
+
+
+#Specify which nodes are to be used
+enableGEN1="on"
+enableGEN2="on"
+enableGEN3="on"
+enableGEN4="on"
+enableGEN5="on"
+enableGEN6="on"
+enableGEN7="on"
+enableGEN8="on"
+enableGEN9="on"
+enableGEN10="on"
+#enableGEN11="on"
+#enableGEN12="on"
+
+
+#camera=490d20s17d1spec
+#camera=490d20s17d2spec
+#camera=490d20s17d3spec
+#camera=490d20s17d4spec
+#camera=490d20s17d5spec
+#camera=490d20s17d6spec
+#camera=490d20s17d7spec
+#camera=490d20s17d8spec
+#camera=490d20s17d9spec
+#camera=490d20s17d10spec
+#camera=490d20s17d11spec
+
+camera=490d20s17spec
+
+#10 proton files
+primary="p"
+datadir="/project/veritas/sembrosk/whipple/protons"
+
+#6 he4 files
+#primary="he4"
+#datadir="/project/veritas/sembrosk/whipple/he4"
+
+
+#primary="n14"
+#primary="fe56"
+
+#primary="g"
+#datadir="/project/veritas/sembrosk/whipple/gammas"
+
+pedc="4.2"
+sigpedc="0.0"
+sigped="0.0"
+pesum="t7_75r5a14_0d4_2s0p0"
+jitter=.0439
+
+if [ $primary = p -o $primary = he4 ]; then
+    pType="h"
+else
+    pType="g"
+fi
+
+if [ -e "kasaomega"$pType"_"$pesum".par" ]; then
+    rm "kasaomega"$pType"_"$pesum".par"
+fi
+
+    ./createParFile.scr  "kasaomega"$pType"_"$pesum".par" $pesum $pType
+
+
+scratch="/scratch/sembrosk/whipple/protons"
+raid="/raid/sembrosk/strip/protons"
+whip="/project/veritas/sembrosk/whipple"
+sdr="/home/sembrosk/local/src/KASCADE"
+
+mailadd=$USER"@purdue.edu"
+
+nodetype=":opteron"
+#nodetype=" "
+
+
+
+kasaomscr="kasaom.scr"
+
+
+
+
+
+#To fit things on a line below:
+pr=$primary
+ka="_kasaom_"
+
+#let istart=0             #100% runs
+let istart=20             #5% runs
+#let istart=4
+let i=istart
+
+#queue="astro"
+queue="workq"
+
+
+
+
+
+
+
+#GENERAl Cluster CPU1######################################################
+if [ -n "$enableGEN1" ]; then    #build the PBS job file for gen1 
+    let i=i+1
+
+    ndname=gen
+    ndnum=1
+    astN=$ndname$ndnum
+ 
+    echo "#"PBS -N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU2######################################################
+
+if [ -n "$enableGEN2" ]; then    #build the PBS job file for gen2
+    let i=i+1
+    ndname=gen
+    ndnum=2
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log"     >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU3######################################################
+if [ -n "$enableGEN3" ]; then    #build the PBS job file for gen3
+    let i=i+1
+    ndname=gen
+    ndnum=3
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU4######################################################
+if [ -n "$enableGEN4" ]; then    #build the PBS job file for gen4
+    let i=i+1
+    ndname=gen
+    ndnum=4
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+#GENERAl Cluster CPU5######################################################
+if [ -n "$enableGEN5" ]; then    #build the PBS job file for gen1
+    let i=i+1
+    ndname=gen
+    ndnum=5
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+
+#GENERAl Cluster CPU6######################################################
+if [ -n "$enableGEN6" ]; then    #build the PBS job file for gen2
+    let i=i+1
+    ndname=gen
+    ndnum=6
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log"     >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+
+#GENERAl Cluster CPU7######################################################
+if [ -n "$enableGEN7" ]; then    #build the PBS job file for gen3
+    let i=i+1
+    ndname=gen
+    ndnum=7
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                 >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU8######################################################
+if [ -n "$enableGEN8" ]; then    #build the PBS job file for gen4
+    let i=i+1
+    ndname=gen
+    ndnum=8
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                 >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU9######################################################
+if [ -n "$enableGEN9" ]; then    #build the PBS job file for gen1
+    let i=i+1
+    ndname=gen
+    ndnum=9
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                 >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU10######################################################
+if [ -n "$enableGEN10" ]; then    #build the PBS job file for gen2
+    let i=i+1
+    ndname=gen
+    ndnum=10
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log"     >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+
+
+#GENERAl Cluster CPU11######################################################
+if [ -n "$enableGEN11" ]; then    #build the PBS job file for gen3
+    let i=i+1
+
+    ndname=gen
+    ndnum=11
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                 >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+#GENERAl Cluster CPU12######################################################
+if [ -n "$enableGEN12" ]; then    #build the PBS job file for gen4
+    let i=i+1
+    ndname=gen
+    ndnum=12
+    astN=$ndname$ndnum
+
+ 
+    echo "#"PBS-N $astN'_kasaom_'$pr                >$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -e $astN'_kasaom_'$pr'.err'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -o $astN'_kasaom_'$pr'.log'         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -m ae                               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -M $mailadd                         >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -q $queue                           >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l mem=500mb                        >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l walltime=100:00:00               >>$sdr/kasaom_$astN$pr.pbs
+    echo "#"PBS -l nodes=1$nodetype                 >>$sdr/kasaom_$astN$pr.pbs
+    echo time $sdr/$kasaomscr \\                    >>$sdr/kasaom_$astN$pr.pbs
+    echo cmsum_$pr'_'$camera $i $i $datadir $pr \\  >>$sdr/kasaom_$astN$pr.pbs
+    echo  $pesum $pedc $sigpedc $sigped $ndnum \\   >>$sdr/kasaom_$astN$pr.pbs
+    echo  "    >>$sdr/kasaom_"$astN"_"$pr".log "    >>$sdr/kasaom_$astN$pr.pbs
+
+    qsub $sdr/kasaom_$astN$pr.pbs
+fi
+################################################################
+
+
+

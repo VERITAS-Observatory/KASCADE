@@ -1,0 +1,338 @@
+#!/bin/bash
+#This is the conversion (from kas02.scr) to use of pbs
+#GLenn Sembroski 19/05/05
+#$0 ./kas02.scr
+
+user=$USER
+
+#Specify which nodes are to be used
+enableGEN1="on"
+#enableGEN2="on"
+#enableGEN3="on"
+#enableGEN4="on"
+#enableGEN5="on"
+#enableGEN6="on"
+#enableGEN7="on"
+#enableGEN8="on"
+#enableGEN9="on"
+#enableGEN10="on"
+#enableGEN11="on"
+#enableGEN12="on"
+
+#type="h"
+#species="he4"
+#datadir="/scratch/$user/strip/he4"
+#gdrift="F"
+
+#datadir="/project/veritas/sembrosk/whipple/he4"
+#datadir="/scratch/$user/strip/he4"
+
+
+type="h"
+species="p"
+gdrift="F"
+#datadir="/scratch/$user/strip/protons"
+datadir="/project/veritas/sembrosk/veritas/protons"
+
+#datadir="/project/veritas/sembrosk/whipple/strip/protons"
+#datadir="/project/veritas/sembrosk/whipple/strip/protons/test"
+
+#type="g"
+#species="g"
+#datadir="/project/veritas/sembrosk/whipple/gammas"
+#gdrift="F"
+
+
+#parspec="20w"
+
+#parspec="1w"
+parspec="1v"    #Base camp t1/t2
+
+
+#For whipple strip gammas off source do a 'hadronic' gamma run.
+#type="h"
+#species="g"
+#gdrift="T"
+
+#Use local disks to avoid NSF failures on network.
+#if [ $user == "sembrosk" ]; then
+#    datadir="/scratch/glenn"
+#else
+#    datadir="/scratch/"$user"/strip/gammas"
+#fi
+
+#kasalldrift runs kastrigger 11 times with different mount elevations in
+#steps 0f .22 deg(88.99,88.77,88.55,88.33,88.11,87.89,87.67,87.45,87.23,
+#87.01,86.79 deg)
+
+sdr="/home/sembrosk/local/src/KASCADE/"
+
+kasscript="kasall.scr"
+#kasscript="kasalldriftsteve.scr"
+#kasscript="kasalldriftglenna.scr"
+#kasscript="kasalldrift.scr"
+
+mailDestination=$user"@purdue.edu"
+
+
+queue="workq"
+pr=$species
+nodeOpt="1"
+#nodeOpt="1:opteron"
+
+
+
+#GENERAl Cluster CPU1######################################################
+if [ -n "$enableGEN1" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=1
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 20 $parspec 1 1 $datadir $gdrift  \\     >>$sdr/kas_$astnd$pr.pbs
+    echo  $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"  >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+
+#GENERAl Cluster CPU2######################################################
+if [ -n "$enableGEN2" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=2
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 3660 $parspec 5 5 $datadir $gdrift \\      >>$sdr/kas_$astnd$pr.pbs
+    echo  $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"  >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU3######################################################
+if [ -n "$enableGEN3" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=3
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 5246 $parspec 5 5 $datadir $gdrift \\     >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum  " >>"$sdr"/kas_"$astnd"_"$pr".log"  >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU4######################################################
+if [ -n "$enableGEN4" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=4
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 5246 $parspec 6 6 $datadir $gdrift \\       >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum  " >>"$sdr"/kas_"$astnd"_"$pr".log"  >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU5######################################################
+if [ -n "$enableGEN5" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=5
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 3660 $parspec 1 1 $datadir $gdrift \\       >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"  >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU6######################################################
+if [ -n "$enableGEN6" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=6
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 3660 $parspec 2 2 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU7######################################################
+if [ -n "$enableGEN7" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=7
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 5246 $parspec 1 1 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU8######################################################
+if [ -n "$enableGEN8" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=8
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 5246 $parspec 2 2 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU9######################################################
+if [ -n "$enableGEN9" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=9
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 2553 $parspec 3 3 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU10######################################################
+if [ -n "$enableGEN10" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=10
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 2553 $parspec 4 4 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU11######################################################
+if [ -n "$enableGEN11" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=11
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 2553 $parspec 5 5 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+#GENERAl Cluster CPU12######################################################
+if [ -n "$enableGEN12" ]; then    #build the PBS job file for gen1
+    ndname=gen
+    ndnum=12
+    astnd=$ndname$ndnum
+ 
+    echo "#"PBS -N $astnd'_kas_'$pr                  >$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -e $astnd'_kas_'$pr'.err'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -o $astnd'_kas_'$pr'.log'            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -m ae                                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -M $mailDestination                  >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -q $queue                            >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l mem=250mb                         >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l walltime=100:00:00                >>$sdr/kas_$astnd$pr.pbs
+    echo "#"PBS -l nodes=$nodeOpt                    >>$sdr/kas_$astnd$pr.pbs
+    echo time $sdr$kasscript $type $pr \\            >>$sdr/kas_$astnd$pr.pbs
+    echo 2553 $parspec 6 6 $datadir $gdrift  \\      >>$sdr/kas_$astnd$pr.pbs
+    echo $ndnum " >>"$sdr"/kas_"$astnd"_"$pr".log"   >>$sdr/kas_$astnd$pr.pbs
+
+    qsub $sdr/kas_$astnd$pr.pbs
+fi
+

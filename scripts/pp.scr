@@ -1,0 +1,61 @@
+#pp.scr: Parrallel script  
+#$1 R value or run number index (like 9 for r9 trigger or whatever
+#$2 starting file value
+#$3 number of files
+#$4 rate
+#$5 rate jitter
+#$6 Random Seed File Name
+#$7 data directory
+
+#Pick events from the workling file randomly to make up background run
+rvalue=$1
+let runv=80+$rvalue
+let step=$2
+let nfiles=$3
+let nmax=step+nfiles
+rate=$4
+jitter=$5
+randomSeedFileName=$6
+datadir=$7
+whip="/project/veritas/sembrosk/whipple"
+
+echo rvalue: $rvalue
+echo step:   $step
+echo nfiles: $nfiles
+echo rate:   $rate
+echo jitter: $jitter
+hostname
+cd $datadir
+pwd
+
+pair=798$runv
+nitrogen=799$runv
+
+while [ $step -lt $nmax ] ; do
+	if [ $step -lt 10 ]; then
+		run=$runv'00'$step
+	elif [ $step -lt 100 ]; then
+		run=$runv'0'$step
+	else
+		run=$runv$step
+	fi	
+
+echo run: $run
+date
+
+	~/local/src/VHDF5/VHDF5Background -i phr.VHDF5 -o gt0$run'.VHDF5' -t $rate -l 600.0 -j $jitter -u -f ~/local/src/KASCADE/$randomSeedFileName
+
+	~/local/src/VHDF5/VHDF52WHDF4 -i gt0$run'.VHDF5' -o gt0$run'.hdf' -n $nitrogen -p $pair -r $run
+	~/local/src/canalyze-4.0.0/cparam -e 1.5 -n gt0$nitrogen gt0$run'.hdf' -A 359.985,88.993
+
+	~/local/src/canalyze-4.0.0/hdf2ntp.scr 'gt0'$run $datadir
+
+	mv -v 'gt0'$run'p.ntp' $whip/protons/
+#	mv -v 'gt0'$run'.VHDF5' $whip/protons/
+	rm 'gt0'$run*
+
+        let step=step+1     #next 
+done
+
+
+

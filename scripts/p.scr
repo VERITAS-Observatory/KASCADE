@@ -1,0 +1,28 @@
+spec='p'
+#spec='he4'
+let step=1
+while [ $step -le "12" ] ; do
+        if [ $step -le "4" ]; then
+                tail -n200 ~/kas_gaea$step'_'$spec'.log'
+                echo gaea$step
+	else 
+	        if [ $step -le "6" ]; then
+               		let proc=step-4
+		        tail -n200 ~/kas_knyr$proc'_'$spec'.log'
+	                echo knyr$proc
+                else
+	        	if [ $step -le "8" ]; then
+		        	let proc=step-4
+				tail -n200 ~/kas_knyr$proc'_'$spec'.log'
+		                echo knyr$proc
+		        else
+		                let proc=step-8
+				tail -n200 ~/kas_saji$proc'_'$spec'.log'
+		                echo saji$proc
+			fi
+		fi
+
+	fi
+	let step=step+1
+	read a
+done

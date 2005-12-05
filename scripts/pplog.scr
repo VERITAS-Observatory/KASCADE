@@ -1,0 +1,25 @@
+let step=1
+while [ $step -le "16" ] ; do
+        if [ $step -le "4" ]; then
+                tail -n200 ~/pp_gaea$step'.log'
+                echo gaea$step
+	else 
+	   if [ $step -le "8" ]; then
+		let proc=step-4
+		tail -n200 ~/pp_knyr$proc'.log'
+		echo knyr$proc
+           else
+		if [ $step -le "12" ]; then
+		   let proc=step-8
+		   tail -n200 ~/pp_saji$proc'.log'
+		   echo saji$proc
+		else
+		   let proc=step-12
+		   tail -n200 ~/pp_gen$proc'.log'
+		   echo gen$proc
+	        fi
+           fi
+	fi
+	let step=step+1
+	read a
+done

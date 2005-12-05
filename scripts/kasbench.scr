@@ -1,0 +1,105 @@
+#!/bin/bash
+#This runs production kascade on LINUX. Arguments are:
+#$0 ./kasall.scr
+#$1 particle type h=hadron g=gamma
+#$2 particle species p=proton g=gamma fe56=iron 
+#$3 primary Energy in gev (integer only)
+#$4 input parameter file specification
+#$5 Lowest flie id
+#$6 Highest file id.
+#$7 working disk directory.(Where output files go)
+#$8 gamma driftmode flag (T or F)(for kastrigger)
+#$9 id number of this run on this machine (1 to 4).used to specify random seed
+
+echo "**********************************************************************"
+echo "**********************************************************************"
+
+echo $0 $1 $2 $3 $4 $5 $6 $7  $8 $9
+
+d="debug"
+    homedir='/home/sembrosk/local/src/KASCADE'
+    srcdir=$homedir
+    year="00"
+    hrcdir='/project/veritas/sembrosk/whipple/crab_00-01'
+
+echo src dir is $srcdir
+echo hrc year is $year
+#The following is screwy and theres probably a better way to get the host name
+#into a variabl
+host=$(hostname -s)
+#hostname>g.tmp
+#read host <g.tmp
+while [ -z "$host" ]; 
+do
+    echo "Failed to get hostname:id: "${10}" Retrying"
+    host=$(hostname -s)
+#    hostname>g.tmp
+#    read host <g.tmp
+done
+
+cd $srcdir
+echo Running on $host
+echo Directory is `pwd`
+
+
+#All auxillary files are in srcdir.
+
+i="$5"
+while test $i -le $6
+do
+        primary=$2'_'$3'gev'$4
+#KASCADE
+        kascaderanseedfile=kascade$host'_'$9'.ran'
+        kascadeparfile=$2$4.par         #Greneric input par file.
+   	segfile=$7/$primary'seg.d'$i	#Name of output seg file.
+	if [ -e "$segfile" ]; then
+	    rm $segfile
+	fi
+	
+    $srcdir/kascade -e $3 -r $kascaderanseedfile -p $kascadeparfile \
+             -o $segfile -d $i
+
+#KASLITE
+        kasliteranseedfile=kaslite$host'_'$9'.ran'
+#Benchmark par: no offset
+	kasliteparfile="kaslitebench.inp"
+#	kasliteparfile="kaslite.inp"
+	hrcyear=$hrcdir'/hrc'$year
+	pefile=$7/$primary'pe.d'$i        #Name of output pe file.
+	pefilehead=$pefile'.head'
+	if [ -e "$pefile" ]; then
+	    rm $pefile
+        fi
+	if [ -e "$pefilehead" ]; then
+	    rm $pefilehead
+        fi
+
+echo ' '
+echo Kaslite starts
+	$srcdir/kaslite -r $kasliteranseedfile -p $kasliteparfile \
+ 		-i $segfile -o $pefile -b T 
+
+echo Kaslite ends
+
+ 	rm $segfile		#Remove segment file
+
+#BENCHMARK
+#
+#	pesfileb=$7/$primary'_b.d'$i      #Name of output benchmark text file.
+#	if [ -e "$pesfileb" ]; then
+#	    rm $pesfileb
+#	fi
+#	$srcdir/benchmark -i $pefile -o $pesfileb
+#
+#	mv $pesfileb  $whip/protons/benchmark
+
+
+        i=$((i+1))			#do next shower
+done
+
+
+
+
+
+
+

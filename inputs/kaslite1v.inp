@@ -1,0 +1,13 @@
+-1.e-15,.3420201,-.9396926, 	1:mount direction cosigns(20deg s)
+F,				2:Enable plotting(T=True)
+VTOFNS        			3:Pe's
+1.0,				4: Whipple Mirror Reflectivity
+
+MOunt direction vector should be negative of primary vector. Thus dn is always
+neagtive(poitive is z going down.)
+
+Options:VT=veritas triangular array,WT=Whipple triangular array
+	OF is random offset of shower impact parameter withing 0,0 grid area.
+	EW is triangular array with long axis of areas in E-W direction
+	NS is triangular array with long axis of areas in N-S direction
+

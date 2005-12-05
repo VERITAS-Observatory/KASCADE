@@ -1,0 +1,166 @@
+#!/bin/bash
+#Re written for Amdahl. 15/03/04
+#$0 ./kas02.scr
+
+#type="h"
+#species="he4"
+#datadir="/scratch/sembrosk/strip/he4"
+#gdrift="F"
+
+#datadir="/project/veritas/sembrosk/whipple/he4"
+#datadir="/scratch/sembrosk/strip/he4"
+
+
+#type="h"
+#species="p"
+#gdrift="F"
+#datadir="/scratch/sembrosk/strip/protons"
+
+#datadir="/project/veritas/sembrosk/whipple/strip/protons"
+#datadir="/project/veritas/sembrosk/whipple/strip/protons/test"
+
+
+
+#type="g"
+#species="g"
+#datadir="/project/veritas/sembrosk/whipple/gammas"
+#gdrift="F"
+
+
+#parspec="20w"
+
+parspec="1w"
+#kasscript="kasall.scr"
+
+#For whipple strip gammas off source do a 'hadronic' gamma run.
+type="h"
+species="g"
+gdrift="T"
+
+#Use local disks to avoid NSF failures on network.
+datadir="/scratch/sembrosk/strip/gammas"
+
+#kasalldrift runs kastrigger 11 times with different mount elevations in
+#steps 0f .22 deg(88.99,88.77,88.55,88.33,88.11,87.89,87.67,87.45,87.23,
+#87.01,86.79 deg)
+srcdir="/home/sembrosk/local/src/KASCADE/"
+kasscript="kasalldrift.scr"
+
+
+#enableGAEA1="on"
+#enableGAEA2="on"
+#enableGAEA3="on"
+#enableGAEA4="on"
+#enableKNYR1="on"
+#enableKNYR2="on"
+#enableKNYR3="on"
+#enableKNYR4="on"
+#enableSAJI1="on"
+#enableSAJI2="on"
+#enableSAJI3="on"
+enableSAJI4="on"
+
+
+#gaea CPU1######################################################
+if [ -n "$enableGAEA1" ]; then
+   rsh gaea time $srcdir$kasscript \
+    $type $species 1781 $parspec 3 3 $datadir $gdrift  1 \
+    >>~/kas_gaea1_$species.log &
+
+fi
+
+#gaea CPU2######################################################
+if [ -n "$enableGAEA2" ]; then
+rsh gaea  time $srcdir$kasscript \
+    $type $species 1781 $parspec 4 4 $datadir $gdrift  2 \
+    >>~/kas_gaea2_$species.log &
+fi
+
+#gaea CPU3######################################################
+if [ -n "$enableGAEA3" ]; then
+rsh gaea  time $srcdir$kasscript \
+    $type $species 1781 $parspec 5 5 $datadir $gdrift  3 \
+    >>~/kas_gaea3_$species.log &
+fi
+
+#gaea CPU4######################################################
+if [ -n "$enableGAEA4" ]; then
+rsh gaea  time $srcdir$kasscript \
+    $type $species 1781 $parspec 6 6 $datadir $gdrift  4 \
+    >>~/kas_gaea4_$species.log &
+fi
+
+##############################################################################
+#knyr#########################################################################
+#knyr CPU1####################################################
+if [ -n "$enableKNYR1" ]; then
+rsh knyr  time $srcdir$kasscript \
+    $type $species 1781 $parspec 7 7 $datadir $gdrift 1 \
+    >>~/kas_knyr1_$species.log &
+fi
+
+#knyr CPU2######################################################
+if [ -n "$enableKNYR2" ]; then
+rsh knyr  time $srcdir$kasscript \
+    $type $species 1781 $parspec 8 8 $datadir $gdrift 2 \
+    >>~/kas_knyr2_$species.log &
+fi
+
+#knyr CPU3######################################################
+if [ -n "$enableKNYR3" ]; then
+rsh knyr  time $srcdir$kasscript \
+    $type $species 422 $parspec 17 50 $datadir $gdrift 3 \
+    >>~/kas_knyr3_$species.log &
+fi
+
+#knyr CPU4######################################################
+if [ -n "$enableKNYR4" ]; then
+rsh knyr  time $srcdir$kasscript \
+    $type $species 505 $parspec 15 50 $datadir $gdrift  4 \
+    >>~/kas_knyr4_$species.log &
+fi
+
+##############################################################################
+
+
+#saji#########################################################################
+#saji CPU1######################################################
+if [ -n "$enableSAJI1" ]; then
+rsh saji  time $srcdir$kasscript \
+    $type $species 605  $parspec 12 50 $datadir $gdrift  1 \
+    >>~/kas_saji1_$species.log  &
+fi
+
+#saji CPU2######################################################
+if [ -n "$enableSAJI2" ]; then
+rsh saji  time $srcdir$kasscript \
+    $type $species 867 $parspec 1 37 $datadir $gdrift  2 \
+    >>~/kas_saji2_$species.log  &
+fi
+
+#saji CPU3######################################################
+if [ -n "$enableSAJI3" ]; then
+rsh saji  time $srcdir$kasscript \
+    $type $species 1243 $parspec 1 11 $datadir $gdrift  3 \
+    >>~/kas_saji3_$species.log  &
+fi
+
+#saji CPU4######################################################
+if [ -n "$enableSAJI4" ]; then
+rsh saji  time $srcdir$kasscript \
+    $type $species 1781 $parspec 9 9  $datadir $gdrift  4 \
+    >>~/kas_saji4_$species.log  &
+fi
+##############################################################################
+
+
+
+
+
+
+
+
+
+
+
+

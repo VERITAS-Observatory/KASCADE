@@ -1,0 +1,5 @@
+
+rm fort.*
+rm ~/kas_*.log
+make kastrigger
+./kas02.scr >kas02.log 2>&1 &

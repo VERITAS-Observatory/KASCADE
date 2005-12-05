@@ -1,0 +1,7 @@
+rsh gaea killall kasaom.scr
+rsh gaea killall kasaomega
+rsh knyr killall kasaom.scr
+rsh knyr killall kasaomega
+rsh saji killall kasaom.scr
+rsh saji killall kasaomega
+

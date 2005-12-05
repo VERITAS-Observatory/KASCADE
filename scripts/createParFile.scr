@@ -1,0 +1,22 @@
+#!/bin/bash
+#This script file builds the kasaom input parameters file
+#arguments:
+#$1:filename
+#$2:TriggerString
+#$3:Primary type (g or h)
+
+trig=${2#*t}                              #keep just past t to end
+T=${trig%%_*}'.'                     #keep just before _
+trig=${trig#*_}                           #keep after _
+T=$T${trig%%r*}		  #keep before r
+
+trig=${2#*r}                              #keep just past r to end
+R='0.'${trig%%a*}                       #keep just before _
+
+trig=${2#*a}                              #keep just past a to end
+A=${trig%%_*}'.'                     #keep just before _
+trig=${trig#*_}                           #keep after _
+A=$A${trig%%d*}		  #keep before d
+
+./buildKasaomegaPar.scr $1 $T $R $A $3
+

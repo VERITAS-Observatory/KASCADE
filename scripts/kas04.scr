@@ -1,0 +1,53 @@
+#!/bin/bash
+#VHDF5Append script
+
+#rm *.o
+#cd VERITAS
+#make VHDF5Append
+
+srcdir="/home/sembroski/KASCADE/VERITAS"
+
+#20 deg Gammas file Veritas. 12m diam 12x13.86 sposize_ew,ns=.02
+#
+#date
+
+#cmsum_g499d20_t8r25a5pt_2.hdf is empty. start with 2
+dir="/gaea/raid/sembroski/veritas/gamma"
+fileNameBase=$dir'/cmsum_g499d20_t8r25a5pt'
+istart='2'
+j='12'
+
+
+#dir="/gaea/raid/sembroski/veritas/fullproton"
+#fileNameBase=$dir'/cmsum_p499d20_t8r25a5pt'
+
+
+
+#istart='1'
+#j='18'
+
+i=$istart
+while test $i -le $j
+do
+   $srcdir/VHDF5Select -wi $fileNameBase'_'$i'.VHDF5' \
+                        -o $fileNameBase'_'$i'w.VHDF5'
+    i=$((i+1))			#do next shower
+done
+
+#now append them together. Create base file.
+cp $fileNameBase'_'$istart'w'.VHDF5 $fileNameBase'_'w.VHDF5
+i=$((istart+1))
+
+while test $i -le $j
+do
+   $srcdir/VHDF5Append -i $fileNameBase'_'$i'w.VHDF5' \
+                       -o $fileNameBase'_'w.VHDF5
+    i=$((i+1))			#do next shower
+done
+
+
+#Now randomize the file
+
+$srcdir/VHDF5Select -ri $fileNameBase'_'w.VHDF5 \
+                     -o $fileNameBase'_'rw.VHDF5
+

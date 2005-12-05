@@ -1,0 +1,38 @@
+#pp.scr: Parrallel script  
+#$1 R value or run number index so rename
+#$2 R value or run number index to name to
+#$3 starting file value
+#$4 number of files
+
+rvalue=$1
+let irun=80+$rvalue
+rvalue=$2
+let orun=80+$rvalue
+
+
+
+let step=$2
+let nfiles=$3
+let nmax=step+nfiles
+
+while [ $step -lt $nmax ] ; do
+	if [ $step -lt 10 ]; then
+		runi=$irun'00'$step
+		runo=$orun'00'$step
+	elif [ $step -lt 100 ]; then
+		runi=$irun'0'$step
+		runo=$orun'0'$step
+	else
+		runi=$irun$step
+		runo=$orun$step
+	fi	
+
+	mv $runi'p.ntp' $runo'p.ntp'
+#	mv $runi'.VHDF5' $runo'.VHDF5'
+
+
+        let step=step+1     #next 
+done
+
+
+
