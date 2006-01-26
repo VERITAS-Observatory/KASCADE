@@ -1,5 +1,0 @@
-set mtyp 20
-nt/cuts $1 i=31.and.(iphi=1)
-nt/cuts $2 i=31.and.(iphi=1.or.iphi=itheta)
-nt/cr 1 ' ' 9 m' ' ! i itheta iphi wx wy dl dm dn
-nt/read 1 fort.13
