@@ -21,22 +21,36 @@ LIBDIR = lib
 EXPDIR = examples
 DOCDIR = doc
 TMPDIR = out
+# -----------------------------------------------------------------------------
+# KASCADE DEFINES AND INCLUDES
+# -----------------------------------------------------------------------------
+
+KASINCFLAGS =  -Iinclude -I.
+
+KASLIBFLAGS =  -Llib
+KASLDFLAGS = $(KASLIBFLAGS)
+
+CCLIB=-L/usr/lib -lstdc++ -lU77
 
 ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
 
 F77  =f77 
 F90  =f90
 CXX           = g++
-ARCHCFLAGS    = -Wall -g -fPIC -O3
+ARCHCFLAGS    = -Wall -g -fPIC -O
 LD            = g++
-ARCHLDFLAGS   = -O3 -g
+ARCHLDFLAGS   = -O -g 
 ARCHSOFLAGS   = -shared
 
 #Absoft Flags
-F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS
-F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s
-CFLAGS   = -g -O -Wall -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT
+F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS)
 
-LDFLAGS = $(ARCHLDFLAGS)
+#F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s $(KASINCFLAGS)
+F77FLAGS = -g -O -V  -W -f -C -c -s $(KASINCFLAGS)
+
+CFLAGS   = $(ARCHCFLAGS) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
+	-D_REENTRANT $(KASINCFLAGS)
+
+LDFLAGS = $(ARCHLDFLAGS) $(CCLIB) 
 
 
