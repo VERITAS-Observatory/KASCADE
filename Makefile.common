@@ -1,0 +1,42 @@
+# -----------------------------------------------------------------------------
+#
+# KASCADE common makefile definitions
+# 
+# Original Author: Glenn Sembroski (via Stephan Fegan (via Gernot Mayer))
+# $Author$
+# $Date$
+# $Revision$
+# $Tag$
+#
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Standard directories
+# -----------------------------------------------------------------------------
+
+SRCDIR = src
+INCDIR = include
+BINDIR = bin
+LIBDIR = lib
+EXPDIR = examples
+DOCDIR = doc
+TMPDIR = out
+
+ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
+
+F77  =f77 
+F90  =f90
+CXX           = g++
+ARCHCFLAGS    = -Wall -g -fPIC -O3
+LD            = g++
+ARCHLDFLAGS   = -O3 -g
+ARCHSOFLAGS   = -shared
+
+#Absoft Flags
+F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS
+F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s
+CFLAGS   = -g -O -Wall -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT
+
+LDFLAGS = $(ARCHLDFLAGS)
+
+
