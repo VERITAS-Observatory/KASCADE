@@ -12,8 +12,8 @@
 
 STAGES = common \
 	 kascade \
-	 kaslite
-
+	 kaslite \
+	 kastrigger
 
 TARGETS = $(STAGES)
 
