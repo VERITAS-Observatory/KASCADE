@@ -275,8 +275,8 @@ c		change.
 !	15/9/99 GHS V:1:1:6.0
 !		HDF5 output version:Generic vms/linux version.
 !		First make generic for vms/linux.		
-!		1:Inlcude kastructurs.inc explicitly in KASLITE.INC. Move all
-!		data statements to the end of the file. Put KASLITE.INC as
+!		1:Inlcude kastructurs.inc explicitly in KASLITE.H. Move all
+!		data statements to the end of the file. Put KASLITE.H as
 !		last in all declaration segments. Neede for absoft f77 which
 !		doesn't allow mixing of data statements and declaration
 !		statements.
@@ -355,7 +355,7 @@ c		change.
 
 !      07/12/04 GHS  V:1:3:8.4
 !               Move setatm,rho,yds,gms into seperate file: kasatm.for.
-!               Remove atm stuff from kaslite.inc. include it explictly in
+!               Remove atm stuff from kaslite.h. include it explictly in
 !               kasatm.for.
 !               Do this in preperation for conversion to atm76 model 
 !               (kasatm.cpp,atmosphere76.h, atmosphere76.cpp)
@@ -416,8 +416,8 @@ c		change.
       character*80 pe_benchmark_output_file
       integer printseeds
 
-      include 'kaslite_command_line.inc'
-      include 'kaslite.inc'
+      include 'kaslite_command_line.h'
+      include 'kaslite.h'
       
       data version/'V:1:3:8.7'/
       data update/'07-Sep-2005 GHS'/
@@ -1245,7 +1245,7 @@ c                Stuff for finding direction cosigns of emitted photons.
       integer*2 nphotons
       dimension a(9),b(3),r9(3)
       equivalence (dl1,r9(1)),(dm1,r9(2)),(dn1,r9(3))
-      include 'kaslite.inc'
+      include 'kaslite.h'
       qq(p,u)=sqrt(p*p+u*u)
 
       dns=sqrt(1.-segment.dlstart**2-segment.dmstart**2) !Form the dn's
@@ -1440,8 +1440,8 @@ c		Remove NSHWRS form input file. Not used anymore anyway.
  
       integer printseeds
         
-      include 'kaslite_command_line.inc'
-      include 'kaslite.inc'
+      include 'kaslite_command_line.h'
+      include 'kaslite.h'
 
       call vaxdatini            !Open input par file and do the date and time.
 
@@ -1575,9 +1575,9 @@ c     This is petes for use by nfluct.
 !               (pe_output_file//'.head')
 
       integer ios
-      include 'kaslite_command_line.inc'
+      include 'kaslite_command_line.h'
       character*80 pe_head_output_file
-      include 'kaslite.inc'
+      include 'kaslite.h'
 
 c    Open input segment file.
 c    File name specified by assignment statement to kascade.seg
@@ -1896,8 +1896,8 @@ c		less then this value. This prevents UNIX underflows on SUN.
 	REAL*4	REFLect_10M_1993(0:104)
         real reflect(0:104)
 	real reflect_sl(0:104)
-        include 'kaslite_command_line.inc'
-	include 'kaslite.inc'
+        include 'kaslite_command_line.h'
+	include 'kaslite.h'
 
 c     Spectral response array for the Hamamatsu R821 pmt.
 c     Taken from Hamamatsu plot labled 'R821'.
@@ -2467,7 +2467,7 @@ c		Remove all referneces to old rate variables. see '*' comments
 
 	real qeta_gen(0:50),qgam_gen(0:50),qetagen_hobs,qgamgen_hobs
 	integer qz
-        include 'kaslite.inc'
+        include 'kaslite.h'
 
 
 	if(iheight.gt.49)then
@@ -2530,7 +2530,7 @@ c		25/10/93
 	real reflection(0:104),filter(0:104),pmteff(0:104),
 	1 qeta_gen(0:50),qgam_gen(0:50),
 	2 qetagen_hobs,qgamgen_hobs
-	include 'kaslite.inc'
+	include 'kaslite.h'
 
 c        These will be the true integral 'Q's. They are integrated from
 c        270 to 700 nanometer. Use the 'Q's calculated in RATEINIT to do this.
@@ -2590,7 +2590,7 @@ c		25/10/93
 	real reflection(0:104),filter(0:104),pmteff(0:104),
 	1 qeta_gen(0:104,0:50),qgam_gen(0:104,0:50),
 	2 qetagen_hobs(0:104),qgamgen_hobs(0:104)
-	include 'kaslite.inc'
+	include 'kaslite.h'
 
 c        Now form the q's, as a function of lambda.
 c        This just saves a little work.
@@ -2686,7 +2686,7 @@ c		Remove all referneces to old rate variables. see '*' comments
 	2 qetagen_hobs(0:104),qgamgen_hobs(0:104)
 	real pangle
 	integer qz
-        include 'kaslite.inc'
+        include 'kaslite.h'
 
 c     see if weve exceeded max wavelength that this gamma is above threshold.
 
@@ -2944,7 +2944,7 @@ c	File constructed form ARTEMUS data. Ref when I can get it.
 !******************************************************************************
 	character*8 adate
 	character*10 time
-        include 'kaslite_command_line.inc'
+        include 'kaslite_command_line.h'
           	
 
         OPEN(4,ACCESS='SEQUENTIAL',STATUS='OLD',READONLY,
@@ -2974,7 +2974,7 @@ c      GET TIME AND DATE OF THIS RUN(call f90 interface routine)
 c	Modified:
 	integer ig,ios
 
-        include 'kaslite.inc'
+        include 'kaslite.h'
         write(7,rec=pe_next,iostat=ios)(pe.recbuf(ig),ig=1,pe_size)
         if(ios>0)then
            print*,'KASLITE--FATAL-Failure writing to pe file.ios,pe_next:',
