@@ -51,7 +51,7 @@ ARCHLDFLAGS   = -O -g
 ARCHSOFLAGS   = -shared
 
 #Absoft Flags
-F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS)
+F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) -p $(TOPCOMMONDIR)
 
 #F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s $(KASINCFLAGS)
 F77FLAGS = -g -O -V  -W -f -C -c -s $(KASINCFLAGS)

@@ -65,7 +65,7 @@ $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
 .PHONY: clean
 
 clean:
-	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR))  $(INCDIR)/*.mod \
+	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR))  *.mod \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
