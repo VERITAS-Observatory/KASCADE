@@ -10,7 +10,9 @@
 #
 # -----------------------------------------------------------------------------
 
-STAGES = common \
+#Order of STAGES is important
+STAGES = VHDF5 \
+	 common \
 	 kascade \
 	 kaslite \
 	 kastrigger

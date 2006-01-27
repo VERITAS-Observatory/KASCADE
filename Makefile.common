@@ -27,6 +27,28 @@ TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
 TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
 # -----------------------------------------------------------------------------
+#HDF5 1.6.1-post10(or whatever is installed locally) on amdahl
+#Get rid of this dependency as soon as possible
+# -----------------------------------------------------------------------------
+LIBHDF5 = -L/home/sembrosk/local/lib
+INCHDF5 = -I/home/sembrosk/local/include
+HDF5 = -lhdf5 -lz
+HDF5LDFLAGS = $(LIBHDF5) $(HDF5)
+
+# -----------------------------------------------------------------------------
+# VHDF5 DEFINES and INCLUDES
+# -----------------------------------------------------------------------------
+VHDF5DIR = $(TOPDIR)/VHDF5
+VHDF5INCDIR = $(VHDF5DIR)/$(INCDIR)
+VHDF5LIBDIR = $(VHDF5DIR)/$(LIBDIR)
+
+VHDF5INCFLAGS = -I$(VHDF5INCDIR)
+VHDF5LIBFLAGS = -L$(VHDF5LIBDIR) 
+VHDF5LDFLAGS = $(VHDF5LIBFLAGS)
+VHDF5LIBS = -lVHDF5
+
+
+# -----------------------------------------------------------------------------
 # KASCADE DEFINES AND INCLUDES
 # -----------------------------------------------------------------------------
 
@@ -51,14 +73,15 @@ ARCHLDFLAGS   = -O -g
 ARCHSOFLAGS   = -shared
 
 #Absoft Flags
-F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) -p $(TOPCOMMONDIR)
+F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
+	-p $(TOPCOMMONDIR)
 
-#F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s $(KASINCFLAGS)
-F77FLAGS = -g -O -V  -W -f -C -c -s $(KASINCFLAGS)
+#F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
+F77FLAGS = -g -O -V  -W -f -C -c -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 
 CFLAGS   = $(ARCHCFLAGS) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
-	-D_REENTRANT $(KASINCFLAGS)
+	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS)
 
-LDFLAGS = $(ARCHLDFLAGS) $(CCLIB) 
+LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) 
 
 
