@@ -26,7 +26,7 @@ c		Make changes so that this will run under SGI unix.
 c		1: replace for$date,for$time    with  call date..,call time..
 c		2: replace read(2'inext)   with   read(2,rec=inext)
 c		3: remove "blocksize=20480" from open statements.
-c		4: Use machine_type.inc to determine which OPEN statement to
+c		4: Use machine_type.h to determine which OPEN statement to
 c			use for sequential files(VMS: fixed, 
 c			SGI:default=stream?)
 c		5: Since SGI and VMS use different ordering in i*4, use an
@@ -40,7 +40,7 @@ c		setenv TMPDIR --- statement in UNIX script file and with
 c		DEFINE SYS$SCRATCH --- in VMS DCL command file.
 
 c	02/11/92 GHS  V:1:0:1:0.2
-c		Again for SGI compatability use an include file(DELETE_PE.INC)
+c		Again for SGI compatability use an include file(DELETE_PE.H)
 c		to delete the pe file from the disk to make space after it is
 c		read in. We have to use a SYSTEM call for SGI since opening a
 c		file with disposition=delete and closing it(the way we do it
@@ -53,15 +53,15 @@ c		where the final sort would put the resultant pes file on the
 c		same disk as the input file, pur the pes file on the other
 c		disk, do the final sort, deletete the input file and then
 c		copy the output pes file to the correct disk. This is only
-c		implimented for SGI. The VAX include files(set_final_out.inc,
-c		copy_file_out.inc) are dummy's.
+c		implimented for SGI. The VAX include files(set_final_out.h,
+c		copy_file_out.h) are dummy's.
 
 c	27/10/93 GHS V:1:0:2:1.0
 c		Note new version of KASLITE and thus this is a major new
 c		version. Needed since were changing the input file format.
 c		This is done in a structure which allows for future format
 c		changes without changing this code. Old compatabily can be
-c		retained by changing KASSTRUCTURES.INC which is the pe file
+c		retained by changing KASSTRUCTURES.H which is the pe file
 c		record structure. Remove different file format option.
 c		For vax again specify Scrath files as status=SCRATCH.
 
@@ -78,7 +78,7 @@ c		inext=inext+1, jnext=jnext+1 where appropriate(and maybe
 c		someplaces it wasn't necessary but its safer.
 c		4:For VMS/SGI-UNIX BLOCK_SIZE is in i*4. For SUN-UNIX its in
 c		bytes. Use recl=recl_size in all direct access OPEN
-c		statements where RECl_SIZE is set in KASSRTMRG.INC.
+c		statements where RECl_SIZE is set in KASSRTMRG.H.
 c		5:Make the flag for end of nxny an integer result so we
 c		don't get NaN errors.NXNY_FLAG.
  
@@ -89,9 +89,9 @@ c		a major version number change for KASLITE.
 
 !	23/9/99 GHS V:1:1:5:1.1
 !		Upgrade to a generic version for use on LINUX.
-!		1:Inlcude kastructures.inc explicitly in KASSRTMRG.INC. Move 
+!		1:Inlcude kastructures.h explicitly in KASSRTMRG.H. Move 
 !               all
-!		data statements to the end of the file. Put KASSRTMRG.INC as
+!		data statements to the end of the file. Put KASSRTMRG.H as
 !		last in all declaration segments. Needed for absoft f77 which
 !		doesn't allow mixing of data statements and declaration
 !		statements.
@@ -135,7 +135,7 @@ c		a major version number change for KASLITE.
 !               file (pe_input_file//'.head',pes_output_file//'.head' )
 !       24/03/04 GHS V:1:3:8:3.1 
 !               Change input command line string lengths to 120 chars (in
-!               KASSRTMRG_COMMAND_LINE.INC)
+!               KASSRTMRG_COMMAND_LINE.H)
 
 c	files
 c	Unit  1:  Input parameter file.
@@ -147,8 +147,8 @@ c	Unit 14:  Output sorted pe file.
         external iargc_
         integer num_cmd_args
         character*80 arg_opt
-	include 'kassrtmrg_command_line.inc'
-        include 'kassrtmrg.inc'
+	include 'kassrtmrg_command_line.h'
+        include 'kassrtmrg.h'
         character*80 pe_head_input_file
 	character*80 version
 	character*80 update
@@ -223,7 +223,7 @@ c	      4:	KASSRTMRG version
 
 c	Open the inoput,scratch and ouput files. Transfer the headers.
 	call fileopn
-c	The rest of the PE file structure is found in KASSTRUCTURES.INC.
+c	The rest of the PE file structure is found in KASSTRUCTURES.H.
 
 	nlastwd=block_size-pe_size
 	nwrites=0
@@ -442,10 +442,10 @@ c		Try M_MERGE=32. I thinks thats the biggest it can be made.
 
 
 
-	include 'kassrtmrg_command_line.inc'
+	include 'kassrtmrg_command_line.h'
         character*80 scratch_file_name
         character*2 unit_file
-	include 'kassrtmrg.inc'
+	include 'kassrtmrg.h'
 c	Number of super blocks to merge at a time. 
 	parameter (n_merge=32)
 	real*4 mrg(block_size,n_merge)
@@ -851,9 +851,9 @@ c		Remove different file format option.
 !               Setup for command line input parameter use.(Changes in main,
 !               DATIN, FILEOPEN
 
-	include 'kassrtmrg_command_line.inc'
+	include 'kassrtmrg_command_line.h'
 c       19/10/00 GHS 
-        InCLUDE 'kassrtmrg.inc'
+        InCLUDE 'kassrtmrg.h'
 	integer ios
 	character*8 adate
 	character*10 time          	
@@ -910,7 +910,7 @@ c	written: 10/15/90 G.H.S.
 c	Modified:
 
 c	10/21/91 G.H.S.V:1:0:1:0.1
-c		Use machine_type.inc to determine if we can use fixed record
+c		Use machine_type.h to determine if we can use fixed record
 c		format for sequential files.
 
 c	03/6/92 G.H.S. V:1:0:1:0.1
@@ -924,7 +924,7 @@ c               Note new version of KASLITE and thus this is a major new
 c		version. Needed since were changing the input file format.
 c		This is done in a structure which allows for future format
 c		changes without changing this code. Old compatabily can be
-c		retained by changing KASSTRUCTURES.INC which is the pe file
+c		retained by changing KASSTRUCTURES.H which is the pe file
 c		record structure. Remove different file format option.
 
 c	16/12/97 GHS V:1:1:5:1.0
@@ -955,11 +955,11 @@ c		a major version number change for KASLITE.
 !               Requires getting and putting the header record in a seperate 
 !               file (pe_input_file//'.head',pes_output_file//'.head' )
 
-	include 'kassrtmrg_command_line.inc'
+	include 'kassrtmrg_command_line.h'
         character*80 pe_head_input_file
         character*80 pes_head_output_file
         character*80 scratch_file_name
-	include 'kassrtmrg.inc'
+	include 'kassrtmrg.h'
 	character*12 ptype(9)
 	character*8 namtyp(18)
 	integer ios
@@ -1255,7 +1255,7 @@ c	Transfer header informatrion to ouput file..
 c	Merge the jptrlast blocks in the mrg array an write out this
 c	resultant 'super block' to the scratch disk file as 32 records.
 
-	include 'kassrtmrg.inc'
+	include 'kassrtmrg.h'
 	common/tans/mrg(block_size,32)
 	real*4 mrg
 	integer*4 imrg(block_size,32),idone(block_size)
