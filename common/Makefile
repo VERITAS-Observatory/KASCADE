@@ -9,26 +9,39 @@
 # $Tag$
 #
 # -----------------------------------------------------------------------------
+
 include ../Makefile.common
+
 TOPDIR = ..
+
+
 
 
 LIBTARGET = $(LIBDIR)/libKASCADECommon.a
 
-F77SOURCES := $(notdir $(shell echo $(SRCDIR)/*.for))
-F90SOURCES := $(notdir $(shell echo $(SRCDIR)/*.f90))
-CPPSOURCES := $(notdir $(shell echo $(SRCDIR)/*.cpp))
+F77SOURCES    := $(notdir $(shell echo $(SRCDIR)/*.for))
+F90SOURCES    := $(notdir $(shell echo $(SRCDIR)/*.f90))
+CPPSOURCES    := $(notdir $(shell echo $(SRCDIR)/*.cpp))
+F90USESOURCES := $(notdir $(shell echo $(INCDIR)/*.f90))
 
-INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
+INCLUDES      := $(notdir $(shell ls $(INCDIR)/*.h ))
 
 
-all: $(LIBTARGET) 
+all: $(F90MODULES) $(LIBTARGET) 
+
+
+
+.PHONY: $(F90MODULES)
+
+$(F90MODULES):
+	$(MAKE) -C $@
 
 F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
 F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
+F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
 
-$(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
+$(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS) $(F90USEOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
@@ -44,9 +57,10 @@ $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 .PHONY: clean
 
 clean:
-	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) \
+	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) $(INCDIR)/*.mod \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
+		$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
 
