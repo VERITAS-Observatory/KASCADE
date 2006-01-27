@@ -14,34 +14,34 @@ include ../Makefile.common
 
 TOPDIR = ..
 
+#Some of this f90 compiles get a little tricky. The order they are done is 
+#important. Do those sepecial files first
 
+FIRSTF90SOURCES    := w10m_subs.f90
+FIRSTF90USESOURCES := structures.f90
 
 
 LIBTARGET = $(LIBDIR)/libKASCADECommon.a
 
 F77SOURCES    := $(notdir $(shell echo $(SRCDIR)/*.for))
-F90SOURCES    := $(notdir $(shell echo $(SRCDIR)/*.f90))
+F90SOURCES    := $(FIRSTF90SOURCES) \
+	   $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(FIRSTF90SOURCES)))
 CPPSOURCES    := $(notdir $(shell echo $(SRCDIR)/*.cpp))
-F90USESOURCES := $(notdir $(shell echo $(INCDIR)/*.f90))
+F90USESOURCES := $(FIRSTF90USESOURCES) \
+	   $(notdir $(shell ls $(INCDIR)/*.f90| grep -v $(FIRSTF90USESOURCES)))
 
 INCLUDES      := $(notdir $(shell ls $(INCDIR)/*.h ))
 
 
-all: $(F90MODULES) $(LIBTARGET) 
+all: $(LIBTARGET) 
 
-
-
-.PHONY: $(F90MODULES)
-
-$(F90MODULES):
-	$(MAKE) -C $@
 
 F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
 F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
 
-$(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS) $(F90USEOBJECTS)
+$(LIBTARGET): $(F90USEOBJECTS) $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS) 
 	$(AR) r $@ $^
 	ranlib $@
 
@@ -54,10 +54,14 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $<
 
+$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
+            $(INCDIR)/%.f90
+	$(F90) -o $@ -c $(F90FLAGS) $<
+
 .PHONY: clean
 
 clean:
-	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) $(INCDIR)/*.mod \
+	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) *.mod \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) \
