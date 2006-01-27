@@ -14,11 +14,9 @@ include ../Makefile.common
 
 LIBTARGET = $(LIBDIR)/libKASCADECommon.a
 
-
-F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
-F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
-CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
-
+F77SOURCES := $(notdir $(shell echo $(SRCDIR)/*.for))
+F90SOURCES := $(notdir $(shell echo $(SRCDIR)/*.f90))
+CPPSOURCES := $(notdir $(shell echo $(SRCDIR)/*.cpp))
 
 INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
 
@@ -48,7 +46,6 @@ clean:
 	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
-		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-		out/.depend
+		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
 
