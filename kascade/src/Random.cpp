@@ -376,11 +376,11 @@ void RandomNumbers::ran2_read(void)
       ran2_write();           // write seeds file
     }
   } else {                    // seeds file is opened
-    fscanf(fp,"%d\n",&ran2_idum1);
-    fscanf(fp,"%d\n",&ran2_idum2);
-    fscanf(fp,"%d\n",&ran2_iy);
+    fscanf(fp,"%ld\n",&ran2_idum1);
+    fscanf(fp,"%ld\n",&ran2_idum2);
+    fscanf(fp,"%ld\n",&ran2_iy);
     for (j=0;j<NTAB;j++) {
-      fscanf(fp,"%d\n",&ran2_iv[j]);
+      fscanf(fp,"%ld\n",&ran2_iv[j]);
     }
     fclose(fp);
   }
@@ -393,11 +393,11 @@ void RandomNumbers::ran2_write(void)
   FILE *fp;
 
   fp=fopen(pFileName,"w");
-  fprintf(fp,"%d\n",ran2_idum1);
-  fprintf(fp,"%d\n",ran2_idum2);
-  fprintf(fp,"%d\n",ran2_iy);
+  fprintf(fp,"%ld\n",ran2_idum1);
+  fprintf(fp,"%ld\n",ran2_idum2);
+  fprintf(fp,"%ld\n",ran2_iy);
   for (j=0;j<NTAB;j++) {
-    fprintf(fp,"%d\n",ran2_iv[j]);
+    fprintf(fp,"%ld\n",ran2_iv[j]);
   }
   fclose(fp);
   return;
