@@ -15,7 +15,7 @@ TOPDIR = ..
 include ../Makefile.common
 
 
-LIBTARGET = $(LIBDIR)/libKASCADE.a
+LIBTARGET = $(LIBDIR)/libkascade.a
 EXETARGET = kascade.for
 
 

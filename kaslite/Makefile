@@ -15,7 +15,7 @@ TOPDIR = ..
 include ../Makefile.common
 
 
-LIBTARGET = $(LIBDIR)/libKASLITE.a
+LIBTARGET = $(LIBDIR)/libkaslite.a
 EXETARGET = kaslite.for
 
 #Nothing below here should have to change (much, maybe)
