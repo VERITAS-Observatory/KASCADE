@@ -21,14 +21,19 @@ LIBDIR = lib
 EXPDIR = examples
 DOCDIR = doc
 TMPDIR = out
+
+TOPCOMMONDIR = $(TOPDIR)/common
+TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
+TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
+
 # -----------------------------------------------------------------------------
 # KASCADE DEFINES AND INCLUDES
 # -----------------------------------------------------------------------------
 
-KASINCFLAGS =  -Iinclude -I.
-
-KASLIBFLAGS =  -Llib
+KASINCFLAGS = -I$(TOPCOMMONINCDIR) -Iinclude -I.
+KASLIBFLAGS = -L$(TOPCOMMONLIBDIR) -Llib
 KASLDFLAGS = $(KASLIBFLAGS)
+KASLIBS = -lKASCADECommon
 
 CCLIB=-L/usr/lib -lstdc++ -lU77
 

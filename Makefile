@@ -10,7 +10,9 @@
 #
 # -----------------------------------------------------------------------------
 
-STAGES = kascade
+STAGES = common \
+	 kascade \
+	 kaslite
 
 
 TARGETS = $(STAGES)

@@ -10,6 +10,7 @@
 #
 # -----------------------------------------------------------------------------
 include ../Makefile.common
+TOPDIR = ..
 
 
 LIBTARGET = $(LIBDIR)/libKASCADECommon.a

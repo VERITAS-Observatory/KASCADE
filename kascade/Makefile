@@ -1,6 +1,6 @@
 # -----------------------------------------------------------------------------
 #
-# KASCADE directory makefile
+# KASCADE kascade directory makefile
 # 
 # Original Author: Glenn Sembroski
 # $Author$
@@ -9,6 +9,9 @@
 # $Tag$
 #
 # -----------------------------------------------------------------------------
+
+TOPDIR = ..
+
 include ../Makefile.common
 
 
@@ -38,7 +41,7 @@ $(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
 	ranlib $@
 
 $(EXETARGET): $(LIBTARGET)
-	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS)
+	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS)
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
