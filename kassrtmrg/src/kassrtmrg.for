@@ -1,5 +1,5 @@
 c	Program KASSRTMRG
-c	Version:V:1:3:8:3.1
+c	Version:V:1:3:8:3.2
 c	This program sorts a kascade pe file by area and time
 
 c	Written by:
@@ -136,6 +136,9 @@ c		a major version number change for KASLITE.
 !       24/03/04 GHS V:1:3:8:3.1 
 !               Change input command line string lengths to 120 chars (in
 !               KASSRTMRG_COMMAND_LINE.H)
+!       27/01/06 GHS:V:1:3:8:3.2
+!               Remove HDF5 dependency.
+ 
 
 c	files
 c	Unit  1:  Input parameter file.
@@ -200,10 +203,6 @@ c	      4:	KASSRTMRG version
                  call getarg_(i+1,pes_output_file)
                  pes_output_file=trim(pes_output_file)
                  print*,' -o option gives:',trim(pes_output_file)
-              elseif(arg_opt=="-h")then
-                 call getarg_(i+1,pes_hdf5_output_file)
-                 pes_hdf5_output_file=trim(pes_hdf5_output_file)
-                 print*,' -h option gives:',trim(pes_hdf5_output_file)
               else
                  print*,' Illegal command line option #:',i,'Option:',
      1            trim(arg_opt)
@@ -395,10 +394,6 @@ c		Handle zero length pe files.
 
 	if(index(options,'PESFILE=BIN').ne.0)then
 		close(unit=14)
-	else
-		print*,' Closeing sorted HDF5 pes file.'
-		print*,' Number of PES in HDF5 pes file:',icount
-		call peshdf5_close
 	endif
         print*," KASSRTMRG Normal End"
         print*,"!****************************************************"
@@ -636,7 +631,6 @@ c		Worry about i*2 int. overflows during calculation.
 !***************************************************************************
 !       19/10/00 GHS V:1:1:5:1.2
 !               Test OPTIONS to see if output file is PESFILE=BIN
-!               Otherwise assume output file is HDF5 format.
 !  07/05/03 GHS Ouput file is now direct access for large file ability.
 		if(index(options,'PESFILE=BIN').ne.0)then
 			write(mfile,rec=ipes_next,iostat=ios)
@@ -653,14 +647,14 @@ c		Worry about i*2 int. overflows during calculation.
                            endif
                         endif
                         ipes_next=ipes_next+1
-		else
+!		else
 !HDF5 Write it out. Pe event # start at 0.(i.e. index=icount-1)
-			icount=icount+1
-			do ip=1,pe_size
-				k=ij+ip-1
-				rec_pe.irecbuf(ip)=idone(k)
-			enddo
-			call peshdf5_out(icount-1,rec_pe)
+!			icount=icount+1
+!			do ip=1,pe_size
+!				k=ij+ip-1
+!				rec_pe.irecbuf(ip)=idone(k)
+!			enddo
+!			call peshdf5_out(icount-1,rec_pe)
 		endif
 !***************************************************************************
 
@@ -1083,15 +1077,15 @@ c	Transfer header informatrion to ouput file..
         endif
         ipes_next=1
 
-	else
-
+!	else
+!
 !	open the output HDF file and write out the header summary file.
-						!These are C routines.
-	        print*,' Output PES file is in HDF5 format.'
-		call peshdf5_create(pes_hdf5_ouput_file)
-			     !Write out the pehead record into its own dataset.
-        	call peshdf5_pehead_write(pe_head)
-		icount=0
+!						!These are C routines.
+!	        print*,' Output PES file is in HDF5 format.'
+!		call peshdf5_create(pes_hdf5_ouput_file)
+!			     !Write out the pehead record into its own dataset.
+!        	call peshdf5_pehead_write(pe_head)
+!		icount=0
 	endif
 
 
