@@ -11,6 +11,9 @@
 #include <iomanip>
 using namespace std;
 
+#include "VASlalib.h"
+
+
 #define WHIPLONG          1.935190
 #define WHIPLAT           0.552978
 
@@ -100,9 +103,9 @@ extern "C" void W10mGetRaDecFromVec(double* X, double* ra, double* dec);
 extern "C" void W10mGetVecFromRaDec(double* ra, double* dec, double* X);
 
 //Sla lib stuff
-extern "C" void sla_dh2e_(double *,double *, double *, double *, double *);
-extern "C" double sla_dranrm_(double *);
-extern "C" void sla_de2h_(double *,double *, double *, double *, double *);
+//extern "C" void sla_dh2e_(double *,double *, double *, double *, double *);
+//extern "C" double sla_dranrm_(double *);
+//extern "C" void sla_de2h_(double *,double *, double *, double *, double *);
 
 extern double Rexp(float rate);
 
@@ -1181,7 +1184,7 @@ void W10mGetRaDecFromVec(double* X, double* ra, double* dec)
 {
   double pi=3.141592654;
   double elevation=pi/2-(acos(abs(X[2])));
-  double az;
+  double az=0.0;
   if(X[1]==0 && X[0]==0)
     {      //At zenith
       az=0.0;
@@ -1217,13 +1220,13 @@ void W10mGetRaDecFromVec(double* X, double* ra, double* dec)
 
   //Convert az and elevation to hourangle and dec    
   double latitude = WHIPLAT;
-  sla_dh2e_(&az, &elevation, &latitude, &hourangle, &decd); 
+  slaDh2e(az, elevation, latitude, &hourangle, &decd); 
   //cout<<"hourangle,decd,latitude,az,elevation: "<<hourangle<<","<<
   //                 decd<<","<<latitude<<","<<az<<","<<elevation<<endl; 
 
   //Convert hour angle back to ra
   double rad=((pi/2)-hourangle); //Assumes sideraltime is 6:00 
-  *ra= sla_dranrm_(&rad);  
+  *ra= slaDranrm(rad);  
   *dec= decd;
   //cout<<"ra,dec, (1,1): "<<*ra<<","<<*dec<<endl;
   return;
@@ -1241,7 +1244,7 @@ void W10mGetVecFromRaDec(double* ra, double* dec, double* X)
   double rad= *ra;
   double hourangle = (pi/2) - rad; //sidereal time is 6:00
 
-  sla_de2h_(&hourangle,&decd,&latitude,&azimuth,&elevation);
+  slaDe2h(hourangle,decd,latitude,&azimuth,&elevation);
   //cout<<"rad,hourangle,decd,latitude,azimuth,elevation: "<<rad<<","<<
   //  hourangle<<","<<
   //  decd<<","<<latitude<<","<<azimuth<<","<<elevation<<endl;
