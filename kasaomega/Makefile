@@ -18,6 +18,23 @@ include ../Makefile.common
 LIBTARGET = $(LIBDIR)/libkasaomega.a
 EXETARGET = kasaomega.f90
 
+# ---------------------------------------------------------------------------
+#Define various library sources. This is only for kasaomega and will soon be
+# removed. Thats whay the defs are here and not in Makefile.common
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+#VERITAS Havester code on amdahl
+# ---------------------------------------------------------------------------
+VERITAS = /home/sembrosk/local/src/VERITAS
+INCVERITAS = -I$(VERITAS)
+LIBVERITAS = -L$(VERITAS)/lib
+	gaeaSerial=-lserialization
+	gaeaDefs=-D_GAEA
+VLIBS =  $(gaeaSerial) -ldast -ldatastream -larrayevent -lfpio -lrunbuilder \
+	-ldatum  -ldast -lvglobal $(gaeaSerial)
+
+
 
 F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
 F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
@@ -43,9 +60,15 @@ $(LIBTARGET): $(F90USEOBJECTS)  $(F90OBJECTS) $(F77OBJECTS)  $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
+#$(EXETARGET): $(LIBTARGET)
+#	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  \
+#		$(VHDF5LDFLAGS) $(VHDF5LIBS) $(KASLDFLAGS) $(KASLIBS)
+
 $(EXETARGET): $(LIBTARGET)
-	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS) \
-$(VHDF5LDFLAGS) $(VHDF5LIBS)
+	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  \
+		$(KASLDFLAGS) $(KASLIBS) \
+		$(VHDF5LDFLAGS) $(VHDF5LIBS) \
+		$(LIBVERITAS) $(VLIBS) 
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
