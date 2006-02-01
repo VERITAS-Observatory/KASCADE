@@ -22,6 +22,13 @@ STAGES =VHDF5 \
 
 TARGETS = $(STAGES)
 
+INSTALLTARGETS =kascade \
+		kaslite \
+		kassrtmrg \
+		kastrigger \
+		kasaomega \
+		utilities
+
 all: $(STAGES)
 
 
@@ -29,6 +36,14 @@ all: $(STAGES)
 
 $(TARGETS):
 	$(MAKE) -C $@
+
+install: $(addsuffix -install,$(INSTALLTARGETS))
+
+.PHONY: $(addsuffix -install,$(INSTALLTARGETS))
+
+$(addsuffix -install,$(INSTALLTARGETS)):
+	$(MAKE) -C $(@:-install=) install
+
 
 clean: $(addsuffix -clean,$(TARGETS))
 

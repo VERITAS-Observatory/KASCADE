@@ -1,7 +1,6 @@
 # -----------------------------------------------------------------------------
 #
 # KASCADE kastrigger directory makefile
-# 
 # Original Author: Glenn Sembroski
 # $Author$
 # $Date$
@@ -36,7 +35,7 @@ VLIBS =  $(gaeaSerial) -ldast -ldatastream -larrayevent -lfpio -lrunbuilder \
 
 
 
-F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
+#F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
 F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
 CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
 F90USESOURCES := $(notdir $(shell ls $(INCDIR)/*.f90))
@@ -85,6 +84,13 @@ $(addprefix $(TMPDIR)/, $(EXETARGET:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<
+
+
+.PHONY: install
+
+install:
+	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
+
 
 .PHONY: clean
 

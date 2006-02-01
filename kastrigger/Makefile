@@ -63,6 +63,13 @@ $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<
 
+
+.PHONY: install
+
+install:
+	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
+
+
 .PHONY: clean
 
 clean:

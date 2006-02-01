@@ -55,6 +55,14 @@ $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $<
 
+
+.PHONY: install
+
+install:
+	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
+
+
+
 .PHONY: clean
 
 clean:

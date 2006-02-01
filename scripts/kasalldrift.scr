@@ -49,7 +49,7 @@ do
 	   cp -v $srcinputs/kasbase.ran $kascaderanseedfile  #Create a file to
                                                              # overwrite
 	   let seed=$(date +%s)+$$                     #Add in process id ($$)
-	   $srcscripts/randomCreateRanluxSeed -s $seed -o $kascaderanseedfile
+	   $srcbin/randomCreateRanluxSeed -s $seed -o $kascaderanseedfile
 	                      #date +%s give NUmber of seconds from jan 0 1970
 	fi
         kascadeparfile=$srcinputs/$2$4.par         #Greneric input par file.
@@ -68,7 +68,7 @@ echo Kascade Starts
 	   cp -v $srcinputs/kasbase.ran $kasliteranseedfile #Create a file to 
                                                   #overwrite
 	   let seed=$(date +%s)+$$                #Add in process id
-	   $srcsrcipts/randomCreateRanluxSeed -s $seed -o $kasliteranseedfile
+	   $srcbin/randomCreateRanluxSeed -s $seed -o $kasliteranseedfile
 	                    #date +%s give NUmber of seconds from jan 0 1970
 	fi
 	kasliteparfile="kaslite.inp"
@@ -83,7 +83,7 @@ echo Kascade Starts
         fi
 
 echo Calling Kaslite
-	$srcdir/bin//kaslite -r $kasliteranseedfile -p $kasliteparfile \
+	$srcbin/kaslite -r $kasliteranseedfile -p $kasliteparfile \
  		-i $segfile -o $pefile  
 
 echo Kaslite ends
