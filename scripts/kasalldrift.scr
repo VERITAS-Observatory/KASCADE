@@ -10,7 +10,7 @@
 #$6 Highest file id.
 #$7 working disk directory.(Where output files go)
 #$8 gamma driftmode flag (T or F)(for kastrigger)
-#$9 id number of this run on this machine (1 to 4).used to specify random seed
+#$9 id number of this run on this machine.  Used to specify random seed
 
 echo "**********************************************************************"
 echo $0 $1 $2 $3 $4 $5 $6 $7  $8 $9
@@ -29,7 +29,6 @@ srcbin=$src/bin
 
 #All auxillary files are in srcdir/inputs.
 srcinputs=$src/inputs
-srcscripts=$src/scripts
 cd $srcinputs
 echo Directory is `pwd`
 
@@ -71,7 +70,7 @@ echo Kascade Starts
 	   $srcbin/randomCreateRanluxSeed -s $seed -o $kasliteranseedfile
 	                    #date +%s give NUmber of seconds from jan 0 1970
 	fi
-	kasliteparfile="kaslite.inp"
+	kasliteparfile=$srcinputs/"kaslite"$4".inp"
 	hrcyear=$hrcdir'/hrc'$year
 	pefile=$7/$primary'pe.d'$i        #Name of output pe file.
 	pefilehead=$pefile'.head'
@@ -92,7 +91,7 @@ echo Kaslite ends
 
 #KASSRTMRG
 	
-	kassrtmrgparfile="kassrtmrg.inp"
+	kassrtmrgparfile=$srcinputs/"kassrtmrg.inp"
 	pesfileb=$7/$primary'pes.d'$i        #Name of output pes bin file.
 	pesfilebhead=$pesfileb'.head'
 	pesfileh=$7/$primary'pes.h'$i       #Name of output pes HDF5 file.
@@ -107,7 +106,7 @@ echo Kaslite ends
 	    rm $pesfileh
 	fi
 
-	$srcdir/bin//kassrtmrg -p $kassrtmrgparfile -i $pefile -o $pesfileb
+	$srcbin/kassrtmrg -p $kassrtmrgparfile -i $pefile -o $pesfileb
 
 	rm $pefile		#Delete pe file
 	rm $pefilehead		#Delete pe head file
@@ -118,25 +117,39 @@ echo Kaslite ends
 	if [ ! -e "$kastriggerranseedfile" ]; then
 	  cp -v $srcinputs/kasbase.ran $kastriggerranseedfile 
                             #Create a file to overwrite
-	   let seed=$(date +%s)+$$                #Add in process id
-	   $srcsrcipts/randomCreateRanluxSeed -s $seed -o $kastriggerranseedfile
+	  let seed=$(date +%s)+$$                #Add in process id
+	  $srcbin/randomCreateRanluxSeed -s $seed -o $kastriggerranseedfile
 	                    #date +%s give NUmber of seconds from jan 0 1970
 	fi
-	kastrigger_par_file="kastrig"$1$4".par"
-  #For doing a range of mount elevations.
+	kastriggerParFile=$srcinputs/"kastrig"$1$4".par"
+  #For doing a range of mount elevations. note: bash can't to float arith
+#Modify for tracking 2d analyusis : .1 deg bins
 	let step=1
-	while [ $step -le "11" ] ; do
+	while [ $step -le "24" ] ; do
 	    if [ $step -eq "1" ] ; then elevation="88.99"; fi
-            if [ $step -eq "2" ] ; then elevation="88.77"; fi
-	    if [ $step -eq "3" ] ; then elevation="88.55"; fi
-	    if [ $step -eq "4" ] ; then elevation="88.33"; fi
-	    if [ $step -eq "5" ] ; then elevation="88.11"; fi
-	    if [ $step -eq "6" ] ; then elevation="87.89"; fi
-            if [ $step -eq "7" ] ; then elevation="87.67"; fi
-	    if [ $step -eq "8" ] ; then elevation="87.45"; fi
-	    if [ $step -eq "9" ] ; then elevation="87.23"; fi
-	    if [ $step -eq "10" ] ; then elevation="87.01"; fi
-	    if [ $step -eq "11" ] ; then elevation="86.79"; fi
+            if [ $step -eq "2" ] ; then elevation="88.89"; fi
+	    if [ $step -eq "3" ] ; then elevation="88.79"; fi
+	    if [ $step -eq "4" ] ; then elevation="88.69"; fi
+	    if [ $step -eq "5" ] ; then elevation="88.59"; fi
+	    if [ $step -eq "6" ] ; then elevation="88.49"; fi
+            if [ $step -eq "7" ] ; then elevation="88.39"; fi
+	    if [ $step -eq "8" ] ; then elevation="88.29"; fi
+	    if [ $step -eq "9" ] ; then elevation="88.19"; fi
+	    if [ $step -eq "10" ] ; then elevation="88.09"; fi
+	    if [ $step -eq "11" ] ; then elevation="87.99"; fi
+	    if [ $step -eq "12" ] ; then elevation="87.89"; fi
+	    if [ $step -eq "13" ] ; then elevation="87.79"; fi
+	    if [ $step -eq "14" ] ; then elevation="87.69"; fi
+	    if [ $step -eq "15" ] ; then elevation="87.59"; fi
+	    if [ $step -eq "16" ] ; then elevation="87.49"; fi
+	    if [ $step -eq "17" ] ; then elevation="87.39"; fi
+	    if [ $step -eq "18" ] ; then elevation="87.29"; fi
+	    if [ $step -eq "19" ] ; then elevation="87.19"; fi
+	    if [ $step -eq "20" ] ; then elevation="87.09"; fi
+	    if [ $step -eq "21" ] ; then elevation="87.99"; fi
+	    if [ $step -eq "22" ] ; then elevation="87.89"; fi
+	    if [ $step -eq "23" ] ; then elevation="87.79"; fi
+	    if [ $step -eq "24" ] ; then elevation="87.69"; fi
 
 	    mfileb=$7/m$primary'_d'$step'.d'$i  #Name of output binary  m file.
 	    mfileh=$7/m$primary'_d'$step'.h'$i  #Name of output hdf5  m file.
@@ -149,8 +162,8 @@ echo Kaslite ends
 	    if [ -e "$pesfile.gz" ]; then
 		gunzip $pesfile.gz
 	    fi
-	    $srcdir/bin//kastrigger -r $kastriggerranseedfile \
-                           -p $kastrigger_par_file \
+	    $srcbin/kastrigger -r $kastriggerranseedfile \
+                           -p $kastriggerParFile \
 			   -c $hrcyear -i $pesfileb -s $mfileh -d $8 \
 			   -e $elevation
 # -w T
@@ -159,7 +172,7 @@ echo Kaslite ends
 
 #M2HDF5
 	    if [ -e "$mfileb" ]; then
-	    $srcdir/bin/m2hdf5 -i $mfileb -o $mfileh	#Make new file.
+	      $srcbin/m2hdf5 -i $mfileb -o $mfileh	#Make new file.
 	    fi
 	    if [ -e "$mfileh" ]; then
 		rm $mfileb
@@ -187,6 +200,20 @@ done
 
 
 
+
+#Driftscan: .22 deg bins
+
+#	    if [ $step -eq "1" ] ; then elevation="88.99"; fi
+#           if [ $step -eq "2" ] ; then elevation="88.77"; fi
+#	    if [ $step -eq "3" ] ; then elevation="88.55"; fi
+#	    if [ $step -eq "4" ] ; then elevation="88.33"; fi
+#	    if [ $step -eq "5" ] ; then elevation="88.11"; fi
+#	    if [ $step -eq "6" ] ; then elevation="87.89"; fi
+#           if [ $step -eq "7" ] ; then elevation="87.67"; fi
+#	    if [ $step -eq "8" ] ; then elevation="87.45"; fi
+#	    if [ $step -eq "9" ] ; then elevation="87.23"; fi
+#	    if [ $step -eq "10" ] ; then elevation="87.01"; fi
+#	    if [ $step -eq "11" ] ; then elevation="86.79"; fi
 
 
 

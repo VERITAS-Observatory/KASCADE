@@ -15,9 +15,8 @@ TOPDIR = ..
 include ../Makefile.common
 
 
-LIBTARGET = $(LIBDIR)/libutilities.a
-EXETARGET = randomCreateRanluxSeed.cpp
-
+LIBTARGET  = $(LIBDIR)/libutilities.a
+EXETARGETS = randomCreateRanluxSeed.cpp m2hdf5.f90
 
 F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
 F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
@@ -25,7 +24,6 @@ CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
 
 
 INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
-#echo INCLUDES: $(INCLUDES)
 
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
