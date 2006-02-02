@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #This is the conversion (from kas02.scr) to use of pbs
 #Glenn Sembroski 19/05/05
 #$0 ./kas02.scr
@@ -111,8 +112,8 @@ parspec="1w"
 sdr="/home/sembrosk/KASCADE/scripts"
 
 #kasscript=$sdr/"kasall.scr"
-#kasscript=$sdr/"kasall2DTrack.1.scr"
-kasscript=$sdr/"kasall2DTrack.22.scr"
+kasscript=$sdr/"kasall2DTrack.1.scr"
+#kasscript=$sdr/"kasall2DTrack.22.scr"
 
 
 lcl="$PWD"

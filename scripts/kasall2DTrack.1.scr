@@ -20,9 +20,7 @@ echo hrc year is $year
 
 hrcdir='/project/veritas/sembrosk/whipple/crab_00-01'
 
-
-host=$(hostname -s)
-echo Running on $host
+echo Running on "$(hostname)"
 
 src=/home/sembrosk/KASCADE
 srcbin=$src/bin
@@ -43,7 +41,7 @@ while test $i -le $6
 do
         primary=$2'_'$3'gev'$4
 #KASCADE
-        kascaderanseedfile=kascade$host'_'$9'.ran'
+        kascaderanseedfile=$srcinputs/kascade$host'_'$9'.ran'
 	if [ ! -e "$kascaderanseedfile" ]; then
 	   cp -v $srcinputs/kasbase.ran $kascaderanseedfile  #Create a file to
                                                              # overwrite
@@ -62,7 +60,7 @@ echo Kascade Starts
              -o $segfile -d $i
 
 #KASLITE
-        kasliteranseedfile=kaslite$host'_'$9'.ran'
+        kasliteranseedfile=$srcinputs/kaslite$host'_'$9'.ran'
 	if [ ! -e "$kasliteranseedfile" ]; then
 	   cp -v $srcinputs/kasbase.ran $kasliteranseedfile #Create a file to 
                                                   #overwrite
@@ -113,7 +111,7 @@ echo Kaslite ends
 
 
 #KASTRIGGER
-        kastriggerranseedfile=kastrigger$host'_'$9'.ran'
+        kastriggerranseedfile=$srcinputs/kastrigger$host'_'$9'.ran'
 	if [ ! -e "$kastriggerranseedfile" ]; then
 	  cp -v $srcinputs/kasbase.ran $kastriggerranseedfile 
                             #Create a file to overwrite
@@ -147,10 +145,10 @@ echo Kaslite ends
 	    if [ $step -eq "18" ] ; then elevation="87.29"; fi
 	    if [ $step -eq "19" ] ; then elevation="87.19"; fi
 	    if [ $step -eq "20" ] ; then elevation="87.09"; fi
-	    if [ $step -eq "21" ] ; then elevation="87.99"; fi
-	    if [ $step -eq "22" ] ; then elevation="87.89"; fi
-	    if [ $step -eq "23" ] ; then elevation="87.79"; fi
-	    if [ $step -eq "24" ] ; then elevation="87.69"; fi
+	    if [ $step -eq "21" ] ; then elevation="86.99"; fi
+	    if [ $step -eq "22" ] ; then elevation="86.89"; fi
+	    if [ $step -eq "23" ] ; then elevation="86.79"; fi
+	    if [ $step -eq "24" ] ; then elevation="86.69"; fi
 
 	    mfileb=$7/m$primary'_d'$step'.d'$i  #Name of output binary  m file.
 	    mfileh=$7/m$primary'_d'$step'.h'$i  #Name of output hdf5  m file.

@@ -58,7 +58,7 @@ echo Kascade Starts
              -o $segfile -d $i
 
 #KASLITE
-        kasliteranseedfile=kaslite$host'_'$9'.ran'
+        kasliteranseedfile=$srcinputs/kaslite$host'_'$9'.ran'
 	if [ ! -e "$kasliteranseedfile" ]; then
 	   cp -v $srcinputs/kasbase.ran $kasliteranseedfile #Create a file to 
                                                   #overwrite
@@ -109,7 +109,7 @@ echo Kaslite ends
 
 
 #KASTRIGGER
-        kastriggerranseedfile=kastrigger$host'_'$9'.ran'
+        kastriggerranseedfile=$srcinputs/kastrigger$host'_'$9'.ran'
 	if [ ! -e "$kastriggerranseedfile" ]; then
 	  cp -v $srcinputs/kasbase.ran $kastriggerranseedfile 
                             #Create a file to overwrite
