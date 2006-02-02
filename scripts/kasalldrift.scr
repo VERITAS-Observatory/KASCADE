@@ -126,6 +126,7 @@ echo Kaslite ends
 #Modify for tracking 2d analyusis : .1 deg bins
 	let step=1
 	while [ $step -le "24" ] ; do
+#Tracking 2D: .1 deg bins
 	    if [ $step -eq "1" ] ; then elevation="88.99"; fi
             if [ $step -eq "2" ] ; then elevation="88.89"; fi
 	    if [ $step -eq "3" ] ; then elevation="88.79"; fi
