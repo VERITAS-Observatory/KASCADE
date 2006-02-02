@@ -115,7 +115,8 @@ sdr="/home/sembrosk/KASCADE/scripts"
 kasscript=$sdr/"kasall2DTrack.22.scr"
 
 
-lcl="."
+lcl="$PWD"
+
 pr=$species
 
 let processStart=1

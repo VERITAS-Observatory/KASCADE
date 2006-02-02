@@ -21,8 +21,8 @@ echo hrc year is $year
 hrcdir='/project/veritas/sembrosk/whipple/crab_00-01'
 
 
-host=$(hostname -s)
-echo Running on $host
+h="$(hostname)"
+echo Running on $h
 
 src=/home/sembrosk/KASCADE
 srcbin=$src/bin
@@ -43,7 +43,7 @@ while test $i -le $6
 do
         primary=$2'_'$3'gev'$4
 #KASCADE
-        kascaderanseedfile=kascade$host'_'$9'.ran'
+        kascaderanseedfile=$srcinputs/kascade$host'_'$9'.ran'
 	if [ ! -e "$kascaderanseedfile" ]; then
 	   cp -v $srcinputs/kasbase.ran $kascaderanseedfile  #Create a file to
                                                              # overwrite
