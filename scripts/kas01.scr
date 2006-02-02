@@ -108,11 +108,11 @@ parspec="1w"
 #87.01,86.79 deg)
 
 #script directory
-sdr="/home/sembrosk/KASCADE/script"
+sdr="/home/sembrosk/KASCADE/scripts"
 
 #kasscript=$sdr/"kasall.scr"
-#kasscript=$sdr/"kasall2dTrack.1.scr"
-kasscript=$sdr/"kasall2dTrack.22.scr"
+#kasscript=$sdr/"kasall2DTrack.1.scr"
+kasscript=$sdr/"kasall2DTrack.22.scr"
 
 
 lcl="."
