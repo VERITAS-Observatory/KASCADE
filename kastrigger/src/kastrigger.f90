@@ -2611,9 +2611,9 @@ END MODULE KASTRIGGER_SUBS
 !	End of shower.
       If(index(mhead%options,"PESFILE=BIN")/=0)then
          close(unit=2)
-      else
-                                        ! All peshdf5 are C routines.
-         call peshdf5_close          !Close input HDF5 file.
+!      else
+!                                        ! All peshdf5 are C routines.
+!         call peshdf5_close          !Close input HDF5 file.
       endif
 
 

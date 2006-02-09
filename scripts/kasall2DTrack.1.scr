@@ -181,7 +181,7 @@ echo Kaslite ends
 		gzip  $mfileh         #compress the output HDF M file
 	    fi
 
-         mv $mfileh.gz  /project/veritas/sembrosk/whipple/gammas/
+#         mv -v $mfileh.gz  /project/veritas/sembrosk/whipple/gammas/
  
 	    let step=step+1     #next elevation
 	done
@@ -195,25 +195,3 @@ echo Kaslite ends
 	rm $pesfilebhead
         i=$((i+1))			#do next shower
 done
-
-
-
-
-
-#Driftscan: .22 deg bins
-
-#	    if [ $step -eq "1" ] ; then elevation="88.99"; fi
-#           if [ $step -eq "2" ] ; then elevation="88.77"; fi
-#	    if [ $step -eq "3" ] ; then elevation="88.55"; fi
-#	    if [ $step -eq "4" ] ; then elevation="88.33"; fi
-#	    if [ $step -eq "5" ] ; then elevation="88.11"; fi
-#	    if [ $step -eq "6" ] ; then elevation="87.89"; fi
-#           if [ $step -eq "7" ] ; then elevation="87.67"; fi
-#	    if [ $step -eq "8" ] ; then elevation="87.45"; fi
-#	    if [ $step -eq "9" ] ; then elevation="87.23"; fi
-#	    if [ $step -eq "10" ] ; then elevation="87.01"; fi
-#	    if [ $step -eq "11" ] ; then elevation="86.79"; fi
-
-
-
-

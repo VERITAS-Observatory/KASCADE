@@ -167,7 +167,7 @@ echo Kaslite ends
 		gzip  $mfileh         #compress the output HDF M file
 	    fi
 
-         mv $mfileh.gz  /project/veritas/sembrosk/whipple/gammas/
+#         mv -v $mfileh.gz  /project/veritas/sembrosk/whipple/gammas/
  
 	    let step=step+1     #next elevation
 	done

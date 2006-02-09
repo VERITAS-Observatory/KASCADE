@@ -15,11 +15,11 @@ user=$USER
 # put a # in front of the enableGEN[n] line.
 #enableGen[1]="on"
 
-enableGEN[1]="on"
+#enableGEN[1]="on"
    energy[1]=84
     start[1]=1
-      end[1]=5
-#      end[1]=50
+#      end[1]=1
+      end[1]=50
 
 #enableGEN[2]="on"
    energy[2]=100
@@ -35,6 +35,8 @@ enableGEN[1]="on"
    energy[4]=143
     start[4]=1
       end[4]=50
+
+#running above 4, return here 8 Feb. 06
 
 #enableGEN[5]="on"
    energy[5]=172

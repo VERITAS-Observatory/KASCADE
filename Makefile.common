@@ -47,6 +47,26 @@ VHDF5LIBFLAGS = -L$(VHDF5LIBDIR)
 VHDF5LDFLAGS = $(VHDF5LIBFLAGS)
 VHDF5LIBS = -lVHDF5
 
+# -----------------------------------------------------------------------------
+# Root
+# -----------------------------------------------------------------------------
+
+ifdef ROOTSYS
+ROOTBIN := $(ROOTSYS)/bin/
+else
+ROOTBIN :=
+endif
+
+ROOTCONFIG = $(ROOTBIN)root-config
+ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
+ROOTLDFLAGS  := 
+ROOTLIBS     := $(shell $(ROOTCONFIG) --libs)
+ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
+
+ROOTCINT = $(ROOTBIN)rootcint
+ROOTCINTFLAGS = $(OAWGCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
+
+
 
 # -----------------------------------------------------------------------------
 # KASCADE DEFINES AND INCLUDES
@@ -76,11 +96,11 @@ ARCHSOFLAGS   = -shared
 F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
 	-p $(TOPCOMMONDIR)
 
-#F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
-F77FLAGS = -g -O -V  -W -f -C -c -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
+#F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
+F77FLAGS = -g -O -V  -W -N3 -f -C -N1 -c -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 
 CFLAGS   = $(ARCHCFLAGS) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
-	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS)
+	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS) $(ROOTCFLAGS)
 
 LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) 
 
