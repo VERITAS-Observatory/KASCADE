@@ -1,0 +1,72 @@
+/**
+ * Original Author: Glenn H. Sembroski
+ * $Author$
+ * $Date$
+ * $Revision$
+ * $Tag$
+ * 
+ **/
+// This is a class that mainpulate the Kascade binary segment file.
+
+#ifndef KSTEFILE_H
+#define KSTEFILE_H
+
+
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <vector>
+
+
+#include "KSSegmentDataClasses.h"
+#include "KSPeDataClasses.h"
+#include "KSTeDataClasses.h"
+#include "KSPixel.h"
+
+// *******************************************************
+// ** PE File class **
+// *******************************************************
+class KSTeFile
+{
+ public:
+  KSTeFile();
+  virtual ~KSTeFile();
+  bool Create(std::string TeFileName);
+  bool Open(std::string TeFileName);
+  void Close();
+
+  void WriteSegmentHead(KSSegmentHeadData* segHead);
+  void WritePeHead(KSPeHeadData* peHead);
+  void WriteTeHead(KSTeHeadData* teHead);
+  void WriteTe(KSTeData* te);
+  void WriteTePixelData(std::vector<KSPixel>& fPixel);
+
+  bool ReadSegmentHead(KSSegmentHeadData* segHead);
+  bool ReadPeHead(KSPeHeadData* peHead);
+  bool ReadTeHead(KSTeHeadData* teHead);
+  bool ReadTe(KSTeData* te);
+  bool ReadTePixelData(std::vector<KSPixel>& fPixel);
+
+  bool foundEOF(){return fFoundEOF;};
+  bool foundReadError(){return fFoundError;};
+
+ private:
+  std::ifstream* pfInFile;
+  std::ofstream* pfOutFile;
+  bool fSegmentHeadWritten;
+  bool fSegmentHeadRead;
+  bool fPeHeadWritten;
+  bool fPeHeadRead;
+  bool fTeHeadWritten;
+  bool fTeHeadRead;
+
+  bool fTeRead;
+  bool fTeWritten;
+
+  bool fFoundEOF;
+  bool fFoundError;
+};
+// ***************************************************************************
+
+
+#endif

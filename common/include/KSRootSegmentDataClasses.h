@@ -11,19 +11,35 @@
 // eventually. Not used by general KASCADE as of yet.
 
 
-#ifndef KSSEGMENTDATACLASSES_H
-#define KSSEGMENTDATACLASSES_H
+#ifndef KSROOTSEGMENTDATACLASSES_H
+#define KSROOTSEGMENTDATACLASSES_H
+
+
+
 
 #include <string>
+#include "KSSegmentDataClasses.h"
 
-class KSSegmentHeadData
+
+#ifndef _NOROOT
+  #include "TObject.h"
+#endif
+
+
+#ifdef _NOROOT
+  class KSRootSegmentHeadData
+#else
+  class KSRootSegmentHeadData : public TObject
+#endif
 // *******************************************************
 // ** SEGMENT HEADER STRUCTURE **
 // *******************************************************
 {
  public:
-  KSSegmentHeadData();
-  virtual ~KSSegmentHeadData();
+  KSRootSegmentHeadData();
+  KSRootSegmentHeadData(KSSegmentHeadData* pfSegmentHead);
+
+  virtual ~KSRootSegmentHeadData();
   void PrintSegmentHead();
 
   int fType;                     // Primary particle type.
@@ -42,19 +58,26 @@ class KSSegmentHeadData
   char   fEarthsMagneticFieldSpec[10];// Earths magnetic field spec:
                                        //F=none.W=W10m
   char   fVersion[80];	          //Version of kascade that made this file
-  
+#ifndef _NOROOT
+  ClassDef(KSRootSegmentHeadData,1);
+#endif
+
 };
 // ***************************************************************************
 
+#ifdef _NOROOT
+   class KSRootSegmentData
+#else
+   class KSRootSegmentData : public TObject
+#endif
 
-class KSSegmentData
 // *******************************************************
 // class to hold single track segment
 // *******************************************************
 {
  public:
-  KSSegmentData();
-  virtual ~KSSegmentData();
+  KSRootSegmentData();
+  virtual ~KSRootSegmentData();
   void PrintSegment();
 
   double fXStart;  //Initial xy(meters),z of segment.
@@ -68,5 +91,8 @@ class KSSegmentData
   double fDmEnd;
   double fGamma;  //gamma at middle of segment.
   int nspec;      //particle type
+#ifndef _NOROOT
+  ClassDef(KSRootSegmentData,1);
+#endif
 };
 #endif
