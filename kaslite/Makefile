@@ -16,7 +16,8 @@ include ../Makefile.common
 
 
 LIBTARGET = $(LIBDIR)/libkaslite.a
-EXETARGET = kaslite.for
+#EXETARGET = kaslite.for
+EXETARGET = ksLight.cpp
 
 #Nothing below here should have to change (much, maybe)
 
@@ -28,10 +29,12 @@ CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
 INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
 #echo INCLUDES: $(INCLUDES)
 
-EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)) 
-EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.for=)) 
+#EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)) 
+#EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.for=)) 
+EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
+EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
-all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET)
+all: $(LIBTARGET) $(EXEOBJECT) $(EXE)
 
 F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
 F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
@@ -41,8 +44,11 @@ $(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(EXETARGET): $(LIBTARGET)
-	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS)
+#$(EXETARGET): $(LIBTARGET)
+#	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS)
+
+$(EXE): $(LIBTARGET)
+	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(KASLDFLAGS) $(KASLIBS) $(CLDFLAGS)
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
@@ -51,10 +57,13 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<
 
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) $<
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
 
-$(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
-	$(F77) -o $@ -c $(F77FLAGS) $<
+#$(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
+#	$(F77) -o $@ -c $(F77FLAGS) $<
+
+$(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(CFLAGS)  -D_NOROOT $<
 
 
 .PHONY: install
