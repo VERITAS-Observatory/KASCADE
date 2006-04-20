@@ -1,7 +1,7 @@
 /**
- * \class KSSegmentDataClasses
+ * \class KSRootSegmentDataClasses
  * \ingroup common
- * \brief File of methods for KSSegmentDataClasses.
+ * \brief File of methods for KSRootSegmentDataClasses.
  *  Declaration of the data class for the pes
  
  * Original Author: Glenn H. Sembroski
@@ -14,7 +14,7 @@
 // This is where the code starts.
 
 
-#include "KSSegmentDataClasses.h"
+#include "KSRootSegmentDataClasses.h"
 #include "KSKascadeNames.h"
 #include <iostream>
 
@@ -27,24 +27,54 @@ extern "C" void mass_number2charge_mass(int* ia, int* qz,float* xmass);
 #endif
 
 #ifdef __MAKECINT__
-#pragma link C++ class KSSegmentHeadData;
-#pragma link C++ class KSSegmentData;
+#pragma link C++ class KSRootSegmentHeadData;
+#pragma link C++ class KSRootSegmentData;
 #endif
 
-KSSegmentHeadData::KSSegmentHeadData()
+#ifndef _NOROOT
+   ClassImp(KSRootSegmentHeadData);
+   ClassImp(KSRootSegmentData);
+#endif
+
+KSRootSegmentHeadData::KSRootSegmentHeadData()
 {
   //nothing to do
 }
 // ***************************************************************************
 
-KSSegmentHeadData::~KSSegmentHeadData()
+KSRootSegmentHeadData::KSRootSegmentHeadData(KSSegmentHeadData* pfSegHead)
+{
+  //Copy over header.
+  fType                        = pfSegHead->fType;
+  fGeVEnergyPrimary            = pfSegHead->fGeVEnergyPrimary;
+  fDlInitial                   = pfSegHead->fDlInitial;		 
+  fDmInitial                   = pfSegHead->fDmInitial;		 
+  fDnInitial                   = pfSegHead->fDnInitial;             
+  fEnergyThresholdMeV          = pfSegHead->fEnergyThresholdMeV;
+  fMaxCoulombScatSegmentLength = pfSegHead->fMaxCoulombScatSegmentLength;
+  fInjectionDepth              = pfSegHead->fInjectionDepth; 
+  fObservationAltitudeM        = pfSegHead->fObservationAltitudeM; 
+  fXInitialM                   = pfSegHead->fXInitialM;	       
+  fYInitialM                   = pfSegHead->fYInitialM;	
+  fShowerID                    = pfSegHead->fShowerID;	       
+  for(int i=0;i<10;i++)
+    {
+      fEarthsMagneticFieldSpec[i]=pfSegHead->fEarthsMagneticFieldSpec[i];
+    }
+  for(int i=0;i<80;i++)
+    {
+      fVersion[i]=pfSegHead->fVersion[i];	 
+    }
+}
+// ***************************************************************************
+
+KSRootSegmentHeadData::~KSRootSegmentHeadData()
 {
   //nothing to do
 }
 // ***************************************************************************
 
-void KSSegmentHeadData::PrintSegmentHead()
-{
+void KSRootSegmentHeadData::PrintSegmentHead()
 // ***************************************************************************
 //	Print parameters
 // ***************************************************************************
@@ -73,7 +103,7 @@ void KSSegmentHeadData::PrintSegmentHead()
 	       <<fType<<"     "<<fNameType[fType-1]
 	       <<std::endl;
     }
-
+  
   std::cout<<"                     ID number of the Shower  ="
 	   <<fShowerID<<std::endl;
   std::cout<<"                         Primary energy  TEV  ="
@@ -81,7 +111,7 @@ void KSSegmentHeadData::PrintSegmentHead()
   std::cout<<"      Dli,Dmi,Dni: Direction cosigns primary  ="
 	   <<fDlInitial<<","<<fDmInitial<<","
 	   <<fDnInitial<<std::endl;
-
+  
   std::cout<<" Thresh energy(MEV) mus gammas and electrons  ="
 	   <<fEnergyThresholdMeV<<std::endl;
   std::cout<<"               Observatory altitude (meters)  ="
@@ -101,7 +131,7 @@ void KSSegmentHeadData::PrintSegmentHead()
 	       <<std::endl;
       std::cout<<"WARNING--***********************************************"
 	       <<std::endl;
-
+      
     }
   std::cout<<"            Injection depth gm/cm2 from top   ="
 	   <<fInjectionDepth<<std::endl;
@@ -111,20 +141,19 @@ void KSSegmentHeadData::PrintSegmentHead()
 }
 // **************************************************************************
 
-
-
-
-
-}
-KSSegmentData::KSSegmentData()
+KSRootSegmentData::KSRootSegmentData()
 {
   //nothing to do
 }
-KSSegmentData::~KSSegmentData()
+// ***************************************************************************
+
+KSRootSegmentData::~KSRootSegmentData()
 {
   //nothing to do
 }
-void KSSegmentData::PrintSegment()
+// ***************************************************************************
+
+void KSRootSegmentData::PrintSegment()
 {
   //Nothing yet
 }
