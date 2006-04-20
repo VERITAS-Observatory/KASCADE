@@ -16,7 +16,8 @@ include ../Makefile.common
 
 
 LIBTARGET = $(LIBDIR)/libkassrtmrg.a
-EXETARGET = kassrtmrg.for
+#EXETARGET = kassrtmrg.for
+EXETARGET = ksPeSort.cpp
 
 #Nothing below here should have to change (much, maybe)
 
@@ -28,8 +29,11 @@ CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
 INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
 #echo INCLUDES: $(INCLUDES)
 
-EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)) 
-EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.for=)) 
+#EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)) 
+#EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.for=)) 
+
+EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
+EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
 all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET)
 
@@ -41,8 +45,13 @@ $(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(EXETARGET): $(LIBTARGET)
-	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS)
+#$(EXETARGET): $(LIBTARGET)
+#	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS)
+
+$(EXETARGET): $(LIBTARGET) 
+	$(CXX) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
@@ -53,8 +62,11 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $<
 
-$(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
-	$(F77) -o $@ -c $(F77FLAGS) $<
+#$(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
+#	$(F77) -o $@ -c $(F77FLAGS) $<
+
+$(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(CFLAGS) $<
 
 
 .PHONY: install
@@ -70,7 +82,5 @@ clean:
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-		$(EXEOBJECT) \
-		out/.depend \
-		$(EXE)
+		$(EXEOBJECT)		$(EXE)
 

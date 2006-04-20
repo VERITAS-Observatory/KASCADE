@@ -18,47 +18,53 @@ include ../Makefile.common
 LIBTARGET  = $(LIBDIR)/libutilities.a
 
 
-CPPTARGET   = randomCreateRanluxSeed.cpp
-CPPTARGETOBJECT   = $(addprefix $(TMPDIR)/, $(CPPTARGET:.cpp=.o)) 
-CPPEXE      = $(addprefix $(BINDIR)/, $(CPPTARGET:.cpp=)) 
+CPPTARGET1   = randomCreateRanluxSeed.cpp
+CPPTARGET2   = ksPe2TFile.cpp
 
-CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET)))
+CPPTARGETS= $(CPPTARGET1) $(CPPTARGET2)
+CPPTARGETOBJECTS   = $(addprefix $(TMPDIR)/, $(CPPTARGETS:.cpp=.o)) 
+CPPEXES      = $(addprefix $(BINDIR)/, $(CPPTARGETS:.cpp=)) 
 
-F90TARGET   = m2hdf5.f90
-F90TARGETOBJECT   = $(addprefix $(TMPDIR)/, $(F90TARGET:.f90=.o)) 
-F90EXE      = $(addprefix $(BINDIR)/, $(F90TARGET:.f90=)) 
+CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET1) | \
+                 grep -v $(CPPTARGET2)  ))
+CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
-F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(F90TARGET)))
+
+F90TARGET1   = m2hdf5.f90
+F90TARGETS   = $(F90TARGET1)
+F90TARGETOBJECTS   = $(addprefix $(TMPDIR)/, $(F90TARGETS:.f90=.o)) 
+F90EXES      = $(addprefix $(BINDIR)/, $(F90TARGETS:.f90=)) 
+
+F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(F90TARGET1)))
+F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
 
 
 #all: $(LIBTARGET) $(CPPTARGETOBJECT) $(F90TARGETOBJECT) $(CPPTARGET) \
 #     $(F90TARGET)
 
-all: $(LIBTARGET) $(CPPTARGETOBJECT) $(F90TARGETOBJECT) $(CPPTARGET) \
-     $(F90TARGET)
-
-
-
-F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
-CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
+all: $(LIBTARGET) $(CPPTARGETOBJECTS) $(F90TARGETOBJECTS) $(CPPTARGETS) \
+     $(F90TARGETS)
 
 $(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
 
-$(F90TARGET): $(LIBTARGET)
-	$(F90) -o $(F90EXE) $(F90TARGETOBJECT) $^ $(LDFLAGS)  \
+$(F90TARGET1): $(LIBTARGET)
+	$(F90) -o $(addprefix $(BINDIR)/,$(@:.f90=)) \
+	          $(addprefix $(TMPDIR)/,$(@:.f90=.o)) $^ $(LDFLAGS)  \
 		$(KASLDFLAGS) $(KASLIBS) \
 		$(VHDF5LDFLAGS) $(VHDF5LIBS) \
 		$(LIBVERITAS) $(VLIBS) 
 
-#Use F90 here which uses absoft linker which knows of libU77
-$(CPPTARGET): $(LIBTARGET)
-	$(F90) -o $(CPPEXE) $(CPPTARGETOBJECT) $^ $(LDFLAGS)  \
-		$(KASLDFLAGS) $(KASLIBS) \
-		$(VHDF5LDFLAGS) $(VHDF5LIBS) \
-		$(LIBVERITAS) $(VLIBS) 
+$(CPPTARGET1): $(LIBTARGET) 
+	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+	          $(LDFLAGS) $(KASLDFLAGS) $(KASLIBS) 
+$(CPPTARGET2): $(LIBTARGET) 
+	$(CXX) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
 
 
 
@@ -71,10 +77,10 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $<
 
-$(addprefix $(TMPDIR)/, $(CPPTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+$(addprefix $(TMPDIR)/, $(CPPTARGETS:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $<
 
-$(addprefix $(TMPDIR)/, $(F90TARGET:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
+$(addprefix $(TMPDIR)/, $(F90TARGETS:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<
 
 
@@ -94,6 +100,6 @@ clean:
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-		$(F90TARGETOBJECT) $(CPPTARGETOBJECT) \
-		$(F90EXE) $(CPPEXE)
+		$(F90TARGETOBJECTS) $(CPPTARGETOBJECTS) \
+		$(F90EXES) $(CPPEXES)
 

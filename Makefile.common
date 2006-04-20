@@ -26,31 +26,51 @@ TOPCOMMONDIR = $(TOPDIR)/common
 TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
 TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
+VEGASBASE = /home/sembrosk/vegas
+
 # -----------------------------------------------------------------------------
 #HDF5 1.6.1-post10(or whatever is installed locally) on amdahl
 #Get rid of this dependency as soon as possible
 # -----------------------------------------------------------------------------
-LIBHDF5 = -L/home/sembrosk/local/lib
-INCHDF5 = -I/home/sembrosk/local/include
-HDF5 = -lhdf5 -lz
-HDF5LDFLAGS = $(LIBHDF5) $(HDF5)
+#LIBHDF5 = -L/home/sembrosk/local/lib
+#INCHDF5 = -I/home/sembrosk/local/include
+#HDF5 = -lhdf5 -lz
+#HDF5LDFLAGS = $(LIBHDF5) $(HDF5)
 
 # -----------------------------------------------------------------------------
 # VHDF5 DEFINES and INCLUDES
 # -----------------------------------------------------------------------------
-VHDF5DIR = $(TOPDIR)/VHDF5
-VHDF5INCDIR = $(VHDF5DIR)/$(INCDIR)
-VHDF5LIBDIR = $(VHDF5DIR)/$(LIBDIR)
+#VHDF5DIR = $(TOPDIR)/VHDF5
+#VHDF5INCDIR = $(VHDF5DIR)/$(INCDIR)
+#VHDF5LIBDIR = $(VHDF5DIR)/$(LIBDIR)
+#
+#VHDF5INCFLAGS = -I$(VHDF5INCDIR)
+#VHDF5LIBFLAGS = -L$(VHDF5LIBDIR) 
+#VHDF5LDFLAGS = $(VHDF5LIBFLAGS)
+#VHDF5LIBS = -lVHDF5
 
-VHDF5INCFLAGS = -I$(VHDF5INCDIR)
-VHDF5LIBFLAGS = -L$(VHDF5LIBDIR) 
-VHDF5LDFLAGS = $(VHDF5LIBFLAGS)
-VHDF5LIBS = -lVHDF5
+# -----------------------------------------------------------------------------
+#  VEGAS  defines
+# -----------------------------------------------------------------------------
+VEGASCMNINCDIR = -I$(VEGASBASE)/common/include
+VEGASCMNLIBDIR = -L$(VEGASBASE)/common/lib
+VEGAGCMNLIB = -lSP24commonLite
+VEGASLDFLAGS = $(VEGASCMNLIBDI) $(VEGAGCMNLIB)
+
+
+# -----------------------------------------------------------------------------
+# KASCADE DEFINES AND INCLUDES
+# -----------------------------------------------------------------------------
+
+KASINCFLAGS = -I$(TOPCOMMONINCDIR) -Iinclude -I.
+KASLIBFLAGS = -L$(TOPCOMMONLIBDIR) -Llib
+KASLDFLAGS = $(KASLIBFLAGS)
+KASLIBS =   -lKascadeCommon
+KASLIBSROOT = -lKascadeCommonRoot
 
 # -----------------------------------------------------------------------------
 # Root
 # -----------------------------------------------------------------------------
-
 ifdef ROOTSYS
 ROOTBIN := $(ROOTSYS)/bin/
 else
@@ -64,18 +84,8 @@ ROOTLIBS     := $(shell $(ROOTCONFIG) --libs)
 ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 ROOTCINT = $(ROOTBIN)rootcint
-ROOTCINTFLAGS = $(OAWGCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
+ROOTCINTFLAGS = $(KASINCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
 
-
-
-# -----------------------------------------------------------------------------
-# KASCADE DEFINES AND INCLUDES
-# -----------------------------------------------------------------------------
-
-KASINCFLAGS = -I$(TOPCOMMONINCDIR) -Iinclude -I.
-KASLIBFLAGS = -L$(TOPCOMMONLIBDIR) -Llib
-KASLDFLAGS = $(KASLIBFLAGS)
-KASLIBS = -lKASCADECommon
 #Set up place where F90 Modules will be made and kept.
 
 F90MODULES = $(INCDIR)
@@ -87,9 +97,10 @@ ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
 F77  =f77 
 F90  =f90
 CXX           = g++
-ARCHCFLAGS    = -Wall -g -fPIC -O
+#ARCHCFLAGS    = -Wall -g -fPIC -O3
+ARCHCFLAGS    = -Wall -g -fPIC 
 LD            = g++
-ARCHLDFLAGS   = -O -g 
+ARCHLDFLAGS   =  
 ARCHSOFLAGS   = -shared
 
 #Absoft Flags
@@ -99,10 +110,16 @@ F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
 #F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 F77FLAGS = -g -O -V  -W -N3 -f -C -N1 -c -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 
-CFLAGS   = $(ARCHCFLAGS) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
-	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS) $(ROOTCFLAGS)
+#CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
+#	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS) $(ROOTCFLAGS)
+CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
+	-D_REENTRANT $(KASINCFLAGS) $(ROOTCFLAGS)
 
-LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) 
+#LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) 
+LDFLAGS = $(ARCHLDFLAGS)  $(CCLIB) 
+
+#CLDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) -L/usr/lib -lstdc++
+CLDFLAGS = $(ARCHLDFLAGS) -L/usr/lib -lstdc++
 
 
 INSTALLCMD = install -m 755 

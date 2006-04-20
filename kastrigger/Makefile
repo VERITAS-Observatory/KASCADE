@@ -16,7 +16,8 @@ include ../Makefile.common
 
 
 LIBTARGET = $(LIBDIR)/libkastrigger.a
-EXETARGET = kastrigger.f90
+#EXETARGET = kastrigger.f90
+EXETARGET = ksTrigger.cpp
 
 
 F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
@@ -28,8 +29,11 @@ F90USESOURCES := $(notdir $(shell ls $(INCDIR)/*.f90))
 INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
 #echo INCLUDES: $(INCLUDES)
 
-EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.f90=.o)) 
-EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.f90=)) 
+#EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.f90=.o)) 
+#EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.f90=)) 
+
+EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
+EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
 all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET)
 
@@ -43,9 +47,14 @@ $(LIBTARGET): $(F90USEOBJECTS)  $(F90OBJECTS) $(F77OBJECTS)  $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(EXETARGET): $(LIBTARGET)
-	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS) \
-$(VHDF5LDFLAGS) $(VHDF5LIBS)
+#$(EXETARGET): $(LIBTARGET)
+#	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(LDFLAGS)  $(KASLDFLAGS) $(KASLIBS) \
+
+$(EXETARGET): $(LIBTARGET) 
+	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(VHDF5LDFLAGS) \
+	    	  $(VHDF5LIBS)
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
@@ -54,10 +63,13 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<
 
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) $<
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
 
-$(addprefix $(TMPDIR)/, $(EXETARGET:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
-	$(F90) -o $@ -c $(F90FLAGS) $<
+#$(addprefix $(TMPDIR)/, $(EXETARGET:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
+#	$(F90) -o $@ -c $(F90FLAGS) $<
+
+$(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
 
 $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90
@@ -79,6 +91,5 @@ clean:
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) \
 		$(EXEOBJECT) \
-		out/.depend \
 		$(EXE)
 

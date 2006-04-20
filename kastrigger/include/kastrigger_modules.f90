@@ -15,18 +15,18 @@ MODULE KASTRIGGER_DEF
 !                Add a -w Option (sets spec_weight_flag to true) which causes 
 !                the ouput MHDF5 file events to be cut on the spectrum weights.
  
-	use structures
+!	use structures
 
-	type(pe_s),pointer :: first_pes_ptr,last_pes_ptr,pes_ptr
+!	type(pe_s),pointer :: first_pes_ptr,last_pes_ptr,pes_ptr
 !	type(m_head) :: mhead
 !	type(m_rec) :: mrec
-	logical :: outpes,hadron
+!	logical :: outpes,hadron
 	real*8,parameter ::  pi=3.141592654
 	real,parameter :: c_light=2.99792e+8     !Speed of light in vacume.m/sec
 	real :: dl,dm,dn
-	integer :: ipe
-	logical :: empty,shower_end
-	real :: dn_min_loose,dn_min_tight
+!	integer :: ipe
+!	logical :: empty,shower_end
+!	real :: dn_min_loose,dn_min_tight
 
 	type pe_spec	
 		real,dimension(3) :: vpe  !x,y,z of pe in mirror plane.
@@ -37,9 +37,9 @@ MODULE KASTRIGGER_DEF
 		real :: time		!arrival time at focal plane.
 	end type pe_spec	
 
-        real :: event_type
-        real :: event_tep
-        real :: event_weight
+!        real :: event_type
+!        real :: event_tep
+!        real :: event_weight
 !***********************************************************************
 
 END MODULE KASTRIGGER_DEF
