@@ -19,7 +19,8 @@
 KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pCellRadius, int NumCells)
 // ***************************************************************************
 // First we save the cell loacitions and radii. Convert to double (just 
-// because everything else is double)
+// because everything else is double) and save locally (probably for no good 
+// reason) 
 // ***************************************************************************
 {
   fNumCells=NumCells;
@@ -81,6 +82,19 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
   fGridYMax=fGridMax;
   fGridAreaWidthX=(fGridXMax-fGridXMin)/fNumGridAreasX;
   fGridAreaWidthY=(fGridYMax-fGridYMin)/fNumGridAreasY;
+
+  // *************************************************************************
+  // Determine Max File-Of_veiw dist sqared (from center 0,0)
+  // *************************************************************************
+  if(fabs(fGridMin)>fabs(fGridMax))
+    {
+      fMaxFOV2=(2*fGridMin*fGridMin);
+    }
+  else
+    {
+      fMaxFOV2=(2*fGridMax*fGridMax);
+    }
+
   // *************************************************************************
   // Now we can fill up the grid lists 
   // *************************************************************************
@@ -152,10 +166,10 @@ bool KSCellGrid::GetCellIndex(double XLocation, double YLocation,
 // ************************************************************************
 // Get the cell index for this X,Y location
 //  ************************************************************************
-// This needs to be very fast. See if we are on the grid
+// This needs to be very fast. See if we are possibly in the field of view.
 {
-  if(XLocation<fGridXMin ||XLocation>fGridXMax || YLocation<fGridYMin ||
-     YLocation>fGridYMax)
+  double fDist2=(XLocation*XLocation+YLocation*YLocation);
+  if(fDist2>fMaxFOV2)
     {
       fCellIndex=-1;
       return false;

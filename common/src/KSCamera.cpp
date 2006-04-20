@@ -1,7 +1,6 @@
 /**
  * \class KSCamera
- * \ingroup common
- * \brief File of methods for KSCamera.
+ * \ingroup common * \brief File of methods for KSCamera.
  
  * Original Author: Glenn H. Sembroski
  * $Author$
@@ -22,7 +21,6 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
   pfTeHead=pTeHead;
 
   fCameraType=CameraType;
-
   fLatitude=gLatitude[fCameraType];
   fEastLongitude=gEastLongitude[fCameraType];
 
@@ -90,121 +88,9 @@ void KSCamera::generateCameraPixels()
   //	set  pmt number
   fNumPixels=gNumPixelsCamera[fCameraType];
   fNumPixelsTrigger =gNumTriggerPixels[fCameraType];
-  generateCamera();
-
-
-
-  // ************************************************************************
-  // VERITAS499 CAMERA
-  // ************************************************************************
-  int fNumPix;
-  int fRing;
-  int fLastGoodPixel;
-  double fMaxFOVDeg=0;
-  if(fCameraType==VERITAS499)
-    {
-      //  Ring#12. (center pixel is ring 0) Which looks like the other rings 
-      //  with the exception that only 66 positions of the line are filled 
-      //  with PMT's. These 
-      //  positions consist of the 11 center positions on each of the 6 sides.
-      //  Only pixel postions have to be moved. PMT_spacing are all set and all
-      //  the same already
-      fNumPix=11;		// number of pixels centerd per side.
-      fRing=12;
-      fLastGoodPixel=(fRing-1)*fRing*3; // gets to last pixel thats ok.
-      ringBuild(fLastGoodPixel,fRing,fNumPix);
-
-      // Ring#13
-      fNumPix=6;		        // pixel/side in ring#13
-      fRing=13;		        //fLastGoodPixel already set from last call
-      ringBuild(fLastGoodPixel,fRing,fNumPix);
-      fMaxFOVDeg=( pfLinePerpDistanceDeg[fRing] +
-	                2*cos(30.*gDeg2Rad)*pfLineHalfPixelSepDeg[fRing]  )/
-	               cos(30.*gDeg2Rad);
-    }
-
-  // ************************************************************************
-  // WHIPPLE490 CAMERA
-  // ************************************************************************
-  if(fCameraType==WHIPPLE490)
-    {
-      // Ring#11. The 11 th ring looks like the other rings with the exception
-      // that only 48 positions of the line are filled with PMT's. These 
-      // positions consist of the 8 center positions on each of the 6 sides.
-      // Only pixel postions have to be moved. PMT_spacing are all set and all
-      // the same already
-      fNumPix=8;		// number of pixels centerd per side.
-      fRing=11;		// Ring number
-      fLastGoodPixel=(fRing-1)*fRing*3;// gets to last pixel thats ok.
-      ringBuild(fLastGoodPixel,fRing,fNumPix);
-      // -------------------------------------------------------------------
-      // for whipple490: outer  3 rings of 1" pmts are in true circles(not 
-      //hexagons)
-      // -------------------------------------------------------------------
-
-      double fAngOffset;
-
-      double fRingSpacingDeg;
-      for(int j=0;j<3;j++)
-	{
-	  double fRingRadiusDeg=(g490OuterRingDiameterM[j]/2.0)/fMetersPerDeg;
-	  fRingSpacingDeg=sin(gDeg2Rad*g490OuterRingsAngularStepDeg/2.) * 
-	                      (fRingRadiusDeg)*2;
-	  double fPMTRadiusDeg=g490OuterPixelRadiusMM/(fMetersPerDeg*1000);
-	  for(int i=0;i<37;i++)
-	    {
-	      if(j==1)   //Middle Ring
-		{
-		  fAngOffset=g490OuterRingsAngularStepDeg/2;
-		}
-	      else
-		{
-		  fAngOffset=0;
-		}
-	      fLastGoodPixel++;     //Camera_x,Camera_y,PMT_sapacing are all 
-	                            //in deg.fOouterRingDiameterM is in meters.
-	      fPixel[fLastGoodPixel].fXDeg = 
-		cos(gDeg2Rad*(i*g490OuterRingsAngularStepDeg+fAngOffset))*
-		fRingRadiusDeg;
-	      fPixel[fLastGoodPixel].fYDeg  =
-		-sin(gDeg2Rad*(i*g490OuterRingsAngularStepDeg+fAngOffset))*
-		fRingRadiusDeg;
-				// pmt_spacing is half spacing// 
-	      fPixel[fLastGoodPixel].fHalfSpacingDeg=fRingSpacingDeg/2;
-	      fPixel[fLastGoodPixel].fRadiusDeg=fPMTRadiusDeg;
-	    }  // pmt in ring loop
-	}    // ring loop
-      
-
-      // Max angle(in deg) of field of view(plus a little)
-    // std::cout<<"g490OuterRingDiameterM[2]/2: "<<g490OuterRingDiameterM[2]/2
-      //	       <<std::endl;
-      fMaxFOVDeg = (g490OuterRingDiameterM[2]/2)/fMetersPerDeg; 
-      //std::cout<<"fMaxFOVDeg:1: "<<fMaxFOVDeg<<std::endl;
- 
-      fMaxFOVDeg = (g490OuterRingDiameterM[2]/2)/fMetersPerDeg+ 
-	                fRingSpacingDeg;
-     }
-
-  if(fMaxFOVDeg<1.0)
-    {
-      fMaxFOVDeg=1.0;
-    } 
-  fMinimumDnTight=cos(fMaxFOVDeg*gDeg2Rad);
-  fMinimumDnLoose=cos((fMaxFOVDeg+1.0)*gDeg2Rad);
-  std::cout<<"Tight Camera FOV radius: "<<fMaxFOVDeg<<" deg."<<std::endl;
-  return;
-}
-// ***************************************************************************
-
-
-// ****************************************************************************
-
-void KSCamera::generateCamera()
-// ****************************************************************************
-// 	Get PMT locations and radii from WhippleCams.h
-// ****************************************************************************
-{
+  // *************************************************************************
+  // 	Get PMT locations and radii from WhippleCams.h
+  // *************************************************************************
   KSPixel fPixelElem(fCameraType); //create a standard pixel to start with
   
   fPixel.resize(fNumPixels,fPixelElem);   //  Allocate pixels
@@ -225,165 +111,62 @@ void KSCamera::generateCamera()
       pfTelescopePixelY=VC499Ycoord;
       pfTelescopePixelRadius=VC499Radius;
     }
-  double fHalfSpacingDeg = 
-                       gPixelHalfSpacingMM[fCameraType]/(fMetersPerDeg*1000.);
+  double fHalfSpacingDeg =
+                        gPixelHalfSpacingMM[fCameraType]/(fMetersPerDeg*1000.);
   for(int i=0;i<fNumPixels;i++)
     {
       fPixel[i].fHalfSpacingDeg = fHalfSpacingDeg;
-      fPixel[i].fRadiusDeg = pfTelescopePixelRadius[i];
-      fPixel[i].fYDeg = fPixel[i].fHalfSpacingDeg*fGrid.pfYIndex[i]*
-	                                                   cos(gDeg2Rad*30.);
-      fPixel[i].fXDeg = fPixel[i].fHalfSpacingDeg*fGrid.pfXIndex[i];
-      // Note that this value of the pmt_spacing is the half pmt seperation. 
-      // fGrid.pfXIndex has the factor of 2 (cause sometimes we take half 
-      // steps in X. always full*cos(30deg) in Y 
+      fPixel[i].fRadiusDeg      = (double)pfTelescopePixelRadius[i];
+      fPixel[i].fYDeg           = (double)pfTelescopePixelX[i];
+      fPixel[i].fXDeg           = (double)pfTelescopePixelY[i];
     }
-  // **********************************************************************
-  // Fill in the line arrays:: distance,the spacing, and first and last pixel 
-  // index. Line i=0 is first ring(Ring#1)Where we call center pixel the 0th 
-  // ring . So a line=ring-1
-  // **********************************************************************
-  // Note: We use pixel index which starts at 0. Pixel number starts at 1.
-  // **********************************************************************
 
-  int fPixelIndex=1;                  //First Pixel Index in ring=1,line=0
-  for(int i=0;i<fNumLines;i++)
+
+  // **********************************************************************
+  // Now generate the Cell Grid for the pixel look-up tables. This is
+  // used to find which pixels are hit by photons. 
+  // **********************************************************************
+  double fMaxFOVDeg;
+  if(fCameraType==VERITAS499)
     {
-      double fDistLine = (i+1)*(2*fHalfSpacingDeg); //X dist to a line
-      pfLinePerpDistanceDeg[i] = cos(gDeg2Rad*30.0)*fDistLine; //Perp dist 
-      pfLineHalfLengthDeg[i]   = fDistLine/2.+fHalfSpacingDeg;//Line half 
-                        //length since half length is (i+1) fHalfSpacings
-                        //Add 1/2 pixels spacing to set up int round down 
-                        
-      pfLineHalfPixelSepDeg[i]=  fHalfSpacingDeg/cos(gDeg2Rad*30.0);
-
-      fPixelIndex=fPixelIndex+(i)*6;      //First pixel index in ring
-      pfLineNumPixels[i] = i+2;           //Number of pixels/side in this ring 
-                                          //line i=0, next to center, has 2
-      // Now fill in the pixel index
-      for(int j=0;j<6;j++)		 // over sectors
-	{			//counting backwards
-	  pfLineFirstPixelID[i][j]=  fPixelIndex + (i+1)*6-(j+1)*(i+1);
-	  pfLineLastPixelID[i][j] =  pfLineFirstPixelID[i][j] + i+1;
-	}
-      // Last of sector 0 is same as first of sector 5
-      pfLineLastPixelID[i][0]=pfLineFirstPixelID[i][5];
+      // **********************************************************************
+      // For VERITAS cameras this is straight forward since all pixels (and 
+      // light cones) are the same size;
+      // *********************************************************************
+      pfPixelGrid=new KSCellGrid(pfTelescopePixelX,pfTelescopePixelY,
+			     pfTelescopePixelRadius,fNumPixels);
+      fMaxFOVDeg=sqrt(pfPixelGrid->fMaxFOV2);
     }
-  return;
-}
-// ***********************************************************************
-
-void KSCamera::ringBuild(int& fLastGoodPixel, int fRing, int npix)
-// ****************************************************************************
-// 	Build stuff into arrays for paritally filled rings(usually done to
-// 	circlize a camera.
-// ****************************************************************************
-// fLasGoodPixel:index to last pixel ok pixel . we add on from here.
-// Assumtion is fXDeg and fYDeg arrays were first filled as if for a fully 
-// populated camera.  We kindof repositon things down in the array.
-// fRing=ring number to build. fRing+2 is also the number of pixels/side for a
-// full ring.	npix=number of pixels per side to use for this new ring 
-// centered on each side. npix must always be 1 or 3 or 5.etc less then i(to 
-// be centered
-{
-  int fLine=fRing-1;
-  int fStart=(fRing-1)*fRing*3+1;   // gets array index of first pixel in this
-				    // ring(which we may not want)
-  fStart=fStart+(fRing-npix+1)/2;   // Array index  of first pixel we do want
-				    // (fRing-npix always odd)
-  int fPix=fLastGoodPixel+1; 	    // Save Array Index of first pixel of 
-                                    // repostioned ring
-  int fNextPixel=fPix;
-  for(int j=5;j>=0;j--)            // Six sides but sectors count backwards
-    {		
-      pfLineFirstPixelID[fLine][j]= fNextPixel;	
-      for(int ij=fStart;ij<fStart+(npix);ij++)//npix of them only on side
-	{ 
-                                               // Move ij pixel down.
-	  fPixel[fNextPixel].fXDeg           = fPixel[ij].fXDeg;
-	  fPixel[fNextPixel].fYDeg           = fPixel[ij].fYDeg; 
-	  fPixel[fNextPixel].fHalfSpacingDeg = 
-	                                      fPixel[ij].fHalfSpacingDeg;
-	  fPixel[fNextPixel].fRadiusDeg = fPixel[ij].fRadiusDeg;
-	  fNextPixel++;
-	}
-      pfLineLastPixelID[fLine][j] = fNextPixel-1;
-      fStart=fStart+fRing; //Move up to start of next sector which is number
-                           //on a side
-    }
-  fLastGoodPixel=fNextPixel-1;
-
-  // ***********************************************************************
-  // Now do lines of ring#i partially filled ring(only npix center tubes each 
-  // side)
-  // ***********************************************************************
-  double fHalfSpacingDeg=fPixel[fPix].fHalfSpacingDeg;
-  double fDistLine = (fLine+1)*(2*fHalfSpacingDeg);    //X dist to a line
-  pfLinePerpDistanceDeg[fLine] = cos(gDeg2Rad*30.0)*fDistLine;//Perp dist
-  pfLineHalfLengthDeg[fLine]   = (npix)*fHalfSpacingDeg;//Line Half 
-                        //length since half length is (npix+1) +1  
-                        //half spaceings 
-  pfLineHalfPixelSepDeg[fLine]=  fHalfSpacingDeg/cos(gDeg2Rad*30.0);
-
-  pfLineNumPixels[fLine] = npix;      //Number of pixels/side in this ring 
-  // Now fill in the pixel index
-  //for(int j=0;j<6;j++)		 // over sectors
-  // {			
-  //   pfLineFirstPixelID[fLine][j]= fPix + 6*npix - (j+1)*npix;	
-  //   pfLineLastPixelID[fLine][j] = pfLineFirstPixelID[fLine][j] + (npix-1);
-  //  }
-  return;
-}
-// **********************************************************************
-
-void KSCamera::buildAdjacencyArrays()
-// *************************************************************************
-// 	Set up the adjacency table . Used for image cleanup.
-// **************************************************************************
-// Use a stupid brute force dumb distance algorithum that has the advantage of
-// being easy to understand(and write). Use vector<int> for neighbors. Allows
-// for varying numners of neighbors. With our funny gaps in some of our 
-// cameras we can have 7 adjacent pmts 
-{
-  int fNumPixels=gNumPixelsCamera[fCameraType];
-  for(int i=0;i<fNumPixels;i++)
+  else if(fCameraType==WHIPPLE490)
     {
-      double fRadiusCenterDeg=fPixel[i].fHalfSpacingDeg;
-      for(int j=0;j<fNumPixels;j++)//see if tube j is close enough.Define close
-	{	                   //enough as less then 2.25 times pmt radius.
-	  double fRadiusNeighborDeg=fPixel[j].fHalfSpacingDeg;
-	  double fMaxSeperationDeg;
-	  if(fRadiusCenterDeg==fRadiusNeighborDeg)
-	    {
-	      fMaxSeperationDeg=(2.25*fRadiusCenterDeg);
-	    }
-	  else if(fRadiusCenterDeg<fRadiusNeighborDeg)
-	    {
-	      fMaxSeperationDeg=(2.25*fRadiusCenterDeg+fRadiusNeighborDeg);
-	    }
-	  else
-	    {
-	      fMaxSeperationDeg=(fRadiusCenterDeg+2.5*fRadiusNeighborDeg);
-	    }
-	  double fMaxSeperationSquaredDeg= fMaxSeperationDeg*fMaxSeperationDeg;
-	  // Square max seperation of centers of 
-	  //pmts to be considered adjacent.
-	  if(j!=i)	// Skip on self test.
-	    {
-	      double fXSepDeg=(fPixel[i].fXDeg-fPixel[j].fXDeg);
-	      double fYSepDeg=(fPixel[i].fYDeg-fPixel[j].fYDeg);
-	      double fSeperationDistanceSquaredDeg=
-		fXSepDeg*fXSepDeg+fYSepDeg*fYSepDeg;
-	      if(fSeperationDistanceSquaredDeg<fMaxSeperationSquaredDeg)
-		{
-		  fPixel[i].fAdjacentPixels.push_back(j);
-		}
-	    }
-	}
+      // **********************************************************************
+      // Not so simple since on the outside of the pmt array we have the 
+      // larger -no light cone ring pixels
+      // **********************************************************************
+      // So plan for whipple is to test the inner camera as normal:
+      int fNumInnerPixels=379;
+      pfPixelGrid=new KSCellGrid(pfTelescopePixelX,pfTelescopePixelY,
+			     pfTelescopePixelRadius,fNumInnerPixels);
+
+      // Then test the outer rings specially
+      // Max angle(in deg) of field of view(plus a little)
+      double fRingRadiusDeg=(g490OuterRingDiameterM[2]/2.0)/fMetersPerDeg;
+      double fRingSpacingDeg=sin(gDeg2Rad*g490OuterRingsAngularStepDeg/2.) * 
+	                      (fRingRadiusDeg)*2;
+      fMaxFOVDeg = (g490OuterRingDiameterM[2]/2)/fMetersPerDeg+ 
+	                fRingSpacingDeg;
     }
+  if(fMaxFOVDeg<1.0)
+    {
+      fMaxFOVDeg=1.0;
+    } 
+  fMaxFOVDeg2=fMaxFOVDeg*fMaxFOVDeg;   //Used For speed reasons later.
+  fMinimumDnTight=cos(fMaxFOVDeg*gDeg2Rad);    //Used by tilt I think
+  fMinimumDnLoose=cos((fMaxFOVDeg+1.0)*gDeg2Rad);
+  std::cout<<"Tight Camera FOV radius: "<<fMaxFOVDeg<<" deg."<<std::endl;
   return;
 }
-//  ***********************************************************************
+// ***************************************************************************
 
  void KSCamera::loadPixelCharacteristics()
 // ***********************************************************************
@@ -445,7 +228,7 @@ void KSCamera::buildAdjacencyArrays()
   
    return;
 }
- // ***********************************************************************
+// ***********************************************************************
 
 
 void KSCamera::loadNoiseRatesAndPeds()
@@ -525,254 +308,49 @@ void KSCamera::loadNoiseRatesAndPeds()
     }
   return;
 }
+// *************************************************************************
 
 
 bool KSCamera::getPixelIndex(double fXDeg, double fYDeg, int& fIPix)
 // ****************************************************************************
 // 	Returns the pixel that a pe at fXDeg,fYDeg would hit.
 // ****************************************************************************
-// We have previously divided our hexagonal pixel array into 6 sectors. In 
-// each sector we have lines of pmts(or light cones) perpendicular to the 
-// bisecter of the sector.
-//  1:perpendicular distance from the center of the line to the center of the 
-//    field of view.
-//  2:Half length of line from center of line to end.
-//  3:1/2 width of the pixel seperation(1/2 width of the line of PMTs etc.)
-//    divided by cos(30deg). This cos(30) term is for use with lightcones.
-//    It reaches into interseces bewtween pixesl when we close pack them.
-//  4:PMT index for the first pixel on the line(counting clockwise)
-//  5:PMT index for the lastt pixel on the line(counting clockwise)
-//  Note that in sector 1 only this number is less then the others on that 
-//  line(which increase each by one from the first). This is because it is also
-//  the first pixel in sector 6. The last pixel in the lines in sector 1 
-//  dosen't follow consecutivly with the rest of the pixels in the line.(pixel
-//  number otherwise increases in the clockwise direction along the line).
-//  6:Number of pixels in the line. 
-// Too use as a non light cone version, change the pmt_spacing array with 
-// radii that match the actual sensitive area of the PMTs. Also comment out 
-// the lines indicated below with the '// LIGHTCONE' comment.
- // *************************************************************************
 {
-  bool fDump=true;;
-  // ***********************************************************************
-  //  Get the theta angle for X,Y. Use quadrant infromation.
-  // ***********************************************************************
-  // Find first quadrant angle.
-  double fTheta;
-  if(fXDeg==0 && fYDeg!=0)
+   // *******************************************************************
+  // 	Find distance of X,Y to center of field of view.
+  // *******************************************************************
+  double fDistance2=(fXDeg*fXDeg+fYDeg*fYDeg);
+  if(fDistance2<fMaxFOVDeg2)
     {
-      fTheta=90.;		                        // On verticle axis
+      return true;  //Out of file-of-view , dump it
     }
-  else if(fYDeg==0)	
+
+  //Check if within field of view for CellGrid
+  else  if(fDistance2<=pfPixelGrid->fMaxFOV2)
     {
-      fTheta=0.;                     			// On hoizontal axis
-    }
-  else
-    {
-      fTheta=atan(fabs(fYDeg/fXDeg))*gRad2Deg;                // Quadrant ++
-    }
-  if(fXDeg>=0)
-    {
-      if(fYDeg<0)
+      bool fKeep=pfPixelGrid->GetCellIndex(fXDeg,fYDeg,fIPix);
+      if(fKeep)
 	{
-	  fTheta=360.-fTheta;		                 // Quadrant +-
-	}
-    }
-  else
-    {
-      if(fYDeg>=0)
-	{
-	  fTheta=180.-fTheta;			  // Quadrant -+
-	}
-      else
-	{
-	  fTheta=180.+fTheta;			// Quadrant --
+	  return false; //Good one Don't dump it
 	}
     }
   
-
-  // *******************************************************************
-  // Determine the sector
-  // *******************************************************************
-  int fSector=(int)(fTheta/60. + 1);             // Round down to the sector
-
-
-  // *******************************************************************
-  // Sanity check
-  // *******************************************************************
-  if(fSector<1)
-    {
-      std::cout<<" ksTrigger:Info only--fSector out of range:fSector,fTheta:"
-	       <<fSector<<" "<<fTheta<<std::endl;
-      fSector=1;
-    }
-  else if(fSector>6)
-    {
-      if(fTheta!=360.0)
-	{
-	  std::cout
-	    <<"ksTrigger: Info only--fSector out of range:fSector,fTheta:"
-	    <<fSector<<" "<<fTheta<<std::endl;
-	}
-      fSector=6;
-    }
-
-  // *******************************************************************
-  // 	Determine angle to bisecter of sector
-  // *******************************************************************
-  double fThetaSector=-(fmod(fTheta,60.)-30.); // Positive is in clockwise direction.
-
-// *******************************************************************
-// 	Find distance of X,Y to center of field of view.
-// *******************************************************************
-  double fDistance=sqrt(fXDeg*fXDeg+fYDeg*fYDeg);
-
-
-// *******************************************************************
-// 	Find projected perpendicular fDistance from center of field of view
-// 	along bfSector line.
-// *******************************************************************
-  double fDistanceFOV=cos(gDeg2Rad*fThetaSector)*fDistance;
-
-
-
-// *******************************************************************
-// 	Check if we are beyond next to last line since for whipple only
-//      the first ring dips into region of last line.
-// *******************************************************************
-      // ********************************************************************
-      // if WHIPPLE490 camera and not in inner pixels, check if outer rings
-      // ********************************************************************
-  if(fCameraType==WHIPPLE490)
-    {
-      if((fDistanceFOV-pfLinePerpDistanceDeg[fNumLines-2])>
-	 pfLineHalfPixelSepDeg[fNumLines-2])
-	{
-	  fDump=trywhipple490OuterPixels(fXDeg,fYDeg,fIPix);
-	  // **************************************************************
-	  // Sanity check
-	  // ************************************************************
-	  if(!fDump && fIPix>fNumPixels)
-	    {
-	      std::cout<<"ksTrigger: fIPix out of range:"<<fIPix
-		       <<std::endl;
-	      return fDump;
-	    }
-	  if(!fDump)
-	    {
-	      //std::cout<<fXDeg<<" "<<fYDeg<<" "<<fIPix<<std::endl;
-	      return fDump;   //got it
-	    }
-	  //Might still be in last line
-	  else if((fDistanceFOV-pfLinePerpDistanceDeg[fNumLines-1])>
-		  pfLineHalfPixelSepDeg[fNumLines-1])
-	    {  
-	      fDump=true;  //Totaly missed the camera
-	      return fDump;
-	    }
-	}
-    }
-  else              //Veritas499 see if beyond last line.
-    {
-      if((fDistanceFOV-pfLinePerpDistanceDeg[fNumLines-1])>
-	 pfLineHalfPixelSepDeg[fNumLines-1])
-	{  
-	  fDump=true;  //
-	  return fDump;
-	}
-    }
-
-// *******************************************************************
-// Search through the lines to see which ones to look at. 
-// *******************************************************************
-  int fIPixel;
-// Note: line -1 (counting as c++) is just the center pixel which has a 
-// maximum reach into its hex cell the the same as the pixel 
-// HalfSpacing/cosd(30deg) of the zeroith line.
-
-  fDump=true;			// Initialize for a miss// 
-  fIPix=-1;
-  double fLightConeWidth=(2*pfLineHalfPixelSepDeg[0]*
-					 cos(gDeg2Rad*30.0)) ;
-  if(isInCell(fXDeg,fYDeg,fLightConeWidth))
-    {
-      fIPix=0;
-      fDump=false;
+  // **************************************************************
+  // Special test for outer rings
+  // **************************************************************
+  if(fCameraType==WHIPPLE490)         //Check Outer rings
+    {                             
+      bool fDump=trywhipple490OuterPixels(fXDeg,fYDeg,fIPix);
+      return fDump;  //Whatever
     }
   else
-    { // ***************************************************************
-      // Find perpendicul distance along the line from the bfSector of the 
-      // point X,Y
-      // *******************************************************************
-      double fDistanceLine=sin(gDeg2Rad*fThetaSector)*fDistance;
-
-      // *******************************************************************
-      // For speed: Start at the outside lines and work back. Pe most lilkely
-      // on outer lines by an area argument(more pixels outer lines)
-      // *******************************************************************
-      for(int i=fNumLines-1;i>=0;i--)
-	{
-	  // *****************************************************************
-	  // Find distance for effective reach of light cones. Remeber that the
-	  // lines are LineHalfPixelSepDeg*cos(30) apart but are close packed
-	  // Thus we may need to check lightcone cells along 2 lines
-	  // ****************************************************************
-	  if(fabs(fDistanceFOV-pfLinePerpDistanceDeg[i])<=
-	     pfLineHalfPixelSepDeg[i])
-	    {
-	      //Ok weve possible got one radially. Make sure
-	      //we also have it along the line. (Some lines are short)
-	      if(fabs(fDistanceLine)<=pfLineHalfLengthDeg[i])
-		{                        //Pixel index from start of line.The 
-	                                 //cosd(30) gets us back to pixel
-	                                 //spacing from lightcone reach.
-		  double fLightConeWidth=(2*pfLineHalfPixelSepDeg[i]*
-					 cos(gDeg2Rad*30.0)) ;
-		  int fIpixIndex=(int)((pfLineHalfLengthDeg[i]+fDistanceLine)/ 
-				   fLightConeWidth);
-		     
-		  fIPixel=fIpixIndex+pfLineFirstPixelID[i][fSector-1];
-	                                 // See is this is the out of order 
-	                                 //pixel in sector 1:pfLineNumPixels 
-	                                 //is number of pixels in a complete 
-	                                 //line. Do we need to change pixel 
-	                                 //value?
-		  if(fSector==1 && (fIpixIndex==pfLineNumPixels[i]-1))
-		    {                        // last one sector 1
-		      fIPixel=pfLineLastPixelID[i][0];
-		    }
-	      // Test if we are inside lightcone
-		  double fCellXDeg=fPixel[fIPixel].fXDeg-fXDeg;
-		  double fCellYDeg=fPixel[fIPixel].fYDeg-fYDeg;
-		  bool fInCell=isInCell(fCellXDeg,fCellYDeg,fLightConeWidth);
-		  if(fInCell)
-		    {
-		      fIPix=fIPixel;
-		      fDump=false;
-		      break;         //Found it.
-		    }
-		}            //If this wasn't it, maybe a cell in in next inner
-	    }                //line.
-	  
-	}
-    }
-
-// **************************************************************************
-// Sanity check
-// **************************************************************************
-  if(!fDump && fIPix>fNumPixels)
     {
-      std::cout<<"ksTrigger: fIPix out of range:"<<fIPix<<std::endl;
-      fDump=true;
+      return true;   //Dump it;
     }
-  // if(!fDump)
-  // {
-  //   std::cout<<fXDeg<<" "<<fYDeg<<" "<<fIPix<<std::endl;
-  // }
-  return fDump;
-}			
+} 
 
-// *************************************************************************
+
+
 
 bool KSCamera::trywhipple490OuterPixels(double fXDeg, double fYDeg, int& fIPix)
 // *************************************************************************
@@ -786,7 +364,7 @@ bool KSCamera::trywhipple490OuterPixels(double fXDeg, double fYDeg, int& fIPix)
   // *************************************************************************
   // loop over rings.
   // *************************************************************************
-  bool fDump=true;
+  bool fKeep=false;
   for(int i=0;i<3;i++)
     {
       double fRingRadiusDeg=(g490OuterRingDiameterM[i]/2.)/fMetersPerDeg;
@@ -803,18 +381,18 @@ bool KSCamera::trywhipple490OuterPixels(double fXDeg, double fYDeg, int& fIPix)
 	      if(fWDistanceSquared<=fPMTRadiusDegSquared)
 		{
 		  fIPix=fPixelID+j;	// Found a hit
-		  fDump=false;
-		  return fDump;
+		  fKeep=true;
+		  return fKeep;
 		}
 	    }
-	  if(fDump)
+	  if(!fKeep)
 	    {
-	      return fDump;             // In a ring but No hit.
+	      return fKeep;             // In a ring but No hit.
 	    }
 	}
       
     }
-  return fDump;
+  return fKeep;
 }
 // **************************************************************************
 
@@ -834,47 +412,6 @@ void KSCamera::InitPixelImageData()
   return;
 }
 // ****************************************************************************
-		 
-bool KSCamera::isInCell(double fCellXDeg,double fCellYDeg, double fCellWidth)
-// ******************************************************************
-// See if fCellXdeg,fCellYDeg is inside a light cone cell of 'width' 
-// fCellWidth (this is full seperation width between two parallel sides of 
-// hexagon, NOT seperation between opposite 'points' of the hexagon))
-// **********************************************************************
-//  0,0 of fCellXDeg,fCellYDeg is center of cell
-// Cell volume can be divided into 6 quadrants but we only need angle to 
-// quadrant bisector. This is simular to getPixelIndex but the cell is rotated 
-// by 30 deg to camera rings.
-{
-  double fThetaDeg=0;
-  if(fCellXDeg==0)
-    {
-      fThetaDeg=0;
-    }
-  else if(fCellYDeg==0)
-    {
-      fThetaDeg=30.;
-    }
-  else
-    {
-      fThetaDeg=atan(fabs(fCellYDeg/fCellXDeg))*gRad2Deg;
-    }
-  if(fThetaDeg>30)
-    {
-      fThetaDeg=fabs(60.-fThetaDeg);
-    }
-  double fPerpDistanceDeg=sqrt(fCellXDeg*fCellXDeg+fCellYDeg*fCellYDeg)*
-                                                     cos(fThetaDeg*gDeg2Rad);
-  if(fPerpDistanceDeg<=fCellWidth/2.)
-    {
-      return true;
-    }
-  else
-    {
-      return false;
-    }
-}
-// ************************************************************************
 
 int KSCamera::buildTriggerWaveForms()
 // ***************************************************************************
@@ -938,8 +475,7 @@ int KSCamera::buildTriggerWaveForms()
     }
   return fCFDTriggers;
 }
-
-
+// ************************************************************************
        
 void KSCamera::buildNonTriggerWaveForms()
 // ************************************************************************
@@ -953,13 +489,14 @@ void KSCamera::buildNonTriggerWaveForms()
       fPixel[i].AddNoiseToWaveForm(false);
     } 
 }
+// ************************************************************************
 
 void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 				                   double& fWaveFormLengthNS)
+// **********************************************************************
+// Find when we should start the waveform and how long it should be.
+// **********************************************************************
 {
-  // **********************************************************************
-  // Find when we should start the waveform and how long it should be.
-  // **********************************************************************
 
   double fPixelMinTimeNS=gOverflowTime;
   double fPixelMaxTimeNS=0;
@@ -993,3 +530,4 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   fWaveFormLength = fPixelMaxTimeNS-fWaveFormStartNS;
   return;
 }
+// ************************************************************************

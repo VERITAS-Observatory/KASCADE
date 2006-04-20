@@ -55,7 +55,7 @@ VEGASBASE = /home/sembrosk/vegas
 VEGASCMNINCDIR = -I$(VEGASBASE)/common/include
 VEGASCMNLIBDIR = -L$(VEGASBASE)/common/lib
 VEGAGCMNLIB = -lSP24commonLite
-VEGASLDFLAGS = $(VEGASCMNLIBDI) $(VEGAGCMNLIB)
+VEGASLDFLAGS = $(VEGASCMNLIBDIR) $(VEGAGCMNLIB)
 
 
 # -----------------------------------------------------------------------------

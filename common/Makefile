@@ -62,7 +62,7 @@ endif
 INCLUDES  := $(notdir $(shell ls $(INCDIR)/*.h ))
 CLASSDEFS := $(notdir $(shell grep ClassDef -l $(INCDIR)/*.h $(INCDIR)/*.hpp))
 
-all: $(LIBTARGET)
+all: $(LIBTARGET) withroot
 
 
 $(LIBTARGET): $(LIBSOURCES)
@@ -122,6 +122,5 @@ withroot:
 	$(RM) $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)); \
 	$(RM) $(LIBTARGETROOT); \
 	export ROOTYES=yes; \
-	make all ; \
+	make $(LIBTARGETROOT) ; \
         export ROOTYES=
-

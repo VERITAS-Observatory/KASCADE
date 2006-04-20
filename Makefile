@@ -11,14 +11,14 @@
 # -----------------------------------------------------------------------------
 
 #Order of building of STAGES is important
-STAGES =VHDF5 \
-	common \
+STAGES =common \
 	kascade \
 	kaslite \
 	kassrtmrg \
 	kastrigger \
 	kasaomega \
 	utilities
+#VHDF5 \
 
 TARGETS = $(STAGES)
 

@@ -60,6 +60,9 @@ class KSCellGrid
   virtual ~KSCellGrid();
   bool GetCellIndex(double XLocation, double YLocation, int& fCellIndex);
   bool IsInCell(double XLocation,double YLocation, double CellRadius);
+
+  double fMaxFOV2;
+
 	
  private:
   std::vector< std::vector< std::vector<int> > >  pfCellGrid;

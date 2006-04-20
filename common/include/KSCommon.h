@@ -25,9 +25,9 @@ const double gEastLongitude[2]           = {    -1.93649,   -1.935190};
 
 const int    gNumPixelsCamera[2]         = {         499,         490};
 const int    gNumTriggerPixels[2]        = {         463,         331};
-#const int    gNumLines[2]                = {          13,          11};
+const int    gNumLines[2]                = {          13,          11};
 const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
-#const double gPixelRadiusMM[2]           = {       12.48,         5.0};
+//const double gPixelRadiusMM[2]           = {       12.48,         5.0};
 
 const int    gFADCNumSamples[2]          = {          24,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        5.47,         4.2};

@@ -44,7 +44,7 @@ class KSCamera
   void buildNonTriggerWaveForms();
   void loadNoiseRatesAndPeds();
   double getPSTTriggerTimeNS(){return pfCameraTrigger->fPSTTriggerTimeNS;};
-
+  bool getPixelIndex(double fWX, double fWY, int& fPixelIndex);
   void InitPixelImageData();
   void Print();
 
@@ -53,8 +53,6 @@ class KSCamera
   double fWaveFormLength;
 
   void generateCameraPixels();
-  void generateCamera();
-  void ringBuild(int& fLastGoodPixel, int fRing, int npix);
   void loadPixelCharacteristics();
   bool trywhipple490OuterPixels(double fXDeg, double fYDeg, int&fIPix);
   void findWaveFormLimits(double& fWaveFormStartNS, double& fWaveFormLengthNS);
@@ -79,6 +77,12 @@ class KSCamera
   double  fJitterWidthEastWestRad;
   double  fLatitude;
   double  fEastLongitude;
+
+  double  fMaxFOVDeg2;
+  float* pfTelescopePixelX;
+  float* pfTelescopePixelY;
+  float* pfTelescopePixelRadius;
+
   double  fMinimumDnTight;
   double  fMinimumDnLoose;
   
