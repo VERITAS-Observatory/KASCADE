@@ -27,8 +27,8 @@
         real*8 :: xg,yg,fTime,wx,wy,wrad2,dn_min_tight,dn_min_loose,facet_diam
         real*8 :: focal_length,jitter_width_ew,jitter_width_ns,meters_per_deg
 
-	real,external ::    gauss		!declare various functions.
-	integer,external :: nfluct
+	!real,external ::    Gauss		!declare various functions.
+	!integer,external :: nfluct
         real,external :: pran
 
 	logical*1,intent(out) :: dump
@@ -183,7 +183,7 @@
 !   SUBROUTINE W10M_FULL_ABERRATION(peptr,debug_var)
 !**************************************************************************
 !	Aberration of a Cotten-davis mirror 
-!	determined by  exact ray tracing plus a gaussian jitter added for
+!	determined by  exact ray tracing plus a Gaussian jitter added for
 !	pointing/spotsize errors.
 !**************************************************************************
 
@@ -270,8 +270,8 @@
 
 !       28/8/00 GHS V:1:1:6:1:2.8
 !               Convert to r*8 internally to avoid some small angle roundoff
-!               problems with geom. Use geom8  Use cartisian (x gaussian and y
-!               gaussian independently) for jitter of mirror normal.
+!               problems with geom. Use geom8  Use cartisian (x Gaussian and y
+!               Gaussian independently) for jitter of mirror normal.
 
 !       08/05/01 GHS V:1:1:6:1:2.12 
 !               Use seperate jitter widths for e-w and 
@@ -281,6 +281,8 @@
 !	use record_defs
 !      	use whipple_telescope
 !	use kas_ranlux
+!dir$ name(gauss="Gauss")
+
 	IMPLICIT NONE
 
 	type(pe_spec) :: peptr
@@ -298,8 +300,8 @@
 	real*8 :: w10m_ct
 	real :: xdummy
 
-	real,external ::    gauss		!declare various functions.
-	integer,external :: nfluct
+	real*8,external :: Gauss		!declare various functions.
+	!integer,external :: nfluct
         real,external :: pran
 
 !	The shape for a SPHERE is rm**2 = (xm**2 + ym**2 + zm**2) where we set
@@ -420,27 +422,27 @@
 	vn=vn/mag_vn
 
 !	At this point we include the effect of mirror imperfections and
-!	pointing errors by throwing over a gaussian of width .10 deg(Trevors
+!	pointing errors by throwing over a Gaussian of width .10 deg(Trevors
 !	guess) and using GEOM to re-orient the normal vector randomly.
 !	Now since this is a reflection we need only 1/2 of the spotsize
 !	jitter.
 !       28/8/00 GHS
-!       Instead of raidal guassian dist with random in phi, use gaussin in x
-!       and gaussian in y. I don't know why this is a better model but it 
+!       Instead of raidal guassian dist with random in phi, use Gaussin in x
+!       and Gaussian in y. I don't know why this is a better model but it 
 !       matches	the measured surface brightness distribution much better.
 !       Also, use totaly r*8 version. This gets around roundoff problem for 
 !       small angles.
         !
-!	 tix=(gauss(xdummy)*jitter_width)
-!        tiy=(gauss(xdummy)*jitter_width)
+!	 tix=(Gauss(xdummy)*jitter_width)
+!        tiy=(Gauss(xdummy)*jitter_width)
 ! 08/05/ghs Use seperate jitter widths for e-w and ns(top-down) for oval 
 ! spotsizes.
 
-	tix=(gauss(xdummy)*jitter_width_ew)
-        tiy=(gauss(xdummy)*jitter_width_ns)
+	tix=(Gauss()*jitter_width_ew)
+        tiy=(Gauss()*jitter_width_ns)
         call geom8(vn(1),vn(2),vn(3),tix,tiy)
 
-!        tix=gauss(xdummy)*jitter_width
+!        tix=Gauss*jitter_width
 !	call geom(vn(1),vn(2),vn(3),tix)
 
 
@@ -553,8 +555,8 @@
 !       28/8/00 GHS V:1:1:6:1:2.8
 !               Convert W10M_FULL_ABERRATION to r*8 internally to avoid some 
 !               small angle roundoff problems. Use geom8.  
-!               Use cartisian (x gaussian and y
-!               gaussian independently) for jitter of mirror normal.
+!               Use cartisian (x Gaussian and y
+!               Gaussian independently) for jitter of mirror normal.
 !       16/04/01 GHS V:1:1:6:1:2.11
 !               Reimpliment the quick and dirty way of finding disc triggers 
 !               and adc values (by summing pe's in each pixel). One would use 

@@ -16,7 +16,6 @@
 #include "KSMountDirection.h"
 
 extern "C" float pran(float* fXDummy);
-extern "C" double rexp(double fRate);
 
 void W10mGetRaDecFromVec(double* X, double& ra, double& dec,double fLatitude);
 void W10mGetVecFromRaDec(double ra, double dec, double* X,double fLatitude);
@@ -206,6 +205,8 @@ void KSMountDirection::createMountDirections()
 	  if(ithphi==0)  //Do theta=0 special. only phi=0.(itheta=1,iphi=1)
 	    {
 	      for(int k=0;k<3;k++)fM[k]=fMount[k];   
+	      pfSTheta[ithphi]=0;     //Save theta and phi in radians
+	      pfSPhi[ithphi]=0;
 	    }
  	  else
 	    {
@@ -229,13 +230,18 @@ void KSMountDirection::createMountDirections()
 	      W10mGetVecFromRaDec(fRANew,fDec,fM,gLatitude[fCameraType]);
 	    }
 	}     
+      else
+	{  //Single direciton (gammas)
+	  for(int k=0;k<3;k++)fM[k]=fMount[k];
+	  pfSTheta[ithphi]=0;     //Save theta and phi in radians
+	  pfSPhi[ithphi]=0;
+	} 
       getVector(fM,pfDlm[ithphi],pfDmm[ithphi],pfDnm[ithphi]);
-      //std::cout<<ithphi<<" "<<pfDlm[ithphi]<<" "<<pfDmm[ithphi]<<" "
-      //      <<pfDnm[ithphi]<<" "<<pfSTheta[ithphi]<<" "<<pfSPhi[ithphi]
-      //      <<" "<<fTempRA<<" "<<fTempDec<<std::endl;
 
- //Now X,Y unit vectors in mirror plane (X inf focal plane Perpendicular to 
- // zenith
+      // ********************************************************************
+      //Now X,Y unit vectors in mirror plane (X inf focal plane Perpendicular 
+      //to zenith and mount direction.
+      // ********************************************************************
       double fX[3];
       double fY[3];
       if(fM[0]==fZenith[0] && fM[1]==fZenith[1] && fM[2]==fZenith[2])
@@ -246,34 +252,13 @@ void KSMountDirection::createMountDirections()
 	}
       else
 	{
-	  unitCrossProduct(fZenith,fMount,fX);//Give fX in focal plane
+	  unitCrossProduct(fZenith,fM,fX);//Give fX in focal plane
 	  // and Horitzontal
-	  unitCrossProduct(fX,fMount,fY);    //Gives fY in focal plane
+	  unitCrossProduct(fX,fM,fY);    //Gives fY in focal plane
       	  getVector(fX,pfXDlm[ithphi],pfXDmm[ithphi],pfXDnm[ithphi]);
       	  getVector(fY,pfYDlm[ithphi],pfYDmm[ithphi],pfYDnm[ithphi]);
       	}
     }
-  
-  //Below is old code trhat was used to ge X along ra abd Y along dec in
-  //focal plane.
-  //     double fXRA[3];
-  //     double fYDec[3];
-  //     if(fM[0]==fPolaris[0] && fM[1]==fPolaris[1] && fM[2]==fPolaris[2])
-  //	{
-  //	  double fXTemp[3]={1.0,0.0,0.0};
-  //	  getVector(fXTemp,pfXDlm[ithphi],pfXDmm[ithphi],pfXDnm[ithphi]);
-  //	}
-  // else
-  //	{       // XRA=M x fPolaris  XRA = x unit vector along ra in focal 
-  //	        //plane.;M=mount unit vector 
-  //	        // fPolaris = polaris unit vector.Puts XRA along -RA direction.
-  //	  unitCrossProduct(fM,fPolaris,fXRA);
-  //	  getVector(fX,pfXDlm[ithphi],pfXDmm[ithphi],pfXDnm[ithphi]);
-  //	                                          // Y unitvector from X x M
-  //	  unitCrossProduct(fX,fM,fY);
-  //	  getVector(fY,pfYDlm[ithphi],pfYDmm[ithphi],pfYDnm[ithphi]);
-  //	}
-  // }
   return;
 }
 // **************************************************************************

@@ -62,7 +62,10 @@ endif
 INCLUDES  := $(notdir $(shell ls $(INCDIR)/*.h ))
 CLASSDEFS := $(notdir $(shell grep ClassDef -l $(INCDIR)/*.h $(INCDIR)/*.hpp))
 
-all: $(LIBTARGET) withroot
+#In order to make the noroot and withroot libraries we have to do this
+#fancy clean noroot and with root for all.
+
+all: clean $(LIBTARGET) withroot
 
 
 $(LIBTARGET): $(LIBSOURCES)

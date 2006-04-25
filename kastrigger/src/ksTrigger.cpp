@@ -399,10 +399,10 @@ int main(int argc, char** argv)
       // ---------------------------------------------------------------------
       // Main event loop
       // ---------------------------------------------------------------------
-      //std::cout<<"at2"<<std::endl;
+      std::cout<<"at2"<<std::endl;
 
       KSArea fArea(pfPesFile,pfTeFile,pfSegmentHead,pfPeHead,pfDataIn,fWeight);
-      //std::cout<<"at3"<<std::endl;
+      std::cout<<"at3"<<std::endl;
       while(1)
 	{
 	  //std::cout<<"at4"<<std::endl;

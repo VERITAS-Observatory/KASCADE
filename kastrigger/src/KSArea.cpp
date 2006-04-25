@@ -1,8 +1,7 @@
 //-*-mode:c++; mode:font-lock;-*-
 /**
  * \class KSArea
- * \brief Class to hold and process an areas worth of pes.
- *
+ * \brief Class to hold and process an areas worth of pes. *
  * Original Author: Glenn H. Sembroski
  * $Author$
  * $Date$
@@ -49,7 +48,6 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   pfDataIn                 = pDataIn;
   fDriftingGammas          = pfDataIn->pfTeHead->fDriftingGammas;
   fMultipleMountDirections = pfDataIn->pfTeHead->fMultipleMountDirections;
-  fNumDirections           = pfDataIn->pfTeHead->fNumDirections;
   fCameraType              = pfDataIn->pfTeHead->fCameraType; 
 
 
@@ -67,7 +65,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   // ************************************************************************
   fStepSizeRad  = pfDataIn->fDriftedGammaStepSizeRad;
   pfMountDir = new  KSMountDirection(pfDataIn->pfTeHead, fStepSizeRad);
-
+ 
   if(pfDataIn->fLoadMountDirectionsFromFile)
     {
       std::ifstream* pfMountDirFile=new std::ifstream(
@@ -86,7 +84,13 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
     {
       pfMountDir->createMountDirections();
     }
-      
+ 
+  // ********************************************************************
+  // Get the number of mount directions now: May override config file.
+  // ********************************************************************
+  fNumDirections= pfMountDir->fNumDirections;
+  pfDataIn->pfTeHead->fNumDirections=fNumDirections;
+     
   if(pfDataIn->fSaveMountDirectionsToFile)
     {
       std::ofstream* pfMountDirFile=new std::ofstream(
@@ -102,7 +106,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
       pfMountDirFile->close();
     }
 
-  pfDataIn->pfTeHead->fNumDirections=fNumDirections;
+
 
   fNumAreasProcessed=0;
   fGoodTriggerCount=0;
@@ -147,6 +151,8 @@ bool KSArea::ReadPes()
                          //over from last scan through area
   fAreaNx=fPe.fNx;
   fAreaNy=fPe.fNy;
+  //std::cout<<"At:Nx,Ny: "<<fAreaNx<<" "<<fAreaNy<<std::endl;
+
   fNumAreasProcessed++;
 
   // ******************************************************************
@@ -188,6 +194,11 @@ void KSArea::ProcessImages()
 // image. Look for triggers. When we find a trigger write it out.
 // ***********************************************************************
 {
+  // if(fAreaNx==0 && fAreaNy==0)
+  // {
+  //   std::cout<<"Now at Nx,Ny: "<<fAreaNx<<" "<<fAreaNy<<std::endl;
+  // }
+
   // First check that hwe have enough pe's to even think about this area
   int fNumPes=fPes.size();
   if(fNumPes<kNumPesAreaMinimum)
@@ -291,20 +302,16 @@ void KSArea::ProcessImages()
 	  
 	  // *****************************************************************
 	  //  Correct various camera pecularities.
-	  //  for WHIPPLE490: Rotate camera
+	  //  for WHIPPLE490: Flip both axis (I think,but am not sure)
 	  // ****************************************************************
 	  // The whipple 490 pixel camera is rotated by 7.306 deg. Actually, 
 	  //cparam has pixel #2 at x=-.117 and y=0.15. That is it is actually 
-	  //rotated by 180 +7.306 deg.
+	  //rotated by 180 +7.306 deg. This rotation is handled in
+	  //WhippleCams.h
 	  if(pfCamera->fCameraType==WHIPPLE490)
 	    {
-	      fWX=-fWX;         // rotate by 180 deg
+	      fWX=-fWX;         // rotate by 180 deg both axis
 	      fWY=-fWY;
-	      // Now rotate by another 7.306 deg
-	      double fWXtemp=fWX*cos(gWhip490RotRad)+fWY*sin(gWhip490RotRad);
-	      double fWYtemp=fWY*cos(gWhip490RotRad)-fWX*sin(gWhip490RotRad);
-	      fWX=fWXtemp;
-	      fWY=fWYtemp;
 	    }
 
 	  // ******************************************************************
@@ -372,11 +379,16 @@ void KSArea::ProcessImages()
 	      fTe.fThetaIndex     = fITheta;
 	      fTe.fPhiIndex       = fIPhi;
 	    }
-	  else
+	  else if(fMultipleMountDirections)
 	    {	//Save actual theta phi (in radians*1000) for multiple 
                 //directions
 	      fTe.fThetaIndex     = (int)pfMountDir->pfSTheta[ithphi]*1000;
 	      fTe.fPhiIndex       = (int)pfMountDir->pfSPhi[ithphi]*1000;
+	    }
+	  else
+	    {           //Single direction:Gammas
+	      fTe.fThetaIndex=1;
+	      fTe.fPhiIndex=1;
 	    }
 	  fTe.fDirectionIndex = ithphi;    //Hadronic direction index
 	  fTe.fEmissionAltitude      = fEmissionAltitudeSum/fPeHits;

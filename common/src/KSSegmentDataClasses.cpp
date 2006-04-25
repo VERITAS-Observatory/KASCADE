@@ -23,7 +23,7 @@
 
 
 #ifdef _NOROOT
-extern "C" void mass_number2charge_mass(int* ia, int* qz,float* xmass);
+extern "C" void MassNumber2ChargeAndMass(int ia, int& qz,double& xmass);
 #endif
 
 #ifdef __MAKECINT__
@@ -57,8 +57,8 @@ void KSSegmentHeadData::PrintSegmentHead()
       int fKascadeHeavyType=fType-20;
 #ifdef _NOROOT
       int fZNuclei;
-      float fXMass;
-      mass_number2charge_mass(&fKascadeHeavyType,&fZNuclei,&fXMass);
+      double fXMass;
+      MassNumber2ChargeAndMass(fKascadeHeavyType,fZNuclei,fXMass);
       std::cout<<"       Itype: Type code for primary particle  ="
 	       <<fType<<"     "<<fNucleiNames[fZNuclei-1]
 	       <<"("<<fKascadeHeavyType<<")"<<std::endl;

@@ -49,6 +49,8 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
       for(int j=0;j<fNumGridAreasY;j++)
 	{
 	  pfCellGrid[i][j].clear();   //Just to be sure.
+	  //std::cout<<"i,j,size: "<<i<<" "<<j<<" "<<pfCellGrid[i][j].size()
+	  //	   <<std::endl;
 	}
     }
   // **********************************************************************
@@ -68,11 +70,11 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 	}
       if(pfCellX[i]+2*pfCellRadius[i]>fGridMax)
 	{
-	  fGridMin=pfCellX[i]+2*pfCellRadius[i];
+	  fGridMax=pfCellX[i]+2*pfCellRadius[i];
 	}
       if(pfCellY[i]+2*pfCellRadius[i]>fGridMax)
 	{
-	  fGridMin=pfCellY[i]+2*pfCellRadius[i];
+	  fGridMax=pfCellY[i]+2*pfCellRadius[i];
 	}
     }
   
@@ -88,7 +90,7 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
   // *************************************************************************
   if(fabs(fGridMin)>fabs(fGridMax))
     {
-      fMaxFOV2=(2*fGridMin*fGridMin);
+      fMaxFOV2=(2*fGridMin*fGridMin);  //2 is so we get diagonal
     }
   else
     {
@@ -107,15 +109,17 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
       for(int j=0;j<fNumGridAreasY;j++)
 	{
 	  double fGridY=fGridYMin+j*fGridAreaWidthY+fGridAreaWidthY/2.;
+	  //std::cout<<i<<" "<<j<<" "<<fGridX<<" "<<fGridY<<std::endl;
 	  fCellSeperation.clear();
 	  for(int k=0;k<fNumCells;k++)
 	    {
 	      double fCenterSeperation=sqrt(
 				    (fGridX-pfCellX[k])*(fGridX-pfCellX[k]) +
 				    (fGridY-pfCellY[k])*(fGridY-pfCellY[k]) );
-	              // the .87 is round up of .866=cos(30 deg) to get 
-	              // max Hex cell(light cone) size.
-	      if(fCenterSeperation<fGridAreaDiagonal+pfCellRadius[i]/.87)
+            // The .87 is round up of .866=cos(30 deg) to get 
+	    // max Hex cell(light cone) size.
+	      if(fCenterSeperation<(fGridAreaDiagonal/2.0)+
+		                                       (pfCellRadius[i]/.87) )
 		{
 		  // This Cell may have area in this GridArea
 		  fCellSep.fSeperation=fCenterSeperation;
@@ -131,6 +135,9 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 	  if(fCellSeperation.size()==1)
 	    {
 	      pfCellGrid[i][j].push_back(fCellSeperation[0].fIndex);
+	      //		  std::cout<<"list:fSeperation,k: "
+	      //		   <<fCellSeperation[0].fSeperation<<" "
+	      //	  	   <<fCellSeperation[0].fIndex<<std::endl;
 	    }
 	  else if(fCellSeperation.size()>1)
 	  // ****************************************************************
@@ -147,6 +154,8 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 	      for(int m=0;m<(int)fCellSeperation.size();m++)
 		{
 		  pfCellGrid[i][j].push_back(fCellSeperation[m].fIndex);
+		  //std::cout<<"list:k: "
+		  //	   <<pfCellGrid[i][j][m]<<std::endl;
 		}
 	    }
 	}
@@ -180,8 +189,23 @@ bool KSCellGrid::GetCellIndex(double XLocation, double YLocation,
   // *****************************************************************
   int fXIndex=(int)floor((XLocation-fGridXMin)/fGridAreaWidthX); 
                                        //Note we want a round down here
+  if(fXIndex>=fNumGridAreasX || fXIndex<0)
+    {
+      fCellIndex=-1;
+      return false;
+    }
+
   int fYIndex=(int)floor((YLocation-fGridYMin)/fGridAreaWidthY);
+  if(fYIndex>=fNumGridAreasY || fYIndex<0)
+    {
+      fCellIndex=-1;
+      return false;
+    }
   
+
+  //std::cout<<"fXIndex,fYIndex,size: "<<fXIndex<<" "<<fYIndex<<" "
+  //	   <<pfCellGrid[fXIndex][fYIndex].size()
+  //	   <<std::endl;
   int fNumCellsToCheck=pfCellGrid[fXIndex][fYIndex].size();
   if(fNumCellsToCheck==0)
     {
@@ -195,7 +219,7 @@ bool KSCellGrid::GetCellIndex(double XLocation, double YLocation,
 	  fCellIndex=pfCellGrid[fXIndex][fYIndex][i];
 	  double fX=XLocation-pfCellX[fCellIndex];
 	  double fY=YLocation-pfCellY[fCellIndex];
-	  double fLightConeWidth=pfCellRadius[fCellIndex];
+	  double fLightConeWidth=2*pfCellRadius[fCellIndex];
 	  bool fInCell = IsInCell(fX,fY,fLightConeWidth);
 	  if(fInCell)
 	    {

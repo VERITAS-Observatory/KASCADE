@@ -4,50 +4,50 @@
 !       out here and moved to ranlux.for
 !**********************************************************************
 
-	subroutine load_pst_patterns(pst_patterns,n)
-
+!	subroutine load_pst_patterns(pst_patterns,n)
+!
 !**********************************************************************
 !	Read in from a binary file the pst pattern array. Done as a
 !	f77 routine so we could use in Absoft fortran LInux the variuous
 !	options (-N3 and -N51) that let us read binary files made on a 
 !	VMS machine
 !**********************************************************************
-	integer*2 pst_patterns(n)
-	integer*4 n,i
-	open(41,file='pst_mul2.dat',status='OLD',form='UNFORMATTED')
-	do i=1,n
-        	read(41)pst_patterns(i)
-		if(i.lt.100)then
-		  write(6,4300)' i:pst_patterns:',i,pst_patterns(i)
-4300	format(a,i5,o5)
-		endif
-	enddo
-	close(unit=41)		
-	return
-	end
+!	integer*2 pst_patterns(n)
+!	integer*4 n,i
+!	open(41,file='pst_mul2.dat',status='OLD',form='UNFORMATTED')
+!	do i=1,n
+!        	read(41)pst_patterns(i)
+!		if(i.lt.100)then
+!		  write(6,4300)' i:pst_patterns:',i,pst_patterns(i)
+!4300	format(a,i5,o5)
+!		endif
+!	enddo
+!	close(unit=41)		
+!	return
+!	end
 !**********************************************************************
 
-        function gauss(x)
+!        function gauss(x)
 !	Modified:
 !	2/4/92 G.H.S. V:1:0:1:0:0.4
 !		Fix width of GAUSS. It was .6932. Make it 1.0 so nfluct has
 !		correct width.
-
+!
 !	NOTE: This funciton only gives values out to 3/.6932=4.33 sigma and 
 !	above 3 sigma its not perfect(but its not bad!).
-
+!
 c     This is petes for use by nfluct.
-	real xdummy
-
+!	real xdummy!
+!
 !	Sum 6 random numbers(whose mean will be 3)
-
-        sum=pran(xdummy)
-        do i=1,5
-                sum=sum+pran(xdummy)
-	enddo
-        gauss=(sum-3.)/.6932	!Put mean at 0. Correct width.
-        return
-        end
+!
+!        sum=pran(xdummy)
+!        do i=1,5
+!                sum=sum+pran(xdummy)
+!	enddo
+!        gauss=(sum-3.)/.6932	!Put mean at 0. Correct width.
+!        return
+!        end
 !**********************************************************************
 
        subroutine geom(dl,dm,dn,tix)
@@ -254,7 +254,7 @@ c     10/23/86
 
 !**********************************************************************
 
-	subroutine mass_number2charge_mass(ia,qz,xmass)
+!	subroutine mass_number2charge_mass(ia,qz,xmass)
 !******************************************************************************
 !   Determine charge Z of most stable nuclei of nuclear number A
 !   Determine mass from Z and A using semi-empirical mass formula
@@ -263,83 +263,83 @@ c     10/23/86
 !   Sheldon,1969, Acedemic Press, pg 36-38, formula: 2-35,2-38,2-39,2-40
 !******************************************************************************
 !   This is from the liquid drop model of stable nuclei.
-
+!
 !  Written by:
 !  Glenn Sembroski
 !  Physics Dept.
 !  Purdue Univ.
 !  W. Lafayette, IN USA 47907
-
+!
 ! Modified:
-
-
-
-	IMPLICIT NONE
-	real a
-	integer qz,ia
-	real  xmass,pmass
-	logical  first_argon
-
-	real mp,mn,ap,av,as,ac,aa
-	parameter (mp=938.256e-6)   !Mass of proton (TeV)
-	parameter (mn=939.550e-6)   !Mass of neutron(TeV)
-	parameter (ap=33.5e-6)     !Pairing coef.(TeV)
-	parameter (av=14.1e-6)     !Volume coef (TeV)
-	parameter (as=13.0e-6)     !Surface coef(TeV)
-	parameter (ac=0.595e-6)    !Coulmb coef.(TeV)
-	parameter (aa=19e-6)       !Assymetry coef(TeV)
-	data first_argon /.true./
-
-
-         a=ia
-                         !Correct our formula for elements up to a=56(Fe)
-                         !which is as high as NUC_LIB goes.
-         if(ia==18)then	  !Force Oxygen isotope
-	    qz=8
-	 elseif(ia==24)then
-            qz=12         !Force Magnesium
-         elseif(ia==28)then
-            qz=14         !Force silicon
-         elseif(ia==32)then
-            qz=16         !Force Sulpher
-         elseif(ia==33)then
-            qz=16         !Force Sulpher
-         elseif(ia==35)then
-            qz=17         !Force Chlorine
-         elseif(ia==39)then
-            qz=19         !Force Potassium
-         elseif(ia==40)then
-            qz=18         !Force Argon !Could have been calcium 40.
-            if(first_argon)then
-               print*,'Warning--Forcing Argon for all atomic masses of 40'
-               first_argon=.false.
-            endif
-         elseif(a==56)then
-            qz=26         !Force Iron.
-         else
-            qz=anint(a/(1.98+0.0155*(a**(2./3.)))) 	!Use nearest integer 
-							!function
-         endif
-
+!!
+!
+!
+!	IMPLICIT NONE
+!	real a
+!	integer qz,ia
+!	real  xmass,pmass
+!	logical  first_argon
+!
+!	real mp,mn,ap,av,as,ac,aa
+!	parameter (mp=938.256e-6)   !Mass of proton (TeV)
+!	parameter (mn=939.550e-6)   !Mass of neutron(TeV)
+!	parameter (ap=33.5e-6)     !Pairing coef.(TeV)
+!	parameter (av=14.1e-6)     !Volume coef (TeV)
+!	parameter (as=13.0e-6)     !Surface coef(TeV)
+!	parameter (ac=0.595e-6)    !Coulmb coef.(TeV)
+!	parameter (aa=19e-6)       !Assymetry coef(TeV)
+!	data first_argon /.true./
+!
+!
+!         a=ia
+!                         !Correct our formula for elements up to a=56(Fe)
+!                         !which is as high as NUC_LIB goes.
+!         if(ia==18)then	  !Force Oxygen isotope
+!	    qz=8
+!	 elseif(ia==24)then
+!            qz=12         !Force Magnesium
+!         elseif(ia==28)then
+!            qz=14         !Force silicon
+!         elseif(ia==32)then
+!            qz=16         !Force Sulpher
+!         elseif(ia==33)then
+!            qz=16         !Force Sulpher
+!         elseif(ia==35)then
+!            qz=17         !Force Chlorine
+!         elseif(ia==39)then
+!            qz=19         !Force Potassium
+!         elseif(ia==40)then
+!            qz=18         !Force Argon !Could have been calcium 40.
+!            if(first_argon)then
+!               print*,'Warning--Forcing Argon for all atomic masses of 40'
+!               first_argon=.false.
+!            endif
+!         elseif(a==56)then
+!            qz=26         !Force Iron.
+!         else
+!            qz=anint(a/(1.98+0.0155*(a**(2./3.)))) 	!Use nearest integer 
+!							!function
+!         endif
+!
 !First determine pairing mass term
-         if(mod(qz,2)==0)then
-            if(mod(ia,2)==0)then
-               pmass=-ap*a**(-.75)   !even-even nuclei
-            else
-               pmass=0.              !even-odd nuclei
-            endif
-         else
-            if(mod(ia,2)==0)then
-               pmass=0.              !Odd-even nuclei
-            else
-               pmass=ap*a**(-.75)   !Odd-odd  nuclei
-            endif
-         endif
-
-         xmass = qz*mp + (a-qz)*mn - av*a + as*(a**(2./3.)) +
-	1 ac*(qz**2)/(a**(1./3.)) + aa*((a-2*qz)**2)/a + pmass
- 	return
-	end
+!         if(mod(qz,2)==0)then
+!            if(mod(ia,2)==0)then
+!               pmass=-ap*a**(-.75)   !even-even nuclei
+!            else
+!               pmass=0.              !even-odd nuclei
+!            endif
+!         else
+!            if(mod(ia,2)==0)then
+!               pmass=0.              !Odd-even nuclei
+!            else
+!               pmass=ap*a**(-.75)   !Odd-odd  nuclei
+!            endif
+!         endif
+!
+!         xmass = qz*mp + (a-qz)*mn - av*a + as*(a**(2./3.)) +
+!	1 ac*(qz**2)/(a**(1./3.)) + aa*((a-2*qz)**2)/a + pmass
+! 	return
+!	end
 !******************************************************************************
 
 
@@ -365,14 +365,14 @@ c		Make everything real*8
 !****************************************************************************
 
 
-	function nfluct(x)
+!	function nfluct(x)
 !****************************************************************************
 c       Puts a statistical fluctuation on number of pe's(photons)
 !****************************************************************************
 c       written by:  Pete Palfrey
 c                    Purdue
 c                    4/1/89
-
+!
 !	Modified:
 !	11/5/98 GHS V:1:1:5.3
 !		Fix bug in NFLUCT. For small values of x (x<12) check for
@@ -380,53 +380,53 @@ c                    4/1/89
 !		This was especially bad for x<.25. This error became very 
 !		noticeable when we went to segment step sizes of .02 radiation
 !		lengths.
-
-	external pran
-
+!
+!	external pran
+!
 c       See if fluctuation will be poisson.
-        if(x.lt.12.) then        !Poisson
-                sum=exp(-x)
-                old=sum
-                test=pran(dummy)
+!        if(x.lt.12.) then        !Poisson
+!                sum=exp(-x)
+!                old=sum
+!                test=pran(dummy)
 !	11/5/98 GHS V:1:1:5.3 Let imax always be 18.
 !                imax=min(4.*x,18.)
-                imax=18
-                do i=1,imax
-                        if(sum.gt.test) then
-                                nfluct=i-1
-                                return
-                        end if
-                        xx=i
-                        old=old*x/xx
-                        sum=sum+old
-                end do
-                nfluct=imax
+!                imax=18
+!                do i=1,imax
+!                        if(sum.gt.test) then
+!                                nfluct=i-1
+!                                return
+!                        end if
+!                        xx=i
+!                        old=old*x/xx
+!                        sum=sum+old
+!                end do
+!                nfluct=imax
 c        Fluctuation is gaussian distributed.
-        else
-                sca=sqrt(x)*gauss(x) + x
-                if(sca.gt.0.) then
-                        nfluct=nint(sca)
-                else
-                        nfluct=0
-                end if
-        end if
-        return
-        end
+!        else
+!                sca=sqrt(x)*gauss(x) + x
+!                if(sca.gt.0.) then
+!                        nfluct=nint(sca)
+!                else
+!                        nfluct=0
+!                end if
+!        end if
+!        return
+!        end
 !****************************************************************************
-
-
-        FUNCTION REXP(X)
+!
+!
+!        FUNCTION REXP(X)
 c      This function randomly picks from an exponatial distribution using
 c      X as the scale factor.
 c      Its used for interaction depth(Xis is gm/cm**2) and for decay length
 c      (where x is in meters)
 c      Rexp is distributed as exp(-s/X)
-	external pran
-
-        Q = pran(xdummy)
-
-c       This produces the required random distribution.
-	REXP = -X*ALOG(Q)
-	RETURN
-        END
+!	external pran
+!
+!        Q = pran(xdummy)
+!
+!c       This produces the required random distribution.
+!	REXP = -X*ALOG(Q)
+!	RETURN
+!        END
 !****************************************************************************

@@ -14,7 +14,7 @@
 #include "KSSinglePe.h"
 
 extern "C" float pran(float* fXDummy);
-extern "C" float gauss(float* fXDummy);
+extern "C" double Gauss();
 
 KSSinglePe::KSSinglePe()
 {
@@ -130,16 +130,16 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
 // 	Area 1:Below height=.68 (channel 95) down to .158 its constant.0 below
 // 	       .158 (channel 22) This area is .2865 of the total area under 
 //             the curve. Throw over that to pick our areas.
-// 	Area 2:Above .68 its a gaussian, with a mean of 1.09(channel 152) and
+// 	Area 2:Above .68 its a Gaussian, with a mean of 1.09(channel 152) and
 // 		a sigma of .2865 (40 channels)
-// 		Use a gaussian for after pulsing.
+// 		Use a Gaussian for after pulsing.
 // 		Choose some percent of the time (AFTER_PULSE_FRAC) to geneate
 // 		our pulse height value from the afterpulse spectrum. Assume
-// 		this spectrum is gaussian with mean AFTER_PULSE_MEAN and width
+// 		this spectrum is Gaussian with mean AFTER_PULSE_MEAN and width
 // 		FAFTERPULSE_SIGMA. Afterpulses only show up in noise! 
 {
-  const double fSinglePeGaussMean  = 1.0;      // gaussian mean
-  //const double fSinglePeGaussSigma = .275;     // Default gaussian width
+  const double fSinglePeGaussMean  = 1.0;      // Gaussian mean
+  //const double fSinglePeGaussSigma = .275;     // Default Gaussian width
                                                // (if fSinglePeSigma=0)
   const double fAfterPulseFrac     = 3.e-4;    // Fraction of afterpulses
   const double fAfterPulseMean     = 2.0;      // Mean of afterpulses
@@ -156,7 +156,7 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
 	{
 	  while(1)
 	    {
-	      fHeight=gauss(&fXDummy)*fAfterPulseSigma +fAfterPulseMean;
+	      fHeight=Gauss()*fAfterPulseSigma +fAfterPulseMean;
 	      if(fHeight>=0)
 		{
 		  return fHeight;
@@ -170,12 +170,12 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
   // *******************************************************************
 
   // *******************************************************************
-  // Pick from a gaussian with mean=0 and Sigma=1, modify result to 
+  // Pick from a Gaussian with mean=0 and Sigma=1, modify result to 
   // mean=fSinglePeGaussMean and sigma=kSinglePePulseHeightSigma
   // *******************************************************************
   while(1)
     {
-      fHeight=gauss(&fXDummy)*kSinglePePulseHeightSigma + fSinglePeGaussMean;
+      fHeight=Gauss()*kSinglePePulseHeightSigma + fSinglePeGaussMean;
       if(fHeight>0)
 	{
 	  return fHeight;

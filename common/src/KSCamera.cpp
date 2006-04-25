@@ -320,7 +320,7 @@ bool KSCamera::getPixelIndex(double fXDeg, double fYDeg, int& fIPix)
   // 	Find distance of X,Y to center of field of view.
   // *******************************************************************
   double fDistance2=(fXDeg*fXDeg+fYDeg*fYDeg);
-  if(fDistance2<fMaxFOVDeg2)
+  if(fDistance2>fMaxFOVDeg2)
     {
       return true;  //Out of file-of-view , dump it
     }
@@ -340,8 +340,8 @@ bool KSCamera::getPixelIndex(double fXDeg, double fYDeg, int& fIPix)
   // **************************************************************
   if(fCameraType==WHIPPLE490)         //Check Outer rings
     {                             
-      bool fDump=trywhipple490OuterPixels(fXDeg,fYDeg,fIPix);
-      return fDump;  //Whatever
+      bool fKeep=trywhipple490OuterPixels(fXDeg,fYDeg,fIPix);
+      return !fKeep;  //Whatever, but dump flag
     }
   else
     {

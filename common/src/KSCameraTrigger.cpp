@@ -17,8 +17,8 @@
 #include "KSCameraTrigger.h"
   
 extern "C" float pran(float* fXDummy);
-extern "C" int nfluct(float* mean);
-extern "C" float gauss(float* fXDummy);
+extern "C" int NFluct(double mean);
+extern "C" double Gauss();
 
 // In the constructor is where most of the work gets done.
 // ********************************************************************
@@ -91,7 +91,7 @@ bool KSCameraTrigger::isFastTriggered()
       // like a pesdistal
       if(fDisc>0)
 	{                       // Do this for speed to reduce calls
-				// to gauss,nfluct and thus pran,RANLUX
+				// to Gauss,NFluct and thus pran,RANLUX
 				// Get total number(signal +noise) pes in each 
 				// pixel. Use some tricky interger round down 
 	                        // here to get last fraction of pe.
@@ -109,8 +109,8 @@ bool KSCameraTrigger::isFastTriggered()
 		} 
 	    }
 	  
-	  float fDNoise=(float)fDiscNoise;
-	  int fDN=nfluct(&fDNoise);
+	  double fDNoise=(float)fDiscNoise;
+	  int fDN=NFluct(fDNoise);
 	  //std::cout<<fDiscNoise<<" "<<fDN<<std::endl;
 	  fDiscPes=fDiscPes+fDN;  //Add in sky noise
 	    
@@ -120,7 +120,7 @@ bool KSCameraTrigger::isFastTriggered()
 	  if(fDiscPes<=0)
 	    {
 	      double fDiscWidth =sqrt(gPulseHeightWidthFactor);
-	      fDiscPulseHeight=gauss(&fXDummy)*fDiscWidth;
+	      fDiscPulseHeight=Gauss()*fDiscWidth;
 	      //below we set fDiscPulseHieght to 0 if it's <0
 	    }
 	  else
@@ -164,15 +164,15 @@ bool KSCameraTrigger::isFastTriggered()
 	{
 	  int fDisc=pfPixel->at(i).fDisc;  //numper of pes this pixel, 
 	  if(fDisc==0)                 // Do this for speed to reduce calls
-	    {		               // to gauss,nfluct and thus pran,RANLUX
-	      float fDiscNoise  = (double)pfPixel->at(i).fDiscNoise;
-	      double fDiscPes   = nfluct(&fDiscNoise);  //Add in sky noise
+	    {		               // to Gauss,NFluct and thus pran,RANLUX
+	      double fDiscNoise  = (double)pfPixel->at(i).fDiscNoise;
+	      double fDiscPes   = NFluct(fDiscNoise);  //Add in sky noise
 	      // Note that we do not correct for efficiency here. Already 
 	      // done when we specified base noise rate.
 	      if(fDiscPes<=0)
 		{
 		  double fDiscWidth =sqrt(gPulseHeightWidthFactor);
-		  fDiscPulseHeight=gauss(&fXDummy)*fDiscWidth;
+		  fDiscPulseHeight=Gauss()*fDiscWidth;
 		}
 	      else
 		{

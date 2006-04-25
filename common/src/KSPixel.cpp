@@ -16,7 +16,7 @@
 #include "KSPixel.h"
 
 extern "C" float pran(float* fXDummy);
-extern "C" double rexp(double fRate);
+extern "C" double Rexp(double fRate);
 
 KSPixel::KSPixel()
 {
@@ -87,7 +87,7 @@ void KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
 // **************************************************************************
 // In fWaveForm, Add the noise pulses to it.
 // **************************************************************************
-// Add pe at random times using rexp for time intervels
+// Add pe at random times using Rexp for time intervels
 {
   double fMeanTimeGap=1./fNoiseRatePerNS;
 
@@ -95,7 +95,7 @@ void KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
   while(fNoiseTimeNS<gWaveFormBinSizeNS*fNumWaveFormBins)
     {
       addPe(fNoiseTimeNS,fAfterPulse);
-      fNoiseTimeNS+=rexp(fMeanTimeGap);
+      fNoiseTimeNS+=Rexp(fMeanTimeGap);
     }
   return;
 }
@@ -145,13 +145,13 @@ void KSPixel::DetermineNoisePedestals()
   InitWaveForm(0.0,gNightSkyWaveFormNS);
   double fPulseTimeNS=-fSinglePeSizeNS;  // start early to get partial
   double fMeanTimeBetweenNoisePesNS= 1./fNoiseRatePerNS;
-  fPulseTimeNS += rexp(fMeanTimeBetweenNoisePesNS);
+  fPulseTimeNS += Rexp(fMeanTimeBetweenNoisePesNS);
   bool fAfterPulse=true;
 
   while(fPulseTimeNS<gNightSkyWaveFormNS)
     {
       addPe(fPulseTimeNS,fAfterPulse);
-      fPulseTimeNS += rexp(fMeanTimeBetweenNoisePesNS);
+      fPulseTimeNS += Rexp(fMeanTimeBetweenNoisePesNS);
     }
   double fWaveFormSum=0;
   for(int i=0;i<(int)fWaveForm.size();i++)

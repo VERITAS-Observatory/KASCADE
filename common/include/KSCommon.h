@@ -46,8 +46,8 @@ const double gPulseHeightWidthFactor = 0.135;   //Used in pulseheight modeling
 
 const double gRad2Deg=180./M_PI;
 const double gDeg2Rad=M_PI/180.;
-const double gWhip490RotRad=-7.306*gDeg2Rad; //Whipple 490 camera is rotated 
-                                             //by this much
+//const double gWhip490RotRad=-7.306*gDeg2Rad; //Whipple 490 camera is rotated 
+//                            //by this much: Handled in WhippleCams.h
 
 const double gOverflowTime=1000001.;
 

@@ -13,7 +13,7 @@
 #include "KSEvent.h"
 
 extern "C" float   pran(float* dummy);
-extern "C" double  rexp(double fMeanIntervel);
+extern "C" double  Rexp(double fMeanIntervel);
 
 KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead, 
 		 KSPeHeadData* pPeHead, KSTeHeadData* pTeHead, 
@@ -182,24 +182,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       pfRunHeader->fRunDetails.fNumOfChans.at(0)=fNumPixels;
       pfRunHeader->fRunDetails.fFirstValidEventTime=fFirstValidEventTime;
 	
-      // ****************************************************************
-      // Fix up the arrayInfo (pixel locations only)
-      //  Need the output file to have same pixel locations as input file
-      //  ????May need to insure this at ealier point(ksTrigger)
-      // ****************************************************************
-      /*
-      VAArrayInfo* pfArrayInfo=pfVDFOut->getArrayInfoPtr();
-	for(int i=0;i<fNumPixels;i++)
-	{                       
-	  pfArrayInfo->telescope(E_T1)->channel(i)->pmtCoordX()=
-	    pfCamera->fPixel[i].fXDeg;
-	  pfArrayInfo->telescope(E_T1)->channel(i)->pmtCoordY()=
-	    pfCamera->fPixel[i].fYDeg;
-	}
-      */
-      pfVDFOut->writeArrayInfo();
-      
-      
       // ****************************************************************
       // Create the VAQStatsData 
       // ****************************************************************
@@ -399,7 +381,7 @@ void KSEvent::SaveImage()
   // Note: We have not put pedestals in here yet.
   // ********************************************************************
   double fEventTimeMJD=fEventTime.getMJDDbl();
-  fEventTimeMJD+=rexp(fMeanTimeBetweenEventsSec);
+  fEventTimeMJD+=Rexp(fMeanTimeBetweenEventsSec);
   fEventTime.setFromMJDDbl(fEventTimeMJD);
 
   if(pfDataIn->fRootFileName!=string())
