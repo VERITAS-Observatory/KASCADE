@@ -90,12 +90,45 @@ ROOTCINTFLAGS = $(KASINCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D
 
 F90MODULES = $(INCDIR)
 
-CCLIB=-L/usr/lib -lstdc++ -lU77
+#CCLIB=-L/usr/lib -lstdc++ -lU77
+CCLIB=-L/usr/lib -lstdc++
 
 ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
 
-F77  =f77 
-F90  =f90
+# -------------------------------------------------------------------------
+#Using ABSOFT Fortran:
+# -------------------------------------------------------------------------
+#Standrd absoft and gcc access to stdc++
+#CLDFLAGS = -L/usr/lib -lstdc++
+#F77  =f77 
+#F90  =f90
+#Absoft Flags
+#F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
+	-p $(TOPCOMMONDIR)
+#F77FLAGS = -g -O -V  -W -N3 -f -C -N1 -c -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
+
+
+# -------------------------------------------------------------------------
+#Using Intel Fortran:
+# -------------------------------------------------------------------------
+F77  =ifort
+F90  =ifort
+#Intel ifort Flags
+F90FLAGS =  -g -O  -lowercase -save -zero -c -nus $(KASINCFLAGS) \
+	    -module $(TOPCOMMONDIR)
+F77FLAGS =  -g -O  -132 -lowercase -save -zero -c -nus  $(KASINCFLAGS)
+
+#Intel access to stdc++
+#Note: When building, the Intel Compiler doesn't know what version of the 
+#libstdc++ to use (ie which version of g++ was used to compile other things), 
+#thus, that has to be explicitly given in the Library path to the libstdc++.so 
+#library. Also, if the  main program is not fortran we have to tell 
+#ifort that.
+CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i386-linux/3.2.3 -lstdc++ 
+
+
+
+
 CXX           = g++
 #ARCHCFLAGS    = -Wall -g -fPIC -O3
 ARCHCFLAGS    = -Wall -g -fPIC 
@@ -103,23 +136,17 @@ LD            = g++
 ARCHLDFLAGS   =  
 ARCHSOFLAGS   = -shared
 
-#Absoft Flags
-F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
-	-p $(TOPCOMMONDIR)
 
-#F77FLAGS = -g -O -V  -W -f -N3 -C -c -N1 -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
-F77FLAGS = -g -O -V  -W -N3 -f -C -N1 -c -N51 -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 
 #CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
 #	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS) $(ROOTCFLAGS)
 CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
 	-D_REENTRANT $(KASINCFLAGS) $(ROOTCFLAGS)
 
-#LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) 
-LDFLAGS = $(ARCHLDFLAGS)  $(CCLIB) 
+LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) -lU77 
+ 
 
-#CLDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) -L/usr/lib -lstdc++
-CLDFLAGS = $(ARCHLDFLAGS) -L/usr/lib -lstdc++
+
 
 
 INSTALLCMD = install -m 755 

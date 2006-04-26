@@ -2261,7 +2261,7 @@ c	Put it into the stack
 						!interesting knock-on electorn.
 !Both spin 0 and spin 1/2 use the same first term.
 		total_rate=qz*qz*(const/betasqr)*((1./t_min)-(1/t_max))-
-		1 (const/t_max)*alog(t_max/t_min)
+	1 (const/t_max)*alog(t_max/t_min)
 
 !***************************************************************************
 !SPIN 0: pi+/-,kaon+/-, heavy nuclei with A even
@@ -2561,7 +2561,7 @@ c                                   DEPENDENT RK
          elseif(ia==40)then
             qz=18         !Force Argon !Could have been calcium 40.
             if(first_argon)then
-               print*,'Warning--Forcing Argon for all atomic masses of 40'
+	       print*,'Warning--Forcing Argon for all atomic masses of 40'
                first_argon=.false.
             endif
          elseif(a==56)then
@@ -3076,7 +3076,7 @@ c 					!Only report it if its sizable.
            dl=dl-sign(1.e-6,dl)	!Reduce by 1.e-6
            icheck=icheck+1
            if(icheck.gt.5)then
-              print*,' ***PROPAGATE--FATAL--Cant fix consistency failure'
+         print*,' ***PROPAGATE--FATAL--Cant fix consistency failure'
               stop
            endif
            goto 100
@@ -3631,7 +3631,8 @@ c       Single particle Too weak?
 	1 z_nuclei,xmass)
           	       	  write(6,2001)trim(nuclei_names(z_nuclei)),
 	1 ispec-20,tenergy,height,x,y,tim
-2001  format('0',a,'(',i3,'):de/dx drop ',3x,f10.6,f13.0,23x,2f10.1,f12.1)
+2001  format('0',a,'(',i3,'):de/dx drop ',3x,f10.6,f13.0,23x,
+	1 f10.1,f12.1)
 
 			endif
   			return
@@ -5243,7 +5244,8 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 	              	  	write(6,4004)trim(nuclei_names(z_nuclei)),
 	1 ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
 4004  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-     1 '      X,Y(meters)    Time(nsec)',/,' ',a,'(',i3,') >>>Heavy hits!',
+     1 '      X,Y(meters)    Time(nsec)',/,' ',a,
+     1 '(',i3,') >>>Heavy hits!',
      1 f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
 		        endif
            	  endif

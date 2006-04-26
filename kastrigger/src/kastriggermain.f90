@@ -281,7 +281,13 @@
 !	use record_defs
 !      	use whipple_telescope
 !	use kas_ranlux
+!
+!Absoft C/C++ naming directrive
 !dir$ name(gauss="Gauss")
+!
+!Intel C/C++ naming directrive
+!DEC$ ATTRIBUTES ALIAS:'Gauss' :: Gauss
+
 
 	IMPLICIT NONE
 

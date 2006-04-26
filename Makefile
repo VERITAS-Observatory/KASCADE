@@ -16,8 +16,9 @@ STAGES =common \
 	kaslite \
 	kassrtmrg \
 	kastrigger \
-	kasaomega \
-	utilities
+	kasaomega 
+
+#	utilities
 #VHDF5 \
 
 TARGETS = $(STAGES)
@@ -26,8 +27,9 @@ INSTALLTARGETS =kascade \
 		kaslite \
 		kassrtmrg \
 		kastrigger \
-		kasaomega \
-		utilities
+		kasaomega 
+
+#		utilities
 
 all: $(STAGES)
 
