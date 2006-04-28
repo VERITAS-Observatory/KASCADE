@@ -316,9 +316,9 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 	  if(fNumTimes>0)
 	    {
 	      float fIndex=-(float)(i+1); //- sign flags start of a pixels 
-	                                  //time data All times are positive
-	                                  //Pixel index starts at 1 (so the 
-	                                  //-1 works as a flag)
+	                                  //time data. All times are positive
+	                                  //Index starts at PixelIndex +1 
+	                                  //(so the - sign can work as a flag)
 	      fCompressionBuffer.push_back(fIndex);
 	      for(int j=0;j<fNumTimes;j++)
 		{
@@ -332,9 +332,9 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
       int fNumInBuffer=fCompressionBuffer.size();
       float* pfWriteBuffer= new float[fNumInBuffer];
 
-      for(int i=0;i<fNumInBuffer;i++)   //Index trick here but Ok I think
+      for(int i=0;i<fNumInBuffer;i++)  
 	{
-	  pfWriteBuffer[i]=fCompressionBuffer[i-1];
+	  pfWriteBuffer[i]=fCompressionBuffer[i];
 	}
       fLength=fNumInBuffer*sizeof(float);
       //std::cout<<"fLength: "<<fLength<<std::endl;
@@ -558,7 +558,7 @@ bool KSTeFile::ReadTe(KSTeData* te)
       // First comes one word which is the total length in (char) of the 
       // remaing data in the TePixelData Record
       int fLength=0;
-      pfInFile->read((char*)fLength, sizeof(int));
+      pfInFile->read((char*)&fLength, sizeof(int));
       if(!pfInFile->good())
 	{
 	  std::cout<<"KSTeFile--Failed to read Te Pixel Data."
@@ -590,7 +590,7 @@ bool KSTeFile::ReadTe(KSTeData* te)
        {
 	 if(pfReadBuffer[i]<0)
 	   {
-	     fPixelIndex = - (int)pfReadBuffer[i];
+	     fPixelIndex = (-(int)pfReadBuffer[i])-1; //Back to Pixel index
 	   }
 	 else if(fPixelIndex<0)
 	   {

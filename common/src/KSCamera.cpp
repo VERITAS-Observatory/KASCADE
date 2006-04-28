@@ -507,7 +507,7 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	{
 	  for(int j=0;j<fNumPes;j++)
 	    {
-	      double fPeTime=fPixel[i].fTimePe[i];
+	      double fPeTime=fPixel[i].fTimePe[j];
 	      if(fPeTime<fPixelMinTimeNS)
 		{
 		  fPixelMinTimeNS=fPeTime;
