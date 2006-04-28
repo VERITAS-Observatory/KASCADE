@@ -362,10 +362,10 @@ int main(int argc, char** argv)
       ranstart(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	       rslength);
 
-    // ------------------------------------------------------------------------
+    // --------------------------------------------------------------------
     // Create the output Te file and write the Segment header, Pe header and 
     // Te header to it and print the Te header.
-    // ------------------------------------------------------------------------
+    // --------------------------------------------------------------------
       std::cout<<"ksTrigger: Output Trigger Event File: "<<TeFileName
 	       <<std::endl;
       KSTeFile* pfTeFile=new KSTeFile();
@@ -399,10 +399,10 @@ int main(int argc, char** argv)
       // ---------------------------------------------------------------------
       // Main event loop
       // ---------------------------------------------------------------------
-      std::cout<<"at2"<<std::endl;
+
 
       KSArea fArea(pfPesFile,pfTeFile,pfSegmentHead,pfPeHead,pfDataIn,fWeight);
-      std::cout<<"at3"<<std::endl;
+
       while(1)
 	{
 	  //std::cout<<"at4"<<std::endl;
