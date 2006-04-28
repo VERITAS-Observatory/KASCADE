@@ -156,7 +156,9 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
 	{
 	  while(1)
 	    {
-	      fHeight=Gauss()*fAfterPulseSigma +fAfterPulseMean;
+	      double fG=Gauss();
+	      //std::cout<<fG<<std::endl;
+	      fHeight=fG*fAfterPulseSigma +fAfterPulseMean;
 	      if(fHeight>=0)
 		{
 		  return fHeight;
@@ -175,9 +177,12 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
   // *******************************************************************
   while(1)
     {
-      fHeight=Gauss()*kSinglePePulseHeightSigma + fSinglePeGaussMean;
+      double fG=Gauss();
+      //std::cout<<fG<<std::endl;
+      fHeight=fG*kSinglePePulseHeightSigma + fSinglePeGaussMean;
       if(fHeight>0)
 	{
+	  //std::cout<<fHeight<<std::endl;
 	  return fHeight;
 	}
     }

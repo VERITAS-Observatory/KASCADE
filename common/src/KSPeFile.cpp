@@ -51,10 +51,11 @@ bool KSPeFile::Create(std::string PeFileName)
     }
   pfOutFile=new std::ofstream(PeFileName.c_str(), 
 			      std::ios::out | std::ios::binary);
-  if(pfOutFile==NULL)
+  if(pfOutFile->fail())
     {
       std::cout<<"KSPeFile--Failed to Open a new output Pe file"
 	       <<std::endl;
+      exit(1);
       //Throw an exception here.
     }
   return pfOutFile->is_open();
@@ -76,10 +77,11 @@ bool KSPeFile::Open(std::string PeFileName)
     }
   pfInFile=new std::ifstream(PeFileName.c_str(), 
 			     std::ios::in | std::ios::binary);
-  if(pfInFile==NULL)
+  if(pfInFile->fail())
     {
       std::cout<<"KSPeFile--Failed to Open an existing input pe file"
 	       <<std::endl;
+      exit(1);
       //Throw an exception here.
     }
   return pfInFile->is_open();

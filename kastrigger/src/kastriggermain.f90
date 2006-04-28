@@ -27,25 +27,38 @@
         real*8 :: xg,yg,fTime,wx,wy,wrad2,dn_min_tight,dn_min_loose,facet_diam
         real*8 :: focal_length,jitter_width_ew,jitter_width_ns,meters_per_deg
 
-	!real,external ::    Gauss		!declare various functions.
+	real*8,external ::    Gauss		!declare various functions.
 	!integer,external :: nfluct
         real,external :: pran
 
-	logical*1,intent(out) :: dump
+	integer:: dump
 	real*8 :: pe_time,pe_time_tilt
 
 	type(pe_spec) :: peptr
 	real*8 :: vn,xn,dist,xmount,ymount,zmount,wdldm2,wmag
 	real*8 :: vn_actual,vn_diff,vn_now,fPhotonRad2
         logical debugprint
+        integer debugflag
 
-         !print*,'dlr,dmr,dnr:',dlr,dmr,dnr
-        !print*,'tdlm, tdmm, tdnm:',tdlm, tdmm, tdnm
-        !if(wx.eq.0.and.wy.eq.0)then
-        !   debugPrint=.true.
-        !else
-           debugprint=.false.
-        !endif
+        !debugprint=.true.
+        debugprint=.false.
+        debugflag=0
+        if(debugprint.and.wx.eq.-1)then
+           debugflag=1
+        endif
+
+
+        if(debugprint.and.debugflag.eq.1)then
+           print*,'dlr,dmr,dnr,dndnm:',dlr,dmr,dnr,dndnm
+           print*,'tdlm, tdmm, tdnm: ',tdlm, tdmm, tdnm
+           print*,'xdl,xdm,xdn,ydl,ydm,ydn: ',xdl,xdm,xdn,ydl,ydm,ydn
+           print*,'xg,yg,fTime,wrad2: ',xg,yg,fTime,wrad2
+           print*,'dn_min_tight,dn_min_loose,facet_diam: ', &
+                & dn_min_tight,dn_min_loose,facet_diam
+           print*,'focal_length,jitter_width_ew,jitter_width_ns: ', &
+                & focal_length,jitter_width_ew,jitter_width_ns
+           print*,'meters_per_deg:',meters_per_deg
+        endif
 
 !        The length of the track from hobs to the tilted mount mirror plane is:
 !        dist=-((DLm,DMm,DNm) . (xg,yg,zg))/((DLm,DMm,DNm) . (DL1,DM1,DN1))
@@ -57,14 +70,19 @@
 	vn=(tdlm*dlr+tdmm*dmr+dndnm)	
 							!dnr always positive
 							!Tdnm always negative
+        if(debugprint.and.debugflag.eq.1)then
+           print*,' vn: ',vn
+        endif
+
 !	plus 1.0 deg(for scatters and aberations.)
-	dump=.false.
+
+	dump=0
 	if(abs(vn).lt.dn_min_loose)then
-		dump=.true.
+		dump=1 !flag to drop this pe
 		wx=1
-                if(debugprint)then
-                 !print*,'abs(vn), dn_min_loose: ',acos(abs(vn))*180/pi, &
-                 !     & acos(dn_min_loose)*180/pi
+                if(debugprint.and.debugflag.eq.1)then
+                 print*,'abs(vn), dn_min_loose: ',acos(abs(vn))*180/pi, &
+                      & acos(dn_min_loose)*180/pi
                 endif
                 !print*,'dump at atT1'
                 return
@@ -92,6 +110,10 @@
 							!Convert c_light to
 							!m/nsec
 
+        if(debugprint.and.debugflag.eq.1)then
+           print*,' xn,dist,pe_time: ',xn,dist,pe_time
+        endif
+
 !	Now the x,y intercepts of the track in the mount plane.
 !	Use the x,y unit vectors as defined in MOUNT_VECINI
 !	First the vector of this intercept point.X'=X+T(rack)*dist.
@@ -100,6 +122,12 @@
 	zmount=dnr*dist	
 			!Z direction increases down from the ground plane
 			!Define hobs as Z=0
+
+        if(debugprint.and.debugflag.eq.1)then
+           print*,' xmount,ymount,xmount: ',xmount,ymount,xmount
+        endif
+
+
 	!Now dot this with the new x' and y' unit vectors to get x,y in
 	!mirror plane
 	peptr%vpe(1)=xmount*xdl+ymount*xdm+zmount*xdn
@@ -111,18 +139,18 @@
 !		improve the Aberration calculation slightly also.
 !	Do it the simple way:
         fPhotonRad2=(peptr%vpe(1)**2+peptr%vpe(2)**2)
-        !if(debugprint)then
-        !   print*,1,peptr%vpe(1),peptr%vpe(2)
-        !endif
+        if(debugprint.and.debugflag.eq.1)then
+           print*,1,peptr%vpe(1),peptr%vpe(2)
+        endif
         !debugprint=.false.
 
 	if(fPhotonRad2.gt.wrad2)then
-            dump=.true.		! Gets here if mirror is missed.
+            dump=1		! Gets here if mirror is missed.
             wx=2
-            !if(debugprint)then
-             !  print*,2,peptr%vpe(1),peptr%vpe(2)
-               !print*,'fPhotonRad2,wrad2:',fPhotonRad2,wrad2
-            !endif
+            if(debugprint.and.debugflag.eq.1)then
+               print*,2,peptr%vpe(1),peptr%vpe(2)
+               print*,'fPhotonRad2,wrad2:',fPhotonRad2,wrad2
+            endif
             !print*,'Dumt atT2'
             return			!Drop this pe.
           endif
@@ -156,19 +184,32 @@
 	pe_time_tilt=pe_time
 	peptr%time=pe_time
 
-! 	call w10m_full_aberration(peptr,debug_var)
+!debug
+        if(debugprint.and.debugflag.eq.1)then
+           peptr%vw(1)=wx;
+        else
+           peptr%vw(1)=0
+        endif
+!enddebug 
+
  	call fullAberration(peptr,facet_diam,focal_length,jitter_width_ew, &
                             & jitter_width_ns, meters_per_deg)
+
 	pe_time=peptr%time
 	wx=peptr%vw(1)
 	wy=peptr%vw(2)
 	vn_actual=sqrt(wx**2+wy**2)
 
 	vn_now = cos(vn_actual*pi/180.0)
+        if(debugprint.and.debugflag.eq.1)then
+           print*,'pe_time,wx,wy,vn_actual,vn_now: ', &
+                & pe_time,wx,wy,vn_actual,vn_now
+        endif
+
         if(vn_now<dn_min_tight)then
-           dump=.true.
+           dump=1
            wx=3
-           if(debugprint)then
+           if(debugprint.and.debugflag.eq.1)then
               print*,'vn_actual,dn_Min_Tight:deg ',vn_actual, &
                    & acos(dn_min_tight)*180/pi
            endif
@@ -302,7 +343,7 @@
 	real*8 :: mag_vrc,mag_vph,mag_vn,rf,xyf_mag_sqr,path,z_dist
 
 
-	real*8 :: tix,tiy
+	real*8 :: tix,tiy,gtix,gtiy
 	real*8 :: w10m_ct
 	real :: xdummy
 
@@ -444,9 +485,20 @@
 ! 08/05/ghs Use seperate jitter widths for e-w and ns(top-down) for oval 
 ! spotsizes.
 
-	tix=(Gauss()*jitter_width_ew)
-        tiy=(Gauss()*jitter_width_ns)
+        gtix=Gauss()
+        gtiy=Gauss()
+        tix=(gtix*jitter_width_ew)
+        tiy=(gtiy*jitter_width_ns)
+        if(peptr%vw(1).eq.-1)then
+           print*,'gtix,gtiy,tix,tiy,jitter_width_ew,jitter_width_ns: ', &
+                & gtix,gtiy,tix,tiy,jitter_width_ew,jitter_width_ns
+           print*,'before geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
+        endif
+ 
         call geom8(vn(1),vn(2),vn(3),tix,tiy)
+        if(peptr%vw(1).eq.-1)then
+           print*,'after geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
+        endif
 
 !        tix=Gauss*jitter_width
 !	call geom(vn(1),vn(2),vn(3),tix)

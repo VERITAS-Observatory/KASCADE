@@ -25,11 +25,11 @@ double Gauss()
   float fXDummy;
   
   //	Sum 6 random numbers(whose mean will be 3)
-  double fSum;
+  double fSum=0;
   for (int i=0;i<6;i++)
     {
       fSum= fSum + pran(&fXDummy);
-    }
+     }
   double fGauss=((fSum-3.)/.6932);	//Put mean at 0. Correct width.
   return fGauss;
 }
@@ -170,10 +170,10 @@ int NFluct(double fMean)
 	{
 	  if(fSum>fTestVal)
 	    {
-	      int fNFluct=i-1;
+	      int fNFluct=i;
 	      return fNFluct;
 	    }    
-	  fOld=fOld*fMean/i;
+	  fOld=fOld*fMean/(i+1);
 	  fSum=fSum+fOld;
 	} 
       return fMaxI;

@@ -23,7 +23,7 @@ extern "C" void whippletilt(double* fDlp, double* fDmp, double* fDnp,
 			    double* fJitterWidthEastWestRad,
 			    double* fJitterWidthNorthSouthRad,
 			    double* fMetersPerDeg,
-			    double* fWX, double* fWY,bool* fDump, 
+			    double* fWX, double* fWY,int* fDump, 
 			    double* fPeTime, double* fPeTimeTilt); 
 
 KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile, 
@@ -71,7 +71,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
       std::ifstream* pfMountDirFile=new std::ifstream(
 				  pfDataIn->fMountDirectionFileName.c_str(), 
 				  std::ios::in | std::ios::binary);
-      if(pfMountDirFile==NULL)
+      if(pfMountDirFile->fail())
 	{
 	  std::cout<<"KSASrea--Failed to Open an pre-existing input Mount "
 	    "Direction file "<<std::endl;
@@ -96,7 +96,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
       std::ofstream* pfMountDirFile=new std::ofstream(
 				   pfDataIn->fMountDirectionFileName.c_str(),
 				   std::ios::out | std::ios::binary);
-      if(pfMountDirFile==NULL)
+      if(pfMountDirFile->fail())
 	{
 	  std::cout<<"KSArea--Failed to Open a new output Mount "
 	    "Direction file "<<std::endl;
@@ -194,10 +194,10 @@ void KSArea::ProcessImages()
 // image. Look for triggers. When we find a trigger write it out.
 // ***********************************************************************
 {
-  // if(fAreaNx==0 && fAreaNy==0)
+  //if(fAreaNx==0 && fAreaNy==0)
   // {
-  //   std::cout<<"Now at Nx,Ny: "<<fAreaNx<<" "<<fAreaNy<<std::endl;
-  // }
+  //  std::cout<<"Now at Nx,Ny: "<<fAreaNx<<" "<<fAreaNy<<std::endl;
+  //}
 
   // First check that hwe have enough pe's to even think about this area
   int fNumPes=fPes.size();
@@ -273,12 +273,13 @@ void KSArea::ProcessImages()
 // ***************************************************************************
 // whippletilt is f90 modified from whipple_tilt to interface with this code
 // ***************************************************************************
-	  double fWX;
-	  double fWY;
-	  bool   fDump;
+	  double fWX=0;
+	  double fWY=0;
+	  int    fDump=0;   //Flag that we are to drop this pe (drop==1)
 	  double fPeTime;
 	  double fPeTimeTilt;
 
+	  if(fAreaNx==0 && fAreaNy==0)fWX=-1;
 	  whippletilt(&fDlp, &fDmp, &fDnp, &fDnDnm, &fTDlm, &fTDmm, &fTDnm,
 		      &fXDl, &fXDm, &fXDn, &fYDl, &fYDm, &fYDn, &fPes[ipe].fX,
 		      &fPes[ipe].fY, &fPes[ipe].fTime, 
@@ -291,10 +292,10 @@ void KSArea::ProcessImages()
 		      &pfCamera->fJitterWidthNorthSouthRad,
 		      &pfCamera->fMetersPerDeg,
 		      &fWX, &fWY,&fDump, &fPeTime, &fPeTimeTilt); 
-	  if(fDump)
-	    {
-	      if(fWX==1)dump1++;
-	      if(fWX==2)dump2++;
+	  if(fDump==1)            //Note here that we now use type int for 
+	    {	                  //fDump to avoid differences between Absoft 
+	      if(fWX==1)dump1++;  //and Intel Fortrans definions of true and 
+	      if(fWX==2)dump2++;  //false
 	      if(fWX==3)dump3++;
 	      fDumping++;
 	      continue;
@@ -319,8 +320,8 @@ void KSArea::ProcessImages()
 	  // *****************************************************************
 	  int fPixelIndex;
 
-	  fDump=pfCamera->getPixelIndex(fWX,fWY,fPixelIndex);
-	  if(fDump)
+	  bool fDumpFlag=pfCamera->getPixelIndex(fWX,fWY,fPixelIndex);
+	  if(fDumpFlag)
 	    {
 	      dump4++;
 	      fDumping++;

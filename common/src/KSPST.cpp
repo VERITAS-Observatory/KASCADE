@@ -247,10 +247,9 @@ void KSPST::FillPSTPatterns()
       exit(1);
     }
 
-  std::ifstream* pfPSTPatternFile=
-    new std::ifstream(fPSTPatternFileName.c_str(),
+  std::ifstream fPSTPatternFile(fPSTPatternFileName.c_str(),
 		                              std::ios::in | std::ios::binary);
-  if(pfPSTPatternFile==NULL)
+  if(fPSTPatternFile.fail())
     {
       std::cout<<"KSPST--Failed to Open PST pattern file "<<fPSTPatternFileName
 	       <<std::endl;
@@ -259,12 +258,12 @@ void KSPST::FillPSTPatterns()
     }
   double fPSTPatternSize=pow(2.0,kNumPixelsPerPatch);   // 2**19 I hope
   pfPSTPatterns = new short[(int)fPSTPatternSize]; 
-  pfPSTPatternFile->read((char*)pfPSTPatterns,
+  fPSTPatternFile.read((char*)pfPSTPatterns,
 			                  (int)fPSTPatternSize*sizeof(short)); 
 
   std::cout<<"Using binary version of input PST Pattern file:"
 	   <<fPSTPatternFileName<<std::endl;
-  pfPSTPatternFile->close();
+  fPSTPatternFile.close();
   return;
 }
 // ****************************************************************************

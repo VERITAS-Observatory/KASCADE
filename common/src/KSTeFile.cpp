@@ -61,11 +61,12 @@ bool KSTeFile::Create(std::string TeFileName)
     }
   pfOutFile=new std::ofstream(TeFileName.c_str(), 
 			      std::ios::out | std::ios::binary);
-  if(pfOutFile==NULL)
+  if(pfOutFile->fail())
     {
       std::cout<<"KSTeFile--Failed to Open a new output Te file"
 	       <<std::endl;
       fFoundError=true;
+      exit(1);
       //Throw an exception here.
     }
   return pfOutFile->is_open();
@@ -88,11 +89,12 @@ bool KSTeFile::Open(std::string TeFileName)
     }
   pfInFile=new std::ifstream(TeFileName.c_str(), 
 			     std::ios::in | std::ios::binary);
-  if(pfInFile==NULL)
+  if(pfInFile->fail())
     {
       std::cout<<"KSTeFile--Failed to Open an existing input pe file"
 	       <<std::endl;
       fFoundError=true;
+      exit(1);
       //Throw an exception here.
     }
   return pfInFile->is_open();

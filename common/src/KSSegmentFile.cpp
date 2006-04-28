@@ -46,10 +46,11 @@ bool KSSegmentFile::Create(std::string SegFileName)
     }
   pfOutFile=new std::ofstream(SegFileName.c_str(), 
 			      std::ios::out | std::ios::binary);
-  if(pfOutFile==NULL)
+  if(pfOutFile->fail())
     {
       std::cout<<"KSSegmentFile--Failed to Open a new output segment file"
 	       <<std::endl;
+      exit(1);
       //Throw an exception here.
     }
   return pfOutFile->is_open();
@@ -71,10 +72,11 @@ bool KSSegmentFile::Open(std::string SegFileName)
     }
   pfInFile=new std::ifstream(SegFileName.c_str(), 
 			     std::ios::in | std::ios::binary);
-  if(pfInFile==NULL)
+  if(pfInFile->fail())
     {
       std::cout<<"KSSegmentFile--Failed to Open an existing input segment file"
 	       <<std::endl;
+      exit(1);
       //Throw an exception here.
     }
   return pfInFile->is_open();
