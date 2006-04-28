@@ -37,7 +37,6 @@ private:
 
   static int         sDefaultNewPatternTriggerLevel;
   static int         sDefaultNewTriggerMultiplicity; 
-  static double      sDefaultNewDiscCoincidenceWidthNS;
   static double      sDefaultNewADCGateWidthNS;
   static double      sDefaultNewDiscriminatorThresholdPes;
   static double      sDefaultNewNoiseRate;	
@@ -61,7 +60,6 @@ public:
 
   int         fNewPatternTriggerLevel;
   int         fNewTriggerMultiplicity; 
-  double      fNewDiscCoincidenceWidthNS;
   double      fNewADCGateWidthNS;
   double      fNewDiscriminatorThresholdPes;
   double      fNewNoiseRate;	

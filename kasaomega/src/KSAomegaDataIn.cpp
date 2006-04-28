@@ -17,10 +17,10 @@
 
 
 // **************************************************************************
-std::string KSAomegaDataIn::sDefaultVBFFileName=string();//empty;
-std::string KSAomegaDataIn::sDefaultRootFileName=string();//empty;;
-std::string KSAomegaDataIn::sDefaultPixelStatsRootFileName=string();//empty;;
-std::string KSAomegaDataIn::sDefaultRandomSeedFileName=string();//empty;;
+std::string KSAomegaDataIn::sDefaultVBFFileName=" ";//empty;
+std::string KSAomegaDataIn::sDefaultRootFileName=" ";//empty;;
+std::string KSAomegaDataIn::sDefaultPixelStatsRootFileName=" ";//empty;;
+std::string KSAomegaDataIn::sDefaultRandomSeedFileName=" ";//empty;;
 
 std::string KSAomegaDataIn::sDefaultRelativeGains="OFF"; 
 std::string KSAomegaDataIn::sDefaultRelativePedVars="OFF";
@@ -29,12 +29,11 @@ std::string KSAomegaDataIn::sDefaultWeightBySpectrum="OFF";
 
 int         KSAomegaDataIn::sDefaultNewPatternTriggerLevel=3;
 int         KSAomegaDataIn::sDefaultNewTriggerMultiplicity=3; 
-double      KSAomegaDataIn::sDefaultNewDiscCoincidenceWidthNS=6.5;
 double      KSAomegaDataIn::sDefaultNewADCGateWidthNS=20.0;
 double      KSAomegaDataIn::sDefaultNewDiscriminatorThresholdPes=10.0;
 double      KSAomegaDataIn::sDefaultNewNoiseRate=12.5;	
 double      KSAomegaDataIn::sDefaultNewEfficiency=1.0;
-double      KSAomegaDataIn::sDefaultNewLightConeConcentration=1.0; 
+double      KSAomegaDataIn::sDefaultNewLightConeConcentration=0.35; 
 double      KSAomegaDataIn::sDefaultDigitalCountsPerPE=4.2; 
 int         KSAomegaDataIn::sDefaultRunNumber=90000;
 // **************************************************************************
@@ -145,7 +144,6 @@ KSAomegaDataIn::KSAomegaDataIn()
 	       <<fNewPatternTriggerLevel<<std::endl;
     } 
 
-  fNewDiscCoincidenceWidthNS    = sDefaultNewDiscCoincidenceWidthNS;
   fNewADCGateWidthNS            = sDefaultNewADCGateWidthNS;
   fNewDiscriminatorThresholdPes = sDefaultNewDiscriminatorThresholdPes;
   fNewNoiseRate                 = sDefaultNewNoiseRate;
@@ -194,7 +192,6 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("WeightBySpectrum",sDefaultWeightBySpectrum);
   config.setValue("PatternTriggerLevel",fNewPatternTriggerLevel);
   config.setValue("TriggerMultiplicity",fNewTriggerMultiplicity);
-  config.setValue("DiscCoincidenceWidthNS",fNewDiscCoincidenceWidthNS);
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
   config.setValue("DiscriminatorThresholdPes",fNewDiscriminatorThresholdPes);
   config.setValue("NoiseRate",fNewNoiseRate);
@@ -229,12 +226,15 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
   doVAConfiguration(file, command_line, 
 		    "PixelStatsFileName",sDefaultPixelStatsRootFileName,
 		    "KSAomegaDataIn",
-		    "File Name for VEGAS Stage 2 type Root file. This "
+		    "File Name for a VEGAS Stage 2 type Input Root file. This "
 		    "file will contain: VAPixelStatusData record, used when "
 		    "BadPixelSupression is set ON. VAQStatsData record, used "
 		    "when RelativePedVars is set ON. and a VARelGainData "
 		    "record, used when RelativeGains is set ON. Use this to "
-		    "simulate a particular run.");
+		    "simulate a particular run.  Default(No file name given) "
+		    "is to use: No bad pixels,Relative Gains All=1, All "
+		    "Relative PedVars all =1, All pedestals = "
+		    "kDefaultPedestal (nominally 20)");
   doVAConfiguration(file, command_line, 
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSAomegaDataIn",
@@ -282,12 +282,7 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "Night sky shine rate in pes/deg/ns (after application of "
                     "all efficiency factors)");
   doVAConfiguration(file, command_line, 
-		    "DiscCoincidenceWidthNS",sDefaultNewDiscCoincidenceWidthNS,
-		    "KSAomegaDataIn",
-		    "Specifies an effective timing width for the addition of "
-		    "sky-shine noise to the discriminator signal.");
-  doVAConfiguration(file, command_line, 
-		    "ADCGatwWidthNS",sDefaultNewADCGateWidthNS,
+		    "ADCGateWidthNS",sDefaultNewADCGateWidthNS,
 		    "KSAomegaDataIn",
 		    "Specifies an length of the ADC gate for charge "
 		    "integration.");
@@ -317,7 +312,7 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "Conversion factor from pe's to digital counts in FADC" 
                     "traces.");
   doVAConfiguration(file, command_line, 
-		    "OutputRunNumber",sDefaultDigitalCountsPerPE,
+		    "OutputRunNumber",sDefaultRunNumber,
 		    "KSAomegaDataIn",
 		    "Run Number to use for Output file (VDF or VBF) if one is "
 		    "specified. Default value is 90000");
@@ -344,8 +339,6 @@ void KSAomegaDataIn::Print()
 	   <<std::endl;
   std::cout<<"       New TriggerMultiplicity: "<<fNewTriggerMultiplicity
 	   <<std::endl; 
-  std::cout<<"    New DiscCoincidenceWidthNS: "<<fNewDiscCoincidenceWidthNS
-	   <<std::endl;
   std::cout<<"            New ADCGateWidthNS: "<<fNewADCGateWidthNS
 	   <<std::endl;
   std::cout<<" New DiscriminatorThresholdPes: "

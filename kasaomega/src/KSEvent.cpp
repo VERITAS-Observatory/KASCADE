@@ -43,7 +43,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // parameters
   // ************************************************************************
   pfTeHead->fNoiseRate                =pfDataIn->fNewNoiseRate;
-  pfTeHead->fDiscCoincidenceWidthNS   =pfDataIn->fNewDiscCoincidenceWidthNS;
   pfTeHead->fDiscriminatorThresholdPes=pfDataIn->fNewDiscriminatorThresholdPes;
   pfTeHead->fEfficiency               =pfDataIn->fNewEfficiency;
   pfTeHead->fPatternTriggerLevel      =pfDataIn->fNewPatternTriggerLevel;
@@ -63,7 +62,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfAzElRADecXY = new VAAzElRADecXY(fEastLongitude,fLatitude);
 
   VAVDF* pfVDFStats=NULL;
-  if(pfDataIn->fPixelStatsRootFileName==string())
+  if(pfDataIn->fPixelStatsRootFileName==" ")
     {
       std::cout<<"ksAOMEGA: No Pixel Status Root input file specified"
 	       <<std::endl;
@@ -153,7 +152,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // ********************************************************************
   // If defined setup ouput VDF root file
   // ********************************************************************
-  if(pfDataIn->fRootFileName!=string())
+  if(pfDataIn->fRootFileName!=" ")
     {
       int fNumTels=1;
       pfVDFOut= new VAVDF();
@@ -171,7 +170,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  pfVDFOut->createFile(pfDataIn->fRootFileName,fNumTels,
 			       fEventTime);
 	}
-      
       pfRunHeader=pfVDFOut->getRunHeaderPtr();
       pfRunHeader->fRunDetails.fFirstEventTime=fFirstValidEventTime;
       pfRunHeader->fRunDetails.fRunNum=pfDataIn->fRunNumber;
@@ -187,7 +185,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // ****************************************************************
       VATelQStats tempTelQStats;
       tempTelQStats.fTelId=E_T1;//Only one telescope
-      
+
       for(int i=0;i<fNumPixels;i++)
 	{                         //We have only 1 window size per channel
 	  VASumWinQStats tempSumWinQStats;
@@ -207,7 +205,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	}
       //At this point we have a VATelQStats for 1 telescope for one time 
       // slice in tempTelQStats
-      
+
       //Set up the time slice.
       VATimeSliceQStats tempTimeSliceQStats;
       tempTimeSliceQStats.fTelColl.push_back(tempTelQStats);
@@ -218,7 +216,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       //Put this time slice (onl y one we've got) into QStats Data.
       VAQStatsData* pfQStats=pfVDFOut->getQStatsDataPtr();
       pfQStats->fTimeSliceColl.push_back(tempTimeSliceQStats);
+
       pfVDFOut->writeQStatsData();
+
 
       // ****************************************************************
       // Create the VARelGainsData 
@@ -315,28 +315,29 @@ bool KSEvent::BuildImage()
   // *******************************************************************
   // Read in an event
   // *******************************************************************
-  bool fShowerEnd=pfTeFile->ReadTe(pfTe);
-  if(fShowerEnd)
+  bool fGoodRead=pfTeFile->ReadTe(pfTe);
+  if(!fGoodRead)
     {
       if(pfTeFile->foundEOF())
 	{
-	  return true;
+	  return true;    //True is flag we hit end of shower file.
 	}
       else
 	{
-	  std::cout<<"ksAomega: Abnormal error reading in Te file"<<std::endl;
+	  std::cout<<"ksAomega: Abnormal error reading in Te data"<<std::endl;
 	  exit(1);
 	}
     }
   pfCamera->InitPixelImageData();// zeros's and clears things
-  fShowerEnd=pfTeFile->ReadTePixelData(pfCamera->fPixel);
-  if(fShowerEnd)
+  fGoodRead=pfTeFile->ReadTePixelData(pfCamera->fPixel);
+  if(!fGoodRead)
     {
       std::cout<<"ksAomega: Abnormal error reading in Te Pixel data"
 	       <<std::endl;
       exit(1);
     }
-  return false;
+  return false;        //False indicates event was read in ok and we are not at
+                       //end of file
 }
 // **************************************************************************
 
@@ -393,7 +394,7 @@ void KSEvent::SaveImage()
   fEventTimeMJD+=Rexp(fMeanTimeBetweenEventsSec);
   fEventTime.setFromMJDDbl(fEventTimeMJD);
 
-  if(pfDataIn->fRootFileName!=string())
+  if(pfDataIn->fRootFileName!=" ")
     {
       // ********************************************************************
       //Create, Fille and Write out a VACalibratedEvent
