@@ -1,8 +1,0 @@
-f,		1:PE_DELETE:.True.=delete pe file before pes file made.
-PESFILE=BIN                                                               
-
-
-
-options:PESFILE=BIN: output pes file is in unformatted format. Anything else 
-		is HDF5 format.(PESFILE=HDF5 is just a non-PESFILE=BIN 
-		place holder.
