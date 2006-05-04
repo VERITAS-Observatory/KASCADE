@@ -54,14 +54,16 @@ $(LIBTARGET): $(CPPOBJECTS)
 $(EXETARGET): $(LIBTARGET) 
 	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
-	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(ROOTLIBS) \
-	          $(VEGASLDFLAGS)
+	          $(VEGASLDFLAGS) $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) \
+	          $(ROOTLIBS) 
+	         
 
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) $(VEGASCMNINCDIR) $<
+	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS)  $< -D__STDC_LIMIT_MACROS \
+        -D__STDC_CONSTANT_MACROS 
 
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS)  $(VEGASCMNINCDIR) $<
+	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS)   $<
 
 .PHONY: install
 

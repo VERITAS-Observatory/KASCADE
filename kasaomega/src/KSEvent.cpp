@@ -19,6 +19,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 		 KSPeHeadData* pPeHead, KSTeHeadData* pTeHead, 
 		 KSAomegaDataIn* pDataIn)
 {
+  fEventIndex=0;
   pfDataIn=pDataIn;
   pfTeFile=pTeFile;
   pfTeHead=pTeHead;
@@ -155,134 +156,87 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   if(pfDataIn->fRootFileName!=" ")
     {
       int fNumTels=1;
+      int fNumChannels=492;
       pfVDFOut= new VAVDF();
+      VAArrayInfo* pfArrayInfo;
+      KSW10mVDF* pfW10mVDF;
       if(fCameraType==WHIPPLE490)
 	{
-	  std::string lCam("WC490");
-	  pfVDFOut->createFileWithCamera(pfDataIn->fRootFileName,1,lCam);
-	  //Creates and Opens the output file
-	  //(But does not write them).
-	  //Also creates all the objects to be written to the file;
-	  //Creates a VAArrrayInfo with a whipple 490 pixel camara
+	  pfW10mVDF = new KSW10mVDF(pfVDFOut,fNumChannels,fEventTime, 
+				    kWhipple10MId,kNumWindowSamples);
+
+	  double fEastLongitude;
+	  double fLatitude;
+	  pfW10mVDF->CreateW10mVDFFile(pfDataIn->fRootFileName,fEastLongitude,
+				       fLatitude);
+	  pfArrayInfo=pfVDFOut->getArrayInfoPtr();
+
 	}
       else
 	{
 	  pfVDFOut->createFile(pfDataIn->fRootFileName,fNumTels,
 			       fEventTime);
 	}
+      
+ // *********************************************************************
+ //Create over Run Header
+ // *********************************************************************
+    
+      pfW10mVDF->CreateRunHeader(pfDataIn->fRunNumber);
       pfRunHeader=pfVDFOut->getRunHeaderPtr();
-      pfRunHeader->fRunDetails.fFirstEventTime=fFirstValidEventTime;
-      pfRunHeader->fRunDetails.fRunNum=pfDataIn->fRunNumber;
-      pfRunHeader->fRunDetails.fTels=fNumTels;
-      pfRunHeader->fRunDetails.fExpectedTels.resize(fNumTels);
-      pfRunHeader->fRunDetails.fExpectedTels.at(0)=true;
-      pfRunHeader->fRunDetails.fNumOfChans.resize(fNumTels);
-      pfRunHeader->fRunDetails.fNumOfChans.at(0)=fNumPixels;
-      pfRunHeader->fRunDetails.fFirstValidEventTime=fFirstValidEventTime;
+      
+ // *********************************************************************
+
+      float ped[fNumChannels];
+      float pedvar[fNumChannels];
+      float gain[fNumChannels];
+      bool  off[fNumChannels];
+      for(int i=0;i<fNumPixels;i++)
+	{
+	  ped[i]  = (float)pfCamera->fPixel[i].fPed;
+	  gain[i] = (float)pfCamera->fPixel[i].fRelativeGain;
+	  off[i]  = pfCamera->fPixel[i].fBadPixel;
+	  if(fCameraType==WHIPPLE490)
+	    {
+	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE*
+		pfDataIn->fDigitalCountsPerPE;
+	    }
+	  else
+	    {
+	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE;
+	    }
+	}
 	
       // ****************************************************************
       // Create the VAQStatsData 
       // ****************************************************************
-      VATelQStats tempTelQStats;
-      tempTelQStats.fTelId=E_T1;//Only one telescope
+       
+      pfW10mVDF->CreateW10mQStats((const float*) ped, (const float*) pedvar);
 
-      for(int i=0;i<fNumPixels;i++)
-	{                         //We have only 1 window size per channel
-	  VASumWinQStats tempSumWinQStats;
-	  tempSumWinQStats.fSumWinSize = kDefaultNumWindowSamples;//arbitrary
-	  tempSumWinQStats.fNumEvtsAcc = 1000;                //arbitrary
-	  tempSumWinQStats.fChargeMean = pfCamera->fPixel[i].fPed;
-	  tempSumWinQStats.fChargeVar  = pfCamera->fPixel[i].fChargeVar;
-	  
-	  VAChanQStats tempChanQStats;   //Only this entry in our "sum"
-	  tempChanQStats.fChanNum=i;
-	  for(int j=0;j<kDefaultNumWindowSamples;j++)
-	    {
-	      tempChanQStats.fSumWinColl.push_back(tempSumWinQStats);
-	    }
-	  //Add this Channel to this telescope data
-	  tempTelQStats.fChanColl.push_back(tempChanQStats); 
-	}
-      //At this point we have a VATelQStats for 1 telescope for one time 
-      // slice in tempTelQStats
 
-      //Set up the time slice.
-      VATimeSliceQStats tempTimeSliceQStats;
-      tempTimeSliceQStats.fTelColl.push_back(tempTelQStats);
-      tempTimeSliceQStats.fStartTime=fFirstValidEventTime;
-      tempTimeSliceQStats.fEndTime.setFromMJDDbl(
-		       fFirstValidEventTime.getMJDDbl() + 1.0 ); //A day later
-      
-      //Put this time slice (onl y one we've got) into QStats Data.
-      VAQStatsData* pfQStats=pfVDFOut->getQStatsDataPtr();
-      pfQStats->fTimeSliceColl.push_back(tempTimeSliceQStats);
-
+ 
       pfVDFOut->writeQStatsData();
 
 
       // ****************************************************************
       // Create the VARelGainsData 
       // ****************************************************************
-      VATelRelGains tempTelRelGains;
-      tempTelRelGains.fTelId=E_T1;  
-      tempTelRelGains.fLowGainRefVarRelGain=1.0;//arbitrary
-      tempTelRelGains.fHighGainRefVarRelGain=1.0;//arbitrary
-      tempTelRelGains.fLowGainRefRelGain=1.0;
-      tempTelRelGains.fHighGainRefRelGain=1.0;
-      //Gains are not time variable.
-      for(int i=0;i<fNumPixels;i++)
-	{
-	  //Use same gain for hi and low. Only one channel here.
-	  VAChanRelGains tempChanRelGains;
-	  tempChanRelGains.fChanNum=i;
-	  tempChanRelGains.fNumEvtsAcc=1000;   //arbitrary
-	  tempChanRelGains.fMean=pfCamera->fPixel[i].fRelativeGain;
-	  tempChanRelGains.fVar=sqrt(pfCamera->fPixel[i].fRelativeGain);
-	  tempTelRelGains.fLowGainChanColl.push_back(tempChanRelGains);
-	  tempTelRelGains.fHighGainChanColl.push_back(tempChanRelGains);
-	}
-      
-      VARelGainData* pfRelGainData=pfVDFOut->getRelGainDataPtr();
-      pfRelGainData->fTelColl.push_back(tempTelRelGains);
+
+      pfW10mVDF->CreateW10mRelGains((const float*)gain);
+       
       pfVDFOut->writeRelGainData();
       
       // ****************************************************************
       // Create the Pixel Status
       // ****************************************************************
-      TelOnOffLogType tempTelOnOffLog;
-      tempTelOnOffLog.fTelId=E_T1;
       
-      TelSuppressedLogType tempTelSuppressedLog;
-      tempTelSuppressedLog.fTelId=E_T1;
+      pfW10mVDF->CreatePixelStatus(gNumImagePixels[fCameraType],off);
       
-      for(int i=0;i<fNumPixels;i++)
-	{
-	  OnOffStatus tempOnOffStatus;
-	  tempOnOffStatus.isOn = !pfCamera->fPixel[i].fBadPixel;
-	  tempOnOffStatus.startTime=fFirstValidEventTime;
-	  tempOnOffStatus.stopTime.setFromMJDDbl(
-		       fFirstValidEventTime.getMJDDbl() + 1.0 ); //A day later
-	  ChOnOffLogType tempChanOnOffLog;
-	  tempChanOnOffLog.push_back(tempOnOffStatus);
-	  tempTelOnOffLog.fChColl.push_back(tempChanOnOffLog); 
-	  
-	  SuppressedStatus tempSuppressedStatus;
-	  tempSuppressedStatus.isSuppressed=pfCamera->fPixel[i].fBadPixel;
-	  tempSuppressedStatus.startTime=fFirstValidEventTime;
-	  //A day later
-	  tempSuppressedStatus.stopTime.setFromMJDDbl(
-		    fFirstValidEventTime.getMJDDbl() + 1.0 ); //A day later
-	  ChSuppressedLogType tempChanSuppressedLog;
-	  tempChanSuppressedLog.push_back(tempSuppressedStatus);
-	  tempTelSuppressedLog.fChColl.push_back(tempChanSuppressedLog);
-	}
-      VAPixelStatusData* pfPixelStatus=pfVDFOut->getPixelStatusPtr();
-      pfPixelStatus->fOnOffLogs.push_back(tempTelOnOffLog);
-      pfPixelStatus->fSuppressedLogs.push_back(tempTelSuppressedLog);
       pfVDFOut->writePixelStatusData();
-  // **************************************************************
-  // Now generate Calibrated event tree for output root file.
-  // **************************************************************
+  
+      // **************************************************************
+      // Now generate Calibrated event tree for output root file.
+      // **************************************************************
       pfVDFOut->createTheCalibratedArrayEventTree();
       pfCalEvent= pfVDFOut->getCalibratedArrayEventPtr();
       if(pfCalEvent==NULL)
@@ -360,22 +314,28 @@ bool KSEvent::ProcessImage()
 	  return false;
 	}
     }
-  
+
+  // ************************************************************************
+  // Create pixel waveforms (as they would be as they enter CFD's and FADC's)
+  // ************************************************************************  
+  int fCFDTriggers=pfCamera->buildTriggerWaveForms(pfTe->fNx,pfTe->fNy); 
+
   bool fGoodEvent=false;
-  
-  int fCFDTriggers=pfCamera->buildTriggerWaveForms();//Finds triggered trigger
-                                           // pixels and the times they do it.
   if(fCFDTriggers>0)
     {
-      fGoodEvent=pfCamera->isWaveFormTriggered();
+      fGoodEvent=pfCamera->isWaveFormTriggered();//Finds 
+                                           //triggered trigger
+                                           // pixels and the times they do it.
       if(fGoodEvent)
 	{
 	  fTriggerTimeNS=pfCamera->getPSTTriggerTimeNS(); //Time of PST trigger
           // **************************************************************
 	  // Now determine the start time for our FADC gate to get the pulse.
 	  // fTriggerTimeNS is time we reached enough overlap to trigger PST
-	  fFADCStartGateTimeNS=fTriggerTimeNS-gFADCTOffsetNS[fCameraType]-
-	    gCFDDelayNS[fCameraType]-gCFDTriggerDelayNS[fCameraType];
+	  fFADCStartGateTimeNS=fTriggerTimeNS-gFADCTOffsetNS[fCameraType];
+	  pfCamera->buildNonTriggerWaveForms();
+
+
 	}
     }
   return fGoodEvent;
@@ -384,14 +344,17 @@ bool KSEvent::ProcessImage()
       
 void KSEvent::SaveImage()
 // **************************************************************************
-// Save event to ouput file(s)
-// **************************************************************************
+// Save event to output file(s)
+// **************************************************************************/
+// *&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// We still have to do the simulation ttree!!!!!!!!!!!!!!!!!!!!!!!!!!!!{
+// *&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 {
   // ********************************************************************
   // Note: We have not put pedestals in here yet.
   // ********************************************************************
   double fEventTimeMJD=fEventTime.getMJDDbl();
-  fEventTimeMJD+=Rexp(fMeanTimeBetweenEventsSec);
+  fEventTimeMJD+=Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
   fEventTime.setFromMJDDbl(fEventTimeMJD);
 
   if(pfDataIn->fRootFileName!=" ")
@@ -427,18 +390,36 @@ void KSEvent::SaveImage()
       fPointing.fCorRA  = fSourceRA2000;  //radians
       fPointing.fCorDec = fSourceDec2000;  //radians
       pfCalEvent->fTelEvents[0].fPointingData=fPointing;
-      pfCalEvent->fTelEvents[0].fTelID=E_T1;
+      if(fCameraType==WHIPPLE490)
+	{
+	  pfCalEvent->fTelEvents[0].fTelID=kWhipple10MId;
+	}
+      else
+	{
+	  pfCalEvent->fTelEvents[0].fTelID=E_T1;
+	}
 
       for(uint16_t i=0;i<fNumPixels;i++)  // No zero supression yet
 	{
 	  VATraceData chanData;
 	  chanData.fChanID=i;
-	  chanData.fCharge=
-	    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
-	  chanData.fSignalToNoise=chanData.fCharge/
-	                                    pfCamera->fPixel[i].fChargeVar;
+	  if(fCameraType==WHIPPLE490)
+	    {
+	      chanData.fCharge=
+		pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
+	      chanData.fSignalToNoise=chanData.fCharge/
+	                                    pfCamera->fPixel[i].fChargeVarPE;
+	      chanData.fCharge=chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
+	    }
+	  else if(fCameraType==VERITAS499) 
+	    {
+	      chanData.fCharge=
+		pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
+	      chanData.fSignalToNoise=chanData.fCharge/
+	                                    pfCamera->fPixel[i].fChargeVarPE;
+	    }
 	  chanData.fHiLo=false;  //We assume hi gain mode for now.
-	  chanData.fWindowWidth=kDefaultNumWindowSamples;
+	  chanData.fWindowWidth=kNumWindowSamples;
 	  pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	}
       // ****************************************************************
@@ -459,11 +440,14 @@ void KSEvent::Close()
 // Finish up and close up any ouput files.
 // ************************************************************************
 {
+  pfVDFOut->writeCalibratedEventTree();
+
   pfRunHeader->fRunDetails.fNumArrayEvents=(int)pfVDFOut->getNumArrayEvents();
   pfRunHeader->fRunDetails.fLastEventTime=fEventTime;
   pfVDFOut->writeRunHeader(); //This needed regardless of rest 
                                            //of file contents
-  pfVDFOut->writeCalibratedEventTree();
+  pfVDFOut->writeArrayInfo();
+// ********************************************************************
 
   pfVDFOut->Close(); //write out trees
   std::cout<<"ksAomega: Root Output file closed ok!"<<std::endl;
