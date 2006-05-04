@@ -40,6 +40,7 @@ class KSPixel
   void DetermineNoisePedestals();
   void RemoveNightSkyPedestalFromWaveForm();
   double  GetCharge(double fTriggerTimeNS);
+  void PrintWaveForm(int nx, int ny, int seqNum,double time);
 
  private:
   void addPe(double fPeTime,bool fAfterPulse);
@@ -49,6 +50,7 @@ class KSPixel
  public:
   KSSinglePe fSinglePe;
   KSFADC fFADC;
+  int    fID;
   double fHalfSpacingDeg;
   double fRadiusDeg;
   double fXDeg;
@@ -72,7 +74,7 @@ class KSPixel
   double fWaveFormStartNS;
   int    fNumWaveFormBins;
   double fWaveFormNightSkyPedestal;
-  double fChargeVar;  //Whipple:units of Pes. Veritas:units of FADC DC
+  double fChargeVarPE;  //Whipple:units of Pes. Veritas:units of FADC DC
 
   double fCFDTriggerTimeNS;
 

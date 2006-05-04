@@ -39,7 +39,7 @@ class KSCamera
 	                                             bool fUsePatternTrigger);
   virtual ~KSCamera();
   bool isFastTriggered(){return pfCameraTrigger->isFastTriggered();};
-  int  buildTriggerWaveForms();
+  int  buildTriggerWaveForms(int nx,int ny);
   bool isWaveFormTriggered(){return pfCameraTrigger->isWaveFormTriggered();};
   void buildNonTriggerWaveForms();
   void loadNoiseRatesAndPeds();

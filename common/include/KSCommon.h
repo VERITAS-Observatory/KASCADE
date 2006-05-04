@@ -25,6 +25,7 @@ const double gEastLongitude[2]           = {    -1.93649,   -1.935190};
 
 const int    gNumPixelsCamera[2]         = {         499,         490};
 const int    gNumTriggerPixels[2]        = {         463,         331};
+const int    gNumImagePixels[2]          = {         499,         379};
 const int    gNumLines[2]                = {          13,          11};
 const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
 //const double gPixelRadiusMM[2]           = {       12.48,         5.0};
@@ -36,7 +37,7 @@ const int    gFADCPedestalDCPerBin[2]    = {          20,           2};
 const double gFADCTOffsetNS[2]           = {         8.0,         8.0};
 
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
-const double gCFDTriggerDelayNS[2]       = {         2.5,         2.5};
+const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
 const double g490OuterRingDiameterM[3]= {0.3503422, 0.401752, 0.450367};

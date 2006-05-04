@@ -115,6 +115,7 @@ void KSCamera::generateCameraPixels()
                         gPixelHalfSpacingMM[fCameraType]/(fMetersPerDeg*1000.);
   for(int i=0;i<fNumPixels;i++)
     {
+      fPixel[i].fID=i;  //Set pixel index ID's
       fPixel[i].fHalfSpacingDeg = fHalfSpacingDeg;
       fPixel[i].fRadiusDeg      = (double)pfTelescopePixelRadius[i];
       fPixel[i].fYDeg           = (double)pfTelescopePixelX[i];
@@ -413,7 +414,7 @@ void KSCamera::InitPixelImageData()
 }
 // ****************************************************************************
 
-int KSCamera::buildTriggerWaveForms()
+int KSCamera::buildTriggerWaveForms(int nx, int ny)
 // ***************************************************************************
 // This is for the complete waveform/cfd trigger. It follows the old 
 // Veritas.cpp/PePulseVeritas. Its is adequate for both WHIPPLE490 and 
@@ -431,17 +432,27 @@ int KSCamera::buildTriggerWaveForms()
   int fCFDTriggers=0;
   double fStartTimeOffset=0;   // Start searching for CFD trigger at beginning
                                //  of fWaveForm;
+  bool fPrintWaveForm=false;
+  //std::cout<<nx<<" "<<ny<<std::endl;
+  if(nx==0 and ny==0)
+    {
+      fPrintWaveForm=true;
+    }
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
       if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)
 	{
 	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
 	  fPixel[i].BuildPeWaveForm();
+	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,1,0.0);
+
 	  fPixel[i].AddNoiseToWaveForm(false);
 	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
+	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,2,0.0);
+
 	  if(fPixel[i].fDisc>0)
 	    {
-	      bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset);
+	      bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset,nx,ny);
 	      if(fCFDTrig)
 		{
 		  fCFDTriggers++;
@@ -466,7 +477,7 @@ int KSCamera::buildTriggerWaveForms()
 	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
 	  fPixel[i].AddNoiseToWaveForm(false);
 	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
-	  bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset);
+	  bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset,nx,ny);
 	  if(fCFDTrig)
 	    {
 	      fCFDTriggers++;
@@ -486,8 +497,14 @@ void KSCamera::buildNonTriggerWaveForms()
   for(int i=fNumPixelsTrigger;i<fNumPixels;i++)
     {
       fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
+      if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)
+	{
+	  fPixel[i].BuildPeWaveForm();
+	}
       fPixel[i].AddNoiseToWaveForm(false);
+      fPixel[i].RemoveNightSkyPedestalFromWaveForm();
     } 
+  return;
 }
 // ************************************************************************
 
@@ -523,7 +540,7 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 
   fPixelMaxTimeNS = fPixelMaxTimeNS 
                                  + gCFDDelayNS[fCameraType]
-                                 + kCFDMinTimeAboveThresholdNS[fCameraType]  
+                                 + gCFDTriggerDelayNS[fCameraType]  
                                  + fPixel[0].fSinglePeSizeNS
                                  + gFADCBinSizeNS*gFADCNumSamples[fCameraType] 
                                  - gFADCDelayNS;

@@ -66,14 +66,16 @@ void  KSSinglePe::setRiseFallTimes(double fSinglePulseRiseTimeNS,
 	  double aindex=(j/fRiseTimeRatio);//fractional index within 
 	                                   //kBasePulse.
 	  int k=int(aindex);
-	  if(k>kBaseRiseSize-2)
+	  double fFraction=(aindex-(double)k);
+ 
+	  if(k+1>kBaseRiseSize)
 	    {
 	      std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
 		       <<std::endl;
 	      exit(1);
 	    }
 	  pfSinglePulse[j]=kBasePulse[k]+
-	    (aindex-(double)k)*(kBasePulse[k+1]-kBasePulse[k]);
+	                           fFraction*(kBasePulse[k+1]-kBasePulse[k]);
 	}
                                          //ends at same place. (1.0)
       pfSinglePulse[fNumBinsInRisingPulse-1]=kBasePulse[kBaseRiseSize-1];  
@@ -83,7 +85,7 @@ void  KSSinglePe::setRiseFallTimes(double fSinglePulseRiseTimeNS,
   // **********************************************************************
   if(fNumBinsInFallingPulse==kBaseFallSize)
     {                                   //No change from base.
-      for(int i=1;i<kBaseFallSize-1;i++)
+      for(int i=0;i<kBaseFallSize;i++)
 	{
 	  int j=fNumBinsInRisingPulse+i;
 	  int k=kBaseRiseSize+i;
@@ -92,7 +94,7 @@ void  KSSinglePe::setRiseFallTimes(double fSinglePulseRiseTimeNS,
     }
   else
     {
-      for (int j=1;j<fNumBinsInFallingPulse-1; j++)
+      for (int j=0;j<fNumBinsInFallingPulse-1; j++)
 	                                 //different from base:interpolate.
 	{
 	  double aindex=(j/fFallTimeRatio);//fractional index within 
@@ -100,15 +102,24 @@ void  KSSinglePe::setRiseFallTimes(double fSinglePulseRiseTimeNS,
 	  int k=int(aindex);
 	  double fFraction=aindex-(double)k;
 	  k=k+kBaseRiseSize;
-	  if(k>kBaseSize-2)
+	  double fBaseDifference;
+	  if((k+1)==kBaseSize)
+	    {
+	      fBaseDifference=0;
+	    }
+	  else if(k+1>kBaseSize)
 	    {
 	      std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
 		       <<std::endl;
 	      exit(1);
 	    }
+	  else
+	    {
+	      fBaseDifference=(kBasePulse[k+1]-kBasePulse[k]);
+	    }
+
 	  int m=fNumBinsInRisingPulse+j;
-	  pfSinglePulse[m]=kBasePulse[k]+
-	    (fFraction)*(kBasePulse[k+1]-kBasePulse[k]);
+	  pfSinglePulse[m]=kBasePulse[k]+fFraction*fBaseDifference;
 	}
                                          //ends at same place.
       pfSinglePulse[fNumBinsInPulse-1]=kBasePulse[kBaseSize-1];  

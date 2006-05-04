@@ -21,8 +21,8 @@ KSCFD::KSCFD(KSCameraTypes CameraType)
 					gWaveFormBinSizeNS);
   fCFDGain                      = kCFDGain[fCameraType];
   fCFDOffsetPE                  = kCFDOffsetPE[fCameraType];
-  fCFDMinTimeAboveThresholdBins =
-           (int)(kCFDMinTimeAboveThresholdNS[fCameraType]/gWaveFormBinSizeNS);
+  fCFDTriggerDelayBins =
+                    (int)(gCFDTriggerDelayNS[fCameraType]/gWaveFormBinSizeNS);
 }
 // ************************************************************************
 
@@ -33,7 +33,7 @@ KSCFD::~KSCFD()
 // ************************************************************************
 
 
-bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS)
+bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 // ***************************************************************************
 // Test to see if this pixel's waveform fires its CFD
 // ***************************************************************************
@@ -64,12 +64,19 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS)
 //   CFD pulse (MainPulse, see above) (WHIPPLE CFD's use fCFDOffsetPe=0)
 // 5:The time of that transition is the CFD triggerTime.
 // 6:VERITAS CFD's have the  added requirment that the original pulse must
-//   stay above threshold for a minimum time of fMinTimeAboveThresholdNS. 
+//   still be above threshold gCFDTriggerDelayNS after 0 crossing time.
+
 // ---------------------------------------------------------------------------
 // fCFDDelay is determined normaly by the expected rise time of the pulse.
 // ---------------------------------------------------------------------------
 
 {
+  bool fPrintWaveForms=false;
+  if(nx==0 && ny==0)
+    {
+      fPrintWaveForms=true;
+    }
+ 
   int fNumWaveFormBins=fPixel.fNumWaveFormBins;
   fPixel.fCFDTriggerTimeNS=gOverflowTime;             //Default is no trigger
   int fThresholdIndex;                       //Find if we go over threshold.
@@ -91,13 +98,17 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS)
     }                                
   
   //Now look for when we cross the threshold
-  for(fThresholdIndex=fStartIndex;fThresholdIndex<fNumWaveFormBins;
+  for(fThresholdIndex=fStartIndex;
+      fThresholdIndex<fNumWaveFormBins-fCFDTriggerDelayBins-1;
       fThresholdIndex++)
     {
       if(fPixel.fWaveForm[fThresholdIndex]>=fPixel.fThreshold)
 	{
-	  
-
+	  // *********************************************************
+	  // Ok we are over threshold. Form CFD internal pulse and look
+	  // for 0 (or CFDoffset crossing. any time to end of window.
+	  // We should probably be more careful here for how long we look
+	  // *********************************************************
           fNegativePulse.clear();
 	  fNegativePulse.resize(fNumWaveFormBins,0);
 	  
@@ -106,21 +117,26 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS)
 	    {
 	      fNegativePulse[i]=(-fPixel.fWaveForm[i]*fCFDGain);
 	    }
-
+	  //if(fPrintWaveForms)
+	  // {
+	  //   double fThresholdTime=gWaveFormBinSizeNS*fThresholdIndex+
+	  //	fPixel.fWaveFormStartNS;
+	  //   double fNegStartTime=fPixel.fWaveFormStartNS+
+	  //	                         fNumCFDDelayBins*gWaveFormBinSizeNS;
+	  //   PrintWaveForm(fPixel.fID,nx,ny,3,fThresholdTime, 
+	  //		      fNegativePulse,fNegStartTime);
+	  // }
 	  // **************************************************************
 	  //Add delayed, Negated and amplified fPulse to original
 	  //Note; Main pulse needs only to be as long as fWaveForm since we
 	  //      even though the delayed pulse extends after end of fWaveForm
 	  //      we can't use it there. 
-	  // Some time we can come back and do this all within one loop for
-	  // efficiency(we can probalby get rid of use of the fNegativePulse 
-	  // vector)
 	  // ***************************************************************
           fMainPulse.clear();
 	  fMainPulse.resize(fNumWaveFormBins,0);
-	  for(int i=0;i<fNumWaveFormBins;i++)
+	  for(int i=fNumCFDDelayBins;i<fNumWaveFormBins;i++)
 	    {
-	      int j=i+fNumCFDDelayBins;
+	      int j=i-fNumCFDDelayBins;
 	      fMainPulse[i]=fPixel.fWaveForm[i]+fNegativePulse[j];
 	    }
 
@@ -131,15 +147,16 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS)
 	  // if we start in a fired state, we need to look for the neg to pos 
 	  // transition through the offset level
 	  // *****************************************************************
+	  //Start looking for offset crossing:AFTER THRESHOLD REACHED!.
+	  // *****************************************************************
 	  bool fCFDFired=false;  //Flag that cfd has fired and has not yet
                                  //reset(gone positive)
-	  if(fMainPulse[fStartIndex]<fCFDOffsetPE)  //See if we start fired.
+	  if(fMainPulse[fThresholdIndex]<fCFDOffsetPE)  //See if we start fired.
 	    {
 	      fCFDFired=true; //set flag.
             }
-	                  //look for offset crossing.
-	  for(int j=fStartIndex+1;
-	      j<fNumWaveFormBins-1-fCFDMinTimeAboveThresholdBins;j++)
+	  for(int j=fThresholdIndex+1;
+	      j<fNumWaveFormBins-1-fCFDTriggerDelayBins;j++)
 	    {
 	      if(fCFDFired)
 		{
@@ -147,25 +164,79 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS)
 		    fCFDFired=false;
 		}
 	      else if(fMainPulse[j]<=fCFDOffsetPE)//pos->neg crossing. 
-		{                              //Do we trigger. Check disc
+		{ 
 		  fCFDFired=true;
-		  if(fPixel.fWaveForm[j+fCFDMinTimeAboveThresholdBins]
-		     >=fPixel.fThreshold) 
-		    {           //WE TRIGGER! Determine when and return
-		                //j+fCFDMinTimeAboveThresholdBins is trigger 
-			        //bin in fWaveForm. 
+		  // **************************
+		  // WHIPPLE490
+		  // **************************
+		  if(fCameraType==WHIPPLE490)  //No other requirements for 
+		    {                          //whipple
 		      fPixel.fCFDTriggerTimeNS =
-			(j+fCFDMinTimeAboveThresholdBins)*gWaveFormBinSizeNS +
-			                           fPixel.fWaveFormStartNS;
+			j*gWaveFormBinSizeNS +fPixel.fWaveFormStartNS;
+		      //if(fPrintWaveForms)
+		      //	{
+		      //	  PrintWaveForm(fPixel.fID,nx,ny,4,
+		      //	fPixel.fCFDTriggerTimeNS,fMainPulse,
+		      //			fPixel.fWaveFormStartNS);
+		      //	}
 		      return true;
+		    } 
+		  // *************************
+		  // VERITAS499
+		  // *************************
+		  else if(fCameraType==VERITAS499)
+		    {                      //Do we trigger. Check disc
+		      if(fPixel.fWaveForm[j+fCFDTriggerDelayBins]
+			 >=fPixel.fThreshold) 
+			{           //WE TRIGGER! Determine when and return
+			  //j+fCFDTriggerDelayBins is trigger 
+			  //bin in fWaveForm. 
+			  fPixel.fCFDTriggerTimeNS =
+			    (j+fCFDTriggerDelayBins)*gWaveFormBinSizeNS +
+			    fPixel.fWaveFormStartNS;
+			  //if(fPrintWaveForms)
+			  // {
+			  //   PrintWaveForm(fPixel.fID,nx,ny,4,
+			  //		    fPixel.fCFDTriggerTimeNS,
+			  //		    fMainPulse,
+			  //		    fPixel.fWaveFormStartNS);
+			  // }
+			  return true;
+			}
 		    }
 		}
-	      
 	    }
+	  //if(fPrintWaveForms)
+	  // {
+	  //   PrintWaveForm(fPixel.fID,nx,ny,4,0.0,fMainPulse,
+	  //		    fPixel.fWaveFormStartNS);
+	  // }
+	  // ***********************************************************
+	  // Note that we don't find a trigger we don't keep trying to see if 
+	  // reach threshold again. Someday add that.
+	  // ***********************************************************
+	  return false;
 	}
     }
   return false;
 }
 // *************************************************************************
 
+void KSCFD::PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
+			  double time, std::vector<double>& waveForm,
+			  double waveFormStartNS)
+// **************************************************************************
+// Dump wave form to ouput in form easy to plot with root. Used for debugging.
+// **************************************************************************
+{
+  int fNumBins=waveForm.size();
+  for(int i=0;i<fNumBins;i++)
+    {
+      double fBinTime=waveFormStartNS+i*gWaveFormBinSizeNS;
+      std::cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<pixelID<<" "<<fBinTime<<" "
+	       <<waveForm[i]<<" "<<time<<std::endl;
+    }
+  return;
+}
+// ***************************************************************************
 

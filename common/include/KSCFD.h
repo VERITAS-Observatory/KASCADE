@@ -15,7 +15,6 @@
 //                                            (WHIPPLE490,VERITAS499)
 const double kCFDGain[2]                    = {       3.0,      1.51};
 const double kCFDOffsetPE[2]                = {       0.0,       0.0}; 
-const double kCFDMinTimeAboveThresholdNS[2] = {       0.0,       2.5};
 
 class KSCFD
 {
@@ -24,7 +23,7 @@ class KSCFD
   int fNumCFDDelayBins;
   double fCFDGain;
   double fCFDOffsetPE;
-  int fCFDMinTimeAboveThresholdBins;
+  int fCFDTriggerDelayBins;
 
   std::vector<double> fMainPulse;
   std::vector<double> fNegativePulse;
@@ -33,7 +32,10 @@ class KSCFD
   KSCFD(KSCameraTypes CameraType);
   ~KSCFD();
 
-  bool isFired(KSPixel& fPixel, double fStartTimeOffsetNS);
+  bool isFired(KSPixel& fPixel, double fStartTimeOffsetNS, int nx, int ny);
+  void PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
+		     double time, std::vector<double>& waveForm,
+		     double waveFormStartNS);
 
 };  
 
