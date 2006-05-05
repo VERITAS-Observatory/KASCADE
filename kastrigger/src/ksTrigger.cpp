@@ -362,18 +362,6 @@ int main(int argc, char** argv)
       ranstart(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	       rslength);
 
-    // --------------------------------------------------------------------
-    // Create the output Te file and write the Segment header, Pe header and 
-    // Te header to it and print the Te header.
-    // --------------------------------------------------------------------
-      std::cout<<"ksTrigger: Output Trigger Event File: "<<TeFileName
-	       <<std::endl;
-      KSTeFile* pfTeFile=new KSTeFile();
-      pfTeFile->Create(TeFileName.c_str());
-      pfTeFile->WriteSegmentHead(pfSegmentHead);
-      pfTeFile->WritePeHead(pfPeHead);
-      pfTeFile->WriteTeHead(pfTeHead);
-      pfTeHead->PrintTeHead();
       
     // ----------------------------------------------------------------------
     // If we are weighting by spectrum, determine the weight;
@@ -396,13 +384,26 @@ int main(int argc, char** argv)
 		   <<fWeight<<std::endl;
 	}
 
-      // ---------------------------------------------------------------------
-      // Main event loop
-      // ---------------------------------------------------------------------
-
+      // --------------------------------------------------------------------
+      // Create the output Te file and write the Segment header, Pe header and 
+      // Te header to it and print the Te header.
+      // --------------------------------------------------------------------
+      KSTeFile* pfTeFile=new KSTeFile();
+      pfTeFile->Create(TeFileName.c_str());
+      std::cout<<"ksTrigger: Output Trigger Event File: "<<TeFileName
+	       <<std::endl;
+      pfTeFile->WriteSegmentHead(pfSegmentHead);
+      pfTeFile->WritePeHead(pfPeHead);
 
       KSArea fArea(pfPesFile,pfTeFile,pfSegmentHead,pfPeHead,pfDataIn,fWeight);
 
+      //Need to wait until fArea constructed before saving TeHead
+      pfTeFile->WriteTeHead(pfTeHead);
+      pfTeHead->PrintTeHead();
+
+      // ---------------------------------------------------------------------
+      // Main event loop
+      // ---------------------------------------------------------------------
       while(1)
 	{
 	  //std::cout<<"at4"<<std::endl;

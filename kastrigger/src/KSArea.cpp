@@ -254,6 +254,7 @@ void KSArea::ProcessImages()
       int dump2=0;
       int dump3=0;
       int dump4=0;
+      bool fPesHitPixels=false;
       for(int ipe=0;ipe<fNumPes;ipe++)
 	{
 	  double fDlp=fPes[ipe].fPhotonDl;     // Direction cosigns of photon
@@ -279,7 +280,7 @@ void KSArea::ProcessImages()
 	  double fPeTime;
 	  double fPeTimeTilt;
 
-	  if(fAreaNx==0 && fAreaNy==0)fWX=-1;
+	  //if(fAreaNx==0 && fAreaNy==0)fWX=-1;
 	  whippletilt(&fDlp, &fDmp, &fDnp, &fDnDnm, &fTDlm, &fTDmm, &fTDnm,
 		      &fXDl, &fXDm, &fXDn, &fYDl, &fYDm, &fYDn, &fPes[ipe].fX,
 		      &fPes[ipe].fY, &fPes[ipe].fTime, 
@@ -338,6 +339,7 @@ void KSArea::ProcessImages()
 // 4:Save time of hit and pixel index
 // 5:Collect sum for Mean altitude of emmision.
 // 6:Collets sum*sum for rms calc of Mean altitude of emission
+	  fPesHitPixels=true;
 	  pfCamera->fPixel[fPixelIndex].fDisc++;
 	                                        // Save focal plane times.
 	  pfCamera->fPixel[fPixelIndex].fTimePe.push_back(fPeTime);
@@ -359,7 +361,13 @@ void KSArea::ProcessImages()
 
 // ***************************************************************************
 //  We now have all the pe's collected into the  disc
-
+// ***************************************************************************
+// Test to see if we have al least on pixel with a pe even look for a trigger
+      if(!fPesHitPixels)
+	{
+	  continue;    // For performance, don't test for trigger
+	}
+ 
       bool fTriggered=pfCamera->isFastTriggered();
 
       // *********************************************************************

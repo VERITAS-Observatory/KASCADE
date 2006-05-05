@@ -15,11 +15,8 @@
 !	Do the tights cut at the very end of whipple_tilt(after scatters
 !		and aberations).
 
- 	!use structures
 	use kastrigger_def
-	!use whipple_tilt_def
 	use record_defs
-	!use wcamera_def
 
 	IMPLICIT NONE
 
@@ -43,22 +40,22 @@
         !debugprint=.true.
         debugprint=.false.
         debugflag=0
-        if(debugprint.and.wx.eq.-1)then
-           debugflag=1
-        endif
+        !if(debugprint.and.wx.eq.-1)then
+        !   debugflag=1
+        !endif
 
 
-        if(debugprint.and.debugflag.eq.1)then
-           print*,'dlr,dmr,dnr,dndnm:',dlr,dmr,dnr,dndnm
-           print*,'tdlm, tdmm, tdnm: ',tdlm, tdmm, tdnm
-           print*,'xdl,xdm,xdn,ydl,ydm,ydn: ',xdl,xdm,xdn,ydl,ydm,ydn
-           print*,'xg,yg,fTime,wrad2: ',xg,yg,fTime,wrad2
-           print*,'dn_min_tight,dn_min_loose,facet_diam: ', &
-                & dn_min_tight,dn_min_loose,facet_diam
-           print*,'focal_length,jitter_width_ew,jitter_width_ns: ', &
-                & focal_length,jitter_width_ew,jitter_width_ns
-           print*,'meters_per_deg:',meters_per_deg
-        endif
+        !if(debugprint.and.debugflag.eq.1)then
+        !   print*,'dlr,dmr,dnr,dndnm:',dlr,dmr,dnr,dndnm
+        !   print*,'tdlm, tdmm, tdnm: ',tdlm, tdmm, tdnm
+        !   print*,'xdl,xdm,xdn,ydl,ydm,ydn: ',xdl,xdm,xdn,ydl,ydm,ydn
+        !   print*,'xg,yg,fTime,wrad2: ',xg,yg,fTime,wrad2
+        !   print*,'dn_min_tight,dn_min_loose,facet_diam: ', &
+        !        & dn_min_tight,dn_min_loose,facet_diam
+        !   print*,'focal_length,jitter_width_ew,jitter_width_ns: ', &
+        !        & focal_length,jitter_width_ew,jitter_width_ns
+        !   print*,'meters_per_deg:',meters_per_deg
+        !endif
 
 !        The length of the track from hobs to the tilted mount mirror plane is:
 !        dist=-((DLm,DMm,DNm) . (xg,yg,zg))/((DLm,DMm,DNm) . (DL1,DM1,DN1))
@@ -70,9 +67,9 @@
 	vn=(tdlm*dlr+tdmm*dmr+dndnm)	
 							!dnr always positive
 							!Tdnm always negative
-        if(debugprint.and.debugflag.eq.1)then
-           print*,' vn: ',vn
-        endif
+        !if(debugprint.and.debugflag.eq.1)then
+        !   print*,' vn: ',vn
+        !endif
 
 !	plus 1.0 deg(for scatters and aberations.)
 
@@ -80,10 +77,10 @@
 	if(abs(vn).lt.dn_min_loose)then
 		dump=1 !flag to drop this pe
 		wx=1
-                if(debugprint.and.debugflag.eq.1)then
-                 print*,'abs(vn), dn_min_loose: ',acos(abs(vn))*180/pi, &
-                      & acos(dn_min_loose)*180/pi
-                endif
+                !if(debugprint.and.debugflag.eq.1)then
+                ! print*,'abs(vn), dn_min_loose: ',acos(abs(vn))*180/pi, &
+                !      & acos(dn_min_loose)*180/pi
+                !endif
                 !print*,'dump at atT1'
                 return
 	endif
@@ -110,9 +107,9 @@
 							!Convert c_light to
 							!m/nsec
 
-        if(debugprint.and.debugflag.eq.1)then
-           print*,' xn,dist,pe_time: ',xn,dist,pe_time
-        endif
+        !if(debugprint.and.debugflag.eq.1)then
+        !   print*,' xn,dist,pe_time: ',xn,dist,pe_time
+        !endif
 
 !	Now the x,y intercepts of the track in the mount plane.
 !	Use the x,y unit vectors as defined in MOUNT_VECINI
@@ -123,9 +120,9 @@
 			!Z direction increases down from the ground plane
 			!Define hobs as Z=0
 
-        if(debugprint.and.debugflag.eq.1)then
-           print*,' xmount,ymount,xmount: ',xmount,ymount,xmount
-        endif
+        !if(debugprint.and.debugflag.eq.1)then
+        !   print*,' xmount,ymount,xmount: ',xmount,ymount,xmount
+        !endif
 
 
 	!Now dot this with the new x' and y' unit vectors to get x,y in
@@ -139,18 +136,18 @@
 !		improve the Aberration calculation slightly also.
 !	Do it the simple way:
         fPhotonRad2=(peptr%vpe(1)**2+peptr%vpe(2)**2)
-        if(debugprint.and.debugflag.eq.1)then
-           print*,1,peptr%vpe(1),peptr%vpe(2)
-        endif
+        !if(debugprint.and.debugflag.eq.1)then
+        !   print*,1,peptr%vpe(1),peptr%vpe(2)
+        !endif
         !debugprint=.false.
 
 	if(fPhotonRad2.gt.wrad2)then
             dump=1		! Gets here if mirror is missed.
             wx=2
-            if(debugprint.and.debugflag.eq.1)then
-               print*,2,peptr%vpe(1),peptr%vpe(2)
-               print*,'fPhotonRad2,wrad2:',fPhotonRad2,wrad2
-            endif
+            !if(debugprint.and.debugflag.eq.1)then
+            !   print*,2,peptr%vpe(1),peptr%vpe(2)
+            !   print*,'fPhotonRad2,wrad2:',fPhotonRad2,wrad2
+            !endif
             !print*,'Dumt atT2'
             return			!Drop this pe.
           endif
@@ -185,11 +182,11 @@
 	peptr%time=pe_time
 
 !debug
-        if(debugprint.and.debugflag.eq.1)then
-           peptr%vw(1)=wx;
-        else
+        !if(debugprint.and.debugflag.eq.1)then
+        !   peptr%vw(1)=wx;
+        !else
            peptr%vw(1)=0
-        endif
+        !endif
 !enddebug 
 
  	call fullAberration(peptr,facet_diam,focal_length,jitter_width_ew, &
@@ -201,18 +198,18 @@
 	vn_actual=sqrt(wx**2+wy**2)
 
 	vn_now = cos(vn_actual*pi/180.0)
-        if(debugprint.and.debugflag.eq.1)then
-           print*,'pe_time,wx,wy,vn_actual,vn_now: ', &
-                & pe_time,wx,wy,vn_actual,vn_now
-        endif
+        !if(debugprint.and.debugflag.eq.1)then
+        !   print*,'pe_time,wx,wy,vn_actual,vn_now: ', &
+        !        & pe_time,wx,wy,vn_actual,vn_now
+        !endif
 
         if(vn_now<dn_min_tight)then
            dump=1
            wx=3
-           if(debugprint.and.debugflag.eq.1)then
-              print*,'vn_actual,dn_Min_Tight:deg ',vn_actual, &
-                   & acos(dn_min_tight)*180/pi
-           endif
+           !if(debugprint.and.debugflag.eq.1)then
+           !   print*,'vn_actual,dn_Min_Tight:deg ',vn_actual, &
+           !        & acos(dn_min_tight)*180/pi
+           !endif
            !print*,'Dump at T3'
         endif
 	return
@@ -489,16 +486,16 @@
         gtiy=Gauss()
         tix=(gtix*jitter_width_ew)
         tiy=(gtiy*jitter_width_ns)
-        if(peptr%vw(1).eq.-1)then
-           print*,'gtix,gtiy,tix,tiy,jitter_width_ew,jitter_width_ns: ', &
-                & gtix,gtiy,tix,tiy,jitter_width_ew,jitter_width_ns
-           print*,'before geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
-        endif
+        !if(peptr%vw(1).eq.-1)then
+        !   print*,'gtix,gtiy,tix,tiy,jitter_width_ew,jitter_width_ns: ', &
+        !        & gtix,gtiy,tix,tiy,jitter_width_ew,jitter_width_ns
+        !   print*,'before geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
+        !endif
  
         call geom8(vn(1),vn(2),vn(3),tix,tiy)
-        if(peptr%vw(1).eq.-1)then
-           print*,'after geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
-        endif
+        !if(peptr%vw(1).eq.-1)then
+        !   print*,'after geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
+        !endif
 
 !        tix=Gauss*jitter_width
 !	call geom(vn(1),vn(2),vn(3),tix)
