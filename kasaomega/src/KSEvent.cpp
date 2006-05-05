@@ -14,15 +14,18 @@
 
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
+extern "C" void MassNumber2ChargeAndMass(int ia, int& qz,double& xmass);
 
 KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead, 
 		 KSPeHeadData* pPeHead, KSTeHeadData* pTeHead, 
 		 KSAomegaDataIn* pDataIn)
 {
   fEventIndex=0;
-  pfDataIn=pDataIn;
-  pfTeFile=pTeFile;
-  pfTeHead=pTeHead;
+  pfDataIn      = pDataIn;
+  pfSegmentHead = pSegmentHead;
+  pfPeHead      = pPeHead;
+  pfTeFile      = pTeFile;
+  pfTeHead      = pTeHead;
   pfTe= new KSTeData();
 
   fCameraType= pfTeHead->fCameraType;
@@ -233,9 +236,28 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       pfW10mVDF->CreatePixelStatus(gNumImagePixels[fCameraType],off);
       
       pfVDFOut->writePixelStatusData();
+
+      // ****************************************************************
+      // Create the Simulation Head object
+      // ****************************************************************
+      
+      VASimulationHeader* pfSimHead=pfVDFOut->getSimulationHeaderPtr();
+      if(pfSimHead==NULL)
+	{
+	  std::cout<<"ksAomega: KSEvent:Failed to getSimulationHeadPtr "
+	    "non-NULL pointer"<<std::endl;
+	  exit(1);
+	}
+  
+      // Set up Header: (see VASimulationData.h file for definitions.)
+      pfSimHead->fSimulationPackage      = 3;  //Purdue Kascade
+      pfSimHead->fExtensionFormat        = 3;  //Purdue ksAomega
+      pfSimHead->fDocumentationFileName  = "ToBeDetermined";
+
+      pfVDFOut->writeSimulationHeader();
   
       // **************************************************************
-      // Now generate Calibrated event tree for output root file.
+      // Generate Calibrated event tree for output root file.
       // **************************************************************
       pfVDFOut->createTheCalibratedArrayEventTree();
       pfCalEvent= pfVDFOut->getCalibratedArrayEventPtr();
@@ -245,6 +267,28 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    "non-NULL pointer"<<std::endl;
 	  exit(1);
 	}
+      // **************************************************************
+      // Generate Simulation event tree for output root file.
+      // **************************************************************
+      pfVDFOut->createTheSimulationEventTree();
+      pfSimEvent= new VAKascadeSimulationData(pfVDFOut);
+
+      // Fill in what doesn't change in the shower.
+      pfSimEvent->setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
+
+      fCorsikaType=KascadeType2CorsikaType(pfSegmentHead->fType);
+      std::cout<<"ksAomega: Kascade Primary Type: "<<pfSegmentHead->fType
+	       <<"Corsika Primary Type: "<<fCorsikaType<<std::endl;
+      pfSimEvent->setCORSIKAParticleID(fCorsikaType);
+
+      double X[3];
+      X[0]=pfSegmentHead->fDlInitial;
+      X[1]=pfSegmentHead->fDmInitial;
+      X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+      GetAzElevFromVec(X,fAzimuth,fElevation);
+      pfSimEvent->setPrimaryZenithDeg(((M_PI/2)-fElevation)*gRad2Deg);
+      pfSimEvent->setPrimaryAzimuthDeg(fAzimuth*gRad2Deg);
+      pfSimEvent->setCoreElevationMASL(pfSegmentHead->fObservationAltitudeM);
     }
   // **************************************************************
   // Still need stuff to init VBF file ???????
@@ -424,8 +468,41 @@ void KSEvent::SaveImage()
 	}
       // ****************************************************************
       pfVDFOut->writeCalibratedArrayEvent(1);//Only one telescope to write
+      
+      // ****************************************************************
+      // Next Save  the Simulation event MC tags
+      // ****************************************************************
+      pfSimEvent->setEventNumber((int)pfVDFOut->getNumArrayEvents()-1);
+      pfSimEvent->setCORSIKAParticleID(fCorsikaType);
+      pfSimEvent->setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
+
+      pfSimEvent->setObservationZenithDeg(((M_PI/2)-fElevation)*gRad2Deg);
+      pfSimEvent->setObservationAzimuthDeg(fAzimuth*gRad2Deg);
+
+
+      double fMountXLocationM=pfPeHead->fXAreaWidthM*pfTe->fNx +
+	                                              pfPeHead->fXCoreOffsetM;
+      double fMountYLocationM=pfPeHead->fYAreaWidthM*pfTe->fNy +
+	                                              pfPeHead->fYCoreOffsetM;
+      pfSimEvent->setCoreEastM(-fMountXLocationM);
+      pfSimEvent->setCoreSouthM(-fMountYLocationM);
+
+      // ********************************************************************
+      // Now tags for KASCADE puposes
+      // ********************************************************************
+      pfSimEvent->setNXIndex((float)pfTe->fNx);         //used for shower sort
+      pfSimEvent->setNYIndex((float)pfTe->fNy);         //           '      '
+      pfSimEvent->setDirectionIndex((float)pfTe->fDirectionIndex);// '      '
+
+      pfSimEvent->setEmissionAltitudeM(pfTe->fEmissionAltitude);
+      pfSimEvent->setEmissionAltitudeSigma(pfTe->fEmissionAltitudeSigma);
+      pfSimEvent->setMuonRatio(pfTe->fMuonRatio);
+
+      pfVDFOut->writeSimulationData();
+
     }
-  //  ******************************************************************
+
+//  ******************************************************************
   // VBF stuff would go here
   // *******************************************************************
 
@@ -441,6 +518,7 @@ void KSEvent::Close()
 // ************************************************************************
 {
   pfVDFOut->writeCalibratedEventTree();
+  pfVDFOut->writeSimulationEventTree();
 
   pfRunHeader->fRunDetails.fNumArrayEvents=(int)pfVDFOut->getNumArrayEvents();
   pfRunHeader->fRunDetails.fLastEventTime=fEventTime;
@@ -474,7 +552,7 @@ void KSEvent::PrintStats()
 }
 void KSEvent::GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
   // **************************************************************************
-  //   Get the Az and Elevation of a vector X 
+  //   Get the Az and Elevation(radians) of a vector X 
   // **************************************************************************
 {
   fElevation=M_PI/2-(acos(fabs(X[2])));
@@ -509,3 +587,77 @@ void KSEvent::GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
     }
   return;
 }
+// *************************************************************************
+
+int KSEvent::KascadeType2CorsikaType(int fKType)
+// ************************************************************************
+// Convert Kascade primary particle type to Corika particle type
+// ************************************************************************
+//From CORSIKA manual Table 4 (pg 80 in current manual)
+//
+//gamma        1
+//e+           2
+//e-           3
+//muon+        5
+//muon-        6
+//neutron      13
+//proton       14
+//anti-proton  15
+//ION(Z,A)     A x 100 + Z
+//He(2,4)      402
+//Fe(26,56)    5626
+// **************************************************************************
+// Kascade Particle species codes.
+//         1:Gamma
+//         2:positron
+//         3:electron
+//         4:muon (+)
+//         5:muon (-)
+//         6:pion (0)
+//         7:pion (+)
+//         8:pion (-)
+//         9:kaon (+)
+//        10:kaon (-)
+//        11:kaon (0long)
+//        12:kaon (0short)
+//        13:proton
+//        14:neutron
+//        15:neutrino(electron)
+//        16:anti-neutrino(electron)
+//        17:neutrino(muon)
+//        18:anti-neutrino(muon)
+//        ION(Z,A)=A+20
+//        He4=24;
+//        Fe56=60;
+// ****************************************************************************
+{
+  switch(fKType)
+    {
+    case(1):return 1;//gamma
+    case(2):return 2;//electron
+    case(3):return 3;//positron
+    case(4):return 5;//mu+
+    case(5):return 6;//mu-
+    case(13):return 14;//proton
+    case(14):return 13;//neutron
+    default: 
+      {
+	if(fKType<13 || (fKType>14 &&fKType<22))
+	  {
+	    std::cout<<"ksAomega: KSEvent:Primary Particle type: "<<fKType
+		     <<" not in table."<<std::endl;
+	    exit(1);
+	  }
+	else
+	  {
+	    int fZNuclei;
+	    double fXMass;
+	    int fKascadeHeavyType=fKType-20;
+	    MassNumber2ChargeAndMass(fKascadeHeavyType,fZNuclei,fXMass);
+	    return 100*fKascadeHeavyType+fZNuclei;
+	  }
+      }
+    }
+}
+// **************************************************************************
+    

@@ -30,6 +30,8 @@
 #include "VAArrayInfo.h"
 #include "VAQStatsData.h"
 #include "VAPixelStatusData.h"
+#include "VASimulationDataClasses.h"
+#include "VAKascadeSimulationData.h"
 #include "VATime.h"
 #include "VADataClasses.h"
 #include "VACommon.h"
@@ -56,10 +58,14 @@ class KSEvent
   virtual ~KSEvent();
 
  private:
-  KSTeFile*        pfTeFile;
-  KSTeHeadData*    pfTeHead;
-  KSAomegaDataIn*  pfDataIn;
-  KSCameraTypes    fCameraType;
+
+  KSSegmentHeadData* pfSegmentHead;
+  KSPeHeadData*      pfPeHead;
+  KSTeFile*          pfTeFile;
+  KSTeHeadData*      pfTeHead;
+  KSAomegaDataIn*    pfDataIn;
+
+  KSCameraTypes      fCameraType;
 
   VATime fFirstValidEventTime;
   VATime fEventTime;
@@ -69,6 +75,8 @@ class KSEvent
 
   VARunHeader* pfRunHeader;
   VACalibratedArrayEvent* pfCalEvent;
+  VAKascadeSimulationData* pfSimEvent;
+  int fCorsikaType;
 
   int fNumPixels;
   int fEventIndex;
@@ -94,6 +102,7 @@ class KSEvent
   void SaveImage();
   void Close();
   void PrintStats();
+  int  KascadeType2CorsikaType(int fKType);
 };
 // ***************************************************************************
 
