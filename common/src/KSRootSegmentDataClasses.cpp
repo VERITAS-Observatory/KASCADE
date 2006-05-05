@@ -54,8 +54,6 @@ KSRootSegmentHeadData::KSRootSegmentHeadData(KSSegmentHeadData* pfSegHead)
   fMaxCoulombScatSegmentLength = pfSegHead->fMaxCoulombScatSegmentLength;
   fInjectionDepth              = pfSegHead->fInjectionDepth; 
   fObservationAltitudeM        = pfSegHead->fObservationAltitudeM; 
-  fXInitialM                   = pfSegHead->fXInitialM;	       
-  fYInitialM                   = pfSegHead->fYInitialM;	
   fShowerID                    = pfSegHead->fShowerID;	       
   for(int i=0;i<10;i++)
     {

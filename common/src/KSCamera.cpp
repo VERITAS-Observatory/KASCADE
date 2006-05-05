@@ -432,12 +432,12 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   int fCFDTriggers=0;
   double fStartTimeOffset=0;   // Start searching for CFD trigger at beginning
                                //  of fWaveForm;
-  bool fPrintWaveForm=false;
+  // bool fPrintWaveForm=false;
   //std::cout<<nx<<" "<<ny<<std::endl;
-  if(nx==0 and ny==0)
-    {
-      fPrintWaveForm=true;
-    }
+  //if(nx==0 and ny==0)
+  //  {
+  //    fPrintWaveForm=true;
+  //  }
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
       if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)

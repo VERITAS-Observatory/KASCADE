@@ -36,8 +36,6 @@ class KSSegmentHeadData
                                        // multiple Coulomb scattering(gm/cm**2)
   double fInjectionDepth;        // Injection depth in gm/cm**2
   double fObservationAltitudeM;   // Observation altitude in meters
-  double fXInitialM;	         // Origin of shower.(meters)
-  double fYInitialM;	
   int    fShowerID;	                 // File id # for this shower.
   char   fEarthsMagneticFieldSpec[10];// Earths magnetic field spec:
                                        //F=none.W=W10m
