@@ -102,7 +102,6 @@ class KSEvent
   void SaveImage();
   void Close();
   void PrintStats();
-  int  KascadeType2CorsikaType(int fKType);
 };
 // ***************************************************************************
 

@@ -14,8 +14,7 @@
 
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
-extern "C" void MassNumber2ChargeAndMass(int ia, int& qz,double& xmass);
-
+extern "C" int    KascadeType2CorsikaType(int fKType);
 KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead, 
 		 KSPeHeadData* pPeHead, KSTeHeadData* pTeHead, 
 		 KSAomegaDataIn* pDataIn)
@@ -589,75 +588,3 @@ void KSEvent::GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
 }
 // *************************************************************************
 
-int KSEvent::KascadeType2CorsikaType(int fKType)
-// ************************************************************************
-// Convert Kascade primary particle type to Corika particle type
-// ************************************************************************
-//From CORSIKA manual Table 4 (pg 80 in current manual)
-//
-//gamma        1
-//e+           2
-//e-           3
-//muon+        5
-//muon-        6
-//neutron      13
-//proton       14
-//anti-proton  15
-//ION(Z,A)     A x 100 + Z
-//He(2,4)      402
-//Fe(26,56)    5626
-// **************************************************************************
-// Kascade Particle species codes.
-//         1:Gamma
-//         2:positron
-//         3:electron
-//         4:muon (+)
-//         5:muon (-)
-//         6:pion (0)
-//         7:pion (+)
-//         8:pion (-)
-//         9:kaon (+)
-//        10:kaon (-)
-//        11:kaon (0long)
-//        12:kaon (0short)
-//        13:proton
-//        14:neutron
-//        15:neutrino(electron)
-//        16:anti-neutrino(electron)
-//        17:neutrino(muon)
-//        18:anti-neutrino(muon)
-//        ION(Z,A)=A+20
-//        He4=24;
-//        Fe56=60;
-// ****************************************************************************
-{
-  switch(fKType)
-    {
-    case(1):return 1;//gamma
-    case(2):return 2;//electron
-    case(3):return 3;//positron
-    case(4):return 5;//mu+
-    case(5):return 6;//mu-
-    case(13):return 14;//proton
-    case(14):return 13;//neutron
-    default: 
-      {
-	if(fKType<13 || (fKType>14 &&fKType<22))
-	  {
-	    std::cout<<"ksAomega: KSEvent:Primary Particle type: "<<fKType
-		     <<" not in table."<<std::endl;
-	    exit(1);
-	  }
-	else
-	  {
-	    int fZNuclei;
-	    double fXMass;
-	    int fKascadeHeavyType=fKType-20;
-	    MassNumber2ChargeAndMass(fKascadeHeavyType,fZNuclei,fXMass);
-	    return 100*fKascadeHeavyType+fZNuclei;
-	  }
-      }
-    }
-}
-// **************************************************************************
-    
