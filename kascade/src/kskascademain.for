@@ -334,6 +334,7 @@ c             18:anti-neutrino(muon)
 	character*80 magneticfieldspec
 	integer vlen
         integer i
+        character*256 coutstring
 
 	include 'kascade_command_line.h'
 	include 'kascade.h'
@@ -373,8 +374,9 @@ c            !Masses of stable particles(Tev.).  Uses particle code as index.
 c	Save version for header file.
 	segment_head.version=version
 	vlen=7
-	write(6,1623)version,update
+	write(coutstring,1623)version,update
  1623	format('KASCADE VERSION:',a,' Last updated:',a)
+	call kscharstring2cout(trim(coutstring)//char(0))
 
 	call kskascadesetversion(trim(version)//char(0))
 
@@ -448,15 +450,16 @@ c     Init things.
 
 c!       All K.e. variables start with 'e' or 't'.(Can be either Mev or Tev)
 
-	WRITE(6,1000) hobs,height
+	WRITE(coutstring,1000) hobs,height
 1000  format(' Observatory at(m.):',f7.1,' Injection at(m.):',f10.1)
-
+	call kscharstring2cout(trim(coutstring)//char(0))
        
 	do i=1,20
 	   if(debena(i))then
-	      write(6,1722)
+	      write(coutstring,1722)
 1722  format('0',30x,'Tenergy(Tev)  Alt(meters)    Direction cosigns ',
      1 '       X,Y(meters)    Time(nsec)')
+	      call kscharstring2cout(trim(coutstring)//char(0))
 	      goto 103
 	   endif
 	enddo
@@ -474,6 +477,15 @@ c                            Init shower parameters
 	   dm=(1.-1.e-8)*dm                       
         endif
         zdni=dn			!Direction of primary particle for timeing use
+
+				!Following call is for GrISU compatability. 
+				!ksgrisuheadwrite is in ksKascade.cpp. There
+				!a test will be made to see if the write is 
+				!actually to be done. Also there the particle 
+				!type will be converted to a Corsika type id.
+        call ksgrisuheadwrite(segment_head.itype,xinitial, yinitial,
+     1			hobs, dl, dm, tenergy)
+
 c                             in  PROPAGATE.  r*8.
         ispec=segment_head.itype       !Initial particle type
         x=segment_head.xinitial	!Initial x,y coord.
@@ -483,12 +495,19 @@ c                             in  PROPAGATE.  r*8.
 c                                   Run the cascade. This the guts
 c                                   of everything.
         
-	write(6,1001)segment_head.idfile,size,
-     1    segment_head.xinitial,segment_head.yinitial,inext
- 1001	   format(' Shower File id:',i4,
-     1	   /,' Shower size:',f7.0,
-     1	   /,' Shower core at:',f10.1,',',f10.1,
-     1	   /,' Number of segments in shower:',i10)
+	write(coutstring,1001)segment_head.idfile
+ 1001	   format(' Shower File id:',i4)
+	call kscharstring2cout(trim(coutstring)//char(0))
+	write(coutstring,3100)size
+ 3100	   format(' Shower size:',f7.0)
+	call kscharstring2cout(trim(coutstring)//char(0))
+	write(coutstring,3101)segment_head.xinitial,segment_head.yinitial
+ 3101	format(' Shower core at:',f10.1,',',f10.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
+	write(coutstring,3102)inext
+ 3102	format(' Number of segments in shower:',i10)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
 
 
 
@@ -503,8 +522,9 @@ c                                   of everything.
               iamax=10*i
            endif
         enddo
-        write(6,1004)iamax,inmax
+        write(coutstring,1004)iamax,inmax
  1004   format(' Shower Max at:',i10,' meters. #:',i10,'.')
+	call kscharstring2cout(trim(coutstring)//char(0))
 ! ***************************************************************************
 
         return;
@@ -540,6 +560,7 @@ c             this.
 !	ghs 25/06/01 V:1:2.0
 !		Modify for effect of charge of heavies. Radius is inversly 
 !               proportional to charge
+        character*256 coutstring
 
        real*8 zpath
 	real xmass	!Mass of particle (in GeV/c)
@@ -632,6 +653,7 @@ c		Searchlight array.
 !               He gets:Bx=-25.2 By=40.0 =>dipangle=58.3 deg(we were using 60)
 !               And a filed strength 0f .4795 gauss (we were using .5)
 !
+        character*256 coutstring
 
 	include 'kascade.h'
 
@@ -643,22 +665,25 @@ c	And north only!
 	1  index(segment_head.magnet_field,'t').ne.0)then
 		b_field=0.365      !Gauss
 		dip_angle=37.8    !Degrees.
-		write(6,1000)'HALEAKALA',b_field,dip_angle
-1000	format(' ',a,' Magnetic field values being used!!!',
-	1/,' B_FIELD(gauss):',f7.3,' DIP_ANGLE(deg):',f7.3)
+		write(coutstring,1000)'HALEAKALA',b_field,dip_angle
+1000	format(a,' Magnetic field values being used!!!'
+     1           ' B_FIELD(gauss):',f7.3,' DIP_ANGLE(deg):',f7.3)
+	call kscharstring2cout(trim(coutstring)//char(0))
 
 	elseif(index(segment_head.magnet_field,'A').ne.0)then
 		!!!!!This is for ASGAT ONLY!!!!!!
 		b_field=0.45     !Gauss
 		dip_angle=57.0    !Degrees.
-		write(6,1000)'ASGAT',b_field,dip_angle
+		write(coutstring,1000)'ASGAT',b_field,dip_angle
+	call kscharstring2cout(trim(coutstring)//char(0))
 
 	else if(index(segment_head.magnet_field,'M').ne.0)then
 		!!!!!This is for MACRO ONLY!!!!!!
 		!NOTE THESE ARE JUST HALEAKALA VALUES!!!!
 		b_field=0.365     !Gauss
 		dip_angle=37.8    !Degrees.
-                write(6,1000)'MACRO',b_field,dip_angle
+                write(coutstring,1000)'MACRO',b_field,dip_angle
+	call kscharstring2cout(trim(coutstring)//char(0))
 	else if(index(segment_head.magnet_field,'W').ne.0)then
 		!!!!!This is for WHIPPLE ONLY!!!!!!
 !		b_field=0.5      !Gauss
@@ -667,19 +692,24 @@ c	And north only!
 ! 08/02/05 GHS Replaced by new values: see comment above.
 		b_field=0.4795      !Gauss
 		dip_angle=58.3    !Degrees.
-		write(6,1000)'WHIPPLE',b_field,dip_angle
+		write(coutstring,1000),'WHIPPLE',b_field,dip_angle
+	        call kscharstring2cout(trim(coutstring)//char(0))
 
 	else if(index(segment_head.magnet_field,'S').ne.0)then
 		!!!!!This is for Argentine Search light array!!!!!!
 		b_field=0.35      !Gauss
 		dip_angle=-25.0    !Degrees.
-		write(6,1000)'Argentine Search light array',
+		write(coutstring,1000)'Argentine Search light array',
 	1 b_field,dip_angle
+	call kscharstring2cout(trim(coutstring)//char(0))
 
 	else
-		print*,' KASCADE--FATAL--Illegal magnetic field type:',
+            write(coutString,3000)
+	1 ' KASCADE--FATAL--Illegal magnetic field type:',
 	1 segment_head.magnet_field
-
+3000	format(a,a)
+	call kscharstring2cout(trim(coutstring)//char(0))
+    
 		stop
 	endif
 
@@ -798,6 +828,7 @@ c		05/12/96
 
 c	Modified:
 
+        character*256 coutstring
 
 	real e_tev,v,t,bremdedx
 	integer ispec
@@ -813,20 +844,24 @@ c	Modified:
 
 
 	if(ispec.ne.2.and.ispec.ne.3)then
-		print*,' BREMSTRAHLUNG--FATAL--Invalid ISPEC:',ispec
-		stop
+		write(coutstring,3001)
+     1             ' BREMSTRAHLUNG--FATAL--Invalid ISPEC:',ispec
+3001	format(a,i10)
+	        call kscharstring2cout(trim(coutstring)//char(0))
+	        stop
 	endif
 	e_mev=e_tev*1.e6		!For internal use convert to MeV.
    	if(e_mev.lt.e_min)then
-		print*,' BREMSTRAHLUNG--FATAL--E_TEV<E_MIN'
-	endif
+		write(coutstring,3002)' BREMSTRAHLUNG--FATAL--E_TEV<E_MIN'
+3002	     format(a)
+	  endif
 
 	u=e_tev+xm(ispec)		!Total energy in TeV.
        	v_min=e_min/(u*1.e6)		!Lower energy threshold fraction
 	v_max=1.-(xm(ispec)/u) 		!Can't get more then U-mc**2 into
 					!photon. xm in TeV
 	if(v_min.gt.v_max)then
-		print*,' BREMSTRAHLUNG--FATAL--V_MIN>V_MAX'
+		write(coutstring,3002)' BREMSTRAHLUNG--FATAL--V_MIN>V_MAX'
 		stop
 	endif
 
@@ -973,6 +1008,7 @@ c		05/12/96
 
 c	Modified:
 
+        character*256 coutstring
 
 	real u,v,eta,brem
 	integer ispec
@@ -1077,6 +1113,7 @@ c	Modified:
 c	06/5/97 GHS
 c		Fix the jump to 1. It was done in a bad way before.
 c		Also prevent IL from being modified upon return(bad form).
+        character*256 coutstring
 	integer i,il
         DIMENSION P(20,3)
         DATA P/.0675,.1314,.1971,.2628,.3278,.3906,.4505,.5083,.5646,
@@ -1123,8 +1160,11 @@ c	or its Charge exchange in which case we've reset i to normal(3)
                         RETURN
                 endif
 	enddo
-	print*,' KASLITE--Warning--In COEL: coel not set before return'
-	COEL=.05*(20-pran(xdummy))
+	write(coutstring,3002)
+     1    ' KASLITE--Warning--In COEL: coel not set before return'
+3002	format(a)
+	call kscharstring2cout(trim(coutstring)//char(0))
+            COEL=.05*(20-pran(xdummy))
         END
  
 
@@ -1139,6 +1179,7 @@ c y is secondary photon production direction cosign.
 c alf is the sum of coefficiens alfai
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+        character*256 coutstring
        include 'kascade.h'
 
        gama(a,b)=1.-(a*b)/(1.+a**2)       !define function
@@ -1193,6 +1234,7 @@ c	9/26/91 G.H.S.V:1:0.5
 c		There were 2 lines for dl and dm. dl dm are not used in
 c		this routione. Deleted them.
 c		
+        character*256 coutstring
 
        common/daught/ a(9),b(3),r9(3)       !For decay direction cosins.
        equivalence (dl1,r9(1)),(dm1,r9(2)),(dn1,r9(3))
@@ -1210,13 +1252,16 @@ c       Don't check for threshold here. do it when its called back out.
 
 c        CONSISTENCY CHECK!
        if(dn**2.gt.1.0)then              !Take care of unlikly round off error
-              write(6,7899)pplab,plab,dn,itrace
+              write(coutstring,7899)pplab,plab,dn,itrace
 7899  format(' ***DAUGHTER--CONSISTENCY CHECK:pplab,plab,dn,itrace:',
-     1 /,' ***',3e14.7,i4)
-              write(6,1234)energy,height,x,y,tim,ispec,rk,
+     1 ' ***',3e14.7,i4)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
+              write(coutstring,1234)energy,height,x,y,tim,ispec,rk,
      1 xm(ispec)
 1234  format(' ***energy,height,x,y,tim,ispec,rk,xm(ispec):',
-     1 /,' ***',5e14.7,i5,/,' ***',2e14.7)
+     1 ' ***',5e14.7,i5,' ***',2e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
                dn=1.       !Round it
         endif
 
@@ -1235,24 +1280,28 @@ c                            in the lab frame relative to the
        dn1=dn1/vlength              !d*1 equivalenced to r9 and is daughter
 c                                   unit vector
 
-       if(abs(vlength-1.).gt.1.e-5)write(6,1760)dl1,dm1,dn1,vlength
+       if(abs(vlength-1.).gt.1.e-5)write(coutstring,1760)dl1,dm1,dn1,vlength
 1760  format(' ***Daughter:Found Unit vector correction .gt.1.e-5.
      1 dl,dm,dn,,vlength:',4e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
 
        tedaughter=energy-xm(ispec)
        if(ispec.eq.2.or.ispec.eq.3)then       !Electrons-positrons
               call stor_e(tedaughter,height,dl1,dm1,dn1,x,y,tim,ispec)
               if(debena(ipar))then
-                     write(6,1000)namtyp(ispec),nen,
+                     write(coutstring,1000)namtyp(ispec),nen,
      1 tedaughter,height,dl1,dm1,dn1,x,y,tim
 1000  format(' ',16x,a8,':',i3,3x,f10.6,f13.0,2(f8.5,','),f8.5,
      1 2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
                      endif
               else
               call stor_g(tedaughter,height,dl1,dm1,dn1,x,y,tim,ispec)
               if(debena(ipar))then
-                     write(6,1000)namtyp(ispec),ngn,
+                     write(coutstring,1000)namtyp(ispec),ngn,
      1 tedaughter,height,dl1,dm1,dn1,x,y,tim
+	call kscharstring2cout(trim(coutstring)//char(0))
                      endif
               endif
        return
@@ -1314,6 +1363,7 @@ c            15:neutrino(electron)
 c            16:anti-neutrino(electron)
 c            17:neutrino(muon)
 c            18:anti-neutrino(muon)
+        character*256 coutstring
 
        DIMENSION LD1(11),LD2(11),AW(11),AU(11),LT1(17),LT2(17),LT3(17)
        dimension ltd1(14),ltd2(14),ltd3(14)
@@ -1352,14 +1402,20 @@ c       e1(daughter,total)=AU*M(parent)=(M**2+m1**2-m2**2)/(2*M)
        if(debena(ispec))then
               nn=ngn+1
               if(ispec.le.3.and.ispec.ne.1)nn=nen+1    !Get id # for this part.
-              write(6,1000)namtyp(ispec),nn,tenergy,height,
+              write(coutstring,1000)
      1 dl,dm,dn,x,y,tim
 1000  format('0',30x,'Tenergy(Tev)  Alt(meters)    Direction cosigns ',
-     1 '       X,Y(meters)    Time(nsec)',/,' ',a8,':',i5,' >>>Dec',
-     2 10x,f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
-              if(ispec.gt.12)then
-                     write(6,1002)
+     1 '       X,Y(meters)    Time(nsec)')
+    	call kscharstring2cout(trim(coutstring)//char(0))
+              write(coutstring,3101)namtyp(ispec),nn,tenergy,height,
+     1 dl,dm,dn,x,y,tim
+ 3101	      format(' ',a8,':',i5,' >>>Dec',10x,f10.6,f13.0,2(f8.5,','),
+     1 f8.5,2f10.1,f12.1)
+	      call kscharstring2cout(trim(coutstring)//char(0))
+          if(ispec.gt.12)then
+                     write(coutstring,1002)
 1002  format(' Delta production.')
+	call kscharstring2cout(trim(coutstring)//char(0))
                      endif
               endif
 
@@ -1367,9 +1423,10 @@ c       e1(daughter,total)=AU*M(parent)=(M**2+m1**2-m2**2)/(2*M)
 
        IF(tenergy.LT.XM0)then       !Drop the decay if parent particle
               if(debena(ispec))then       !Non-relativistic.
-                     write(6,1001)
+                     write(coutstring,1001)
 1001  format(' ',31x,' droped')
-                     endif
+ 	call kscharstring2cout(trim(coutstring)//char(0))
+                    endif
               RETURN
 	endif
 
@@ -1411,8 +1468,9 @@ c              5/14/86 Below 2.5 Gev proton and neutron delta production is
 c              treated as 3 body decay.
 c              Gammas can 'decay' for compton scattering.
 c              But not electron yet.
-398       WRITE(6,1900) ispec
+398       WRITE(COUTSTRING,1900) ispec
 1900  format(' ***Decay:WRONG PARTICLE type=',I9)
+	call kscharstring2cout(trim(coutstring)//char(0))
        RETURN
 
 cGamma: ispec=1       Compton only. Pair production done in UNICAS.
@@ -1442,9 +1500,10 @@ c                                          of produced electron.
        pperp=egamma*sqrt(1.-tix**2)       !perp momentum of electron and 
 c                                   gamma.
        if(plab.lt.pperp)then
-              write(6,3400)u,tix,tenergy,egamma,ee,plab,pperp,pp
+              write(coutstring,3400)u,tix,tenergy,egamma,ee,plab,pperp,pp
 3400  format(' ***Decay-FATAL-:u,tix,tenergy,egamma,ee,plab,
-	1 pperp,pp:'/,' ***',8e14.7)
+	1 pperp,pp:',' ***',8e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
               stop 
               endif
 
@@ -1567,7 +1626,8 @@ cnucleon-delta production ispec=13,14 (tenergy<2.5 Gev)
 c                            G.H.S.5/14/86 Treat nucleon-delta production
 c                            as a three body decay.
 409       if(tenergy.gt.0.0025)then
-              WRITE(6,1900) ispec      !Shouldn't get here if more 2.5 Gev.
+              WRITE(COUTSTRING,1900) ispec      !Shouldn't get here if more 2.5 Gev.
+	call kscharstring2cout(trim(coutstring)//char(0))
               return
               endif                     
        r=1.                             !forward or back delta important. 
@@ -1613,10 +1673,11 @@ c                                   incident particles are of the same
 
         IF (sqrt(Stev).lt.(xm(ll1)+xmd))then       !Need at least sum of rest 
               if(debena(ispec))then
-                     write(6,1003)etot1,sqrt(stev)       !masses in c.m to 
+                     write(coutstring,1003)etot1,sqrt(stev)       !masses in c.m to 
 1003  format(' Delta   :drop',21x,' total incident energy:',f8.6,
      1 'available C.M. energy:',f8.6)        !create the
 c                                           nucleon-delta pair. If not 
+	call kscharstring2cout(trim(coutstring)//char(0))
                      endif
 c                                          enough, quit.
               return
@@ -1771,9 +1832,10 @@ c                            in the lab frame relative to the
        dm1=dm1/vlength              !Preserves signs
        dn1=dn1/vlength              !d*1 equivalenced to r9 and is daughter
 c                            unit vector
-       if(abs(vlength-1.).gt.1.e-5)write(6,1000)dl1,dm1,dn1,vlength
+       if(abs(vlength-1.).gt.1.e-5)write(coutstring,1560)dl1,dm1,dn1,vlength
 1560  format(' ***Decay1:Found Unit vector correction .gt.1.e-5.
      1 dl,dm,dn,vlength:',4e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
 
 c       Dl1,dm1,dn1 is unit vector in lab of the composite direction
 c       enter it into the transformation matrix.
@@ -1808,10 +1870,11 @@ c                            between -1 and 1)
 
 cdaughter #2
        if(abs(pplab).gt.sqrt(edaugh**2-xm(ll2)**2))then
-              write(6,1273)edaugh,energy,beta,u,w,xm0,rk,pperp,
+              write(coutstring,1273)edaugh,energy,beta,u,w,xm0,rk,pperp,
      1 xm(ll2),ll2
 1273  format(' ***Decay:edaugh,energy,beta,u,w,xm0,rk,pperp,
-     1 xm(ll2),ll2:',/,' ***',5e14.7,/,' ***',4e14.7,i5)
+     1 xm(ll2),ll2:',' ***',5e14.7,' ***',4e14.7,i5)
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
 
        call daughter(edaugh,height,x,y,tim,ll2,rk,pplab,ispec,6)
@@ -1821,8 +1884,9 @@ cdaughter #3
        pplab=energy*(W*(-r)+beta*(1-U))       !P parrallel in lab of daughter
        rx=rk-pi
        if(abs(pplab).gt.sqrt(edaugh**2-xm(ll3)**2))then
-              write(6,1273)edaugh,energy,beta,u,w,xm0,rk,pperp,
+              write(coutstring,1273)edaugh,energy,beta,u,w,xm0,rk,pperp,
      1 xm(ll3),ll3
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
        call daughter(edaugh,height,x,y,tim,ll3,rk,pplab,ispec,7)
        return
@@ -1932,6 +1996,7 @@ c		for small tix.
 !		Move r*8 version to KASCADE source code. Rename the r*8 
 !		MTXMLT as DMTXMLT
 !		Also, fix nomalization of r*8 dl,dm,dn
+        character*256 coutstring
 
         real*8 pi
 	parameter  (pi=3.141592654)
@@ -1949,9 +2014,10 @@ c		for small tix.
 				!round of problems for small tix
 	vlength=sqrt(dn_local**2+dl_local**2+dm_local**2)
        if(abs(vlength-1.).gt.1.e-5)then
-		write(6,1001)dl_local,dm_local,dn_local,vlength
+		write(coutstring,1001)dl_local,dm_local,dn_local,vlength
 1001  format(' ***Geom:Found Input Unit vector correction .gt.1.e-5.
-     1 dl,dm,dn,vlength:',/,' ***',4e14.7)
+     1 dl,dm,dn,vlength:',' ***',4e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
 	endif
 	dl_local=dl_local/vlength
 	dm_local=dm_local/vlength
@@ -1999,9 +2065,10 @@ c     10/23/86
        dm=r9(2)/vlength
        dn=r9(3)/vlength
        if(abs(vlength-1.).gt.1.e-5)then
-		write(6,1000)dl,dm,dn,r9(3),vlength
+		write(coutstring,1000)dl,dm,dn,r9(3),vlength
 1000  format(' ***Geom:Found Unit vector correction .gt.1.e-5.
-     1 dl,dm,dn,r9(3),vlength:',/,' ***',5e14.7)
+     1 dl,dm,dn,r9(3),vlength:',' ***',5e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
 	endif
 
        if(abs(dn).lt.1.e-8)then
@@ -2137,6 +2204,7 @@ c               stack.
 !                 of rate
 !               4:For spin 0,1/2 Function fun now has max of 1.0 (removed a 
 !		  1/beta**2 factor, which in almost all cases had no effect)
+        character*256 coutstring
 
 	real*4 tenergy,tsegment,dl,dm,dn,tim,xm,xstart,ystart,hstart,
 	1 hend,t_min,em,z_over_a,d,const,t_max,total_rate,t,fun,
@@ -2338,6 +2406,7 @@ c	Physics Dept
 c	Purdue University
 c	W.Lafayette, In 47907
 c	E-Mail: 47474::SEMBROSKI
+        character*256 coutstring
 
 	real*8 zheight,zpath,zprime,zptim,zstim,zgamma,zbeta,zdni,
 	1 gammaprime
@@ -2525,6 +2594,7 @@ c                                   DEPENDENT RK
 
 
 	IMPLICIT NONE
+        character*256 coutstring
 	real a
 	integer qz,ia
 	real  xmass,pmass
@@ -2561,7 +2631,10 @@ c                                   DEPENDENT RK
          elseif(ia==40)then
             qz=18         !Force Argon !Could have been calcium 40.
             if(first_argon)then
-	       print*,'Warning--Forcing Argon for all atomic masses of 40'
+	       write(coutstring,3003)
+     1	        'Warning--Forcing Argon for all atomic masses of 40'
+3003		format(a)
+                call kscharstring2cout(trim(coutstring)//char(0))
                first_argon=.false.
             endif
          elseif(a==56)then
@@ -2712,6 +2785,7 @@ c		11/12/96
 
 c	Modified:
 
+        character*256 coutstring
 
 	real e_gamma,e_electron,e_positron
 
@@ -2812,6 +2886,7 @@ c	Modified:
 
 c	E_GAMMA: Photon energy in TeV
 c	SIGMA:	Crossection in probability/radiation length.
+        character*256 coutstring
 
 	real e_gamma,sigma
 	real pair_cross_max
@@ -2887,6 +2962,7 @@ c		W.Lafayette Indiana
 c		11/12/96
 
 c	Modified:
+        character*256 coutstring
 
 	real w,u,eta,pair
 
@@ -3019,6 +3095,7 @@ c                   2.       tenergy.le.thresh(ispec)(or
 c                            thresh(proton)*Mass number for nuclei)   
 c                            Drop it, it is to weak.
 
+        character*256 coutstring
 
        real*8 zdlstart,zdmstart,zdnstart,zheight,zbeta,zgamma,ztemid,
      1 zxm,zpath,zprime,zptim,zstim
@@ -3049,9 +3126,11 @@ c                            Drop it, it is to weak.
            if(jcharge.ne.0)then
               tsegment=((height-hobs)/(height-hd))*tsegment
               if(tsegment.lt.0)then
-                 print*,
+                 write(coutstring,3004)
 	1 '**PROPAGATE-Warn-Negative seg:tsegment,height,hobs,hd:',
 	1 tsegment,height,hobs,hd
+3004		 format(a,4(e14.7))
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
            endif
            hd=hobs		!Hits the ground!
@@ -3069,15 +3148,19 @@ c    Horoizontal track Consistency check.
 	if(dldm.le.0.0)then
            if (abs(dldm).lt.1.e-7)then
 c 					!Only report it if its sizable.
-              write(6,1000)dl,dm,dn,dldm
+              write(coutstring,1000)dl,dm,dn,dldm
 1000  format(' ***PROPAGATE--Consistency failure-dl,dm,dn,dldm:',4e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
            endif
            dm=dm-sign(1.e-6,dm)	!Reduce by 1.e-6
            dl=dl-sign(1.e-6,dl)	!Reduce by 1.e-6
            icheck=icheck+1
            if(icheck.gt.5)then
-         print*,' ***PROPAGATE--FATAL--Cant fix consistency failure'
-              stop
+         write(coutstring,3005)
+     1           ' ***PROPAGATE--FATAL--Cant fix consistency failure'
+3005	 format(a)
+	 call kscharstring2cout(trim(coutstring)//char(0))
+	 stop
            endif
            goto 100
 	endif
@@ -3169,15 +3252,17 @@ c       Calculate beta and gamma very carefully, r*8.
                  call reca_e(tek,hek,dlk,dmk,dnk,xk,yk,
 	1 timk,ispeck)
                  if(ispec.lt.20)then
-                    write(6,1001)nen+1,namtyp(ispec),
+                    write(coutstring,1001)nen+1,namtyp(ispec),
      1 tek,hek,dlk,dmk,dnk,xk,yk,timk
 1001  format(' Knock-on e:',i3':from ',a8,':',f10.6,f13.0,
 	1 2(f8.5,','),f8.5,2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
                  else
-                    write(6,1002)nen+1,
+                    write(coutstring,1002)nen+1,
 	1 trim(nuclei_names(jcharge)),ja,tek,hek,dlk,dmk,dnk,xk,yk,timk
 1002  format(' Knock-on e:',i3':from ',a,'(',i3,'):',3x,f10.6,f10.0,
 	1 2(f6.3,','),f6.3,2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
                  endif			
               enddo
               nen=nstart             !Restore them back.
@@ -3287,15 +3372,19 @@ c Consistency check!!! Horizontal tracks.
 	      icheck=0
 	      dlsdms=1.-segment.dlend**2-segment.dmend**2
 	      do while (dlsdms.le.0.0)
-		 write(6,1301)segment.dlend,segment.dmend,dlsdms,icheck+1
+		 write(coutstring,1301)segment.dlend,segment.dmend,dlsdms,icheck+1
  1301     format(' ***SEGMENT_OUT--Consistency failure. dlend,dmend,
 	1 dlsdms:',3e20.12,' attempt #',i3)
+	call kscharstring2cout(trim(coutstring)//char(0))
 	         segment.dmend=segment.dmend-sign(1.e-6,segment.dmend)
 		 segment.dlend=segment.dlend-sign(1.e-6,segment.dlend)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
-	 print*,' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
-		    stop
+	 write(coutstring,3006)
+     1              ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
+3006	 format(a)
+	 call kscharstring2cout(trim(coutstring)//char(0))
+	 stop
 		 endif
 		 dlsdms=1.-segment.dlend**2-segment.dmend**2
 	      enddo
@@ -3304,15 +3393,19 @@ c Consistency check for d*start!!!
 	      icheck=0
 	      dlsdms=1.-segment.dlstart**2-segment.dmstart**2
 	      do while (dlsdms.le.0.0)
-		 write(6,1300)segment.dlstart,segment.dmstart,dlsdms,icheck
+		 write(coutstring,1300)segment.dlstart,segment.dmstart,dlsdms,icheck
 1300  format(' ***SEGMENT_OUT--Consistency failure. dlstart,dmstart,
 	1 dlsdms:',3e14.7,' attempt #',i3)
+	call kscharstring2cout(trim(coutstring)//char(0))
 		 segment.dlstart=segment.dlstart-sign(1.e-6,segment.dlstart)
 		 segment.dmstart=segment.dmstart-sign(1.e-6,segment.dmstart)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
-	       print*,' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
-		    stop
+	       write(coutstring,3007)
+     1             ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
+3007	       format(a)
+	       call kscharstring2cout(trim(coutstring)//char(0))
+	       stop
 		 endif
 		 dlsdms=1.-segment.dlstart**2-segment.dmstart**2
 	      enddo
@@ -3320,7 +3413,8 @@ c Consistency check for d*start!!!
 	      call kssegmentwrite(segment.xstart,segment.ystart,
      1	      segment.hstart,
      1	   segment.dlstart,segment.dmstart,segment.tend,segment.hend,
-     1	   segment.dlend,segment.dmend,segment.gamma,segment.nspec)
+     1	   segment.dlend,segment.dmend,segment.gamma,segment.nspec,
+     1     zstim,zptim,temid)
 	      inext=inext+1	!count segments.
 
 
@@ -3342,15 +3436,17 @@ c Consistency check for d*start!!!
                  if(ispec.eq.2.or.ispec.eq.3)then
                     nn=nen+1
                  endif
-                 write(6,1003)namtyp(ispec),nn,tenergy,hd,x,y,tim
+                 write(coutstring,1003)namtyp(ispec),nn,tenergy,hd,x,y,tim
 1003	format('0',a8,i4,' :hits! ',11x,f10.6,f13.0,23x,2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
 		 endif
                  
            else
            	if(debena(ispec))then
-                	 write(6,1004)trim(nuclei_names(jcharge)),ja,
+                	 write(coutstring,1004)trim(nuclei_names(jcharge)),ja,
      1 tenergy,hd,x,y,tim
 1004	format('0',a,'(',i3,') :hits',11x,f10.6,f13.0,23x,2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
 
               	endif
            endif
@@ -3417,6 +3513,7 @@ c		Fix handeling of sign for up going.
 !               problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where 1.0 gm is used as the 
 !               test limit to .5*segment_head.depth
+        character*256 coutstring
 
        include 'kascade.h'
 
@@ -3429,12 +3526,13 @@ cNeutral particles.(gammas,K long,K short, Neutron, Neutrinos)
 		if(hd.lt.hobs)hd=hobs
 		if(hd.ge.yds(.5*segment_head.depth))then    !Control upgoing.
 			hd=yds(.5*segment_head.depth)
-		  	write(6,1000)tenergy,height,dl,dm,
+		  	write(coutstring,1000)tenergy,height,dl,dm,
 	1 dn,x,y,tim,ispec,t
 1000	format(' ***Prodec-Neutral Track goes too high:tenergy,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',/,(' ***'5e14.7,/),
-	1 (' ***'2e14.7,/),i5,e14.7,/,
+	1 height,dl,dm,dn,x,y,tim,ispec,t:',(' ***'5e14.7),
+	1 (' ***'2e14.7),i5,e14.7,
 	1  ' ***HD set to yds(.5*segment_head.depth)')
+	call kscharstring2cout(trim(coutstring)//char(0))
 		endif
 				!Note that PROPAGATE for neutral particles
 				!doesn't care about TSEGMENT, only HD.
@@ -3455,9 +3553,12 @@ cCharged propagation
 		endif
 		tgms=tgms+(gms(hd)-gms(height))/dn
 		if(tgms.lt.0)then
-			print*,
+			write(coutstring,3008)
 	1 '****** PROPDEC--Warning-Negative tgms:tgms,hd,height,dn:',
 	2 tgms,hd,height,dn
+3008			format(a,4e14.7)
+			call kscharstring2cout(trim(coutstring)//char(0))
+
 		endif
              				!Note that PROPINT doesn't care about
 					!HD, it only cares about TGMS.
@@ -3511,6 +3612,7 @@ c		Fix handeling of up going particles.
 !               problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where 1.0 gm is used as the 
 !               test limit to .5*segment_head.depth
+        character*256 coutstring
 
 	real tnucleon,xmass
 	include 'kascade.h'
@@ -3529,11 +3631,12 @@ c              No slices. go straight to destination.
 		if((gr).ge.segment_head.zobs)then
 			hd=hobs		!Neutrals don't care about tsegment(t)
 		elseif(gr.lt.(.5*segment_head.depth))then
-		  	write(6,1000)g,r,tenergy,height,dl,dm,
+		  	write(coutstring,1000)g,r,tenergy,height,dl,dm,
 	1 dn,x,y,tim,ispec,t
 1000	format(' ***Propint-Neutral Track goes too high:g,r,tenergy,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',/,2(' ***'5e14.7,/),
-	2 ' ***',i5,e14.7,/,' ***G+R set to 1 gm.')
+	1 height,dl,dm,dn,x,y,tim,ispec,t:',2(' ***'5e14.7),
+	2 ' ***',i5,e14.7,' ***G+R set to 1 gm.')
+	call kscharstring2cout(trim(coutstring)//char(0))
                                          !veriticle height of the interaction.
 			Hd=YDS(.5*SEGMENT_HEAD.DEPTH) 
 		else
@@ -3566,20 +3669,23 @@ c                    t is total distance to go in gm/cm**2. Should be positive.
 	endif
 
 	if(tsegment.lt.0)then
-	     		print*,
+	     		write(coutstring,3009)
 	1 '****** PROPINT--Warn-Negative seg:tsegment,t,tsofar,height:',
 	1 tsegment,t,tsofar,height
+3009			format(a,4e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
 	endif
 
 	tstart=ttend                     !Save start of segment.
 	ttend=tstart+tsegment*dn       !End altitude in gm/cm**2
 
 	if(ttend.lt.(.5*segment_head.depth))then
-		write(6,1002)tstart,tsegment,tenergy,height,dl,dm,
+		write(coutstring,1002)tstart,tsegment,tenergy,height,dl,dm,
 	1 dn,x,y,tim,ispec,t
 1002	format(' ***Propint-Track goes too high:tstart,tsegment,tenergy,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',/,2(' ***'5e14.7,/),
-	2 ' ***',i5,e14.7,/,' ***G+R set to .5*segment_head.depth gm.')
+	1 height,dl,dm,dn,x,y,tim,ispec,t:',2(' ***'5e14.7),
+	2 ' ***',i5,e14.7,' ***G+R set to .5*segment_head.depth gm.')
+		call kscharstring2cout(trim(coutstring)//char(0))
 		ttend=.5*segment_head.depth
 	        tsofar=tsofar-tsegment
 	    	tsegment=abs((tstart-ttend)/dn)
@@ -3607,12 +3713,15 @@ c       Single particle Too weak?
                        		else
                         	       nnnn=ngn+1
                        		endif
-          	       		write(6,1001)namtyp(ispec),
+          	       		write(coutstring,1001)namtyp(ispec),
      1 nnnn,tenergy,height,x,y,tim
 1001  format(a8,':de/dx drop ',i4,3x,f10.6,f13.0,23x,2f10.1,f12.1)
-!                       		write(6,1012)thresh(ispec)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
+!                       	write(coutstring,1012)thresh(ispec)
 !1012  format(' ',25x,' DE/DX dropp. Abs. threshold for this
 !     1 particle=',f10.6,' Tev.')
+	call kscharstring2cout(trim(coutstring)//char(0))
 			endif
 			return
 		endif
@@ -3629,10 +3738,11 @@ c       Single particle Too weak?
 			if(debena(20))then
 	          	  call mass_number2charge_mass(ispec-20,
 	1 z_nuclei,xmass)
-          	       	  write(6,2001)trim(nuclei_names(z_nuclei)),
+          	       	  write(coutstring,2001)trim(nuclei_names(z_nuclei)),
 	1 ispec-20,tenergy,height,x,y,tim
 2001  format('0',a,'(',i3,'):de/dx drop ',3x,f10.6,f13.0,23x,
 	1 f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
 
 			endif
   			return
@@ -3702,6 +3812,7 @@ c       as found in the particle data book.
 !		Add in the XMASS argument for beta,gamma, and eta calculations.
 !		Replace the computed goto with if statements. I couldn't help
 !		it. :)
+        character*256 coutstring
 
         common/rz/irz_first,alpha,cf2,cf3
     
@@ -3854,13 +3965,15 @@ c	7/3/92 G.H.S. V:1:0.6
 c		Since knock-ons can make more then 2 electrons per particle
 c		track, increase nen to 1000. Make exceeding this value a fatal
 c		error
+        character*256 coutstring
 
        include 'kascade.h'
        nen=nen+1
        if(nen.gt.1000) then
-              WRITE(6,7079)
+              WRITE(COUTSTRING,7079)
 7079  format(' ***STOR_E--FATAL--NEN limit exeeded ')
-              stop
+ 	call kscharstring2cout(trim(coutstring)//char(0))
+             stop
 	endif
        den(1,nen)=tenergy
        den(2,nen)=height
@@ -3879,13 +3992,15 @@ c***********************************************
 
 c      save a particle
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+        character*256 coutstring
 
        include 'kascade.h'
        ngn=ngn+1
        if(ngn.gt.10000) then
-              WRITE(6,7079)
+              WRITE(COUTSTRING,7079)
 7079  format(' ***Stor_g:ngn limit exeeded ')
-              return
+          	call kscharstring2cout(trim(coutstring)//char(0))
+		return
               end if
        dgn(1,ngn)=tenergy
        dgn(2,ngn)=height
@@ -3954,6 +4069,7 @@ c            16:anti-neutrino(electron)
 c            17:neutrino(muon)
 c            18:anti-neutrino(muon)
 
+        character*256 coutstring
 
         DIMENSION CHARGE(3),CHARG(3)
         DIMENSION Avnu(18)
@@ -3979,12 +4095,17 @@ c                                   diffractive, and the first two just
 c                                   make up the sum to 1.0.
 
        if(debena(ispec))then
-              nn=ngn+1
-              write(6,1000)namtyp(ispec),nn,tetev,height,
+	  nn=ngn+1
+	  write(coutstring,1000)
      1 dl,dm,dn,xx,yy,tim
 1000  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-     1 '       X,Y(meters)    Time(nsec)',/,' ',a8,':',i5,' >>>Tar',
+     1 '       X,Y(meters)    Time(nsec)')
+	  call kscharstring2cout(trim(coutstring)//char(0))
+	  write(coutstring,3100)namtyp(ispec),nn,tetev,height,
+     1 dl,dm,dn,xx,yy,tim
+ 3100	  format(' ',a8,':',i5,' >>>Tar',
      2 10x,f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
+	  call kscharstring2cout(trim(coutstring)//char(0))
               endif
 
        etev=tetev+xm(ispec)              !Total energy of primary(Tev)
@@ -4073,8 +4194,9 @@ c       Lambdas:
        IF(pran(xdummy).le.XSLAMB)then              !See if we make one.
 c                                          LAMBDA PRODUCTION
               if(debena(ispec))then
-                     write(6,7000)
+                     write(coutstring,7000)
 7000  format(' ',8x,'Lambda production:')
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
 
               IF (pran(xdummy) .LT. .5)then              ! BACKWARD LAMBDA
@@ -4163,8 +4285,9 @@ c                                   expense of diffp distribution.
 c                                                 energy to make it
                             totexc=totexc+ee       !Keep track of evap.
                             if(debena(ispc))then
-                                   write(6,1003)namtyp(ispc),
+                                   write(coutstring,1003)namtyp(ispc),
      1 ee,xm(ispc),totexc
+	call kscharstring2cout(trim(coutstring)//char(0))
                                    endif
                             return                     !Drop it.
        
@@ -4211,8 +4334,9 @@ C  FOR INCIDENT PROTON. REVERSE FOR INCIDENT NEUTRON.
  
 c                                          Pick type of interaction.
 57       if(debena(ispec).ne.0)then
-              write(6,7001)
+              write(coutstring,7001)
 7001  format(' ',8x,'Leading particle production:')
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
        SELECT = pran(xdummy)
        if((select.le.(charge(1)+charge(2))).and.
@@ -4259,7 +4383,8 @@ c                                   expense of diffp distribution.
               totexc=totexc+ee
 c                                          energy to make it
               if(debena(ispc))then
-                     write(6,1003)namtyp(ispc),ee,xm(ispc),totexc
+                     write(coutstring,1003)namtyp(ispc),ee,xm(ispc),totexc
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
 
               return              !drop it.
@@ -4322,8 +4447,9 @@ C  STENLUND & OTTERLUND FIT.
 c                            CHECK AVAILABLE ENERGY, STOP IF EXCEEDED
 
 30       if(debena(ispec))then
-              write(6,7002)
+              write(coutstring,7002)
 7002  format(' ',8x,'Central production:')
+	call kscharstring2cout(trim(coutstring)//char(0))
          endif
 
        EAVAIL=etev-EUSED
@@ -4358,11 +4484,12 @@ c                                   expense of diffp distribution.
               if(pp2.lt.0.0)then       !Make sure enough energy to make it.
                      totexc=totexc+ee
                      if(debena(ispc))then
-                            write(6,1003)namtyp(ispc),ngn+1,
+                            write(coutstring,1003)namtyp(ispc),ngn+1,
      1 ee,xm(ispc),totexc
 1003  format(' ',16x,a8,':',i3,3x,f10.6,3x,
      1 'Not enough energy. drop it! mass=',f10.6,
      2 ' Total evap. energy=',e14.7)
+	call kscharstring2cout(trim(coutstring)//char(0))
                      endif
 
                      return                     !Drop it. Energy goes into 
@@ -4479,6 +4606,7 @@ c      Dl,dm,dn= direction cosigns of this particle.
 
 c      Electrons and positons generated are stored in a sperate array from
 c      that of other particles and are preferentially handled first.
+        character*256 coutstring
 
 	real tetev,e_gamma,t,bremdedx,e_positron,e_electron
        include 'kascade.h'
@@ -4532,8 +4660,9 @@ c                     threshold.
 
 101           if(thresh(ispec).gt.tetev)then
                      if(debena(ispec))then
-                            write(6,1001)namtyp(ispec),
+                            write(coutstring,1001)namtyp(ispec),
      1 nen+1,tetev,height,x,y,tim
+	call kscharstring2cout(trim(coutstring)//char(0))
                      endif
                      goto 100       !Drop it.
               endif
@@ -4587,24 +4716,30 @@ c                                   Assume negligable pperp.
 
               if(debena(ispec))then
                      nn=nen+1
-                     write(6,1006)namtyp(ispec),nn,
-	1 tetev+e_gamma+bremdedx,height,dl,dm,dn,x,y,tim
+                     write(coutstring,1006)
 1006  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-     1 '       X,Y(meters)    Time(nsec)',/,' ',a8,':',i5,' >>>Brem',
+     1 '       X,Y(meters)    Time(nsec)')
+                     write(coutstring,3100)namtyp(ispec),nn,
+	1 tetev+e_gamma+bremdedx,height,dl,dm,dn,x,y,tim
+ 3100	format(' ',a8,':',i5,' >>>Brem',
      2 9x,f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
-                     write(6,1007)soft
+	call kscharstring2cout(trim(coutstring)//char(0))
+                     write(coutstring,1007)soft
 1007  format(' ',15x,'Energy(tev) lost to soft gammas:',f10.6)
-                     write(6,1000)namtyp(ispec),nn,
+	call kscharstring2cout(trim(coutstring)//char(0))
+                     write(coutstring,1000)namtyp(ispec),nn,
      1 tetev,height,dl,dm,dn,x,y,tim
+	call kscharstring2cout(trim(coutstring)//char(0))
               endif
 
 c              SET UP for produced gamma.
               ispc=1              !Type =gamma.
               call stor_g(e_gamma,height,dl,dm,dn,x,y,tim,ispc) 
               if(debena(ispc))then
-                     write(6,1000)namtyp(ispc),ngn,
+                     write(coutstring,1000)namtyp(ispc),ngn,
      1 e_gamma,height,dl,dm,dn,x,y,tim
-              endif
+ 	call kscharstring2cout(trim(coutstring)//char(0))
+             endif
 
               go to 101       !Continue on with the electron.
        endif
@@ -4618,12 +4753,14 @@ C OTHER PARTICLES
 c       Check that it is above threshold.
               if(thresh(ispec).gt.tetev)then
                      if(debena(ispec))then
-                            write(6,1001)namtyp(ispec),
+                            write(coutstring,1001)namtyp(ispec),
      1 ngn+1,tetev,height,x,y,tim
 1001  format('0',a8,':drop ',i4,13x,f10.6,f13.0,23x,2f10.1,f12.1)
-                            write(6,1012)thresh(ispec)
+	call kscharstring2cout(trim(coutstring)//char(0))
+                            write(coutstring,1012)thresh(ispec)
 1012  format(' ',25x,' Abs. threshold for this particle=',f10.6,
      1 ' Tev.')
+	call kscharstring2cout(trim(coutstring)//char(0))
                      endif
                      goto 100       !Drop it.
                endif
@@ -4673,11 +4810,15 @@ c  prob=(SIGMA)*exp(-T*SIGMA)  where SIGMA is probability/radiation length
 						!Chrenkow threshold
                      if(debena(ispec))then
                             nn=ngn+1
-              write(6,1005)namtyp(ispec),nn,tetev,height,
-     1 dl,dm,dn,x,y,tim
+			    write(coutstring,1005)
 1005  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-     1 '       X,Y(meters)    Time(nsec)',/,' ',a8,':',i5,' >>>Pair',
+     1 '       X,Y(meters)    Time(nsec)')
+	                    call kscharstring2cout(trim(coutstring)//char(0))
+			    write(coutstring,3101)namtyp(ispec),nn,
+     1 tetev,height,dl,dm,dn,x,y,tim
+ 3101			    format(' ',a8,':',i5,' >>>Pair',
      2 9x,f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
+			    call kscharstring2cout(trim(coutstring)//char(0))
 	             endif
 
 c COMPTON or PAIR PRODUCTION?
@@ -4695,18 +4836,22 @@ cPAIR PRODUCTION
                 call stor_e(e_positron,height,dl,dm,dn,x,y,tim,
      1 ispec) 
                         if(debena(1))then
-                                  write(6,1000)namtyp(ispec),nen,
+                                  write(coutstring,1000)namtyp(ispec),nen,
      1 e_positron,height,dl,dm,dn,x,y,tim
 1000  format(' ',16x,a8,':',i3,3x,f10.6,f13.0,2(f8.5,','),f8.5,
      1 2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
                         endif
 c     SET UP OTHER PARTICLE OF THE PAIR
 			ispec=3			!Electron
                 call stor_e(e_electron,height,dl,dm,dn,x,y,tim,
      1 ispec) 
                         if(debena(1))then
-                                  write(6,1000)namtyp(ispec),nen,
+                                  write(coutstring,1000)namtyp(ispec),nen,
      1 e_electron,height,dl,dm,dn,x,y,tim
+	call kscharstring2cout(trim(coutstring)//char(0))
+
                         endif
                         go to 100
                      endif
@@ -4716,8 +4861,10 @@ c     SET UP OTHER PARTICLE OF THE PAIR
 cNeutrino type particle: Drop and go on.
               IF(ispec.GE.15)then
                      if(debena(ispec))then
-                            write(6,1001)namtyp(ispec),
+                            write(coutstring,1001)namtyp(ispec),
      1 ngn+1,tetev,height,x,y,tim
+	call kscharstring2cout(trim(coutstring)//char(0))
+
                      endif
                      GO TO 100       !drop it
               endif
@@ -4763,11 +4910,13 @@ c                     traveled to the interaction point. Fixed it.
               g=GMS(height)
 		gr=g+r*dn
 		if(gr.le.(.5*segment_head.depth))then
-			write(6,2308)g,r,tetev,height,dl,dm,
+			write(coutstring,2308)g,r,tetev,height,dl,dm,
 	1 dn,x,y,tim,ispec,t
 2308	format(' ***UNICAS-Track goes too high:g,r,tetev,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',/,2(' ***'5e14.7,/),
-	2 ' ***',i5,e14.7,/,' ***G+R set to .5*segment_head.depth gm.')
+	1 height,dl,dm,dn,x,y,tim,ispec,t:',2(' ***'5e14.7),
+	2 ' ***',i5,e14.7,' ***G+R set to .5*segment_head.depth gm.')
+	call kscharstring2cout(trim(coutstring)//char(0))
+
 	                gr=.5*segment_head.depth
 		endif
               Hd=YDS(gr)
@@ -4906,6 +5055,7 @@ c       G.H.S.1/9/86
 
 
 	IMPLICIT NONE
+        character*256 coutstring
 	real teprim,height,dl,dm,dn,x,y,tim
 	integer ispec
 
@@ -4957,6 +5107,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 !               interaction points.
 
 	IMPLICIT NONE
+        character*256 coutstring
 	real teprim,height,dl,dm,dn,x,y,tim
 	integer ispec,i,j,k,nfrag,nbt,nf
 	integer ia,ja,isp,z_nuclei
@@ -5005,10 +5156,12 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 		DO K=1,ia-z_nuclei
 			call stor_g(tnucleon,height,dl,dm,dn,x,y,tim,isp) 
             		if(debena(isp))then
-                	     write(6,1000)namtyp(isp),ngn,
+                	     write(coutstring,1000)namtyp(isp),ngn,
      1 tnucleon,height,dl,dm,dn,x,y,tim
 1000  format(' Superposition ',a8,':',i3,3x,f10.6,f13.0,2(f8.5,','),f8.5,
      1 2f7.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
               	        endif
               	enddo
 		RETURN
@@ -5110,12 +5263,19 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 !Debug/Shower generation listing.
 	   	  if(debena(20))then
           	  	call mass_number2charge_mass(ja,z_nuclei,xmass)
-              	  	write(6,4000)trim(nuclei_names(z_nuclei)),
-	1 ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
+              	  	write(coutstring,4000)
 4000  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-	1 '       X,Y(meters)    Time(nsec)',/,' ',a,
+	1 '       X,Y(meters)    Time(nsec)')
+	call kscharstring2cout(trim(coutstring)//char(0))
+
+
+              	  	write(coutstring,3100)trim(nuclei_names(z_nuclei)),
+	1 ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
+ 3100	format(' ',a,
 	1 '(',i3,') >>>Heavy int.   ',
 	1 f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
            	  endif
 
 	            !Generate mass number of air nucleus which is the target
@@ -5153,13 +5313,16 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 	   	  	if(debena(20))then
           	  	  call mass_number2charge_mass(iatarget,
 	1 z_nuclei,xmass)
-	      	  	  write(6,4001)trim(nuclei_names(z_nuclei)),
+	      	  	  write(coutstring,4001)trim(nuclei_names(z_nuclei)),
 	1 iatarget,nb,nbel,nf
 4001	format(' Heavy on ',a,'(',i3,') produces:',
 	1 '# Wounded nucleons=',i5,' # Elastic nucleons= ',i5,
 	2 '# Fragments=',i5)
-		          write(6,4002)(iaf(j),j=1,nf)
-4002	format(' Fragment masses:',8(i4),7(/,17x,8i4))
+	call kscharstring2cout(trim(coutstring)//char(0))
+
+		          write(coutstring,4002)(iaf(j),j=1,nf)
+4002	format(' Fragment masses:',8(i4),7(17x,8i4))
+	call kscharstring2cout(trim(coutstring)//char(0))
 			endif
 
 	     	  else
@@ -5241,12 +5404,14 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 	   	  if(debena(20))then
           	  	call mass_number2charge_mass(ja,z_nuclei,xmass)
 			if(height.le.hobs)then
-	              	  	write(6,4004)trim(nuclei_names(z_nuclei)),
+	              	  	write(coutstring,4004)trim(nuclei_names(z_nuclei)),
 	1 ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
 4004  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-     1 '      X,Y(meters)    Time(nsec)',/,' ',a,
+     1 '      X,Y(meters)    Time(nsec)',' ',a,
      1 '(',i3,') >>>Heavy hits!',
      1 f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
 		        endif
            	  endif
 		endif        !End of 'interaction above hobs?' if statement.

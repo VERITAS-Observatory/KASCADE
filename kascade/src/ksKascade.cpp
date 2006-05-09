@@ -42,6 +42,9 @@
 #include "stdint.h"
 #include <time.h>
 #include  <string>
+#include <iostream>
+#include <fstream>
+
 using namespace std;
 
 extern "C" void ranstart(int* printseedflag, char* random_seed_file_name, 
@@ -58,20 +61,37 @@ extern "C" void kskascadesetversion(char* version);
 
 extern "C" void kskascadegetmagneticfield(char* magnet_field);
 
-extern "C" void  kssegmentwrite(float* XStart, float* YStart, float* HStart, 
-				float* DlStart, float* DmStart, 
-				float* EndTime, float* HEnd, float* DlEnd, 
-				float* DmEnd, float* Gamma, int* Spec);
+extern "C" void kssegmentwrite(float* XStart, float* YStart, float* HStart, 
+			       float* DlStart, float* DmStart, 
+			       float* EndTime, float* HEnd, float* DlEnd, 
+			       float* DmEnd, float* Gamma, int* Spec,
+			       double* ZSTim, double* ZPTim, float* TeMid);
+extern "C" void ksgrisuheadwrite(int* Spec,float* XInitial, float* YInitial,
+				 float* HObs, float* Dli, float* Dmi, 
+				 float* Tep);
+extern "C" int KascadeType2CorsikaType(int fKType);
+
+extern "C" void kscharstring2cout(char* coutString);
+
+
 KSKascadeDataIn* pfDataIn;
 KSSegmentFile* pfSegFile;
 KSSegmentHeadData* pfSegmentHead;
 KSSegmentData* pfSegment;
 
+std::ofstream* logout=NULL;
+std::streambuf* StdOutStreamBuf;
+bool GrISUOutput=false;
+bool MakeKascadeBinaryFile=true;
+bool GrISUOutputToStdIO;
+std::ostream* pfGrISUOut;       //Fancy stuff here see pf 643 of C++ Standard
+std::filebuf* pfGrISUBuffer;         // Library book.
+
 void usage(const std::string& progname, const VAOptions& command_line)
 {
   std::cout << std::endl;
   std::cout << "ksKascade: Usage: " << progname 
-       << " [options]  <Output File>" << std::endl;
+	    << " [options]  <Output File>" << std::endl;
   std::cout <<" Output file name required unless -GrISUOuputFile option "
               "specified in command line"<<std::endl;
   std::cout<<"ksKascade: Options: "<<std::endl;
@@ -81,19 +101,114 @@ void usage(const std::string& progname, const VAOptions& command_line)
 int main(int argc, char** argv)
 {
   //Input is usually a configuration file (May be GrISU pilot file) 
-
+  
   //We start with defining and setting up the configuration for this
   // processing.
   
   try
     {
-      time_t thetime=time(NULL);
-      std::cout<<"ksKascade:  START------"<<ctime(&thetime)<<std::endl;
-
       std::string progname = *argv;
-
       VAOptions command_line(argc,argv);
       VAConfigInfo config_file;
+     // -------------------------------------------------------------------
+      // GrISU specifications
+      // -------------------------------------------------------------------
+      //--------------------------------------------------------------------
+      // Check the command line to see:
+      // 1:Are we to write the segment data in ascii format
+      //   (used by GrISU for  pipe-lineing data from ksKascade to the next
+      //    program)
+      // 2:See if the output is to go to standard ouput or a text file.
+      //
+      // In order for pipelining to work this program can not print info, 
+      // warning etc to standard output. So:
+      // 3:Get name to ksKascade logfile name and redirect log entries to it.
+      // --------------------------------------------------------------------
+      if(command_line.find("EnableGrISUOutput",
+		 "Indicates that the segment data will be written in GrISU "
+		 "ascii format readable by the GrISU cherenkf7.c "
+		 "program. If this option is chosen, no binary segment file "
+		 "(suitable for input to the ksLight program) is written. "
+                 "Destination of this output data is determined by the value "
+		 "of GrISUOutputFileName.")
+	 == VAOptions::FS_FOUND)
+	{
+	  MakeKascadeBinaryFile=false;
+	  GrISUOutput=true;
+	  GrISUOutputToStdIO=true;  //Can be reset by specifying 
+	                            //GrISUOutputFileName option
+	}
+       // -------------------------------------------------------------------
+       // Test for "GrISU Output file" options. See if we are to redirect 
+       // --------------------------------------------------------------------
+      std::string GrISUOutputFileName("GrISU.txt"); //Dummy name
+      if(command_line.findWithValue("GrISUOutputFileName",
+				    GrISUOutputFileName,
+		 "Create an GrISU Output file (only if EnableGrISUOutput is "
+                 "true). This is a text file of "
+		 "track segments of the shower written in a format readable "
+		 "by the GrISU cherenkf7.c program.  If this option is not "
+		 "chosen and the EnableGrISUOutput option is chosen then the "
+		 "GrISU Output segment "
+		 "track data will be redirected to Standard Output. If this "
+                 "redirection to StdOut happens then the LogFileName option "
+		 "must be specified! This is for use with pipe-lining to the "
+                 "GrISU cherenkf7 program.")
+	 == VAOptions::FS_FOUND)
+	{
+	  if(!GrISUOutput)
+	    {
+	      std::cout<<"ksKascade::Fatal-EnableGrISUOutput option must be "
+		"specifed if GrISUOutputFileName option specified"<<std::endl;
+	      exit(1);
+	    }
+	  GrISUOutputToStdIO=false;
+	}
+      
+      // ----------------------------------------------------------------------
+      // Test for "GrISU Pilot file" option. This is completely seperate from 
+      // the use of the GrISU ouput options. Its use superceeds the use of the 
+      // standard vegas type config file. Coomand line options will still
+      // superceede and GrISU pilot file derived parameter values. 
+      // ----------------------------------------------------------------------
+      bool UseGrISUPilotFile=false;
+      std::string GrISUPilotFileName;
+      if(command_line.findWithValue("GrISUPilotFileName",GrISUPilotFileName,
+		 "Use a GrISU Pilot file to specifiy config options. This "
+		 "option supeceeds the use of a standard config file, "
+		 "but not the command line options.")
+	 == VAOptions::FS_FOUND)
+	{
+	  
+	  UseGrISUPilotFile=true;
+	}
+      // *******************************************************************
+      // Determine where the log output goes to and redirect cout to it if 
+      // need be. Thsi is independent of whether we are doing any GrISU ouput
+      // *******************************************************************
+      std::string LogFileName(" ");
+      StdOutStreamBuf=cout.rdbuf();          //Save for restoration of stdout.
+      std::streambuf* LogStreamBuf=NULL; 
+
+      if(command_line.findWithValue("LogFileName",LogFileName,
+		 "Redirect all run log messages to an ascii text file. This "
+		 "option is required if the output segment data is to be "
+                 "written to StdOutput: EnableGrISUOutput option is true and "
+		 "GrISUOutputFileName is not specified.")
+	 == VAOptions::FS_FOUND)
+	{
+	  // ********************************************************
+	  // Redirect run log messages to this file from StdOut. See 
+	  // pg 641 of C++ Standard Library book)
+	  // ********************************************************
+	  logout= new ofstream(LogFileName.c_str());
+	  LogStreamBuf=logout->rdbuf();
+	  cout.rdbuf(LogStreamBuf);        //redirect cout
+	  //!!!!!!!!!!!!!Don't FORGET to restore cout at end of program.
+	}
+
+      time_t thetime=time(NULL);
+      std::cout<<"ksKascade:  START------"<<ctime(&thetime)<<std::endl;
 
   //At this point we want to start our process of defining the configuration
   //values that we may need to generate out shower. 
@@ -117,42 +232,6 @@ int main(int argc, char** argv)
     // ********************************************************************
     // Test all defined options for main
     // ********************************************************************
-
-    // ------------------------------------------------------------------------
-    // Test for "GrISU Output file" options
-    // ------------------------------------------------------------------------
- #ifdef KSGRISU
-     bool MakeGrISUOutputFile=false;
-      bool MakeKascadeBinaryFile=true;
-      std::string GrISUOutputFilename;
-      if(command_line.findWithValue("GrISUOutputFile",GrISUOutputFilename,
-		 "Create an GrISU Output file only. This is a text file of "
-		 "track segments of the shower written in a format readable "
-		 "by GrISU cherenkf7.c program. If this option chosen, no "
-                 "binary segment file (suitable for input to the kaslite "
-                 "program) is written.")
-	 == VAOptions::FS_FOUND)
-	{
-	  MakeKascadeBinaryFile=false;
-	  MakeGrISUOutputFile=true;
-	}
-
-    // ------------------------------------------------------------------------
-    // Test for "GrISU Pilot file" option
-    // ------------------------------------------------------------------------
-      bool UseGrISUPilotFile=false;
-      std::string GrISUPilotFilename;
-      if(command_line.findWithValue("GrISUPilotFile",GrISUPilotFilename,
-		 "Use a GrISU Pilot file to specifiy config options. This "
-		 "option supeceeds the use of a standard config file")
-	 == VAOptions::FS_FOUND)
-	{
-	
-	  UseGrISUPilotFile=true;
-	}
-
-#endif
-
     // ------------------------------------------------------------------------
     // Test for "load configuration file" options
     // ------------------------------------------------------------------------
@@ -161,10 +240,9 @@ int main(int argc, char** argv)
       std::string load_filename;
 
       if(command_line.findWithValue("config",load_filename,
-			     "Load Configuration File")==VAOptions::FS_FOUND)
+		       "Load Configuration File")==VAOptions::FS_FOUND)
 	{
 	  load_config = true;	
-#ifdef KSGRISU
 	  if(UseGrISUPilotFile)
 	    {
 	      std::cout<<"ksKascade: A GrISU Pilot file has been specified."
@@ -173,7 +251,6 @@ int main(int argc, char** argv)
 		       <<" options is thus ignored!!"<<std::endl;
 	      load_config = false;
 	    }
-#endif
 	}
 
     // ------------------------------------------------------------------------
@@ -196,7 +273,6 @@ int main(int argc, char** argv)
 	only_save_config=true;
     // ------------------------------------------------------------------------
 
-
     // -----------------------------------------------------------------------
     // Test for "help" options
     // -----------------------------------------------------------------------
@@ -211,7 +287,6 @@ int main(int argc, char** argv)
 	{
 	  help = true;
 	}
-
 
     // ------------------------------------------------------------------------
     // All the command line options that the program is able to  handle 
@@ -228,7 +303,7 @@ int main(int argc, char** argv)
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
- 
+
     // ------------------------------------------------------------------------
     // Load the configuration file if we have been asked to
     // ------------------------------------------------------------------------
@@ -247,8 +322,7 @@ int main(int argc, char** argv)
 	  GrISU.Convert2Config();
 	  config_file.loadConfigFile(GrISU.getConfigFileName());
 	}
-#endif
-	
+#endif	
 
     // ------------------------------------------------------------------------
     // Save the configuration file if we have been asked to
@@ -286,7 +360,33 @@ int main(int argc, char** argv)
 	  exit(EXIT_SUCCESS);
 	}
 
-    // --------------------------------------------------------------------
+	 // *************************************************************
+	 // If GrISU format data is to written out, creater the ofstream
+	 // to do that. Redirect to StdOut if it has been requested
+	 // *************************************************************
+      if(GrISUOutput)
+	{
+	  pfGrISUBuffer = new std::filebuf;
+	  pfGrISUOut = new std::ostream(pfGrISUBuffer);
+	  pfGrISUBuffer->open(GrISUOutputFileName.c_str(),ios::out);
+	  if(GrISUOutputToStdIO)
+	    {   //Check first that a LogFile has been specified
+	      if(logout==NULL)
+		{
+		  //Opps, can't write both seg data and log messages to 
+		  //StdOut
+		  std::cout<<"ksKascade: Fatal--Output of GrISU seg data "
+		    "to Standard Ouput specified but no LogFileName "
+		    "Specified"<<std::endl;
+		  exit(1);
+		}
+	      //Redirect GrISU output data to StdOut
+	      pfGrISUOut->rdbuf(StdOutStreamBuf); //This sets up 
+	                                         //things so that writting to 
+	                                         //pfGrISU go to Standard Ouput
+	    }
+	}
+ // --------------------------------------------------------------------
     // Load up the segment header now that the config stuff is loaded
     // --------------------------------------------------------------------
 
@@ -319,6 +419,10 @@ int main(int argc, char** argv)
     // Initalize the random number generator.
     // ------------------------------------------------------------------------
       int printseeds=1;
+      if(GrISUOutputToStdIO)
+	{
+	  printseeds=0;   //disable printout of seeds.
+	}
       int rslength=pfDataIn->fRandomSeedFileName.length();
       ranstart(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	       rslength);
@@ -344,34 +448,62 @@ int main(int argc, char** argv)
       float tmax   = (float) pfSegmentHead->fMaxCoulombScatSegmentLength;
       float hobs   = (float) pfSegmentHead->fObservationAltitudeM;
       int   fileID = (int)   pfSegmentHead->fShowerID;
-
+      
       kskascademain(&TEP, &itype, &dli, &dmi, &dni, &etr, &depth, &tmax, &hobs,
 		    pfDataIn->fParticleTraceEnableFlags, &fileID);
 
-    //and we are done
+//and we are done
       pfSegFile->Close();
 
-    // ------------------------------------------------------------------------
-    // Save the random number generator seeds.
-    // ------------------------------------------------------------------------
+      // ***************************************************************
+      // Write GrISU Tail record if needed
+      // ****************************************************************
+      if(GrISUOutput)
+	{
+	  *pfGrISUOut<<99;
+	     for(int i=0;i<12;i++)
+	       {
+		 *pfGrISUOut<<" 0.0000E+00";
+	       }
+	     *pfGrISUOut<<std::endl;
+	}
+      // ----------------------------------------------------------------------
+      // Save the random number generator seeds.
+      // ----------------------------------------------------------------------
+      if(GrISUOutputToStdIO)
+	{
+	  printseeds=0;   //disable printout of seeds.
+	}
       ranend(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
-	       rslength);
-
+	     rslength);
+      
       thetime=time(NULL);
       std::cout<<"ksKascade:  NORMAL END------"<<ctime(&thetime)
 	       <<std::endl;
-  
+      
+      if(logout!=NULL)
+	{
+	  cout.rdbuf(StdOutStreamBuf);
+	}
       return 0;
     }
  
   catch(VAException &ex)
     {
       std::cerr<<ex;
+      if(logout!=NULL)
+	{
+	  cout.rdbuf(StdOutStreamBuf);
+	}
       return 1;
     }
   catch(...)
     {
       std::cout<<"ksKascade: Fatal--Unknown exception found."<<std::endl;
+      if(logout!=NULL)
+	{
+	  cout.rdbuf(StdOutStreamBuf);
+	}
       return 1;
     }
 }
@@ -401,23 +533,101 @@ void kskascadesetversion(char* version)
 void  kssegmentwrite(float* XStart, float* YStart, float* HStart, 
 		     float* DlStart, float* DmStart, float* EndTime,
 		     float* HEnd, float* DlEnd, float* DmEnd, float* Gamma, 
-		     int* Spec)
+		     int* Spec, double* ZSTim, double* ZPTim, float* TeMid)
 // ***************************************************************************
 // Loadup and write the segment to the output segment file.
 // ***************************************************************************
 {
-  pfSegment->fXStart=*XStart;
-  pfSegment->fYStart=*YStart;
-  pfSegment->fHStart=*HStart;
-  pfSegment->fDlStart=*DlStart; //Initial x,y direction cosigns of segment
-  pfSegment->fDmStart=*DmStart;
-  pfSegment->fEndTime=*EndTime; //relative time(ns) at end of segment.
-  pfSegment->fHEnd=*HEnd;   //final altitude of segment
-  pfSegment->fDlEnd=*DlEnd;  //final direction cosigns of segment.
-  pfSegment->fDmEnd=*DmEnd;
-  pfSegment->fGamma=*Gamma;  //gamma at middle of segment.
-  pfSegment->nspec=*Spec;
+  if(MakeKascadeBinaryFile)
+    {
+      pfSegment->fXStart=*XStart;
+      pfSegment->fYStart=*YStart;
+      pfSegment->fHStart=*HStart;
+      pfSegment->fDlStart=*DlStart; //Initial x,y direction cosigns of segment
+      pfSegment->fDmStart=*DmStart;
+      pfSegment->fEndTime=*EndTime; //relative time(ns) at end of segment.
+      pfSegment->fHEnd=*HEnd;   //final altitude of segment
+      pfSegment->fDlEnd=*DlEnd;  //final direction cosigns of segment.
+      pfSegment->fDmEnd=*DmEnd;
+      pfSegment->fGamma=*Gamma;  //gamma at middle of segment.
+      pfSegment->nspec=*Spec;
+      
+      pfSegFile->WriteSegment(pfSegment);
+    }
+  else if(GrISUOutput)
+    {
+      int fCorsikaSpec=KascadeType2CorsikaType(*Spec);
+      double tsegss= *EndTime - (*ZSTim-*ZPTim);
+      *pfGrISUOut<<std::setw(2)<<fCorsikaSpec<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*XStart<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*YStart<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*HStart<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*HEnd<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*DlStart<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*DmStart<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*DlEnd<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*DmEnd<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<tsegss<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*TeMid<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*ZPTim<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(12)
+		<<std::showpoint<<*ZSTim<<' '
+		<<std::endl;
+    }
+  return;
+}
+// **************************************************************************
 
-  pfSegFile->WriteSegment(pfSegment);
+void ksgrisuheadwrite(int* Spec,float* XInitial, float* YInitial,
+			float* HObs, float* Dli, float* Dmi, float* Tep)
+// **************************************************************************
+// Writes the GrISU seg file header. May be going to stdout.
+// **************************************************************************
+{
+  if(GrISUOutput)
+    {
+      int istore=-1000;           //dummy seed I think
+
+      int fCorsikaSpec=KascadeType2CorsikaType(*Spec);
+      *pfGrISUOut<<std::setw(5)<<-fCorsikaSpec<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(13)
+		<<std::showpoint<<*XInitial<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(13)
+		<<std::showpoint<<*YInitial<<' '
+		<<std::scientific<<std::setprecision(6)<<std::setw(13)
+		<<std::showpoint<<*HObs<<' '
+		<<std::scientific<<std::setprecision(4)<<std::setw(11)
+		<<std::showpoint<<*Dli<<' '
+		<<std::scientific<<std::setprecision(4)<<std::setw(11)
+		<<std::showpoint<<*Dmi<<' '
+		<<std::scientific<<std::setprecision(4)<<std::setw(11)
+		<<std::showpoint<<*Tep<<' '
+		<<std::setw(5)<<istore<<std::endl;
+    }
+}
+// **************************************************************************
+
+void kscharstring2cout(char* coutString)
+// ***********************************************************************
+// Routine to allow fortran routines to print to cout especiall if it has been
+// redirected to a file.
+// **********************************************************************
+{
+  std::string ksStr(coutString);
+  if(!ksStr.empty())
+    {
+      std::cout<<ksStr<<std::endl;
+    }
   return;
 }

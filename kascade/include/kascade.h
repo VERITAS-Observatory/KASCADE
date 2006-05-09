@@ -1,43 +1,43 @@
 !modified:
 	!Extend size of debena to 20(from 18).Using debena(20) for all heavies.
       COMMON /ZENITH/zdni,dni
-	real dni		!Z Direction cosign of initial particle
+	real*4 dni		!Z Direction cosign of initial particle
 	real*8 zdni		!r*8 inital primary direction for timing
 				!used in PROPAGATE.
 
       common /THR/ Thresh(18)            !thresholds
-	real thresh
+	real*4 thresh
 
       common /LIFTIM/ TLife(18)            !Lifetimes
-	real tlife
+	real*4 tlife
 
       common /MASS/ XM(18),icharge(18)      !Masses and charges of stable
-	real xm
-	integer icharge
+	real*4 xm
+	integer*4 icharge
                                     !particles.
 
       common /user/temid,hobs,tmax,shower_max
-	real temid,hobs,tmax
-	integer shower_max(8000)
+	real*4 temid,hobs,tmax
+	integer*4 shower_max(8000)
 
 
       common/usimda/b_field,bx,by,bz,e_mass
-	real b_field,bx,by,bz,e_mass
+	real*4 b_field,bx,by,bz,e_mass
 
       common/usiminp/size,magnet_on,gndprt
-	real size
+	real*4 size
 	logical magnet_on,gndprt
 
       common/kontrol/ipr(20),inext,debena,namtyp
-	integer ipr,inext
+	integer*4 ipr,inext
       character*8 namtyp(18)
       logical debena(20)
 
       common/stor/den(9,1000),dgn(9,10000),nen,ngn
-	real den,dgn
-	integer nen,ngn
+	real*4 den,dgn
+	integer*4 nen,ngn
 
-	real refr0,sea_level,z_air,rad_len,cq,c_light,pi,twopi
+	real*4 refr0,sea_level,z_air,rad_len,cq,c_light,pi,twopi
       parameter  (refr0=1.00027)          !Refraction index of air at STP
       parameter  (sea_level=1033.)        !Depth of sea level in gm/cm**2
       parameter  (z_air=7.37)             !Atomic number of air.
@@ -51,8 +51,8 @@
 
 	common/debug/debugr,dvissum,dsbsum,doldsum,dcsum,dasum,
 	1 shower_dist,shower_trans
-	integer shower_dist(300),shower_trans(300)
-	real debugr,dvissum,dsbsum,doldsum,dcsum,dasum 
+	integer*4 shower_dist(300),shower_trans(300)
+	real*4 debugr,dvissum,dsbsum,doldsum,dcsum,dasum 
 
 c	This is file of structures for the KASACADE system.
 c	No RECORD commands in this file. Put them in parent include
