@@ -44,7 +44,7 @@ class KSPeHeadData
   bool   fWhipplePMTs;
   bool   fVeritasPMTs;
   bool   fADPPMTs;
-  char   fVersion[10];	      //Version of kaslite that made this file.
+  //  char   fVersion[10];	      //Version of kaslite that made this file.
 };
 // ***************************************************************************
 

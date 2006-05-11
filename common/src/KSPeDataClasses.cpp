@@ -50,7 +50,7 @@ void KSPeHeadData::PrintPeHead()
   std::cout<<"   Shower impact point at X: "<<fXCoreOffsetM<<",  Y: "
 	   <<fYCoreOffsetM<<std::endl;
   std::cout<<" Efficiency (% photons kept): "<<fEfficiency<<std::endl;
-  std::cout<<"             ksLight version: "<<fVersion<<std::endl;
+  //std::cout<<"             ksLight version: "<<fVersion<<std::endl;
   return;
 }
 // **************************************************************************

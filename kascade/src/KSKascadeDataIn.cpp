@@ -17,22 +17,25 @@
 
 
 // **************************************************************************
-int         KSKascadeDataIn::sDefaultType = 1;  //Gamma
+int               KSKascadeDataIn::sDefaultType = 1;  //Gamma
                              //1 deg from South(+ is north, - is south I think)
-double      KSKascadeDataIn::sDefaultGeVEnergyPrimary=1000.0; //1 Tev
-double      KSKascadeDataIn::sDefaultDlInitial=1.e-15; 
-double      KSKascadeDataIn::sDefaultDmInitial=-0.017452212;
-double      KSKascadeDataIn::sDefaultEnergyThresholdMeV=10.; //MeV
-double      KSKascadeDataIn::sDefaultMaxCoulombScatSegmentLength=0.02;
+double            KSKascadeDataIn::sDefaultGeVEnergyPrimary=1000.0; //1 Tev
+double            KSKascadeDataIn::sDefaultDlInitial=1.e-15; 
+double            KSKascadeDataIn::sDefaultDmInitial=-0.017452212;
+double            KSKascadeDataIn::sDefaultEnergyThresholdMeV=10.; //MeV
+double            KSKascadeDataIn::sDefaultMaxCoulombScatSegmentLength=0.02;
                                                                      //gm/cm**2
-double      KSKascadeDataIn::sDefaultInjectionDepth=.1; //gm/cm**2
-double      KSKascadeDataIn::sDefaultObservationAltitudeM=2320.0;
+double            KSKascadeDataIn::sDefaultInjectionDepth=.1; //gm/cm**2
+double            KSKascadeDataIn::sDefaultObservationAltitudeM=2320.0;
                                                         //meters (whipple 10 m)
-int         KSKascadeDataIn::sDefaultShowerID=1;
-std::string KSKascadeDataIn::sDefaultEarthsMagneticFieldSpec="W";
-int         KSKascadeDataIn::sDefaultParticleTraceEnableFlags[20]=
-                                  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-std::string KSKascadeDataIn::sDefaultRandomSeedFileName="";
+int               KSKascadeDataIn::sDefaultShowerID=1;
+std::string       KSKascadeDataIn::sDefaultEarthsMagneticFieldSpec="W";
+std::vector<bool> KSKascadeDataIn::sDefaultParticleTraceEnableFlags(20,false);
+std::vector<bool> KSKascadeDataIn::sDefaultFunctionEnableFlags(3,true);
+
+//int              KSKascadeDataIn::sDefaultParticleTraceEnableFlags;[20]=
+//                                  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+std::string       KSKascadeDataIn::sDefaultRandomSeedFileName="";
 // **************************************************************************
 
 
@@ -60,17 +63,36 @@ KSKascadeDataIn::KSKascadeDataIn(KSSegmentHeadData* SegmentHead)
 		     pfSegmentHead->fDlInitial*pfSegmentHead->fDlInitial-
 		     pfSegmentHead->fDmInitial*pfSegmentHead->fDmInitial);
 
-  std::string version("V1.0.0");
+  //  std::string version("V1.0.0");
 
-  for(int i=0;i<(int)version.size();i++)
-    {
-      pfSegmentHead->fVersion[i]=version.at(i);
-    }
+  // for(int i=0;i<(int)version.size();i++)
+  //  {
+  //    pfSegmentHead->fVersion[i]=version.at(i);
+  //  }
 
   for(int i=0;i<20;i++)
     {
-      fParticleTraceEnableFlags[i]=sDefaultParticleTraceEnableFlags[i];
+      if(sDefaultParticleTraceEnableFlags[i])
+	{
+	  fParticleTraceEnableFlags[i]=1;
+	}
+      else
+	{
+	  fParticleTraceEnableFlags[i]=0;
+	}
     }
+  for(int i=0;i<3;i++)
+    {
+      if(sDefaultFunctionEnableFlags[i])
+	{
+	  pfSegmentHead->fFunctionEnableFlags[i]=1;
+	}
+      else
+	{
+	  pfSegmentHead->fFunctionEnableFlags[i]=0;
+	}
+    }
+
 
   fRandomSeedFileName=sDefaultRandomSeedFileName;
 
@@ -101,7 +123,8 @@ VAConfigurationData KSKascadeDataIn::getConfig() const
   config.setValue("ShowerID",pfSegmentHead->fShowerID);
   config.setValue("EarthsMagneticFieldSpec",
 		  pfSegmentHead->fEarthsMagneticFieldSpec);
-  config.setValue("ParticleTraceEnableFlags",fParticleTraceEnableFlags);
+  config.setValue("ParticleTraceEnableFlags",sDefaultParticleTraceEnableFlags);
+  config.setValue("FunctionEnableFlags",sDefaultFunctionEnableFlags);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
   return config;
 }
@@ -156,28 +179,52 @@ void KSKascadeDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSKascadeDataIn",
 		    "Earths Magnetic File specification. Possible values "
 		    "are W (for Whipple/BaseCamp)or ?");
-  for(int k=0;k<18;k++)
-    {
-      std::string FlagOption("TraceEnableFlag");
-      char flag[3];
-      int j=k+1;
-      sprintf(flag,"%02i",j);
-      std::string Flag(flag);
-      std::string Option=FlagOption+Flag;
-      std::string Comment("A 1 here enables trace for ");
-      Comment+=fNameType[k];
-      doVAConfiguration(file, command_line, 
-      			Option.c_str(), sDefaultParticleTraceEnableFlags[k],
-      			"KSKascadeDataIn",
-      			Comment.c_str());
-    }
-  std::string HeavyOption("HeavyParticleTraceEnableFlag");
-  std::string Comment("A 1 here enables trace for Heavies "
-		      "(Kascade Type= 20 + Atomic N)");
+  //for(int k=0;k<18;k++)
+  //  {
+  //    std::string FlagOption("TraceEnableFlag");
+  //    char flag[3];
+  //    int j=k+1;
+  //    sprintf(flag,"%02i",j);
+  //    std::string Flag(flag);
+  //    std::string Option=FlagOption+Flag;
+  //    std::string Comment("A 1 here enables trace for ");
+  //    Comment+=fNameType[k];
+  //    doVAConfiguration(file, command_line, 
+  //  			Option.c_str(), sDefaultParticleTraceEnableFlags[k],
+  //    			"KSKascadeDataIn",
+  //    			Comment.c_str());
+  //  }
   doVAConfiguration(file, command_line, 
-		    HeavyOption.c_str(), sDefaultParticleTraceEnableFlags[19],
-			"KSKascadeDataIn",
-			Comment.c_str());
+		    "ParticleTraceEnableFlags",
+		    sDefaultParticleTraceEnableFlags,
+		    "KSKascadeDataIn",
+		    "A comma seperated list of 20 Boolean values (true/false "
+		    "or true/false value (for gcc true/false=1/0) ). A true  "
+		    "in any of the first 18 positions enables a debug trace "
+		    "of that KASCADE particle type to be printed. A true in "
+		    "the last position (20th) enables trace for Heavies "
+		    "(Kascade Type= 20 + Atomic N). Default is all false: "
+		    "No trace printing");
+  
+  //  std::string HeavyOption("HeavyParticleTraceEnableFlag");
+  //std::string Comment("A 1 here enables trace for Heavies "
+  //		      "(Kascade Type= 20 + Atomic N)");
+  //doVAConfiguration(file, command_line, 
+  //		    HeavyOption.c_str(), sDefaultParticleTraceEnableFlags[19],
+  //			"KSKascadeDataIn",
+  //			Comment.c_str());
+  doVAConfiguration(file, command_line, 
+		    "FunctionEnableFlags",
+		    sDefaultFunctionEnableFlags,
+		    "KSKascadeDataIn",
+		    "A comma seperated list of 3 Boolean values (true/false  "
+		    "or or a true/false value ( for gcc true/false=1/0) ). "
+		    "These flags enable(disable) various functions "
+		    "in the shower generation code. "
+		    "Flag 1 Enables: Bending in the Earths Magnetic Field."
+		    "Flag 2 Enables: Ionization losses."
+		    "Flag 3 Enables: Multiple Coulomb Scattering."
+		    "Default is all true: All functions enabled!");
   doVAConfiguration(file, command_line, 
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSKascadeDataIn",

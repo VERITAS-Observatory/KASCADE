@@ -107,6 +107,13 @@ void KSSegmentHeadData::PrintSegmentHead()
 	   <<fInjectionDepth<<std::endl;
   std::cout<<"                    Magnet field values for   ="
 	   <<fEarthsMagneticFieldSpec[0]<<std::endl;
+  std::cout<<"      FunctionEnableFlags:"<<std::endl;
+  std::cout<<"                              MagneticField   ="
+	   <<fFunctionEnableFlags[0]<<std::endl;
+  std::cout<<"                                 Ionization   ="
+	   <<fFunctionEnableFlags[1]<<std::endl;
+  std::cout<<"                 Multiple Coulmb Scattering   ="
+	   <<fFunctionEnableFlags[2]<<std::endl;
   return;
 }
 // **************************************************************************

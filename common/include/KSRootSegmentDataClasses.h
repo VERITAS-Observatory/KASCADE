@@ -55,7 +55,11 @@
   int    fShowerID;	                 // File id # for this shower.
   char   fEarthsMagneticFieldSpec[10];// Earths magnetic field spec:
                                        //F=none.W=W10m
-  char   fVersion[80];	          //Version of kascade that made this file
+  int    fFunctionEnableFlags[3];  //Enable(=1) flags for kascade functions:
+                                   // [0]= Earths Magnetic field
+                                   // [1]= Ionization
+                                   // [2]= Multiple Scattering
+//char   fVersion[80];	          //Version of kascade that made this file
 #ifndef _NOROOT
   ClassDef(KSRootSegmentHeadData,1);
 #endif

@@ -51,10 +51,10 @@ KSRootPeHeadData::KSRootPeHeadData(KSPeHeadData* pfPeHead)
   fWhipplePMTs      = pfPeHead->fWhipplePMTs;
   fVeritasPMTs      = pfPeHead->fVeritasPMTs;
   fADPPMTs          = pfPeHead->fADPPMTs;
-  for(int i=0;i<10;i++)
-    {
-      fVersion[i]   = pfPeHead->fVersion[i];
-    }
+  //for(int i=0;i<10;i++)
+  //  {
+  //    fVersion[i]   = pfPeHead->fVersion[i];
+  //  }
 }
 // ***************************************************************************
 

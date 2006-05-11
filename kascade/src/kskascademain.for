@@ -1,10 +1,12 @@
 	SUBROUTINE KSKASCADEMAIN(TEP, itype, ksdli, ksdmi, ksdni, etr, depth, 
-     1                           kstmax, kshobs, ksdebena, idfile)
+     1                           kstmax, kshobs, ksdebena, idfile, 
+     1                           ksfuncenable)
 
 
 	real*4 TEP,ksdli, ksdmi, ksdni, etr,depth,kshobs,kstmax
 	integer itype,idfile
 	integer ksdebna(20)
+	integer ksfuncenable(3)
 
 
 c	Version: V:1:4.0
@@ -378,7 +380,7 @@ c	Save version for header file.
  1623	format('KASCADE VERSION:',a,' Last updated:',a)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
-	call kskascadesetversion(trim(version)//char(0))
+!	call kskascadesetversion(trim(version)//char(0))
 
 c	First Number of version number is for KASCADE system.
 c	Second Number is for KASCADE program.
@@ -402,8 +404,21 @@ c	number.
 	tmax=kstmax
 	hobs=kshobs
 	do i=1,20
-	   debena(i)=ksdebna(i)
+	   if(ksdebna(i).eq.1)then
+	      debena(i)=.true.
+	   else
+	      debena=.false.
+	   endif
 	enddo
+
+	do i=1,3
+	   if(ksfuncenable(i).eq.1)then
+	      funcenable(i)=.true.
+	   else
+	      funcenable(i)=.false.
+	   endif
+	enddo
+
 	segment_head.idfile=idfile
 
 	call kskascadegetmagneticfield(magneticfieldspec)
@@ -417,15 +432,49 @@ c	number.
 	   thresh(i)=segment_head.etr*1.0e-6
 	enddo	
 	
+c ****************************************************************************
 c  	Decode if Earths magnetic file is to be used.
-	if(index(segment_head.magnet_field,'F').eq.0)then
+c ****************************************************************************
+	if((index(segment_head.magnet_field,'F').eq.0).and.
+     1     (ksfuncenable(1).eq.1))then
 	   magnet_on=.true.
 	else
 	   magnet_on=.false.
+	   write(coutstring,3200)
+ 3200	   format('KASCADE: Bending of tracks in Earths Magnetic Field has 
+     1	been disabled')
+	call kscharstring2cout(trim(coutstring)//char(0))
 	endif
 
+c ****************************************************************************
+c       Decode if Ionization is to be used
+c ****************************************************************************
+	if(ksfuncenable(2).eq.1)then
+	   ionization_on=.true.
+	else
+	   ionization_on=.false.
+	   write(coutstring,3201)
+ 3201	   format('KASCADE: Track energy loasses due to Ionization has 
+     1  been disabled')
+	call kscharstring2cout(trim(coutstring)//char(0))
+	endif
 
-            !All altitude variables start with 'h' and are in meters.
+c ****************************************************************************
+c       Decode if Multiple Coulomb Scattering is to be used
+c ****************************************************************************
+	if(ksfuncenable(2).eq.1)then
+	   multscattering_on=.true.
+	else
+	   multscattering_on=.false.
+	   write(coutstring,3202)
+ 3202	   format('KASCADE: Track Multiple Coulomb Scattering has 
+     1  been disabled')
+	call kscharstring2cout(trim(coutstring)//char(0))
+	endif
+
+c ****************************************************************************
+c  All altitude variables start with 'h' and are in meters.
+c ****************************************************************************
 	segment_head.zobs   = gms(hobs)
 	height = yds(segment_head.depth) 
 				    !inital altitude in meters above sea_level
@@ -481,8 +530,7 @@ c                            Init shower parameters
 				!Following call is for GrISU compatability. 
 				!ksgrisuheadwrite is in ksKascade.cpp. There
 				!a test will be made to see if the write is 
-				!actually to be done. Also there the particle 
-				!type will be converted to a Corsika type id.
+				!actually to be done. 
         call ksgrisuheadwrite(segment_head.itype,xinitial, yinitial,
      1			hobs, dl, dm, tenergy)
 
@@ -494,7 +542,14 @@ c                             in  PROPAGATE.  r*8.
         CALL UNICAS (tenergy,ispec,hei,dl,dm,dn,x,y)
 c                                   Run the cascade. This the guts
 c                                   of everything.
-        
+ 
+	call ksgrisutailwrite
+				!Following call is for GrISU compatability. 
+				!ksgrisutailwrite is in ksKascade.cpp. There
+				!a test will be made to see if the write is 
+				!actually to be done. 
+
+       
 	write(coutstring,1001)segment_head.idfile
  1001	   format(' Shower File id:',i4)
 	call kscharstring2cout(trim(coutstring)//char(0))
@@ -3209,7 +3264,8 @@ c       Calculate beta and gamma very carefully, r*8.
 !	DE/DX:
 !*****************************************************************************
 			!Do de/dx
-           call rioniz(tenergy,de,tsegment,ispec,jcharge,xmass)
+           if(ionization_on)call rioniz(tenergy,de,tsegment,ispec,jcharge,
+     1                                  xmass)
            temid=tenergy-de/2.  !K.E.at mid point of segment.
            if(ispec.lt.20)then
               if(temid.lt.thresh(ispec))then
@@ -3274,7 +3330,7 @@ c       Calculate beta and gamma very carefully, r*8.
 !	Multiple scattering changes direction at end of segment.
 !*****************************************************************************
 
-           call multscatt(temid,tsegment,ispec,dl,dm,dn,
+           if(multscattering_on)call multscatt(temid,tsegment,ispec,dl,dm,dn,
 	1 jcharge,xmass)
 					!MULTSCATT comes back with dl,dm,dn 
 					!pointing in the new direction.

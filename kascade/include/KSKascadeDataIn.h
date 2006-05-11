@@ -26,18 +26,20 @@ class KSKascadeDataIn : public VAAlgorithm  //VAAlgoritm specifys a virtual
 		                            //getConfig()
 {
 private:
-  static int         sDefaultType;
-  static double      sDefaultGeVEnergyPrimary;
-  static double      sDefaultDlInitial;
-  static double      sDefaultDmInitial;
-  static double      sDefaultEnergyThresholdMeV;
-  static double      sDefaultMaxCoulombScatSegmentLength;
-  static double      sDefaultInjectionDepth;
-  static double      sDefaultObservationAltitudeM;
-  static int         sDefaultShowerID;
-  static std::string sDefaultEarthsMagneticFieldSpec;
-  static std::string sDefaultRandomSeedFileName;
-  static int         sDefaultParticleTraceEnableFlags[20];
+  static int               sDefaultType;
+  static double            sDefaultGeVEnergyPrimary;
+  static double            sDefaultDlInitial;
+  static double            sDefaultDmInitial;
+  static double            sDefaultEnergyThresholdMeV;
+  static double            sDefaultMaxCoulombScatSegmentLength;
+  static double            sDefaultInjectionDepth;
+  static double            sDefaultObservationAltitudeM;
+  static int               sDefaultShowerID;
+  static std::string       sDefaultEarthsMagneticFieldSpec;
+  static std::string       sDefaultRandomSeedFileName;
+  static std::vector<bool> sDefaultParticleTraceEnableFlags;
+  static std::vector<bool> sDefaultFunctionEnableFlags;
+  //  static int         sDefaultParticleTraceEnableFlags[20];
   
 public:
   KSKascadeDataIn(KSSegmentHeadData* SegmentHead);
@@ -47,7 +49,7 @@ public:
 
   KSSegmentHeadData* pfSegmentHead;
   std::string        fRandomSeedFileName;
-  int                fParticleTraceEnableFlags[20];
+  int       fParticleTraceEnableFlags[20];
 
 };
 #endif

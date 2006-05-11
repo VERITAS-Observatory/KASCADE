@@ -69,7 +69,7 @@ void KSTeHeadData::PrintTeHead()
   std::cout<<"           Mount Dl (x direction cosign): "<<fMountDl<<std::endl;
   std::cout<<"           Mount Dm (y direction cosign): "<<fMountDm<<std::endl;
   std::cout<<"           Mount Dn (z direction cosign): "<<fMountDn<<std::endl;
-  std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
+//std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
   return;
 }
 // **************************************************************************

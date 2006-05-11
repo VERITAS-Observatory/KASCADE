@@ -6,7 +6,7 @@
  * $Tag$
  *
  **/
-// This is derived from structures.f90. This si the ROOT usable version
+// This is derived from structures.f90. This is the ROOT usable version
 // It duplicates (except fdor the root stuff) KSRootPeDataClasses  
 // This is preliminary class which I plan to upgrade all of KASCADE to 
 // eventually. Not used by general KASCADE as of yet.
@@ -56,7 +56,7 @@
   bool   fWhipplePMTs;
   bool   fVeritasPMTs;
   bool   fADPPMTs;
-  char   fVersion[10];	      //Version of kaslite that made this file.
+//  char   fVersion[10];	      //Version of kaslite that made this file.
 #ifndef _NOROOT
   ClassDef(KSRootPeHeadData,1);
 #endif

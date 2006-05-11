@@ -59,10 +59,14 @@ KSRootSegmentHeadData::KSRootSegmentHeadData(KSSegmentHeadData* pfSegHead)
     {
       fEarthsMagneticFieldSpec[i]=pfSegHead->fEarthsMagneticFieldSpec[i];
     }
-  for(int i=0;i<80;i++)
+  for(int i=0;i<3;i++)
     {
-      fVersion[i]=pfSegHead->fVersion[i];	 
+      fFunctionEnableFlags[i]=1;
     }
+  // for(int i=0;i<80;i++)
+  //  {
+  //    fVersion[i]=pfSegHead->fVersion[i];	 
+  //  }
 }
 // ***************************************************************************
 
@@ -135,6 +139,13 @@ void KSRootSegmentHeadData::PrintSegmentHead()
 	   <<fInjectionDepth<<std::endl;
   std::cout<<"                    Magnet field values for   ="
 	   <<fEarthsMagneticFieldSpec[0]<<std::endl;
+  std::cout<<"      FunctionEnableFlags:"<<std::endl;
+  std::cout<<"                              MagneticField   ="
+	   <<fFunctionEnableFlags[0]<<std::endl;
+  std::cout<<"                                 Ionization   ="
+	   <<fFunctionEnableFlags[1]<<std::endl;
+  std::cout<<"                 Multiple Coulmb Scattering   ="
+	   <<fFunctionEnableFlags[2]<<std::endl;
   return;
 }
 // **************************************************************************

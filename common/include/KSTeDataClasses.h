@@ -48,7 +48,7 @@ class KSTeHeadData
   double fMountDl;                  //Original mount x direction cosign
   double fMountDm;                  //Original mount y direction cosign
   double fMountDn;                  //Original mount z direction cosign
-  char   fVersion[16];		    //Version of kastrig that made this m file.
+//  char   fVersion[16];	    //Version of kastrig that made this m file.
 };
 // ***************************************************************************
 

@@ -37,9 +37,16 @@ class KSSegmentHeadData
   double fInjectionDepth;        // Injection depth in gm/cm**2
   double fObservationAltitudeM;   // Observation altitude in meters
   int    fShowerID;	                 // File id # for this shower.
-  char   fEarthsMagneticFieldSpec[10];// Earths magnetic field spec:
-                                       //F=none.W=W10m
-  char   fVersion[80];	          //Version of kascade that made this file
+  char   fEarthsMagneticFieldSpec[10];   // Earths magnetic field spec:
+                                         // F=none.W=W10m
+  int    fFunctionEnableFlags[3];  //Enable(=1) flags for kascade functions:
+                                   // [0]= Earths Magnetic field
+                                   // [1]= Ionization
+                                   // [2]= Multiple Scattering
+
+
+
+  //char   fVersion[80];	          //Version of kascade that made this file
   
 };
 // ***************************************************************************

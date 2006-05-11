@@ -24,14 +24,15 @@
       common/usimda/b_field,bx,by,bz,e_mass
 	real*4 b_field,bx,by,bz,e_mass
 
-      common/usiminp/size,magnet_on,gndprt
+      common/usiminp/size,magnet_on,ionization_on,multscattering_on,gndprt
 	real*4 size
-	logical magnet_on,gndprt
+        logical magnet_on,ionization_on,multscattering_on,gndprt
 
-      common/kontrol/ipr(20),inext,debena,namtyp
+      common/kontrol/ipr(20),inext,debena,namtyp,funcenable
 	integer*4 ipr,inext
-      character*8 namtyp(18)
-      logical debena(20)
+        character*8 namtyp(18)
+        logical debena(20)
+        logical funcenable(3)
 
       common/stor/den(9,1000),dgn(9,10000),nen,ngn
 	real*4 den,dgn
