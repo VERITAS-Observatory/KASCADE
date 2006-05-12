@@ -75,19 +75,20 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 
       double fOmega=2*M_PI*(1.-cos(fStepSizeRad));
       fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
-	                                                           
-       }
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
+    }
   else if(!fMultipleMountDirections)
     {
       fNumDirections=1;               //Treat as gamma. No redirection
       fAomega=fXAreaWidthM*fYAreaWidthM;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
     }
   else
     {
       double fOmega=2*M_PI*(1.-cos(pfTeHead->fMaximumThetaRad))/fNumDirections;
       fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
     }
-
 // ***********************************************************************
 //  Allocate Some direction arrays and load them up.
 // ***********************************************************************
@@ -181,7 +182,7 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // *************************************************************************
 //Iterate over all directions(only 1 step for pure gammas)
 // *************************************************************************
-  std::cout<<"fNumDirections: "<<fNumDirections<<std::endl;
+  std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections<<std::endl;
 
   for(int ithphi=0;ithphi<fNumDirections;ithphi++)
     {
@@ -402,6 +403,7 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
 // ***************************************************************************
 {
   pfInFile->read((char*)&fAomega, sizeof(float));
+  std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
   int fLength=0;
   pfInFile->read((char*)&fLength, sizeof(int));
   if(!pfInFile->good())
@@ -411,6 +413,7 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
       exit(1);
     }
   fNumDirections = fLength/sizeof(double);
+ std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections<<std::endl;
  // ***********************************************************************
 //  Allocate Some direction arrays and load them up.
 // ***********************************************************************
