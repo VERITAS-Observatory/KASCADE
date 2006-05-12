@@ -63,11 +63,11 @@ CLASSDEFS := $(notdir $(shell grep ClassDef -l $(INCDIR)/*.h $(INCDIR)/*.hpp))
 #In order to make the noroot and withroot libraries we have to do this
 #fancy clean noroot and with root for all.
 
-#ifdef ROOTSYS
-all:  clean $(LIBTARGET) withroot norootcomment
-#else
+ifdef ROOTSYS
+all:  clean $(LIBTARGET) withroot
+else
 all:  clean $(LIBTARGET) norootcomment
-#endif
+endif
 
 norootcomment:
 	@echo "***************common/Makefile*******************************"
