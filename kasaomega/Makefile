@@ -50,6 +50,10 @@ else
 all: norootcomment
 endif
 
+ifndef VEGASBASE
+all: noVEGAScomment
+endif
+
 $(LIBTARGET): $(CPPOBJECTS)
 	@echo CPPOBJECTS: $(CPPOBJECTS)
 	$(AR) r $@ $^
@@ -88,5 +92,12 @@ clean:
 norootcomment:
 	@echo "******************kasaomega/Makefile**************************"
 	@echo "* ROOTSYS not defined (ROOT not installed?)"
+	@echo "* Can't make " $(EXE)
+	@echo "**************************************************************"
+
+.PHONY: noVEGAScomment
+noVEGAScomment:
+	@echo "******************kasaomega/Makefile**************************"
+	@echo "* VEGASBASE not defined (VEGAS not installed?)"
 	@echo "* Can't make " $(EXE)
 	@echo "**************************************************************"
