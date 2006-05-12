@@ -31,13 +31,16 @@ CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
-all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET)
+ifdef ROOTSYS
+all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
+else
+all: norootcomment
+endif
 
-#F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
-#F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
+
+
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
-#$(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
 $(LIBTARGET): $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
@@ -78,3 +81,9 @@ clean:
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
 		$(EXEOBJECT)		$(EXE)
 
+.PHONY: norootcomment
+norootcomment:
+	@echo "******************kassrtmrg/Makefile**************************"
+	@echo "* ROOTSYS not defined (ROOT not installed?)"
+	@echo "* Can't make " $(EXE)
+	@echo "**************************************************************"
