@@ -14,12 +14,14 @@ include ../Makefile.common
 
 TOPDIR = ..
 
-#This is the No root version of the Makefile. To have a root version we would
-# remove the   -D_NOROOT in  the cpp compile options.(see commented out 
-#example) 
+#This is the No root and root  version of the common Makefile. 
+#It creats 2 libraries: libKascadeCommon.a libKascadeCommonRoot.a
+#The difference is the specification of the -D_NOROOT in  the cpp compile 
+#options. 
 #The NOROOT version is usable with ksKascade and ksKasLight but root is needed 
 #for the later stages: ksKasSort, ksKasTrigger and ksKasAomega
-
+#If Root is not installed in the system (no ROOTSYS defined) only the non-root
+#version of the common library (libKascadeCommon.a) will be built
 #Some of this f90 compiles get a little tricky. The order they are done is 
 #important. Do those sepecial files first
 
@@ -29,16 +31,12 @@ FIRSTF90USESOURCES := structures.f90
 
 
 F77SOURCES    := $(notdir $(shell echo $(SRCDIR)/*.for))
-#F90SOURCES    := $(FIRSTF90SOURCES) \
-#	   $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(FIRSTF90SOURCES)))
 CPPSOURCES    := $(notdir $(shell echo $(SRCDIR)/*.cpp))
 F90USESOURCES := $(FIRSTF90USESOURCES) \
 	   $(notdir $(shell ls $(INCDIR)/*.f90| grep -v $(FIRSTF90USESOURCES)))
 
 F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
 F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
-#CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))  \
-#	     $(TMPDIR)/root_dict.o
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))  
 
 F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
@@ -65,7 +63,17 @@ CLASSDEFS := $(notdir $(shell grep ClassDef -l $(INCDIR)/*.h $(INCDIR)/*.hpp))
 #In order to make the noroot and withroot libraries we have to do this
 #fancy clean noroot and with root for all.
 
-all: clean $(LIBTARGET) withroot
+#ifdef ROOTSYS
+all:  clean $(LIBTARGET) withroot norootcomment
+#else
+all:  clean $(LIBTARGET) norootcomment
+#endif
+
+norootcomment:
+	@echo "***************common/Makefile*******************************"
+	@echo "* ROOTSYS not defined:(ROOT not installed?)"
+	@echo "* libKascadeCommonRoot.a not produced!"
+	@echo "*************************************************************"
 
 
 $(LIBTARGET): $(LIBSOURCES)
@@ -82,10 +90,7 @@ $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<
 
-#$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-#	$(CXX) -o $@ -c $(CFLAGS) $<
-
-#use below for no rot version of common library
+#use below for no root version of common library
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $(NOROOTFLAG) $<
 
@@ -107,17 +112,18 @@ clean:
 		$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
 		$(TMPDIR)/root_dict.o \
-		$(TMPDIR)/root_dict.cpp $(TMPDIR)/root_dict.h \
-		out/.depend
+		$(TMPDIR)/root_dict.cpp $(TMPDIR)/root_dict.h 
+#\
+#		out/.depend
 
-.PHONY: depend
+#.PHONY: depend
 
-depend: out/.depend
+#depend: out/.depend
 
-out/.depend: $(addprefix $(SRCDIR)/, $(SOURCES))
-	$(CXX) -E -M $(CXXFLAGS) $^ | perl -pe 's/(^[^\s])/'$(TMPDIR)'\/$$1/' > $@
+#out/.depend: $(addprefix $(SRCDIR)/, $(SOURCES))
+#	$(CXX) -E -M $(CXXFLAGS) $^ | perl -pe 's/(^[^\s])/'$(TMPDIR)'\/$$1/' ># $@
 
-include out/.depend
+#include out/.depend
 
 
 .PHONY: withroot
