@@ -307,7 +307,6 @@ c     xseg*yseg comparable to detector size.
 ! ***************************************************************************
       phtcnt=0.               !Total number of photons processed.
       uplost=0.               !Number lost in Cernek going up.
-      print*,'uplost1:',uplost
       mountlost=0.            !Number that missed the mount or didn't reflect.
       photonkept=0.           !Number actually written out.
       heavy_made=0.           !Number from ions.
@@ -562,14 +561,13 @@ c        Write out the record. (disabled for Benchmark mode)
      $     '              Number of photons processed=',i10,/,
      $     '            Number of photons written out=',i10)
                                 !Uplost determined directly in cerenk
-      print*,'uplost2:',uplost
 
       write(6,2403)totalmade,heavy_made,rangelost,uplost
  2403 format(
      $     '             Total Number of photons made=',i10,/,
      $     '     Number of photons made by Heavy ions=',i10,/,
      $     '   Number of photons outside nx-ny limits=',i10,/,
-     $     '     Number of photons headed up to space=',i10)
+     $     '     Number of photons headed up to space=',f10.0)
                                 !TW mod.01/06/02 GHS V:1:2:6.3 Keep it.
       write(6,2404)itwcount
  2404 format(
@@ -785,7 +783,6 @@ c        10/24/86 G.H.S. Only earth seeking photons wanted!
          if(dn1.lt.0.)then
             nmade=nmade-1
             uplost=uplost+1
-            print*,'uplost3:',uplost
             return
          endif
 
