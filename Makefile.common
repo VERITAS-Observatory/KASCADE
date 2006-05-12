@@ -26,7 +26,8 @@ TOPCOMMONDIR = $(TOPDIR)/common
 TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
 TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
-VEGASBASE = /home/sembrosk/vegas
+#Define VEGASBASE in .bashrc (or wherever)
+#VEGASBASE = /home/sembrosk/vegas
 
 # -----------------------------------------------------------------------------
 #HDF5 1.6.1-post10(or whatever is installed locally) on amdahl
