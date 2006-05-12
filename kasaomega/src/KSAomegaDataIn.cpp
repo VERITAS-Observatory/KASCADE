@@ -25,7 +25,6 @@ std::string KSAomegaDataIn::sDefaultRandomSeedFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultRelativeGains="OFF"; 
 std::string KSAomegaDataIn::sDefaultRelativePedVars="OFF";
 std::string KSAomegaDataIn::sDefaultBadPixelSupression="OFF";
-std::string KSAomegaDataIn::sDefaultWeightBySpectrum="OFF";
 
 int         KSAomegaDataIn::sDefaultNewPatternTriggerLevel=3;
 int         KSAomegaDataIn::sDefaultNewTriggerMultiplicity=3; 
@@ -60,10 +59,6 @@ KSAomegaDataIn::KSAomegaDataIn()
   std::transform(sDefaultBadPixelSupression.begin(),
 		 sDefaultBadPixelSupression.end(),
 		 sDefaultBadPixelSupression.begin(),
-		 toupper);
-  std::transform(sDefaultWeightBySpectrum.begin(),
-		 sDefaultWeightBySpectrum.end(),
-		 sDefaultWeightBySpectrum.begin(),
 		 toupper);
   // -------------------------------------------------------------------
   // Decode selections
@@ -103,20 +98,6 @@ KSAomegaDataIn::KSAomegaDataIn()
 	       <<sDefaultBadPixelSupression
 	       <<" Assuming BadPixelSupression=OFF"<<std::endl;
     }
-
-  fWeightBySpectrum=false;
-  if(sDefaultWeightBySpectrum=="ON")
-    {
-      fWeightBySpectrum=true;
-    }
-  else if(sDefaultWeightBySpectrum!="OFF")
-    {
-      std::cout<<"Illegal option for WeightBySpectrum: "
-	       <<sDefaultWeightBySpectrum
-	       <<" Assuming WeightBySpectrum=OFF"<<std::endl;
-    }
-
-
 
   fNewPatternTriggerLevel  = sDefaultNewPatternTriggerLevel; 
   if(fNewPatternTriggerLevel<2 ||fNewPatternTriggerLevel>4)
@@ -189,7 +170,6 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("RelativeGains",sDefaultRelativeGains);
   config.setValue("RelativePedVars",sDefaultRelativePedVars);
   config.setValue("BadPixelSupression",sDefaultBadPixelSupression);
-  config.setValue("WeightBySpectrum",sDefaultWeightBySpectrum);
   config.setValue("PatternTriggerLevel",fNewPatternTriggerLevel);
   config.setValue("TriggerMultiplicity",fNewTriggerMultiplicity);
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
@@ -260,12 +240,6 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "the file specified by  PixelStatsFileName to model the "
 		    "relative pedvars (standard deviation) pixels after a "
 		    "particular run. OFF (default) disables.");
-  doVAConfiguration(file, command_line, 
-		    "WeightBySpectrum", sDefaultWeightBySpectrum,
-		    "KSAomegaDataIn",
-		    "ON causes a random, weighted by spectrum (determined by "
-		    "particle type) rejection of found triggers. OFF "
-		    "(default) disables");
    doVAConfiguration(file, command_line, 
 		    "PatternTriggerLevel", sDefaultNewPatternTriggerLevel,
 		    "KSAomegaDataIn",
@@ -332,9 +306,6 @@ void KSAomegaDataIn::Print()
 	   <<std::endl;
   std::cout<<"         UseBadPixelSupression: "<<fUseBadPixelSupression
 	   <<std::endl;
-  std::cout<<"              WeightBySpectrum: "<<fWeightBySpectrum
-	   <<std::endl;
-
   std::cout<<"       New PatternTriggerLevel: "<<fNewPatternTriggerLevel
 	   <<std::endl;
   std::cout<<"       New TriggerMultiplicity: "<<fNewTriggerMultiplicity

@@ -19,7 +19,6 @@
 // **************************************************************************
 std::string KSTriggerDataIn::sDefaultCameraType="WHIPPLE490";
 std::string KSTriggerDataIn::sDefaultTraceEnable="OFF";
-std::string KSTriggerDataIn::sDefaultWeightBySpectrum="OFF";
 std::string KSTriggerDataIn::sDefaultDriftingGammas="OFF";
 std::string KSTriggerDataIn::sDefaultUseElevationForDlDmDn="OFF";
 std::string KSTriggerDataIn::sDefaultMultipleMountDirections="OFF";
@@ -54,10 +53,6 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
 		 toupper);
   std::transform(sDefaultTraceEnable.begin(),sDefaultTraceEnable.end(),
 		 sDefaultTraceEnable.begin(),
-		 toupper);
-  std::transform(sDefaultWeightBySpectrum.begin(),
-		 sDefaultWeightBySpectrum.end(),
-		 sDefaultWeightBySpectrum.begin(),
 		 toupper);
   std::transform(sDefaultDriftingGammas.begin(),sDefaultDriftingGammas.end(),
 		 sDefaultDriftingGammas.begin(),
@@ -107,18 +102,6 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
 	       <<" Assuming TraceEnable=OFF"<<std::endl;
     }
   
-  pfTeHead->fWeightBySpectrum=false;
-  if(sDefaultWeightBySpectrum=="ON")
-    {
-      pfTeHead->fWeightBySpectrum=true;
-    }
-  else if(sDefaultWeightBySpectrum!="OFF")
-    {
-      std::cout<<"Illegal option for WeightBySpectrum: "
-	       <<sDefaultWeightBySpectrum
-	       <<" Assuming WeightBySpectrum=OFF"<<std::endl;
-    }
-
   pfTeHead->fDriftingGammas=false;
   if(sDefaultDriftingGammas=="ON")
     {
@@ -233,7 +216,6 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.fName = std::string("KSTriggerData");
   config.setValue("CameraType",sDefaultCameraType);
   config.setValue("TraceEnable",sDefaultTraceEnable);
-  config.setValue("WeightBySpectrum",sDefaultWeightBySpectrum);
   config.setValue("DriftingGammas",sDefaultDriftingGammas);
   config.setValue("UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn);
   config.setValue("LoadMountDirectionsFromFile",
@@ -275,12 +257,6 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "ON enables the production of pmt traces for the pixels. "
 		    "This is slightly more accurate but much slower.(Not yet "
                     "implemented!) OFF disables (default)");
-  doVAConfiguration(file, command_line, 
-		    "WeightBySpectrum", sDefaultWeightBySpectrum,
-		    "KSTriggerDataIn",
-		    "ON causes a random, weighted by spectrum (determined by "
-		    "particle type) rejection of found triggers. OFF "
-		    "(default) disables");
   doVAConfiguration(file, command_line, 
 		    "DriftingGammas",sDefaultDriftingGammas,
 		    "KSTriggerDataIn",

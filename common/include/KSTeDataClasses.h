@@ -30,7 +30,6 @@ class KSTeHeadData
 
   KSCameraTypes fCameraType;
   bool   fTraceCreation;            //Create pmt Pulse trace for all pixels
-  bool   fWeightBySpectrum;         //Cut ouput events by spectrum weights.
   bool   fDriftingGammas;           //Use special theta/phi -> gamma drift scan
   bool   fMultipleMountDirections;  //Generate mutiple mount directions for 
                                     //each event. Normal use for Hadrons
@@ -83,6 +82,6 @@ class KSTeData
   float fEmissionAltitude;
   float fEmissionAltitudeSigma;
   float fMuonRatio;
-  float fWeight;                //Spectrum weighting factor
+  float fAomega;              
 };
 #endif

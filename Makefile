@@ -31,7 +31,7 @@ INSTALLTARGETS =kascade \
 
 #		utilities
 
-all: $(STAGES)
+all: $(STAGES) install
 
 
 .PHONY: $(TARGETS)

@@ -36,7 +36,8 @@ KSMountDirection::~KSMountDirection()
   //nothing to do
 }
 
-void KSMountDirection::createMountDirections()
+void KSMountDirection::createMountDirections(double fXAreaWidthM, 
+					     double fYAreaWidthM)
 // ************************************************************************
 // Set up for the multiple mount directions stuff
 // ************************************************************************
@@ -71,10 +72,20 @@ void KSMountDirection::createMountDirections()
 	       fStepSizeRad/2. + 1  );
       fNumDirections = fPhiSteps*((fThetaSteps-1)*fThetaSteps/2) + 1;
       fMultipleMountDirections=true;
-    }
+
+      double fOmega=2*M_PI*(1.-cos(fStepSizeRad));
+      fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
+	                                                           
+       }
   else if(!fMultipleMountDirections)
     {
       fNumDirections=1;               //Treat as gamma. No redirection
+      fAomega=fXAreaWidthM*fYAreaWidthM;
+    }
+  else
+    {
+      double fOmega=2*M_PI*(1.-cos(pfTeHead->fMaximumThetaRad))/fNumDirections;
+      fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
     }
 
 // ***********************************************************************
@@ -368,6 +379,7 @@ void KSMountDirection::writeMountDirections(std::ofstream* pfOutFile)
 // Write the mount directions to a binary file.
 // ***************************************************************************
 {
+  pfOutFile->write((char*)&fAomega,sizeof(float));
   int fLength=sizeof(double)*fNumDirections;
   pfOutFile->write((char*)&fLength, sizeof(int));
   pfOutFile->write((char*)pfDlm, fLength);
@@ -389,8 +401,9 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
 // Read the mount directions from a binary file.
 // ***************************************************************************
 {
+  pfInFile->read((char*)&fAomega, sizeof(float));
   int fLength=0;
-  pfInFile->read((char*)fLength, sizeof(int));
+  pfInFile->read((char*)&fLength, sizeof(int));
   if(!pfInFile->good())
     {
       std::cout<<"KSMOuntDirection--Failed to read Te Pixel Data."

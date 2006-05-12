@@ -56,12 +56,6 @@ extern "C" void ranend(int* printseedflag, char* random_seed_file_name,
 			 int length);
 extern "C" float pran(float* dummy);
 
-extern "C" void VeritasEventWeight(float* tep, float* type, float* weight,
-				   bool* quiet);
-extern "C" void WhippleEventWeight(float* tep, float* type, float* weight,
-				   bool* quiet);
-
-
 KSPeData*      pfPe;
 
 void usage(const std::string& progname, const VAOptions& command_line)
@@ -362,28 +356,6 @@ int main(int argc, char** argv)
       ranstart(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	       rslength);
 
-      
-    // ----------------------------------------------------------------------
-    // If we are weighting by spectrum, determine the weight;
-    // ---------------------------------------------------------------------
-      float fWeight=1.0;
-      if(pfTeHead->fWeightBySpectrum)
-	{
-	  float fTep=pfSegmentHead->fGeVEnergyPrimary/1000.;
-	  float	fType=pfSegmentHead->fType;
-	  bool fQuiet=true;
-	  if(pfTeHead->fCameraType==VERITAS499)
-	    {
-	      VeritasEventWeight(&fTep, &fType, &fWeight,&fQuiet);
-	    }
-	  else if(pfTeHead->fCameraType==WHIPPLE490)
-	    {
-	      WhippleEventWeight(&fTep, &fType, &fWeight,&fQuiet);
-	    }
-	  std::cout<<"ksTrigger: Cutting ouput events by spectrum weight of: "
-		   <<fWeight<<std::endl;
-	}
-
       // --------------------------------------------------------------------
       // Create the output Te file and write the Segment header, Pe header and 
       // Te header to it and print the Te header.
@@ -395,7 +367,7 @@ int main(int argc, char** argv)
       pfTeFile->WriteSegmentHead(pfSegmentHead);
       pfTeFile->WritePeHead(pfPeHead);
 
-      KSArea fArea(pfPesFile,pfTeFile,pfSegmentHead,pfPeHead,pfDataIn,fWeight);
+      KSArea fArea(pfPesFile,pfTeFile,pfSegmentHead,pfPeHead,pfDataIn);
 
       //Need to wait until fArea constructed before saving TeHead
       pfTeFile->WriteTeHead(pfTeHead);

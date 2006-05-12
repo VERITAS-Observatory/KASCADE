@@ -28,7 +28,7 @@ extern "C" void whippletilt(double* fDlp, double* fDmp, double* fDnp,
 
 KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile, 
 	       KSSegmentHeadData* pSegmentHead, KSPeHeadData* pPeHead, 
-	       KSTriggerDataIn* pDataIn, float Weight)
+	       KSTriggerDataIn* pDataIn)
 {
   pfPesFile=pPesFile;
   pfTeFile=pTeFile;
@@ -41,7 +41,6 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   fTe.fShowerID         = pSegmentHead->fShowerID;
   fTe.fXCoreOffsetM     = pPeHead->fXCoreOffsetM;
   fTe.fYCoreOffsetM     = pPeHead->fYCoreOffsetM;
-  fTe.fWeight           = Weight;
 
   fType                 = fTe.fPrimaryType;
 
@@ -82,7 +81,8 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
     }
   else
     {
-      pfMountDir->createMountDirections();
+      pfMountDir->createMountDirections(pPeHead->fXAreaWidthM,
+					pPeHead->fYAreaWidthM);
     }
  
   // ********************************************************************
@@ -380,6 +380,8 @@ void KSArea::ProcessImages()
 	  fTe.fMountDm=fTDmm;
 	  fTe.fNx=fAreaNx;
 	  fTe.fNy=fAreaNy;
+	  fTe.fAomega=pfMountDir->fAomega;
+	  
 	  if(fDriftingGammas || !fMultipleMountDirections)
 	    {
 	      int fITheta;

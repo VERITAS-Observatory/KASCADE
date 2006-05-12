@@ -45,7 +45,7 @@ class KSArea
  public:
   KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile, 
 	 KSSegmentHeadData* pSegmentHead, KSPeHeadData* pPeHead,
-	 KSTriggerDataIn* pDataIn, float weight);
+	 KSTriggerDataIn* pDataIn);
 
   virtual ~KSArea();
 
@@ -69,7 +69,6 @@ class KSArea
 
   KSMountDirection*  pfMountDir;
   bool  fFirstRead;
-  double fWeight;
   int   fType;
   int   fAreaNx;
   int   fAreaNy;

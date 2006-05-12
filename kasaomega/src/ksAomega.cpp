@@ -359,8 +359,7 @@ int main(int argc, char** argv)
 	    {
 	      break;
 	    }
-	  bool fTriggered=fEvent.ProcessImage(); //If we are cutting by weight
-	                                         // it is done in ProcessImage
+	  bool fTriggered=fEvent.ProcessImage();
 	  if(fTriggered)
 	    {
 	      fEvent.SaveImage();   //Write event to output file(s).

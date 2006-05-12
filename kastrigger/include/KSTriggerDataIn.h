@@ -27,7 +27,6 @@ class KSTriggerDataIn : public VAAlgorithm  //VAAlgoritm specifys a virtual
 private:
   static std::string sDefaultCameraType;
   static std::string sDefaultTraceEnable;
-  static std::string sDefaultWeightBySpectrum;
   static std::string sDefaultDriftingGammas;
   static std::string sDefaultUseElevationForDlDmDn;
   static std::string sDefaultMultipleMountDirections;
@@ -68,7 +67,6 @@ public:
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;
   std::string       fRandomSeedFileName;
-  double fWeight;                   // Weight to use for cutting (if needed)
 };
 #endif
 

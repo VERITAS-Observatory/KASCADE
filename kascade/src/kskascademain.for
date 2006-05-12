@@ -582,7 +582,7 @@ c                                   of everything.
            endif
         enddo
         write(coutstring,1004)iamax,inmax
- 1004   format(' Shower Max at:',i10,' meters. #:',i10,'.')
+ 1004   format(' Shower Max at:',i10,' meters. Number at Shower max:',i10,'.')
 	call kscharstring2cout(trim(coutstring)//char(0))
 ! ***************************************************************************
 

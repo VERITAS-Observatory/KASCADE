@@ -307,6 +307,7 @@ c     xseg*yseg comparable to detector size.
 ! ***************************************************************************
       phtcnt=0.               !Total number of photons processed.
       uplost=0.               !Number lost in Cernek going up.
+      print*,'uplost1:',uplost
       mountlost=0.            !Number that missed the mount or didn't reflect.
       photonkept=0.           !Number actually written out.
       heavy_made=0.           !Number from ions.
@@ -561,6 +562,8 @@ c        Write out the record. (disabled for Benchmark mode)
      $     '              Number of photons processed=',i10,/,
      $     '            Number of photons written out=',i10)
                                 !Uplost determined directly in cerenk
+      print*,'uplost2:',uplost
+
       write(6,2403)totalmade,heavy_made,rangelost,uplost
  2403 format(
      $     '             Total Number of photons made=',i10,/,
@@ -590,9 +593,9 @@ c        Write out the record. (disabled for Benchmark mode)
          else
             shower_max2=0
          endif
-         write(6,2401)'E:ID:SHWMax,Sig:Path:#',
-     1        tep,showerid,shower_max,shower_max2,totalpath,totalmade
- 2401    format(a,f14.7,i6,1x,f7.1,1x,f7.1,e20.10,i12)
+!         write(6,2401)'E:ID:SHWMax,Sig:Path:#',
+!     1        tep,showerid,shower_max,shower_max2,totalpath,totalmade
+! 2401    format(a,f14.7,i6,1x,f7.1,1x,f7.1,e20.10,i12)
       endif
       return
       END
@@ -782,7 +785,8 @@ c        10/24/86 G.H.S. Only earth seeking photons wanted!
          if(dn1.lt.0.)then
             nmade=nmade-1
             uplost=uplost+1
-            goto 100
+            print*,'uplost3:',uplost
+            return
          endif
 
 

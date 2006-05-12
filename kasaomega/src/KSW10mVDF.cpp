@@ -28,11 +28,11 @@ KSW10mVDF::KSW10mVDF(VAVDF* pOut, int numChannels, VATime& startTime,
   fEndTime.setFromMJDDbl(fStartTime.getMJDDbl() + 1.0);//A day later
   fWhipple10MId=Whipple10MId;
   fNumWindowSamples=NumWindowSamples;
-  std::cout<<"KSW10mVDF: *****Initalizing"<<std::endl;
-  std::cout<<"KSW10mVDF: numChannels,TelID,numWindowSamples: "<<fNumChannels
-	   <<" "<<fWhipple10MId<<" "<<fNumWindowSamples<<endl;
-  std::cout<<"KSW10mVDF: MJD Start,MJD End: "<<fStartTime.getMJDDbl()<<" "
-	   <<fEndTime.getMJDDbl()<<std::endl;
+  //std::cout<<"KSW10mVDF: *****Initalizing"<<std::endl;
+  //std::cout<<"KSW10mVDF: numChannels,TelID,numWindowSamples: "<<fNumChannels
+  //	   <<" "<<fWhipple10MId<<" "<<fNumWindowSamples<<endl;
+  //std::cout<<"KSW10mVDF: MJD Start,MJD End: "<<fStartTime.getMJDDbl()<<" "
+  //	   <<fEndTime.getMJDDbl()<<std::endl;
 }
 // ***********************************************************************
 
@@ -59,9 +59,8 @@ void KSW10mVDF::CreateW10mVDFFile(string fFileName, double& fEastLongitude,
   fEastLongitude=pfArrayInfo->longitude();
   fLatitude=pfArrayInfo->latitude();
   
-  std::cout<<"KSW10mVDF: FileName: "<<fFileName<<std::endl;
-  std::cout<<"KSW10mVDF:Telescope at East Longitude: "<<fEastLongitude
-	   <<", Latitude: "<<fLatitude<<std::endl;
+  //std::cout<<"KSW10mVDF: FileName: "<<fFileName<<std::endl;
+  //std::cout<<"KSW10mVDF:Telescope at East Longitude: "<<fEastLongitude	//   <<", Latitude: "<<fLatitude<<std::endl;
   return;
 }
 // ************************************************************************
@@ -71,7 +70,7 @@ void KSW10mVDF::CreateRunHeader(int runNumber)
 // Create the Whipple VARunHeader 
 // ****************************************************************
 {
-  std::cout<<"KSW10mVDF:RunNumber: "<<runNumber<<std::endl;
+  //std::cout<<"KSW10mVDF:RunNumber: "<<runNumber<<std::endl;
   VARunHeader* pfRunHeader=pfOut->getRunHeaderPtr();
   pfRunHeader->fRunDetails.fFirstEventTime=fStartTime;
   pfRunHeader->fRunDetails.fRunNum=runNumber;
@@ -163,7 +162,7 @@ void KSW10mVDF::CreatePixelStatus(int fNumPMT, bool* off)
 // Create the Whipple PixelStatus
 // ****************************************************************
 {
-  std::cout<<"KSW10mVDF: fNumPMT: "<<fNumPMT<<std::endl;
+  //std::cout<<"KSW10mVDF: fNumPMT: "<<fNumPMT<<std::endl;
   TelOnOffLogType tempTelOnOffLog;
   tempTelOnOffLog.fTelId=fWhipple10MId;
 

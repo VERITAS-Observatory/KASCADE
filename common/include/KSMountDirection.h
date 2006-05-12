@@ -26,7 +26,7 @@ class KSMountDirection
  public:
   KSMountDirection(KSTeHeadData* pfTeHead, double DriftedGammaStepSizeRad);
   virtual ~KSMountDirection();
-  void createMountDirections();
+  void createMountDirections(double fXAreaWidthM, double fYAreaWidthM);
   void readMountDirections(std::ifstream* pMountDirFile);
   void writeMountDirections(std::ofstream* pMountDirFile);
   void getIThetaIPhi(int ithphi,int nsides,int& itheta,int& iphi);
@@ -37,7 +37,8 @@ class KSMountDirection
   bool   fMultipleMountDirections;
   double fStepSizeRad;
   KSCameraTypes fCameraType;
-
+  double fAomega;
+  
   int    fPhiSteps;
   int    fThetaSteps;
 

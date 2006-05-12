@@ -32,8 +32,6 @@ private:
   static std::string sDefaultRelativeGains;   //These have "ON" or "OFF" values
   static std::string sDefaultRelativePedVars;
   static std::string sDefaultBadPixelSupression;
-  static std::string sDefaultWeightBySpectrum;
-
 
   static int         sDefaultNewPatternTriggerLevel;
   static int         sDefaultNewTriggerMultiplicity; 
@@ -56,7 +54,6 @@ public:
   bool fUseRelativeGains;   
   bool fUseRelativePedVars;
   bool fUseBadPixelSupression;
-  bool fWeightBySpectrum;
 
   int         fNewPatternTriggerLevel;
   int         fNewTriggerMultiplicity; 

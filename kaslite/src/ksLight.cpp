@@ -124,9 +124,9 @@ int main(int argc, char** argv)
     // ********************************************************************
     // Register kaslight.par/GrISU Pilot file parameters.
     // ********************************************************************
-      //std::cout<<"at1"<<std::endl;
+      
       KSLightDataIn::configure(config_file, command_line);   
-      //std::cout<<"at2"<<std::endl;
+      
 
     // ********************************************************************
     // Test all defined options for main
@@ -243,14 +243,12 @@ int main(int argc, char** argv)
     // ------------------------------------------------------------------------
     // Load the configuration file if we have been asked to
     // ------------------------------------------------------------------------
-      //std::cout<<"at3"<<std::endl;
-    
+          
       if(load_config)
 	{
 	  config_file.loadConfigFile(load_filename);
 	}
-      //std::cout<<"at4"<<std::endl;
-
+     
     // ------------------------------------------------------------------------
     // Load GrISU Pilot file options if specified
     // ------------------------------------------------------------------------
@@ -281,13 +279,11 @@ int main(int argc, char** argv)
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
-      std::cout<<"at5"<<std::endl;
-
+     
       std::string SegFileName=*argv;
       argv++;
       std::string PeFileName=*argv;
-      std::cout<<"at6"<<std::endl;
-
+     
 
   //Now that all the possible keywords that may be found in the configuration
   //file have been registered with config we can read in the configuration 

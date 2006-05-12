@@ -39,7 +39,6 @@ void KSTeHeadData::PrintTeHead()
   std::cout<<" Camera Type:(Whipple490="<<WHIPPLE490<<",VERITAS499="
 	   <<VERITAS499<<"): "<<fCameraType<<std::endl; 
   std::cout<<"            Trace Creation: "<<fTraceCreation<<std::endl;
-  std::cout<<"        Weight By Spectrum: "<<fWeightBySpectrum<<std::endl;
   std::cout<<"           Drifting Gammas: "<<fDriftingGammas<<std::endl;
   std::cout<<" Multiple Mount Directions: "<<fMultipleMountDirections
 	   <<std::endl; 

@@ -345,19 +345,6 @@ bool KSEvent::ProcessImage()
 // **************************************************************************
 {
   //At this point all the pe times are in fPixel.
-
-  // *************************************************************************
-  // Check to see if we are cutting by sapectrum weights. This test is done
-  // here to maximize performance.
-  // *************************************************************************
-  if(pfDataIn->fWeightBySpectrum)
-    {
-      if(pran(&fXDummy)>pfTe->fWeight)
-	{
-	  return false;
-	}
-    }
-
   // ************************************************************************
   // Create pixel waveforms (as they would be as they enter CFD's and FADC's)
   // ************************************************************************  
@@ -493,10 +480,11 @@ void KSEvent::SaveImage()
       pfSimEvent->setNYIndex((float)pfTe->fNy);         //           '      '
       pfSimEvent->setDirectionIndex((float)pfTe->fDirectionIndex);// '      '
 
-      pfSimEvent->setEmissionAltitudeM(pfTe->fEmissionAltitude);
-      pfSimEvent->setEmissionAltitudeSigma(pfTe->fEmissionAltitudeSigma);
-      pfSimEvent->setMuonRatio(pfTe->fMuonRatio);
-
+      pfSimEvent->setEmissionAltitudeM((float)pfTe->fEmissionAltitude);
+      pfSimEvent->
+	        setEmissionAltitudeSigma((float)pfTe->fEmissionAltitudeSigma);
+      pfSimEvent->setMuonRatio((float)pfTe->fMuonRatio);
+      pfSimEvent->setAomega((float)pfTe->fAomega);
       pfVDFOut->writeSimulationData();
 
     }
