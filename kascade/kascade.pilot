@@ -1,0 +1,94 @@
+               --- KASCADE SHOWER GENERATOR PILOT ---
+                   GrISU version 4.0.0
+            for kascade.for, kascade7.f or kascade3.f
+                     
+Data lines begin with an asterisk, comment lines do not.
+Data lines can be in any order
+
+run title (default, no title: leave as comment line)
+* TITLE create test file
+
+Total number of showers to create
+* NUMBR 1
+
+Output filename for segments. default stdout (by removing *)
+ FILEO photon.seg
+
+Output filename for log file.  If asterisk removed,no log file
+ FILEL kascade.log
+
+Seed for random-number generator, used in kascade7 and kascade3 only
+* RSEED -76492
+
+Seed filename for kascade.for, default 'kascade.ran'
+* KASRN ksKascade.ran
+
+Seed for random-number generator
+* RSEED -19239
+
+Minimum and maximum energy in TeV of primary particle
+
+* ENERG 1.0 1.0
+
+Now can throw heavies with kascade, see list at end of this file
+Initial particle type: 1=gamma, 13=proton (plus others listed below)
+* PTYPE 1
+
+integral spectral index (for any particle type).  
+If a comment line, default is -1.5
+* INDXG -1.5
+
+Direction Cosines, dl, dm, dn of primary (x perpen to horizontal 
+component of B field, vertically down is positive direction. 
+If dl and dm are zero, dl and dm randomly determined subject to 
+(dl,dm,dn) being a unit vector. 
+* DIRCS  1e-15 -0.0174522 1.00
+
+Threshold energy in MeV
+* THRES 10.0
+
+depth of first interaction, gm/cm2
+* DEPTH .1
+
+Depth of observatory in gms/cm2 (about 763 for Hopkins)
+*  DPOBS 763.0
+   DPOBS 815.5
+
+Slice thickness in radiation lengths
+* THICK 0.02
+
+Process particles, used for debugging normally set to <f>, ordered by 
+particle types listed below
+These can now be either t or f with no effect on the segment output file
+Applys to all versions of kascade
+* PROCS f f f f f f f f f f f f f f f f f f f f
+
+Magnet on, Ionization on, multiple scattering on <t or f>, for use with
+kascade3 and kascade7.
+* FLAGS t t t
+
+magnet on: for kascade only. if W, use whipple location,
+otherwise magnetic field will be turned off
+* MAGON W
+
+
+Particle types (particle type <=18), for all versions of kascade
+ 1: gamma photon     2: positron   3: electron  4: +muon   5: -muon
+ 6: neutral pion     7: +pion      8: -pion     9: +kaon  10: -kaon
+11: l.nt.kaon       12: s.nt.kaon 13: proton   14: neutro 15: e neutrino
+16: e antineutrino  17: muon neut.18: muon antineutrion 
+
+-------------------------------------------------------------------------
+Particle types: heavies, particle type > 20 (and <=76) for kascade only
+
+21:  H-1 |  31: B-11 |  41: Ne-21 |  51: K-31 |  61: K-41  |  71: V-51
+22:  H-2 |  32: C-12 |  42: Ne-22 |  52: S-32 |  62: K-42  |  72: Cr-52
+23:  H-3 |  33: C-13 |  43: Na-23 |  53: S-33 |  63: Ca-43 |  73: Cr-53
+24: He-4 |  34: N-14 |  44: Mg-24 |  54: S-34 |  64: Ca-44 |  74: Mn-54
+25: He-5 |  35: N-15 |  45: Mg-25 |  55: Cl-35|  65: Sc-45 |  75: Mn-55
+26: Li-6 |  36: O-16 |  46: Mg-26 |  56: Cl-36|  66: Sc-46 |  76: Fe-56
+27: Li-7 |  37: O-17 |  47: Al-27 |  57: Cl-37|  67: Ti-47 |
+28: Be-8 |  38: O-18 |  48: Si-28 |  58: Ar-38|  68: Ti-48 |
+29: Be-9 |  39: F-19 |  49: Si-29 |  59: K-39 |  69: Ti-49 |
+30: B-10 |  40: Ne-20|  50: Si-30 |  60: Ar-40|  70: V-50  |      
+

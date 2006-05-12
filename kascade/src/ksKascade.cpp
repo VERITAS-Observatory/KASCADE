@@ -53,8 +53,6 @@ extern "C" void kskascademain(float* TEP, int* itype, float* dli,
 			      float* depth, float* tmax, float* hobs,
 			      int* debena, int* fileID, int* functionenable);
 
-//extern "C" void kskascadesetversion(char* version);
-
 extern "C" void kskascadegetmagneticfield(char* magnet_field);
 
 extern "C" void kssegmentwrite(float* XStart, float* YStart, float* HStart, 
@@ -71,6 +69,7 @@ extern "C" int KascadeType2CorsikaType(int fKType);
 
 extern "C" void kscharstring2cout(char* coutString);
 
+void printRandomSeedFile(std::string randomSeedFileName);
 
 KSKascadeDataIn* pfDataIn;
 KSSegmentFile* pfSegFile;
@@ -135,6 +134,7 @@ int main(int argc, char** argv)
 	  if(pfGrISUPilotFile->fNUMBR>0)
 	    {
 	      fNumberOfShowers=pfGrISUPilotFile->fNUMBR;
+	      //std::cout<<"fNumberOfShowers:"<<fNumberOfShowers<<std::endl;
 	    }
 	}
       //--------------------------------------------------------------------
@@ -475,11 +475,9 @@ int main(int argc, char** argv)
     // ------------------------------------------------------------------------
     // Initalize the random number generator.
     // ------------------------------------------------------------------------
-      int printseeds=1;
-      if(GrISUOutputToStdIO)
-	{
-	  printseeds=0;   //disable printout of seeds.
-	}
+      printRandomSeedFile(pfDataIn->fRandomSeedFileName);
+
+      int printseeds=0;  //Don't print seeds in ranstart.
       int rslength=pfDataIn->fRandomSeedFileName.length();
       ranstart(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	       rslength);
@@ -539,12 +537,9 @@ int main(int argc, char** argv)
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
       // ----------------------------------------------------------------------
-      if(GrISUOutputToStdIO)
-	{
-	  printseeds=0;   //disable printout of seeds.
-	}
       ranend(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	     rslength);
+      printRandomSeedFile(pfDataIn->fRandomSeedFileName);
       
       thetime=time(NULL);
       std::cout<<"ksKascade:  NORMAL END------"<<ctime(&thetime)
@@ -714,6 +709,30 @@ void kscharstring2cout(char* coutString)
   if(!ksStr.empty())
     {
       std::cout<<ksStr<<std::endl;
+    }
+  return;
+}
+// **************************************************************************
+
+void printRandomSeedFile(std::string randomSeedFileName)
+// ***************************************************************************
+// Print random seed file contents using cout. This allows for redirection of
+// seeds printout to log files or ./dev/null if that is how cout has been 
+// redirected
+// ***************************************************************************
+{
+  std::ifstream fSeedsIn(randomSeedFileName.c_str());
+  if(!fSeedsIn)
+    {
+      std::cout<<"ksKascade: Failed to open random seed file: "
+	       <<randomSeedFileName<<std::endl;
+      exit(1);
+    }
+  std::cout<<"Random seed vector in file "<<randomSeedFileName<<std::endl;
+  std::string s;
+  while(getline(fSeedsIn,s))
+    {
+      std::cout<<s<<std::endl;
     }
   return;
 }

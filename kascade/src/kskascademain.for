@@ -499,6 +499,10 @@ c     Init things.
 
 c!       All K.e. variables start with 'e' or 't'.(Can be either Mev or Tev)
 
+	WRITE(coutstring,3050) tep
+ 3050	format(' Primary Energy (TeV):',f7.3)
+	call kscharstring2cout(trim(coutstring)//char(0))
+
 	WRITE(coutstring,1000) hobs,height
 1000  format(' Observatory at(m.):',f7.1,' Injection at(m.):',f10.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
