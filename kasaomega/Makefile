@@ -44,7 +44,11 @@ CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
-all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET)
+ifdef ROOTSYS
+all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
+else
+all: norootcomment
+endif
 
 $(LIBTARGET): $(CPPOBJECTS)
 	@echo CPPOBJECTS: $(CPPOBJECTS)
@@ -79,3 +83,10 @@ clean:
 		$(EXEOBJECT) \
 		$(EXE)
 
+
+.PHONY: norootcomment
+norootcomment:
+	@echo "******************kasaomega/Makefile**************************"
+	@echo "* ROOTSYS not defined (ROOT not installed?)"
+	@echo "* Can't make " $(EXE)
+	@echo "**************************************************************"
