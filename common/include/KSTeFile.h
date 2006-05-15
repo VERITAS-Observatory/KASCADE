@@ -40,6 +40,7 @@ class KSTeFile
   void WriteTeHead(KSTeHeadData* teHead);
   void WriteTe(KSTeData* te);
   void WriteTePixelData(std::vector<KSPixel>& fPixel);
+  double getNumTes(){return fNumTe;};
 
   bool ReadSegmentHead(KSSegmentHeadData* segHead);
   bool ReadPeHead(KSPeHeadData* peHead);
@@ -65,6 +66,7 @@ class KSTeFile
 
   bool fFoundEOF;
   bool fFoundError;
+  double fNumTe;
 };
 // ***************************************************************************
 

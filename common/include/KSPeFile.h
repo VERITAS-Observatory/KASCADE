@@ -35,6 +35,7 @@ class KSPeFile
   void WriteSegmentHead(KSSegmentHeadData* segHead);
   void WritePeHead(KSPeHeadData* peHead);
   void WritePe(KSPeData* pe);
+  double getNumPes(){return fNumPe;};
 
   bool ReadSegmentHead(KSSegmentHeadData* segHead);
   bool ReadPeHead(KSPeHeadData* peHead);
@@ -51,6 +52,7 @@ class KSPeFile
   bool fPeHeadRead;
   bool fFoundEOF;
   bool fFoundError;
+  double  fNumPe;
 };
 // ***************************************************************************
 

@@ -27,6 +27,7 @@ KSPeFile::KSPeFile()
   fPeHeadRead=false;
   fFoundEOF=false;
   fFoundError=false;
+  fNumPe=0;
 }
 
 KSPeFile::~KSPeFile()
@@ -95,17 +96,21 @@ void KSPeFile::Close()
 {
   if(pfOutFile!=NULL)
     {
+      pfOutFile->clear();
       pfOutFile->close();
       pfOutFile=NULL;
       fSegmentHeadWritten=false;
       fPeHeadWritten=false;
+   //std::cout<<"KSPeFile: Number of Pe records written: "<<fNumPe<<std::endl;
     }
   if(pfInFile!=NULL)
     {
+      pfInFile->clear();
       pfInFile->close();
       pfInFile=NULL;
       fSegmentHeadRead=false;
       fPeHeadRead=false;
+   //std::cout<<"KSPeFile: Number of Pe records read: "<<fNumPe<<std::endl;
     }
   return;
 }
@@ -200,6 +205,7 @@ void KSPeFile::WritePe(KSPeData* pe)
   else
     {
       pfOutFile->write((char*)pe, sizeof(KSPeData));
+      fNumPe++;
     }
   return;
 }
@@ -318,6 +324,7 @@ bool KSPeFile::ReadPe(KSPeData* pe)
 	 fFoundError=true;
 	 return false;
        }
+     fNumPe++;
      return true;
     }
 }

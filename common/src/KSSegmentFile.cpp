@@ -23,6 +23,7 @@ KSSegmentFile::KSSegmentFile()
   pfOutFile=NULL;
   fSegmentHeadWritten=false;
   fSegmentHeadRead=false;
+  fNumSegments=0;
 }
 KSSegmentFile::~KSSegmentFile()
 {
@@ -90,12 +91,14 @@ void KSSegmentFile::Close()
 {
   if(pfOutFile!=NULL)
     {
+      pfOutFile->clear();
       pfOutFile->close();
       pfOutFile=NULL;
       fSegmentHeadWritten=false;
     }
   if(pfInFile!=NULL)
     {
+      pfInFile->clear();
       pfInFile->close();
       pfInFile=NULL;
       fSegmentHeadRead=false;
@@ -153,6 +156,7 @@ void KSSegmentFile::WriteSegment(KSSegmentData* segment)
   else
     {
       pfOutFile->write((char*)segment, sizeof(KSSegmentData));
+      fNumSegments++;
     }
   return;
 }
@@ -221,6 +225,7 @@ bool KSSegmentFile::ReadSegment(KSSegmentData* segment)
 		  <<std::endl;
 	 return false;
        }
+     fNumSegments++;
      return true;
     }
 }

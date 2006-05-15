@@ -36,6 +36,7 @@ KSTeFile::KSTeFile()
   
   fFoundEOF=false;
   fFoundError=false;
+  fNumTe=0;
 }
 
 KSTeFile::~KSTeFile()
@@ -272,6 +273,7 @@ void KSTeFile::WriteTe(KSTeData* te)
       pfOutFile->write((char*)te, sizeof(KSTeData));
       fTeWritten=true;
       fFoundError=false;
+      fNumTe++;
     }
   return;
 }
@@ -526,6 +528,7 @@ bool KSTeFile::ReadTe(KSTeData* te)
        }
      fTeRead=true;
      fFoundError=false;
+     fNumTe++;
      return true;
     }
 }

@@ -36,12 +36,13 @@ class KSSegmentFile
 
   bool ReadSegmentHead(KSSegmentHeadData* segHead);
   bool ReadSegment(KSSegmentData* segment);
- 
+  double getNumSegments(){return fNumSegments;};
  private:
   std::ifstream* pfInFile;
   std::ofstream* pfOutFile;
   bool fSegmentHeadWritten;
   bool fSegmentHeadRead;
+  double fNumSegments;
 };
 // ***************************************************************************
 
