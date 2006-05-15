@@ -482,7 +482,11 @@ c        Write out the record. (disabled for Benchmark mode)
             
                call kspewrite(nx, ny, ttime, dlr, dmr, inext, xg, yg, 
      1              segment.nspec, wavelength, emissionalt)
-            endif
+               photonkept=photonkept+1
+               if(pe.spec.gt.20)then
+                  heavy_made=heavy_made+1
+               endif
+           endif
 
 !****************************************************************************
 !Benchmark modification:Collect benchmark histogram rho vs r
@@ -506,12 +510,8 @@ c        Write out the record. (disabled for Benchmark mode)
 !****************************************************************************
 
 
-            photonkept=photonkept+1
-            shower_max=shower_max+hmid
+             shower_max=shower_max+hmid
             shower_max2=shower_max2+hmid**2
-            if(pe.spec.gt.20)then
-               heavy_made=heavy_made+1
-            endif
          
          enddo                  !Endo of cherenkov photon do loop.
       enddo                     !End of segment do while

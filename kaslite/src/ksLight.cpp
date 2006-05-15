@@ -418,6 +418,13 @@ int main(int argc, char** argv)
 		    &dl, &dm, &dn, &hobs, &pfSegmentHead->fType, &tep, 
 		    &xseg,&yseg,&xoff, &yoff,&pfSegmentHead->fShowerID,&eff);
     // done
+      pfSegFile->Close();
+      std::cout<<"ksLight: KSSegmentFile reports Number of Segements "
+	"read: "<<(long)pfSegFile->getNumSegments()<<endl;
+
+      pfPeFile->Close();
+      std::cout<<"ksLight: KSPeFile reports Number of Pe's written: "
+	       <<(long)pfPeFile->getNumPes()<<endl;
 
     // ------------------------------------------------------------------------
     // Save the random number generator seeds.

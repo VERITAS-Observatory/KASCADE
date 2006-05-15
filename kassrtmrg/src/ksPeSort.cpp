@@ -162,9 +162,12 @@ int main(int argc, char** argv)
   thetime=time(NULL);
   std::cout<<"ksPeSort:  Input file successfully read in------"
 	   <<ctime(&thetime)<<std::endl;
+  pfPeFile->Close();
+  std::cout<<"ksPesort: Number of PEs read in: "<<(long)pfPeFile->getNumPes()
+	   <<std::endl;
+  
 
   int fNumEntries=pfPeTree->GetEntries();
-  std::cout<<"ksPesort: Number of PEs read in: "<<icount<<std::endl;
   std::cout<<"ksPesort: Number of PEs in tree: "<<fNumEntries<<std::endl;
   std::cout<<"ksPesort: NX minimum= "<<nxmin<<std::endl;
   std::cout<<"ksPesort: NY minimum= "<<nymin<<std::endl;
@@ -230,7 +233,10 @@ int main(int argc, char** argv)
     }
   std::cout<<"ksPeSort: Successful Sort(I checked!)"<<std::endl;
   pfSortedPeFile->Close();
-  pfPeFile->Close();
+  std::cout<<"ksPesort: Number of Sorted PEs written out: "
+	   << (long)pfSortedPeFile->getNumPes()
+	   <<std::endl;
+
       
   thetime=time(NULL);
   std::cout<<"ksPeSort:  NORMAL END------"<<ctime(&thetime)
