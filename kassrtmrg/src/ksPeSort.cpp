@@ -233,7 +233,7 @@ int main(int argc, char** argv)
     }
   std::cout<<"ksPeSort: Successful Sort(I checked!)"<<std::endl;
   pfSortedPeFile->Close();
-  std::cout<<"ksPesort: Number of Sorted PEs written out: "
+  std::cout<<"ksPeSort: Number of Sorted PEs written out: "
 	   << (long)pfSortedPeFile->getNumPes()
 	   <<std::endl;
 
