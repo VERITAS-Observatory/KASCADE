@@ -390,7 +390,11 @@ int main(int argc, char** argv)
 	}
 
       pfPesFile->Close();
+      std::cout<<"ksTrigger: KSPeFile reports Number of Pe's read: "
+	       <<(long)pfPesFile->getNumPes()<<endl;
       pfTeFile->Close();
+      std::cout<<"ksTrigger: KSTeFile reports Number of Te's written: "
+	       <<(long)pfTeFile->getNumTes()<<endl;
 
       fArea.PrintStats();
 
