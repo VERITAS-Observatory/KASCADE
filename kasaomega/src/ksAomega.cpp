@@ -371,6 +371,8 @@ int main(int argc, char** argv)
       fEvent.PrintStats();
 
       pfTeFile->Close();
+      std::cout<<"ksAomega: KSTeFile reports Number of Te's read: "
+	       <<(long)pfTeFile->getNumTes()<<endl;
 
 
     // ------------------------------------------------------------------------
