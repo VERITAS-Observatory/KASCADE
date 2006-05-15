@@ -529,10 +529,12 @@ int main(int argc, char** argv)
 	}
 
 //and we are done
-
-       if(MakeKascadeBinaryFile)
+      if(MakeKascadeBinaryFile)
 	{
 	  pfSegFile->Close();
+	  std::cout
+	    <<"ksKascade: KSSegmentFile reports Number of Segements written: "
+	    <<(long)pfSegFile->getNumSegments()<<std::endl;
 	}
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
