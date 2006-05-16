@@ -1,4 +1,0 @@
--1.e-15,-1.e-15,-1.0,	1:direction cosigns of mount.:Needs all<0
-F,			2:Enable plotting(T=True)
-VTOF        		3:Pe's:VI=VIsable,W=W10m,VT=veritas triangular array
-1.0,			4: Whipple Mirror Reflectivity(already included)
