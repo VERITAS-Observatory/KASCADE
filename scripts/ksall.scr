@@ -116,12 +116,12 @@ while test $i -le $4
                     -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
     rm $pesfile
 
-#compress te file
-
-    if [ -e "$tefile.bz2" ]; then
-	rm $tefile.bz2             #Remove any previous version of output
-    fi
-    bzip2 -zv $tefile        #compress the output Te file
+#compress te file: THIS DOESN'T SEEM TO WORK!
+#
+#    if [ -e "$tefile.bz2" ]; then
+#	rm $tefile.bz2             #Remove any previous version of output
+#    fi
+#    bzip2 -zv $tefile        #compress the output Te file
 
     i=$((i+1))			#do next shower
 done
@@ -129,10 +129,10 @@ done
 
 
 #Cleanup
-#cd $wrkdir
-#rm -vf *
-#cd ..
-#rmdir -v $procID
+cd $wrkdir
+rm -vf *
+cd ..
+rmdir -v $procID
 
 
 
