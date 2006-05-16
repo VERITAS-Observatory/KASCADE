@@ -12,6 +12,11 @@
 
 include ../Makefile.common
 
+#normally comment out next line(we don't want profileing)
+#OPTPRF=-pg
+
+
+
 TOPDIR = ..
 
 #This is the No root and root  version of the common Makefile. 
@@ -85,18 +90,18 @@ $(TMPDIR)/root_dict.cpp: $(addprefix $(INCDIR)/, $(CLASSDEFS))
 
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
-	$(F77) -o $@ -c $(F77FLAGS) $<
+	$(F77) -o $@ -c $(F77FLAGS) $< $(OPTPRF) 
 
 $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
-	$(F90) -o $@ -c $(F90FLAGS) $<
+	$(F90) -o $@ -c $(F90FLAGS) $< $(OPTPRF)
 
 #use below for no root version of common library
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) $(NOROOTFLAG) $<
+	$(CXX) -o $@ -c $(CFLAGS) $(NOROOTFLAG) $< $(OPTPRF) 
 
 $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90
-	$(F90) -o $@ -c $(F90FLAGS) $<
+	$(F90) -o $@ -c $(F90FLAGS) $<  
 
 $(TMPDIR)/root_dict.o: $(TMPDIR)/root_dict.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $< 

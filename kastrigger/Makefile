@@ -11,6 +11,8 @@
 # -----------------------------------------------------------------------------
 
 TOPDIR = ..
+#normally comment out next line(we don't want profileing)
+OPTPRF=-pg
 
 include ../Makefile.common
 
@@ -44,16 +46,17 @@ $(LIBTARGET): $(F90USEOBJECTS)  $(F90OBJECTS) $(CPPOBJECTS)
 $(EXETARGET): $(LIBTARGET) 
 	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
-	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) 
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(OPTPRF)
+
 
 $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
-	$(F90) -o $@ -c $(F90FLAGS) $<
+	$(F90) -o $@ -c $(F90FLAGS) $< $(OPTPRF) 
 
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $< $(OPTPRF) 
 
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $< $(OPTPRF) 
 
 $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90

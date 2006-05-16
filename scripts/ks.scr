@@ -1,4 +1,4 @@
-#$1 is Kascade particle type (1=gamma, 13=proton, heavy=20+A)
+#$1 is Kascade particle type (1=gamma, 13=proton, heavy=20+A etc.)
 #$2 is primary energy in GeV
 #$3 is base output file name(includes path): /project/veritas/whipple/g84GeV1W
 #$4 is shower id: d1 or g1 etc
@@ -12,6 +12,10 @@ shwrid=$4
 #echo outputBase $outputBase
 #echo shwrid $shwrid
 
+
+if [ $type -gt 3 ]; then
+	hadronParameters="-MultipleMountDirections=ON"
+fi
 
 
 presentDir="$PWD"
@@ -27,7 +31,8 @@ $KASCADEBASE/bin/ksLight -RandomSeedFileName=ksLight.ran  \
 
 $KASCADEBASE/bin/ksPeSort $outputBase'pe.'$shwrid $outputBase'pes.'$shwrid
 
-$KASCADEBASE/bin/ksTrigger -RandomSeedFileName=ksTrigger.ran  \
+$KASCADEBASE/bin/ksTrigger -RandomSeedFileName=ksTrigger.ran \
+	$hadronParameters \
 	$outputBase'pes.'$shwrid $outputBase'te.'$shwrid
 
 $KASCADEBASE/bin/ksAomega -RandomSeedFileName=ksAomega.ran  \
