@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#This is the conversion (from kas02.scr) to use of pbs
-#Glenn Sembroski 19/05/05
+#This is the conversion (from kas01.scr) to use at Purdue on pbs
+#Glenn Sembroski 16/05/05
 #$0 ./kas02.scr
 
 user=$USER
@@ -14,68 +14,68 @@ user=$USER
 # To disable process n from being run: 
 # put a # in front of the enableGEN[n] line.
 #enableGen[1]="on"
+#See bottom for numbers and energies for gammas,protons and he4
 
 enableGEN[1]="on"
-   energy[1]=3660
+   energy[1]=20
     start[1]=1
-#      end[1]=1
-      end[1]=6
+      end[1]=1380
 
-enableGEN[2]="on"
-   energy[2]=5246
+#enableGEN[2]="on"
+   energy[2]=24
     start[2]=1
-      end[2]=6
+      end[2]=830
 
 #enableGEN[3]="on"
-   energy[3]=1781
+   energy[3]=28
     start[3]=1
-      end[3]=10
+      end[3]=540
 
 #enableGEN[4]="on"
-   energy[4]=2553
+   energy[4]=34
     start[4]=1
-      end[4]=6
+      end[4]=640
 
 
 #enableGEN[5]="on"
-   energy[5]=172
+   energy[5]=41
     start[5]=1
-      end[5]=50
+      end[5]=280
 
 #enableGEN[6]="on"
-   energy[6]=205
+   energy[6]=49
     start[6]=1
-      end[6]=50
+      end[6]=290
 
 #enableGEN[7]="on"
-   energy[7]=246
+   energy[7]=58
     start[7]=1
-      end[7]=50
+      end[7]=143
 
 #enableGEN[8]="on"
-   energy[8]=294
+   energy[8]=70
     start[8]=1
-      end[8]=50
+      end[8]=175
 
 #enableGEN[9]="on"
-   energy[9]=353
+   energy[9]=84
     start[9]=1
-      end[9]=54
+      end[9]=78
 
 #enableGEN[10]="on"
-   energy[10]=422
+   energy[10]=100
     start[10]=1
-      end[10]=30
+      end[10]=80
 
 #enableGEN[11]="on"
-   energy[11]=505
+   energy[11]=120
     start[11]=1
-      end[11]=30
+      end[11]=48
 
 #enableGEN[12]="on"
-   energy[12]=605
+   energy[12]=143
     start[12]=1
-      end[12]=19
+      end[12]=39
 
 
 #type="h"
@@ -110,10 +110,10 @@ parspec="1w"
 #87.01,86.79 deg)
 
 #script directory
-sdr="/home/sembrosk/KASCADE/scripts"
+sdr=$KASCADEBASE"/scripts"
 
-#kasscript=$sdr/"kasall.scr"
-kasscript=$sdr/"kasall2DTrack.1.scr"
+kasscript=$sdr/"ksall.scr"
+#kasscript=$sdr/"kasall2DTrack.1.scr"
 #kasscript=$sdr/"kasall2DTrack.22.scr"
 
 
@@ -149,3 +149,32 @@ do
   i=$((i+1))			#do next process
 done
 
+#############################################################################
+#For Mount Hopkins Whipple 10m 490 pixel telescope.
+#18/02/04 GHS
+#Update to lastest proton spectra from: Weibel-Smith et.al. Astronomy and 
+#Astrophysics, 300(1), pg.389-398,Feb. 1, 1998
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#	Gammas
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#gGeV[18]=     {  84,  100,  120,  143,  172,  205,  246,  294, 353, 422,
+#                505,  605,  867, 1243, 1781, 2553, 3660, 5246};
+#gNshowers[18]={  50,   50,   50,   50,   50,   50,   50,   50,  54,  30,
+#                 30,   19,   37,   11,   10,    6,    6,    6};
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   Protons
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#pGeV[24]=       {   20,   24,   28,   34,   41,    49,   58,   70,   84, 
+#                   100,  120,  143,  205,  294,   422,  605,  867, 1243, 
+#                  1781, 2553, 3660, 5246, 7519, 10777};
+#pNshowers[24]= { 13800, 8300, 5400, 6400, 2800,  2900, 1430, 1750,  775,
+#                   800,  480,  385,  584,  165,   140,   55,   35,   16,
+#                    10,   10,   10,   10,   10,    10};
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#   He4
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#he4GeV[19]=   {     49, 58,  70,  84, 100, 120, 143, 205, 294, 422,
+#		    605,867,1243,1781,2553,3660,5246,7519,10777};
+#he4Nshowers[19]= {2500,1590,1630,860, 800, 550, 400, 680, 200, 175,
+#		     70,  50,  25, 15,  10,  10,  10,  10,  10};
+##############################################################################
