@@ -5,7 +5,7 @@
      1                           ksitype, tep, ksxseg, ksyseg, ksxoff, ksyoff,
      1                           showerid,efficiency)
 
-c     Version: V:1:3:9.0
+c     Version: V:2.0.0
 
 c       This is the chernkov light main subroutine which uses the showers 
 c       produced by
@@ -211,22 +211,11 @@ c		x=0,y=0. This is important for any array study.
       !include 'kaslite_command_line.h'
       include 'kaslite.h'
       
-      data version/'V:1:3:9.0'/
-      data update/'20-Feb-2006 GHS'/
-
-c     Version number.
-c     The version number has one digit for each program in the KASCADE system.
-c     seperated by ':'.KASLITE has 2 digits seperated by ".".
-c     Digits for previous programs are for compatibility version to KASMULT.
-c     New compatibility version require later programs
-c     to be modified due to changing output data formats, 
-c     or require rerunning
-c     of the data base due to corrections to important mistakes.
-c     Digit 2:	KASCADE version
-c     3:	KASLITE version.sub version
+      data version/'V:2.0.0'/
+      data update/'16-May-2006 GHS'/
 
       write(6,1205)trim(version),trim(update)
- 1205 format(' ksLight: Version: ',a,/' ksLight: Last Update:',a)
+ 1205 format(' ksLight: Version: ',a,' ksLight: Last Update:',a)
 
 ! *************************************************************************
 ! load up Command line and input parmeters. Replaces command line input code
@@ -2003,7 +1992,7 @@ c      values.
 
        real extint(0:50,0:104)
 	OPEN(1,ACCESS='SEQUENTIAL',STATUS='OLD',READONLY,
-     1 file='../inputs/extint.dat')
+     1 file='extint.dat')
 
 c       Get Probabilty for absorbing or scattering Cherenkov photons.
 c       !For 270 to 700 nanometers
@@ -2121,10 +2110,10 @@ c	File constructed form ARTEMUS data. Ref when I can get it.
 
       print*,'KASLITE-Using Vacanti atm. extinction  data from ARTEMUS'
       
-      open(1,file='../inputs/extinction_uv.dat',status='old',iostat=ios)
+      open(1,file='extinction_uv.dat',status='old',iostat=ios)
       if (ios>0)then
          print*,'KASLITE--extinction_uv.dat input file open error'
-         stop '../inputs/extinction_uv.dat input file open failure'
+         stop 'extinction_uv.dat input file open failure'
       endif
 
 	do lambda=180,700,5

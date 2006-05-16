@@ -383,7 +383,7 @@ int main(int argc, char** argv)
     // Create the ouput Pe file and write the seg header and the pe header
     // to it and print the pe header(were no ready to do that).
     // ------------------------------------------------------------------------
-      std::cout<<"ksKascade: Output Pe File: "<<PeFileName<<std::endl;
+      std::cout<<"ksLight: Output Pe File: "<<PeFileName<<std::endl;
       pfPeFile=new KSPeFile();
       pfPeFile->Create(PeFileName.c_str());
       pfPeFile->WriteSegmentHead(pfSegmentHead);

@@ -1,210 +1,138 @@
 #!/bin/bash
 #This runs production kascade on LINUX. Arguments are:
 #$0 ./kasall.scr
-#$1 particle type h=hadron g=gamma
-#$2 particle species p=proton g=gamma fe56=iron 
-#$3 primary Energy in gev (integer only)
-#$4 input parameter file specification (like 1w or 1v or 20w) 
-#$5 Lowest flie id
-#$6 Highest file id.
-#$7 working disk directory.(Where output files go)
-#$8 gamma driftmode flag (T or F)(for kastrigger)
-#$9 id number of this run on this machine (1 to 4).used to specify random seed
+#$1 primary Energy in gev (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower namesLike P1W,G1W, He4_1W)
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 
 echo "**********************************************************************"
 echo "**********************************************************************"
 
-echo $0 $1 $2 $3 $4 $5 $6 $7  $8 $9
+echo $0 $1 $2 $3 $4 $5 
 
-    src='/home/sembrosk/local/src/KASCADE'
-    year="00"
-    hrcdir='/project/veritas/sembrosk/whipple/crab_00-01'
+src=$KASCADEBASE'/bin'
+echo binary src dir is $src
 
-echo src dir is $src
-echo hrc year is $year in dir $hrcdir
-#The following is screwy and there is probably a better way to get the host 
-#name into a variable
+inpDir=$KASCADEBASE'/inputs'
+echo inputs dir is $inpDir
+
 host=$(hostname -s)
 while [ -z "$host" ]; 
-do
-    echo "Failed to get hostname:id: "${10}" Retrying"
+  do
+    echo "Failed to get hostname. Retrying"
     host=$(hostname -s)
 done
+echo Running on $host
 
+#Set up private working directory for this run. 
+#Keeps random number independent
 procID=$$
+
 whp="/project/veritas/sembrosk/whipple"
 wrkdir=$whp/$procID
+
 #Make sure working directory exists, if not create it.
-       mkdir -vp $wrkdir
-
+mkdir -vp $wrkdir
 cd $wrkdir
-
-#make a links to the various files:
-ln -s $src/pst_mult.hdf pst_mult.hdf
-ln -s $src/extinction_uv.dat extinction_uv.dat
-
-
-echo Running on $host
 echo Working Directory is `pwd`
 
 
+#Make links to config files
+ksKascadeConfig=ksKascade$2'.config'
+ksLightConfig=ksLight$2'.config'
+ksTriggerConfig=ksTrigger$2'.config'
+ln -s $inpDir/$ksKascadeConfig $ksKascadeConfig
+ln -s $inpDir/$ksLightConfig $ksLightConfig
+ln -s $inpDir/$ksTriggerConfig $ksTriggerConfig
+
+#make a links to the various input files:
+ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
+ln -s $inpDir/extinction_uv.dat extinction_uv.dat
+
 #All auxillary files are in wrkdir.
-#All temp data kept in $wrkdir. Filan result into $7;
+#All temp data kept in $wrkdir. 
+#Final results go into $5;
 #Make sure directory exists, if not create it.
 if [ ! -d "$7" ]; then
        mkdir -p $7
 fi
 
-i="$5"
-while test $i -le $6
-do
-        primary=$2'_'$3'gev'$4
-
-#KASCADE
-        kascaderanseedfile=kascade$host'_'$9'.ran'
-	if [ ! -e "$kascaderanseedfile" ]; then
-	   cp -v $src/kasaomega.ran $kascaderanseedfile  
-					#Create a file to overwrite
-	   ls -al 
-	   let seed=$(date +%s)+$$                #Add in process id ($$)
-	   $src/randomCreateRanluxSeed -s $seed -o $kascaderanseedfile
+#Setup unique random seed files into working dir.
+cp -v $inpDir/ksKascade.ran ksKascade.ran  #Copy in a file to overwrite
+let seed=$(date +%s)+$$                #Add in process id ($$)
+$src/randomCreateRanluxSeed -s $seed -o ksKascade.ran
 	                    #date +%s  +$$ gives Number of seconds from 
 			    #jan 0  + process id.
-	fi
+cp -v $inpDir/ksLight.ran ksLight.ran  
+let seed=$(date +%s)+$$                
+$src/randomCreateRanluxSeed -s $seed -o ksLight.ran
 
-        kascadeparfile=$src/$2$4.par         #Greneric input par file.
-   	segfile=$wrkdir/$primary'seg.d'$i	#Name of output seg file.
-	if [ -e "$segfile" ]; then
-	    rm $segfile
-	fi
-	
-    $src/kascade -e $3 -r $kascaderanseedfile -p $kascadeparfile \
-             -o $segfile -d $i
+cp -v $inpDir/ksTrigger.ran ksTrigger.ran  
+let seed=$(date +%s)+$$                
+$src/randomCreateRanluxSeed -s $seed -o ksTrigger.ran
 
-#KASLITE
-        kasliteranseedfile=kaslite$host'_'$9'.ran'
-	if [ ! -e "$kasliteranseedfile" ]; then
-	   cp -v $src/kasaomega.ran $kasliteranseedfile  
-					#Create a file to overwrite
-	   let seed=$(date +%s)+$$                #Add in process id ($$)
-	$src/randomCreateRanluxSeed -s $seed -o $kasliteranseedfile
-	                    #date +%s  +$$ gives Number of seconds from 
-			    #jan 0  + process id.
-	fi
-
-	kasliteparfile=$src/"kaslite"$4".inp"
-	hrcyear=$hrcdir'/hrc'$year
-	pefile=$wrkdir/$primary'pe.d'$i        #Name of output pe file.
-	pefilehead=$pefile'.head'
-	if [ -e "$pefile" ]; then
-	    rm $pefile
-        fi
-	if [ -e "$pefilehead" ]; then
-	    rm $pefilehead
-        fi
-
-echo ' '
-echo Kaslite starts
-	$src/kaslite -r $kasliteranseedfile -p $kasliteparfile \
- 		-i $segfile -o $pefile  
-
-echo Kaslite ends
-
-	rm $segfile		#Remove segment file
-
-#KASSRTMRG
-	
-	kassrtmrgparfile=$src/"kassrtmrg.inp"
-	pesfileb=$wrkdir/$primary'pes.d'$i        #Name of output pes bin file.
-	pesfilebhead=$pesfileb'.head'
-	pesfileh=$wrkdir/$primary'pes.h'$i       #Name of output pes HDF5 file.
-
-	if [ -e "$pesfileb" ]; then
-	    rm $pesfileb
-	fi
-	if [ -e "$pesfilebhead" ]; then
-	    rm $pesfilebhead
-	fi
-	if [ -e "$pesfileh" ]; then
-	    rm $pesfileh
-	fi
-
-	$src/kassrtmrg -p $kassrtmrgparfile -i $pefile -o $pesfileb
-
-	rm $pefile		#Delete pe file
-	rm $pefilehead		#Delete pe head file
+#Set up base name of showers. 
+#Note it includes data path which better not be blank
+Shwr=$5'/'$2'GeV'$1'te.d'
 
 
-#KASTRIGGER
-        kastriggerranseedfile=kastrigger$host'_'$9'.ran'
-	if [ ! -e "$kastriggerranseedfile" ]; then
-	   cp -v $src/kasaomega.ran $kastriggerranseedfile  
-					#Create a file to overwrite
-	   let seed=$(date +%s)+$$                #Add in process id ($$)
-	$src/randomCreateRanluxSeed -s $seed -o $kastriggerranseedfile
-	                    #date +%s  +$$ gives Number of seconds from 
-			    #jan 0  + process id.
-	fi
+#Setup to loop over showers
+i="$3"
+while test $i -le $4
+  do
+#ksKascade
+    segfile='Seg.d'$i
+    if [ -e "$segfile" ]; then
+	rm $segfile
+    fi
 
-	kastrigger_par_file=$src/"kastrig"$1$4".par"
-	mfileb=$wrkdir/m$primary'.d'$i        #Name of output binary  m file.
-	mfileh=$wrkdir/m$primary'.h'$i        #Name of output hdf5  m file.
+    $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran  -PrimaryEnergyGeV=$1 -ShowerID=$i $segfile
+		   
+#ksLight
+    pefile='Pe.d'$i
+    if [ -e "$pefile" ]; then
+	rm $pefile
+    fi
+    $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran $segfile $pefile
+    rm -v $segfile		#Remove segment file
 
-	if [ -e "$mfileb" ]; then
-	    rm $mfileb
-        fi
+#ksPeSort
+    pesfile='Pes.d'$i
+    if [ -e "$pesfile" ]; then
+	rm $pesfile
+    fi
+    $src/ksPeSort $pefile $pesfile
+    rm $pefile		#Delete pe file
 
-	if [ -e "$mfileh" ]; then
-	    rm $mfileh
-        fi
+#ksTrigger
+    tefile=$Shwr$i
+    if [ -e "$tefile" ]; then
+	rm $tefile
+    fi
+    $src/ksTrigger  -config=$ksTriggerConfig  \
+                    -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
+    rm $pesfile
 
-	if [ -e "$pesfile.gz" ]; then
-	    gunzip $pesfile.gz
-        fi
+#compress te file
 
-	$src/kastrigger -r $kastriggerranseedfile \
-                           -p $kastrigger_par_file \
-			   -c $hrcyear -i $pesfileb -s $mfileh -d $8
+    if [ -e "$tefile.bz2" ]; then
+	rm $tefile.bz2             #Remove any previous version of output
+    fi
+    bzip2 -zv $tefile        #compress the output Te file
 
-#	$src/kastrigger -r $kastriggerranseedfile \
-#                           -p $kastrigger_par_file \
-#			   -c $hrcyear -i $pesfileb -o $mfileb -d $8
-
-	if [ -e "$pesfileb.gz" ]; then
-	    rm $pesfileb.gz
-			#Remove any previous version of output
-	fi
-
-	rm $pesfileb
-	rm $pesfilebhead
-
-
-#M2HDF5
-	if [ -e "$mfileb" ]; then
-
-	   $src/m2hdf5 -i $mfileb -o $mfileh	#Make new file.
-	   rm $mfileb
-	fi
-
-	if [ -e "$mfileh" ]; then
-	    if [ -e "$mfileh.gz" ]; then
-		rm $mfileh.gz
-	    fi
-#	    gzip  -v $mfileh         #compress the output HDF M file
-	    gzip  $mfileh         #compress the output HDF M file
-	 
-	fi
-	mv -v $mfileh.gz $7
-        i=$((i+1))			#do next shower
+    i=$((i+1))			#do next shower
 done
 
 
 
 #Cleanup
-cd $wrkdir
-rm -vf *
-cd ..
-rmdir -v $procID
+#cd $wrkdir
+#rm -vf *
+#cd ..
+#rmdir -v $procID
 
 
 

@@ -334,7 +334,6 @@ c             18:anti-neutrino(muon)
 	character*80 version
 	character*80 update
 	character*80 magneticfieldspec
-	integer vlen
         integer i
         character*256 coutstring
 
@@ -344,8 +343,8 @@ c             18:anti-neutrino(muon)
 
         data got_energy/.false./
 
-	data version/'V:1:4.0'/
-        data update/'13-Feb-2006 GHS'/    !Last version update        
+	data version/'V:2.0.0'/
+        data update/'16-May-2006 GHS'/    !Last version update        
 
         data namtyp/'Gamma   ','Positron','Electron','Mu +    ',
      1 'Mu -    ','PI 0    ','PI +    ','PI -    ','K +     ',
@@ -374,20 +373,12 @@ c            !Masses of stable particles(Tev.).  Uses particle code as index.
 
 
 c	Save version for header file.
-	segment_head.version=version
-	vlen=7
-	write(coutstring,1623)version,update
+	!segment_head.version=version
+	write(coutstring,1623)trim(version),trim(update)
  1623	format('KASCADE VERSION:',a,' Last updated:',a)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
 !	call kskascadesetversion(trim(version)//char(0))
-
-c	First Number of version number is for KASCADE system.
-c	Second Number is for KASCADE program.
-c	Version number indicates compatability:first digit(before period)
-c	indicates compatability. Number after period indicates update
-c	number.
-
 
 ! *************************************************************************
 ! load up Command line and input parmeters. Replaces command line input code
