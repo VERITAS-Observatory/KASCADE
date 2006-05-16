@@ -19,7 +19,8 @@ user=$USER
 enableGEN[1]="on"
    energy[1]=20
     start[1]=1
-      end[1]=1380
+      end[1]=10
+#      end[1]=1380
 
 #enableGEN[2]="on"
    energy[2]=24
@@ -83,43 +84,32 @@ enableGEN[1]="on"
 #gdrift="F"
 #datadir="/project/veritas/sembrosk/whipple/he4"
 
-#type="h"
-#species="p"
-#gdrift="F"
-#datadir="/project/veritas/sembrosk/veritas/protons"
-#datadir="/project/veritas/sembrosk/whipple/strip/protons"
+#1 deg whipple protons
+parspec="P1W"      
+datadir="/project/veritas/sembrosk/whipple/protons"
 
-#type="g"
-#species="g"
+#parspec="G1W"
 #datadir="/project/veritas/sembrosk/whipple/gammas"
-#gdrift="F"
-
-#For whipple strip gammas off source do a 'hadronic' gamma run.
-type="h"
-species="g"
-gdrift="T"
-datadir="/project/veritas/sembrosk/whipple/2D/gammas"
 
 #parspec="20w"
-parspec="1w"
 #parspec="1v"    #Base camp t1/t2
 
 
-#kasalldrift runs kastrigger 11 times with different mount elevations in
+#ksalldrift runs kstrigger 11 times with different mount elevations in
 #steps 0f .22 deg(88.99,88.77,88.55,88.33,88.11,87.89,87.67,87.45,87.23,
 #87.01,86.79 deg)
 
 #script directory
 sdr=$KASCADEBASE"/scripts"
 
-kasscript=$sdr/"ksall.scr"
-#kasscript=$sdr/"kasall2DTrack.1.scr"
-#kasscript=$sdr/"kasall2DTrack.22.scr"
+ksScript=$sdr/"ksall.scr"
+
+#ksScript=$sdr/"ksall2DTrack.1.scr"
+#ksScript=$sdr/"ksall2DTrack.22.scr"
 
 
 lcl="$PWD"
-
-pr=$species
+pr=$parspec
 
 let processStart=1
 let processEnd=12
@@ -129,26 +119,32 @@ do
 
   if [ -n "${enableGEN[$i]}" ]; then
 
-    pbsFile=$lcl/kas_"gen"$i$pr.pbs
+    pbsFile=$lcl/ks_$i$pr.pbs
 
-    echo "#"PBS -N "gen"$i'_kas_'$pr                                >$pbsFile
-    echo "#"PBS -e "gen"$i'_kas_'$pr'.err'                          >>$pbsFile
-    echo "#"PBS -o "gen"$i'_kas_'$pr'.log'                          >>$pbsFile
+    echo "#"PBS -N "pbs"$i'_'$pr                                     >$pbsFile
+    echo "#"PBS -e "pbs"$i'_'$pr'.err'                              >>$pbsFile
+    echo "#"PBS -o "pbs"$i'_'$pr'.log'                              >>$pbsFile
     echo "#"PBS -m ae                                               >>$pbsFile
     echo "#"PBS -M $user"@purdue.edu"                               >>$pbsFile
     echo "#"PBS -q workq                                            >>$pbsFile
     echo "#"PBS -l mem=250mb                                        >>$pbsFile
     echo "#"PBS -l walltime=100:00:00                               >>$pbsFile
     echo "#"PBS -l nodes=1                                          >>$pbsFile
-    echo time $kasscript $type $pr ${energy[$i]} $parspec \\        >>$pbsFile
-    echo  ${start[$i]} ${end[$i]} $datadir   $gdrift $i \\          >>$pbsFile
-    echo " >>"$lcl"/kas_""gen"$i"_"$pr".log"                        >>$pbsFile
+    echo time $ksScript ${energy[$i]} $parspec  ${start[$i]} \\     >>$pbsFile
+    echo ${end[$i]} $datadir ">>"$lcl"/ksProduction_"$i"_"$pr".log" >>$pbsFile
     qsub $pbsFile
   fi
 
   i=$((i+1))			#do next process
 done
-
+###########################################################################
+#Arguments for ksScript
+#$1 primary Energy in gev (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower namesLike P1W,G1W, He4_1W)
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #############################################################################
 #For Mount Hopkins Whipple 10m 490 pixel telescope.
 #18/02/04 GHS
