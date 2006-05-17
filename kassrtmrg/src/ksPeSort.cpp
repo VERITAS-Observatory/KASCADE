@@ -156,22 +156,41 @@ int main(int argc, char** argv)
 	}
       else  //Check for eof here.
 	{
-	  break;
+	  if(!pfPeFile->foundEOF())
+	    {
+	      std::cout<<"ksPeSort: Pe file read failure"<<std::endl;
+	      exit(1);
+	    }
+	  else
+	    {
+	      break;
+	    }
 	}
     }
   thetime=time(NULL);
-  std::cout<<"ksPeSort:  Input file successfully read in------"
+  std::cout<<"ksPeSort:  Input file read without errors------"
 	   <<ctime(&thetime)<<std::endl;
   pfPeFile->Close();
   std::cout<<"ksPesort: Number of PEs read in: "<<(long)pfPeFile->getNumPes()
 	   <<std::endl;
   
-
-  int fNumEntries=pfPeTree->GetEntries();
-  std::cout<<"ksPesort: Number of PEs in tree: "<<fNumEntries<<std::endl;
-  std::cout<<"ksPesort: NX minimum= "<<nxmin<<std::endl;
-  std::cout<<"ksPesort: NY minimum= "<<nymin<<std::endl;
-  std::cout<<"ksPesort: Sorting by NY fastest and increasing"<<std::endl;
+  if(pfPeFile->getNumPes()<=0)
+    {
+      std::cout<<"ksPeSort: No pes in input Pe file. Possible but not likely."
+	"Skipping sort (obviously)"<<std::endl;
+      std::cout<<"ksPeSort: Number of Sorted PEs written out: "
+	   << (long)pfSortedPeFile->getNumPes()
+	   <<std::endl;
+      thetime=time(NULL);
+      std::cout<<"ksPeSort:  Not quite but close to a: NORMAL END------"
+	       <<ctime(&thetime)<<std::endl;
+      return 0;
+    }
+      int fNumEntries=pfPeTree->GetEntries();
+      std::cout<<"ksPeSort: Number of PEs in tree: "<<fNumEntries<<std::endl;
+      std::cout<<"ksPeSort: NX minimum= "<<nxmin<<std::endl;
+      std::cout<<"ksPeSort: NY minimum= "<<nymin<<std::endl;
+      std::cout<<"ksPeSort: Sorting by NY fastest and increasing"<<std::endl;
 
   // -----------------------------------------------------------------------
   //Build the index of the ttree.

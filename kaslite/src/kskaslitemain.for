@@ -313,6 +313,11 @@ c     READ a SEGMENT!
      1       segment.nspec)
 
          if(.not.goodread)then  ! end of shower.
+            if(inext.eq.0)then
+               write(6,3000)"ksLight:Fatal--Segment file had no segments"
+ 3000          format(a)
+               stop 'Failure:Zero segments in segment file'
+            endif
             exit
          endif
 

@@ -351,7 +351,6 @@ int main(int argc, char** argv)
       // ---------------------------------------------------------------------
       // Main event loop
       // ---------------------------------------------------------------------
-      //std::cout<<"at3"<<std::endl;
       while(1)
 	{
 	  bool fShowerEnded = fEvent.BuildImage();

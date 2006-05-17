@@ -1332,7 +1332,7 @@ c                                   unit vector
 
        if(abs(vlength-1.).gt.1.e-5)write(coutstring,1760)dl1,dm1,dn1,vlength
 1760  format(' ***Daughter:Found Unit vector correction .gt.1.e-5.
-     1 dl,dm,dn,,vlength:',4e14.7)
+     1 dl,dm,dn,vlength:',4e14.7)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
        tedaughter=energy-xm(ispec)
@@ -1453,7 +1453,6 @@ c       e1(daughter,total)=AU*M(parent)=(M**2+m1**2-m2**2)/(2*M)
               nn=ngn+1
               if(ispec.le.3.and.ispec.ne.1)nn=nen+1    !Get id # for this part.
               write(coutstring,1000)
-     1 dl,dm,dn,x,y,tim
 1000  format('0',30x,'Tenergy(Tev)  Alt(meters)    Direction cosigns ',
      1 '       X,Y(meters)    Time(nsec)')
     	call kscharstring2cout(trim(coutstring)//char(0))
@@ -3423,7 +3422,8 @@ c Consistency check!!! Horizontal tracks.
 	      icheck=0
 	      dlsdms=1.-segment.dlend**2-segment.dmend**2
 	      do while (dlsdms.le.0.0)
-		 write(coutstring,1301)segment.dlend,segment.dmend,dlsdms,icheck+1
+		 write(coutstring,1301)segment.dlend,segment.dmend,dlsdms,
+	1	      icheck+1
  1301     format(' ***SEGMENT_OUT--Consistency failure. dlend,dmend,
 	1 dlsdms:',3e20.12,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
@@ -3432,8 +3432,8 @@ c Consistency check!!! Horizontal tracks.
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
 	 write(coutstring,3006)
-     1              ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
-3006	 format(a)
+	1		 ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
+ 3006	 format(a)
 	 call kscharstring2cout(trim(coutstring)//char(0))
 	 stop
 		 endif
@@ -3444,16 +3444,17 @@ c Consistency check for d*start!!!
 	      icheck=0
 	      dlsdms=1.-segment.dlstart**2-segment.dmstart**2
 	      do while (dlsdms.le.0.0)
-		 write(coutstring,1300)segment.dlstart,segment.dmstart,dlsdms,icheck
+		 write(coutstring,1300)segment.dlstart,segment.dmstart,
+	1	      dlsdms,icheck
 1300  format(' ***SEGMENT_OUT--Consistency failure. dlstart,dmstart,
-	1 dlsdms:',3e14.7,' attempt #',i3)
+	1	      dlsdms:',3e14.7,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
 		 segment.dlstart=segment.dlstart-sign(1.e-6,segment.dlstart)
 		 segment.dmstart=segment.dmstart-sign(1.e-6,segment.dmstart)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
 	       write(coutstring,3007)
-     1             ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
+	1		 ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
 3007	       format(a)
 	       call kscharstring2cout(trim(coutstring)//char(0))
 	       stop
@@ -3495,7 +3496,7 @@ c Consistency check for d*start!!!
            else
            	if(debena(ispec))then
                 	 write(coutstring,1004)trim(nuclei_names(jcharge)),ja,
-     1 tenergy,hd,x,y,tim
+	1		tenergy,hd,x,y,tim
 1004	format('0',a,'(',i3,') :hits',11x,f10.6,f13.0,23x,2f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
@@ -3576,14 +3577,15 @@ cNeutral particles.(gammas,K long,K short, Neutron, Neutrinos)
        if(icharge(ispec).eq.0)then
 		if(hd.lt.hobs)hd=hobs
 		if(hd.ge.yds(.5*segment_head.depth))then    !Control upgoing.
-			hd=yds(.5*segment_head.depth)
-		  	write(coutstring,1000)tenergy,height,dl,dm,
-	1 dn,x,y,tim,ispec,t
-1000	format(' ***Prodec-Neutral Track goes too high:tenergy,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',(' ***'5e14.7),
-	1 (' ***'2e14.7),i5,e14.7,
-	1  ' ***HD set to yds(.5*segment_head.depth)')
-	call kscharstring2cout(trim(coutstring)//char(0))
+		   hd=yds(.5*segment_head.depth)
+		   write(coutstring,1000)tenergy,height,dl,dm,dn
+ 1000		   format(' ***Prodec-Neutral Track goes too high:tenergy,
+	1		height,dl,dm,dn,x,y,tim,ispec,t:',5e14.7)
+	           call kscharstring2cout(trim(coutstring)//char(0))
+		   write(coutstring,1001)x,y,tim,ispec,t
+ 1001		   format(3e14.7,i5,e14.7,
+	1		' ***HD set to yds(.5*segment_head.depth)')
+		   call kscharstring2cout(trim(coutstring)//char(0))
 		endif
 				!Note that PROPAGATE for neutral particles
 				!doesn't care about TSEGMENT, only HD.
@@ -3663,11 +3665,18 @@ c		Fix handeling of up going particles.
 !               problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where 1.0 gm is used as the 
 !               test limit to .5*segment_head.depth
+	IMPLICIT NONE
+
         character*256 coutstring
 
 	real tnucleon,xmass
 	include 'kascade.h'
+	real*4 tenergy,height,dl,dm,dn,x,y,tim,t
+	integer ispec
 
+	real*4 GMS,YDS
+	real*4 g,r,gr,hd,tsofar,tstart,ttend,tsegment,z_nuclei
+	integer*4 nnnn
 !****************************************************************************
 c              Neutral particles.(gammas,K long,K short, Neutron, Neutrinos)
 !****************************************************************************
@@ -3682,16 +3691,20 @@ c              No slices. go straight to destination.
 		if((gr).ge.segment_head.zobs)then
 			hd=hobs		!Neutrals don't care about tsegment(t)
 		elseif(gr.lt.(.5*segment_head.depth))then
-		  	write(coutstring,1000)g,r,tenergy,height,dl,dm,
-	1 dn,x,y,tim,ispec,t
-1000	format(' ***Propint-Neutral Track goes too high:g,r,tenergy,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',2(' ***'5e14.7),
-	2 ' ***',i5,e14.7,' ***G+R set to 1 gm.')
-	call kscharstring2cout(trim(coutstring)//char(0))
+		   write(coutstring,3500)g,r,tenergy,height
+ 3500	format(' ***Propint-Neutral Track goes too high:g,r,tenergy,height: ',
+	1		5e14.7)
+	           call kscharstring2cout(trim(coutstring)//char(0))
+		   write(coutstring,3501)dl,dm,dn,x,y
+ 3501	format(5e14.7)
+	           call kscharstring2cout(trim(coutstring)//char(0))
+		   write(coutstring,3502)tim,ispec,t
+ 3502	format(e14.7,i5,e14.7,' ***G+R set to 1 gm.')
+                   call kscharstring2cout(trim(coutstring)//char(0))
                                          !veriticle height of the interaction.
-			Hd=YDS(.5*SEGMENT_HEAD.DEPTH) 
+	           Hd=YDS(.5*SEGMENT_HEAD.DEPTH) 
 		else
-			Hd=YDS(gr)       !veriticle height of the interaction.
+		   Hd=YDS(gr)	!veriticle height of the interaction.
 		endif
 				!Note that PROPAGATE for neutral particles
 				!doesn't care about TSEGMENT, only HD.
@@ -3731,12 +3744,16 @@ c                    t is total distance to go in gm/cm**2. Should be positive.
 	ttend=tstart+tsegment*dn       !End altitude in gm/cm**2
 
 	if(ttend.lt.(.5*segment_head.depth))then
-		write(coutstring,1002)tstart,tsegment,tenergy,height,dl,dm,
-	1 dn,x,y,tim,ispec,t
-1002	format(' ***Propint-Track goes too high:tstart,tsegment,tenergy,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',2(' ***'5e14.7),
-	2 ' ***',i5,e14.7,' ***G+R set to .5*segment_head.depth gm.')
+		write(coutstring,3503)g,r,tenergy,height
+ 3503   format(' ***Propint-Track goes too high:g,r,tenergy,height: ',
+	1		5e14.7)
+	        call kscharstring2cout(trim(coutstring)//char(0))
+		write(coutstring,3501)dl,dm,dn,x,y
 		call kscharstring2cout(trim(coutstring)//char(0))
+		write(coutstring,3504)tim,ispec,t
+ 3504   format(e14.7,i5,e14.7,' ***G+R set to .5*segment_head.depth gm.')
+                call kscharstring2cout(trim(coutstring)//char(0))
+  
 		ttend=.5*segment_head.depth
 	        tsofar=tsofar-tsegment
 	    	tsegment=abs((tstart-ttend)/dn)
@@ -3791,7 +3808,7 @@ c       Single particle Too weak?
 	1 z_nuclei,xmass)
           	       	  write(coutstring,2001)trim(nuclei_names(z_nuclei)),
 	1 ispec-20,tenergy,height,x,y,tim
-2001  format('0',a,'(',i3,'):de/dx drop ',3x,f10.6,f13.0,23x,
+2001  format('0',a,'(',i3,'):de/dx drop ',3x,f10.6,2f13.0,23x,
 	1 f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
@@ -4148,7 +4165,6 @@ c                                   make up the sum to 1.0.
        if(debena(ispec))then
 	  nn=ngn+1
 	  write(coutstring,1000)
-     1 dl,dm,dn,xx,yy,tim
 1000  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
      1 '       X,Y(meters)    Time(nsec)')
 	  call kscharstring2cout(trim(coutstring)//char(0))
@@ -4337,7 +4353,7 @@ c                                                 energy to make it
                             totexc=totexc+ee       !Keep track of evap.
                             if(debena(ispc))then
                                    write(coutstring,1003)namtyp(ispc),
-     1 ee,xm(ispc),totexc
+	1			    ee,xm(ispc),totexc
 	call kscharstring2cout(trim(coutstring)//char(0))
                                    endif
                             return                     !Drop it.
@@ -4959,18 +4975,25 @@ c                     direction cosign to modify the verticle distance
 c                     traveled to the interaction point. Fixed it.
               r=REXP(f)
               g=GMS(height)
-		gr=g+r*dn
-		if(gr.le.(.5*segment_head.depth))then
-			write(coutstring,2308)g,r,tetev,height,dl,dm,
-	1 dn,x,y,tim,ispec,t
-2308	format(' ***UNICAS-Track goes too high:g,r,tetev,
-	1 height,dl,dm,dn,x,y,tim,ispec,t:',2(' ***'5e14.7),
-	2 ' ***',i5,e14.7,' ***G+R set to .5*segment_head.depth gm.')
-	call kscharstring2cout(trim(coutstring)//char(0))
+	      gr=g+r*dn
+	      if(gr.le.(.5*segment_head.depth))then
 
-	                gr=.5*segment_head.depth
-		endif
-              Hd=YDS(gr)
+		 write(coutstring,2308)g,r,tetev,height
+ 2308		 format(' ******UNICAS-Track goes too high:g,r,tetev,
+	1	      height,dl,dm,dn,x,y,tim,ispec,t: ',
+	1	      5e14.7)
+		 call kscharstring2cout(trim(coutstring)//char(0))
+		 write(coutstring,3501)dl,dm,dn,x,y
+ 3501		 format(5e14.7)
+		 call kscharstring2cout(trim(coutstring)//char(0))
+		 write(coutstring,3502)tim,ispec,t
+ 3502		 format(e14.7,i5,e14.7,
+	1	      '***G+R set to .5*segment_head.depth gm. ')
+		 call kscharstring2cout(trim(coutstring)//char(0))
+		 
+		 gr=.5*segment_head.depth
+	      endif
+	      Hd=YDS(gr)
 c                            See were it interacts
 
 cStable hadrons:

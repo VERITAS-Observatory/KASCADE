@@ -378,12 +378,12 @@ int main(int argc, char** argv)
       // ---------------------------------------------------------------------
       while(1)
 	{
-	  //std::cout<<"at4"<<std::endl;
 	  bool fShowerEnded = fArea.ReadPes();
-	  //std::cout<<"at5"<<std::endl;
-	  fArea.ProcessImages();
-	  //std::cout<<"at6"<<std::endl;
-	  if(fShowerEnded)
+	  if(!fShowerEnded)
+	    {
+	      fArea.ProcessImages();
+	    }
+	  else
 	    {
 	      break;
 	    }

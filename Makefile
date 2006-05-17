@@ -16,9 +16,9 @@ STAGES =common \
 	kaslite \
 	kassrtmrg \
 	kastrigger \
-	kasaomega 
+	kasaomega \
+	utilities
 
-#	utilities
 #VHDF5 \
 
 TARGETS = $(STAGES)
