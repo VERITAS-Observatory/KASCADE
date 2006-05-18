@@ -127,7 +127,8 @@ void KSCamera::generateCameraPixels()
   // Now generate the Cell Grid for the pixel look-up tables. This is
   // used to find which pixels are hit by photons. 
   // **********************************************************************
-  double fMaxFOVDeg;
+  double fMaxFOVDeg=10;
+
   if(fCameraType==VERITAS499)
     {
       // **********************************************************************
