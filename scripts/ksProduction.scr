@@ -17,61 +17,61 @@ user=$USER
 #See bottom for numbers and energies for gammas,protons and he4
 
 enableGEN[1]="on"
-   energy[1]=20
-    start[1]=435
-      end[1]=435
+   energy[1]=5246
+    start[1]=1
+      end[1]=1
 
-enableGEN[2]="on"
+#enableGEN[2]="on"
    energy[2]=205
     start[2]=1
       end[2]=58
 
-enableGEN[3]="on"
+#enableGEN[3]="on"
    energy[3]=28
     start[3]=1
       end[3]=540
 
-enableGEN[4]="on"
+#enableGEN[4]="on"
    energy[4]=294
     start[4]=1
       end[4]=17
 
-enableGEN[5]="on"
+#enableGEN[5]="on"
    energy[5]=422
     start[5]=1
       end[5]=14
 
-enableGEN[6]="on"
+#enableGEN[6]="on"
    energy[6]=605
     start[6]=1
       end[6]=6
 
-enableGEN[7]="on"
+#enableGEN[7]="on"
    energy[7]=867
     start[7]=1
       end[7]=4
 
 enableGEN[8]="on"
-   energy[8]=1243
+   energy[8]=10777
     start[8]=1
-      end[8]=2
+      end[8]=1
 
 enableGEN[9]="on"
-   energy[9]=1781
+   energy[9]=7519
     start[9]=1
       end[9]=1
 
-enableGEN[10]="on"
+#enableGEN[10]="on"
    energy[10]=100
     start[10]=1
       end[10]=80
 
-enableGEN[11]="on"
+#enableGEN[11]="on"
    energy[11]=2553
     start[11]=1
       end[11]=1
 
-enableGEN[12]="on"
+#enableGEN[12]="on"
    energy[12]=3660
     start[12]=1
       end[12]=1

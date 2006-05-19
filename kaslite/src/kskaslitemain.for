@@ -254,10 +254,10 @@ c     xseg*yseg comparable to detector size.
       if(WhippleMount)then
          areamir=78.5           !10m mirror active area
          print*,' **Never area cut for Whipple 10m. Useing Efficiency only.'
-         if(tep.gt.5.0)then     !29/6/94 GHS:sparse area adjustment flag
+         if(tep.gt.100.0)then     !17/05/06 GHS:sparse area adjustment flag
             sparse_area=.true.
             print*,' For Whipple 10m>>>>>>>>>>>>>>>>>>>'
-            print*,'>>>>>>>> For energies above 5.0 TeV',
+            print*,'>>>>>>>> For energies above 100.0 TeV',
      $           ' only areas with even values of nx, ny kept.'
             print*,'>>> REduction by factor of 4>>>>>>>'
          else
