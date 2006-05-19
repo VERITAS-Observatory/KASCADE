@@ -1,113 +1,103 @@
 #!/bin/bash
-#This runs production kasaomega on amdahl cluster. 
-#Modified for use on amdahl cluster 23/1/04 GHS.
-#Arguments are:
+#This runs production ksAomega LINUX. Arguments are:
 #$0 ./kasaom.scr
-#$1 input file spec
-#$2 Lowest flie id
-#$3 Highest file id.
-#$4 working disk directory.(Where input and output files go)
-#$5 primary
-#$6 pesum(output trigger specification)
-#$7 pedc digitalcount/pes
-#$8 pedc sig digitalcount/pes
-#$9 pedestal sig digitalcount.
-#${10} id number of this run on this machine (1 to 4).used to specify random seed
-echo $0 $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10}
+#$1 primary Energy in gev (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower namesLike P1W,G1W, He4_1W)
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te are and root are to go, cannot be 
+# blank!!!)
 
-#year for runs for hrc files (.coff,.hvoff,.cpeds etc.)
-    homedir='/home/sembrosk/local/src/KASCADE'
-    srcdir=$homedir
-#    year="00" 
-#    hrcdir='/project/veritas/sembrosk/whipple/crab_00-01'
-    year="01" 
-    hrcdir='/project/veritas/sembrosk/whipple/strip'
-    hrcyear=$hrcdir'/hrc'$year
-#The following is screwy and theres probably a better way to get the host name
-#into a variabl
-hostname>g.tmp
-read host <g.tmp
+echo "**********************************************************************"
+echo "**********************************************************************"
+
+echo $0 $1 $2 $3 $4 $5 
+
+src=$KASCADEBASE'/bin'
+echo binary src dir is $src
+
+inpDir=$KASCADEBASE'/inputs'
+echo inputs dir is $inpDir
+
+host=$(hostname -s)
 while [ -z "$host" ]; 
-do
-    echo "Failed to get hostname:id: "${10}" Retrying"
-    hostname>g.tmp
-    read host <g.tmp
+  do
+    echo "Failed to get hostname. Retrying"
+    host=$(hostname -s)
 done
+echo Running on $host
+
+#Set up private working directory for this run. 
+whp="/project/veritas/sembrosk/whipple"
+
+#Keeps random number independent
+#use combo of process id ($$)and number of nanosec(date +%N) since last 
+#second tick to get unique value. (least count is micro sec at best)
+let dirID=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+while [ -d "$dirID" ]; do
+  let dirID=$(date +10#%N)+$$
+done
+wrkdir=$whp/$dirID
+
+#create working directory.
+mkdir  $wrkdir
+cd $wrkdir
+echo Working Directory is `pwd`
 
 
-echo src dir is $srcdir
-echo hrc year is $hrcyear
-echo Running on host $host
+#Make links to config files
+ksAomegaConfig=ksAomega$2'.config'
+ln -s $inpDir/$ksAomegaConfig $ksAomegaConfig
 
-cd $srcdir
-echo Directory is `pwd`
-i=$2
-k=$3
-echo Start i= $i
-echo End  = $k
+#make a links to the various input files:
+#ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
+#ln -s $inpDir/extinction_uv.dat extinction_uv.dat
 
-primaryType=$5
-if [ $primaryType = p -o $primaryType = he4 ]; then
-    primaryType='h'
+#All auxillary files are in wrkdir.
+#All temp data kept in $wrkdir. 
+#Final results go into $5;
+#Make sure directory exists, if not create it.
+if[ $5 -eq "" ]; then
+    echo "ksall:Data Directory must be specified"
+    exit
+fi
+if [ ! -d "$5" ]; then
+       mkdir -p $5
 fi
 
-while test $i -le $k
+#Setup unique random seed file into working dir.
+cp -v $inpDir/ksAomega.ran ksAomega.ran  #Copy in a file to overwrite
+let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
+    done
+$src/randomCreateRanluxSeed -s $seedK -o ksAomega.ran
+	                    #date +%N  +$$ gives Number of nanoseconds from 
+			    #last second  + process id.
+#Set up base name of showers. 
+#Note it includes data path which better not be blank
+Shwr=$5'/'$2'GeV'$1
 
-do
-		#do next input file
-        kasaomegaranseedfile=kasaomega$host'_'${10}'.ran'
-	if [ ! -e "$kasaomegaranseedfile" ]; then
-	   cp -v kasaomega.ran $kasaomegaranseedfile  
-					#Create a file to overwrite
-	   let seed=$(date +%s)+$$                #Add in process id ($$)
-	./randomCreateRanluxSeed -s $seed -o $kasaomegaranseedfile
-	                    #date +%s  +$$ gives Number of seconds from 
-			    #jan 0  + process id.
-	fi
+#Setup to loop over showers
+i="$3"
+while test $i -le $4
+  do
+#ksAomega
+    teFile=$Shwr'te.d'$i
+    rootFile=$Shwr'.d'$i'.root'
 
-
-        kasaomegaparfile=kasaomega$primaryType'_'$6.par
-	if [ ! -e "$kasaomegaparfile" ]; then
-	   ./createParFile.scr  $kasaomegaparfile $6 $primaryType
-	fi
-
-
-	cmsum_in_dat=$1.d$i           #Binary input data cmsum file
-	cmsum_in_hdf5=$1.h$i          #HDF5 version of input data cmsum file
-	cmsum_out_dat=$1'_'$6'.d'$i     #Binary Hillas parameter ouput file.
-	if [ -e "$4/$cmsum_out_dat" ]; then
-	    rm $4/$cmsum_out_dat
-	fi
-
-	cmsum_out_hdf=$1'_'$6'_'$i'.VHDF5' #VHDF5 Ouput data file
-	if [ -e "$4/$cmsum_out_hdf" ]; then
- 	    rm $4/$cmsum_out_hdf
-	fi
-#Funny CERN HROPEN-HBOOK thing: filename must be all lower case including any
-#specified path.
-        cmsum_ntpl_out=$1'_'$6'_n.d'$i
-	if [ -e "$4/$cmsum_in_hdf5.gz" ]; then
-	    gunzip $cmsum_in_hdf5.gz
-        fi
-
-	$srcdir/kasaomega -r $kasaomegaranseedfile \
-                -p $kasaomegaparfile \
-                -c $hrcyear -i $4/$cmsum_in_dat -j $4/$cmsum_in_hdf5 \
-                -o $4/$cmsum_out_dat  -v $4/$cmsum_out_hdf  -d $7 -s $8 \
-                -t $9
-
-
-#	$srcdir/kasaomega -r $kasaomegaranseedfile -p $kasaomegaparfile \
-#                -h $hrcyear -i $4/$cmsum_in_dat -j $4/$cmsum_in_hdf5 \
-#                -o $4/$cmsum_out_dat  -s $4/$cmsum_out_hdf  -d $7 
-
-	if [ -e "$4/$cmsum_in_hdf5.gz" ]; then
-	    gzip $4/cmsum_in_hdf5
-	fi
-	
-	if [ -e "$4/$cmsum_out_dat" ]; then
-	    $srcdir/cmsum_bin2ntpl -i $4/$cmsum_out_dat -o $4/$cmsum_ntpl_out 
-	fi
-   i=$((i+1))			#do next file
+    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile $tefile
+		   
+    i=$((i+1))			#do next shower
 done
-echo $host'_'${10}' complete' >> run.log
+
+
+
+#Cleanup
+cd $wrkdir
+rm -vf *
+cd ..
+rmdir $dirID
+
+
+
+
