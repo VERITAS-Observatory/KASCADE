@@ -100,7 +100,8 @@ datadir="/project/veritas/sembrosk/whipple/protons"
 #script directory
 sdr=$KASCADEBASE"/scripts"
 
-ksScript=$sdr/"ksall.scr"
+#ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
+ksScript=$sdr/"ksaom.scr"    #Makes root files
 
 #ksScript=$sdr/"ksall2DTrack.1.scr"
 #ksScript=$sdr/"ksall2DTrack.22.scr"

@@ -33,9 +33,9 @@ whp="/project/veritas/sembrosk/whipple"
 #Keeps random number independent
 #use combo of process id ($$)and number of nanosec(date +%N) since last 
 #second tick to get unique value. (least count is micro sec at best)
-let dirID=$(date +%N)+$$
+let dirID=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
 while [ -d "$dirID" ]; do
-  let dirID=$(date +%N)+$$
+  let dirID=$(date +10#%N)+$$
 done
 wrkdir=$whp/$dirID
 
@@ -61,22 +61,23 @@ ln -s $inpDir/extinction_uv.dat extinction_uv.dat
 #All temp data kept in $wrkdir. 
 #Final results go into $5;
 #Make sure directory exists, if not create it.
-if [ ! -d "$7" ]; then
-       mkdir -p $7
+if [ ! -d "$5" ]; then
+       mkdir -p $5
 fi
 
 #Setup unique random seed files into working dir.
 cp -v $inpDir/ksKascade.ran ksKascade.ran  #Copy in a file to overwrite
-let seed=$(date +%N)+$$                #Add in process id ($$)
-$src/randomCreateRanluxSeed -s $seed -o ksKascade.ran
+let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
+    done
+$src/randomCreateRanluxSeed -s $seedK -o ksKascade.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
 cp -v $inpDir/ksLight.ran ksLight.ran  
-let seed=$(date +%N)+$$                
+let seed=$(date +10#%N)+$$                
 $src/randomCreateRanluxSeed -s $seed -o ksLight.ran
 
 cp -v $inpDir/ksTrigger.ran ksTrigger.ran  
-let seed=$(date +%N)+$$                
+let seed=$(date +10#%N)+$$                
 $src/randomCreateRanluxSeed -s $seed -o ksTrigger.ran
 
 #Set up base name of showers. 
@@ -137,7 +138,7 @@ done
 cd $wrkdir
 rm -vf *
 cd ..
-rmdir -v $dirID
+rmdir $dirID
 
 
 
