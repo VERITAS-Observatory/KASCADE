@@ -73,7 +73,7 @@ fi
 #Setup unique random seed files into working dir.
 cp -v $inpDir/ksKascade.ran ksKascade.ran  #Copy in a file to overwrite
 let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
-    done
+
 $src/randomCreateRanluxSeed -s $seedK -o ksKascade.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.

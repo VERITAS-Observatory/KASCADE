@@ -51,8 +51,7 @@ ksAomegaConfig=ksAomega$2'.config'
 ln -s $inpDir/$ksAomegaConfig $ksAomegaConfig
 
 #make a links to the various input files:
-#ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
-#ln -s $inpDir/extinction_uv.dat extinction_uv.dat
+ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
 
 #All auxillary files are in wrkdir.
 #All temp data kept in $wrkdir. 
@@ -69,7 +68,7 @@ fi
 #Setup unique random seed file into working dir.
 cp -v $inpDir/ksAomega.ran ksAomega.ran  #Copy in a file to overwrite
 let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
-    done
+
 $src/randomCreateRanluxSeed -s $seedK -o ksAomega.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
@@ -85,7 +84,7 @@ while test $i -le $4
     teFile=$Shwr'te.d'$i
     rootFile=$Shwr'.d'$i'.root'
 
-    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile $tefile
+    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile $teFile
 		   
     i=$((i+1))			#do next shower
 done
