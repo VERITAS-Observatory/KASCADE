@@ -65,7 +65,7 @@ void KSW10mVDF::CreateW10mVDFFile(string fFileName, double& fEastLongitude,
 }
 // ************************************************************************
 
-void KSW10mVDF::CreateRunHeader(int runNumber)
+void KSW10mVDF::FillRunHeader(int runNumber)
 // ****************************************************************
 // Create the Whipple VARunHeader 
 // ****************************************************************
@@ -85,7 +85,7 @@ void KSW10mVDF::CreateRunHeader(int runNumber)
 }
 
 
-void KSW10mVDF::CreateW10mQStats(const float* ped, const float* pedvar)
+void KSW10mVDF::FillW10mQStats(const float* ped, const float* pedvar)
 // ****************************************************************
 // Create the Whipple VAQStatsData 
 // ****************************************************************
@@ -126,7 +126,7 @@ void KSW10mVDF::CreateW10mQStats(const float* ped, const float* pedvar)
 }
 // ***************************************************************************
 
-void KSW10mVDF::CreateW10mRelGains(const float* gain)
+void KSW10mVDF::FillW10mRelGains(const float* gain)
 // ****************************************************************
 // Create the Whipple VARelGainsData 
 // ****************************************************************
@@ -157,7 +157,7 @@ void KSW10mVDF::CreateW10mRelGains(const float* gain)
 }
 // ***************************************************************************
 
-void KSW10mVDF::CreatePixelStatus(int fNumPMT, bool* off)
+void KSW10mVDF::FillPixelStatus(int fNumPMT, bool* off)
 // ****************************************************************
 // Create the Whipple PixelStatus
 // ****************************************************************

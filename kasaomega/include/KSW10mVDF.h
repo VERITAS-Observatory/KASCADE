@@ -35,10 +35,10 @@ class KSW10mVDF
   virtual ~KSW10mVDF();
   void CreateW10mVDFFile(string fFileName,double& fEastLongitude, 
 			 double& fLatitude);
-  void CreateRunHeader(int runNumber);
-  void CreateW10mQStats(const float* ped, const float* pedvar);
-  void CreateW10mRelGains(const float* gain);
-  void CreatePixelStatus(int fNumPMT, bool* off);
+  void FillRunHeader(int runNumber);
+  void FillW10mQStats(const float* ped, const float* pedvar);
+  void FillW10mRelGains(const float* gain);
+  void FillPixelStatus(int fNumPMT, bool* off);
 
   VAArrayInfo* GetArrayInfoPtr(){return pfArrayInfo;};
 

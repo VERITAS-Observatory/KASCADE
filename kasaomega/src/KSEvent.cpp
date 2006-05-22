@@ -161,7 +161,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       int fNumChannels=492;
       pfVDFOut= new VAVDF();
       VAArrayInfo* pfArrayInfo;
-      KSW10mVDF* pfW10mVDF;
+      KSW10mVDF* pfW10mVDF=NULL;
       if(fCameraType==WHIPPLE490)
 	{
 	  pfW10mVDF = new KSW10mVDF(pfVDFOut,fNumChannels,fEventTime, 
@@ -181,10 +181,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	}
       
  // *********************************************************************
- //Create over Run Header
+ //Fill over Run Header
  // *********************************************************************
     
-      pfW10mVDF->CreateRunHeader(pfDataIn->fRunNumber);
+      pfW10mVDF->FillRunHeader(pfDataIn->fRunNumber);
       pfRunHeader=pfVDFOut->getRunHeaderPtr();
       
  // *********************************************************************
@@ -210,10 +210,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	}
 	
       // ****************************************************************
-      // Create the VAQStatsData 
+      // Fill the VAQStatsData 
       // ****************************************************************
        
-      pfW10mVDF->CreateW10mQStats((const float*) ped, (const float*) pedvar);
+      pfW10mVDF->FillW10mQStats((const float*) ped, (const float*) pedvar);
 
 
  
@@ -221,38 +221,32 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 
 
       // ****************************************************************
-      // Create the VARelGainsData 
+      // Fill the VARelGainsData 
       // ****************************************************************
 
-      pfW10mVDF->CreateW10mRelGains((const float*)gain);
+      pfW10mVDF->FillW10mRelGains((const float*)gain);
        
       pfVDFOut->writeRelGainData();
       
       // ****************************************************************
-      // Create the Pixel Status
+      // Fill the Pixel Status
       // ****************************************************************
       
-      pfW10mVDF->CreatePixelStatus(gNumImagePixels[fCameraType],off);
+      pfW10mVDF->FillPixelStatus(gNumImagePixels[fCameraType],off);
       
       pfVDFOut->writePixelStatusData();
 
       // ****************************************************************
-      // Create the Simulation Head object
+      // Fill the Simulation Head object
       // ****************************************************************
-      
-      VASimulationHeader* pfSimHead=pfVDFOut->getSimulationHeaderPtr();
-      if(pfSimHead==NULL)
-	{
-	  std::cout<<"ksAomega: KSEvent:Failed to getSimulationHeadPtr "
-	    "non-NULL pointer"<<std::endl;
-	  exit(1);
-	}
-  
-      // Set up Header: (see VASimulationData.h file for definitions.)
-      pfSimHead->fSimulationPackage      = 3;  //Purdue Kascade
-      pfSimHead->fExtensionFormat        = 3;  //Purdue ksAomega
-      pfSimHead->fDocumentationFileName  = "ToBeDetermined";
-
+      VAKascadeSimulationHead fSimHeader(pfVDFOut);
+      // Set up Header: (see VASimulationData.h and VAKascadeSimulationData.h
+      // files for definitions.)
+      fSimHeader.pfKascadeSimHead->fSimulationPackage   = 3;  //Purdue Kascade
+      fSimHeader.pfKascadeSimHead->fExtensionFormat     = 3;  //Purdue ksAomega
+      fSimHeader.pfKascadeSimHead->fDocumentationFileName = "ToBeDetermined";
+      fSimHeader.setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
+ 
       pfVDFOut->writeSimulationHeader();
   
       // **************************************************************
@@ -390,7 +384,7 @@ void KSEvent::SaveImage()
   if(pfDataIn->fRootFileName!=" ")
     {
       // ********************************************************************
-      //Create, Fille and Write out a VACalibratedEvent
+      //Create, Fill and Write out a VACalibratedEvent
       // ********************************************************************
       
       // ****************************************************************
