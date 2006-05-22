@@ -245,6 +245,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       fSimHeader.pfKascadeSimHead->fSimulationPackage   = 3;  //Purdue Kascade
       fSimHeader.pfKascadeSimHead->fExtensionFormat     = 3;  //Purdue ksAomega
       fSimHeader.pfKascadeSimHead->fDocumentationFileName = "ToBeDetermined";
+      fCorsikaType=KascadeType2CorsikaType(pfSegmentHead->fType);
+      fSimHeader.setCORSIKAParticleID(fCorsikaType);
+      fSimHeader.setShowerID(pfSegmentHead->fShowerID);
       fSimHeader.setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
  
       pfVDFOut->writeSimulationHeader();
@@ -268,10 +271,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 
       // Fill in what doesn't change in the shower.
       pfSimEvent->setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
-
-      fCorsikaType=KascadeType2CorsikaType(pfSegmentHead->fType);
       std::cout<<"ksAomega: Kascade Primary Type: "<<pfSegmentHead->fType
-	       <<"Corsika Primary Type: "<<fCorsikaType<<std::endl;
+	       <<" ->Corsika Primary Type: "<<fCorsikaType<<std::endl;
       pfSimEvent->setCORSIKAParticleID(fCorsikaType);
 
       double X[3];

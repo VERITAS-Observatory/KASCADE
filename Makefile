@@ -27,9 +27,8 @@ INSTALLTARGETS =kascade \
 		kaslite \
 		kassrtmrg \
 		kastrigger \
-		kasaomega 
-
-#		utilities
+		kasaomega \
+		utilities
 
 all: $(STAGES) install
 
