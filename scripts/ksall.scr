@@ -61,7 +61,7 @@ ln -s $inpDir/extinction_uv.dat extinction_uv.dat
 #All temp data kept in $wrkdir. 
 #Final results go into $5;
 #Make sure directory exists, if not create it.
-if[ $5 -eq "" ]; then
+if[ -z "$5" ]; then
     echo "ksall:Data Directory must be specified"
     exit
 fi

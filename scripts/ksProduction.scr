@@ -17,14 +17,15 @@ user=$USER
 #See bottom for numbers and energies for gammas,protons and he4
 
 enableGEN[1]="on"
-   energy[1]=5246
+   energy[1]=20
     start[1]=1
-      end[1]=1
+      end[1]=6
+#      end[1]=1380
 
 #enableGEN[2]="on"
-   energy[2]=205
+   energy[2]=24
     start[2]=1
-      end[2]=58
+      end[2]=830
 
 #enableGEN[3]="on"
    energy[3]=28
@@ -32,34 +33,34 @@ enableGEN[1]="on"
       end[3]=540
 
 #enableGEN[4]="on"
-   energy[4]=294
+   energy[4]=34
     start[4]=1
-      end[4]=17
+      end[4]=640
 
 #enableGEN[5]="on"
-   energy[5]=422
+   energy[5]=41
     start[5]=1
-      end[5]=14
+      end[5]=280
 
 #enableGEN[6]="on"
-   energy[6]=605
+   energy[6]=49
     start[6]=1
-      end[6]=6
+      end[6]=290
 
 #enableGEN[7]="on"
-   energy[7]=867
+   energy[7]=58
     start[7]=1
-      end[7]=4
+      end[7]=143
 
-enableGEN[8]="on"
-   energy[8]=10777
+#enableGEN[8]="on"
+   energy[8]=70
     start[8]=1
-      end[8]=1
+      end[8]=175
 
-enableGEN[9]="on"
-   energy[9]=7519
+#enableGEN[9]="on"
+   energy[9]=84
     start[9]=1
-      end[9]=1
+      end[9]=78
 
 #enableGEN[10]="on"
    energy[10]=100
@@ -67,15 +68,74 @@ enableGEN[9]="on"
       end[10]=80
 
 #enableGEN[11]="on"
-   energy[11]=2553
+   energy[11]=120
     start[11]=1
-      end[11]=1
+      end[11]=48
 
 #enableGEN[12]="on"
-   energy[12]=3660
+   energy[12]=143
     start[12]=1
-      end[12]=1
+      end[12]=39
 
+#enableGEN[13]="on"
+   energy[13]=205
+    start[13]=1
+      end[13]=58
+
+#enableGEN[14]="on"
+   energy[14]=294
+    start[14]=1
+      end[14]=17
+
+#enableGEN[15]="on"
+   energy[15]=422
+    start[15]=1
+      end[15]=14
+
+#enableGEN[16]="on"
+   energy[16]=605
+    start[16]=1
+      end[16]=6
+
+#enableGEN[17]="on"
+   energy[17]=867
+    start[17]=1
+      end[17]=4
+
+#enableGEN[18]="on"
+   energy[18]=1243
+    start[18]=1
+      end[18]=2
+
+#enableGEN[19]="on"
+   energy[19]=1781
+    start[19]=1
+      end[19]=1
+
+#enableGEN[20]="on"
+   energy[20]=2553
+    start[20]=1
+      end[20]=1
+
+#enableGEN[21]="on"
+   energy[21]=3660
+    start[21]=1
+      end[21]=1
+
+#enableGEN[22]="on"
+   energy[22]=5246
+    start[22]=1
+      end[22]=1
+
+#enableGEN[23]="on"
+   energy[23]=7519
+    start[23]=1
+      end[23]=1
+
+#enableGEN[24]="on"
+   energy[24]=10777
+    start[24]=1
+      end[24]=1
 
 #type="h"
 #species="he4"
@@ -111,7 +171,7 @@ lcl="$PWD"
 pr=$parspec
 
 let processStart=1
-let processEnd=12
+let processEnd=24
 let i=$processStart
 while test $i -le $processEnd
 do
@@ -138,12 +198,12 @@ do
 done
 ###########################################################################
 #Arguments for ksScript
-#$1 primary Energy in gev (integer only)
+#$1 primary Energy in GeV (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower namesLike P1W,G1W, He4_1W)
+#                                     in shower names:Like P1W,G1W, He4_1W)
 #$3 Lowest flie id
 #$4 Highest file id.
-#$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
+#$5 data disk directory.(Where output Te/root  files go, cannot be blank!!!)
 #############################################################################
 #For Mount Hopkins Whipple 10m 490 pixel telescope.
 #18/02/04 GHS
