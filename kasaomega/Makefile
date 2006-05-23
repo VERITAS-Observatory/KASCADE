@@ -43,16 +43,16 @@ CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))
 
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
-
-ifdef ROOTSYS
+ifdef VEGASBASE
+    ifdef ROOTSYS
 all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
-else
+    else
 all: norootcomment
-endif
-
-ifndef VEGASBASE
+    endif
+else
 all: noVEGAScomment
 endif
+
 
 $(LIBTARGET): $(CPPOBJECTS)
 	@echo CPPOBJECTS: $(CPPOBJECTS)
@@ -75,8 +75,16 @@ $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 
 .PHONY: install
 
+ifdef VEGASBASE
+    ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
+    else
+install: norootcomment
+    endif
+else
+install: noVEGAScomment
+endif
 
 
 .PHONY: clean
@@ -92,12 +100,12 @@ clean:
 norootcomment:
 	@echo "******************kasaomega/Makefile**************************"
 	@echo "* ROOTSYS not defined (ROOT not installed?)"
-	@echo "* Can't make " $(EXE)
+	@echo "* Can't make or install " $(EXE)
 	@echo "**************************************************************"
 
 .PHONY: noVEGAScomment
 noVEGAScomment:
 	@echo "******************kasaomega/Makefile**************************"
 	@echo "* VEGASBASE not defined (VEGAS not installed?)"
-	@echo "* Can't make " $(EXE)
+	@echo "* Can't make or install" $(EXE)
 	@echo "**************************************************************"

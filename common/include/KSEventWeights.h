@@ -30,14 +30,16 @@
 class KSEventWeights
 {
  public:
-  KSEventWeights(float alpha, std::map<int,int,std::greater<int> >& fShowers); 
+  KSEventWeights(float alpha, std::map<int,int >& fShowers); 
+  //  KSEventWeights(float alpha, std::map<int,int,std::greater<int> >& fShowers); 
                                       //constructor will generate the weights 
   ~KSEventWeights();
   float getWeight(int fEnergyGeV);
   float getMaximumWeight(){return fMaxWeight;};
   void  Print();
  private:
-  std::map<int,float,std::greater<int> > fWeightMap;
+  //std::map<int,float,std::greater<int> > fWeightMap;
+  std::map<int,float> fWeightMap;
   std::map<int,float>::iterator fPos;
   std::map<int,int>::iterator pos;
   float fMaxWeight;

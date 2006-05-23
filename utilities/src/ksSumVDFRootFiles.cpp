@@ -123,25 +123,12 @@ int main(int argc, char** argv)
       argv++;
       std::string OutputVDFFileName=*argv;
       
-      std::cout<<"ksSumVDFRootFiles:Input  List File Name: "<<ListFileName
+      std::cout<<"ksSumVDFRootFiles:Input List File Name: "<<ListFileName
 	       <<std::endl;
       std::cout<<"ksSumVDFRootFiles:Ouput VDF File Name: "<<OutputVDFFileName
 	       <<std::endl;
       
-      // -----------------------------------------------------------------
-      // Open input list file
-      // -----------------------------------------------------------------
-      
-      std::ifstream fListIn;
-      fListIn.open(ListFileName.c_str());
-      if(!fListIn)
-	{
-	  std::cout<<"Failed to open Input List file: "<<ListFileName
-		   <<std::endl;
-	  return 0;
-	}
-
-      // ********************************************************************
+     // ********************************************************************
       // Do we need weights, that is do we make spectrum cuts?
       // ********************************************************************
 
@@ -150,7 +137,20 @@ int main(int argc, char** argv)
       float fXDummy=0;
       if(fWeightBySpectrum)
 	{
-	  // ****************************************************************
+	  // -----------------------------------------------------------------
+	  // Open input list file
+	  // -----------------------------------------------------------------
+	  
+	  std::ifstream fListIn;
+	  fListIn.open(ListFileName.c_str());
+	  if(!fListIn)
+	    {
+	      std::cout<<"Failed to open Input List file: "<<ListFileName
+		       <<std::endl;
+	      return 0;
+	    }
+
+ 	  // ****************************************************************
           // To determine spectrum weights we need to get 3 things:
 	  // 1:Particle type: gamma, protons he4 etc. We allow only 1 particle
 	  //   type in all the files in the List.
@@ -159,16 +159,16 @@ int main(int argc, char** argv)
 	  //   of files at each energy.
 	  // 3:Number of showers at each energy.
 	  // *****************************************************************
-	  std::map<int,int,std::greater<int> > fShowers;
+	  std::map<int,int > fShowers;
 	  
 	  //Ready to read in showers
 	  std::string fInputFileName;
 	  while(getline(fListIn,fInputFileName))
 	    {
 	      // Open file from list
-	      VAVDF* pfFileIn= new VAVDF();
-	      pfFileIn->Open(fInputFileName);
-	      VAKascadeSimulationHead fSimHead(pfFileIn);
+	      VAVDF fFileIn;
+	      fFileIn.OpenForStage3(fInputFileName);
+	      VAKascadeSimulationHead fSimHead(&fFileIn);
 	      if(fSimHead.pfKascadeSimHead==NULL)
 		{
 		  std::cout<<"ksSumVDFRootFiles: File "<<fInputFileName
@@ -203,9 +203,11 @@ int main(int argc, char** argv)
 	      //Incriment number of showers
 	      fShowers[fEnergyGeV]=fNumShwr+1;
 	      
-	      //done. Reposition to beginning of file.
-	      fListIn.seekg(0,std::ios::beg); //See pg 635 of C++ STDLib  book
+	      //Close up the root file
+	      fFileIn.Close();
 	    }
+	  //done going through the list. 
+	  fListIn.close();
 	  // ***************************************************************
 	  // At this point our map fShowers has keys which are the different
 	  // energies of all the showers in the List. The values for each of 
@@ -267,19 +269,33 @@ int main(int argc, char** argv)
       VATime fLastValidEventTime;
       VATime fEventTime;
       double fMeanTimeBetweenEventsSec=1./kEventRateHZ;
+      // -----------------------------------------------------------------
+      // Open input list file
+      // -----------------------------------------------------------------
+      
+      std::ifstream fListIn;
+      fListIn.open(ListFileName.c_str());
+      if(!fListIn)
+	{
+	  std::cout<<"Failed to open Input List file: "<<ListFileName
+		   <<std::endl;
+	  return 0;
+	}
+
+ 
       // ****************************************************************
       // Loop over files in the list
       // ****************************************************************
       while(getline(fListIn,fInputFileName))
 	{
 	  // Open file from list
-	  VAVDF* pfFileIn= new VAVDF();
-	  pfFileIn->Open(fInputFileName);
+	  VAVDF fFileIn;
+	  fFileIn.OpenForStage3(fInputFileName);
 	  // ***********************************************************
 	  // First input file? Use its various objects for the summary file
  	  if(fFileCount==0)
 	    {
-	      VARunHeader* pfInRunHeader=pfFileIn->getRunHeaderPtr();
+	      VARunHeader* pfInRunHeader=fFileIn.getRunHeaderPtr();
               if(pfInRunHeader==NULL)
 		{
 		  std::cout<<"File: "<<fInputFileName<<" has no RunHeader"
@@ -295,12 +311,12 @@ int main(int argc, char** argv)
 	      // *************************************************************
 	      // Now copy stuff over
 	      // *************************************************************
-	      pfSumFile->CopyInAndWriteRunHeader(pfFileIn);
-	      pfSumFile->CopyInAndWriteArrayInfo(pfFileIn);
-	      pfSumFile->CopyInAndWriteQStatsData(pfFileIn);
-	      pfSumFile->CopyInAndWritePixelStausData(pfFileIn);
-	      pfSumFile->CopyInAndWriteRelGainData(pfFileIn);
-	      pfSumFile->CopyInAndWriteSimulationHeader(pfFileIn);
+	      pfSumFile->CopyInAndWriteRunHeader(&fFileIn);
+	      pfSumFile->CopyInAndWriteArrayInfo(&fFileIn);
+	      pfSumFile->CopyInAndWriteQStatsData(&fFileIn);
+	      pfSumFile->CopyInAndWritePixelStausData(&fFileIn);
+	      pfSumFile->CopyInAndWriteRelGainData(&fFileIn);
+	      pfSumFile->CopyInAndWriteSimulationHeader(&fFileIn);
 	      //  *************************************************************
 	      // Create a Calibrated event tree and a simulation event tree
 	      // **************************************************************
@@ -314,19 +330,19 @@ int main(int argc, char** argv)
 	  // Find number of Calibrated events (and thus simulated events) in
 	  // the input file
 	  // ******************************************************************
-	  int fNumArrayEvents=pfFileIn->getNumArrayEvents();
+	  int fNumArrayEvents=fFileIn.getNumArrayEvents();
 	  if(fNumArrayEvents==0)
 	    {
 	      continue;  //Run has no data, go to next
 	    }
 
 	  VACalibratedArrayEvent* pfInCalEvent = 
-	                               pfFileIn->getCalibratedArrayEventPtr();
-	  VASimulationData* pfInSimEvent= pfFileIn->getSimulationDataPtr();
+	                               fFileIn.getCalibratedArrayEventPtr();
+	  VASimulationData* pfInSimEvent= fFileIn.getSimulationDataPtr();
 
 	  for(int index=0;index<fNumArrayEvents;index++)
 	    {
-	      pfFileIn->readSimulationData(index);
+	      fFileIn.readSimulationData(index);
 
 	      // ***********************************************************
 	      // Are we weighting by the spectrum? do we cut this event?
@@ -343,7 +359,7 @@ int main(int argc, char** argv)
 	      // *********************************************************
 	      // Update event numbers here and maybe times
 	      // *********************************************************
-	      pfFileIn->loadInArrayEvent(index);
+	      fFileIn.loadInArrayEvent(index);
 
 	      *pfSumCalEvent=*pfInCalEvent;  //copy over
 	      *pfSumSimEvent=*pfInSimEvent;
@@ -367,7 +383,7 @@ int main(int argc, char** argv)
 	      pfSumFile->writeSimulationData(); 
 	    }
 	  
-	  pfFileIn->Close();
+	  fFileIn.Close();
 	}
       VARunHeader* pfSumRunHeader=pfSumFile->getRunHeaderPtr();
       pfSumRunHeader->fRunDetails.fLastValidEventTime=fLastValidEventTime;

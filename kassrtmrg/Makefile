@@ -68,8 +68,12 @@ $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 
 .PHONY: install
 
+ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
+else
+install: norootcomment
+endif
 
 
 .PHONY: clean
@@ -85,5 +89,5 @@ clean:
 norootcomment:
 	@echo "******************kassrtmrg/Makefile**************************"
 	@echo "* ROOTSYS not defined (ROOT not installed?)"
-	@echo "* Can't make " $(EXE)
+	@echo "* Can't make or install " $(EXE)
 	@echo "**************************************************************"

@@ -20,8 +20,9 @@
 #include "KSEventWeights.h"
 
 
-KSEventWeights::KSEventWeights(float alpha, 
-			       std::map<int,int,std::greater<int> >& fShowers) 
+//KSEventWeights::KSEventWeights(float alpha, 
+//			       std::map<int,int,std::greater<int> >& fShowers) 
+KSEventWeights::KSEventWeights(float alpha, std::map<int,int >& fShowers) 
 {
   //Algorithums Derived form michell_dist from kasaomega_cmn_sub.F90
   //Maps are screwy and you have to look very carefully at whats being done 
