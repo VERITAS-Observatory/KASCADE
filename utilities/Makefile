@@ -28,10 +28,12 @@ ifdef VEGASBASE
     ifdef ROOTSYS
 all: $(LIBTARGET) $(CPPTARGETOBJECTS) $(CPPEXES)
     else 
-all: $(CPPTARGET1) $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) norootcomment
+all:  $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) \
+	$(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) norootcomment
     endif
 else
-all: $(CPPTARGET1) $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) noVEGAScomment
+all:  $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) \
+	$(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) noVEGAScomment
 endif
 
 $(LIBTARGET): $(CPPOBJECTS)
