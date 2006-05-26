@@ -194,23 +194,25 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       //double fTempDec=0;
       if(!fDriftingGammas && fMultipleMountDirections)
 	{
-	  if(ithphi==0)  //Do theta=0 special. phi==0
-	    {
-	      for(int k=0;k<3;k++)fM[k]=fMount[k];   
-	      pfSTheta[ithphi]=0;     //Save theta and phi in radians
-	      pfSPhi[ithphi]=0;
-	    }
-	  else
-	    {
-	      fPhi=2*M_PI*pran(&fXDummy);    //Must be in Radians
-	      fTheta=pfTeHead->fMaximumThetaRad *
-		sqrt(pran(&fXDummy));//Random r**2 distribution
-	      
-	      //repoint mount unit vector by theta,phi
-	      vectorRedirect(fTheta, fPhi, fX0,fY0,fMount,fM);
-	      pfSTheta[ithphi]=fTheta;     //Save theta and phi in radians
-	      pfSPhi[ithphi]=fPhi;
-	    }
+	  //For multiple directions we don't want to bias things by always 
+	  //havine one direction always on axis.
+	  //if(ithphi==0)  //Do theta=0 special. phi==0
+	  // {
+	  //   for(int k=0;k<3;k++)fM[k]=fMount[k];   
+	  //   pfSTheta[ithphi]=0;     //Save theta and phi in radians
+	  //    pfSPhi[ithphi]=0;
+	  //  }
+	  //else
+	  //  {
+	  fPhi=2*M_PI*pran(&fXDummy);    //Must be in Radians
+	  fTheta=pfTeHead->fMaximumThetaRad *
+	    sqrt(pran(&fXDummy));//Random r**2 distribution
+	  
+	  //repoint mount unit vector by theta,phi
+	  vectorRedirect(fTheta, fPhi, fX0,fY0,fMount,fM);
+	  pfSTheta[ithphi]=fTheta;     //Save theta and phi in radians
+	  pfSPhi[ithphi]=fPhi;
+	  //  }
 	}
       else if(fDriftingGammas)
 	{  
