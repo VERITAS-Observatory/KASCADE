@@ -21,158 +21,50 @@ user=$USER
 #    start[1]=1
 #      end[1]=690
      
+#1 deg whipple He4 10%
+#**********************************************************************
+parspec="He4_1W"      
+echo He4 at 1 deg: $parspec
+datadir="/project/veritas/sembrosk/whipple/he4"
+let processEnd=19
+enableGEN=([1]=ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+   energy=([1]=49  58  70  84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+    start=([1]=1   1   1   1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+      end=([1]=250 159 163 86 80  55  40  68  20  18  7   5   3    2    1    1    1    1    1)
+#**********************************************************************
 
-#enableGEN[2]="on"
-#   energy[2]=20
-#   start[2]=691
-#      end[2]=1380
-
-#enableGEN[3]="on"
-#   energy[3]=24
-#   start[3]=1
-#      end[3]=415
-
-#enableGEN[4]="on"
-#   energy[4]=24
-#   start[4]=416
-#      end[4]=830
-
-#enableGEN[5]="on"
-#   energy[5]=28
-#   start[5]=1
-#      end[5]=270
-
-#enableGEN[6]="on"
-#   energy[6]=28
-#   start[6]=271
-#      end[6]=540
-
-#enableGEN[7]="on"
-#   energy[7]=34
-#   start[7]=1
-#      end[7]=640
-
-#enableGEN[8]="on"
-#   energy[8]=41
-#   start[8]=1
-#      end[8]=280
-
-#enableGEN[9]="on"
-#   energy[9]=49
-#   start[9]=1
-#      end[9]=290
-
-#enableGEN[10]="on"
-#   energy[10]=58
-#   start[10]=1
-#      end[10]=143
-
-#enableGEN[11]="on"
-#   energy[11]=70
-#   start[11]=1
-#      end[11]=175
-
-#enableGEN[12]="on"
-#   energy[12]=84
-#   start[12]=1
-#      end[12]=78
-
-#enableGEN[13]="on"
-#   energy[13]=100
-#   start[13]=1
-#      end[13]=80
-
-#enableGEN[14]="on"
-#   energy[14]=120
-#   start[14]=1
-#      end[14]=48
-
-#enableGEN[15]="on"
-#   energy[15]=143
-#   start[15]=1
-#      end[15]=39
-
-#enableGEN[16]="on"
-#   energy[16]=205
-#   start[16]=1
-#      end[16]=58
-
-#enableGEN[17]="on"
-#   energy[17]=294
-#   start[17]=1
-#      end[17]=17
-
-#enableGEN[18]="on"
-#   energy[18]=422
-#   start[18]=1
-#      end[18]=14
-
-#enableGEN[19]="on"
-#   energy[19]=605
-#   start[19]=1
-#      end[19]=6
-
-#enableGEN[20]="on"
-#   energy[20]=867
-#   start[20]=1
-#      end[20]=4
-
-#enableGEN[21]="on"
-#   energy[21]=1243
-#   start[21]=1
-#      end[21]=2
-
-#enableGEN[22]="on"
-#   energy[22]=1781
-#   start[22]=1
-#      end[22]=1
-
-#enableGEN[23]="on"
-#   energy[23]=2553
-#   start[23]=1
-#      end[23]=1
-
-#enableGEN[24]="on"
-#   energy[24]=3660
-#   start[24]=1
-#      end[24]=1
-
-#enableGEN[25]="on"
-#   energy[25]=5246
-#   start[25]=1
-#      end[25]=1
-
-#enableGEN[26]="on"
-#   energy[26]=7519
-#   start[26]=1
-#      end[26]=1
-
-#enableGEN[27]="on"
-#   energy[27]=10777
-#   start[27]=1
-#      end[27]=1
-
-#type="h"
-#species="he4"
-#gdrift="F"
-#datadir="/project/veritas/sembrosk/whipple/he4"
-
-#1 deg whipple protons
-
-parspec="P1W"      
-datadir="/project/veritas/sembrosk/whipple/protons"
-enableGEN=([1]=ON  ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-   energy=([1]=20  20   24  24  28  28  34  41  49  58  70  84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-    start=([1]=1   691  1   416 1   271 1   1   1   1   1   1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-      end=([1]=690 1380 415 830 270 540 640 280 290 143 175 78 80  48  39  58  17  14  6   4   2    1    1    1    1    1    1)
+#1 deg whipple protons 10%
+#**********************************************************************
+#parspec="P1W"      
+#echo Protons at 1 deg: $parspec
+#datadir="/project/veritas/sembrosk/whipple/protons"
+#let processEnd=28
+#enableGEN=([1]=ON  ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+#   energy=([1]=20  20   24  24  28  28  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+#    start=([1]=1   691  1   416 1   271 1   1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+#      end=([1]=690 1380 415 830 270 540 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+#**********************************************************************
  
 
 
-#parspec="G1W"
+#1 deg whipple Gammas
+#**********************************************************************
+#parspec="G_1W"      
+#echo Gammas at 1 deg: $parspec
 #datadir="/project/veritas/sembrosk/whipple/gammas"
+#let processEnd=18
+#enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
+#   energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+#    start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+#      end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  37  11   10   6    6    6)
+#**********************************************************************
 
-#parspec="20w"
-#parspec="1v"    #Base camp t1/t2
+#Specify queues
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+
+#queues=([1]=workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro)
 
 
 #ksalldrift runs kstrigger 11 times with different mount elevations in
@@ -193,11 +85,12 @@ lcl="$PWD"
 pr=$parspec
 
 let processStart=1
-let processEnd=27
+
 let i=$processStart
 while test $i -le $processEnd
 do
-  if [ -n "${enableGEN[$i]}" ]; then 
+    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
+    if [ -n "${enableGEN[$i]}" ]; then 
 
     pbsFile=$lcl/ks_$i$pr.pbs
 
@@ -206,7 +99,7 @@ do
     echo "#"PBS -o "pbs"$i'_'$pr'.log'                              >>$pbsFile
     echo "#"PBS -m ae                                               >>$pbsFile
     echo "#"PBS -M $user"@purdue.edu"                               >>$pbsFile
-    echo "#"PBS -q workq                                            >>$pbsFile
+    echo "#"PBS -q ${queues[$i]}                                    >>$pbsFile
     echo "#"PBS -l mem=250mb                                        >>$pbsFile
     echo "#"PBS -l walltime=100:00:00                               >>$pbsFile
     echo "#"PBS -l nodes=1                                          >>$pbsFile

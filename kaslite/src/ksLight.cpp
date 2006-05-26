@@ -67,6 +67,7 @@ extern "C" void kssegmentread(bool* goodread, float* XStart, float* YStart,
 extern "C" void kspewrite(int* nx, int* ny, float* time, float* dl, 
 			  float* dm, int* id, float* x, float* y, int* type,
 			  float* lambda, float* emalt);
+extern "C" void ksreadwavelengthtable(char* fTableName, float* fTable);
 
 KSLightDataIn*     pfDataIn;
 
@@ -506,5 +507,26 @@ void  kspewrite(int* nx, int* ny, float* time, float* dl, float* dm, int* id,
 }
 // ***************************************************************************
 
-
+void ksreadwavelengthtable(char* fTableName, float* fTable)
+// ***************************************************************************
+// Read wavelength data from a file. File has format: wavelength, value
+// wavelength starts at 180 and goes to 700 in steps of 5 nm.
+// Assume fTable is float array 105 long 
+// value may be for various things: Mirror reflectivity, quantum efficency , 
+// filter transmission etc. Used manily for VERITAS, WHIPPLE tables presently
+// hard coded into kskaslightmain.for.
+// ***************************************************************************
+{
+  std::cout<<"Reading file: "<<fTableName<<std::endl;
+  ifstream fIn;
+  fIn.open(fTableName);
+  float fWavelength;
+    for(int i=0;i<105;i++)
+    {
+      fIn>>fWavelength>>fTable[i];
+      std::cout<<fWavelength<<" "<<fTable[i]<<std::endl;
+    }
+  fIn.close();
+  return;
+}
 

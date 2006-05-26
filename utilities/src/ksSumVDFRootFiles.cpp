@@ -96,11 +96,19 @@ int main(int argc, char** argv)
 	{
 	  fWeightBySpectrum=true;
 	}
-      // ----------------------------------------------------------------------
+      std::string fRandomSeedFileName;
+      if(!command_line.findWithValue("GrISUPilotFileName",fRandomSeedFileName,
+				    "Ranlux seed file")
+	 == VAOptions::FS_FOUND)
+	{
+	  fRandomSeedFileName="ksSumVDFRootFiles.ran";
+	}
+
+      // -------------------------------------------------------------------
       // All the command line options that the program is able to  handle 
       // have been processed, so make sure there are no more command lines
       // options available.
-      // ----------------------------------------------------------------------
+      // -------------------------------------------------------------------
 
       if(!command_line.assertNoOptions())
 	{
@@ -118,17 +126,28 @@ int main(int argc, char** argv)
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
-      
+
+      // ******************************************************************
+      // Set up random number generator
+      // ******************************************************************
+      int printseeds=1;
+      ranstart(&printseeds,(char*)fRandomSeedFileName.c_str(),
+	       (int)fRandomSeedFileName.length());
+
+
       std::string ListFileName=*argv;
       argv++;
       std::string OutputVDFFileName=*argv;
       
       std::cout<<"ksSumVDFRootFiles:Input List File Name: "<<ListFileName
 	       <<std::endl;
-      std::cout<<"ksSumVDFRootFiles:Ouput VDF File Name: "<<OutputVDFFileName
+      std::cout<<"ksSumVDFRootFiles:Output VDF File Name: "<<OutputVDFFileName
 	       <<std::endl;
       
-     // ********************************************************************
+      
+
+
+      // ********************************************************************
       // Do we need weights, that is do we make spectrum cuts?
       // ********************************************************************
 
@@ -137,6 +156,8 @@ int main(int argc, char** argv)
       float fXDummy=0;
       if(fWeightBySpectrum)
 	{
+	  std::cout<<"ksSumVDFRootFiles:Determining Spectrum weights"
+	    ".....Takes a while"<<std::endl;
 	  // -----------------------------------------------------------------
 	  // Open input list file
 	  // -----------------------------------------------------------------
@@ -262,13 +283,15 @@ int main(int argc, char** argv)
       VACalibratedArrayEvent* pfSumCalEvent=NULL;
       VASimulationData* pfSumSimEvent=NULL;
       std::string fInputFileName;
-      int fFileCount=0;
+      bool fFirstFile=true;
       int fNumTels=1;
       int fEventNum=0;
       VATime fFirstValidEventTime;
       VATime fLastValidEventTime;
       VATime fEventTime;
       double fMeanTimeBetweenEventsSec=1./kEventRateHZ;
+      std::cout<<"ksSumVDFRootFiles:Merging Files.....Takes even longer"
+	       <<std::endl;
       // -----------------------------------------------------------------
       // Open input list file
       // -----------------------------------------------------------------
@@ -293,7 +316,7 @@ int main(int argc, char** argv)
 	  fFileIn.OpenForStage3(fInputFileName);
 	  // ***********************************************************
 	  // First input file? Use its various objects for the summary file
- 	  if(fFileCount==0)
+	  if(fFirstFile)
 	    {
 	      VARunHeader* pfInRunHeader=fFileIn.getRunHeaderPtr();
               if(pfInRunHeader==NULL)
@@ -305,6 +328,7 @@ int main(int argc, char** argv)
 	      fNumTels   = pfInRunHeader->fRunDetails.fTels; 
 	      fFirstValidEventTime = 
 		               pfInRunHeader->fRunDetails.fFirstValidEventTime;
+	      std::cout<<"RunStart Time: "<< fFirstValidEventTime<<std::endl;
 	      pfSumFile->createFile( OutputVDFFileName,fNumTels,
 				                         fFirstValidEventTime);
 	      fEventTime=fFirstValidEventTime;
@@ -325,66 +349,78 @@ int main(int argc, char** argv)
 
 	      pfSumFile->createTheSimulationEventTree();
 	      pfSumSimEvent=pfSumFile->getSimulationDataPtr();
+	      fFirstFile=false;
 	    }
 	  // ******************************************************************
 	  // Find number of Calibrated events (and thus simulated events) in
 	  // the input file
 	  // ******************************************************************
 	  int fNumArrayEvents=fFileIn.getNumArrayEvents();
-	  if(fNumArrayEvents==0)
+	  int fCountOut=0;
+	  if(fNumArrayEvents>0)
 	    {
-	      continue;  //Run has no data, go to next
-	    }
-
-	  VACalibratedArrayEvent* pfInCalEvent = 
+	      VACalibratedArrayEvent* pfInCalEvent = 
 	                               fFileIn.getCalibratedArrayEventPtr();
-	  VASimulationData* pfInSimEvent= fFileIn.getSimulationDataPtr();
-
-	  for(int index=0;index<fNumArrayEvents;index++)
-	    {
-	      fFileIn.readSimulationData(index);
+	      VASimulationData* pfInSimEvent= fFileIn.getSimulationDataPtr();
+	      float fWeight=1.0;
+	      if(fWeightBySpectrum)
+		{
+		  VAKascadeSimulationHead fSimHead(&fFileIn);
+		  int fEnergyGeV=(int)fSimHead.getEnergyGeV();
+		  fWeight=pfWeights->getWeight(fEnergyGeV);
+		}
+	      for(int index=0;index<fNumArrayEvents;index++)
+		{
+		  fFileIn.readSimulationData(index);
 
 	      // ***********************************************************
 	      // Are we weighting by the spectrum? do we cut this event?
 	      // ***********************************************************
-	      if(fWeightBySpectrum)
-		{
-		  int fEnergyGeV=(int)pfSumSimEvent->fEnergyGeV;
-		  float fWeight=pfWeights->getWeight(fEnergyGeV);
-		  if(fWeight>pran(&fXDummy))
+		  if(fWeightBySpectrum)
 		    {
-		      continue; //skip this event
+		      if(pran(&fXDummy)>fWeight)
+			{
+			  continue; //skip this event
+			}
 		    }
-		}
 	      // *********************************************************
 	      // Update event numbers here and maybe times
 	      // *********************************************************
-	      fFileIn.loadInArrayEvent(index);
+		  fFileIn.loadInArrayEvent(index);
 
-	      *pfSumCalEvent=*pfInCalEvent;  //copy over
-	      *pfSumSimEvent=*pfInSimEvent;
+		  *pfSumCalEvent=*pfInCalEvent;  //copy over
+		  *pfSumSimEvent=*pfInSimEvent;
 
-	      pfSumCalEvent->fArrayEventNum=fEventNum;
-	      fEventNum++;
+		  pfSumCalEvent->fArrayEventNum=fEventNum;
+		  fEventNum++;
+		  //std::cout<<"EventTime: "<< fEventTime<<std::endl;
 
-	      pfSumCalEvent->fArrayTime=fEventTime;
-	      int fEventNumTels=pfSumCalEvent->fTelEvents.size();
-	      for(int i=0;i<fEventNumTels;i++)
-		{
-		  pfSumCalEvent->fTelEvents[i].fTelTime=fEventTime;
+		  pfSumCalEvent->fArrayTime=fEventTime;
+		  int fEventNumTels=pfSumCalEvent->fTelEvents.size();
+		  for(int i=0;i<fEventNumTels;i++)
+		    {
+		      pfSumCalEvent->fTelEvents[i].fTelTime=fEventTime;
+		    }
+
+		  fLastValidEventTime=fEventTime;
+		  double fEventTimeMJD=fEventTime.getMJDDbl();
+		  double fTimeGapDay=
+		                Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
+		  //std::cout<<"TimeGapDay: "<<fTimeGapDay<<std::endl;
+
+		  fEventTimeMJD+=fTimeGapDay;
+		  fEventTime.setFromMJDDbl(fEventTimeMJD);
+		  //std::cout<<"Event Time:"<<fEventTime<<std::endl;
+		  pfSumFile->writeCalibratedArrayEvent(fNumTels);
+		  pfSumFile->writeSimulationData(); 
+		  fCountOut++;
 		}
-
-	      fLastValidEventTime=fEventTime;
-	      double fEventTimeMJD=fEventTime.getMJDDbl();
-	      fEventTimeMJD+=Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
-	      fEventTime.setFromMJDDbl(fEventTimeMJD);
-	      
-	      pfSumFile->writeCalibratedArrayEvent(fNumTels);
-	      pfSumFile->writeSimulationData(); 
 	    }
-	  
+	  //std::cout<<"Read From Input file "<<fInputFileName<<" "
+	  //	   <<fNumArrayEvents<<" events. Wrote: "
+	  //	   <<fCountOut<<" Total so far:"<<fEventNum<<std::endl;
 	  fFileIn.Close();
-	}
+ 	}
       VARunHeader* pfSumRunHeader=pfSumFile->getRunHeaderPtr();
       pfSumRunHeader->fRunDetails.fLastValidEventTime=fLastValidEventTime;
       pfSumFile->writeRunHeader();
@@ -392,9 +428,14 @@ int main(int argc, char** argv)
       pfSumFile->writeSimulationEventTree();
       pfSumFile->Close();
       std::cout<<"ksSumVDFRootFiles:: Ouput summary file closed with "
-	       <<fEventNum<<"event"<<std::endl;
+	       <<fEventNum<<" events"<<std::endl;
       std::cout<<"ksSumVDFRootFiles:: Normal end"<<std::endl;
-      return 0;
+      // ----------------------------------------------------------------------
+      // Save the random number generator seeds.
+      // ----------------------------------------------------------------------
+      ranend(&printseeds,(char*)fRandomSeedFileName.c_str(),
+	     (int)fRandomSeedFileName.length());
+       return 0;
     }
  
   catch(VAException &ex)
