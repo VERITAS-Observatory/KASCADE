@@ -23,26 +23,26 @@ user=$USER
      
 #1 deg whipple He4 10%
 #**********************************************************************
-parspec="He4_1W"      
-echo He4 at 1 deg: $parspec
-datadir="/project/veritas/sembrosk/whipple/he4"
-let processEnd=19
-enableGEN=([1]=ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-   energy=([1]=49  58  70  84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-    start=([1]=1   1   1   1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-      end=([1]=250 159 163 86 80  55  40  68  20  18  7   5   3    2    1    1    1    1    1)
+#parspec="He4_1W"      
+#echo He4 at 1 deg: $parspec
+#datadir="/project/veritas/sembrosk/whipple/he4"
+#let processEnd=19
+#enableGEN=([1]=ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+#   energy=([1]=49  58  70  84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+#    start=([1]=1   1   1   1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+#      end=([1]=250 159 163 86 80  55  40  68  20  18  7   5   3    2    1    1    1    1    1)
 #**********************************************************************
 
 #1 deg whipple protons 10%
 #**********************************************************************
-#parspec="P1W"      
-#echo Protons at 1 deg: $parspec
-#datadir="/project/veritas/sembrosk/whipple/protons"
-#let processEnd=28
-#enableGEN=([1]=ON  ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-#   energy=([1]=20  20   24  24  28  28  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-#    start=([1]=1   691  1   416 1   271 1   1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-#      end=([1]=690 1380 415 830 270 540 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+parspec="P1W"      
+echo Protons at 1 deg: $parspec
+datadir="/project/veritas/sembrosk/whipple/protons"
+let processEnd=28
+enableGEN=([1]=ON  ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+   energy=([1]=20  20   24  24  28  28  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+    start=([1]=1   691  1   416 1   271 1   1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+      end=([1]=690 1380 415 830 270 540 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 #**********************************************************************
  
 
@@ -60,7 +60,9 @@ enableGEN=([1]=ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON 
 #**********************************************************************
 
 #Specify queues
-queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+queues=([1]=workq astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
 #queues=([1]=workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
@@ -74,8 +76,8 @@ queues=([1]=astro astro astro astro astro astro astro astro astro astro astro as
 #script directory
 sdr=$KASCADEBASE"/scripts"
 
-#ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
-ksScript=$sdr/"ksaom.scr"    #Makes root files
+ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
+#ksScript=$sdr/"ksaom.scr"    #Makes root files
 
 #ksScript=$sdr/"ksall2DTrack.1.scr"
 #ksScript=$sdr/"ksall2DTrack.22.scr"
@@ -90,7 +92,7 @@ let i=$processStart
 while test $i -le $processEnd
 do
     echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
-    if [ -n "${enableGEN[$i]}" ]; then 
+    if [ "${enableGEN[$i]}" == "ON" ]; then 
 
     pbsFile=$lcl/ks_$i$pr.pbs
 
