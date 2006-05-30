@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 	}
     }
   thetime=time(NULL);
-  std::cout<<"ksPeSort:  Input file read without errors------"
+  std::cout<<"ksPeSort:  Input file read successfully------"
 	   <<ctime(&thetime)<<std::endl;
   pfPeFile->Close();
   std::cout<<"ksPesort: Number of PEs read in: "<<(long)pfPeFile->getNumPes()
