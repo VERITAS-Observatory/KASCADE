@@ -40,9 +40,6 @@
 
 #include "TROOT.h"
 
-const float gGammaAlpha  = -2.45;
-const float gProtonAlpha = -2.77;
-const float gHe4Alpha    = -2.64;
 
 const double kEventRateHZ=500.0;  //Allows for ~43*e6 event in a day(limit of
                                   //Qstats time etc).
@@ -151,7 +148,6 @@ int main(int argc, char** argv)
       // Do we need weights, that is do we make spectrum cuts?
       // ********************************************************************
 
-      int fType=0;
       KSEventWeights* pfWeights=NULL;
       float fXDummy=0;
       if(fWeightBySpectrum)
@@ -180,7 +176,9 @@ int main(int argc, char** argv)
 	  //   of files at each energy.
 	  // 3:Number of showers at each energy.
 	  // *****************************************************************
-	  std::map<int,int > fShowers;
+	   typedef std::map<int,int > fShwrMap_t;
+	   std::map<int, fShwrMap_t > fTypes;   //Map of a map
+
 	  
 	  //Ready to read in showers
 	  std::string fInputFileName;
@@ -198,44 +196,33 @@ int main(int argc, char** argv)
 		}
 	      //Now get stuff from the header
 	      //Primary type first
-	      int fPType = fSimHead.getCORSIKAParticleID();
-	      if(fType==0)
-		{
-		  fType=fPType;
-		}
-	      if(fType!=fPType)
-		{
-		  std::cout<<"ksSumVDFRootFiles: All showers in list must be "
-		    "have same primary type. Shower in file: "<<fInputFileName
-			   <<"has Corsika type: "<<fPType<<". Expected type: "
-			   <<fType<<std::endl;
-		  exit(1);
-		}
-	      
+	      int fType = fSimHead.getCORSIKAParticleID();
 	      // Now get energy
 	      int fEnergyGeV=(int)fSimHead.getEnergyGeV();
 
 	      // **********************************************************
 	      // Enter this stuff in the map. This is pretty tricky, uses
-	      // some pecularities of how map behave
+	      // some pecularities of how map behaves with use of []
 	      // **********************************************************
-	      // Get number (or create new entry in map ) for this energy
+	      // Get pointer to type map ( or create new entry in type map ) 
+	      // for this type
+	      fShwrMap_t fShowers = fTypes[fType];  //creates a fShwrMap_t if 
+	                                     //one doesn't exist with this key 
 	      int fNumShwr=fShowers[fEnergyGeV];
-	      //Incriment number of showers
+		  //Incriment number of showers
 	      fShowers[fEnergyGeV]=fNumShwr+1;
-	      
 	      //Close up the root file
 	      fFileIn.Close();
 	    }
 	  //done going through the list. 
 	  fListIn.close();
 	  // ***************************************************************
-	  // At this point our map fShowers has keys which are the different
+	  // At this point our maps fXShowers has keys which are the different
 	  // energies of all the showers in the List. The values for each of 
-	  // the keys is the number of showers at each energy. Thes entries 
+	  // the keys is the number of showers at each energy. These entries 
 	  // are ordered in fShowers in increasing energies (I hope)	      
 	  // ***************************************************************
-	  // Now get the weights. First we need the Alpha of the spectrum
+	  // Now get the weights. 
 	  //From CORSIKA manual Table 4 (pg 80 in current manual)
 	  //
 	  //gamma        1
@@ -249,29 +236,11 @@ int main(int argc, char** argv)
 	  //ION(Z,A)     A x 100 + Z
 	  //He(2,4)      402
 	  //Fe(26,56)    5626
-	  // 
-	  float fAlpha;
-	  if(fType==1)
-	    {
-	      fAlpha=gGammaAlpha;
-	    }
-	  else if(fType==14)
-	    {
-	      fAlpha=gProtonAlpha;
-	    }
-	  else if(fType==402)
-	    {
-	      fAlpha=gHe4Alpha;
-	    }
-	  else
-	    {
-	      std::cout<<"Unknown type requested: "<<fType
-		       <<" Alpha not known."<<std::endl;
-	      exit(1);
-	    }
-	  pfWeights = new KSEventWeights(fAlpha,fShowers);
+	  pfWeights = new KSEventWeights(fTypes);
 	  pfWeights->Print();
 	}
+
+
       // ******************************************************************
       // Now we are ready to start. Begin by creating the output file;
       // We make the assumption that all the files in the file list have the
@@ -325,9 +294,9 @@ int main(int argc, char** argv)
 			   <<std::endl;
 		  exit(1);
 		}
-	      fNumTels   = pfInRunHeader->fRunDetails.fTels; 
+	      fNumTels   = pfInRunHeader->pfRunDetails->fTels; 
 	      fFirstValidEventTime = 
-		               pfInRunHeader->fRunDetails.fFirstValidEventTime;
+		               pfInRunHeader->pfRunDetails->fFirstValidEventTime;
 	      std::cout<<"RunStart Time: "<< fFirstValidEventTime<<std::endl;
 	      pfSumFile->createFile( OutputVDFFileName,fNumTels,
 				                         fFirstValidEventTime);
@@ -366,8 +335,9 @@ int main(int argc, char** argv)
 	      if(fWeightBySpectrum)
 		{
 		  VAKascadeSimulationHead fSimHead(&fFileIn);
+		  int fType = fSimHead.getCORSIKAParticleID();
 		  int fEnergyGeV=(int)fSimHead.getEnergyGeV();
-		  fWeight=pfWeights->getWeight(fEnergyGeV);
+		  fWeight=pfWeights->getWeight(fType,fEnergyGeV);
 		}
 	      for(int index=0;index<fNumArrayEvents;index++)
 		{
@@ -376,44 +346,39 @@ int main(int argc, char** argv)
 	      // ***********************************************************
 	      // Are we weighting by the spectrum? do we cut this event?
 	      // ***********************************************************
-		  if(fWeightBySpectrum)
+		  if((fWeightBySpectrum &&pran(&fXDummy)<fWeight) || 
+		     !fWeightBySpectrum)
 		    {
-		      if(pran(&fXDummy)>fWeight)
-			{
-			  continue; //skip this event
-			}
-		    }
 	      // *********************************************************
 	      // Update event numbers here and maybe times
 	      // *********************************************************
-		  fFileIn.loadInArrayEvent(index);
+		      fFileIn.loadInArrayEvent(index);
+		  
+		      *pfSumCalEvent=*pfInCalEvent;  //copy over
+		      *pfSumSimEvent=*pfInSimEvent;
 
-		  *pfSumCalEvent=*pfInCalEvent;  //copy over
-		  *pfSumSimEvent=*pfInSimEvent;
+		      pfSumCalEvent->fArrayEventNum=fEventNum;
+		      fEventNum++;
 
-		  pfSumCalEvent->fArrayEventNum=fEventNum;
-		  fEventNum++;
-		  //std::cout<<"EventTime: "<< fEventTime<<std::endl;
+		      pfSumCalEvent->fArrayTime=fEventTime;
+		      int fEventNumTels=pfSumCalEvent->fTelEvents.size();
+		      for(int i=0;i<fEventNumTels;i++)
+			{
+			  pfSumCalEvent->fTelEvents[i].fTelTime=fEventTime;
+			}
 
-		  pfSumCalEvent->fArrayTime=fEventTime;
-		  int fEventNumTels=pfSumCalEvent->fTelEvents.size();
-		  for(int i=0;i<fEventNumTels;i++)
-		    {
-		      pfSumCalEvent->fTelEvents[i].fTelTime=fEventTime;
+		      fLastValidEventTime=fEventTime;
+		      double fEventTimeMJD=fEventTime.getMJDDbl();
+		      double fTimeGapDay=
+			Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
+
+		      fEventTimeMJD+=fTimeGapDay;
+		      fEventTime.setFromMJDDbl(fEventTimeMJD);
+
+		      pfSumFile->writeCalibratedArrayEvent(fNumTels);
+		      pfSumFile->writeSimulationData(); 
+		      fCountOut++;
 		    }
-
-		  fLastValidEventTime=fEventTime;
-		  double fEventTimeMJD=fEventTime.getMJDDbl();
-		  double fTimeGapDay=
-		                Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
-		  //std::cout<<"TimeGapDay: "<<fTimeGapDay<<std::endl;
-
-		  fEventTimeMJD+=fTimeGapDay;
-		  fEventTime.setFromMJDDbl(fEventTimeMJD);
-		  //std::cout<<"Event Time:"<<fEventTime<<std::endl;
-		  pfSumFile->writeCalibratedArrayEvent(fNumTels);
-		  pfSumFile->writeSimulationData(); 
-		  fCountOut++;
 		}
 	    }
 	  //std::cout<<"Read From Input file "<<fInputFileName<<" "
@@ -422,7 +387,7 @@ int main(int argc, char** argv)
 	  fFileIn.Close();
  	}
       VARunHeader* pfSumRunHeader=pfSumFile->getRunHeaderPtr();
-      pfSumRunHeader->fRunDetails.fLastValidEventTime=fLastValidEventTime;
+      pfSumRunHeader->pfRunDetails->fLastValidEventTime=fLastValidEventTime;
       pfSumFile->writeRunHeader();
       pfSumFile->writeCalibratedEventTree();
       pfSumFile->writeSimulationEventTree();
