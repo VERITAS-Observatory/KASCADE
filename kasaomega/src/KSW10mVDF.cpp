@@ -72,15 +72,15 @@ void KSW10mVDF::FillRunHeader(int runNumber)
 {
   //std::cout<<"KSW10mVDF:RunNumber: "<<runNumber<<std::endl;
   VARunHeader* pfRunHeader=pfOut->getRunHeaderPtr();
-  pfRunHeader->fRunDetails.fFirstEventTime=fStartTime;
-  pfRunHeader->fRunDetails.fRunNum=runNumber;
-  pfRunHeader->fRunDetails.fTels=1;
-  pfRunHeader->fRunDetails.fExpectedTels.resize(1);
-  pfRunHeader->fRunDetails.fExpectedTels.at(0)=true;
-  pfRunHeader->fRunDetails.fNumOfChans.resize(1);
-  pfRunHeader->fRunDetails.fNumOfChans.at(0)=fNumChannels;
-  pfRunHeader->fRunDetails.fFirstValidEventTime=
-                                   pfRunHeader->fRunDetails.fFirstEventTime;
+  pfRunHeader->pfRunDetails->fFirstEventTime=fStartTime;
+  pfRunHeader->pfRunDetails->fRunNum=runNumber;
+  pfRunHeader->pfRunDetails->fTels=1;
+  pfRunHeader->pfRunDetails->fExpectedTels.resize(1);
+  pfRunHeader->pfRunDetails->fExpectedTels.at(0)=true;
+  //pfRunHeader->pfRunDetails->fNumOfChans.resize(1);
+  //  pfRunHeader->pfRunDetails->fNumOfChans.at(0)=fNumChannels;
+  pfRunHeader->pfRunDetails->fFirstValidEventTime=
+                                   pfRunHeader->pfRunDetails->fFirstEventTime;
   return;
 }
 

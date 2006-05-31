@@ -56,7 +56,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfCamera->Print();
 
   // ************************************************************************
-  // We need to open, create and fill the non-event records in the ouput files.  // ************************************************************************
+  // We need to open, create and fill the non-event records in the output 
+  // files.  
+  // ************************************************************************
   // First, set up the Pixels status stuff( pedvars,badpixels and relative 
   // gains.
   // *************************************************************************
@@ -106,8 +108,11 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       VAPixelStatusData* pfPixOnOff = pfVDFStats->getPixelStatusPtr();
       VARelGainData* pfRelGain      = pfVDFStats->getRelGainDataPtr();
 
-      fFirstValidEventTime = pfRunHeader->fRunDetails.fFirstValidEventTime;
-      int fNumChannels=pfRunHeader->fRunDetails.fNumOfChans.at(0);  
+      fFirstValidEventTime = pfRunHeader->pfRunDetails->fFirstValidEventTime;
+
+      VAArrayInfo* pfArrayInfo      = pfVDFStats->getArrayInfoPtr();
+      int fNumChannels= pfArrayInfo->telescope(0)->numChannels();
+      //int fNumChannels=pfRunHeader->pfRunDetails->fNumOfChans.at(0);  
       if(fNumChannels!=fNumPixels)
 	{
 	  std::cout<<"ksAomega: KSEvent: NumChannels ("
@@ -502,8 +507,9 @@ void KSEvent::Close()
   pfVDFOut->writeCalibratedEventTree();
   pfVDFOut->writeSimulationEventTree();
 
-  pfRunHeader->fRunDetails.fNumArrayEvents=(int)pfVDFOut->getNumArrayEvents();
-  pfRunHeader->fRunDetails.fLastEventTime=fEventTime;
+  pfRunHeader->pfRunDetails->fNumArrayEvents=
+                                      (int)pfVDFOut->getNumArrayEvents();
+  pfRunHeader->pfRunDetails->fLastEventTime=fEventTime;
   pfVDFOut->writeRunHeader(); //This needed regardless of rest 
                                            //of file contents
   pfVDFOut->writeArrayInfo();
