@@ -20,22 +20,37 @@
 #include "KSEventWeights.h"
 
 //	New gamma flux parameters from Dave Lewis 15/5/96
-const float gGammaAlpha  = -2.45;
-const float gGammaIPhi   =  7.16e-3;           //Spectral Amplitude for gammas
+const double gGammaAlpha  = -2.45;
+const double gGammaIPhi   =  7.16e-3;           //Spectral Amplitude for gammas
                                                //Units=/m**2/sec/GeV
 
 //Update to lastest proton and He4 spectra from: Weibel-Smith et.al. 
 //Astronomy and Astrophysics, 300(1), pg.389-398,Feb. 1, 1998
-const float gProtonAlpha = -2.77;
-const float gProtonIPhi  =  2.35e4;	       //Spectral Amplitude for protons
+const double gProtonAlpha = -2.77;
+const double gProtonIPhi  =  2.35e4;	       //Spectral Amplitude for protons
 					       //Units=/m**2/sec/sr/GeV
-const float gHe4Alpha    = -2.64;
-const float gHe4IPhi     =  5.98e3;	       //Spectral Amplitude Helium
+const double gHe4Alpha    = -2.64;
+const double gHe4IPhi     =  5.98e3;	       //Spectral Amplitude Helium
 					       //Units=/m**2/sec/sr/GeV
 
 
 
-KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers) 
+KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t> Showers) 
+// ********************************************************************** 
+// Save the input map of maps
+// ********************************************************************** 
+{
+  fShowers=Showers;
+}
+// ********************************************************************** 
+
+KSEventWeights::~KSEventWeights()
+{
+  // Nothing to do
+}
+// ************************************************************************
+
+void KSEventWeights::calculateWeights() 
 {
   // ********************************************************************** 
   //Maps are screwy and you have to look very carefully at whats being done 
@@ -51,47 +66,56 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
   // **********************************************************************
   // Iterate through the types.
   // **********************************************************************
-  for(typePos=fShowers.begin();typePos != fShowers.end();typePos++)
+  for(fShowersPos=fShowers.begin();fShowersPos != fShowers.end();fShowersPos++)
     {
-      int fShowerType=typePos->first;  //'first is the 'key'
-
-      // Using the [] operator below will create an element entry if the 
-      // 'key' doesn't exist yet.
-      fShwrWeightMap_t fTypeWeightMap = fWeightMap[fShowerType];
-      fShwrMap_t fTypeNumMap = fNumMap[fShowerType];
+      // ******************************************************************
+      // Create entries in the ouput maps if we need to, and get
+      // iterators to maps of this type
+      // ******************************************************************
+      int fShowerType=fShowersPos->first;  //'first' is the 'key'
+      fWeightPos = fWeightMap.find(fShowerType);
+      if(fWeightPos==fWeightMap.end())
+	{
+	  fWeightMap[fShowerType]; // Using the [] operator will create an 
+	                           // element entry. see pg 202 C++ std book
+	  fWeightPos = fWeightMap.find(fShowerType);
+	}
+      fNumPos = fNumMap.find(fShowerType);
+      if(fNumPos==fNumMap.end())
+	{
+	  fNumMap[fShowerType];
+	  fNumPos = fNumMap.find(fShowerType);
+	}
 
       // ******************************************************************
       // Energies will be sorted within the type map.
       // ******************************************************************
-      int fNumEnergies=typePos->second.size();  //second is the 'value'  In 
-                                                //this case a  fShwrMap_t map
-
+      int fNumEnergies=fShowersPos->second.size(); //second is the 'value'  In 
+                                                  //this case a  fShwrMap_t map
       if(fNumEnergies==1)	       //single shower only.
 	{
-	  int fEnergy=typePos->second.begin()->first;
-	  fTypeWeightMap[fEnergy]=1.0;
-	  int fNum= typePos->second.begin()->second;
-
-	  fTypeNumMap[fEnergy]=fNum;
-	  //creates energy as map entry key and sets associated value
+	  int fEnergy=fShowersPos->second.begin()->first;
+	  fWeightPos->second[fEnergy]=1.0;
+	  int fNum= fShowersPos->second.begin()->second;
+	  fNumPos->second[fEnergy]=fNum;
 	}
       else
 	{
-	  float fDAlpha=0;
-	  float fIPhi=0;
+	  double fIAlpha=0;  //Integrel index
+	  double fIPhi=0;
 	  if(fShowerType==1)  //Check Corsika type
 	    {
-	      fDAlpha=gGammaAlpha;
+	      fIAlpha=1.+gGammaAlpha;
 	      fIPhi=gGammaIPhi;
 	    }
 	  else if(fShowerType==14)
 	    {
-	      fDAlpha=gProtonAlpha;
+	      fIAlpha=1.+gProtonAlpha;
 	      fIPhi=gProtonIPhi;
 	    }
 	  else if(fShowerType==402)
 	    {
-	      fDAlpha=gHe4Alpha;
+	      fIAlpha=1.+gHe4Alpha;
 	      fIPhi=gHe4IPhi;
 	    }
 	  else
@@ -100,10 +124,15 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
 		"Particle type: "<<fShowerType<<std::endl;
 	      exit(1);
 	    }
-	  fEnergiesGeV.clear();   //get stuff into vectors just to maske the 
-	  fNumShowers.clear();    //code clearer
+	  
+	  // *****************************************************************
+	  //get stuff into vectors just to maske the code clearer
+	  // *****************************************************************
+	  fEnergiesGeV.clear(); 
+	  fNumShowers.clear();
  	  fWeightsVector.resize(fNumEnergies,0.0);
-	  for(pos=typePos->second.begin();pos != typePos->second.end();pos++)
+	  for(pos=fShowersPos->second.begin()
+		;pos != fShowersPos->second.end();pos++)
 	    {
 	      fEnergiesGeV.push_back(pos->first);
 	      fNumShowers.push_back(pos->second);
@@ -121,14 +150,11 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
 	  // ****************************************************************
 	  // Using C pow(x,y)=x**y  function,  integrel of E**alpha from wl to
 	  // wh; constants retained for different types
-	  // *****************************************************************
-	  double fFluxConst=(fIPhi/(fDAlpha+1.0));
-	  float fW=fFluxConst*
-	    (pow(fWidthLow,(fDAlpha+1.0))-pow(fWidthHigh,(fDAlpha+1.0)));
-	  fWeightsVector[0]=(fW/fNumShowers[0]);
-	  fTypeWeightMap[fEnergiesGeV[0]]=fWeightsVector[0];
-	  fTypeNumMap[fEnergiesGeV[0]]=fNumShowers[0];
-
+	  // ****************************************************************
+	  double fFluxConst=(fIPhi/(fIAlpha));
+	  double fW=pow(fWidthHigh,(fIAlpha)) -  pow(fWidthLow, (fIAlpha));
+	  fW=fFluxConst*fW/fNumShowers[0];
+	  fWeightsVector[0]=fW;
 	  // ****************************************************
 	  // Now the rest
 	  // ****************************************************
@@ -153,11 +179,9 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
 		  double fWidthH=(double)fEnergiesGeV[i-1] +
 		    (((double)fEnergiesGeV[i]-(double)fEnergiesGeV[i-1])/2);
 		  fWeightsVector[i-1]=fFluxConst*
-		    (pow(fWidthL,(fDAlpha+1.0))-pow(fWidthH,(fDAlpha+1.0)));
+		    (pow(fWidthH,(fIAlpha))-pow(fWidthL,(fIAlpha)));
 
 		  fWeightsVector[i-1]=fWeightsVector[i-1]/fNumShowers[i-1];
-		  fTypeWeightMap[fEnergiesGeV[i-1]]=fWeightsVector[i-1];
-
 		  fWidthLow=fWidthH;
 		  fWidthHigh=(double)fEnergiesGeV[i]+((double)fEnergiesGeV[i]-
 						      fWidthLow);
@@ -167,15 +191,22 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
 	      // integrel of E**alpha from fWidthL to fWidthH; 
 	      // *************************************************************
 	      fWeightsVector[i]=fFluxConst*
-		(pow(fWidthLow,(fDAlpha+1.0))-pow(fWidthHigh,(fDAlpha+1.0)));
+		(pow(fWidthHigh,(fIAlpha))-pow(fWidthLow,(fIAlpha)));
 		  //Compensate for multiple showers at each energy
 	      fWeightsVector[i] = fWeightsVector[i]/fNumShowers[i];
 	      // *************************************************************
 	      // Now place this "weight" into the map. We will normalize later
 	      //after all types are done.
 	      // *************************************************************
-	      fTypeWeightMap[fEnergiesGeV[i]]=fWeightsVector[i];
-	      fTypeNumMap[fEnergiesGeV[i]]=fNumShowers[i];
+	    }
+
+	  // ****************************************************************
+	  // Now fill the Weight and Num maps
+
+	  for(int i=0;i<fNumEnergies;i++)
+	    {
+	      fWeightPos->second[ fEnergiesGeV[i] ]=(float)fWeightsVector[i];
+	      fNumPos->second[ fEnergiesGeV[i] ]=fNumShowers[i];
 	    }
 	}
     }
@@ -183,29 +214,31 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
   // Find the max weight
   // *************************************************************
   fMaxWeight=0.;
-  for(weightPos=fWeightMap.begin();weightPos != fWeightMap.end();weightPos++)
+  for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end();
+      fWeightPos++)
     {
 
-    for(typeWeightPos=weightPos->second.begin();
-	typeWeightPos!=weightPos->second.end();weightPos++)
+    for(fShowerWeightPos=fWeightPos->second.begin();
+	fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
       {
-	if((typeWeightPos->second) > fMaxWeight)
+	if((fShowerWeightPos->second) > fMaxWeight)
 	{
-	  fMaxWeight=typeWeightPos->second;
+	  fMaxWeight=fShowerWeightPos->second;
 	}
       }    
     }         
   // ***********************************************************************
   // Re-scale so maximum weight is 1.0: all types
   // ***********************************************************************
-  for(weightPos=fWeightMap.begin();weightPos != fWeightMap.end();weightPos++)
+  for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end()
+;fWeightPos++)
     {
 
-      for(typeWeightPos=weightPos->second.begin();
-	  typeWeightPos!=weightPos->second.end();weightPos++)
+      for(fShowerWeightPos=fWeightPos->second.begin();
+	  fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
 	{
 
-	  typeWeightPos->second=typeWeightPos->second/fMaxWeight;
+	  fShowerWeightPos->second=fShowerWeightPos->second/fMaxWeight;
 	}
     }
     // And we are done.
@@ -213,50 +246,50 @@ KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t>& fShowers)
 }
 // **************************************************************************
 
-KSEventWeights::~KSEventWeights()
-{
-  // Nothing to do
-}
+float KSEventWeights::getWeight(int type, int energyGeV)
 // **************************************************************************
-
-
- float KSEventWeights::getWeight(int type, int energyGeV)
+// Find in our map of maps 
+// **************************************************************************
 {
-  weightPos=fWeightMap.find(type);
-  if(weightPos == fWeightMap.end())
+  fWeightPos=fWeightMap.find(type);
+  if(fWeightPos == fWeightMap.end())
     {
       std::cout<<"KSEventWeights: Failed to find Corsika type: "
 	       <<type<<std::endl;
       exit(1);
     }
-  typeWeightPos=weightPos->second.find(energyGeV);
-  if(typeWeightPos == weightPos->second.end())
+  fShowerWeightPos=fWeightPos->second.find(energyGeV);
+  if(fShowerWeightPos == fWeightPos->second.end())
     {
       std::cout<<"KSEventWeights: Failed to find Energy (Gev)"<<energyGeV
 	       <<std::endl;
       exit(1);
     }
-  return typeWeightPos->second;
+  return fShowerWeightPos->second;
 }
 // **************************************************************************
 
 void KSEventWeights::Print()
 // **************************************************************************
 {
-  std::cout<<"Type Energy(GeV) Weight(Gev) #showers "<<std::endl;
+  std::cout<<" Type Energy(GeV) Weight #showers"<<std::endl;
 
-  for(weightPos=fWeightMap.begin();weightPos != fWeightMap.end();weightPos++)
+  for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end();
+      fWeightPos++)
     {
-
-      fShwrMap_t fTypeNumMap=fNumMap[weightPos->first];
-      for(typeWeightPos=weightPos->second.begin();
-	  typeWeightPos!=weightPos->second.end();weightPos++)
+      
+      int fShowerType=fWeightPos->first;
+      fNumPos = fNumMap.find(fShowerType);
+      for(fShowerWeightPos=fWeightPos->second.begin();
+	  fShowerWeightPos!=fWeightPos->second.end();
+	  fShowerWeightPos++)
 	{
-	  typeNumPos=fTypeNumMap.find(typeWeightPos->first);
-	  std::cout<<std::setw(5)<< weightPos->first<<std::setw(11)
-		   <<typeWeightPos->first<<std::setw(12)
-		   <<typeWeightPos->second
-		   <<std::setw(9)<<typeNumPos->second<<std::endl;
+	  int fEnrgy=fShowerWeightPos->first;
+	  pos=fNumPos->second.find(fEnrgy);
+	  int fNum=pos->second;
+	  float fWt=fShowerWeightPos->second;
+	  std::cout<<std::setw(5)<<fShowerType<<std::setw(11)<<fEnrgy<<" "
+		   <<std::setw(6)<<fWt<<std::setw(9)<<fNum<<std::endl;
 	}     
     }
   return;

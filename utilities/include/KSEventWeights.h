@@ -32,14 +32,15 @@ typedef std::map<int,float > fShwrWeightMap_t;
 class KSEventWeights
 {
  public:
-  KSEventWeights(std::map<int, fShwrMap_t>& fShowers); 
-                                      //constructor will generate the weights 
+  KSEventWeights(std::map<int, fShwrMap_t> Showers); 
   ~KSEventWeights();
+  void calculateWeights();
   float getWeight(int type, int fEnergyGeV);
   float getMaximumWeight(){return fMaxWeight;};
   void  Print();
  private:
-  std::map<int, fShwrMap_t >::iterator typePos;
+  std::map<int, fShwrMap_t> fShowers;
+  std::map<int, fShwrMap_t >::iterator fShowersPos;
   fShwrMap_t::iterator pos;
 
   float fMaxWeight;
@@ -47,19 +48,13 @@ class KSEventWeights
   std::vector<float> fWeightsVector;
   std::vector<int> fEnergiesGeV;
   std::vector<int> fNumShowers;
-  std::vector<int> fType;
 
   std::map<int, fShwrWeightMap_t > fWeightMap;   //Map of a map
-  fShwrWeightMap_t::iterator typeWeightPos;
-  std::map<int, fShwrWeightMap_t >::iterator weightPos;
+  std::map<int, fShwrWeightMap_t >::iterator fWeightPos;
+  fShwrWeightMap_t::iterator fShowerWeightPos;
 
   std::map<int, fShwrMap_t > fNumMap;   //Map of a map
-  fShwrMap_t::iterator typeNumPos;
-  std::map<int, fShwrMap_t >::iterator numPos;
-
-
-
-
+  std::map<int, fShwrMap_t >::iterator fNumPos;
 };
 
 #endif
