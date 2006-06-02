@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 	  fWeightBySpectrum=true;
 	}
       std::string fRandomSeedFileName;
-      if(!command_line.findWithValue("GrISUPilotFileName",fRandomSeedFileName,
+      if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
 				    "Ranlux seed file")
 	 == VAOptions::FS_FOUND)
 	{
@@ -176,10 +176,11 @@ int main(int argc, char** argv)
 	  //   of files at each energy.
 	  // 3:Number of showers at each energy.
 	  // *****************************************************************
-	   typedef std::map<int,int > fShwrMap_t;
+	  // typedef std::map<int,int > fShwrMap_t;
 	   std::map<int, fShwrMap_t > fTypes;   //Map of a map
+	   std::map<int, fShwrMap_t >::iterator fTypesPos;
+	   fShwrMap_t::iterator fShowerDataPos;
 
-	  
 	  //Ready to read in showers
 	  std::string fInputFileName;
 	  while(getline(fListIn,fInputFileName))
@@ -201,26 +202,42 @@ int main(int argc, char** argv)
 	      int fEnergyGeV=(int)fSimHead.getEnergyGeV();
 
 	      // **********************************************************
-	      // Enter this stuff in the map. This is pretty tricky, uses
-	      // some pecularities of how map behaves with use of []
+	      // Enter this stuff in the map. This is pretty tricky, we use
+	      // iterators to avoid copying maps. Much faster that way
 	      // **********************************************************
-	      // Get pointer to type map ( or create new entry in type map ) 
-	      // for this type
-	      fShwrMap_t fShowers = fTypes[fType];  //creates a fShwrMap_t if 
+	      fTypesPos=fTypes.find(fType);
+	      if(fTypesPos==fTypes.end())  //If fType doesn't exist as a key
+		{                           //create it. See pg 206 C_++ std 
+		                            //book for [] operator
+		  fTypes[fType];
+		  fTypesPos=fTypes.find(fType);
+		}
+	      fShowerDataPos=fTypesPos->second.find(fEnergyGeV);
+	      if(fShowerDataPos==fTypesPos->second.end())
+		{
+		  fTypesPos->second[fEnergyGeV];
+		  fShowerDataPos=fTypesPos->second.find(fEnergyGeV);
+		}
+	      int fNumShwr=fShowerDataPos->second;
+	      fShowerDataPos->second=fNumShwr+1;
+
+
+	      //fShwrMap_t fShowers = fTypes[fType];  //creates a fShwrMap_t if 
 	                                     //one doesn't exist with this key 
-	      int fNumShwr=fShowers[fEnergyGeV];
+	      //int fNumShwr=fShowers[fEnergyGeV];
 		  //Incriment number of showers
-	      fShowers[fEnergyGeV]=fNumShwr+1;
-	      //Close up the root file
-	      fFileIn.Close();
+	      //fShowers[fEnergyGeV]=fNumShwr+1;   //bump the shwer count
+	      // fTypes[fType]=fShowers;       //restore back into the map of maps
+
+	      fFileIn.Close();	            //Close up the root file
 	    }
 	  //done going through the list. 
 	  fListIn.close();
 	  // ***************************************************************
-	  // At this point our maps fXShowers has keys which are the different
+	  // At this point our maps in fTypes have keys which are the different
 	  // energies of all the showers in the List. The values for each of 
 	  // the keys is the number of showers at each energy. These entries 
-	  // are ordered in fShowers in increasing energies (I hope)	      
+	  // are ordered in out type maps  in increasing energies (I hope)
 	  // ***************************************************************
 	  // Now get the weights. 
 	  //From CORSIKA manual Table 4 (pg 80 in current manual)
@@ -237,6 +254,7 @@ int main(int argc, char** argv)
 	  //He(2,4)      402
 	  //Fe(26,56)    5626
 	  pfWeights = new KSEventWeights(fTypes);
+	  pfWeights->calculateWeights();
 	  pfWeights->Print();
 	}
 
