@@ -262,13 +262,41 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSTriggerDataIn",
 		    "ON enables the use of a special Theta/Phi mount "
                     "redirection mode useful for Drift-scan modeling of Gamma "
-		    "(signal) events. OFF (default) disables.");
+		    "(signal) events. OFF (default) disables. If this option "
+		    "is chosen then you should also set -MaximumThetaDeg=1.0 "
+		    "(for example).");
+  doVAConfiguration(file, command_line, 
+		    "MaximumThetaDeg",sDefaultMaximumThetaDeg,
+		    "KSTriggerDataIn",
+		    "Random direction of hadrons is modeled by looking for "
+		    "triggers when the mount is pointed in a random direction "
+		    "less than this value form the nominal direction. Used "
+		    "when MultipleMountDirections=ON. Also used when "
+		    "DriftingGammas=ON chosen for range of directions.");
+  doVAConfiguration(file, command_line, 
+		    "DriftedGammaStepSizeDeg",sDefaultDriftedGammaStepSizeDeg,
+		    "KSTriggerDataIn",
+		    "For DriftedGammas=ON events: Specifies the size of steps "
+		    "to take in RA away from the original direction.");
   doVAConfiguration(file, command_line, 
 		    "UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn,
 		    "KSTriggerDataIn",
 		    "ON enables the use of the MountElevationDeg to "
 		    "determine MountDirectionXDl, MountDirectionYDm and "
 		    "MountDirectionZDn. This is part of DriftingGammas mode.");
+  doVAConfiguration(file, command_line, 
+		    "MultipleMountDirections",sDefaultMultipleMountDirections,
+		    "KSTriggerDataIn",
+		    "ON enables the use of random directions within a circle "
+		    "of radius MaximumThetaDeg of original Mount direction "
+                    "for each event. This models the random arrival "
+		    "directions of Cosmic ray showers.");
+  doVAConfiguration(file, command_line, 
+		    "NumDirections",sDefaultNumDirections,
+		    "KSTriggerDataIn",
+		    "For non-gamma events: Specifies the number of random "
+		    "directions to test for triggers for each event. Used "
+		    "only when MultipleMountDirections=ON");
   doVAConfiguration(file, command_line, 
 		    "LoadMountDirectionsFromFile",
 		    sDefaultLoadMountDirectionsFromFile,
@@ -293,13 +321,6 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "LoadMountDirectionsFromFile and "
 		    "SaveMountDirectionsToFile options.");
   doVAConfiguration(file, command_line, 
-		    "MultipleMountDirections",sDefaultMultipleMountDirections,
-		    "KSTriggerDataIn",
-		    "ON enables the use of random directions within a circle "
-		    "of radius MaximumThetaDeg of original Mount direction "
-                    "for each event. This models the random arrival "
-		    "directions of Cosmic ray showers.");
-  doVAConfiguration(file, command_line, 
 		    "NoiseRate",sDefaultNoiseRate,
 		    "KSTriggerDataIn",
 		    "Night sky shine rate in pes/deg/ns (after application of "
@@ -323,24 +344,6 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "testing for a trigger. Models dirty mirrors, dirty air, "
 		    "dirty pmts/lightcones etc.  Allowed range is 0.0 -> 1.0 "
 		    "inclusive.");
-  doVAConfiguration(file, command_line, 
-		    "MaximumThetaDeg",sDefaultMaximumThetaDeg,
-		    "KSTriggerDataIn",
-		    "Random direction of hadrons is modeled by looking for "
-		    "triggers when the mount is pointed in a random direction "
-		    "less than this value form the nominal direction. Used "
-		    "when MultipleMountDirections=ON");
-  doVAConfiguration(file, command_line, 
-		    "NumDirections",sDefaultNumDirections,
-		    "KSTriggerDataIn",
-		    "For non-gamma events: Specifies the number of random "
-		    "directions to test for triggers for each event. Used "
-		    "when MultipleMountDirections=ON");
-  doVAConfiguration(file, command_line, 
-		    "DriftedGammaStepSizeDeg",sDefaultDriftedGammaStepSizeDeg,
-		    "KSTriggerDataIn",
-		    "For DriftedGammas=ON events: Specifies the size of steps "
-		    "to take in theta away from the original direction.");
   doVAConfiguration(file, command_line, 
 		    "TriggerMultiplicity",sDefaultTriggerMultiplicity,
 		    "KSTriggerDataIn",

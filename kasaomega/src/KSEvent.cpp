@@ -168,7 +168,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  pfCamera->fPixel[chan].fPedVarRel=pedvar; 
 
 	  bool fPixelSuppressed=false;
-	  bool fChannelIsPMT=false;
+	  bool fChannelIsPMT=true;
 	  if(pfDataIn->fUseBadPixelSupression)
 	    {
 	      fChannelIsPMT=

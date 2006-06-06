@@ -382,15 +382,7 @@ void KSArea::ProcessImages()
 	  fTe.fNy=fAreaNy;
 	  fTe.fAomega=pfMountDir->fAomega;
 	  
-	  if(fDriftingGammas || !fMultipleMountDirections)
-	    {
-	      int fITheta;
-	      int fIPhi;
-	      pfMountDir->getIThetaIPhi(ithphi,fPhiSteps,fITheta,fIPhi); 
-	      fTe.fThetaIndex     = fITheta;
-	      fTe.fPhiIndex       = fIPhi;
-	    }
-	  else if(fMultipleMountDirections)
+	  if(fDriftingGammas || fMultipleMountDirections)
 	    {	//Save actual theta phi (in radians*1000) for multiple 
                 //directions
 	      fTe.fThetaIndex     = (int)pfMountDir->pfSTheta[ithphi]*1000;

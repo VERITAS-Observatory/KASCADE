@@ -60,22 +60,20 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       // --------------------------------------------------------------
       //For the whipple strip we need to get GAMMA efficiencies all over 
       //the camera. Do this by treating gammas as hadrons (tilting the 
-      //mount)We want to step in theta only up to MaximumThetaDeg (2. degs 
-      //nominally) and since we set the step size to StepSize (nominally 
-      // =.1 deg=.4 min)),then we don't really care about phi steps use 
-      //the smallest we can (2 I think)
+      //mount) along the RA direction. We want to step in theta from
+      // -MaximumThetaDeg to + MaximumThetaDeg(2. degs 
+      //nominally). We set the step size to StepSize (nominally 
+      // =.1 deg=.4 min))
       // *****************************************************************
-      fPhiSteps=2;                //2 is the minimum number I think
       //Integer round down here
-      fThetaSteps = 
-	(int)( (pfTeHead->fMaximumThetaRad/fStepSizeRad) +
-	       fStepSizeRad/2. + 1  );
-      fNumDirections = fPhiSteps*((fThetaSteps-1)*fThetaSteps/2) + 1;
-      fMultipleMountDirections=true;
+      int fThetaSteps = (int)((pfTeHead->fMaximumThetaRad/fStepSizeRad) +
+	       fStepSizeRad/2.);
+      //we want ThetaSteps to be odd so that the central direction is a 0,0
 
-      double fOmega=2*M_PI*(1.-cos(fStepSizeRad));
-      fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
-      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
+      fNumDirections = 2*fThetaSteps+1;
+      fMultipleMountDirections=true;
+      fAomega=fXAreaWidthM*fYAreaWidthM;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
     }
   else if(!fMultipleMountDirections)
     {
@@ -85,10 +83,12 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
     }
   else
     {
-      double fOmega=2*M_PI*(1.-cos(pfTeHead->fMaximumThetaRad))/fNumDirections;
+     double fOmega=2*M_PI*(1.-cos(pfTeHead->fMaximumThetaRad))/fNumDirections;
       fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
       std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
     }
+  std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections
+	   <<std::endl;
 // ***********************************************************************
 //  Allocate Some direction arrays and load them up.
 // ***********************************************************************
@@ -131,6 +131,9 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // ****************************************************************************
 // For hadrons (multipleDirections) we random;ly pick the new direrctions 
 // (fNumDirections of them) from a circle of radius fMaximumThetaRad.
+// ****************************************************************************
+//  For Drifting Gammas we go +/- MaxThetaDeg in RA. This is a special mode
+//  for the whipple strip analyis.
 // ****************************************************************************
 //	Modified:
 // Previous notes:
@@ -182,7 +185,6 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // *************************************************************************
 //Iterate over all directions(only 1 step for pure gammas)
 // *************************************************************************
-  std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections<<std::endl;
 
   for(int ithphi=0;ithphi<fNumDirections;ithphi++)
     {
@@ -190,20 +192,8 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       double fRANew;
       double fPhi=0;
       double fTheta=0;
-      //double fTempRA=0;
-      //double fTempDec=0;
       if(!fDriftingGammas && fMultipleMountDirections)
 	{
-	  //For multiple directions we don't want to bias things by always 
-	  //havine one direction always on axis.
-	  //if(ithphi==0)  //Do theta=0 special. phi==0
-	  // {
-	  //   for(int k=0;k<3;k++)fM[k]=fMount[k];   
-	  //   pfSTheta[ithphi]=0;     //Save theta and phi in radians
-	  //    pfSPhi[ithphi]=0;
-	  //  }
-	  //else
-	  //  {
 	  fPhi=2*M_PI*pran(&fXDummy);    //Must be in Radians
 	  fTheta=pfTeHead->fMaximumThetaRad *
 	    sqrt(pran(&fXDummy));//Random r**2 distribution
@@ -212,34 +202,33 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 	  vectorRedirect(fTheta, fPhi, fX0,fY0,fMount,fM);
 	  pfSTheta[ithphi]=fTheta;     //Save theta and phi in radians
 	  pfSPhi[ithphi]=fPhi;
-	  //  }
 	}
       else if(fDriftingGammas)
 	{  
-	  if(ithphi==0)  //Do theta=0 special. only phi=0.(itheta=1,iphi=1)
+	  // *************************************************************
+	  // Set up all the directions. ONly generate those we need. we do want
+	  // one in the center => fNumDirections should be odd.
+	  // *************************************************************
+	  //Do theta=0 special. only phi=0.(itheta=1,iphi=1)
+	  pfSPhi[ithphi]=0;
+	  if(ithphi==0)
 	    {
 	      for(int k=0;k<3;k++)fM[k]=fMount[k];   
 	      pfSTheta[ithphi]=0;     //Save theta and phi in radians
-	      pfSPhi[ithphi]=0;
 	    }
  	  else
 	    {
-	      int fITheta;
-	      int fIPhi;
-	      getIThetaIPhi(ithphi,fPhiSteps,fITheta,fIPhi);
-	      if((fIPhi!=1) && (fIPhi!=fITheta))    
-		//Drifting gammas ignore directions we 
-		{                     //don't want
-		  continue;
-		}
-	      if(fIPhi==1)
+	      int fITheta=(ithphi-1)/2+1;  //Integer round down
+	      if(ithphi%2==1)  //ithphi odd :% is mod operator
 		{
 		  //Along positive X (-ra)
-		  fRANew=fRA-(fITheta-1)*fStepSizeRad;
+		  fRANew=fRA-fITheta*fStepSizeRad;
+		  pfSTheta[ithphi]=-fITheta*fStepSizeRad; 
 		}
 	      else
-		{                                    //Along negative X (+ra)
-		  fRANew=fRA+(fITheta-1)*fStepSizeRad;
+		{    //ithphi even              //Along negative X (+ra)
+		  fRANew=fRA+fITheta*fStepSizeRad;
+		  pfSTheta[ithphi]=+fITheta*fStepSizeRad; 
 		}
 	      W10mGetVecFromRaDec(fRANew,fDec,fM,gLatitude[fCameraType]);
 	    }
