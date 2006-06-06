@@ -144,7 +144,7 @@ void KSW10mVDF::FillW10mRelGains(const float* gain)
       VAChanRelGains tempChanRelGains;
       tempChanRelGains.fChanNum=i;
       tempChanRelGains.fNumEvtsAcc=1000;   //arbitrary
-      tempChanRelGains.fMean=1./gain[i];
+      tempChanRelGains.fMean=gain[i];
       tempChanRelGains.fVar=sqrt(gain[i]);//arbitrary
 
       tempTelRelGains.fLowGainChanColl.push_back(tempChanRelGains);

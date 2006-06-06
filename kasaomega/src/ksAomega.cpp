@@ -221,6 +221,7 @@ int main(int argc, char** argv)
     // -----------------------------------------------------------------------
       if(load_config)
 	{
+	  std::cout<<"ksAomega: Config File Name:"<<load_filename<<std::endl;
 	  config_file.loadConfigFile(load_filename);
 	}
 

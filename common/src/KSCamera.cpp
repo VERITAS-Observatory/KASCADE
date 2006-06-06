@@ -401,6 +401,7 @@ bool KSCamera::trywhipple490OuterPixels(double fXDeg, double fYDeg, int& fIPix)
 void KSCamera::InitPixelImageData()
 // **************************************************************************
 // INitalize (set to zero) those parts of all pixels that vary image to image
+// Called in KSEvent::BuildImage
 // **************************************************************************
 {
   for(int i=0;i<fNumPixels;i++)
@@ -441,6 +442,10 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   //  }
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
+      // **************************************************************
+      // This check of fBadPixel leaves the fCFDTriggerTimeNS=gOverflowTimeNS
+      // For bad pixels (set in BuildImage by call to InitPixelImageData)
+      // ***********************************************************
       if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)
 	{
 	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
@@ -473,7 +478,11 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   // ******************************************************************** 
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
-      if(fPixel[i].fTimePe.size()==0)
+      // **************************************************************
+      // This check of fBadPixel leaves the fCFDTriggerTimeNS=gOverflowTimeNS
+      // For bad pixels (set in BuildImage by call to InitPixelImageData)
+      // ***********************************************************
+      if(fPixel[i].fTimePe.size()==0 && !fPixel[i].fBadPixel)
 	{
 	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
 	  fPixel[i].AddNoiseToWaveForm(false);
@@ -497,13 +506,19 @@ void KSCamera::buildNonTriggerWaveForms()
 {
   for(int i=fNumPixelsTrigger;i<fNumPixels;i++)
     {
-      fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
-      if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)
+      // **************************************************************
+      // This check of fBadPixel just saves some time
+      // ***********************************************************
+      if(!fPixel[i].fBadPixel)
 	{
-	  fPixel[i].BuildPeWaveForm();
+	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
+	  if(fPixel[i].fTimePe.size()>0)
+	    {
+	      fPixel[i].BuildPeWaveForm();
+	    }
+	  fPixel[i].AddNoiseToWaveForm(false);
+	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
 	}
-      fPixel[i].AddNoiseToWaveForm(false);
-      fPixel[i].RemoveNightSkyPedestalFromWaveForm();
     } 
   return;
 }

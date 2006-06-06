@@ -22,9 +22,10 @@ std::string KSAomegaDataIn::sDefaultRootFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultPixelStatsRootFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultRandomSeedFileName=" ";//empty;;
 
-std::string KSAomegaDataIn::sDefaultRelativeGains="OFF"; 
-std::string KSAomegaDataIn::sDefaultRelativePedVars="OFF";
-std::string KSAomegaDataIn::sDefaultBadPixelSupression="OFF";
+std::string KSAomegaDataIn::sDefaultRelativeGains="ON"; 
+std::string KSAomegaDataIn::sDefaultRelativePedVars="ON";
+std::string KSAomegaDataIn::sDefaultBadPixelSupression="ON";
+std::string KSAomegaDataIn::sDefaultTelescope="T1";
 
 int         KSAomegaDataIn::sDefaultNewPatternTriggerLevel=3;
 int         KSAomegaDataIn::sDefaultNewTriggerMultiplicity=3; 
@@ -59,6 +60,10 @@ KSAomegaDataIn::KSAomegaDataIn()
   std::transform(sDefaultBadPixelSupression.begin(),
 		 sDefaultBadPixelSupression.end(),
 		 sDefaultBadPixelSupression.begin(),
+		 toupper);
+  std::transform(sDefaultTelescope.begin(),
+		 sDefaultTelescope.end(),
+		 sDefaultTelescope.begin(),
 		 toupper);
   // -------------------------------------------------------------------
   // Decode selections
@@ -97,6 +102,30 @@ KSAomegaDataIn::KSAomegaDataIn()
       std::cout<<"Illegal option for BadPixelSupression: "
 	       <<sDefaultBadPixelSupression
 	       <<" Assuming BadPixelSupression=OFF"<<std::endl;
+    }
+
+  if(sDefaultTelescope=="T1")
+    {
+      fTelescope=E_T1;
+    }
+  else if(sDefaultTelescope=="T2")
+    {
+      fTelescope=E_T2;
+    }
+  else if(sDefaultTelescope=="T3")
+    {
+      fTelescope=E_T3;
+    }
+  else if(sDefaultTelescope=="T4")
+    {
+      fTelescope=E_T4;
+    }
+  else
+    {
+      std::cout<<"Illegal value for Telescope specification: "
+	       <<sDefaultTelescope
+	       <<" Allowed values: T1,T2,T3,T4""Defaulting to T1"<<std::endl;
+      fTelescope=E_T1;
     }
 
   fNewPatternTriggerLevel  = sDefaultNewPatternTriggerLevel; 
@@ -170,6 +199,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("RelativeGains",sDefaultRelativeGains);
   config.setValue("RelativePedVars",sDefaultRelativePedVars);
   config.setValue("BadPixelSupression",sDefaultBadPixelSupression);
+  config.setValue("Telescope",sDefaultTelescope);
   config.setValue("PatternTriggerLevel",fNewPatternTriggerLevel);
   config.setValue("TriggerMultiplicity",fNewTriggerMultiplicity);
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
@@ -185,6 +215,13 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
 
 void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 {
+  doVAConfiguration(file, command_line, 
+		    "Telescope",sDefaultTelescope,
+		    "KSAomegaDataIn",
+		    "Defines Telescope we are modeling. Allowed values: "
+		    "T1, T2, T3, T4. Used in Output to specifiy telescope. "
+		    "Used for modeling when getting PedVars, Relative gains "
+		    "etc. T1 is default. Use default for Whipple490");
   doVAConfiguration(file, command_line, 
 		    "VBFOutputFileName",sDefaultVBFFileName,
 		    "KSAomegaDataIn",
@@ -204,43 +241,50 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "be suitable for processing through stages 3-6 of VEGAS. "
 		    "Default is to not create such a file.");
   doVAConfiguration(file, command_line, 
+		    "RandomSeedFileName",sDefaultRandomSeedFileName,
+		    "KSAomegaDataIn",
+		    "File Name for Random Seed File.");
+  doVAConfiguration(file, command_line, 
 		    "PixelStatsFileName",sDefaultPixelStatsRootFileName,
 		    "KSAomegaDataIn",
-		    "File Name for a VEGAS Stage 2 type Input Root file. This "
+		    "Input File Name for a VEGAS Stage 2 ouput type Root file. "
+		    "This "
 		    "file will contain: VAPixelStatusData record, used when "
 		    "BadPixelSupression is set ON. VAQStatsData record, used "
 		    "when RelativePedVars is set ON. and a VARelGainData "
 		    "record, used when RelativeGains is set ON. Use this to "
 		    "simulate a particular run.  Default(No file name given) "
-		    "is to use: No bad pixels,Relative Gains All=1, All "
-		    "Relative PedVars all =1, All pedestals = "
+		    "is to use: No bad pixels,Relative Gains: All=1, "
+		    "Relative PedVars: All =1, Pedestals All= "
 		    "kDefaultPedestal (nominally 20)");
-  doVAConfiguration(file, command_line, 
-		    "RandomSeedFileName",sDefaultRandomSeedFileName,
-		    "KSAomegaDataIn",
-		    "File Name for Random Seed File.");
   doVAConfiguration(file, command_line, 
 		    "RelativeGains",sDefaultRelativeGains,
 		    "KSAomegaDataIn",
-		    "ON enables the use of a special VARelGainsData record in "
+		    "ON (default)enables the use of a special VARelGainsData "
+		    "record in "
 		    "the file specified by  PixelStatsFileName to model the "
 		    "relative gains of the pixels after a particular run. "
-		    "OFF (default) disables.");
+		    "OFF  disables. Not used if PixelStatsFileName not "
+		    "specified");
   doVAConfiguration(file, command_line, 
 		    "BadPixelSupression",sDefaultBadPixelSupression,
 		    "KSAomegaDataIn",
-		    "ON enables the use of a special VAPixelsStatusData "
+		    "ON (default) enables the use of a special "
+		    "VAPixelsStatusData "
 		    "record in the file specified by  PixelStatsFileName to "
-		    "model the dead pixels of a particular run. OFF (default) "
-		    "disables.");
+		    "model the dead pixels of a particular run. OFF "
+		    "disables. Not used if PixelStatsFileName not "
+		    "specified");
   doVAConfiguration(file, command_line, 
 		    "RelativePedVars",sDefaultRelativePedVars,
 		    "KSAomegaDataIn",
-		    "ON enables the use of a special VARelGainsData record in "
+		    "ON (default) enables the use of a special VARelGainsData "
+		    "record in "
 		    "the file specified by  PixelStatsFileName to model the "
 		    "relative pedvars (standard deviation) pixels after a "
-		    "particular run. OFF (default) disables.");
-   doVAConfiguration(file, command_line, 
+		    "particular run. OFF  disables. Not used if "
+		    "PixelStatsFileName not specified");
+  doVAConfiguration(file, command_line, 
 		    "PatternTriggerLevel", sDefaultNewPatternTriggerLevel,
 		    "KSAomegaDataIn",
 		    "PST triggered pixel adjacency requirement for an event "
@@ -300,6 +344,8 @@ void KSAomegaDataIn::Print()
 // Print out all the parameters for this run
 {
   std::cout<<"ksAomega run parameters:"<<std::endl;
+  std::cout<<" Telescope(T1=0,T2=1,T3=2,T4=3) "<<fTelescope
+	   <<std::endl;   
   std::cout<<"              UseRelativeGains: "<<fUseRelativeGains
 	   <<std::endl;   
   std::cout<<"            UseRelativePedVars: "<<fUseRelativePedVars

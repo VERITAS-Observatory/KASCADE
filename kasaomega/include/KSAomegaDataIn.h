@@ -13,6 +13,7 @@
 #include "VAAlgorithm.h"
 #include "VAConfigurationHelper.h"
 #include "VAConfigurationData.h"
+#include "VACommon.h"
 
 #include "stdint.h"
 #include <cmath>
@@ -32,6 +33,7 @@ private:
   static std::string sDefaultRelativeGains;   //These have "ON" or "OFF" values
   static std::string sDefaultRelativePedVars;
   static std::string sDefaultBadPixelSupression;
+  static std::string sDefaultTelescope;
 
   static int         sDefaultNewPatternTriggerLevel;
   static int         sDefaultNewTriggerMultiplicity; 
@@ -64,7 +66,8 @@ public:
   double      fNewEfficiency;
   double      fDigitalCountsPerPE; 
   int         fRunNumber;
-
+  VATelID     fTelescope;
+  
   std::string fVBFFileName;
   std::string fRootFileName;
   std::string fPixelStatsRootFileName;

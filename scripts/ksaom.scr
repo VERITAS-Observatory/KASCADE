@@ -8,11 +8,16 @@
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te are and root are to go, cannot be 
 # blank!!!)
-
+#$6 PixelStatus Run Fule Name(used by ksAomega only)(can be blank)
 echo "**********************************************************************"
 echo "**********************************************************************"
 
-echo $0 $1 $2 $3 $4 $5 
+echo $0 $1 $2 $3 $4 $5 $6
+if [ -n $6 ]; then
+    StatsFileNameOption="-PixelStatsFileName="$6
+else
+    StatsFileNameOption=" "
+fi
 
 src=$KASCADEBASE'/bin'
 echo binary src dir is $src
@@ -84,7 +89,7 @@ while test $i -le $4
     teFile=$Shwr'te.d'$i
     rootFile=$Shwr'.d'$i'.root'
 
-    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile $teFile
+    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile $StatsFileNameOption $teFile
 		   
     i=$((i+1))			#do next shower
 done

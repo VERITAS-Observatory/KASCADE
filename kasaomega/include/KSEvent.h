@@ -14,6 +14,7 @@
 #define KSEVENT_H
 
 
+#include <stdint.h>
 #include <vector>
 
 
@@ -44,7 +45,7 @@ const double kDefaultWindowSampleLengthNS = 2.0;
 const std::string kFirstValidEventTimeStr ="2005-11-28 02:00:00.000000000 GPS";
 const double kDefaultEventRatePerSec      = 100.0; 
 
-const int kNumWindowSamples=5;
+const int kNumWindowSamples=10;
 const int kWhipple10MId=0;
 
 // ** Event class for ksAomega. This does all the work in ksAomega

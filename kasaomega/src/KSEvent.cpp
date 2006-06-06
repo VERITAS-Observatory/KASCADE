@@ -97,7 +97,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // *******************************************************************
       std::cout<<"ksAomega: Reference Pixel status VDF root file name:"
 	                        <<pfDataIn->fPixelStatsRootFileName<<std::endl;
-      pfVDFStats->Open(pfDataIn->fPixelStatsRootFileName);
+      pfVDFStats=new VAVDF();
+      pfVDFStats->OpenForStage3(pfDataIn->fPixelStatsRootFileName);
       pfRunHeader      = pfVDFStats->getRunHeaderPtr();
 
       std::cout<<"ksAOMEGA: Reference Run Number: "
@@ -113,40 +114,78 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       VAArrayInfo* pfArrayInfo      = pfVDFStats->getArrayInfoPtr();
       int fNumChannels= pfArrayInfo->telescope(0)->numChannels();
       //int fNumChannels=pfRunHeader->pfRunDetails->fNumOfChans.at(0);  
-      if(fNumChannels!=fNumPixels)
+      if(fNumChannels!=fNumPixels)     //A sanity check.
 	{
-	  std::cout<<"ksAomega: KSEvent: NumChannels ("
-		   <<fNumChannels<<") different from NumPixels("
-		   <<fNumPixels<<")"<<std::endl;
-	  exit(1);
+	  if(fCameraType==WHIPPLE490)
+	    {
+	      if(fNumChannels!=492)
+		{
+		  std::cout<<"ksAomega: KSEvent: NumChannels ("
+			   <<fNumChannels<<") wrong for Whipple490 camera"
+		                           "Should be 492."<<std::endl;
+		  exit(1);
+		}
+	    }
+	  else
+	    {
+	      std::cout<<"ksAomega: KSEvent: NumChannels ("
+		       <<fNumChannels<<") different from NumPixels("
+		       <<fNumPixels<<")"<<std::endl;
+	      exit(1);
+	    }
 	}
       //  ******************************************************************
       // Now load up things
       // Note we only need pedvars to get relative rates of night sky in pixels
       // Thus use a standard window width of 10 samples( 20 ns). This is 
-      // default for wipple data and is big enough to cause minimum ststistical
-      // prob,ems for VERITAS (I Hope)
-      // The base rate oif the night sky is determined from 
+      // default for whipple data and is big enough to cause minimum 
+      // statistical problems for VERITAS (I Hope)
+      // The base rate of the night sky is determined from 
       // pfDataIn->fNewNoiseRate but that is done below somewhere.
       // ********************************************************************
       bool ifLO=false;  //Always want high gain. This is appropriate for
-      //Gain corrected Charge,SignalToNoise from VATraceData
-      // and Pedvars from VAQSatausData.
-      for(int i=0;i<fNumPixels;i++)
+                        //Gain corrected Charge,SignalToNoise from VATraceData
+                        //and Pedvars from VAQSatausData.
+      uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
+      uint16_t winSize=(uint16_t)kNumWindowSamples;
+      for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
 	{
-	  double gain=pfRelGain->getRelGainMean(E_T1,i,ifLO);
-	  pfCamera->fPixel[i].fRelativeGain=gain;
-	  pfCamera->fPixel[i].fPed=pfPeds->getTraceMean(fFirstValidEventTime,
-					    E_T1, 1,kDefaultNumWindowSamples);
-	  pfCamera->fPixel[i].fPedVarRel = pfPeds->getTraceVar(
-		 fFirstValidEventTime, E_T1, 1,kDefaultNumWindowSamples)/gain;
-	  bool fPixelSuppressed;
-	  pfPixOnOff->getSuppressed(E_T1, i,fFirstValidEventTime, 
-				    fPixelSuppressed);
-	  pfCamera->fPixel[i].fBadPixel=fPixelSuppressed;
-	}	  
-    }
+	  double gain=1;
+	  if(pfDataIn->fUseRelativeGains)
+	    {
+	     gain=pfRelGain->getRelGainMean(fTel,chan, ifLO);
+	    }
+	  pfCamera->fPixel[chan].fRelativeGain=gain;
 
+	  pfCamera->fPixel[chan].fPed=
+	    pfPeds->getTraceMean(fFirstValidEventTime,fTel, chan, winSize);
+	  double pedvar=1;
+	  if(pfDataIn->fUseRelativePedVars)
+	    {
+	      pedvar= pfPeds->getTraceVar(fFirstValidEventTime,fTel,chan,
+			       winSize)/gain;
+	    }
+	  pfCamera->fPixel[chan].fPedVarRel=pedvar; 
+
+	  bool fPixelSuppressed=false;
+	  bool fChannelIsPMT=false;
+	  if(pfDataIn->fUseBadPixelSupression)
+	    {
+	      fChannelIsPMT=
+		pfArrayInfo->telescope(fTel)->channel(chan)->hasPMT();
+	      pfPixOnOff->getSuppressed(fTel,chan,fFirstValidEventTime,
+					fPixelSuppressed);
+	    }
+	  if(fPixelSuppressed || !fChannelIsPMT)
+	    {
+	      pfCamera->fPixel[chan].fBadPixel=true;
+	    }	  
+	  else
+	    {
+	    pfCamera->fPixel[chan].fBadPixel=false;
+	    }
+	}
+    }
   fEventTime=fFirstValidEventTime;
 
   // ************************************************************************
@@ -184,6 +223,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  pfVDFOut->createFile(pfDataIn->fRootFileName,fNumTels,
 			       fEventTime);
 	}
+      std::cout<<"KSAomega: Ouput VDF Root File: "<<pfDataIn->fRootFileName
+	       <<std::endl;
       
  // *********************************************************************
  //Fill over Run Header
@@ -325,7 +366,8 @@ bool KSEvent::BuildImage()
 	  exit(1);
 	}
     }
-  pfCamera->InitPixelImageData();// zeros's and clears things
+  pfCamera->InitPixelImageData();// zeros's and clears things, set overflow 
+                                 // cfd time . especially needed for bad pixels
   fGoodRead=pfTeFile->ReadTePixelData(pfCamera->fPixel);
   if(!fGoodRead)
     {
@@ -420,37 +462,37 @@ void KSEvent::SaveImage()
       fPointing.fCorRA  = fSourceRA2000;  //radians
       fPointing.fCorDec = fSourceDec2000;  //radians
       pfCalEvent->fTelEvents[0].fPointingData=fPointing;
-      if(fCameraType==WHIPPLE490)
-	{
-	  pfCalEvent->fTelEvents[0].fTelID=kWhipple10MId;
-	}
-      else
-	{
-	  pfCalEvent->fTelEvents[0].fTelID=E_T1;
-	}
+      
+      pfCalEvent->fTelEvents[0].fTelID=pfDataIn->fTelescope;
 
       for(uint16_t i=0;i<fNumPixels;i++)  // No zero supression yet
 	{
-	  VATraceData chanData;
-	  chanData.fChanID=i;
-	  if(fCameraType==WHIPPLE490)
+	  // *************************************************************
+	  // ONly good, 'Live' pixels go out to fTelEvents
+	  // *******************************************************
+	  if(!pfCamera->fPixel[i].fBadPixel)
 	    {
-	      chanData.fCharge=
-		pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
-	      chanData.fSignalToNoise=chanData.fCharge/
-	                                    pfCamera->fPixel[i].fChargeVarPE;
+	      VATraceData chanData;
+	      chanData.fChanID=i;
+	      if(fCameraType==WHIPPLE490)
+		{
+		  chanData.fCharge=
+		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
+		  chanData.fSignalToNoise=chanData.fCharge/
+		    pfCamera->fPixel[i].fChargeVarPE;
 	      chanData.fCharge=chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
-	    }
-	  else if(fCameraType==VERITAS499) 
-	    {
-	      chanData.fCharge=
-		pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
-	      chanData.fSignalToNoise=chanData.fCharge/
+		}
+	      else if(fCameraType==VERITAS499) 
+		{
+		  chanData.fCharge=
+		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
+		  chanData.fSignalToNoise=chanData.fCharge/
 	                                    pfCamera->fPixel[i].fChargeVarPE;
+		}
+	      chanData.fHiLo=false;  //We assume hi gain mode for now.
+	      chanData.fWindowWidth=kNumWindowSamples;
+	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	    }
-	  chanData.fHiLo=false;  //We assume hi gain mode for now.
-	  chanData.fWindowWidth=kNumWindowSamples;
-	  pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	}
       // ****************************************************************
       pfVDFOut->writeCalibratedArrayEvent(1);//Only one telescope to write
