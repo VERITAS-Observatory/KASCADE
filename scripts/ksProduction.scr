@@ -23,14 +23,14 @@ user=$USER
      
 #1 deg whipple He4 10%
 #**********************************************************************
-parspec="He4_1W"      
-echo He4 at 1 deg: $parspec
-datadir="/project/veritas/sembrosk/whipple/he4"
-let processEnd=19
-enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-   energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-    start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-      end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+#parspec="He4_1W"      
+#echo He4 at 1 deg: $parspec
+#datadir="/project/veritas/sembrosk/whipple/he4"
+#let processEnd=19
+#enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+ #  energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+ #   start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+ #     end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
 #**********************************************************************
 
 #1 deg whipple protons 10%
@@ -54,14 +54,33 @@ enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   
 
 #1 deg whipple Gammas
 #**********************************************************************
-#parspec="G_1W"      
+#parspec="G1W"      
 #echo Gammas at 1 deg: $parspec
 #datadir="/project/veritas/sembrosk/whipple/gammas"
 #let processEnd=18
-#enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
-#   energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-#    start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
-#      end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  37  11   10   6    6    6)
+#enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
+#   energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
+#    start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20  1    1    1    1    1)
+#      end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37  11   10   6    6    6)
+#**********************************************************************
+
+
+
+#1 deg whipple DRIFT Gammas
+#**********************************************************************
+parspec="DG1W"      
+echo Gammas at 1 deg: $parspec
+datadir="/project/veritas/sembrosk/whipple/dgammas"
+#let processEnd=18
+#enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON)
+#   energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867  1243 1781 2553 3660 5246)
+#    start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20   1    1    1    1    1)
+#      end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37   11   10   6    6    6)
+let processEnd=1
+enableGEN=([1]=ON)
+   energy=([1]=422)
+    start=([1]=1)
+      end=([1]=1)
 #**********************************************************************
 
 #Specify queues
@@ -81,13 +100,11 @@ queues=([1]=workq astro astro astro astro astro astro astro astro astro astro as
 #script directory
 sdr=$KASCADEBASE"/scripts"
 
-#ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
+ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
 
-StatusRunFileSpecification="/project/veritas/sembrosk/whipple/crab_00-01/gt016235.root" 
-ksScript=$sdr/"ksaom.scr"    #Makes root files
+#StatusRunFileSpecification="/project/veritas/sembrosk/whipple/crab_00-01/gt016235.root" 
+#ksScript=$sdr/"ksaom.scr"    #Makes root files
 
-#ksScript=$sdr/"ksall2DTrack.1.scr"
-#ksScript=$sdr/"ksall2DTrack.22.scr"
 
 
 lcl="$PWD"
