@@ -100,10 +100,10 @@ queues=([1]=workq astro astro astro astro astro astro astro astro astro astro as
 #script directory
 sdr=$KASCADEBASE"/scripts"
 
-ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
+#ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
 
 #StatusRunFileSpecification="/project/veritas/sembrosk/whipple/crab_00-01/gt016235.root" 
-#ksScript=$sdr/"ksaom.scr"    #Makes root files
+ksScript=$sdr/"ksaom.scr"    #Makes root files
 
 
 

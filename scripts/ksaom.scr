@@ -13,11 +13,12 @@ echo "**********************************************************************"
 echo "**********************************************************************"
 
 echo $0 $1 $2 $3 $4 $5 $6
-if [ -n $6 ]; then
+if [ -n "$6" ]; then
     StatsFileNameOption="-PixelStatsFileName="$6
 else
     StatsFileNameOption=" "
 fi
+echo StatsFileNameOption: $StatsFileNameOption
 
 src=$KASCADEBASE'/bin'
 echo binary src dir is $src
