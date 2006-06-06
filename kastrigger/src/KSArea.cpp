@@ -211,21 +211,11 @@ void KSArea::ProcessImages()
 // Start directions loop
 // **************************************************************************
   for(int ithphi=0;ithphi<fNumDirections;ithphi++)
-    {
-      // For drift scan we really only want positions along X axis. This 
-      // happens for iphi=1 (+x) and iphi=itheta(-x) for ghi_side=2
- 
-      int fTheta;
-      int fPhi;
-      if(fDriftingGammas)
-	{
-	  pfMountDir->getIThetaIPhi(ithphi,fPhiSteps,fTheta,fPhi);
-	  if(fPhi!=1 && fPhi!=fTheta)
-	    {
-	      continue;
-	    }
-	}
-
+    { 
+      // ***************************************************************
+      // For drift scan we really only want positions along RA. This was set 
+      // up in MOuntDirections
+      // ***************************************************************
 			// Preset for efficiency:Used in WHIPPLE_TILT
       double fTDlm=pfMountDir->pfDlm[ithphi];   //Mount direction
       double fTDmm=pfMountDir->pfDmm[ithphi];
@@ -435,15 +425,11 @@ void KSArea::PrintStats()
 	{
 	  
 	  std::cout<<"Gamma-ray: Drifting Gammas"<<std::endl;
-	  std::cout<<"     Step Size for Drifting Gammas (deg) = "
+	  std::cout<<"                  Step Size for Drifting Gammas (deg) = "
 		   <<fStepSizeRad*180/M_PI<<std::endl;
-	  std::cout<<"  Maximum Theta for Drifting GAMMAS(deg) = "
+	  std::cout<<"               Maximum Theta for Drifting GAMMAS(deg) = "
 		   <<pfDataIn->pfTeHead->fMaximumThetaRad*180/M_PI<<std::endl;
-	  std::cout<<"    Number Phi Steps for Drifting Gammas = "
-		   <<fPhiSteps<<std::endl;
-	  std::cout<<"  Number Theta Steps for Drifting Gammas = "
-		   <<fThetaSteps<<std::endl;
-	  std::cout<<"Number of Directions for Drifting Gammas = "
+	  std::cout<<"  Number RA  Steps for Drifting Gammas (+/- MaxTheta) = "
 		   <<fNumDirections<<std::endl;
 	}
       else
