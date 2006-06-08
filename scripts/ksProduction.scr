@@ -2,110 +2,131 @@
 
 #This is the conversion (from kas01.scr) to use at Purdue on pbs
 #Glenn Sembroski 16/05/05
+
 #$0 ./kas02.scr
+#$1 has Type-dierection specification code. like: P1W,He4_1W,G1W,DG1W
+#$2 has which script to run: ksall or ksaom
+#$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
+#          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 
-user=$USER
+#script directory
+sdr=$KASCADEBASE"/scripts"
+ksScript=$sdr/$2'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
+                         #ksaom: Makes .root (and eventually .cvbf) files from
+                         #       te files
 
+StatusRunFileSpecification=$3 
 
-#Specify which nodes are to be used ("on" or "off")
-#specify the energy
-#$specify the starting and ending shower IDs.
+#Functions to define thigs fro various particle specs
 
-# To disable process n from being run: 
-# put a # in front of the enableGEN[n] line.
-#enableGen[1]="on"
-#See bottom for numbers and energies for gammas,protons and he4
-
-#enableGEN[1]="on"
-#   energy[1]=20
-#    start[1]=1
-#      end[1]=690
-     
+function He4_1W()
+#**********************************************************************
 #1 deg whipple He4 10%
 #**********************************************************************
-#parspec="He4_1W"      
-#echo He4 at 1 deg: $parspec
-#datadir="/project/veritas/sembrosk/whipple/he4"
-#let processEnd=19
-#enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
- #  energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
- #   start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
- #     end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+{
+    parspec="He4_1W"      
+    echo He4 at 1 deg: $parspec
+    datadir="/project/veritas/sembrosk/whipple/he4"
+    let processEnd=19
+#    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  ON)
+       energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+}
 #**********************************************************************
 
+function P1W()
+#**********************************************************************
 #1 deg whipple protons 10%
 #**********************************************************************
-#parspec="P1W"      
-#echo Protons at 1 deg: $parspec
-#datadir="/project/veritas/sembrosk/whipple/protons"
-#let processEnd=30
-#enableGEN=([1]=ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-#   energy=([1]=20  20   20   24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-#    start=([1]=1   461  921  1   416 1   271 1   321 1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-#      end=([1]=460 920  1380 415 830 270 540 320 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
-#let processEnd=1
-#enableGEN=([1]=ON)
-#   energy=([1]=422)
-#    start=([1]=1)
-#      end=([1]=1)
+{
+    parspec="P1W"      
+    echo Protons at 1 deg: $parspec
+    datadir="/project/veritas/sembrosk/whipple/protons"
+    let processEnd=30
+    enableGEN=([1]=ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+       energy=([1]=20  20   20   24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   461  921  1   416 1   271 1   321 1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=460 920  1380 415 830 270 540 320 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+}
+#******************************************************************************
+
+function G1W()
 #**********************************************************************
- 
-
-
 #1 deg whipple Gammas
 #**********************************************************************
-#parspec="G1W"      
-#echo Gammas at 1 deg: $parspec
-#datadir="/project/veritas/sembrosk/whipple/gammas"
-#let processEnd=18
-#enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
-#   energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
-#    start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20  1    1    1    1    1)
-#      end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37  11   10   6    6    6)
+{
+    parspec="G1W"      
+    echo Gammas at 1 deg: $parspec
+    datadir="/project/veritas/sembrosk/whipple/gammas"
+    let processEnd=18
+    enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
+       energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
+        start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20  1    1    1    1    1)
+          end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37  11   10   6    6    6)
+}
 #**********************************************************************
 
-
-
+function DG1W()
+#**********************************************************************
 #1 deg whipple DRIFT Gammas
 #**********************************************************************
-parspec="DG1W"      
-echo Gammas at 1 deg: $parspec
-datadir="/project/veritas/sembrosk/whipple/dgammas"
-#let processEnd=18
-#enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON)
-#   energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867  1243 1781 2553 3660 5246)
-#    start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20   1    1    1    1    1)
-#      end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37   11   10   6    6    6)
-let processEnd=1
-enableGEN=([1]=ON)
-   energy=([1]=422)
-    start=([1]=1)
-      end=([1]=1)
+{
+    parspec="DG1W"      
+    echo Gammas at 1 deg: $parspec
+    datadir="/project/veritas/sembrosk/whipple/dgammas"
+    let processEnd=18
+    enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON)
+       energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867  1243 1781 2553 3660 5246)
+        start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20   1    1    1    1    1)
+          end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37   11   10   6    6    6)
+}
 #**********************************************************************
+
+
+
+
+user=$USER
 
 #Specify queues
 queues=([1]=workq astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-#queues=([1]=workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+#Fuctions specify which nodes are to be used ("on" or "off")
+#Funtions also specify the energy and specify the starting and ending shower 
+#IDs.
+#See bottom for numbers and energies for gammas,protons and he4
 
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro)
+#******************************************************************************
+# Set up arrays for node submission: Call requested funcitons
+#*****************************************************************************
+let pspecset=0
+if [ $1 = "P1W" ]; then
+    P1W
+    echo parspec: $parspec
+    let pspecset=1;
+fi
+if [ $1 = "He4_1W" ]; then
+    He4_1W
+    echo parspec: $parspec
+    let pspecset=1;
+fi
+if [ $1 = "G1W" ]; then
+    G1W
+    echo parspec: $parspec
+    let pspecset=1;
+fi
+if [ $1 = "DG1W" ]; then
+    DG1W
+    echo parspec: $parspec
+    let pspecset=1;
+fi
 
-
-#ksalldrift runs kstrigger 11 times with different mount elevations in
-#steps 0f .22 deg(88.99,88.77,88.55,88.33,88.11,87.89,87.67,87.45,87.23,
-#87.01,86.79 deg)
-
-#script directory
-sdr=$KASCADEBASE"/scripts"
-
-#ksScript=$sdr/"ksall.scr"   #Makes seg,pe,pes,te files. Keeps te files
-
-#StatusRunFileSpecification="/project/veritas/sembrosk/whipple/crab_00-01/gt016235.root" 
-ksScript=$sdr/"ksaom.scr"    #Makes root files
-
-
+if [ $pspecset -ne 1 ]; then
+    echo No such Particle spec: $1
+    exit
+fi
 
 lcl="$PWD"
 pr=$parspec
@@ -137,6 +158,9 @@ do
 
   i=$((i+1))			#do next process
 done
+
+
+
 ###########################################################################
 #Arguments for ksScript
 #$1 primary Energy in GeV (integer only)
@@ -175,3 +199,8 @@ done
 #he4Nshowers[19]= {2500,1590,1630,860, 800, 550, 400, 680, 200, 175,
 #		     70,  50,  25, 15,  10,  10,  10,  10,  10};
 ##############################################################################
+
+#ksalldrift runs kstrigger 11 times with different mount elevations in
+#steps 0f .22 deg(88.99,88.77,88.55,88.33,88.11,87.89,87.67,87.45,87.23,
+#87.01,86.79 deg)
+
