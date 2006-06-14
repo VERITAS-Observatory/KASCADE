@@ -74,7 +74,8 @@ class KSPixel
   double fWaveFormStartNS;
   int    fNumWaveFormBins;
   double fWaveFormNightSkyPedestal;
-  double fChargeVarPE;  //Whipple:units of Pes. Veritas:units of FADC DC
+  double fChargeVarPE;  //Whipple:units of Pes.
+  double fChargeVarDC;  //Veritas:units of FADC DC
 
   double fCFDTriggerTimeNS;
 

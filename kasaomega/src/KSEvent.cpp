@@ -249,9 +249,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE*
 		pfDataIn->fDigitalCountsPerPE;
 	    }
-	  else
+	  else if(fCameraType==VERITAS499)
 	    {
-	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE;
+	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC;
 	    }
 	}
 	
@@ -484,10 +484,11 @@ void KSEvent::SaveImage()
 		}
 	      else if(fCameraType==VERITAS499) 
 		{
+		  //GetCharge for VERITAS499 returns FADC sum in dc.
 		  chanData.fCharge=
 		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
 		  chanData.fSignalToNoise=chanData.fCharge/
-	                                    pfCamera->fPixel[i].fChargeVarPE;
+	                                    pfCamera->fPixel[i].fChargeVarDC;
 		}
 	      chanData.fHiLo=false;  //We assume hi gain mode for now.
 	      chanData.fWindowWidth=kNumWindowSamples;

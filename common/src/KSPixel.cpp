@@ -146,10 +146,10 @@ void KSPixel::addPe(double fPeTimeNS,bool fAfterPulse)
 
 void KSPixel::DetermineNoisePedestals()
 // ***************************************************************************
-// Using the noise rate, model a very long wave form of night sky noise Pe.s
-// Determine average value value of WaveForm bins. This will be our 
-// fWaveFormNightSkyPedestal. Models the fact that we are capacitivly coupled.
-// Both WHIPPLE490 and VERITAS499 PMT bases.
+// Using the noise rate, model a very long wave form of night sky noise Pe's
+// For Whipple, determine a pedvar the same way cpeds does:rms of ped events.
+// Fow Veritas, do the same thing vaStage1 does, but only for one window size,
+// again RMS but of FADC trace ped values.
 // ***************************************************************************
 // From this same waveform determine ther FADC window Charge Pedvar
 {
@@ -166,55 +166,77 @@ void KSPixel::DetermineNoisePedestals()
 
   fWaveFormNightSkyPedestal=fWaveFormSum/fWaveForm.size();
 
+  // ********************************************************************
+  // Note that we haven't removed the night sky pedestal. This is because 
+  // there is actuallay a pedestal added for both whipple and veritas so we 
+  // don't go below 0. Since we are only interesed in a pedvar calc in this 
+  // method we leave the ped in (its actually required so we don't go below 0)
   // *************************************************************************
-  // Now the PedVar for ythe FADC(or ADC for Whipple490) window(we have only 1
+  // Now the PedVar for the FADC(or ADC for Whipple490) window(we have only 1
   // as yet)
   // *************************************************************************
-  int fNumFADCWindowBins=gFADCNumSamples[fCameraType]*
-                                    (int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
-  double fNumFADCWindows=(double)fWaveForm.size()/(double)fNumFADCWindowBins;
+  //Get number of Waveform bins in the FADC (or ADC for Whipple) window
+  int fNumBinsFADCWindow =
+    (int)((double)gFADCNumSamples[fCameraType]*gFADCBinSizeNS/
+                                                           gWaveFormBinSizeNS);
+  //Get the integer whoule number of FADC (or ADC for Whipple) windows in the 
+  //waveform
+  int fNumFADCWindows=(int)(fWaveForm.size()/fNumBinsFADCWindow);
 
   if(fCameraType==WHIPPLE490)
     {    
       //Simple for Charge Summing ADC
       // *******************************************************************
-      // Since we are counting pe's then that number is poission distributed
-      // and the varience is the mean so the sigma (what we misname pedvar)
-      // will be the sqrt of the mean # of Pe's
+      // Get rms of area of all the ADC windows.
       // *******************************************************************
-      double fMeanADCPedPe=(fWaveFormSum/fNumFADCWindows)/fSinglePeArea;
-      fChargeVarPE=sqrt(fMeanADCPedPe);//Misnomer. This is sqrt of varience
-      // For WHIPPLE490 convert to digCnts using pedc.
-      //ChargeVar=fChargeVar*gFADCDigCntsPerPEHiGain[fCameraType];
+      double fPedSum=0;
+      double fPed2Sum=0;
+      int fCount=0;//Just being careful here.
+      for(int i=0;i<fNumFADCWindows;i++)
+	{
+	  int k=i*fNumBinsFADCWindow;
+	  fWaveFormSum=0;
+	  for(int j=0;j<fNumBinsFADCWindow;j++)
+	    {
+	      fWaveFormSum+=fWaveForm[k+j];
+	    }
+	  fWaveFormSum=fWaveFormSum/fSinglePeArea;//convert to pe's
+	  fPedSum+=fWaveFormSum;
+	  fPed2Sum+=fWaveFormSum*fWaveFormSum;
+	  fCount++; //Just being careful here.
+	}
+      double fPedMean  =  fPedSum/(double)fCount;
+      double fPedMean2 =  fPed2Sum/(double)fCount;
+      fChargeVarPE=sqrt(fPedMean2-fPedMean*fPedMean);
     }
-
   else if(fCameraType==VERITAS499)   
     {    
-         //This is much tougher since we need to make FADC wave forms.
-         //Note integer round down of fNumADCWindows
-      int fTraceLengthBins=((int)fNumFADCWindows)*gFADCNumSamples[fCameraType];
+      //This is much tougher since we need to make FADC wave forms.
+      //Get number of trace FADC bins that fit into the waveform
+      int fTraceLengthBins=(fNumFADCWindows)*gFADCNumSamples[fCameraType];
 
       // *****************************************************************
       // Determine fFADCTrace from almost entire fWaveForm (Note: no use of 
-      // HiLowGain)
+      // HiLowGain)Note also that the conversion to dc from pe's is done within
+      // the makeFADCTrace class.
       // *****************************************************************
       fFADC.makeFADCTrace(fWaveForm,0,fTraceLengthBins,false);
-                                     
-      double fChargeSum=0;
+      double fPedSum=0;
+      double fPed2Sum=0;
+      int fCount=0;  //Just being careful here.
       for(int i=0;i<(int)fFADC.fFADCTrace.size();
 	                               i=i+gFADCNumSamples[fCameraType])
 	{
-	  fChargeSum+= fFADC.getWindowArea(i,gFADCNumSamples[fCameraType]);
-	                                       // Start next window at i
+	  int fChargeSum =                    // Start next window at i
+	             (int)fFADC.getWindowArea(i,gFADCNumSamples[fCameraType]);
+	  fPedSum+=fChargeSum;
+	  fPed2Sum+=fChargeSum*fChargeSum;
+	  fCount++;//Just being careful here.
 	}
-      // Since we are counting pe's then that number is poission distributed
-      // and the varience is the mean so the sigma (what we misname pedvar)
-      // will be the sqrt of the mean # of Pe's
-      double fMeanFADCPedPe=(fChargeSum/((int)fNumFADCWindows))/
-	                                               fSinglePeMeanFADCArea;
-       fChargeVarPE=sqrt(fMeanFADCPedPe)*fSinglePeMeanFADCArea; //Convert back to
-                                                          //FADC digital counts
-    }
+      double fPedMean  =  fPedSum/(double)fCount;
+      double fPedMean2 =  fPed2Sum/(double)fCount;
+      fChargeVarDC=sqrt(fPedMean2-fPedMean*fPedMean);
+     }
   return;
 }
 // ****************************************************************************
@@ -235,7 +257,7 @@ void KSPixel::RemoveNightSkyPedestalFromWaveForm()
 double KSPixel::GetCharge(double fFADCStartStartGateTimeNS)
 
 // *************************************************************************
-// Get the charge in this pixel in pe's
+// Get the charge in this pixel in pe's for whipple and DC for veritas
 // **************************************************************************
 {
   int fStartGateBin=(int)((fFADCStartStartGateTimeNS-fWaveFormStartNS)/

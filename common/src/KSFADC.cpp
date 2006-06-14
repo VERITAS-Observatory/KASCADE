@@ -131,7 +131,8 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 
 double KSFADC::getWindowArea(int fStartTraceIndex, int fNumBinsToSum)
 // ***************************************************************************
-// Sum bins in trace statring at fStartTraceIndex.
+// Sum bins in trace statring at fStartTraceIndex. Result is in Digital Counts
+// Since the makeFADCTrace creates a fFADCTrace in DC.
 // ***************************************************************************
 {
   int fTraceLength=fFADCTrace.size();
