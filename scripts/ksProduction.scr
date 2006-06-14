@@ -2,22 +2,15 @@
 
 #This is the conversion (from kas01.scr) to use at Purdue on pbs
 #Glenn Sembroski 16/05/05
-
 #$0 ./kas02.scr
-#$1 has Type-dierection specification code. like: P1W,He4_1W,G1W,DG1W
+#$1 has Type-direction specification code. like: P1W,He4_1W,G1W,DG1W
+#   Giveing a Type code of 'CR1W' will cause both P1W and He4_1W to be run
 #$2 has which script to run: ksall or ksaom
 #$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
 #          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 
-#script directory
-sdr=$KASCADEBASE"/scripts"
-ksScript=$sdr/$2'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
-                         #ksaom: Makes .root (and eventually .cvbf) files from
-                         #       te files
 
-StatusRunFileSpecification=$3 
-
-#Functions to define thigs fro various particle specs
+#Functions to define thigs f0ro various particle specs
 
 function He4_1W()
 #**********************************************************************
@@ -28,11 +21,12 @@ function He4_1W()
     echo He4 at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/whipple/he4"
     let processEnd=19
-#    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  ON)
+    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+    
+    SubmitPBSJobs
 }
 #**********************************************************************
 
@@ -49,6 +43,8 @@ function P1W()
        energy=([1]=20  20   20   24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   461  921  1   416 1   271 1   321 1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=460 920  1380 415 830 270 540 320 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+    
+    SubmitPBSJobs
 }
 #******************************************************************************
 
@@ -65,6 +61,8 @@ function G1W()
        energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
         start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20  1    1    1    1    1)
           end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37  11   10   6    6    6)
+    
+    SubmitPBSJobs
 }
 #**********************************************************************
 
@@ -81,12 +79,55 @@ function DG1W()
        energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867  1243 1781 2553 3660 5246)
         start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20   1    1    1    1    1)
           end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37   11   10   6    6    6)
+    
+    SubmitPBSJobs
 }
 #**********************************************************************
 
+function SubmitPBSJobs()
+#**********************************************************************
+# Cause pbs jobs to be submitted.
+#**********************************************************************
+{
+ lcl="$PWD"
+ pr=$parspec
+
+ let processStart=1
+
+ let i=$processStart
+ while test $i -le $processEnd
+ do
+    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
+    if [ "${enableGEN[$i]}" == "ON" ]; then 
+
+      pbsFile=$lcl/ks_$i$pr.pbs
+
+      echo "#"PBS -N "pbs"$i'_'$pr                                   >$pbsFile
+      echo "#"PBS -e "pbs"$i'_'$pr'.err'                            >>$pbsFile
+      echo "#"PBS -o "pbs"$i'_'$pr'.log'                            >>$pbsFile
+      echo "#"PBS -m ae                                             >>$pbsFile
+      echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
+      echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
+      echo "#"PBS -l mem=250mb                                      >>$pbsFile
+      echo "#"PBS -l walltime=100:00:00                             >>$pbsFile
+      echo "#"PBS -l nodes=1                                        >>$pbsFile
+      echo time $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
+      echo ${end[$i]} $datadir $StatusRunFileSpecification     \\   >>$pbsFile
+      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
+      qsub $pbsFile
+    fi
+
+    i=$((i+1))			#do next process
+    done
+}
 
 
-
+#script directory
+sdr=$KASCADEBASE"/scripts"
+ksScript=$sdr/$2'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
+                         #ksaom: Makes .root (and eventually .cvbf) files from
+                         #       te files
+StatusRunFileSpecification=$3 
 user=$USER
 
 #Specify queues
@@ -99,9 +140,23 @@ queues=([1]=workq astro astro astro astro astro astro astro astro astro astro as
 #See bottom for numbers and energies for gammas,protons and he4
 
 #******************************************************************************
-# Set up arrays for node submission: Call requested funcitons
+# Set up arrays for node submission and submit
 #*****************************************************************************
 let pspecset=0
+if [ $1 = "CR1W" ]; then
+
+    if [ $2 = "kasaom" ]; then
+        cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+                                    $KASCADEBASE/inputs/ksAomegaP1W.config 
+        cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+                                    $KASCADEBASE/inputs/ksAomegaHe4_1W.config 
+    fi
+
+    P1W
+    He4_1W
+    echo parspec: $parspec
+    let pspecset=1;
+fi
 if [ $1 = "P1W" ]; then
     P1W
     echo parspec: $parspec
@@ -127,37 +182,6 @@ if [ $pspecset -ne 1 ]; then
     echo No such Particle spec: $1
     exit
 fi
-
-lcl="$PWD"
-pr=$parspec
-
-let processStart=1
-
-let i=$processStart
-while test $i -le $processEnd
-do
-    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
-    if [ "${enableGEN[$i]}" == "ON" ]; then 
-
-    pbsFile=$lcl/ks_$i$pr.pbs
-
-    echo "#"PBS -N "pbs"$i'_'$pr                                     >$pbsFile
-    echo "#"PBS -e "pbs"$i'_'$pr'.err'                              >>$pbsFile
-    echo "#"PBS -o "pbs"$i'_'$pr'.log'                              >>$pbsFile
-    echo "#"PBS -m ae                                               >>$pbsFile
-    echo "#"PBS -M $user"@purdue.edu"                               >>$pbsFile
-    echo "#"PBS -q ${queues[$i]}                                    >>$pbsFile
-    echo "#"PBS -l mem=250mb                                        >>$pbsFile
-    echo "#"PBS -l walltime=100:00:00                               >>$pbsFile
-    echo "#"PBS -l nodes=1                                          >>$pbsFile
-    echo time $ksScript ${energy[$i]} $parspec  ${start[$i]} \\     >>$pbsFile
-    echo ${end[$i]} $datadir $StatusRunFileSpecification     \\     >>$pbsFile
-    echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                     >>$pbsFile
-    qsub $pbsFile
-  fi
-
-  i=$((i+1))			#do next process
-done
 
 
 

@@ -192,6 +192,10 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
 {
   VAConfigurationData config;
   config.fName = std::string("KSAomegaData");
+  config.setValue("DiscriminatorThresholdPes",fNewDiscriminatorThresholdPes);
+  config.setValue("NoiseRate",fNewNoiseRate);
+  config.setValue("Efficiency",fNewEfficiency);
+  config.setValue("DigitalCountsPerPE",fDigitalCountsPerPE);
   config.setValue("VBFOutputFileName",fVBFFileName);
   config.setValue("RootOutputFileName",fRootFileName);
   config.setValue("PixelStatusRootFileName",fPixelStatsRootFileName);
@@ -203,11 +207,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("PatternTriggerLevel",fNewPatternTriggerLevel);
   config.setValue("TriggerMultiplicity",fNewTriggerMultiplicity);
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
-  config.setValue("DiscriminatorThresholdPes",fNewDiscriminatorThresholdPes);
-  config.setValue("NoiseRate",fNewNoiseRate);
-  config.setValue("Efficiency",fNewEfficiency);
   config.setValue("LightConeConcentration",fNewLightConeConcentration);
-  config.setValue("DigitalCountsPerPE",fDigitalCountsPerPE);
   config.setValue("OutputRunNumber",fRunNumber);
   return config;
 }
@@ -215,6 +215,30 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
 
 void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 {
+  doVAConfiguration(file, command_line, 
+		    "DiscriminatorThreshold",
+		    sDefaultNewDiscriminatorThresholdPes,
+		    "KSAomegaDataIn",
+		    "Specifies a Threshold level for a pixel to fire. Value "
+		    "is in units of mean pes level.");
+  doVAConfiguration(file, command_line,
+		    "NoiseRate",sDefaultNewNoiseRate,
+		    "KSAomegaDataIn",
+		    "Night sky shine rate in pes/deg/ns (after application of "
+                    "all efficiency factors)");
+  doVAConfiguration(file, command_line, 
+		    "Efficiency",sDefaultNewEfficiency,
+		    "KSAomegaDataIn",
+		    "Specifies an overall efficiency value. Only this "
+		    "fraction of generated Cherenkov photons will be used in "
+		    "testing for a trigger. Models dirty mirrors, dirty air, "
+		    "dirty pmts/lightcones etc.  Allowed range is 0.0 -> 1.0 "
+		    "inclusive.");
+  doVAConfiguration(file, command_line, 
+		    "DigtalCountsPerPE",sDefaultDigitalCountsPerPE,
+		    "KSAomegaDataIn",
+		    "Conversion factor from pe's to digital counts in FADC" 
+                    "traces.");
   doVAConfiguration(file, command_line, 
 		    "Telescope",sDefaultTelescope,
 		    "KSAomegaDataIn",
@@ -294,41 +318,17 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "TriggerMultiplicity",sDefaultNewTriggerMultiplicity,
 		    "KSAomegaDataIn",
 		    "Require this multiplicity value for a trigger. "); 
-  doVAConfiguration(file, command_line,
-		    "NoiseRate",sDefaultNewNoiseRate,
-		    "KSAomegaDataIn",
-		    "Night sky shine rate in pes/deg/ns (after application of "
-                    "all efficiency factors)");
   doVAConfiguration(file, command_line, 
 		    "ADCGateWidthNS",sDefaultNewADCGateWidthNS,
 		    "KSAomegaDataIn",
 		    "Specifies an length of the ADC gate for charge "
 		    "integration.");
   doVAConfiguration(file, command_line, 
-		    "DiscriminatorThreshold",
-		    sDefaultNewDiscriminatorThresholdPes,
-		    "KSAomegaDataIn",
-		    "Specifies a Threshold level for a pixel to fire. Value "
-		    "is in units of mean pes level.");
-  doVAConfiguration(file, command_line, 
-		    "Efficiency",sDefaultNewEfficiency,
-		    "KSAomegaDataIn",
-		    "Specifies an overall efficiency value. Only this "
-		    "fraction of generated Cherenkov photons will be used in "
-		    "testing for a trigger. Models dirty mirrors, dirty air, "
-		    "dirty pmts/lightcones etc.  Allowed range is 0.0 -> 1.0 "
-		    "inclusive.");
-  doVAConfiguration(file, command_line, 
 		    "LightConeConcentration",sDefaultNewLightConeConcentration,
 		    "KSAomegaDataIn",
 		    "Fraction of light that hits light cone that the light "
 		    "cone will then reflect onto the active PMT photo-cathode "
 		    "to create photo-electrons.");
-  doVAConfiguration(file, command_line, 
-		    "DigtalCountsPerPE",sDefaultDigitalCountsPerPE,
-		    "KSAomegaDataIn",
-		    "Conversion factor from pe's to digital counts in FADC" 
-                    "traces.");
   doVAConfiguration(file, command_line, 
 		    "OutputRunNumber",sDefaultRunNumber,
 		    "KSAomegaDataIn",
@@ -344,6 +344,12 @@ void KSAomegaDataIn::Print()
 // Print out all the parameters for this run
 {
   std::cout<<"ksAomega run parameters:"<<std::endl;
+  std::cout<<" New DiscriminatorThresholdPes: "
+	   <<fNewDiscriminatorThresholdPes<<std::endl;
+  std::cout<<"                 New NoiseRate: "<<fNewNoiseRate<<std::endl;
+  std::cout<<"                New Efficiency: "<<fNewEfficiency<<std::endl;
+  std::cout<<"         Digital Counts per PE: "<<fDigitalCountsPerPE
+	   <<std::endl; 
   std::cout<<" Telescope(T1=0,T2=1,T3=2,T4=3) "<<fTelescope
 	   <<std::endl;   
   std::cout<<"              UseRelativeGains: "<<fUseRelativeGains
@@ -358,12 +364,6 @@ void KSAomegaDataIn::Print()
 	   <<std::endl; 
   std::cout<<"            New ADCGateWidthNS: "<<fNewADCGateWidthNS
 	   <<std::endl;
-  std::cout<<" New DiscriminatorThresholdPes: "
-	   <<fNewDiscriminatorThresholdPes<<std::endl;
-  std::cout<<"                 New NoiseRate: "<<fNewNoiseRate<<std::endl;
-  std::cout<<"                New Efficiency: "<<fNewEfficiency<<std::endl;
-  std::cout<<"         Digital Counts per PE: "<<fDigitalCountsPerPE
-	   <<std::endl; 
   std::cout<<"             Output Run Number: "<<fRunNumber<<std::endl;
   return;
 }
