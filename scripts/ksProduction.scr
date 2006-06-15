@@ -113,7 +113,7 @@ function SubmitPBSJobs()
       echo "#"PBS -l nodes=1                                        >>$pbsFile
       echo time $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
       echo ${end[$i]} $datadir $StatusRunFileSpecification     \\   >>$pbsFile
-      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
+      echo ">>"$lcl"/ksProduction"_$i"_"$pr".log"                   >>$pbsFile
       qsub $pbsFile
     fi
 
