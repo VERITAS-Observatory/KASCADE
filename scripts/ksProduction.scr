@@ -71,7 +71,6 @@ function DG1W()
 #1 deg whipple DRIFT Gammas
 #**********************************************************************
 {
-    parspec="DG1W"      
     echo Gammas at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/whipple/dgammas"
     let processEnd=18
@@ -226,7 +225,12 @@ if [ $1 = "G1W" ]; then
     echo parspec: $parspec
     let pspecset=1;
 fi
-if [ $1 = "DG1W" ]; then
+
+
+parspec=$1
+parspec=${parspec#DG1W}         #This removes an DGW1 from the start of parspec
+if [ "$parspec" != $1 ]; then   #This test to see if there was a DGW1 in $1
+    parspec=$1
     DG1W
     echo parspec: $parspec
     let pspecset=1;
