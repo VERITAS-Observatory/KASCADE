@@ -185,7 +185,7 @@ StatusRunFileSpecification=$3
 user=$USER
 
 #Specify queues
-queues=([1]=workq astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
@@ -199,8 +199,8 @@ queues=([1]=workq astro astro astro astro astro astro astro astro astro astro as
 let pspecset=0
 if [ $1 = "CR1W" ]; then
 
-    if [ $2 = "kasaom" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+    if [ "$2" = "ksaom" ]; then
+	cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
                                     $KASCADEBASE/inputs/ksAomegaP1W.config 
         cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
                                     $KASCADEBASE/inputs/ksAomegaHe4_1W.config 
@@ -208,7 +208,7 @@ if [ $1 = "CR1W" ]; then
 
     P1W
     He4_1W
-    echo parspec: $parspec
+
     let pspecset=1;
 fi
 if [ $1 = "P1W" ]; then
