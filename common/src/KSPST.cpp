@@ -296,7 +296,7 @@ void KSPST::FillPixelsInPatch()
   
   // ***********************************************************************
   // Define the pixel coordinates in U,V,X,Y.
-  //   **The whole purpose of the following is to produce fPixelUV**
+  //   **The whole purpose of the following is to produce pfPixelUV**
   // ***********************************************************************
   int fNumOfRings=gNumLines[fCameraType];
   KSCameraGrid fGrid(fNumOfRings);    //This gets the XIndex and Yindex
@@ -356,13 +356,24 @@ void KSPST::FillPixelsInPatch()
 				                                      fScale);
     }
 
-  KSPixelUV fPixelUV(-12,25); // Special class to make an 2 dim array that
-                              // has lower bounds of -12 each dimension and is
-                              // 25 by 25 big. 
+  KSPixelUV* pfPixelUV;
 
+  if(fCameraType==WHIPPLE490)
+    {
+      pfPixelUV= new  KSPixelUV(-12,25); //Special class to make an 2 dim 
+                                         //array that has lower bounds of -12 
+                                         //each dimension and is 25 by 25 big. 
+    }
+  else if(fCameraType==VERITAS499)
+    {
+      pfPixelUV= new  KSPixelUV(-14,29); //Special class to make an 2 dim 
+                                         //array that has lower bounds of -14 
+                                         //each dimension and is 29 by 29 big. 
+    }
+ 
   for(int i=0;i<fNumPixels;i++)
     {
-      fPixelUV.set(fUPosition[i],fVPosition[i],i);
+      pfPixelUV->set(fUPosition[i],fVPosition[i],i);
     }
 
   // ***********************************************************************
@@ -381,7 +392,7 @@ void KSPST::FillPixelsInPatch()
       int fY = kPatchV[j]+kMiddlePatchV[fPatch];// y-position within a module  
       int fU = pfA[fModule]*fX + pfB[fModule]*fY + pfU[fModule];//rotate,module
       int fV = pfC[fModule]*fX + pfD[fModule]*fY + pfV[fModule];//rotate,module
-      pfPixelsInPatch[fPatchNumber][j]=fPixelUV.get(fU,fV);
+      pfPixelsInPatch[fPatchNumber][j]=pfPixelUV->get(fU,fV);
     }
 
   // ***********************************************************************
@@ -400,7 +411,7 @@ void KSPST::FillPixelsInPatch()
 	      int fY = kPatchV[j]+kMiddlePatchV[fPatch];// y-position
 	      int fU = pfA[fModule]*fX + pfB[fModule]*fY + pfU[fModule];
 	      int fV = pfC[fModule]*fX + pfD[fModule]*fY + pfV[fModule];
-	      pfPixelsInPatch[fPatchNumber][j]=fPixelUV.get(fU,fV);
+	      pfPixelsInPatch[fPatchNumber][j]=pfPixelUV->get(fU,fV);
 	    }
 	}
     }

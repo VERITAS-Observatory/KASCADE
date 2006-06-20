@@ -378,8 +378,9 @@ void KSMountDirection::writeMountDirections(std::ofstream* pfOutFile)
   pfOutFile->write((char*)pfDmm, fLength);
   pfOutFile->write((char*)pfDnm, fLength);
   pfOutFile->write((char*)pfXDlm, fLength);
-  pfOutFile->write((char*)pfXDlm, fLength);
-  pfOutFile->write((char*)pfXDlm, fLength);
+  pfOutFile->write((char*)pfXDmm, fLength);
+  pfOutFile->write((char*)pfXDnm, fLength);
+  pfOutFile->write((char*)pfYDlm, fLength);
   pfOutFile->write((char*)pfYDmm, fLength);
   pfOutFile->write((char*)pfYDnm, fLength);
   pfOutFile->write((char*)pfSTheta, fLength);
@@ -399,7 +400,7 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
   pfInFile->read((char*)&fLength, sizeof(int));
   if(!pfInFile->good())
     {
-      std::cout<<"KSMOuntDirection--Failed to read Te Pixel Data."
+      std::cout<<"KSMountDirection--Failed to read fLength."
 	       <<std::endl;
       exit(1);
     }
@@ -431,6 +432,12 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
   pfInFile->read((char*)pfYDnm, fLength);
   pfInFile->read((char*)pfSTheta, fLength);
   pfInFile->read((char*)pfSPhi, fLength);
+  if(!pfInFile->good())
+    {
+      std::cout<<"KSMountDirection--Failed when reading Mount Direction Data."
+	       <<std::endl;
+      exit(1);
+    }
   return;
 }
 
