@@ -1,12 +1,12 @@
 //-*-mode:c++; mode:font-lock;-*-
 /**
- * \class KSW10mVDF.cpp
+ * \class KSVDFHelper.cpp
  * \ingroup common 
- * \brief File of methods for KSW10mVDF.
- * This file has various methods to build the some of the various recods 
- * needed for a minimal VEGAS stage 2 output root file for whipple data. This 
- * includes the VAQStatsData, VAPixelStatusData, VARelGainData and VAArrayInfo
- * records. This code was originally in cparamVDF.cpp
+ * \brief File of methods for KSVDFHelper.
+ * This file has various methods to build the some of the various records 
+ * needed for a minimal VEGAS stage 2 output root file for whipple and veritas
+ * data. This includes the VAQStatsData, VAPixelStatusData, VARelGainData and 
+ * VAArrayInfo records. This code was originally in cparamVDF.cpp
  *
  * Original Author: Glenn H. Sembroski
  * $Author$
@@ -17,60 +17,68 @@
  **/
 // This is where the code starts.
 // ***********************************************************************
-#include "KSW10mVDF.h"
+#include "KSVDFHelper.h"
 
-KSW10mVDF::KSW10mVDF(VAVDF* pOut, int numChannels, VATime& startTime,
-		     int Whipple10MId, int NumWindowSamples)
+KSVDFHelper::KSVDFHelper(int numChannels, VATime& startTime,
+			 int TelID, int NumWindowSamples, 
+			 KSCameraTypes CameraType)
 {
-  pfOut=pOut;
   fNumChannels=numChannels;
   fStartTime=startTime;
   fEndTime.setFromMJDDbl(fStartTime.getMJDDbl() + 1.0);//A day later
-  fWhipple10MId=Whipple10MId;
+  fTelID=TelID;
+  fCameraType=CameraType;
   fNumWindowSamples=NumWindowSamples;
-  //std::cout<<"KSW10mVDF: *****Initalizing"<<std::endl;
-  //std::cout<<"KSW10mVDF: numChannels,TelID,numWindowSamples: "<<fNumChannels
-  //	   <<" "<<fWhipple10MId<<" "<<fNumWindowSamples<<endl;
-  //std::cout<<"KSW10mVDF: MJD Start,MJD End: "<<fStartTime.getMJDDbl()<<" "
-  //	   <<fEndTime.getMJDDbl()<<std::endl;
-}
+ }
 // ***********************************************************************
 
-KSW10mVDF::~KSW10mVDF()
+KSVDFHelper::~KSVDFHelper()
 {
   //Nothing to do
 }
 // ***********************************************************************
 
-void KSW10mVDF::CreateW10mVDFFile(string fFileName, double& fEastLongitude, 
+void KSVDFHelper::CreateVDFFile(string fFileName, double& fEastLongitude, 
 				  double& fLatitude)
 // ***********************************************************************
 // Create the VDF file with the correct VAArrayInfo
 // ***********************************************************************
 {
-  std::string lCam("WC490");
-  pfOut->createFileWithCamera(fFileName,1,lCam);
+  pfOut= new VAVDF();
+
+  if(fCameraType==WHIPPLE490)
+    {
+      std::string lCam("WC490");
+      pfOut->createFileWithCamera(fFileName,1,lCam);
                      //Creates and Opens the output file
                      //(But does not write them).
                      //Also creates all the objects to be written to the file;
                      //Creates a VAArrrayInfo with a whipple 490 pixel camara
-  pfArrayInfo=pfOut->getArrayInfoPtr();
-  //Pick up Longitude and Latitude
-  fEastLongitude=pfArrayInfo->longitude();
-  fLatitude=pfArrayInfo->latitude();
-  
-  //std::cout<<"KSW10mVDF: FileName: "<<fFileName<<std::endl;
-  //std::cout<<"KSW10mVDF:Telescope at East Longitude: "<<fEastLongitude	//   <<", Latitude: "<<fLatitude<<std::endl;
-  return;
+      pfArrayInfo=pfOut->getArrayInfoPtr();
+      //Pick up Longitude and Latitude
+      fEastLongitude=pfArrayInfo->longitude();
+      fLatitude=pfArrayInfo->latitude();
+    }
+  else if(fCameraType==VERITAS499)
+    {
+      pfOut->createFile(fFileName,1,fStartTime);
+    }
+  if(pfOut==NULL)
+    {
+      std::cout<<"ksAomega: Failed ot create VDF output file "<<fFileName
+	       <<std::endl;
+      exit(1);
+    }
+ return;
 }
 // ************************************************************************
 
-void KSW10mVDF::FillRunHeader(int runNumber)
+void KSVDFHelper::FillRunHeader(int runNumber)
 // ****************************************************************
-// Create the Whipple VARunHeader 
+// Create the VARunHeader 
 // ****************************************************************
 {
-  //std::cout<<"KSW10mVDF:RunNumber: "<<runNumber<<std::endl;
+  //std::cout<<"KSVDFHelper:RunNumber: "<<runNumber<<std::endl;
   VARunHeader* pfRunHeader=pfOut->getRunHeaderPtr();
   pfRunHeader->pfRunDetails->fFirstEventTime=fStartTime;
   pfRunHeader->pfRunDetails->fRunNum=runNumber;
@@ -85,13 +93,13 @@ void KSW10mVDF::FillRunHeader(int runNumber)
 }
 
 
-void KSW10mVDF::FillW10mQStats(const float* ped, const float* pedvar)
+void KSVDFHelper::FillW10mQStats(const float* ped, const float* pedvar)
 // ****************************************************************
-// Create the Whipple VAQStatsData 
+// Create the VAQStatsData 
 // ****************************************************************
 {
   VATelQStats tempTelQStats;
-  tempTelQStats.fTelId=fWhipple10MId;//Only one telescope
+  tempTelQStats.fTelId=fTelID;//Only one telescope
 
   for(int i=0;i<fNumChannels;i++)
     {
@@ -126,13 +134,13 @@ void KSW10mVDF::FillW10mQStats(const float* ped, const float* pedvar)
 }
 // ***************************************************************************
 
-void KSW10mVDF::FillW10mRelGains(const float* gain)
+void KSVDFHelper::FillW10mRelGains(const float* gain)
 // ****************************************************************
-// Create the Whipple VARelGainsData 
+// Create the VARelGainsData 
 // ****************************************************************
 {
   VATelRelGains tempTelRelGains;
-  tempTelRelGains.fTelId=fWhipple10MId;  
+  tempTelRelGains.fTelId=fTelID;  
   tempTelRelGains.fLowGainRefRelGain=1.0;
   tempTelRelGains.fHighGainRefRelGain=1.0;
   tempTelRelGains.fLowGainRefVarRelGain=1.0;//arbitrary
@@ -157,17 +165,17 @@ void KSW10mVDF::FillW10mRelGains(const float* gain)
 }
 // ***************************************************************************
 
-void KSW10mVDF::FillPixelStatus(int fNumPMT, bool* off)
+void KSVDFHelper::FillPixelStatus(int fNumPMT, bool* off)
 // ****************************************************************
-// Create the Whipple PixelStatus
+// Create the PixelStatus
 // ****************************************************************
 {
-  //std::cout<<"KSW10mVDF: fNumPMT: "<<fNumPMT<<std::endl;
+  //std::cout<<"KSVDFHelper: fNumPMT: "<<fNumPMT<<std::endl;
   TelOnOffLogType tempTelOnOffLog;
-  tempTelOnOffLog.fTelId=fWhipple10MId;
+  tempTelOnOffLog.fTelId=fTelID;
 
   TelSuppressedLogType tempTelSuppressedLog;
-  tempTelSuppressedLog.fTelId=fWhipple10MId;
+  tempTelSuppressedLog.fTelId=fTelID;
 
   for(int i=0;i<fNumChannels;i++)
     {

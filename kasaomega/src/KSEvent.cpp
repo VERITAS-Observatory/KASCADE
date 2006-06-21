@@ -147,7 +147,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
                         //Gain corrected Charge,SignalToNoise from VATraceData
                         //and Pedvars from VAQSatausData.
       uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
-      uint16_t winSize=(uint16_t)kNumWindowSamples;
+      uint16_t winSize=(uint16_t)gFADCNumSamples[fCameraType];
       for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
 	{
 	  double gain=1;
@@ -201,36 +201,26 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // ********************************************************************
   if(pfDataIn->fRootFileName!=" ")
     {
-      int fNumTels=1;
-      int fNumChannels=492;
-      pfVDFOut= new VAVDF();
+      int fNumChannels=gNumPixelsCamera[fCameraType];
       VAArrayInfo* pfArrayInfo;
-      KSW10mVDF* pfW10mVDF=NULL;
-      if(fCameraType==WHIPPLE490)
-	{
-	  pfW10mVDF = new KSW10mVDF(pfVDFOut,fNumChannels,fEventTime, 
-				    kWhipple10MId,kNumWindowSamples);
+      KSVDFHelper* pfVDFHelper = new KSVDFHelper(fNumChannels, fEventTime, 
+			    E_T1, gFADCNumSamples[fCameraType], fCameraType);
+      double fEastLongitude;
+      double fLatitude;
 
-	  double fEastLongitude;
-	  double fLatitude;
-	  pfW10mVDF->CreateW10mVDFFile(pfDataIn->fRootFileName,fEastLongitude,
+      pfVDFHelper->CreateVDFFile(pfDataIn->fRootFileName,fEastLongitude,
 				       fLatitude);
-	  pfArrayInfo=pfVDFOut->getArrayInfoPtr();
-
-	}
-      else
-	{
-	  pfVDFOut->createFile(pfDataIn->fRootFileName,fNumTels,
-			       fEventTime);
-	}
-      std::cout<<"KSAomega: Ouput VDF Root File: "<<pfDataIn->fRootFileName
+      pfVDFOut=pfVDFHelper->getVDFFilePtr();
+      pfArrayInfo=pfVDFOut->getArrayInfoPtr();
+      
+      std::cout<<"KSAomega: Output VDF Root File: "<<pfDataIn->fRootFileName
 	       <<std::endl;
       
  // *********************************************************************
  //Fill over Run Header
  // *********************************************************************
     
-      pfW10mVDF->FillRunHeader(pfDataIn->fRunNumber);
+      pfVDFHelper->FillRunHeader(pfDataIn->fRunNumber);
       pfRunHeader=pfVDFOut->getRunHeaderPtr();
       
  // *********************************************************************
@@ -259,10 +249,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // Fill the VAQStatsData 
       // ****************************************************************
        
-      pfW10mVDF->FillW10mQStats((const float*) ped, (const float*) pedvar);
-
-
- 
+      pfVDFHelper->FillW10mQStats((const float*) ped, (const float*) pedvar);
       pfVDFOut->writeQStatsData();
 
 
@@ -270,7 +257,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // Fill the VARelGainsData 
       // ****************************************************************
 
-      pfW10mVDF->FillW10mRelGains((const float*)gain);
+      pfVDFHelper->FillW10mRelGains((const float*)gain);
        
       pfVDFOut->writeRelGainData();
       
@@ -278,7 +265,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // Fill the Pixel Status
       // ****************************************************************
       
-      pfW10mVDF->FillPixelStatus(gNumImagePixels[fCameraType],off);
+      pfVDFHelper->FillPixelStatus(gNumImagePixels[fCameraType],off);
       
       pfVDFOut->writePixelStatusData();
 
@@ -491,7 +478,7 @@ void KSEvent::SaveImage()
 	                                    pfCamera->fPixel[i].fChargeVarDC;
 		}
 	      chanData.fHiLo=false;  //We assume hi gain mode for now.
-	      chanData.fWindowWidth=kNumWindowSamples;
+	      chanData.fWindowWidth=gFADCNumSamples[fCameraType];
 	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	    }
 	}

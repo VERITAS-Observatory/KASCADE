@@ -25,7 +25,7 @@
 #include "KSAomegaDataIn.h"
 #include "KSCamera.h"
 #include "KSCommon.h"
-#include "KSW10mVDF.h"
+#include "KSVDFHelper.h"
 
 #include "VAVDF.h"
 #include "VAArrayInfo.h"
@@ -40,13 +40,9 @@
 
 
 const double kDefaultPedestal             = 20;
-const int    kDefaultNumWindowSamples     = 10;
-const double kDefaultWindowSampleLengthNS = 2.0;
 const std::string kFirstValidEventTimeStr ="2005-11-28 02:00:00.000000000 GPS";
 const double kDefaultEventRatePerSec      = 100.0; 
 
-const int kNumWindowSamples=10;
-const int kWhipple10MId=0;
 
 // ** Event class for ksAomega. This does all the work in ksAomega
 // *******************************************************

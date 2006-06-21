@@ -6,8 +6,8 @@
  * $Tag$
  *
  **/
-#ifndef KSW10mVDF_H
-#define KSW10mVDF_H
+#ifndef KSVDFHelper_H
+#define KSVDFHelper_H
 
 
 #include <stdlib.h>
@@ -24,22 +24,27 @@
 #include "VARelGainData.h"
 #include "VATime.h"
 
-class KSW10mVDF
+#include "KSCommon.h"
+
+class KSVDFHelper
 // *******************************************************
-// ** Utillity class for creating and filling records for Whipple VDF file
+// ** Helper class for creating and filling records for Whipple and VERITAS
+// ** VDF files for single telescope runs
 // *******************************************************
 {
  public:
-  KSW10mVDF(VAVDF* pOut, int numChannels, VATime& startTime, int Whipple10MId,
-	    int NumWindowSamples);
-  virtual ~KSW10mVDF();
-  void CreateW10mVDFFile(string fFileName,double& fEastLongitude, 
+  KSVDFHelper(int numChannels, VATime& startTime, int TelID,
+	      int NumWindowSamples,KSCameraTypes CameraType);
+  virtual ~KSVDFHelper();
+
+  void CreateVDFFile(string fFileName,double& fEastLongitude, 
 			 double& fLatitude);
+  VAVDF* getVDFFilePtr(){return pfOut;};
   void FillRunHeader(int runNumber);
   void FillW10mQStats(const float* ped, const float* pedvar);
   void FillW10mRelGains(const float* gain);
   void FillPixelStatus(int fNumPMT, bool* off);
-
+  
   VAArrayInfo* GetArrayInfoPtr(){return pfArrayInfo;};
 
 
@@ -52,8 +57,9 @@ class KSW10mVDF
   int fNumChannels;
   VATime fStartTime;
   VATime fEndTime;
-  int fWhipple10MId;
+  int fTelID;
   int fNumWindowSamples;
+  KSCameraTypes fCameraType;
 
 };
 // ***************************************************************************
