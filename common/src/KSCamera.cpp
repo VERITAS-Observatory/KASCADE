@@ -203,6 +203,7 @@ void KSCamera::generateCameraPixels()
        double fFracPMTArea   = 0.9069*fRadSpace*fRadSpace;
        double fPixelEff      = (fFracPMTArea+fLightConeEff*(1.0-fFracPMTArea));
        double fEfficiency    = fBaseEfficiency*fPixelEff;
+       fPixel[i].fBaseEfficiency = fBaseEfficiency;
        fPixel[i].fEfficiency = fEfficiency;
 
        // *******************************************************************
@@ -221,6 +222,7 @@ void KSCamera::generateCameraPixels()
      {
        for(int i=379;i<490;i++)
 	 {
+	   fPixel[i].fBaseEfficiency = fBaseEfficiency;
 	   fPixel[i].fEfficiency = fBaseEfficiency;
 	   fPixel[i].fDiscNoise = fBaseEfficiency*fDiscGateNS*fNoiseRate*M_PI*
 	                            fPixel[i].fRadiusDeg*fPixel[i].fRadiusDeg;
@@ -452,7 +454,12 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 	  fPixel[i].BuildPeWaveForm();
 	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,1,0.0);
 
-	  fPixel[i].AddNoiseToWaveForm(false);
+	  fPixel[i].AddNoiseToWaveForm(false);//Note that this noise has not 
+	                                      //been modified by overall 
+	                                      //efficiency but has been 
+	                                      //modified by light cone 
+	                                      //efficiency
+
 	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
 	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,2,0.0);
 
@@ -485,7 +492,12 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
       if(fPixel[i].fTimePe.size()==0 && !fPixel[i].fBadPixel)
 	{
 	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
-	  fPixel[i].AddNoiseToWaveForm(false);
+	  fPixel[i].AddNoiseToWaveForm(false);//Note that this noise has not 
+	                                      //been modified by overall 
+	                                      //efficiency but has been 
+	                                      //modified by light cone 
+	                                      //efficiency
+
 	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
 	  bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset,nx,ny);
 	  if(fCFDTrig)
@@ -516,7 +528,12 @@ void KSCamera::buildNonTriggerWaveForms()
 	    {
 	      fPixel[i].BuildPeWaveForm();
 	    }
-	  fPixel[i].AddNoiseToWaveForm(false);
+	  fPixel[i].AddNoiseToWaveForm(false);//Note that this noise has not 
+	                                      //been modified by overall 
+	                                      //efficiency but has been 
+	                                      //modified by light cone 
+	                                      //efficiency
+
 	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
 	}
     } 

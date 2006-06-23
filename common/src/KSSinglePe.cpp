@@ -208,7 +208,7 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
 
 {
   //Make a WaveForm of 1000 single pes;
-  int fNumTraceBins=fNumBinsInPulse*(int)(gWaveFormBinSizeNS/gFADCBinSizeNS)+1;
+  int fNumTraceBins=(int)(fNumBinsInPulse*gWaveFormBinSizeNS/gFADCBinSizeNS)+1;
   std::vector<double> fPulse;
   fPulse.resize(fNumBinsInPulse);
   for(int i=0;i<fNumBinsInPulse;i++)

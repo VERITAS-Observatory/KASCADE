@@ -93,7 +93,7 @@ void KSVDFHelper::FillRunHeader(int runNumber)
 }
 
 
-void KSVDFHelper::FillW10mQStats(const float* ped, const float* pedvar)
+void KSVDFHelper::FillQStats(const float* ped, const float* pedvar)
 // ****************************************************************
 // Create the VAQStatsData 
 // ****************************************************************
@@ -134,7 +134,7 @@ void KSVDFHelper::FillW10mQStats(const float* ped, const float* pedvar)
 }
 // ***************************************************************************
 
-void KSVDFHelper::FillW10mRelGains(const float* gain)
+void KSVDFHelper::FillRelGains(const float* gain)
 // ****************************************************************
 // Create the VARelGainsData 
 // ****************************************************************

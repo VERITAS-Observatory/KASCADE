@@ -22,19 +22,21 @@ const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
 
 const double gLatitude[2]                = {    0.552828,    0.552978};
 const double gEastLongitude[2]           = {    -1.93649,   -1.935190};
-
 const int    gNumPixelsCamera[2]         = {         499,         490};
 const int    gNumTriggerPixels[2]        = {         463,         331};
 const int    gNumImagePixels[2]          = {         499,         379};
 const int    gNumLines[2]                = {          13,          11};
 const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
-//const double gPixelRadiusMM[2]           = {       12.48,         5.0};
 
+const double gWaveFormPedestalPE[2]      = {        8.75,         2.0};
 const int    gFADCNumSamples[2]          = {          24,          10};
-const double gFADCDigCntsPerPEHiGain[2]  = {        5.47,         4.2};
-const double gFADCDigCntsPerPELowGain[2] = {        .911,         0.0};
-const int    gFADCPedestalDCPerBin[2]    = {          20,           2};
-const double gFADCTOffsetNS[2]           = {         8.0,         8.0};
+const int    gFADCWinSize[2]             = {          10,          10};
+const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
+const double gFADCDigCntsPerPELowGain[2] = {        .268,         0.0};
+
+//gFADCDigCntsPerPELowGain should be 1/6 of gFADCDigCntsPerPEHiGain
+
+const double gFADCTOffsetNS[2]           = {        10.0,         9.0};
 
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
@@ -52,7 +54,7 @@ const double gDeg2Rad=M_PI/180.;
 
 const double gOverflowTime=1000001.;
 
-const int    gNightSkyWaveFormNS=1000;   //1 microsec
+const int    gNightSkyWaveFormNS=10000;   //10 microsec
 const double gWaveFormBinSizeNS=.25;     // Bin size in ns
 
 

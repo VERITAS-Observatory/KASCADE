@@ -77,8 +77,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	                                    //affects effective CFD thresholds
 	  pfCamera->fPixel[i].fPedVarRel=1;//This is relative pedvars at this 
 	                                //point.Used to model night sky.
-	  pfCamera->fPixel[i].fPed=kDefaultPedestal;// Pedestal to use for 
-	                                            //ouput file.
 	  pfCamera->fPixel[i].fBadPixel=false;      //Set all pixels ON.
 	}
       
@@ -137,7 +135,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       //  ******************************************************************
       // Now load up things
       // Note we only need pedvars to get relative rates of night sky in pixels
-      // Thus use a standard window width of 10 samples( 20 ns). This is 
+      // Thus use a the standard window size from gFADCWinSize. This is 
       // default for whipple data and is big enough to cause minimum 
       // statistical problems for VERITAS (I Hope)
       // The base rate of the night sky is determined from 
@@ -147,7 +145,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
                         //Gain corrected Charge,SignalToNoise from VATraceData
                         //and Pedvars from VAQSatausData.
       uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
-      uint16_t winSize=(uint16_t)gFADCNumSamples[fCameraType];
+      uint16_t winSize=(uint16_t)gFADCWinSize[fCameraType];
       for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
 	{
 	  double gain=1;
@@ -157,8 +155,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	  pfCamera->fPixel[chan].fRelativeGain=gain;
 
-	  pfCamera->fPixel[chan].fPed=
-	    pfPeds->getTraceMean(fFirstValidEventTime,fTel, chan, winSize);
 	  double pedvar=1;
 	  if(pfDataIn->fUseRelativePedVars)
 	    {
@@ -204,7 +200,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       int fNumChannels=gNumPixelsCamera[fCameraType];
       VAArrayInfo* pfArrayInfo;
       KSVDFHelper* pfVDFHelper = new KSVDFHelper(fNumChannels, fEventTime, 
-			    E_T1, gFADCNumSamples[fCameraType], fCameraType);
+			    E_T1, gFADCWinSize[fCameraType], fCameraType);
       double fEastLongitude;
       double fLatitude;
 
@@ -215,6 +211,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       
       std::cout<<"KSAomega: Output VDF Root File: "<<pfDataIn->fRootFileName
 	       <<std::endl;
+      //std::cout<<"fSinglePeMeanFADCArea[0]:"
+      //	       <<pfCamera->fPixel[0].fSinglePeMeanFADCArea<<std::endl;
+
       
  // *********************************************************************
  //Fill over Run Header
@@ -231,16 +230,18 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       bool  off[fNumChannels];
       for(int i=0;i<fNumPixels;i++)
 	{
-	  ped[i]  = (float)pfCamera->fPixel[i].fPed;
 	  gain[i] = (float)pfCamera->fPixel[i].fRelativeGain;
 	  off[i]  = pfCamera->fPixel[i].fBadPixel;
 	  if(fCameraType==WHIPPLE490)
 	    {
+	      ped[i]  = (float)pfCamera->fPixel[i].fPedPE*
+		pfDataIn->fDigitalCountsPerPE;
 	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE*
 		pfDataIn->fDigitalCountsPerPE;
 	    }
 	  else if(fCameraType==VERITAS499)
 	    {
+	      ped[i]  = (float)pfCamera->fPixel[i].fPedDC;
 	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC;
 	    }
 	}
@@ -249,7 +250,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // Fill the VAQStatsData 
       // ****************************************************************
        
-      pfVDFHelper->FillW10mQStats((const float*) ped, (const float*) pedvar);
+      pfVDFHelper->FillQStats((const float*) ped, (const float*) pedvar);
       pfVDFOut->writeQStatsData();
 
 
@@ -257,7 +258,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // Fill the VARelGainsData 
       // ****************************************************************
 
-      pfVDFHelper->FillW10mRelGains((const float*)gain);
+      pfVDFHelper->FillRelGains((const float*)gain);
        
       pfVDFOut->writeRelGainData();
       
@@ -476,9 +477,22 @@ void KSEvent::SaveImage()
 		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
 		  chanData.fSignalToNoise=chanData.fCharge/
 	                                    pfCamera->fPixel[i].fChargeVarDC;
+		  //if(chanData.fSignalToNoise>4.25)
+		  //  {
+		  //   std::cout
+		  //	<<"fFADCStartGateTimeNS,fWaveFormStartNS,sig,chrg:"
+		  //	<<fFADCStartGateTimeNS<<" "
+		  //	<<pfCamera->fPixel[i].fWaveFormStartNS
+		  //	<<" "<<chanData.fSignalToNoise<<" "
+		  //	<<chanData.fCharge<<std::endl;
+		  //   pfCamera->fPixel[i].PrintWaveForm(0,0,i,0);
+		  //   pfCamera->fPixel[i].fFADC.Print(0,
+		  //			     gFADCNumSamples[fCameraType]);
+		  // }
 		}
+	      chanData.fCharge=chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
 	      chanData.fHiLo=false;  //We assume hi gain mode for now.
-	      chanData.fWindowWidth=gFADCNumSamples[fCameraType];
+	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
 	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	    }
 	}

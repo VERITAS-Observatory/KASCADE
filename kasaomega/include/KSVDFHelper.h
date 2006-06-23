@@ -41,8 +41,8 @@ class KSVDFHelper
 			 double& fLatitude);
   VAVDF* getVDFFilePtr(){return pfOut;};
   void FillRunHeader(int runNumber);
-  void FillW10mQStats(const float* ped, const float* pedvar);
-  void FillW10mRelGains(const float* gain);
+  void FillQStats(const float* ped, const float* pedvar);
+  void FillRelGains(const float* gain);
   void FillPixelStatus(int fNumPMT, bool* off);
   
   VAArrayInfo* GetArrayInfoPtr(){return pfArrayInfo;};

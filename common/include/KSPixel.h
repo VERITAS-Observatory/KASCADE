@@ -39,6 +39,7 @@ class KSPixel
   void AddNoiseToWaveForm(bool fAfterPulse);
   void DetermineNoisePedestals();
   void RemoveNightSkyPedestalFromWaveForm();
+  void AddPedestalToWaveForm(double fWaveFormPedestal);
   double  GetCharge(double fTriggerTimeNS);
   void PrintWaveForm(int nx, int ny, int seqNum,double time);
 
@@ -57,6 +58,7 @@ class KSPixel
   double fYDeg;
   std::vector<int> fAdjacentPixels;
 
+  double fBaseEfficiency;     //Efficency from config file
   double fEfficiency;         //Overall efficency to see pes (0.0 <--> 1.0 )
   double fThreshold;          //Disc trigger threshold (pes)      
   double fDiscNoise;          //Ave # pes in effective disc gate from sky
@@ -74,14 +76,15 @@ class KSPixel
   double fWaveFormStartNS;
   int    fNumWaveFormBins;
   double fWaveFormNightSkyPedestal;
+  double fPedPE;
   double fChargeVarPE;  //Whipple:units of Pes.
+  double fPedDC;
   double fChargeVarDC;  //Veritas:units of FADC DC
 
   double fCFDTriggerTimeNS;
 
 
   double fRelativeGain;
-  double fPed;
   double fPedVarRel;
   bool   fBadPixel; 
 

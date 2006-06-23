@@ -26,6 +26,7 @@ class KSFADC
   void makeFADCTrace(std::vector<double>& fWaveForm, int fWaveFormStartIndex,
 		     int& fTraceLengthBins, bool EnableHiLoGainProcessing);
   double getWindowArea(int fStartTraceIndex, int fNumBinsToSum);
+  void  Print(int fStartTraceIndex, int fNumBinsToPrint);
 
   std::vector<int> fFADCTrace;
   bool fFADCLowGain;

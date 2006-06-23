@@ -150,7 +150,24 @@ double KSFADC::getWindowArea(int fStartTraceIndex, int fNumBinsToSum)
     }
   return fSum;
 }
-	
+// ************************************************************************	
+void  KSFADC::Print(int fStartTraceIndex, int fNumBinsToPrint)
+{
+
+  int fTraceLength=fFADCTrace.size();
+  if(fTraceLength<fStartTraceIndex+fNumBinsToPrint)
+    {
+      std::cout<<"KSFADC: Request for non-existant fFADCTrace bins in "
+	"KSFADC::Print"<<std::endl;
+      return;
+    }
+  for(int i=0;i<fNumBinsToPrint;i++)
+    {
+      int fIndex=fStartTraceIndex+i;
+      std::cout<<i<<" "<<fIndex<<" "<<fFADCTrace[fIndex]<<std::endl;
+    }
+  return;
+}
 
 
 
