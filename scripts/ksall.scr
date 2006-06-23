@@ -120,12 +120,21 @@ while test $i -le $4
 
 #ksTrigger
     tefile=$Shwr$i
+    MDirFile=$5'/'$2'GeV'$1'MDir.d'$i
+
     if [ -e "$tefile" ]; then
 	rm $tefile
     fi
-    $src/ksTrigger  -config=$ksTriggerConfig  \
+
+    if [ -e "$MDirFile" ]; then
+	rm $MDirFile
+    fi
+ 
+    $src/ksTrigger  -config=$ksTriggerConfig \
+		    -SaveMountDirectionsToFile=ON \
+		    -MountDirectionsFileName=$MDirFile \
                     -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
-    rm $pesfile
+     rm $pesfile
 
 #compress te file: THIS DOESN'T SEEM TO WORK!
 #
