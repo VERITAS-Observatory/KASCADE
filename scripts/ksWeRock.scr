@@ -1,0 +1,22 @@
+#This is a short utility script to do all the things between running
+#ksProduction and running root. See the KASCADE wiki: Running at Purdue: 
+# steps2.2 through steps 2.4
+#This is explictily for the Whipple analysis.
+#Takes about 20 - 30 min.
+
+
+#step 2.2
+
+cd /project/veritas/sembrosk/whipple
+
+find ./protons -name P1W*GeV*.root >1WList
+find ./he4 -name He4_1W*GeV*.root >>1WList
+
+#step 2.3
+
+/home/sembrosk/KASCADE/bin/ksSumVDFRootFiles -EnableSpectrumWeighting 1WList 1W.root
+
+#step 2.4
+/home/sembrosk/vegas/bin/vaStage3  1W.root
+
+#and thats it!
