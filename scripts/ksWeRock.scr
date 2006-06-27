@@ -4,6 +4,7 @@
 #This is explictily for the Whipple analysis.
 #Takes about 20 - 30 min.
 
+inpDir=$KASCADEBASE'/inputs'
 
 #step 2.2
 
@@ -13,10 +14,17 @@ find ./protons -name P1W*GeV*.root >1WList
 find ./he4 -name He4_1W*GeV*.root >>1WList
 
 #step 2.3
+#Setup unique random seed file
+cp -v $inpDir/ksKascade.ran ksSumVDFRootFiles.ran #Copy in a file to overwrite
+let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
 
-/home/sembrosk/KASCADE/bin/ksSumVDFRootFiles -EnableSpectrumWeighting 1WList 1W.root
+$KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumVDFRootFiles.ran
+	                    #date +%N  +$$ gives Number of nanoseconds from 
+			    #last second  + process id.
+
+$KASCADEBASE/bin/ksSumVDFRootFiles -EnableSpectrumWeighting 1WList 1W.root
 
 #step 2.4
-/home/sembrosk/vegas/bin/vaStage3  1W.root
+$VEGASBASE/bin/vaStage3  1W.root
 
 #and thats it!
