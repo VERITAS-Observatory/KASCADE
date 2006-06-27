@@ -24,11 +24,11 @@ void HillasPlots(char* fFileName)
   fC1->cd(3);
   fHParTree->Draw("H.fMiss",
 		  "H.fGoodImage && H.fTriggerCode==1 && H.fMiss>0.0 "
-                  "&& H.fMiss<1.2 && H.fPixelsInImage>2");
+                  "&& H.fMiss<1.75 && H.fPixelsInImage>2");
   fC1->cd(4);
   fHParTree->Draw("H.fDist",
 		  "H.fGoodImage && H.fTriggerCode==1 && H.fDist>0.0 " 
-                  " && H.fDist<1.2 && H.fPixelsInImage>2");
+                  " && H.fDist<1.75 && H.fPixelsInImage>2");
   fC1->cd(5);
   fHParTree->Draw("H.fAlpha"," H.fGoodImage && H.fTriggerCode==1 " 
                   "&& H.fAlpha>0 && H.fPixelsInImage>2");
