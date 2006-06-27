@@ -184,9 +184,9 @@ StatusRunFileSpecification=$3
 user=$USER
 
 #Specify queues
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq)
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq)
 
-queues=([1]=astro astro astro astro astro astro astro astro astro  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+queues=([1]=workq workq astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
@@ -240,7 +240,7 @@ fi
 
 if [ $1 = "CR1V" ]; then
 
-    if [ $2 = "ksaom" ]; then
+    if [ "$2" = "ksaom" ]; then
         cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
                                     $KASCADEBASE/inputs/ksAomegaP1V.config 
         cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
