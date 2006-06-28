@@ -31,6 +31,8 @@ KSTeFile::KSTeFile()
   fTeHeadWritten=false;
   fTeHeadRead=false;
 
+  fFirstTeWritten=false;   //for use with writing Mount dir to file.
+  fFirstTeRead=false;      //for use with writing Mount dir to file.
   fTeRead=false;
   fTeWritten=false;
   
@@ -239,6 +241,43 @@ void KSTeFile::WriteTeHead(KSTeHeadData* teHead)
 }
 // ***************************************************************************
 
+void KSTeFile::WriteMountDirections(KSMountDirection* pfMountDir)
+// ***************************************************************************
+// Write the Mount Directions to the output file. This comes after the seg
+// head, pe head, and te head records are written but before the first te
+// record. Reading is a little more tricky
+// ***************************************************************************
+{
+  if(pfOutFile==NULL)
+    {
+      std::cout<<"KSTeFile--Output te file is not yet opened"
+	       <<std::endl;
+      fFoundError=true;
+      //throw exception
+    }
+  else if(!fTeHeadWritten)
+    {
+      std::cout<<"KSTeFile--Te Header not yet written."
+	       <<std::endl;
+      fFoundError=true;
+      //throw exception
+    }
+  else if(fFirstTeWritten)
+    {
+      std::cout<<"KSTeFile--Too late to write Mount Directions to Te File. Te "
+	"events already written to file."<<std::endl;
+      fFoundError=true;
+      //throw exception
+    }
+  else
+    {
+      pfMountDir->writeMountDirections(pfOutFile);
+      fFoundError=false;
+    }
+  return;
+}
+// ***************************************************************************
+
 void KSTeFile::WriteTe(KSTeData* te)
 // ***************************************************************************
 // Write the te evnet tag data to the output file. Segment head, pe head , 
@@ -271,6 +310,7 @@ void KSTeFile::WriteTe(KSTeData* te)
   else
     {
       pfOutFile->write((char*)te, sizeof(KSTeData));
+      fFirstTeWritten=true;   //for use with WriteMountDirections
       fTeWritten=true;
       fFoundError=false;
       fNumTe++;
@@ -481,6 +521,58 @@ bool KSTeFile::ReadTeHead(KSTeHeadData* teHead)
     }
 }
 // ***************************************************************************
+// ***************************************************************************
+
+
+
+bool KSTeFile::ReadMountDirections(KSMountDirection* pfMountDir)
+// ***************************************************************************
+// Read Mount Directions data from the input file. Sould be forth thing read 
+// if it is there. You tell it should be there by looking in the Te Head 
+// to see if fMountDirectionsSaved is set. Assume calling routine does this.
+// First word of record is number of directions. KSMountDirection will check 
+// that this value has some sanity to it (>0,<500)
+// This record should come before and Te record in the file, and it should 
+// only be read once.
+// ***************************************************************************
+{
+  if(pfInFile==NULL)
+    {
+      std::cout<<"KSTeFile--Input te file is not yet opened"
+	       <<std::endl;
+      fFoundError=true;
+      return false;
+    }
+  else if(!fTeHeadRead)
+    {
+      std::cout<<"KSTeFile--Te Header Not yet read before trying to read Mount"
+	" Directions." <<std::endl;
+      fFoundError=true;
+      return false;
+    }
+  else if(fFirstTeRead)
+    {
+      std::cout<<"KSTeFile--First Te Record Already read before trying to "
+	"read MountDirections." <<std::endl;
+      fFoundError=true;
+      return false;
+    }
+  else
+    {
+      
+     pfMountDir->readMountDirections(pfInFile);
+     if(!pfInFile->good())
+       {
+	 std::cout<<"KSTeFile--Failed to read Mount Directions."
+		  <<std::endl;
+	 fFoundError=true;
+	 return false;
+       }
+     fFoundError=false;
+     return true;
+    }
+}
+// ***************************************************************************
 
 bool KSTeFile::ReadTe(KSTeData* te)
 // ***************************************************************************
@@ -526,6 +618,7 @@ bool KSTeFile::ReadTe(KSTeData* te)
 	 fFoundError=true;
 	 return false;
        }
+     fFirstTeRead=true;
      fTeRead=true;
      fFoundError=false;
      fNumTe++;

@@ -356,7 +356,7 @@ void KSPST::FillPixelsInPatch()
 				                                      fScale);
     }
 
-  KSPixelUV* pfPixelUV;
+  KSPixelUV* pfPixelUV=NULL;
 
   if(fCameraType==WHIPPLE490)
     {

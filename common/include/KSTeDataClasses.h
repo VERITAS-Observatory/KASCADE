@@ -33,6 +33,9 @@ class KSTeHeadData
   bool   fDriftingGammas;           //Use special theta/phi -> gamma drift scan
   bool   fMultipleMountDirections;  //Generate mutiple mount directions for 
                                     //each event. Normal use for Hadrons
+  //bool fMountDirectionsSaved;       //Mount directions are to be saved in the
+                                    // Te file (Right after this record)
+                                    
   double fNoiseRate;	            //Noise rate in pe/deg**2/ns.
   double fDiscCoincidenceWidthNS;   //Discriminater coincidence window(ns)  
   double fDiscriminatorThresholdPes;//Disc threshold for pmt's (pes)

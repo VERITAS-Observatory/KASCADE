@@ -22,6 +22,7 @@
 #include "KSPeDataClasses.h"
 #include "KSTeDataClasses.h"
 #include "KSPixel.h"
+#include "KSMountDirection.h"
 
 // *******************************************************
 // ** PE File class **
@@ -38,6 +39,7 @@ class KSTeFile
   void WriteSegmentHead(KSSegmentHeadData* segHead);
   void WritePeHead(KSPeHeadData* peHead);
   void WriteTeHead(KSTeHeadData* teHead);
+  void WriteMountDirections(KSMountDirection* pMountDir);
   void WriteTe(KSTeData* te);
   void WriteTePixelData(std::vector<KSPixel>& fPixel);
   double getNumTes(){return fNumTe;};
@@ -45,6 +47,7 @@ class KSTeFile
   bool ReadSegmentHead(KSSegmentHeadData* segHead);
   bool ReadPeHead(KSPeHeadData* peHead);
   bool ReadTeHead(KSTeHeadData* teHead);
+  bool ReadMountDirections(KSMountDirection* pMountDir);
   bool ReadTe(KSTeData* te);
   bool ReadTePixelData(std::vector<KSPixel>& fPixel);
 
@@ -61,6 +64,8 @@ class KSTeFile
   bool fTeHeadWritten;
   bool fTeHeadRead;
 
+  bool fFirstTeRead;
+  bool fFirstTeWritten;
   bool fTeRead;
   bool fTeWritten;
 
