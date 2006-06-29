@@ -241,8 +241,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	  else if(fCameraType==VERITAS499)
 	    {
-	      ped[i]  = (float)pfCamera->fPixel[i].fPedDC;
-	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC;
+	      ped[i]  = (float)pfCamera->fPixel[i].fPedDC*
+		pfDataIn->fDigitalCountsPerPE;
+	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC*
+		pfDataIn->fDigitalCountsPerPE;
 	    }
 	}
 	
@@ -468,7 +470,6 @@ void KSEvent::SaveImage()
 		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
 		  chanData.fSignalToNoise=chanData.fCharge/
 		    pfCamera->fPixel[i].fChargeVarPE;
-	      chanData.fCharge=chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
 		}
 	      else if(fCameraType==VERITAS499) 
 		{
@@ -477,20 +478,13 @@ void KSEvent::SaveImage()
 		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
 		  chanData.fSignalToNoise=chanData.fCharge/
 	                                    pfCamera->fPixel[i].fChargeVarDC;
-		  //if(chanData.fSignalToNoise>4.25)
-		  //  {
-		  //   std::cout
-		  //	<<"fFADCStartGateTimeNS,fWaveFormStartNS,sig,chrg:"
-		  //	<<fFADCStartGateTimeNS<<" "
-		  //	<<pfCamera->fPixel[i].fWaveFormStartNS
-		  //	<<" "<<chanData.fSignalToNoise<<" "
-		  //	<<chanData.fCharge<<std::endl;
-		  //   pfCamera->fPixel[i].PrintWaveForm(0,0,i,0);
-		  //   pfCamera->fPixel[i].fFADC.Print(0,
-		  //			     gFADCNumSamples[fCameraType]);
-		  // }
 		}
+	      // ************************************************************
+	      // Now we apply the DigitalCountsPerPE only here. For VERITAS499
+	      // this is really just a gain adjustment over published gains
+	      // ************************************************************
 	      chanData.fCharge=chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
+
 	      chanData.fHiLo=false;  //We assume hi gain mode for now.
 	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
 	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);

@@ -73,8 +73,10 @@ void KSCamera::Print()
 
 
   std::cout<<"Camera Initalized:"<<std::endl;
-  std::cout<<"Pixel 1 light collection effciency = "<<fPixel[1].fEfficiency
-	   <<std::endl;
+  std::cout<<"Pixel 1 light Total collection effciency = "
+	   <<fPixel[1].fEfficiency<<std::endl;
+  std::cout<<"Pixel 1 light Total Light Cone collection effciency = "
+	   <<fPixel[1].fEfficiency/fPixel[1].fBaseEfficiency<<std::endl;
 
   pfCameraTrigger->Print();
   return;

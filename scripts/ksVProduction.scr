@@ -90,6 +90,10 @@ function P1V()
     parspec="P1V"      
     echo Protons at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/protons"
+
+    echo Removing P1V*GeV*.root files
+    find  $datadir/ -name P1V\*GeV\*.root | xargs -n 1 rm
+  
    let processEnd=32
     enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
@@ -109,6 +113,10 @@ function He4_1V()
     parspec="He4_1V"      
     echo He4 at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/he4"
+
+    echo Removing P1V*GeV*.root files
+    rm $datadir/He4_1V*GeV*.root
+
     let processEnd=19
     enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
@@ -186,7 +194,7 @@ user=$USER
 #Specify queues
 #queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-queues=([1]=astro astro astro astro astro astro workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq)
+queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
