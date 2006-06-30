@@ -51,8 +51,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfTeHead->fPatternTriggerLevel      =pfDataIn->fNewPatternTriggerLevel;
   pfTeHead->fTriggerMultiplicity      =pfDataIn->fNewTriggerMultiplicity; 
   pfTeHead->fLightConeConcentration   =pfDataIn->fNewLightConeConcentration;
+  double fFADCDigCntsPerPEHiGain      =pfDataIn->fDigitalCountsPerPE;
 
-  pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger);
+  pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
+			                              fFADCDigCntsPerPEHiGain);
   pfCamera->Print();
 
   // ************************************************************************
@@ -234,6 +236,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  off[i]  = pfCamera->fPixel[i].fBadPixel;
 	  if(fCameraType==WHIPPLE490)
 	    {
+	      // *********************************************************
+	      // Now we apply the DigitalCountsPerPE for whipple only here. 
+	      // For VERITAS499 this is applied within the KSFADC function
+	      // *********************************************************
 	      ped[i]  = (float)pfCamera->fPixel[i].fPedPE*
 		pfDataIn->fDigitalCountsPerPE;
 	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE*
@@ -241,10 +247,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	  else if(fCameraType==VERITAS499)
 	    {
-	      ped[i]  = (float)pfCamera->fPixel[i].fPedDC*
-		pfDataIn->fDigitalCountsPerPE;
-	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC*
-		pfDataIn->fDigitalCountsPerPE;
+	      ped[i]  = (float)pfCamera->fPixel[i].fPedDC;
+	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC;
 	    }
 	}
 	
@@ -470,6 +474,12 @@ void KSEvent::SaveImage()
 		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
 		  chanData.fSignalToNoise=chanData.fCharge/
 		    pfCamera->fPixel[i].fChargeVarPE;
+		  // *********************************************************
+		  // Now we apply the DigitalCountsPerPE for whipple onlyhere. 
+		  // For VERITAS499 this is applied within the KSFADC function
+		  // *********************************************************
+		  chanData.fCharge=
+		                chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
 		}
 	      else if(fCameraType==VERITAS499) 
 		{
@@ -479,11 +489,6 @@ void KSEvent::SaveImage()
 		  chanData.fSignalToNoise=chanData.fCharge/
 	                                    pfCamera->fPixel[i].fChargeVarDC;
 		}
-	      // ************************************************************
-	      // Now we apply the DigitalCountsPerPE only here. For VERITAS499
-	      // this is really just a gain adjustment over published gains
-	      // ************************************************************
-	      chanData.fCharge=chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
 
 	      chanData.fHiLo=false;  //We assume hi gain mode for now.
 	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
