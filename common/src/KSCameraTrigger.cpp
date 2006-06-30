@@ -131,7 +131,7 @@ bool KSCameraTrigger::isFastTriggered()
 	      for(int j=0;j<fDiscPes;j++)
 		{
 		  fPulseHeight=
-		    pfPixel->at(i).fSinglePe.getPulseHeight(fAfterPulse);
+		    pfPixel->at(i).pfSinglePe->getPulseHeight(fAfterPulse);
 		  fDiscPulseHeight += fPulseHeight;
 		}
 	    }
@@ -182,7 +182,7 @@ bool KSCameraTrigger::isFastTriggered()
 		  for(int j=0;j<fDiscPes;j++)
 		    {
 		      fPulseHeight=
-			pfPixel->at(i).fSinglePe.getPulseHeight(fAfterPulse);
+			pfPixel->at(i).pfSinglePe->getPulseHeight(fAfterPulse);
 		      fDiscPulseHeight += fPulseHeight;
 		    }
 		}

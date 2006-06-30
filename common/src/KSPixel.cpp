@@ -22,10 +22,11 @@ KSPixel::KSPixel()
 {
   InitPixel();
 }
-KSPixel::KSPixel(KSCameraTypes CameraType)
+KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain)
 {
   fCameraType=CameraType;
   fFADC.SetCameraType(CameraType);
+  fFADC.SetDigCntsPerPEGains(DigCntsPerPEHiGain);
   InitPixel();
 }
 
@@ -35,10 +36,20 @@ void KSPixel::InitPixel()
   //pulse
   //Debug:fSinglePe.setRiseFallTimes(4.0,15.0);
 
-  fSinglePeSizeNS      = fSinglePe.getLengthNS();
-  fSinglePeSizeNumBins = fSinglePe.fNumBinsInPulse;
-  fSinglePeArea        = fSinglePe.getArea();
-  fSinglePeMeanFADCArea= fSinglePe.getMeanFADCArea(fCameraType,fFADC);
+  pfSinglePe=NULL;
+  if(fCameraType==WHIPPLE490)
+    {
+      pfSinglePe= new KSSinglePe();  //use base rise and fall times
+    }
+  if(fCameraType==VERITAS499)
+    {
+      pfSinglePe= new KSSinglePe(gSinglePeRiseTimeNS[fCameraType],
+				 gSinglePeFallTimeNS[fCameraType]); 
+    }
+  fSinglePeSizeNS      = pfSinglePe->getLengthNS();
+  fSinglePeSizeNumBins = pfSinglePe->fNumBinsInPulse;
+  fSinglePeArea        = pfSinglePe->getArea();
+  fSinglePeMeanFADCArea= pfSinglePe->getMeanFADCArea(fCameraType,fFADC);
 }
 // **************************************************************
 
@@ -135,12 +146,12 @@ void KSPixel::addPe(double fPeTimeNS,bool fAfterPulse)
 	{
 	  fPeEndIndex=fNumWaveFormBins-fStartBin-1;
 	}
-      double fPulseHeight=fSinglePe.getPulseHeight(fAfterPulse);
+      double fPulseHeight=pfSinglePe->getPulseHeight(fAfterPulse);
       // Now load in the single pe
       int fWaveFormIndex=fStartBin;     
       for(int i=fPeStartIndex;i<=fPeEndIndex;i++)
 	{
-	  fWaveForm[fWaveFormIndex]+=fSinglePe.pfSinglePulse[i]*fPulseHeight;
+	  fWaveForm[fWaveFormIndex]+=pfSinglePe->pfSinglePulse[i]*fPulseHeight;
 	  fWaveFormIndex++;
 	}
     }

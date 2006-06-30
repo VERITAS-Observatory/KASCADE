@@ -31,7 +31,7 @@ class KSPixel
 {
  public:
   KSPixel();
-  KSPixel(KSCameraTypes CameraType);
+  KSPixel(KSCameraTypes CameraType, double fDigCntPerPEHiGain);
   virtual ~KSPixel();
   void InitPixel();
   void InitWaveForm(double fWaveFormStart,double fWaveFormLength);
@@ -49,7 +49,7 @@ class KSPixel
   KSCameraTypes fCameraType;
   
  public:
-  KSSinglePe fSinglePe;
+  KSSinglePe* pfSinglePe;
   KSFADC fFADC;
   int    fID;
   double fHalfSpacingDeg;

@@ -37,7 +37,14 @@ class KSCamera
  public:
   KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
 	                                             bool fUsePatternTrigger);
+  KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
+	                  bool fUsePatternTrigger, double fDigCntPerPEHiGain);
+ private:
+  void InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
+	                  bool fUsePatternTrigger);
+ public:
   virtual ~KSCamera();
+
   bool isFastTriggered(){return pfCameraTrigger->isFastTriggered();};
   int  buildTriggerWaveForms(int nx,int ny);
   bool isWaveFormTriggered(){return pfCameraTrigger->isWaveFormTriggered();};
@@ -77,7 +84,8 @@ class KSCamera
   double  fJitterWidthEastWestRad;
   double  fLatitude;
   double  fEastLongitude;
-
+  double  fDigCntsPerPEHiGain;
+  
   double  fMaxFOVDeg2;
   float* pfTelescopePixelX;
   float* pfTelescopePixelY;

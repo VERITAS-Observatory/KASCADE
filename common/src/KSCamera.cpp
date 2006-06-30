@@ -15,8 +15,26 @@
 
 #include "KSCamera.h"
 // In the constructor is where most of the work gets done.
+// ************************************************************************
+
+KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
+		   bool fUsePatternTrigger, double DigCntsPePE)
+{
+  fDigCntsPerPEHiGain=DigCntsPePE;
+  InitCamera(CameraType,pTeHead,fUsePatternTrigger);
+}
+// ************************************************************************
+
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		                                      bool fUsePatternTrigger)
+{
+  fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
+  InitCamera(CameraType,pTeHead,fUsePatternTrigger);
+}
+// ************************************************************************
+
+void KSCamera::InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
+		     bool fUsePatternTrigger)
 {
   pfTeHead=pTeHead;
 
@@ -49,7 +67,7 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
   pfCameraTrigger = new KSCameraTrigger(pfTeHead,fUsePatternTrigger,&fPixel); 
                                                            //sets up pst.
   pfCFD = new KSCFD(fCameraType);
-
+  return;
 }
 // ********************************************************************
 
@@ -93,7 +111,8 @@ void KSCamera::generateCameraPixels()
   // *************************************************************************
   // 	Get PMT locations and radii from WhippleCams.h
   // *************************************************************************
-  KSPixel fPixelElem(fCameraType); //create a standard pixel to start with
+  KSPixel fPixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
+                                                     //pixel to start with
   
   fPixel.resize(fNumPixels,fPixelElem);   //  Allocate pixels
 
@@ -201,7 +220,10 @@ void KSCamera::generateCameraPixels()
    for(int i=0;i<fNumPixels;i++)
      {
        double fHalfSpc       = fPixel[i].fHalfSpacingDeg;
-       double fRadSpace      = (fPixel[i].fRadiusDeg/fHalfSpc);
+       double fActiveCathodeRadiusDeg =
+                  gPixelActiveCathRadiusMM[fCameraType]/(fMetersPerDeg*1000.);
+       double fRadSpace =fActiveCathodeRadiusDeg/fHalfSpc;
+       //double fRadSpace      = (fPixel[i].fRadiusDeg/fHalfSpc);
        double fFracPMTArea   = 0.9069*fRadSpace*fRadSpace;
        double fPixelEff      = (fFracPMTArea+fLightConeEff*(1.0-fFracPMTArea));
        double fEfficiency    = fBaseEfficiency*fPixelEff;

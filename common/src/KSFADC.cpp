@@ -27,6 +27,24 @@ KSFADC::~KSFADC()
 }
 // ************************************************************************
 
+  void KSFADC::SetCameraType(KSCameraTypes CameraType)
+{
+  fCameraType=CameraType;
+  fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
+  fDigCntsPerPELoGain=gFADCDigCntsPerPEHiGain[fCameraType]/gFADCHiLoGainRatio;
+
+  return;
+}
+// *************************************************************************
+
+void KSFADC::SetDigCntsPerPEGains(double DigCntsPerPEHiGain)
+{
+  fDigCntsPerPEHiGain=DigCntsPerPEHiGain;
+  fDigCntsPerPELoGain=DigCntsPerPEHiGain/gFADCHiLoGainRatio;
+  return;
+}
+// ************************************************************************
+
 void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm, 
 			   int fWaveFormStartIndex, int& fTraceLengthBins, 
 			   bool fEnableHiLoGainProcessing)
@@ -65,7 +83,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
                                   //electronics.
 	}
                            //Amplify to digital counts Hi Gain
-      fFADCTrace[i]=(int)(fSum*gFADCDigCntsPerPEHiGain[fCameraType]);  
+      fFADCTrace[i]=(int)(fSum*fDigCntsPerPEHiGain);  
 
 // *****************************************************************
 // Hi/low: If we have a bin that goes over the HiLow threshold (usually about
@@ -116,7 +134,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
                                         //electronics.
 		}
                                     //Amplify to digital counts:Low Gain
-	      fFADCTrace[i]=(int)(fSum*gFADCDigCntsPerPELowGain[fCameraType]);
+	      fFADCTrace[i]=(int)(fSum*fDigCntsPerPELoGain);
 
 	      if((int)fFADCTrace[i]>gFADCHiLoGainThreshold) //Look for high/low
 		{

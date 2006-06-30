@@ -22,7 +22,9 @@ class KSFADC
  public:
   KSFADC();
   ~KSFADC();
-  void SetCameraType(KSCameraTypes CameraType){fCameraType=CameraType;return;};
+  void SetCameraType(KSCameraTypes CameraType);
+  void SetDigCntsPerPEGains(double fDigCntsPerPEHiGain);
+
   void makeFADCTrace(std::vector<double>& fWaveForm, int fWaveFormStartIndex,
 		     int& fTraceLengthBins, bool EnableHiLoGainProcessing);
   double getWindowArea(int fStartTraceIndex, int fNumBinsToSum);
@@ -30,6 +32,8 @@ class KSFADC
 
   std::vector<int> fFADCTrace;
   bool fFADCLowGain;
+  double fDigCntsPerPEHiGain;
+  double fDigCntsPerPELoGain;
 };  
 
 #endif

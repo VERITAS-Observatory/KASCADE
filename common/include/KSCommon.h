@@ -27,19 +27,21 @@ const int    gNumTriggerPixels[2]        = {         463,         331};
 const int    gNumImagePixels[2]          = {         499,         379};
 const int    gNumLines[2]                = {          13,          11};
 const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
+const double gPixelActiveCathRadiusMM[2] = {       12.00,         5.0};
 
 const double gWaveFormPedestalPE[2]      = {        8.75,         2.0};
 const int    gFADCNumSamples[2]          = {          24,          10};
 const int    gFADCWinSize[2]             = {          10,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
-const double gFADCDigCntsPerPELowGain[2] = {        .268,         0.0};
-
-//gFADCDigCntsPerPELowGain should be 1/6 of gFADCDigCntsPerPEHiGain
 
 const double gFADCTOffsetNS[2]           = {        10.0,         9.0};
 
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
+
+const double gSinglePeRiseTimeNS[2]      = {         3.3,         2.0};
+const double gSinglePeFallTimeNS[2]      = {        22.0,         8.5};
+
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
 const double g490OuterRingDiameterM[3]= {0.3503422, 0.401752, 0.450367};
@@ -62,6 +64,7 @@ const double gFADCDelayNS           =-8.0;
 const double gFADCBinSizeNS         = 2.0;
 const int    gFADCHiLoGainThreshold = 250;
 const int    gFADCLowGainDelayBins  =   4;
+const double gFADCHiLoGainRatio     = 6.0;
 
 const double gTrigMultiplicityWidthNS = 10.0;  // WHIPPLE490 CFD Pulse width
 
