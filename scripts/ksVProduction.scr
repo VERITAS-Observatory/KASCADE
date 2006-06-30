@@ -121,7 +121,7 @@ function He4_1V()
     enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+          end=([1]=125 80 81 43 40  27  20  34  10  8   4   3   2    1    1    1    1    1    1)
     
     SubmitPBSJobs
 }
@@ -169,8 +169,8 @@ function SubmitPBSJobs()
       echo "#"PBS -m ae                                             >>$pbsFile
       echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
       echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
-      echo "#"PBS -l mem=250mb                                      >>$pbsFile
-      echo "#"PBS -l walltime=100:00:00                             >>$pbsFile
+      echo "#"PBS -l mem=240mb                                      >>$pbsFile
+      echo "#"PBS -l walltime=10:00:00                              >>$pbsFile
       echo "#"PBS -l nodes=1                                        >>$pbsFile
       echo time $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
       echo ${end[$i]} $datadir $StatusRunFileSpecification     \\   >>$pbsFile
@@ -195,6 +195,8 @@ user=$USER
 #queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
 queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq)
+
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
