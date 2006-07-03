@@ -39,8 +39,8 @@ const double gFADCTOffsetNS[2]           = {        10.0,         9.0};
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
 
-const double gSinglePeRiseTimeNS[2]      = {         3.3,         2.0};
-const double gSinglePeFallTimeNS[2]      = {        22.0,         8.5};
+const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
+const double gSinglePeFallTimeNS[2]      = {        11.8,         8.5};
 
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
