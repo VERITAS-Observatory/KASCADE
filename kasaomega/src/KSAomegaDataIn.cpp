@@ -350,6 +350,8 @@ void KSAomegaDataIn::Print()
   std::cout<<"                New Efficiency: "<<fNewEfficiency<<std::endl;
   std::cout<<"         Digital Counts per PE: "<<fDigitalCountsPerPE
 	   <<std::endl; 
+  std::cout<<"   New Lightcone Concentration: "<<fNewLightConeConcentration
+	   <<std::endl;
   std::cout<<" Telescope(T1=0,T2=1,T3=2,T4=3) "<<fTelescope
 	   <<std::endl;   
   std::cout<<"              UseRelativeGains: "<<fUseRelativeGains
