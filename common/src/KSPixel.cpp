@@ -103,14 +103,19 @@ void KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
 // **************************************************************************
 // Add pe at random times using Rexp for time intervels
 {
-  double fMeanTimeGap=1./(fNoiseRatePerNS/fBaseEfficiency);
+  // *********************************************************************
+  // The Base noise rate was  modified by the light cone collection area 
+  // efficiency to account for different PMT areas/etc and the pixel hexagon
+  // area.
+  // *********************************************************************
+  double fMeanTimeGapNS=1./fNoiseRatePerNS;
 
-  double fNoiseTimeNS=-fSinglePeSizeNS + Rexp(fMeanTimeGap);
+  double fNoiseTimeNS=-fSinglePeSizeNS + Rexp(fMeanTimeGapNS);
   int icount=0;
   while(fNoiseTimeNS<gWaveFormBinSizeNS*fNumWaveFormBins)
     {
       addPe(fNoiseTimeNS,fAfterPulse);
-      fNoiseTimeNS+=Rexp(fMeanTimeGap);
+      fNoiseTimeNS+=Rexp(fMeanTimeGapNS);
       icount++;
     }
   //std::cout<<"Num noise pe's:"<<icount<<std::endl;

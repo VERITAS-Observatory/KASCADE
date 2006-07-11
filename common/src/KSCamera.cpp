@@ -206,8 +206,8 @@ void KSCamera::generateCameraPixels()
 // fLightConeConcentration efficient. 
 // Efficiency=BaseEfficiency*(x+lightconeconcentration*(1-x))
 // where x=area ratio=area(pmt)/area(hex), pmt area=pi*r**2, 
-// hex area=3*pmt_half_spacing**2. 
-// =>area ratio=(pi*pmt_radius**2)/sqrt(3)*2*pmt_spacing/2)
+// hex area=sqrt(3)*2*pmt_half_spacing**2. 
+// =>area ratio=(pi*pmt_radius**2)/sqrt(3)*2*pmt_spacing**2)
 //             = 0.9068996*(pmt_radius/pmt_half_spacing)**2 
 // Thus total efficiency is fraction of area of pmt at 100% + fraction of
 // left over hex area at fLightConeEff.
@@ -231,9 +231,12 @@ void KSCamera::generateCameraPixels()
        fPixel[i].fEfficiency = fEfficiency;
 
        // *******************************************************************
-       // Disc noise generation: Num of pe's in disc window from sky shine.
+       // Noise generation: Num of pe's in disc window from sky shine.
        // *******************************************************************
-       double fPixNoiseRate = fNoiseRate*3*fHalfSpc*fHalfSpc*fEfficiency;
+       double fPixNoiseRate=fNoiseRate*                   //Base Noise rate
+	                    (sqrt(3)*2*fHalfSpc*fHalfSpc) //Hexagon pixel area
+	                    *fPixelEff;                   //Lightcone eff.
+
        fPixel[i].fNoiseRatePerNS=fPixNoiseRate;
        fPixel[i].fDiscNoise  = fPixNoiseRate*fDiscGateNS;
        fPixel[i].fThreshold= fThreshold;
@@ -248,7 +251,7 @@ void KSCamera::generateCameraPixels()
 	 {
 	   fPixel[i].fBaseEfficiency = fBaseEfficiency;
 	   fPixel[i].fEfficiency = fBaseEfficiency;
-	   fPixel[i].fDiscNoise = fBaseEfficiency*fDiscGateNS*fNoiseRate*M_PI*
+	   fPixel[i].fDiscNoise = fDiscGateNS*fNoiseRate*M_PI*
 	                            fPixel[i].fRadiusDeg*fPixel[i].fRadiusDeg;
 	 }
      }
