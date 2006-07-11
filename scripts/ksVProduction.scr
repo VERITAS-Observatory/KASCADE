@@ -92,13 +92,17 @@ function P1V()
     datadir="/project/veritas/sembrosk/veritas/protons"
 
     echo Removing P1V*GeV*.root files
-    find  $datadir/ -name P1V\*GeV\*.root | xargs -n 1 rm
-  
-   let processEnd=32
+    cd $datadir
+#    find  $datadir/ -name P1V\*GeV\*.root | xargs -n 1 rm
+    rm P1V*GeV*.root
+    cd $lcl
+    pwd
+
+    let processEnd=32
     enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345 690 1035 1380 275 550 830 270 540 320 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+          end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 280 287 143 172 77 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
   
     SubmitPBSJobs
 }
@@ -114,14 +118,17 @@ function He4_1V()
     echo He4 at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/he4"
 
-    echo Removing P1V*GeV*.root files
-    rm $datadir/He4_1V*GeV*.root
+    echo Removing He4_1V*GeV*.root files
+    cd $datadir
+    rm He4_1V*GeV*.root
+    cd $lcl
+    pwd
 
     let processEnd=19
     enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=125 80 81 43 40  27  20  34  10  8   4   3   2    1    1    1    1    1    1)
+          end=([1]=109 70 71 38 35  24  18  30  9   8   4   3   2    1    1    1    1    1    1)
     
     SubmitPBSJobs
 }
@@ -150,7 +157,6 @@ function SubmitPBSJobs()
 # Cause pbs jobs to be submitted.
 #**********************************************************************
 {
- lcl="$PWD"
  pr=$parspec
 
  let processStart=1
@@ -198,6 +204,8 @@ queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  w
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro)
 
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+
 
 #Fuctions specify which nodes are to be used ("on" or "off")
 #Funtions also specify the energy and specify the starting and ending shower 
@@ -207,6 +215,7 @@ queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  w
 #******************************************************************************
 # Set up arrays for node submission and submit
 #*****************************************************************************
+lcl="$PWD"
 let pspecset=0
 if [ $1 = "CR1W" ]; then
 
