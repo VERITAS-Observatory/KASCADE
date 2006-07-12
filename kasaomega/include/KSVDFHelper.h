@@ -54,7 +54,7 @@ class KSVDFHelper
   VAQStatsData* pfQStats;
   VARelGainData* pfRelGainData;
   VAPixelStatusData* pfPixelStatus;
-  int fNumChannels;
+  int fNumPixels;
   VATime fStartTime;
   VATime fEndTime;
   int fTelID;

@@ -22,6 +22,7 @@ const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
 
 const double gLatitude[2]                = {    0.552828,    0.552978};
 const double gEastLongitude[2]           = {    -1.93649,   -1.935190};
+const int    gNumChannelsCamera[2]       = {         500,         492};
 const int    gNumPixelsCamera[2]         = {         499,         490};
 const int    gNumTriggerPixels[2]        = {         463,         331};
 const int    gNumImagePixels[2]          = {         499,         379};

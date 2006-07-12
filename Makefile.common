@@ -29,26 +29,6 @@ TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 #Define VEGASBASE in .bashrc (or wherever)
 #VEGASBASE = /home/sembrosk/vegas
 
-# -----------------------------------------------------------------------------
-#HDF5 1.6.1-post10(or whatever is installed locally) on amdahl
-#Get rid of this dependency as soon as possible
-# -----------------------------------------------------------------------------
-#LIBHDF5 = -L/home/sembrosk/local/lib
-#INCHDF5 = -I/home/sembrosk/local/include
-#HDF5 = -lhdf5 -lz
-#HDF5LDFLAGS = $(LIBHDF5) $(HDF5)
-
-# -----------------------------------------------------------------------------
-# VHDF5 DEFINES and INCLUDES
-# -----------------------------------------------------------------------------
-#VHDF5DIR = $(TOPDIR)/VHDF5
-#VHDF5INCDIR = $(VHDF5DIR)/$(INCDIR)
-#VHDF5LIBDIR = $(VHDF5DIR)/$(LIBDIR)
-#
-#VHDF5INCFLAGS = -I$(VHDF5INCDIR)
-#VHDF5LIBFLAGS = -L$(VHDF5LIBDIR) 
-#VHDF5LDFLAGS = $(VHDF5LIBFLAGS)
-#VHDF5LIBS = -lVHDF5
 
 # -----------------------------------------------------------------------------
 #  VEGAS  defines
@@ -57,6 +37,7 @@ VEGASCMNINCDIR = -I$(VEGASBASE)/common/include
 VEGASCMNLIBDIR = -L$(VEGASBASE)/common/lib
 VEGAGCMNLIB = -lSP24commonLite
 VEGASLDFLAGS = $(VEGASCMNLIBDIR) $(VEGAGCMNLIB)
+
 
 
 # -----------------------------------------------------------------------------
@@ -68,6 +49,17 @@ KASLIBFLAGS = -L$(TOPCOMMONLIBDIR) -Llib
 KASLDFLAGS = $(KASLIBFLAGS)
 KASLIBS =   -lKascadeCommon
 KASLIBSROOT = -lKascadeCommonRoot
+
+# -----------------------------------------------------------------------------
+# VBF
+# -----------------------------------------------------------------------------
+
+VBFBIN := $(VBFBASE)/bin/
+
+VBFCONFIG = $(VBFBIN)vbfConfig
+VBFCFLAGS   := $(shell $(VBFCONFIG) --cppflags)
+VBFLDFLAGS  := $(shell $(VBFCONFIG) --ldflags)
+VBFLIBS     := $(shell $(VBFCONFIG) --libs)
 
 # -----------------------------------------------------------------------------
 # Root

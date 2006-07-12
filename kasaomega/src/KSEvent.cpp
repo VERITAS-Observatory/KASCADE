@@ -114,19 +114,16 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       VAArrayInfo* pfArrayInfo      = pfVDFStats->getArrayInfoPtr();
       int fNumChannels= pfArrayInfo->telescope(0)->numChannels();
       //int fNumChannels=pfRunHeader->pfRunDetails->fNumOfChans.at(0);  
-      if(fNumChannels!=fNumPixels)     //A sanity check.
+      if(fNumChannels!=gNumChannelsCamera[fCameraType])     //A sanity check.
 	{
 	  if(fCameraType==WHIPPLE490)
 	    {
-	      if(fNumChannels!=492)
-		{
-		  std::cout<<"ksAomega: KSEvent: NumChannels ("
-			   <<fNumChannels<<") wrong for Whipple490 camera"
-		                           "Should be 492."<<std::endl;
-		  exit(1);
-		}
+	      std::cout<<"ksAomega: KSEvent: NumChannels ("
+		       <<fNumChannels<<") wrong for Whipple490 camera"
+		"Should be 492."<<std::endl;
+	      exit(1);
 	    }
-	  else
+	  else if(fCameraType==VERITAS499)
 	    {
 	      std::cout<<"ksAomega: KSEvent: NumChannels ("
 		       <<fNumChannels<<") different from NumPixels("
@@ -199,9 +196,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // ********************************************************************
   if(pfDataIn->fRootFileName!=" ")
     {
-      int fNumChannels=gNumPixelsCamera[fCameraType];
       VAArrayInfo* pfArrayInfo;
-      KSVDFHelper* pfVDFHelper = new KSVDFHelper(fNumChannels, fEventTime, 
+      KSVDFHelper* pfVDFHelper = new KSVDFHelper(fNumPixels, fEventTime, 
 			    E_T1, gFADCWinSize[fCameraType], fCameraType);
       double fEastLongitude;
       double fLatitude;
@@ -226,10 +222,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       
  // *********************************************************************
 
-      float ped[fNumChannels];
-      float pedvar[fNumChannels];
-      float gain[fNumChannels];
-      bool  off[fNumChannels];
+      float ped[fNumPixels];
+      float pedvar[fNumPixels];
+      float gain[fNumPixels];
+      bool  off[fNumPixels];
       for(int i=0;i<fNumPixels;i++)
 	{
 	  gain[i] = (float)pfCamera->fPixel[i].fRelativeGain;

@@ -19,11 +19,11 @@
 // ***********************************************************************
 #include "KSVDFHelper.h"
 
-KSVDFHelper::KSVDFHelper(int numChannels, VATime& startTime,
+KSVDFHelper::KSVDFHelper(int numPixels, VATime& startTime,
 			 int TelID, int NumWindowSamples, 
 			 KSCameraTypes CameraType)
 {
-  fNumChannels=numChannels;
+  fNumPixels=numPixels;
   fStartTime=startTime;
   fEndTime.setFromMJDDbl(fStartTime.getMJDDbl() + 1.0);//A day later
   fTelID=TelID;
@@ -85,8 +85,6 @@ void KSVDFHelper::FillRunHeader(int runNumber)
   pfRunHeader->pfRunDetails->fTels=1;
   pfRunHeader->pfRunDetails->fExpectedTels.resize(1);
   pfRunHeader->pfRunDetails->fExpectedTels.at(0)=true;
-  //pfRunHeader->pfRunDetails->fNumOfChans.resize(1);
-  //  pfRunHeader->pfRunDetails->fNumOfChans.at(0)=fNumChannels;
   pfRunHeader->pfRunDetails->fFirstValidEventTime=
                                    pfRunHeader->pfRunDetails->fFirstEventTime;
   return;
@@ -101,7 +99,7 @@ void KSVDFHelper::FillQStats(const float* ped, const float* pedvar)
   VATelQStats tempTelQStats;
   tempTelQStats.fTelId=fTelID;//Only one telescope
 
-  for(int i=0;i<fNumChannels;i++)
+  for(int i=0;i<fNumPixels;i++)
     {
       VASumWinQStats tempSumWinQStats;//We have only 1 window size per channel
       tempSumWinQStats.fSumWinSize=fNumWindowSamples;   //arbitrary
@@ -147,7 +145,7 @@ void KSVDFHelper::FillRelGains(const float* gain)
   tempTelRelGains.fHighGainRefVarRelGain=1.0;//arbitrary
 
   //Gains are not time variable.
-  for(int i=0;i<fNumChannels;i++)
+  for(int i=0;i<fNumPixels;i++)
     {   //Use same gain for hi and low. Only one channel here.
       VAChanRelGains tempChanRelGains;
       tempChanRelGains.fChanNum=i;
@@ -177,7 +175,7 @@ void KSVDFHelper::FillPixelStatus(int fNumPMT, bool* off)
   TelSuppressedLogType tempTelSuppressedLog;
   tempTelSuppressedLog.fTelId=fTelID;
 
-  for(int i=0;i<fNumChannels;i++)
+  for(int i=0;i<fNumPixels;i++)
     {
       OnOffStatus tempOnOffStatus;
       if(i<fNumPMT)
