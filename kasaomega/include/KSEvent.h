@@ -26,6 +26,7 @@
 #include "KSCamera.h"
 #include "KSCommon.h"
 #include "KSVDFHelper.h"
+#include "KSVBFFile.h"
 
 #include "VAVDF.h"
 #include "VAArrayInfo.h"
@@ -67,6 +68,8 @@ class KSEvent
   VATime fFirstValidEventTime;
   VATime fEventTime;
   VAVDF* pfVDFOut;
+  KSVBFFile* pfVBFOut;
+
   KSTeData* pfTe;
   KSCamera* pfCamera;
 
