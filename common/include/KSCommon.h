@@ -43,9 +43,8 @@ const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
 
-const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
-const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
-//const double gSinglePeFallTimeNS[2]      = {        11.8,         8.5};
+const double gSinglePeRiseTimeNS[2]      = {         2.5,         2.0};
+const double gSinglePeFallTimeNS[2]      = {         9.0,         8.5};
 
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
@@ -61,7 +60,7 @@ const double gDeg2Rad=M_PI/180.;
 
 const double gOverflowTime=1000001.;
 
-const int    gNightSkyWaveFormNS=10000;   //10 microsec
+const int    gNightSkyWaveFormNS=2500;   //2.5 microsec
 const double gWaveFormBinSizeNS=.25;     // Bin size in ns
 
 
