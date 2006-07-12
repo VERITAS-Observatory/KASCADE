@@ -321,9 +321,23 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       pfSimEvent->setCoreElevationMASL(pfSegmentHead->fObservationAltitudeM);
     }
   // **************************************************************
-  // Still need stuff to init VBF file ???????
+  // Init VBF file if one is specified
   // **************************************************************
-  
+  pfVBFOut=NULL;
+  if(pfDataIn->fVBFFileName!=" ")
+    {
+      pfVBFOut = new KSVBFFile(fCameraType, pfDataIn->fDigitalCountsPerPE); 
+      std::vector< bool > fConfigMask;
+      fConfigMask.push_back(true); //Single telescope for now.
+      pfVBFOut->Create(pfDataIn->fVBFFileName,pfDataIn->fRunNumber,
+		                                                 fConfigMask);
+      if(pfVBFOut->foundWriteError())
+	{
+	  std::cout<<"ksAomega: Got error while trying to open VBF file:"
+		   <<pfDataIn->fVBFFileName<<std::endl;
+	  exit(1);
+	}
+    }
 }
 // *************************************************************************
 
