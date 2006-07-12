@@ -194,6 +194,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // ********************************************************************
   // If defined setup ouput VDF root file
   // ********************************************************************
+  pfVDFOut=NULL;
   if(pfDataIn->fRootFileName!=" ")
     {
       VAArrayInfo* pfArrayInfo;
@@ -545,6 +546,14 @@ void KSEvent::SaveImage()
 //  ******************************************************************
   // VBF stuff would go here
   // *******************************************************************
+  if(pfDataIn->fVBFFileName!=" ")
+    {
+      // ********************************************************************
+      //Create, Fill and Write out a VACalibratedEvent
+      // ********************************************************************
+      pfVBFOut->WriteVBF(fEventIndex, pfDataIn->fTelescope, fEventTime, 
+			 pfCamera, fFADCStartGateTimeNS);
+    } 
 
   fEventIndex++;
   return;
@@ -557,20 +566,26 @@ void KSEvent::Close()
 // Finish up and close up any ouput files.
 // ************************************************************************
 {
-  pfVDFOut->writeCalibratedEventTree();
-  pfVDFOut->writeSimulationEventTree();
+  if(pfVDFOut!=NULL)
+    {
+      pfVDFOut->writeCalibratedEventTree();
+      pfVDFOut->writeSimulationEventTree();
 
-  pfRunHeader->pfRunDetails->fNumArrayEvents=
-                                      (int)pfVDFOut->getNumArrayEvents();
-  pfRunHeader->pfRunDetails->fLastEventTime=fEventTime;
-  pfVDFOut->writeRunHeader(); //This needed regardless of rest 
-                                           //of file contents
-  pfVDFOut->writeArrayInfo();
-// ********************************************************************
+      pfRunHeader->pfRunDetails->fNumArrayEvents=
+	(int)pfVDFOut->getNumArrayEvents();
+      pfRunHeader->pfRunDetails->fLastEventTime=fEventTime;
+      pfVDFOut->writeRunHeader(); //This needed regardless of rest 
+                                  //of file contents
+      pfVDFOut->writeArrayInfo();
 
-  pfVDFOut->Close(); //write out trees
-  std::cout<<"ksAomega: Root Output file closed ok!"<<std::endl;
- 
+      pfVDFOut->Close(); //write out trees
+      std::cout<<"ksAomega: Root Output file closed ok!"<<std::endl;
+    }
+
+  if(pfVBFOut!=NULL)
+    {
+      pfVBFOut->Close();
+    }
   return;
 }
 
