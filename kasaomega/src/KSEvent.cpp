@@ -68,7 +68,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   fLatitude     = gLatitude[fCameraType];
   pfAzElRADecXY = new VAAzElRADecXY(fEastLongitude,fLatitude);
 
-  VAVDF* pfVDFStats=NULL;
   if(pfDataIn->fPixelStatsRootFileName==" ")
     {
       std::cout<<"ksAOMEGA: No Pixel Status Root input file specified"
@@ -95,25 +94,122 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // during the run for now and just use the values at the start of the 
       // run.
       // *******************************************************************
+      // We don't use VAVDF here since it uses VARootIO which opens the file 
+      // as "UPDATE". Since we may have many concurrent programs opening this 
+      // file we need it to be opened "READ", ie readonly. So we do this 
+      // ourselves directly.
+      // *******************************************************************
+      TFile* pfVDFStats =
+	new TFile(pfDataIn->fPixelStatsRootFileName.c_str(),"READ");
+      if(pfVDFStats==NULL)
+	{
+	  std::cout<<"ksAomega: Failure to Open Reference Pixel status VDF "
+	    "root file"<<std::endl;
+	  exit(1);
+	}
       std::cout<<"ksAomega: Reference Pixel status VDF root file name:"
-	                        <<pfDataIn->fPixelStatsRootFileName<<std::endl;
-      pfVDFStats=new VAVDF();
-      pfVDFStats->OpenForStage3(pfDataIn->fPixelStatsRootFileName);
-      pfRunHeader      = pfVDFStats->getRunHeaderPtr();
-
+	       <<pfDataIn->fPixelStatsRootFileName<<std::endl; 
+      // *****************************************************************
+      // Read the run header: Get run header directory, read run header
+      // *****************************************************************
+      TDirectory* pfRunHeaderDir = 
+	               (TDirectory*)pfVDFStats->Get(gRunHeaderDirName.c_str());
+      if(pfRunHeaderDir==NULL)
+	{
+	  std::cout<<"ksAomega: No Run header directory in Reference File"
+		   <<std::endl;
+	  exit(1);
+	}
+      VARunHeader* pfStatsRunHeader = 
+                     (VARunHeader*)pfRunHeaderDir->Get(gRunHeaderName.c_str());
+      if(pfRunHeader==NULL)
+	{
+	  std::cout<<"ksAomega: No Run header in Reference File"
+		   <<std::endl;
+	  exit(1);
+	}
       std::cout<<"ksAOMEGA: Reference Run Number: "
-	       <<pfRunHeader->getRunNumber()<<std::endl;
-                                        //Has pedvars for model run;
-      VAQStatsData* pfPeds          = pfVDFStats->getQStatsDataPtr(); 
-                                        //Has pixel  on/off status for on run;
-      VAPixelStatusData* pfPixOnOff = pfVDFStats->getPixelStatusPtr();
-      VARelGainData* pfRelGain      = pfVDFStats->getRelGainDataPtr();
+	       <<pfStatsRunHeader->getRunNumber()<<std::endl;
+      fFirstValidEventTime = 
+	                pfStatsRunHeader->pfRunDetails->fFirstValidEventTime;
 
-      fFirstValidEventTime = pfRunHeader->pfRunDetails->fFirstValidEventTime;
 
-      VAArrayInfo* pfArrayInfo      = pfVDFStats->getArrayInfoPtr();
+      // *****************************************************************
+      // Get the VAQStatsData. has pedvars
+      // *****************************************************************
+      VAQStatsData* pfPeds=NULL;
+      if(pfDataIn->fUseRelativePedVars)
+	{
+	  TDirectory* pfQStatsDir = 
+	    (TDirectory*)pfVDFStats->Get(gQStatsDirName.c_str());
+	  if(pfQStatsDir==NULL)
+	    {
+	      std::cout<<"ksAomega: No QStats directory in Reference File"
+		       <<std::endl;
+	      exit(1);
+	    }
+	  pfPeds = (VAQStatsData*)pfQStatsDir->Get(gQStatsDataName.c_str());
+	  if(pfPeds==NULL)
+	    {
+	      std::cout<<"ksAomega: No QStats  in Reference File"
+		       <<std::endl;
+	      exit(1);
+	    }
+	}
+
+      // *****************************************************************
+      // Get the Pixel Status Data
+      // *****************************************************************
+      VAPixelStatusData* pfPixOnOff=NULL;
+      if(pfDataIn->fUseBadPixelSupression)
+	{
+	  pfPixOnOff = 
+	(VAPixelStatusData*) pfRunHeaderDir->Get(gPixelStatusDataName.c_str());
+	  if(pfPixOnOff==NULL)
+	    {
+	      std::cout<<"ksAomega: No PixelStatusData  in Reference File"
+		       <<std::endl;
+	      exit(1);
+	    }
+	}
+
+
+      // *****************************************************************
+      // Get the Relative Gain Data
+      // *****************************************************************
+      VARelGainData* pfRelGain=NULL;
+      if(pfDataIn->fUseRelativeGains)
+	{
+	  TDirectory* pfRelGainDir = 
+	    (TDirectory*)pfVDFStats->Get(gRelGainDirName.c_str()); 
+	  if(pfRelGainDir==NULL)
+	    {
+	      std::cout<<"ksAomega: No Rel Gain  directory in Reference File"
+		       <<std::endl;
+	      exit(1);
+	    }
+	  pfRelGain = 
+	    (VARelGainData*)pfRelGainDir->Get(gRelGainDataName.c_str());
+	  if(pfRelGain==NULL)
+	    {
+	      std::cout<<"ksAomega: No Relative Gain Data  in Reference File"
+		       <<std::endl;
+	      exit(1);
+	    }
+	}
+
+      // *****************************************************************
+      // Get the ArrayInfo
+      // *****************************************************************
+      VAArrayInfo* pfArrayInfo = 
+	          (VAArrayInfo*)pfRunHeaderDir->Get(gArrayInfoName.c_str());
+      if(pfArrayInfo==NULL)
+	    {
+	      std::cout<<"ksAomega: No ArrayInfo  in Reference File"
+		       <<std::endl;
+	      exit(1);
+	    }
       int fNumChannels= pfArrayInfo->telescope(0)->numChannels();
-      //int fNumChannels=pfRunHeader->pfRunDetails->fNumOfChans.at(0);  
       if(fNumChannels!=gNumChannelsCamera[fCameraType])     //A sanity check.
 	{
 	  if(fCameraType==WHIPPLE490)
@@ -131,6 +227,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	      exit(1);
 	    }
 	}
+
+
+
       //  ******************************************************************
       // Now load up things
       // Note we only need pedvars to get relative rates of night sky in pixels
