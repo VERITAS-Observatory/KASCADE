@@ -427,16 +427,17 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   if(pfDataIn->fVBFFileName!=" ")
     {
       pfVBFOut = new KSVBFFile(fCameraType, pfDataIn->fDigitalCountsPerPE); 
-      std::vector< bool > fConfigMask;
-      fConfigMask.push_back(true); //Single telescope for now.
+      std::string fConfigMask("0");
       pfVBFOut->Create(pfDataIn->fVBFFileName,pfDataIn->fRunNumber,
-		                                                 fConfigMask);
+		       fConfigMask);
       if(pfVBFOut->foundWriteError())
 	{
-	  std::cout<<"ksAomega: Got error while trying to open VBF file:"
+	  std::cout<<"ksAomega: Got error while trying to open VBF file: "
 		   <<pfDataIn->fVBFFileName<<std::endl;
 	  exit(1);
 	}
+      std::cout<<"ksAomega: Creating Output VBF file: "
+		   <<pfDataIn->fVBFFileName<<std::endl;
     }
 }
 // *************************************************************************
@@ -544,7 +545,7 @@ void KSEvent::SaveImage()
       // ****************************************************************
       pfCalEvent->Reset();//pfCalEvent has # telescopes preset.
       pfCalEvent->fTels=1;
-      pfCalEvent->fArrayEventNum=fEventIndex;
+      pfCalEvent->fArrayEventNum=fEventIndex+1;
       pfCalEvent->fEventType=ET_ARRAY_TRIGGER;//normal event
       pfCalEvent->fPresentTels.push_back(true);
       pfCalEvent->fArrayTime=fEventTime;
@@ -643,17 +644,16 @@ void KSEvent::SaveImage()
     }
 
 //  ******************************************************************
-  // VBF stuff would go here
+  // Write out event to VBF file
   // *******************************************************************
   if(pfDataIn->fVBFFileName!=" ")
     {
       // ********************************************************************
-      //Create, Fill and Write out a VACalibratedEvent
+      // Write out a VAArrayEvent
       // ********************************************************************
-      pfVBFOut->WriteVBF(fEventIndex, pfDataIn->fTelescope, fEventTime, 
+      pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
 			 pfCamera, fFADCStartGateTimeNS);
     } 
-
   fEventIndex++;
   return;
 }

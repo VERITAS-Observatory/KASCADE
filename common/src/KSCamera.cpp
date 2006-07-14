@@ -487,7 +487,9 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 	                                      //modified by light cone 
 	                                      //efficiency
 
-	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
+	  // Remove the night sky pedestal. PMTs Capacitivly coupled
+	  fPixel[i].RemovePedestalFromWaveForm(
+					fPixel[i].fWaveFormNightSkyPedestal);
 	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,2,0.0);
 
 	  if(fPixel[i].fDisc>0)
@@ -525,7 +527,9 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 	                                      //modified by light cone 
 	                                      //efficiency
 
-	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
+	  // Remove the night sky pedestal. PMTs Capacitivly coupled
+	  fPixel[i].RemovePedestalFromWaveForm(
+					fPixel[i].fWaveFormNightSkyPedestal);
 	  bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset,nx,ny);
 	  if(fCFDTrig)
 	    {
@@ -561,7 +565,10 @@ void KSCamera::buildNonTriggerWaveForms()
 	                                      //modified by light cone 
 	                                      //efficiency
 
-	  fPixel[i].RemoveNightSkyPedestalFromWaveForm();
+
+	  // Remove the night sky pedestal. PMTs Capacitivly coupled
+	  fPixel[i].RemovePedestalFromWaveForm(
+					fPixel[i].fWaveFormNightSkyPedestal);
 	}
     } 
   return;
@@ -596,7 +603,8 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	    }
 	}
     }
-  fWaveFormStartNS=fPixelMinTimeNS-kPSTPulseWidth;
+  fWaveFormStartNS=fPixelMinTimeNS-kPSTPulseWidth-
+                                        gFADCWindowOffsetNS[fCameraType];
 
   fPixelMaxTimeNS = fPixelMaxTimeNS 
                                  + gCFDDelayNS[fCameraType]

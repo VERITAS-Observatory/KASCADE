@@ -29,8 +29,8 @@ KSVBFFile::~KSVBFFile()
 // ***************************************************************************
 
 
-  bool KSVBFFile::Create(std::string fVBFFileName, int RunNumber, 
-			                     std::vector< bool >& fConfigMask)
+bool KSVBFFile::Create(std::string fVBFFileName, int RunNumber, 
+			                     std::string fConfigMask)
 // ***************************************************************************
 //  Create an output VBF file.
 // ***************************************************************************
@@ -51,7 +51,7 @@ KSVBFFile::~KSVBFFile()
  fRunNumber=RunNumber;
 
  pfWriter = new VBankFileWriter(fVBFFileName.c_str(),fRunNumber,
-				fConfigMask);
+				parseConfigMask(fConfigMask.c_str()));
  
  return true;
 }
@@ -96,19 +96,25 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
   VArrayEvent *ae=new VArrayEvent(fRunNumber);
   VEvent *event=new VEvent();
                 
+
+  // **********************************************************************
+  // Each event gets compressed using VBF compression
+  // **********************************************************************
+  event->setCompressedBit( true );
+
   // ************************************************************************
   // resize channel data. Use fCameraType for num channels, but use 
   // VERITAS499 type for Num samples
   // ************************************************************************
   event->resizeChannelData(gFADCNumSamples[VERITAS499],
-			                       gNumPixelsCamera[fCameraType]);
+			                    gNumChannelsCamera[fCameraType]);
 		
   // ************************************************************************
   // by default, the max num channels is 0.  it must be set to the
   // actual number of channels recognized by the DACQ.  here we
-  // set it to 499
+  // set it to 500(for VERITAS499, 492 for WHIPPLE490)
   // ************************************************************************
-  event->resizeChannelBits(gNumPixelsCamera[fCameraType]);
+  event->resizeChannelBits(gNumChannelsCamera[fCameraType]);
 
   // ************************************************************************
   // by default, the event contains 0 clock trigger boards.  here
@@ -148,8 +154,10 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
                 
   event->setFlags(1); // enable compression
 
+  // *********************************************************************
   // specify which channels triggered.
-  for (unsigned k=0;k<event->getMaxNumChannels();++k) 
+  // *********************************************************************
+  for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
     {
       if(pfCamera->fPixel[k].fCFDTriggerTimeNS<gOverflowTime)
 	{
@@ -161,20 +169,32 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 	}
 		
     }
+  if(gNumChannelsCamera[fCameraType]>gNumPixelsCamera[fCameraType])
+    {
+      for (unsigned k=gNumPixelsCamera[fCameraType];
+	   k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
+	{
+	  event->setTriggerBit(k,false);
+	}
+    }
+
+
+  // *********************************************************************
   // specify that all channels passed zero suppression
+  // *********************************************************************
   for (unsigned k=0;k<event->getMaxNumChannels();++k)
     {
       event->setHitBit(k,true);
     }
                 
-  for (unsigned k=0;k<event->getNumChannels(); ++k)
+  for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType]; ++k)
     {
       // *****************************************************************
       // Charge and ped always set to zero in VBF file
       // *****************************************************************
       event->setCharge(k,0);          //Always set to 0.
       event->setPedestal(k,0);
-      if(!pfCamera->fPixel[k].fBadPixel)
+      if(pfCamera->fPixel[k].fBadPixel)
 	{
 	  event->setHiLo(k,false); //set hi?
 	  for (unsigned l=0; l<event->getNumSamples(); ++l)
@@ -184,10 +204,6 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 	}
       else
 	{
-	  // ***********************************************************
-	  // We have to add a pedestal here and then remove it because the
-	  //FADC doesn't allow values below 0, so we need to offset up
-	  // ************************************************************
 	  int fStartGateBin=(int)((fFADCStartGateTimeNS-
 				   gFADCWindowOffsetNS[fCameraType]-
 				   pfCamera->fPixel[k].fWaveFormStartNS)/
@@ -202,7 +218,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 	  // Use VERITAS499 for num of samples. Also use VERITAS499 
 	  // pedestal
 	  // *************************************************************
-	  int fADCNumBins = (int)((gFADCWinSize[VERITAS499]*
+	  int fADCNumBins = (int)((gFADCNumSamples[VERITAS499]*
 				   gFADCBinSizeNS) /
 				  gWaveFormBinSizeNS);
 	  // *************************************************************
@@ -210,8 +226,11 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 	  // pedestal(use VERITAS pedestal)
 	  pfCamera->fPixel[k].
 		AddPedestalToWaveForm(gWaveFormPedestalPE[VERITAS499]);
+	  //std::cout<<"KSVBFFIle:k :"<<k<<std::endl;
 	  pfCamera->fPixel[k].fFADC.makeFADCTrace(
 	      pfCamera->fPixel[k].fWaveForm,fStartGateBin, fADCNumBins,false);
+	  pfCamera->fPixel[k].
+		RemovePedestalFromWaveForm(gWaveFormPedestalPE[VERITAS499]);
 	  
 	  // **************************************************************
 	  // Now we are read y to load up the VBF samples.
@@ -271,8 +290,8 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
   // set the event number
   at->setEventNumber(fArrayEventNum);
             
-  // set the node number to 1.
-  at->setNodeNumber(1);
+  // set the node number to 255.
+  at->setNodeNumber(255);
             
   // the array trigger also needs to know about the run number.
   at->setRunNumber(fRunNumber);
@@ -291,21 +310,20 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
   at->setFlags(0);
             
   at->setATFlags(0);
-            
-  for (unsigned j=0; j<at->getNumSubarrayTelescopes(); ++j)
-    {
-      // have to set the telescope ID that this record corresponds to.
-      // in this case, the record number and telescope ID happen to
-      // be the same
-      at->setSubarrayTelescopeId(j,j);
+
+  // ************************************************************************
+  // have to set the telescope ID that this record corresponds to.
+  // in this case, the record number and telescope ID happen to
+  // be the same
+  at->setSubarrayTelescopeId(0,fTelID);
                 
-      at->setAltitude(j,0.0);
-      at->setAzimuth(j,0.0);
-      at->setTDCTime(j,0);
-      at->setSpecificEventTypeCode(j,0);
-      at->setShowerDelay(j,0);
-      at->setCompDelay(j,0);
-    }
+  at->setAltitude(0,0.0);
+  at->setAzimuth(0,0.0);
+  at->setTDCTime(0,0);
+  at->setSpecificEventTypeCode(0,1);
+  at->setShowerDelay(0,0);
+  at->setCompDelay(0,0);
+   
             
   // now add the array trigger to the array event
   ae->setTrigger(at);

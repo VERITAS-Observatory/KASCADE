@@ -94,7 +94,7 @@ function P1V()
     echo Removing P1V*GeV*.root files
     cd $datadir
 #    find  $datadir/ -name P1V\*GeV\*.root | xargs -n 1 rm
-    rm P1V*GeV*.root
+    rm -f P1V*GeV*.root
     cd $lcl
     pwd
 
@@ -120,7 +120,7 @@ function He4_1V()
 
     echo Removing He4_1V*GeV*.root files
     cd $datadir
-    rm He4_1V*GeV*.root
+    rm -f He4_1V*GeV*.root
     cd $lcl
     pwd
 
@@ -200,11 +200,11 @@ user=$USER
 #Specify queues
 #queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq)
+#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq)
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro)
 
-#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")

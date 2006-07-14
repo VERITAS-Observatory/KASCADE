@@ -215,6 +215,9 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
     {
       fPulse[i]=1000.*pfSinglePulse[i];
     }
+  // ************************************************************************
+  // Because we use so many pe's here we dont need to worry about the pedestal
+  // ************************************************************************
   fFADC.makeFADCTrace(fPulse,0,fNumTraceBins,false);
   double fSinglePeMeanFADCArea=fFADC.getWindowArea(0,fNumTraceBins)/1000.;
   return fSinglePeMeanFADCArea;

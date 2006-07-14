@@ -56,7 +56,7 @@ class KSVBFFile
   KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE);
   virtual ~KSVBFFile();
   bool Create(std::string VBFFileName,int RunNumber,  
-	                                    std::vector< bool >& fConfigMask);
+	                                    std::string fConfigMask);
   void Close();
   void WriteVBF(int fArrayEventNum, int fTelID, 
 		VATime& fEventTime, KSCamera* pfCamera, 

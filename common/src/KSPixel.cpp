@@ -192,12 +192,12 @@ void KSPixel::DetermineNoisePedestals()
   // ********************************************************************
   // Note: For both WHIPPLE and VERITAS the wave form fed to the ADC/FADC is
   // ac coupled(0 mean) which in our case means the night sky pedestal has 
-  // been removed. Then the FADC/ADC add a pedestal before digitizing. This 
+  // been removed. Then the FADC/ADC adds a pedestal before digitizing. This 
   // is necessary so the we don't go below 0. We will do the same here (and 
   // when we do other FADC/ADC calculations to model things correctly
   // *************************************************************************
  
-  RemoveNightSkyPedestalFromWaveForm();
+  RemovePedestalFromWaveForm(fWaveFormNightSkyPedestal);
   AddPedestalToWaveForm(gWaveFormPedestalPE[fCameraType]);
   //PrintWaveForm(0,0,fID,0);
 
@@ -247,7 +247,7 @@ void KSPixel::DetermineNoisePedestals()
       // *****************************************************************
       // Determine fFADCTrace from almost entire fWaveForm (Note: no use of 
       // HiLowGain)Note also that the conversion to dc from pe's is done within
-      // the makeFADCTrace class.
+      // the makeFADCTrace class. (Note Pedestal added above)
       // *****************************************************************
       fFADC.makeFADCTrace(fWaveForm,0,fTraceLengthBins,false);
       double fPedSum=0;
@@ -273,14 +273,14 @@ void KSPixel::DetermineNoisePedestals()
 }
 // ****************************************************************************
 
-void KSPixel::RemoveNightSkyPedestalFromWaveForm()
+void KSPixel::RemovePedestalFromWaveForm(double fWaveFormPedestal)
  // *************************************************************************
- // REmove precalculated fWaveFromNightSkyPedestal from fWaveForm
+ // Remove Specified Pedestal from fWaveForm
  // *************************************************************************
 {
   for(int i=0;i<(int)fWaveForm.size();i++)
     {
-      fWaveForm[i]=fWaveForm[i]-fWaveFormNightSkyPedestal;
+      fWaveForm[i]=fWaveForm[i]-fWaveFormPedestal;
     }
   return;
 }
@@ -300,13 +300,13 @@ void KSPixel::AddPedestalToWaveForm(double fWaveFormPedestal)
 // **************************************************************************
 
 
-double KSPixel::GetCharge(double fFADCStartStartGateTimeNS)
+double KSPixel::GetCharge(double fFADCGateStartTimeNS)
 
 // *************************************************************************
 // Get the charge in this pixel in pe's for whipple and DC for veritas
 // **************************************************************************
 {
-  int fStartGateBin=(int)((fFADCStartStartGateTimeNS-fWaveFormStartNS)/
+  int fStartGateBin=(int)((fFADCGateStartTimeNS-fWaveFormStartNS)/
 				                      gWaveFormBinSizeNS);
   int fADCNumBins = (int)((gFADCWinSize[fCameraType]*gFADCBinSizeNS) /
 				                      gWaveFormBinSizeNS);
@@ -326,14 +326,18 @@ double KSPixel::GetCharge(double fFADCStartStartGateTimeNS)
   if(fCameraType==VERITAS499)
     {
       // ***********************************************************
-      // We have to add a pedestal here and then remove it because the FADC
+      // We have to add a pedestal here (and then remove it so we know at all 
+      // times what waveform contains) because the FADC
       // doesn't allow values below 0, so we need to offset up
       // Our WHIPPLE490 calculation doesn't need to do this since we don't 
       // (just above) have 0 as a lower limit.
       // ************************************************************
       AddPedestalToWaveForm(gWaveFormPedestalPE[VERITAS499]);
+
       fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,false);
       fCharge=fFADC.getWindowArea(0,gFADCWinSize[fCameraType])-fPedDC;
+
+      RemovePedestalFromWaveForm(gWaveFormPedestalPE[VERITAS499]);
     }
   return fCharge;
 }

@@ -38,7 +38,7 @@ class KSPixel
   void BuildPeWaveForm();
   void AddNoiseToWaveForm(bool fAfterPulse);
   void DetermineNoisePedestals();
-  void RemoveNightSkyPedestalFromWaveForm();
+  void RemovePedestalFromWaveForm(double fWaveFormPedestal);
   void AddPedestalToWaveForm(double fWaveFormPedestal);
   double  GetCharge(double fTriggerTimeNS);
   void PrintWaveForm(int nx, int ny, int seqNum,double time);

@@ -1606,14 +1606,14 @@ c      normal VERITAS mode
 c      ********************************************************************
           else
         print*,'KASLITE-UV PMTS(Veritas) using for cherenkov pe gen:'
-        print*,'     QE:xp2970 JFinley/S.Fegan 2005 Measured VERITAS pmts'
-        !print*,'    QE:xp2970 Values incresed by 1.5:max goes from 18% to 28%'
-        !print*,'     QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
-        !print*,'     No filter used'
-        print*,'     Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
-         !  do i=0,104
-         !     xp2970eff(i)=1.5*xp2970eff(i)
-         !  enddo
+        print*,'    QE:xp2970 JFinley/S.Fegan 2005 Measured VERITAS pmts'
+        print*,'    QE:xp2970 Values incresed by 1.5:max goes from 18% to 28%'
+        print*,'    QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
+        print*,'    No filter used'
+        print*,'    Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
+           do i=0,104
+              xp2970eff(i)=1.5*xp2970eff(i)
+           enddo
            call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
      1           qgam10m,qeta10m_hobs,qgam10m_hobs)
 c     ************************************************************************
