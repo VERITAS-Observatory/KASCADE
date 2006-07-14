@@ -91,13 +91,13 @@ function P1V()
     echo Protons at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/protons"
 
+  if [ "$kssc" = "ksaom" ]; then
     echo Removing P1V*GeV*.root files
     cd $datadir
-#    find  $datadir/ -name P1V\*GeV\*.root | xargs -n 1 rm
     rm -f P1V*GeV*.root
     cd $lcl
     pwd
-
+  fi
     let processEnd=32
     enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
@@ -118,11 +118,13 @@ function He4_1V()
     echo He4 at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/he4"
 
+  if [ "$kssc" = "ksaom" ]; then
     echo Removing He4_1V*GeV*.root files
     cd $datadir
     rm -f He4_1V*GeV*.root
     cd $lcl
     pwd
+  fi
 
     let processEnd=19
     enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
@@ -191,7 +193,8 @@ function SubmitPBSJobs()
 
 #script directory
 sdr=$KASCADEBASE"/scripts"
-ksScript=$sdr/$2'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
+kssc=$2
+ksScript=$sdr/$kssc'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
                          #ksaom: Makes .root (and eventually .cvbf) files from
                          #       te files
 StatusRunFileSpecification=$3 
@@ -202,9 +205,9 @@ user=$USER
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq)
 
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro)
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro)
 
-queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
@@ -219,7 +222,7 @@ lcl="$PWD"
 let pspecset=0
 if [ $1 = "CR1W" ]; then
 
-    if [ "$2" = "ksaom" ]; then
+    if [ "$kssc" = "ksaom" ]; then
 	cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
                                     $KASCADEBASE/inputs/ksAomegaP1W.config 
         cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
@@ -259,7 +262,7 @@ fi
 
 if [ $1 = "CR1V" ]; then
 
-    if [ "$2" = "ksaom" ]; then
+    if [ "$kssc" = "ksaom" ]; then
         cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
                                     $KASCADEBASE/inputs/ksAomegaP1V.config 
         cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
