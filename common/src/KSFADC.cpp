@@ -2,8 +2,7 @@
  * \class KSFADC
  * \ingroup common
  * \brief File of methods for KSFADC.
- * Original Author: Glenn H. Sembroski
- * $Author$
+ * Original Author: Glenn H. Sembroski * $Author$
  * $Date$
  * $Revision$
  * $Tag$
@@ -47,13 +46,19 @@ void KSFADC::SetDigCntsPerPEGains(double DigCntsPerPEHiGain)
 
 void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm, 
 			   int fWaveFormStartIndex, int& fTraceLengthBins, 
-			   bool fEnableHiLoGainProcessing)
+			   bool fEnableHiLoGainProcessing, 
+			   double fFADCTracePed)
 // *********************************************************************
 // Convert the fWaveForm to a FADC Trace
 // *********************************************************************
-// Note: If fEnableHiLoGainProcessing= true and fWaveForm cauuses us to flip
-// into LOwGain mode then flage fFADCLowGain will be set true and 
-// fTraceLengthBins WILL BE INCREASED!!!
+// Note: If fEnableHiLoGainProcessing= true and fWaveForm causes us to flip
+// into LOwGain mode then flage fFADCLowGain will be set true 
+// Unlike the real FADC we don't need to do a fancy delay for Low gain,
+// just start over reducing wave form by the gain difference
+// ***********************************************************
+// We have to add a pedestal here because the FADC
+// doesn't allow values below 0, so we need to offset up
+// ************************************************************
 {
   fFADCTrace.clear();
   fFADCTrace.resize(fTraceLengthBins);
@@ -61,7 +66,6 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
   int fWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
   int fNumWaveFormBins1NS=(int)(1./gWaveFormBinSizeNS);
 
-  int fLowGainThresholdIndex=0;
   fFADCLowGain=false;             //We start at High Gain
   for( int i=0; i<fTraceLengthBins; i++)  //
     {
@@ -74,16 +78,19 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	{
 	  fSum+=fWaveForm[j];
 	}
-      fSum=fSum/fNumWaveFormBins1NS;  
+      // **********************************************************
+      // This is where we add the constant ped.
+      // **********************************************************
+      fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPEHiGain)+fFADCTracePed;  
       if(fSum<0)
 	{
-	  fSum=0;                 //Since we may have subtracted a 
-                                  //pedistal this may be negative. If so,
+	  fSum=0;                 //Event though we added a pedestal
+                                  //this may be negative. If so,
                                   //set it to 0, as it would be in the 
                                   //electronics.
 	}
                            //Amplify to digital counts Hi Gain
-      fFADCTrace[i]=(int)(fSum*fDigCntsPerPEHiGain);  
+      fFADCTrace[i]=(int)fSum;  
 
 // *****************************************************************
 // Hi/low: If we have a bin that goes over the HiLow threshold (usually about
@@ -97,49 +104,42 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	  if((int)fFADCTrace[i]>gFADCHiLoGainThreshold)   //Look for high/low
 	    {
 	      fFADCLowGain=true;  //set Low gain flag.
-	      fFADCTrace[i]=0; //We don't want any bins overHiLoGainThreshold
-	      fLowGainThresholdIndex=i;
 	      break;   //Go repeat pulse but at lower gain after a delay.
 	    }
 	}
     }
   // *************************************************************************
-  // If we are low gain. delay the pulse and repeat at low gain.
+  // If we are low gain. Repeat at low gain.
   // *************************************************************************
-  if(fEnableHiLoGainProcessing)
+  if(fEnableHiLoGainProcessing && fFADCLowGain)
     {
-      if(fFADCLowGain)
+      for( int i=0; i<fTraceLengthBins; i++)  //
 	{
-	  int fLoTraceStart=fLowGainThresholdIndex+gFADCLowGainDelayBins;
-	  fTraceLengthBins=fTraceLengthBins+fLoTraceStart;
-	  fFADCTrace.resize(fTraceLengthBins);
-
-	  for( int i=fLoTraceStart; i<fTraceLengthBins; i++)  //
+	  // ***************************************************************
+	  //  Fadc electronics averages over 1 nsec.
+	  // ***************************************************************
+	  int fStartBin=fWaveFormStartIndex+i*fWaveFormBinsPerFADCBin;
+	  double fSum=0;
+	  for(int j=fStartBin;j<fStartBin+fNumWaveFormBins1NS;j++)
 	    {
-// ********************************************************************
-//  Fadc electronics averages over 1 nsec.
-// ********************************************************************
-	      int fStartBin=fWaveFormStartIndex+i*fWaveFormBinsPerFADCBin;
-	      double fSum=0.0;
-	      for(int j=fStartBin;j<fStartBin+fNumWaveFormBins1NS;j++)
-		{
-		  fSum+=fWaveForm[j];
-		}
-	      fSum=fSum/fNumWaveFormBins1NS;  
-	      if(fSum<0)
-		{
-		  fSum=0;               //Since we may have subtracted a 
-                                        //pedistal this may be negative. If so,
-                                        //set it to 0, as it would be in the 
-                                        //electronics.
-		}
-                                    //Amplify to digital counts:Low Gain
-	      fFADCTrace[i]=(int)(fSum*fDigCntsPerPELoGain);
-
-	      if((int)fFADCTrace[i]>gFADCHiLoGainThreshold) //Look for high/low
-		{
-		  fFADCTrace[i]=gFADCHiLoGainThreshold;       //Saturated
-		}
+	      fSum+=fWaveForm[j];
+	    }
+	  // **********************************************************
+	  // This is where we add the constant ped, and mmplify to digital 
+	  //counts Lo Gain
+	  // **********************************************************
+	  fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPELoGain)+fFADCTracePed;
+	  if(fSum<0)
+	    {
+	      fSum=0;             //Event though we added a pedestal
+	                          //this may be negative. If so,
+	                          //set it to 0, as it would be in the 
+                                  //electronics.
+	    }
+	  fFADCTrace[i]=(int)fSum;  
+	  if((int)fFADCTrace[i]>gFADCHiLoGainThreshold) //Look for high/low
+	    {
+	      fFADCTrace[i]=gFADCHiLoGainThreshold;       //Saturated
 	    }
 	}
     }

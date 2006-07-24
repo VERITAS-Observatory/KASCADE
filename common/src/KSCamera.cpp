@@ -432,6 +432,8 @@ void KSCamera::InitPixelImageData()
 // INitalize (set to zero) those parts of all pixels that vary image to image
 // Called in KSEvent::BuildImage
 // **************************************************************************
+// Note: this DOES NOT reset fBadPixel!!!
+// **************************************************************************
 {
   for(int i=0;i<fNumPixels;i++)
     {
@@ -473,7 +475,7 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
     {
       // **************************************************************
       // This check of fBadPixel leaves the fCFDTriggerTimeNS=gOverflowTimeNS
-      // For bad pixels (set in BuildImage by call to InitPixelImageData)
+      // for bad pixels (set in BuildImage by call to InitPixelImageData)
       // ***********************************************************
       if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)
 	{

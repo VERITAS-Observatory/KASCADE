@@ -218,7 +218,8 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
   // ************************************************************************
   // Because we use so many pe's here we dont need to worry about the pedestal
   // ************************************************************************
-  fFADC.makeFADCTrace(fPulse,0,fNumTraceBins,false);
-  double fSinglePeMeanFADCArea=fFADC.getWindowArea(0,fNumTraceBins)/1000.;
+  fFADC.makeFADCTrace(fPulse,0,fNumTraceBins,false,gPedestal[VERITAS499]);
+  double fSinglePeMeanFADCArea=(fFADC.getWindowArea(0,fNumTraceBins)-
+				fNumTraceBins*gPedestal[VERITAS499])/1000.;
   return fSinglePeMeanFADCArea;
 }

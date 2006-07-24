@@ -11,6 +11,9 @@ extern "C" int    NFluct(double fMean);
 extern "C" double Rexp(double fScaleFactor);
 extern "C" int    NearestInt(double fX);
 extern "C" int    KascadeType2CorsikaType(int fKType);
+extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth, 
+				   double& fElevation);
+
 // **********************************************************************
 
 double Gauss()
@@ -305,3 +308,42 @@ int KascadeType2CorsikaType(int fKType)
 }
 // **************************************************************************
     
+void GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
+  // **************************************************************************
+  //   Get the Az and Elevation(radians) of a vector X 
+  // **************************************************************************
+{
+  fElevation=M_PI/2-(acos(fabs(X[2])));
+  fAzimuth=0.0;
+  if(X[1]==0 && X[0]==0)
+    {      //At zenith
+      fAzimuth=0.0;
+    }
+  else if(X[1]==0 && X[0]>0)    //along + x axis  (270 deg)
+    {
+      fAzimuth=3*M_PI/2;
+    }
+  else if(X[1]==0 && X[0]<0)    //along - x axis (90 deg)
+    {
+      fAzimuth=M_PI/2;
+    }
+  else if(X[1]>0 && X[0]<=0.0)     //Quadrant 1 (0 to 90 deg)
+    {
+      fAzimuth=-atan(X[0]/X[1]);
+    }
+  else if(X[1]<0 && X[0]<=0.0)     //Quadrant 2 (90 to 180 deg)
+    {
+      fAzimuth=M_PI/2+atan(X[0]/X[1]);
+    }
+  else if(X[1]<0 && X[0]>=.0)      //Quadrant 3 (180 to 270 deg)
+    {
+      fAzimuth=M_PI-atan(X[0]/X[1]);
+    }
+  else if(X[1]>0 && X[0]>0.0)       //Quadrant 4 (270 to 360 deg)
+    {
+      fAzimuth=2*M_PI-atan(X[0]/X[1]);
+    }
+  return;
+}
+// *************************************************************************
+

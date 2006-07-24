@@ -26,11 +26,13 @@ class KSFADC
   void SetDigCntsPerPEGains(double fDigCntsPerPEHiGain);
 
   void makeFADCTrace(std::vector<double>& fWaveForm, int fWaveFormStartIndex,
-		     int& fTraceLengthBins, bool EnableHiLoGainProcessing);
+		     int& fTraceLengthBins, bool EnableHiLoGainProcessing, 
+		     double fFADCTracePed);
   double getWindowArea(int fStartTraceIndex, int fNumBinsToSum);
   void  Print(int fStartTraceIndex, int fNumBinsToPrint);
 
   std::vector<int> fFADCTrace;
+  int fFADCLoTraceStart;
   bool fFADCLowGain;
   double fDigCntsPerPEHiGain;
   double fDigCntsPerPELoGain;

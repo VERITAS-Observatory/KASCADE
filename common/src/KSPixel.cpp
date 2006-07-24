@@ -173,7 +173,7 @@ void KSPixel::DetermineNoisePedestals()
 // ***************************************************************************
 // From this same waveform determine ther FADC window Charge Pedvar
 {
-  InitWaveForm(0.0,gNightSkyWaveFormNS);
+  InitWaveForm(0.0,gNightSkyWaveFormNS[fCameraType]);
 
   //bool fAfterPulse=true;
   bool fAfterPulse=false;
@@ -192,14 +192,11 @@ void KSPixel::DetermineNoisePedestals()
   // ********************************************************************
   // Note: For both WHIPPLE and VERITAS the wave form fed to the ADC/FADC is
   // ac coupled(0 mean) which in our case means the night sky pedestal has 
-  // been removed. Then the FADC/ADC adds a pedestal before digitizing. This 
-  // is necessary so the we don't go below 0. We will do the same here (and 
-  // when we do other FADC/ADC calculations to model things correctly
+  // been removed. 
   // *************************************************************************
  
   RemovePedestalFromWaveForm(fWaveFormNightSkyPedestal);
-  AddPedestalToWaveForm(gWaveFormPedestalPE[fCameraType]);
-  //PrintWaveForm(0,0,fID,0);
+ //PrintWaveForm(0,0,fID,0);
 
   // Now the Ped and PedVar for the FADC(or ADC for Whipple490) window(we 
   // have only 1 as yet)
@@ -214,6 +211,12 @@ void KSPixel::DetermineNoisePedestals()
 
   if(fCameraType==WHIPPLE490)
     {    
+      // ********************************************************************
+      // The Whipple ADC's add  a pedestal before digitizing. This 
+      // is necessary so the we don't go below 0. We will do the same here.
+      // *********************************************************************
+      AddPedestalToWaveForm(gPedestal[WHIPPLE490]);  
+ 
       //Simple for Charge Summing ADC
       // *******************************************************************
       // Get rms of area of all the ADC windows.
@@ -245,11 +248,13 @@ void KSPixel::DetermineNoisePedestals()
       int fTraceLengthBins=(fNumFADCWindows)*gFADCWinSize[fCameraType];
 
       // *****************************************************************
-      // Determine fFADCTrace from almost entire fWaveForm (Note: no use of 
-      // HiLowGain)Note also that the conversion to dc from pe's is done within
-      // the makeFADCTrace class. (Note Pedestal added above)
+      // Determine fFADCTrace from almost entire fWaveForm
+      //  Note We do not need the  use of HiLow Gain stuff here
+      // Note also that the conversion to dc from pe's is done within
+      // the makeFADCTrace class. (Note Pedestal added there also)
       // *****************************************************************
-      fFADC.makeFADCTrace(fWaveForm,0,fTraceLengthBins,false);
+      fFADC.makeFADCTrace(fWaveForm,0,fTraceLengthBins,false,
+			                                gPedestal[VERITAS499]);
       double fPedSum=0;
       double fPed2Sum=0;
       int fCount=0;  //Just being careful here.
@@ -262,7 +267,7 @@ void KSPixel::DetermineNoisePedestals()
 	  fPed2Sum+=fChargeSum*fChargeSum;
 	  fCount++;//Just being careful here.
 	}
-      fPedDC  =  fPedSum/(double)fCount;
+      fPedDC  =  fPedSum/(double)fCount; //This is Charge pedestal in FADC's
       double fPedMean2 =  fPed2Sum/(double)fCount;
       fChargeVarDC=sqrt(fPedMean2-fPedDC*fPedDC);
       //std::cout<<"fCount,fPedSum,fPedDC,fWaveFormNightSkyPedestal: "<<fCount
@@ -325,19 +330,24 @@ double KSPixel::GetCharge(double fFADCGateStartTimeNS)
     }
   if(fCameraType==VERITAS499)
     {
-      // ***********************************************************
-      // We have to add a pedestal here (and then remove it so we know at all 
-      // times what waveform contains) because the FADC
-      // doesn't allow values below 0, so we need to offset up
-      // Our WHIPPLE490 calculation doesn't need to do this since we don't 
-      // (just above) have 0 as a lower limit.
-      // ************************************************************
-      AddPedestalToWaveForm(gWaveFormPedestalPE[VERITAS499]);
 
-      fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,false);
+      // Note here that we do need to enable the HiLo gain stuff here to 
+      // match real data
+      //fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,false);
+      fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,true,
+			  gPedestal[VERITAS499]);
+      // ******************************************************************
+      // When building the FADC trace (both hi and low gain) a FADC pedestal 
+      // was added to the wave form before digitizing. It was the same 
+      // pedestal both for hi and low gains. remove it here to get charge.
+      // ******************************************************************
       fCharge=fFADC.getWindowArea(0,gFADCWinSize[fCameraType])-fPedDC;
-
-      RemovePedestalFromWaveForm(gWaveFormPedestalPE[VERITAS499]);
+	
+      //Amplify for lo gain.
+      if(fFADC.fFADCLowGain)
+	{
+	  fCharge=fCharge*gFADCHiLoGainRatio;
+	}
     }
   return fCharge;
 }

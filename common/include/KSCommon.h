@@ -17,8 +17,10 @@ enum KSCameraTypes                         {VERITAS499=0,WHIPPLE490=1};
 const double gFocalLengthM[2]            = {        12.0,         7.3};
 const double gFacetDiameterM[2]          = {        0.61,       0.602};
 const double gMirrorRadiusSquared[2]     = {        36.0,    24.98733};
-const double gSpotSizeNorthSouthDeg[2]   = {       0.025,        0.06};
-const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
+//const double gSpotSizeNorthSouthDeg[2]   = {       0.025,        0.06};
+//const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
+const double gSpotSizeNorthSouthDeg[2]   = {       0.06,        0.06};
+const double gSpotSizeEastWestDeg[2]     = {       0.06,        0.06};
 
 const double gLatitude[2]                = {    0.552828,    0.552978};
 const double gEastLongitude[2]           = {    -1.93649,   -1.935190};
@@ -30,7 +32,8 @@ const int    gNumLines[2]                = {          13,          11};
 const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
 const double gPixelActiveCathRadiusMM[2] = {       12.00,         5.0};
 
-const double gWaveFormPedestalPE[2]      = {        14.0,         2.0};
+const double gPedestal[2]                = {        14.0,         2.0};
+const int    gNightSkyWaveFormNS[2]      = {         700,        1000};
 const int    gFADCNumSamples[2]          = {          24,          10};
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
@@ -44,9 +47,11 @@ const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
 
 const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};
-const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
-//const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
-//const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
+//5:const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+
+const double gSinglePeFallTimeNS[2]      = {         6.0,         8.5};
+//1:3:const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
+//1:3:const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
 
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
@@ -62,14 +67,13 @@ const double gDeg2Rad=M_PI/180.;
 
 const double gOverflowTime=1000001.;
 
-const int    gNightSkyWaveFormNS=700;   //2.5 microsec
 const double gWaveFormBinSizeNS=.25;     // Bin size in ns
 
 
 const double gFADCDelayNS           =-8.0;
 const double gFADCBinSizeNS         = 2.0;
 const int    gFADCHiLoGainThreshold = 250;
-const int    gFADCLowGainDelayBins  =   4;
+const int    gFADCLowGainDelayNS    =  20;
 const double gFADCHiLoGainRatio     = 6.0;
 
 const double gTrigMultiplicityWidthNS = 10.0;  // WHIPPLE490 CFD Pulse width
