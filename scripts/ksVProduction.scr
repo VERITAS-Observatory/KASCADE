@@ -98,12 +98,12 @@ function P1V()
     cd $lcl
     pwd
   fi
-    let processEnd=32
-    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-       energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 280 287 143 172 77 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
-  
+    let processEnd=35
+    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+       energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   141 1   144 1   1   87  1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 140 280 143 287 143 86  172 77 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+   
     SubmitPBSJobs
 }
 #******************************************************************************
@@ -126,11 +126,11 @@ function He4_1V()
     pwd
   fi
 
-    let processEnd=19
-    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-       energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=109 70 71 38 35  24  18  30  9   8   4   3   2    1    1    1    1    1    1)
+    let processEnd=20
+    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+       energy=([1]=49  58 70 84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   1  1  1  1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=109 70 71 38 35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
     
     SubmitPBSJobs
 }
@@ -178,7 +178,7 @@ function SubmitPBSJobs()
       echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
       echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
       echo "#"PBS -l mem=240mb                                      >>$pbsFile
-      echo "#"PBS -l walltime=10:00:00                              >>$pbsFile
+      echo "#"PBS -l walltime=20:00:00                              >>$pbsFile
       echo "#"PBS -l nodes=1                                        >>$pbsFile
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
       echo ${end[$i]} $datadir $StatusRunFileSpecification     \\   >>$pbsFile
@@ -201,13 +201,13 @@ StatusRunFileSpecification=$3
 user=$USER
 
 #Specify queues
-#queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq)
+#queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq)
+#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
-queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro)
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
