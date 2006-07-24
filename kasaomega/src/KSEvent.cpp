@@ -15,6 +15,9 @@
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
 extern "C" int    KascadeType2CorsikaType(int fKType);
+extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth, 
+				   double& fElevation);
+
 KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead, 
 		 KSPeHeadData* pPeHead, KSTeHeadData* pTeHead, 
 		 KSAomegaDataIn* pDataIn)
@@ -289,6 +292,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // ************************************************************************
   pfCamera->loadNoiseRatesAndPeds();
 
+  fCorsikaType=KascadeType2CorsikaType(pfSegmentHead->fType);
 
   // ********************************************************************
   // If defined setup ouput VDF root file
@@ -375,17 +379,47 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // ****************************************************************
       // Fill the Simulation Head object
       // ****************************************************************
-      VAKascadeSimulationHead fSimHeader(pfVDFOut);
+      VAKascadeSimulationHead fSimHeader;
+
       // Set up Header: (see VASimulationData.h and VAKascadeSimulationData.h
       // files for definitions.)
-      fSimHeader.pfKascadeSimHead->fSimulationPackage   = 3;  //Purdue Kascade
-      fSimHeader.pfKascadeSimHead->fExtensionFormat     = 3;  //Purdue ksAomega
-      fSimHeader.pfKascadeSimHead->fDocumentationFileName = "ToBeDetermined";
-      fCorsikaType=KascadeType2CorsikaType(pfSegmentHead->fType);
-      fSimHeader.setCORSIKAParticleID(fCorsikaType);
-      fSimHeader.setShowerID(pfSegmentHead->fShowerID);
-      fSimHeader.setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
- 
+      //Get present time
+      VATime fTimeNow;
+      fTimeNow.setFromSystemTime();
+      uint32_t y,m,d;
+      fTimeNow.getCalendarDate(y,m,d);
+      fSimHeader.fDateOfSimsUTC= y*10000ULL+ m*100ULL+ d;
+      fSimHeader.fSimulationPackage   = KASCADE;  //Purdue Kascade
+      fSimHeader.fSimulator           = SEMBROSKI;  //Purdue Sembroski
+      if(pfDataIn->fPixelStatsRootFileName!=" ")
+	{
+	  fEventTime.getCalendarDate(y,m,d);
+	  fSimHeader.fDateOfArrayForSims= y*10000ULL + m*100ULL + d;
+	}
+      else
+	{
+	  fSimHeader.fDateOfArrayForSims=0;
+	} 
+      if(pfDataIn->fSimulationConfigFileName!=" ")
+	{
+	  fSimHeader.loadSimConfigFileFromFile( pfDataIn->
+						fSimulationConfigFileName);
+	} 
+      else
+	{
+	  fSimHeader.fSimConfigFile= "Not Specified";
+	}
+      //Kascade specific header stuff
+      fSimHeader.fCORSIKAParticleID=fCorsikaType;
+      fSimHeader.fShowerID=pfSegmentHead->fShowerID;
+      fSimHeader.fEnergyGeV=pfSegmentHead->fGeVEnergyPrimary;
+
+      // ******************************************************************
+      // The following works for anything inheritaed from VASimulationHeader 
+      // since VASimulationHeader is a TObject and thus VARootIO can write it 
+      // out.
+      // ******************************************************************
+      pfVDFOut->setSimulationHeaderPtr(&fSimHeader); 
       pfVDFOut->writeSimulationHeader();
   
       // **************************************************************
@@ -402,23 +436,46 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // **************************************************************
       // Generate Simulation event tree for output root file.
       // **************************************************************
-      pfVDFOut->createTheSimulationEventTree();
-      pfSimEvent= new VAKascadeSimulationData(pfVDFOut);
+      // Now here we have to be a little more specific. By default VAVDF 
+      // creates a TTree with branches of VASimulationData objects. We want 
+      // the TTree to be of VAKascadeSimulationData objects so we have to
+      // do this ourselves. We basically copy the code from VAVDF for
+      // createTheSimulationEventTree() and make some changes
+      // ***************************************************************
+      pfSimEvent= new VAKascadeSimulationData();
+      TTree* pfSimulationEventTree= new TTree(gSimulatedEventsTreeName.c_str(),
+				       "Simulation Parameters");
+      if(pfSimulationEventTree==NULL)
+	{
+	  std::cout<<"KSEvent: Problem creating  pfSimulationEventTree"
+		   <<std::endl;
+	  exit(1);
+	}
+      pfSimulationEventTree->Branch(gSimulatedEventsBranchName.c_str(),
+			   "VAKascadeSimulationData",&pfSimEvent,16000,0);
+      pfVDFOut->setSimulationPtr(pfSimEvent);
+      pfVDFOut->setSimulationEventTree(pfSimulationEventTree);
 
+
+      //*******************************************************************
       // Fill in what doesn't change in the shower.
-      pfSimEvent->setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
+      // *****************************************************************
+      // VASimulationData stuff
+      // *****************************************************************
+      pfSimEvent->fEnergyGeV=pfSegmentHead->fGeVEnergyPrimary;
       std::cout<<"ksAomega: Kascade Primary Type: "<<pfSegmentHead->fType
 	       <<" ->Corsika Primary Type: "<<fCorsikaType<<std::endl;
-      pfSimEvent->setCORSIKAParticleID(fCorsikaType);
+      pfSimEvent->fCORSIKAParticleID=fCorsikaType;
 
       double X[3];
       X[0]=pfSegmentHead->fDlInitial;
       X[1]=pfSegmentHead->fDmInitial;
       X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
       GetAzElevFromVec(X,fAzimuth,fElevation);
-      pfSimEvent->setPrimaryZenithDeg(((M_PI/2)-fElevation)*gRad2Deg);
-      pfSimEvent->setPrimaryAzimuthDeg(fAzimuth*gRad2Deg);
-      pfSimEvent->setCoreElevationMASL(pfSegmentHead->fObservationAltitudeM);
+      pfSimEvent->fPrimaryZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
+      pfSimEvent->fPrimaryAzimuthDeg=fAzimuth*gRad2Deg;
+      pfSimEvent->fCoreElevationMASL=pfSegmentHead->fObservationAltitudeM;
+
     }
   // **************************************************************
   // Init VBF file if one is specified
@@ -426,7 +483,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfVBFOut=NULL;
   if(pfDataIn->fVBFFileName!=" ")
     {
-      pfVBFOut = new KSVBFFile(fCameraType, pfDataIn->fDigitalCountsPerPE); 
+      pfVBFOut = new KSVBFFile(fCameraType, pfDataIn->fDigitalCountsPerPE,
+			       fCorsikaType,pfSegmentHead,pfPeHead); 
       std::string fConfigMask("0");
       pfVBFOut->Create(pfDataIn->fVBFFileName,pfDataIn->fRunNumber,
 		       fConfigMask);
@@ -473,6 +531,7 @@ bool KSEvent::BuildImage()
     }
   pfCamera->InitPixelImageData();// zeros's and clears things, set overflow 
                                  // cfd time . especially needed for bad pixels
+                                 // It does not however reset fBadPixel.
   fGoodRead=pfTeFile->ReadTePixelData(pfCamera->fPixel);
   if(!fGoodRead)
     {
@@ -601,7 +660,7 @@ void KSEvent::SaveImage()
 	                                    pfCamera->fPixel[i].fChargeVarDC;
 		}
 
-	      chanData.fHiLo=false;  //We assume hi gain mode for now.
+	      chanData.fHiLo=false;  //We assume always hi gain mode for now.
 	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
 	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	    }
@@ -610,37 +669,38 @@ void KSEvent::SaveImage()
       pfVDFOut->writeCalibratedArrayEvent(1);//Only one telescope to write
       
       // ****************************************************************
-      // Next Save  the Simulation event MC tags
+      // Next Save  the VASimulation event MC tags
       // ****************************************************************
-      pfSimEvent->setEventNumber((int)pfVDFOut->getNumArrayEvents()-1);
-      pfSimEvent->setCORSIKAParticleID(fCorsikaType);
-      pfSimEvent->setEnergyGeV(pfSegmentHead->fGeVEnergyPrimary);
+      pfSimEvent->fEventNumber=pfVDFOut->getNumArrayEvents()-1;
+      pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
+      pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
 
-      pfSimEvent->setObservationZenithDeg(((M_PI/2)-fElevation)*gRad2Deg);
-      pfSimEvent->setObservationAzimuthDeg(fAzimuth*gRad2Deg);
-
+  // ***********************************************************
+  // ???????Need to fix triangular grid corections here
+  // **********************************************************
 
       double fMountXLocationM=pfPeHead->fXAreaWidthM*pfTe->fNx +
 	                                              pfPeHead->fXCoreOffsetM;
       double fMountYLocationM=pfPeHead->fYAreaWidthM*pfTe->fNy +
 	                                              pfPeHead->fYCoreOffsetM;
-      pfSimEvent->setCoreEastM(-fMountXLocationM);
-      pfSimEvent->setCoreSouthM(-fMountYLocationM);
+      pfSimEvent->fCoreEastM=-fMountXLocationM;
+      pfSimEvent->fCoreSouthM=-fMountYLocationM;
 
       // ********************************************************************
       // Now tags for KASCADE puposes
       // ********************************************************************
-      pfSimEvent->setNXIndex((float)pfTe->fNx);         //used for shower sort
-      pfSimEvent->setNYIndex((float)pfTe->fNy);         //           '      '
-      pfSimEvent->setDirectionIndex((float)pfTe->fDirectionIndex);// '      '
+      pfSimEvent->fNx=pfTe->fNx;         //used for shower sort
+      pfSimEvent->fNy=pfTe->fNy;         //           '      '
+      pfSimEvent->fDirectionIndex=pfTe->fDirectionIndex;// '      '
 
-      pfSimEvent->setEmissionAltitudeM((float)pfTe->fEmissionAltitude);
-      pfSimEvent->
-	        setEmissionAltitudeSigma((float)pfTe->fEmissionAltitudeSigma);
-      pfSimEvent->setMuonRatio((float)pfTe->fMuonRatio);
-      pfSimEvent->setAomega((float)pfTe->fAomega);
-      pfVDFOut->writeSimulationData();
+      pfSimEvent->fEmissionAltitudeM=(float)pfTe->fEmissionAltitude;
+      pfSimEvent->fEmissionAltitudeSigma=(float)pfTe->fEmissionAltitudeSigma;
+      pfSimEvent->fMuonRatio=(float)pfTe->fMuonRatio;
+      pfSimEvent->fAomega=(float)pfTe->fAomega;
 
+      pfVDFOut->writeSimulationData();  //This write works because we already 
+      //set with setSimulationPtr pfSimEvent as our simulation pointer within 
+      //createSimulationEventTree.
     }
 
 //  ******************************************************************
@@ -652,7 +712,7 @@ void KSEvent::SaveImage()
       // Write out a VAArrayEvent
       // ********************************************************************
       pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
-			 pfCamera, fFADCStartGateTimeNS);
+			 pfCamera, fFADCStartGateTimeNS, pfTe);
     } 
   fEventIndex++;
   return;
@@ -705,42 +765,3 @@ void KSEvent::PrintStats()
     fEventIndex<<std::endl;
   return;
 }
-void KSEvent::GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
-  // **************************************************************************
-  //   Get the Az and Elevation(radians) of a vector X 
-  // **************************************************************************
-{
-  fElevation=M_PI/2-(acos(fabs(X[2])));
-  fAzimuth=0.0;
-  if(X[1]==0 && X[0]==0)
-    {      //At zenith
-      fAzimuth=0.0;
-    }
-  else if(X[1]==0 && X[0]>0)    //along + x axis  (270 deg)
-    {
-      fAzimuth=3*M_PI/2;
-    }
-  else if(X[1]==0 && X[0]<0)    //along - x axis (90 deg)
-    {
-      fAzimuth=M_PI/2;
-    }
-  else if(X[1]>0 && X[0]<=0.0)     //Quadrant 1 (0 to 90 deg)
-    {
-      fAzimuth=-atan(X[0]/X[1]);
-    }
-  else if(X[1]<0 && X[0]<=0.0)     //Quadrant 2 (90 to 180 deg)
-    {
-      fAzimuth=M_PI/2+atan(X[0]/X[1]);
-    }
-  else if(X[1]<0 && X[0]>=.0)      //Quadrant 3 (180 to 270 deg)
-    {
-      fAzimuth=M_PI-atan(X[0]/X[1]);
-    }
-  else if(X[1]>0 && X[0]>0.0)       //Quadrant 4 (270 to 360 deg)
-    {
-      fAzimuth=2*M_PI-atan(X[0]/X[1]);
-    }
-  return;
-}
-// *************************************************************************
-

@@ -39,6 +39,8 @@
 #include "VACommon.h"
 #include "VAAzElRADecXY.h"
 
+#include "TTree.h"
+
 
 const double kDefaultPedestal             = 20;
 const std::string kFirstValidEventTimeStr ="2005-11-28 02:00:00.000000000 GPS";
@@ -93,8 +95,6 @@ class KSEvent
   double fTriggerTimeNS;
   double fFADCStartGateTimeNS;
 
-
-  void GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation);
 
  public:
   bool BuildImage();

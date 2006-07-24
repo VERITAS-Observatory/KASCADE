@@ -21,6 +21,7 @@ std::string KSAomegaDataIn::sDefaultVBFFileName=" ";//empty;
 std::string KSAomegaDataIn::sDefaultRootFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultPixelStatsRootFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultRandomSeedFileName=" ";//empty;;
+std::string KSAomegaDataIn::sDefaultSimulationConfigFileName=" ";//empty;;
 
 std::string KSAomegaDataIn::sDefaultRelativeGains="ON"; 
 std::string KSAomegaDataIn::sDefaultRelativePedVars="ON";
@@ -40,10 +41,11 @@ int         KSAomegaDataIn::sDefaultRunNumber=90000;
 
 KSAomegaDataIn::KSAomegaDataIn()
 {
-  fVBFFileName            = sDefaultVBFFileName;
-  fRootFileName           = sDefaultRootFileName;
-  fPixelStatsRootFileName = sDefaultPixelStatsRootFileName;
-  fRandomSeedFileName     = sDefaultRandomSeedFileName;
+  fVBFFileName              = sDefaultVBFFileName;
+  fRootFileName             = sDefaultRootFileName;
+  fPixelStatsRootFileName   = sDefaultPixelStatsRootFileName;
+  fRandomSeedFileName       = sDefaultRandomSeedFileName;
+  fSimulationConfigFileName = sDefaultSimulationConfigFileName;
   if(fRandomSeedFileName==string())
     {
       std::cout<<"Fatal--Random Seed file name must be specified"<<std::endl;
@@ -200,6 +202,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("RootOutputFileName",fRootFileName);
   config.setValue("PixelStatusRootFileName",fPixelStatsRootFileName);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
+  config.setValue("SimulationConfigFileName",fSimulationConfigFileName);
   config.setValue("RelativeGains",sDefaultRelativeGains);
   config.setValue("RelativePedVars",sDefaultRelativePedVars);
   config.setValue("BadPixelSupression",sDefaultBadPixelSupression);
@@ -252,6 +255,16 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "File Name for Output Veritas VBF Event file. This file "
 		    "will mimic a real raw data file complete with trace "
 		    "data. Default is to not create such a file.");
+  doVAConfiguration(file, command_line, 
+		    "SimulationConfigFileName",
+		    sDefaultSimulationConfigFileName,
+		    "KSAomegaDataIn",
+		    "File Name for Input Simulation Configuration file. This "
+		    "file contains all the information needed to reproduce "
+		    "the complete simulation effort, from ksKascade to "
+		    "ksAomega. This file is saved in the VBF and VDF files in "
+		    "the simulation headers as a single very long string: "
+		    "fSimConfigfile.");
   doVAConfiguration(file, command_line, 
 		    "RootOutputFileName",sDefaultRootFileName,
 		    "KSAomegaDataIn",

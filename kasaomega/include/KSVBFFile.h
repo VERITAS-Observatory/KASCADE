@@ -25,7 +25,7 @@
 #include <VBF/VDatum.h>
 
 // include the simulation data structure
-#include <VBF/VSimulationData.h>
+#include <VBF/VKascadeSimulationData.h>
 
 // include the configuration mask utilities, which give us parseConfigMask()
 #include <VBF/VConfigMaskUtil.h>
@@ -33,6 +33,10 @@
 //KASACADE includes
 #include "KSCommon.h"
 #include "KSCamera.h"
+#include "KSSegmentDataClasses.h"
+#include "KSPeDataClasses.h"
+#include "KSTeDataClasses.h"
+
 
 //Vegas includes
 #include "VATime.h"
@@ -53,14 +57,17 @@ using namespace VConfigMaskUtil;
 class KSVBFFile
 {
  public:
-  KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE);
+  KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE, 
+	    int CORSIKAType, KSSegmentHeadData* pSegmentHead,
+	    KSPeHeadData* pfPeHead);
   virtual ~KSVBFFile();
   bool Create(std::string VBFFileName,int RunNumber,  
 	                                    std::string fConfigMask);
   void Close();
-  void WriteVBF(int fArrayEventNum, int fTelID, 
-		VATime& fEventTime, KSCamera* pfCamera, 
-		double fFADCStartGateTimeNS);
+  void WriteVBF(int fArrayEventNum, int fTelID,VATime& fEventTime, 
+		KSCamera* pfCamera,double fFADCStartGateTimeNS, 
+		KSTeData* pfTe); 
+
   bool foundWriteError(){return fFoundError;};
 
  private:
@@ -68,7 +75,21 @@ class KSVBFFile
   int fRunNumber;
   KSCameraTypes fCameraType;
   double fDigitalCountsPerPE;
-  bool fFoundError;
+
+  KSSegmentHeadData* pfSegmentHead;
+  int fCORSIKAType;
+  float fEnergyGeV;
+  float fPrimaryZenithDeg;
+  float fPrimaryAzimuthDeg;
+  float fCoreElevationMASL;
+  double fXSeg;
+  double fYSeg;
+  double fXOffset;
+  double fYOffset;
+
+
+bool fFoundError;
+
 };
 // ***************************************************************************
 

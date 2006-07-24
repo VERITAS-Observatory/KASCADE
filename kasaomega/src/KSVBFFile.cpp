@@ -14,10 +14,44 @@
 
 #include "KSVBFFile.h"
 
-KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE)
+extern "C" int    KascadeType2CorsikaType(int fKType);
+extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth, 
+				   double& fElevation);
+
+KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE, 
+		     int CORSIKAType,KSSegmentHeadData* pSegmentHead,
+		     KSPeHeadData* pfPeHead)
 {
   fCameraType=CameraType;
   fDigitalCountsPerPE=DigitalCountsPerPE;
+
+  // ************************************************************************
+  //Constant Stuff for simulation banks
+  // ************************************************************************
+  pfSegmentHead = pSegmentHead;
+  fCORSIKAType  = KascadeType2CorsikaType(pfSegmentHead->fType);
+  fEnergyGeV    = pfSegmentHead->fGeVEnergyPrimary;
+
+  // *************************************************
+  // Get mount directions az.,elev
+  // *************************************************
+
+  double X[3];
+  X[0]=pfSegmentHead->fDlInitial;
+  X[1]=pfSegmentHead->fDmInitial;
+  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+  double fAzimuth;
+  double fElevation;
+  GetAzElevFromVec(X,fAzimuth,fElevation);
+  fPrimaryZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
+  fPrimaryAzimuthDeg = fAzimuth*gRad2Deg;
+  fCoreElevationMASL=pfSegmentHead->fObservationAltitudeM;
+
+  fXSeg=pfPeHead->fXAreaWidthM;
+  fYSeg=pfPeHead->fYAreaWidthM;
+  fXOffset=pfPeHead->fXCoreOffsetM;
+  fYOffset=pfPeHead->fYCoreOffsetM;
+
   pfWriter=NULL;
 }
 
@@ -73,7 +107,7 @@ void KSVBFFile::Close()
 
 void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, 
 			 VATime& fEventTime, KSCamera* pfCamera,
-			 double fFADCStartGateTimeNS) 
+			 double fFADCStartGateTimeNS, KSTeData* pfTe) 
 
 // ***************************************************************************
 // Write the VBF event(single telescope for now) to the output file.
@@ -222,43 +256,19 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 				   gFADCBinSizeNS) /
 				  gWaveFormBinSizeNS);
 	  // *************************************************************
-	  // Convert wave form to FADC trace. First add in the 
-	  // pedestal(use VERITAS pedestal)
-	  pfCamera->fPixel[k].
-		AddPedestalToWaveForm(gWaveFormPedestalPE[VERITAS499]);
-	  //std::cout<<"KSVBFFIle:k :"<<k<<std::endl;
+	  // Convert wave form to FADC trace.  Pedestal(use VERITAS pedestal)
+	  // Added in MakeTrace
 	  pfCamera->fPixel[k].fFADC.makeFADCTrace(
-	      pfCamera->fPixel[k].fWaveForm,fStartGateBin, fADCNumBins,false);
-	  pfCamera->fPixel[k].
-		RemovePedestalFromWaveForm(gWaveFormPedestalPE[VERITAS499]);
-	  
+	       pfCamera->fPixel[k].fWaveForm,fStartGateBin, fADCNumBins,true,
+						  gPedestal[VERITAS499]);
 	  // **************************************************************
-	  // Now we are read y to load up the VBF samples.
-	  // We will need to convert to hi/low
-	  // First see if we need to
+	  // Now we are ready to load up the VBF samples.
 	  // ************************************************************* 
-	  bool fLowGain=false;
-	  double fGain=1.0;  //default is no gain change
+	  event->setHiLo(k,pfCamera->fPixel[k].fFADC.fFADCLowGain);
 	  for (unsigned l=0; l<event->getNumSamples(); ++l)
 	    {
-	      int fTraceValue=pfCamera->fPixel[k].fFADC.fFADCTrace[l];
-	      if(fTraceValue>gFADCHiLoGainThreshold)
-		{
-		  fLowGain=true;
-		  fGain=1./gFADCHiLoGainRatio;
-		  break;
-		}
-	    }
-	  event->setHiLo(k,fLowGain);
-	  for (unsigned l=0; l<event->getNumSamples(); ++l)
-	    {
-	      double fTraceValue=
-		              (double)pfCamera->fPixel[k].fFADC.fFADCTrace[l];
-	      short unsigned int fTrc=(short unsigned int)(fTraceValue*fGain);
-	      if(fTrc>gFADCHiLoGainThreshold)
-		{
-		  fTrc=gFADCHiLoGainThreshold;
-		}
+	      short unsigned int fTrc=
+		(short unsigned int)pfCamera->fPixel[k].fFADC.fFADCTrace[l];
 	      event->setSample(k,l,fTrc);
 	    }
 	}
@@ -332,22 +342,38 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
   packet->putArrayEvent(ae);
             
   // ********************************************************************
-  // now construct the simulation data.  I'll set the fields to 0, but
-  // you can set them to whatever you like!
+  // now construct the simulation data. Common data first
   // ********************************************************************
+  double X[3];
+  double fAzimuth;
+  double fElevation;
+  X[0]=pfTe->fMountDl;
+  X[1]=pfTe->fMountDm;
+  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+  GetAzElevFromVec(X,fAzimuth,fElevation);
 
-  float r[3];
-  r[0]=0.0;
-  r[1]=0.0;
-  r[2]=0.0;
-            
-  VSimulationData *simu_data=
-    new VSimulationData(0, // id
-			0.0,   // e
-			0.0,   // theta
-			0.0,   // phi
-			r);
-            
+  float fObservationZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
+  float fObservationAzimuthDeg = fAzimuth*gRad2Deg;
+
+  uint32_t fNx=pfTe->fNx;
+  uint32_t fNy=pfTe->fNy;
+  // ***********************************************************
+  // ???????Need to fix triangular grid corections here
+  // **********************************************************
+  float fCoreEastM  = -(fXSeg*fNx +fXOffset);
+  float fCoreSouthM = -(fYSeg*fNy +fYOffset);
+
+  VKascadeSimulationData *simu_data=
+        new VKascadeSimulationData(fCORSIKAType,fEnergyGeV, fObservationZenithDeg,
+				   fObservationAzimuthDeg, fPrimaryZenithDeg,
+				   fPrimaryAzimuthDeg, fCoreEastM,
+				   fCoreSouthM, fCoreElevationMASL,fNx, fNy,
+				   (uint32_t)pfTe->fDirectionIndex, 
+				   (float)pfTe->fEmissionAltitude,
+				   (float)pfTe->fEmissionAltitudeSigma,
+				   (float)pfTe->fMuonRatio,
+				   (float)pfTe->fAomega);
+
   // and put the simulation data into the packet
   packet->putSimulationData(simu_data);
             
