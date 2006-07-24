@@ -35,10 +35,12 @@
 #include "VAKascadeSimulationData.h"
 #include "VAException.h"
 #include "VSOptions.hpp"
+#include "VACommon.h"
 
 #include "KSEventWeights.h"
 
 #include "TROOT.h"
+#include "TTree.h"
 
 
 const double kEventRateHZ=500.0;  //Allows for ~43*e6 event in a day(limit of
@@ -188,18 +190,31 @@ int main(int argc, char** argv)
 	      // Open file from list
 	      VAVDF fFileIn;
 	      fFileIn.OpenForStage3(fInputFileName);
-	      VAKascadeSimulationHead fSimHead(&fFileIn);
-	      if(fSimHead.pfKascadeSimHead==NULL)
+	      VASimulationHeader* pfSimHead=fFileIn.getSimulationHeaderPtr();
+	      VAKascadeSimulationHead *pfKSimHead;
+	      if(pfSimHead->fSimulationPackage==KASCADE)
 		{
-		  std::cout<<"ksSumVDFRootFiles: File "<<fInputFileName
-			   <<"has no VASimulationHeader record"<<std::endl;
+		  pfKSimHead = 
+		    dynamic_cast< VAKascadeSimulationHead* >(pfSimHead);
+		  if(pfKSimHead==NULL)
+		    {
+		      std::cout<<"ksSumVDFRootFiles: File "<<fInputFileName
+			       <<"has no VASimulationHeader record"<<std::endl;
+		      exit(1);
+		    }
+		}
+	      else
+		{
+		  std::cout<<"ksSumVDFFile: Wrong simulation package found. "
+		    "fSimulationPackage: "<< pfSimHead->fSimulationPackage
+			   <<std::endl;
 		  exit(1);
 		}
 	      //Now get stuff from the header
 	      //Primary type first
-	      int fType = fSimHead.getCORSIKAParticleID();
+	      int fType = pfKSimHead->fCORSIKAParticleID;
 	      // Now get energy
-	      int fEnergyGeV=(int)fSimHead.getEnergyGeV();
+	      int fEnergyGeV=(int)pfKSimHead->fEnergyGeV;
 
 	      // **********************************************************
 	      // Enter this stuff in the map. This is pretty tricky, we use
@@ -268,7 +283,7 @@ int main(int argc, char** argv)
       // Use first file in file list to get these things
       VAVDF* pfSumFile=new VAVDF();
       VACalibratedArrayEvent* pfSumCalEvent=NULL;
-      VASimulationData* pfSumSimEvent=NULL;
+      VAKascadeSimulationData* pfSumSimEvent=NULL;
       std::string fInputFileName;
       bool fFirstFile=true;
       int fNumTels=1;
@@ -327,16 +342,63 @@ int main(int argc, char** argv)
 	      pfSumFile->CopyInAndWriteQStatsData(&fFileIn);
 	      pfSumFile->CopyInAndWritePixelStausData(&fFileIn);
 	      pfSumFile->CopyInAndWriteRelGainData(&fFileIn);
-	      pfSumFile->CopyInAndWriteSimulationHeader(&fFileIn);
+
+	      // *************************************************************
+	      //Copy over Simulation header
+	      // ************************************************************
+	      VASimulationHeader* pfSimHead=fFileIn.getSimulationHeaderPtr();
+	      VAKascadeSimulationHead *pfKSimHead;
+	      if(pfSimHead->fSimulationPackage==KASCADE)
+		{
+		  pfKSimHead = 
+		    dynamic_cast< VAKascadeSimulationHead* >(pfSimHead);
+		  if(pfKSimHead==NULL)
+		    {
+		      std::cout<<"ksSumVDFRootFiles: File "<<fInputFileName
+			       <<"has no VASimulationHeader record"<<std::endl;
+		      exit(1);
+		    }
+		}
+	      else
+		{
+		  std::cout<<"ksSumVDFFile: Wrong simulation package found. "
+		    "fSimulationPackage: "<< pfSimHead->fSimulationPackage
+			   <<std::endl;
+		  exit(1);
+		}
+	      // *************************************************************
+	      // The following works for anything inherited from 
+	      // VASimulationHeader since VASimulationHeader is a TObject and
+	      // thus VARootIO can write it out.
+	      // *************************************************************
+	      pfSumFile->setSimulationHeaderPtr(pfKSimHead); 
+	      pfSumFile->writeSimulationHeader();
+
 	      //  *************************************************************
 	      // Create a Calibrated event tree and a simulation event tree
 	      // **************************************************************
 	      pfSumFile->createTheCalibratedArrayEventTree();
 	      pfSumCalEvent=pfSumFile->getCalibratedArrayEventPtr();
 
-	      pfSumFile->createTheSimulationEventTree();
-	      pfSumSimEvent=pfSumFile->getSimulationDataPtr();
+	      std::cout<<"ksSumVDFSiles: Creating Simulation Event Tree"
+		       <<std::endl;
+
+	      pfSumSimEvent= new VAKascadeSimulationData();
+	      TTree* pfSimulationEventTree= 
+		new TTree(gSimulatedEventsTreeName.c_str(),
+				       "Simulation Parameters");
+	      if(pfSimulationEventTree==NULL)
+		{
+		  std::cout<<"KSEvent: Problem creating  pfSimulationEventTree"
+			   <<std::endl;
+		  exit(1);
+		}
+	      pfSimulationEventTree->Branch(gSimulatedEventsBranchName.c_str(),
+			   "VAKascadeSimulationData",&pfSumSimEvent,16000,0);
+	      pfSumFile->setSimulationPtr(pfSumSimEvent);
+	      pfSumFile->setSimulationEventTree(pfSimulationEventTree);
 	      fFirstFile=false;
+	      std::cout<<"ksSumVDFFiles:Starting Summing Pass"<<std::endl;
 	    }
 	  // ******************************************************************
 	  // Find number of Calibrated events (and thus simulated events) in
@@ -348,15 +410,20 @@ int main(int argc, char** argv)
 	    {
 	      VACalibratedArrayEvent* pfInCalEvent = 
 	                               fFileIn.getCalibratedArrayEventPtr();
-	      VASimulationData* pfInSimEvent= fFileIn.getSimulationDataPtr();
 	      float fWeight=1.0;
 	      if(fWeightBySpectrum)
 		{
-		  VAKascadeSimulationHead fSimHead(&fFileIn);
-		  int fType = fSimHead.getCORSIKAParticleID();
-		  int fEnergyGeV=(int)fSimHead.getEnergyGeV();
+		  VASimulationHeader* pfSimHead=
+		                              fFileIn.getSimulationHeaderPtr();
+		  VAKascadeSimulationHead *pfKSimHead = 
+		    dynamic_cast< VAKascadeSimulationHead* >(pfSimHead);
+		  int fType = pfKSimHead->fCORSIKAParticleID;
+		  int fEnergyGeV=(int)pfKSimHead->fEnergyGeV;
 		  fWeight=pfWeights->getWeight(fType,fEnergyGeV);
 		}
+	      VASimulationData* pfInSimEvent = fFileIn.getSimulationDataPtr();
+	      VAKascadeSimulationData* pfKInSimEvent = 
+		       dynamic_cast< VAKascadeSimulationData* >(pfInSimEvent);
 	      for(int index=0;index<fNumArrayEvents;index++)
 		{
 		  fFileIn.readSimulationData(index);
@@ -373,7 +440,8 @@ int main(int argc, char** argv)
 		      fFileIn.loadInArrayEvent(index);
 		  
 		      *pfSumCalEvent=*pfInCalEvent;  //copy over
-		      *pfSumSimEvent=*pfInSimEvent;
+
+		      *pfSumSimEvent=*pfKInSimEvent;
 
 		      pfSumCalEvent->fArrayEventNum=fEventNum;
 		      fEventNum++;
@@ -394,7 +462,8 @@ int main(int argc, char** argv)
 		      fEventTime.setFromMJDDbl(fEventTimeMJD);
 
 		      pfSumFile->writeCalibratedArrayEvent(fNumTels);
-		      pfSumFile->writeSimulationData(); 
+		      pfSumFile->writeSimulationData();
+ 
 		      fCountOut++;
 		    }
 		}
