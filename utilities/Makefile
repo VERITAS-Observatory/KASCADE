@@ -18,10 +18,12 @@ LIBTARGET  = $(LIBDIR)/libutilities.a
 
 CPPTARGET1   = randomCreateRanluxSeed.cpp
 CPPTARGET2   = ksSumVDFRootFiles.cpp
-CPPTARGETS   = $(CPPTARGET1) $(CPPTARGET2)
+CPPTARGET3   = ksSumVBFFiles.cpp
+
+CPPTARGETS   = $(CPPTARGET1) $(CPPTARGET2) $(CPPTARGET3)
 CPPTARGETOBJECTS   = $(addprefix $(TMPDIR)/, $(CPPTARGETS:.cpp=.o)) 
 CPPEXES      = $(addprefix $(BINDIR)/, $(CPPTARGETS:.cpp=)) 
-CPPSOURCES   = $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET1) | grep -v $(CPPTARGET2) ))
+CPPSOURCES   = $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET1) | grep -v $(CPPTARGET2) | grep -v $(CPPTARGET3) ))
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
 ifdef VEGASBASE
@@ -50,6 +52,10 @@ $(addprefix $(TMPDIR)/, $(CPPTARGET2:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS)  $< -D__STDC_LIMIT_MACROS \
         -D__STDC_CONSTANT_MACROS 
 
+$(addprefix $(TMPDIR)/, $(CPPTARGET3:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS) $(VBFCFLAGS) \
+	 $< -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
+
 $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)): $(LIBTARGET) 
 	$(F90) -o $(@) $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) $^  \
 	          $(KASLDFLAGS) $(KASLIBS) $(CLDFLAGS)
@@ -58,6 +64,11 @@ $(addprefix $(BINDIR)/, $(CPPTARGET2:.cpp=)): $(LIBTARGET)
 	$(F90) -o $(@) $(addprefix $(TMPDIR)/, $(CPPTARGET2:.cpp=.o)) $^  \
 	          $(VEGASLDFLAGS) $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) \
 	          $(ROOTLIBS) 
+
+$(addprefix $(BINDIR)/, $(CPPTARGET3:.cpp=)): $(LIBTARGET) 
+	$(F90) -o $(@) $(addprefix $(TMPDIR)/, $(CPPTARGET3:.cpp=.o)) $^  \
+	          $(VEGASLDFLAGS) $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) \
+	          $(ROOTLIBS) $(VBFLDFLAGS) $(VBFLIBS) 
 
  
 .PHONY: install
