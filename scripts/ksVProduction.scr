@@ -98,6 +98,14 @@ function P1V()
     cd $lcl
     pwd
   fi
+  if [ "$kssc" = "ksaomVBF" ]; then
+    echo Removing P1V*GeV*.root and vbf files
+    cd $datadir
+    rm -f P1V*GeV*.root
+    rm -f P1V*GeV*.vbf
+    cd $lcl
+    pwd
+  fi
     let processEnd=35
     enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
@@ -122,6 +130,15 @@ function He4_1V()
     echo Removing He4_1V*GeV*.root files
     cd $datadir
     rm -f He4_1V*GeV*.root
+    cd $lcl
+    pwd
+  fi
+
+  if [ "$kssc" = "ksaom" ]; then
+    echo Removing He4_1V*GeV*.root and .vbf files
+    cd $datadir
+    rm -f He4_1V*GeV*.root
+    rm -f He4_1V*GeV*.vbf
     cd $lcl
     pwd
   fi
@@ -205,9 +222,9 @@ user=$USER
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
@@ -263,6 +280,13 @@ fi
 if [ $1 = "CR1V" ]; then
 
     if [ "$kssc" = "ksaom" ]; then
+        cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
+                                    $KASCADEBASE/inputs/ksAomegaP1V.config 
+        cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
+                                    $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
+    fi
+
+    if [ "$kssc" = "ksaomVBF" ]; then
         cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
                                     $KASCADEBASE/inputs/ksAomegaP1V.config 
         cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \

@@ -73,7 +73,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 
   if(pfDataIn->fPixelStatsRootFileName==" ")
     {
-      std::cout<<"ksAOMEGA: No Pixel Status Root input file specified"
+      std::cout<<"ksAomega: No Pixel Status Root input file specified"
 	       <<std::endl;
       for(int i=0;i<fNumPixels;i++)
 	{
@@ -483,19 +483,18 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfVBFOut=NULL;
   if(pfDataIn->fVBFFileName!=" ")
     {
+      std::cout<<"ksAomega: Creating Output VBF file: "
+		   <<pfDataIn->fVBFFileName<<std::endl;
       pfVBFOut = new KSVBFFile(fCameraType, pfDataIn->fDigitalCountsPerPE,
-			       fCorsikaType,pfSegmentHead,pfPeHead); 
+			       fCorsikaType,pfSegmentHead,pfPeHead,pfCamera); 
       std::string fConfigMask("0");
-      pfVBFOut->Create(pfDataIn->fVBFFileName,pfDataIn->fRunNumber,
-		       fConfigMask);
+      pfVBFOut->Create(pfDataIn,fConfigMask,fEventTime);
       if(pfVBFOut->foundWriteError())
 	{
 	  std::cout<<"ksAomega: Got error while trying to open VBF file: "
 		   <<pfDataIn->fVBFFileName<<std::endl;
 	  exit(1);
 	}
-      std::cout<<"ksAomega: Creating Output VBF file: "
-		   <<pfDataIn->fVBFFileName<<std::endl;
     }
 }
 // *************************************************************************
@@ -582,128 +581,77 @@ void KSEvent::SaveImage()
 // **************************************************************************
 // Save event to output file(s)
 // **************************************************************************/
-// *&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-// We still have to do the simulation ttree!!!!!!!!!!!!!!!!!!!!!!!!!!!!{
-// *&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 {
-  // ********************************************************************
-  // Note: We have not put pedestals in here yet.
-  // ********************************************************************
+  VATime fOriginalEventTime=fEventTime;
   double fEventTimeMJD=fEventTime.getMJDDbl();
   fEventTimeMJD+=Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
   fEventTime.setFromMJDDbl(fEventTimeMJD);
 
+  // *********************************************************************
+  // Check if its time to make a pedestal event. Pedestal events come once 
+  // per second. See if we cross a second boundary. Actually we may cross 
+  // multiple second boundrys but only generate one pedestal even in that case
+  // *********************************************************************
+  int fOriginalSeconds=fOriginalEventTime.getSec();
+  int fNewSeconds=fEventTime.getSec();
+  // *********************************************************************
+  // See if we need to write a Pedestal event out
+  // *********************************************************************
+  if(fNewSeconds>fOriginalSeconds)
+    {
+	  uint32_t fYear,fMonth,fDay,H,M,S,NS;
+	  fEventTime.getCalendarDate(fYear,fMonth,fDay);
+	  fEventTime.getTime(H,M,S,NS);
+	  NS=0;   //On the tick!
+	  VATime fPedestalEventTime;
+	  fPedestalEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
+							H,M,S,NS);
+	  pfCamera->loadAPedestalEventIntoPedPixels();
+
+	  //Pedestal event to VBF file
+	  if(pfDataIn->fVBFFileName!=" ")
+	    {
+	      bool fPedestalEvent=true;
+	      pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, 
+			     fPedestalEventTime, 
+			     fFADCStartGateTimeNS, pfTe,fPedestalEvent);
+	    }
+	  if(pfDataIn->fRootFileName!=" ")
+	    {
+	      // *************************************************************
+	      //Create, Fill and Write out a Pedestal VACalibratedEvent and 
+	      // Save  the VASimulation event MC tags
+	      // *************************************************************
+	      bool fPedestalEvent=true;
+	      CreateRootEvent(fPedestalEvent,fPedestalEventTime);
+	      pfVDFOut->writeCalibratedArrayEvent(1);
+	      pfVDFOut->writeSimulationData();
+	    }
+
+	  if(pfDataIn->fVBFFileName!=" " ||pfDataIn->fRootFileName!=" ")
+	    {
+	      fEventIndex++; 
+	    }
+    }
+
   if(pfDataIn->fRootFileName!=" ")
     {
-      // ********************************************************************
-      //Create, Fill and Write out a VACalibratedEvent
-      // ********************************************************************
       
-      // ****************************************************************
-      // Init and load the calibrated event class
-      // ****************************************************************
-      pfCalEvent->Reset();//pfCalEvent has # telescopes preset.
-      pfCalEvent->fTels=1;
-      pfCalEvent->fArrayEventNum=fEventIndex+1;
-      pfCalEvent->fEventType=ET_ARRAY_TRIGGER;//normal event
-      pfCalEvent->fPresentTels.push_back(true);
-      pfCalEvent->fArrayTime=fEventTime;
+      // ********************************************************************
+      //Create, Fill and Write out a VACalibratedEvent and Save  the 
+      //VASimulation event MC tags
+      // ********************************************************************
+      bool fPedestalEvent=false;
+      CreateRootEvent(fPedestalEvent,fEventTime);
 
-      // ****************************************************************
-      //First fill the Calibrated Telescope event
-      // ****************************************************************
-      pfCalEvent->fTelEvents.resize(1);
-      pfCalEvent->fTelEvents[0].fTelTime=fEventTime;
-      VAPointingData fPointing;
-
-      double X[3];
-      X[0]=pfTe->fMountDl;
-      X[1]=pfTe->fMountDm;
-      X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
-      GetAzElevFromVec(X,fAzimuth,fElevation);
-      pfAzElRADecXY->AzEl2RADec2000(fAzimuth, fElevation, fEventTime,
-				    fSourceRA2000,fSourceDec2000);
-      fPointing.fCorRA  = fSourceRA2000;  //radians
-      fPointing.fCorDec = fSourceDec2000;  //radians
-      pfCalEvent->fTelEvents[0].fPointingData=fPointing;
-      
-      pfCalEvent->fTelEvents[0].fTelID=pfDataIn->fTelescope;
-
-      for(uint16_t i=0;i<fNumPixels;i++)  // No zero supression yet
-	{
-	  // *************************************************************
-	  // ONly good, 'Live' pixels go out to fTelEvents
-	  // *******************************************************
-	  if(!pfCamera->fPixel[i].fBadPixel)
-	    {
-	      VATraceData chanData;
-	      chanData.fChanID=i;
-	      if(fCameraType==WHIPPLE490)
-		{
-		  chanData.fCharge=
-		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
-		  chanData.fSignalToNoise=chanData.fCharge/
-		    pfCamera->fPixel[i].fChargeVarPE;
-		  // *********************************************************
-		  // Now we apply the DigitalCountsPerPE for whipple onlyhere. 
-		  // For VERITAS499 this is applied within the KSFADC function
-		  // *********************************************************
-		  chanData.fCharge=
-		                chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
-		}
-	      else if(fCameraType==VERITAS499) 
-		{
-		  //GetCharge for VERITAS499 returns FADC sum in dc.
-		  chanData.fCharge=
-		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS);
-		  chanData.fSignalToNoise=chanData.fCharge/
-	                                    pfCamera->fPixel[i].fChargeVarDC;
-		}
-
-	      chanData.fHiLo=false;  //We assume always hi gain mode for now.
-	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
-	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
-	    }
-	}
-      // ****************************************************************
       pfVDFOut->writeCalibratedArrayEvent(1);//Only one telescope to write
-      
-      // ****************************************************************
-      // Next Save  the VASimulation event MC tags
-      // ****************************************************************
-      pfSimEvent->fEventNumber=pfVDFOut->getNumArrayEvents()-1;
-      pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
-      pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
-
-  // ***********************************************************
-  // ???????Need to fix triangular grid corections here
-  // **********************************************************
-
-      double fMountXLocationM=pfPeHead->fXAreaWidthM*pfTe->fNx +
-	                                              pfPeHead->fXCoreOffsetM;
-      double fMountYLocationM=pfPeHead->fYAreaWidthM*pfTe->fNy +
-	                                              pfPeHead->fYCoreOffsetM;
-      pfSimEvent->fCoreEastM=-fMountXLocationM;
-      pfSimEvent->fCoreSouthM=-fMountYLocationM;
-
-      // ********************************************************************
-      // Now tags for KASCADE puposes
-      // ********************************************************************
-      pfSimEvent->fNx=pfTe->fNx;         //used for shower sort
-      pfSimEvent->fNy=pfTe->fNy;         //           '      '
-      pfSimEvent->fDirectionIndex=pfTe->fDirectionIndex;// '      '
-
-      pfSimEvent->fEmissionAltitudeM=(float)pfTe->fEmissionAltitude;
-      pfSimEvent->fEmissionAltitudeSigma=(float)pfTe->fEmissionAltitudeSigma;
-      pfSimEvent->fMuonRatio=(float)pfTe->fMuonRatio;
-      pfSimEvent->fAomega=(float)pfTe->fAomega;
 
       pfVDFOut->writeSimulationData();  //This write works because we already 
       //set with setSimulationPtr pfSimEvent as our simulation pointer within 
       //createSimulationEventTree.
     }
 
-//  ******************************************************************
+  //  ******************************************************************
   // Write out event to VBF file
   // *******************************************************************
   if(pfDataIn->fVBFFileName!=" ")
@@ -712,7 +660,7 @@ void KSEvent::SaveImage()
       // Write out a VAArrayEvent
       // ********************************************************************
       pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
-			 pfCamera, fFADCStartGateTimeNS, pfTe);
+			 fFADCStartGateTimeNS, pfTe,false);
     } 
   fEventIndex++;
   return;
@@ -765,3 +713,142 @@ void KSEvent::PrintStats()
     fEventIndex<<std::endl;
   return;
 }
+// **************************************************************************
+
+void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
+// ********************************************************************
+//Create and fill a VACalibratedEvent and the VAKascadeSimulationData
+// ********************************************************************
+{
+  // ****************************************************************
+  // Init and load the calibrated event class
+  // ****************************************************************
+  pfCalEvent->Reset();//pfCalEvent has # telescopes preset.
+  pfCalEvent->fTels=1;
+  pfCalEvent->fArrayEventNum=fEventIndex+1;
+
+  if(!fPedestalEvent)
+    {
+      pfCalEvent->fEventType=ET_ARRAY_TRIGGER;//normal event
+    }
+  else
+    {
+      pfCalEvent->fEventType=ET_PEDESTAL; //pedestal event
+    }
+  pfCalEvent->fPresentTels.push_back(true);
+  pfCalEvent->fArrayTime=EventTime;
+
+  // ****************************************************************
+  //First fill the Calibrated Telescope event
+  // ****************************************************************
+  pfCalEvent->fTelEvents.resize(1);
+  pfCalEvent->fTelEvents[0].fTelTime=EventTime;
+  VAPointingData fPointing;
+
+  double X[3];
+  X[0]=pfTe->fMountDl;
+  X[1]=pfTe->fMountDm;
+  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+  GetAzElevFromVec(X,fAzimuth,fElevation);
+  pfAzElRADecXY->AzEl2RADec2000(fAzimuth, fElevation, EventTime,
+				fSourceRA2000,fSourceDec2000);
+  fPointing.fCorRA  = fSourceRA2000;  //radians
+  fPointing.fCorDec = fSourceDec2000;  //radians
+  pfCalEvent->fTelEvents[0].fPointingData=fPointing;
+      
+  pfCalEvent->fTelEvents[0].fTelID=pfDataIn->fTelescope;
+
+  for(uint16_t i=0;i<fNumPixels;i++)  // No zero supression yet
+    {
+      // *************************************************************
+      // ONly good, 'Live' pixels go out to fTelEvents
+      // *******************************************************
+      if(!pfCamera->fPixel[i].fBadPixel)
+	{
+	  VATraceData chanData;
+	  chanData.fChanID=i;
+	  if(fCameraType==WHIPPLE490)
+	    {
+	      if(!fPedestalEvent)
+		{
+		  chanData.fCharge=
+		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS,
+						  fPedestalEvent);
+		  chanData.fSignalToNoise=chanData.fCharge/
+		    pfCamera->fPixel[i].fChargeVarPE;
+		}
+	      else
+		{
+		  chanData.fCharge=
+		    pfCamera->fPedPixels[i].GetCharge(0,fPedestalEvent);
+		  chanData.fSignalToNoise=chanData.fCharge/
+		    pfCamera->fPixel[i].fChargeVarPE;
+		}
+	      // *********************************************************
+	      // Now we apply the DigitalCountsPerPE for whipple onlyhere. 
+	      // For VERITAS499 this is applied within the KSFADC function
+	      // *********************************************************
+	      chanData.fCharge=
+		chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
+	    }
+	  else if(fCameraType==VERITAS499) 
+	    {
+		if(!fPedestalEvent)
+		{
+		  //GetCharge for VERITAS499 returns FADC sum in dc.
+		  double fChargeStartTimeNS=fFADCStartGateTimeNS-
+		                            gFADCWindowOffsetNS[VERITAS499]+
+		                            gFADCChargeOffsetNS[VERITAS499];
+		  chanData.fCharge=pfCamera->fPixel[i].GetCharge(
+					fChargeStartTimeNS, fPedestalEvent);
+		  chanData.fSignalToNoise=chanData.fCharge/
+		    pfCamera->fPixel[i].fChargeVarDC;
+		}
+	      else
+		{
+		  chanData.fCharge=pfCamera->fPedPixels[i].GetCharge(
+			       gFADCChargeOffsetNS[VERITAS499],fPedestalEvent);
+		  chanData.fSignalToNoise=chanData.fCharge/
+		    pfCamera->fPixel[i].fChargeVarDC;
+		}
+	      chanData.fHiLo=false;  //We assume always hi gain mode for now.
+	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
+	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
+	    }
+	}
+    }
+  // ****************************************************************
+  
+  // ****************************************************************
+  // Next Save  the VASimulation event MC tags
+  // ****************************************************************
+  pfSimEvent->fEventNumber=pfVDFOut->getNumArrayEvents()-1;
+  pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
+  pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
+
+  // ***********************************************************
+  // ???????Need to fix triangular grid corections here
+  // **********************************************************
+  
+  double fMountXLocationM=pfPeHead->fXAreaWidthM*pfTe->fNx +
+    pfPeHead->fXCoreOffsetM;
+  double fMountYLocationM=pfPeHead->fYAreaWidthM*pfTe->fNy +
+    pfPeHead->fYCoreOffsetM;
+  pfSimEvent->fCoreEastM=-fMountXLocationM;
+  pfSimEvent->fCoreSouthM=-fMountYLocationM;
+  
+  // ********************************************************************
+  // Now tags for KASCADE puposes
+  // ********************************************************************
+  pfSimEvent->fNx=pfTe->fNx;         //used for shower sort
+  pfSimEvent->fNy=pfTe->fNy;         //           '      '
+  pfSimEvent->fDirectionIndex=pfTe->fDirectionIndex;// '      '
+  
+  pfSimEvent->fEmissionAltitudeM=(float)pfTe->fEmissionAltitude;
+  pfSimEvent->fEmissionAltitudeSigma=(float)pfTe->fEmissionAltitudeSigma;
+  pfSimEvent->fMuonRatio=(float)pfTe->fMuonRatio;
+  pfSimEvent->fAomega=(float)pfTe->fAomega;
+  
+  return;
+}
+// ****************************************************************************

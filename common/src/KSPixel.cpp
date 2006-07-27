@@ -305,17 +305,21 @@ void KSPixel::AddPedestalToWaveForm(double fWaveFormPedestal)
 // **************************************************************************
 
 
-double KSPixel::GetCharge(double fFADCGateStartTimeNS)
+double KSPixel::GetCharge(double fFADCGateStartTimeNS, bool fPedestalEvent)
 
 // *************************************************************************
 // Get the charge in this pixel in pe's for whipple and DC for veritas
 // **************************************************************************
 {
-  int fStartGateBin=(int)((fFADCGateStartTimeNS-fWaveFormStartNS)/
-				                      gWaveFormBinSizeNS);
+  int fStartGateBin=0;  //default for pedestal event
+    {
+      fStartGateBin=(int)((fFADCGateStartTimeNS-fWaveFormStartNS)/
+			  gWaveFormBinSizeNS);
+    }
   int fADCNumBins = (int)((gFADCWinSize[fCameraType]*gFADCBinSizeNS) /
 				                      gWaveFormBinSizeNS);
   double fCharge=0;
+
   // ************************************************************************
   // Whipple is easy.Just sum waveform over ADCGate
   // ************************************************************************
@@ -330,11 +334,7 @@ double KSPixel::GetCharge(double fFADCGateStartTimeNS)
     }
   if(fCameraType==VERITAS499)
     {
-
-      // Note here that we do need to enable the HiLo gain stuff here to 
-      // match real data
-      //fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,false);
-      fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,true,
+       fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,true,
 			  gPedestal[VERITAS499]);
       // ******************************************************************
       // When building the FADC trace (both hi and low gain) a FADC pedestal 

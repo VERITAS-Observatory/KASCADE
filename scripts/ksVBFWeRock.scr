@@ -13,16 +13,16 @@ inpDir=$KASCADEBASE'/inputs'
 
 cd /project/veritas/sembrosk/veritas
 
-find ./protons -name P1V*GeV*.vbf >1VBFList
-find ./he4 -name He4_1V*GeV*.vbf >>1VBFList
+#find ./protons -name P1V*GeV*.vbf >1VBFList
+#find ./he4 -name He4_1V*GeV*.vbf >>1VBFList
 
 #step 2.3
 
 #Setup unique random seed file
-cp -v $inpDir/ksKascade.ran ksSumVDFRootFiles.ran #Copy in a file to overwrite
+cp -v $inpDir/ksKascade.ran ksSumVBFFiles.ran #Copy in a file to overwrite
 let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
 
-$KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumVDFRootFiles.ran
+$KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumVBFFiles.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
 

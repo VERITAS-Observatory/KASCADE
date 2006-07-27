@@ -54,6 +54,7 @@ class KSCamera
   bool getPixelIndex(double fWX, double fWY, int& fPixelIndex);
   void InitPixelImageData();
   void Print();
+  void loadAPedestalEventIntoPedPixels();
 
  private:
   double fWaveFormStart;
@@ -72,6 +73,8 @@ class KSCamera
   int fNumPixels;
   int fNumPixelsTrigger;
   std::vector<KSPixel> fPixel;
+  std::vector<KSPixel> fPedPixels;
+
   KSCFD* pfCFD;
 
 

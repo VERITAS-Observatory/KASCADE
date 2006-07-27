@@ -25,6 +25,7 @@
 #include <VBF/VDatum.h>
 
 // include the simulation data structure
+#include <VBF/VKascadeSimulationHeader.h>
 #include <VBF/VKascadeSimulationData.h>
 
 // include the configuration mask utilities, which give us parseConfigMask()
@@ -36,6 +37,8 @@
 #include "KSSegmentDataClasses.h"
 #include "KSPeDataClasses.h"
 #include "KSTeDataClasses.h"
+#include "KSAomegaDataIn.h"
+#include "KSPixel.h"
 
 
 //Vegas includes
@@ -48,6 +51,8 @@
 #include <exception>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
+#include <vector>
 
 // declare that we're using the VConfigMaskUtil namespace, which gives us
 // easy access to parseConfigMask().
@@ -59,29 +64,38 @@ class KSVBFFile
  public:
   KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE, 
 	    int CORSIKAType, KSSegmentHeadData* pSegmentHead,
-	    KSPeHeadData* pfPeHead);
+	    KSPeHeadData* pfPeHead, KSCamera* pCamera);
   virtual ~KSVBFFile();
-  bool Create(std::string VBFFileName,int RunNumber,  
-	                                    std::string fConfigMask);
+  bool Create(KSAomegaDataIn* pfDataIn, std::string fConfigMask, 
+	      VATime& fEventTime);
   void Close();
   void WriteVBF(int fArrayEventNum, int fTelID,VATime& fEventTime, 
-		KSCamera* pfCamera,double fFADCStartGateTimeNS, 
-		KSTeData* pfTe); 
-
+		double fFADCStartGateTimeNS, KSTeData* pfTe, 
+		bool fPedestalEvent); 
   bool foundWriteError(){return fFoundError;};
 
  private:
+  bool loadSimConfigFileFromFile(std::string SimConfigFileName);
+  void loadArrayConfiguration();
+
   VBankFileWriter* pfWriter;
   int fRunNumber;
   KSCameraTypes fCameraType;
   double fDigitalCountsPerPE;
 
   KSSegmentHeadData* pfSegmentHead;
-  int fCORSIKAType;
-  float fEnergyGeV;
-  float fPrimaryZenithDeg;
-  float fPrimaryAzimuthDeg;
-  float fCoreElevationMASL;
+  uword32 fCORSIKAType;
+  float   fEnergyGeV;
+  uword32 fShowerID;
+  float   fObsAlt;
+
+  KSCamera* pfCamera;
+
+  std::string fSimConfigFile;
+  std::vector<VArrayConfiguration>  fArray;
+  float       fPrimaryZenithDeg;
+  float       fPrimaryAzimuthDeg;
+  float       fCoreElevationMASL;
   double fXSeg;
   double fYSeg;
   double fXOffset;

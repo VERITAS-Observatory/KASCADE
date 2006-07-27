@@ -40,6 +40,8 @@ const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
 
 const double gFADCTOffsetNS[2]           = {        10.0,         9.0};
 const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
+const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
+
 //const double gFADCTOffsetNS[2]           = {        9.0,         9.0};
 //const double gFADCWindowOffsetNS[2]      = {        9.0,         8.0};
 

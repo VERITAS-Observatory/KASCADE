@@ -58,6 +58,7 @@ class KSEvent
   virtual ~KSEvent();
 
  private:
+  void CreateRootEvent(bool fPedestalEvent, VATime& EventTime);
 
   KSSegmentHeadData* pfSegmentHead;
   KSPeHeadData*      pfPeHead;

@@ -67,6 +67,17 @@ void KSCamera::InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
   pfCameraTrigger = new KSCameraTrigger(pfTeHead,fUsePatternTrigger,&fPixel); 
                                                            //sets up pst.
   pfCFD = new KSCFD(fCameraType);
+
+  // ************************************************************************
+  //	Make up another  vector of  pixels, fPedPixels, for doing pedestal 
+  //    event calculations.  These are seperate so we don't mess up waveforms
+  //    when we generate pedestal events.  All we want is a place to keep the 
+  //    waveforms, anything else is already set up in fPixels
+  // ************************************************************************
+  KSPixel fPixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
+                                                     //pixel to start with
+  fPedPixels.resize(gNumPixelsCamera[fCameraType],fPixelElem);//Allocate pixels
+  // Some stuff gets filled in in loadNoiseRatesAndPeds
   return;
 }
 // ********************************************************************
@@ -336,7 +347,15 @@ void KSCamera::loadNoiseRatesAndPeds()
   for(int i=0;i<fNumPixels;i++)
     {
       fPixel[i].DetermineNoisePedestals();
-    }
+
+      // Fill in stuff used to make ped traces
+      fPedPixels[i].fNoiseRatePerNS = fPixel[i].fNoiseRatePerNS;
+      fPedPixels[i].fWaveFormNightSkyPedestal = 
+	                                   fPixel[i].fWaveFormNightSkyPedestal;
+      fPedPixels[i].fChargeVarPE    = fPixel[i].fChargeVarPE;
+      fPedPixels[i].fChargeVarDC    = fPixel[i].fChargeVarDC;
+      fPedPixels[i].fPedDC          = fPixel[i].fPedDC;
+    } 
   return;
 }
 // *************************************************************************
@@ -618,3 +637,31 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   return;
 }
 // ************************************************************************
+  
+void KSCamera::loadAPedestalEventIntoPedPixels()
+// *********************************************************************
+// Create a Pedestal event in the fPedPixels waveforms
+// *********************************************************************
+{
+  // ********************************************************************
+  // First task is to fill up the waveforms.
+  // ********************************************************************
+  double fTraceLengthNS=gFADCNumSamples[fCameraType]*gFADCBinSizeNS+1;
+  for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
+    {
+      fPedPixels[i].InitWaveForm(0.0,fTraceLengthNS);
+      bool fAfterPulse=false;
+      fPedPixels[i].AddNoiseToWaveForm(fAfterPulse);  
+      //Note that this noise has not been modified by overall efficiency 
+      //but has been modified by light cone efficiency
+      // ****************************************************************
+      // Note: For both WHIPPLE and VERITAS the wave form fed to the 
+      // ADC/FADC is ac coupled(0 mean) which in our case means the night 
+      // sky pedestal has to be removed. 
+      // ****************************************************************
+      fPedPixels[i].RemovePedestalFromWaveForm(
+			     fPedPixels[i].fWaveFormNightSkyPedestal);
+    }
+  return;
+}
+// ***********************************************************************

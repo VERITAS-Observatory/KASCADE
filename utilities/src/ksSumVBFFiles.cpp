@@ -206,18 +206,34 @@ int main(int argc, char** argv)
 	      // function never returns NULL.  if there is an error, it just 
 	      // throws an exception.
 	      // **********************************************************
-	      VPacket* packet=reader.readPacket(0);  //0=Location of header
-        
-
+	      VPacket* packet;
+	      if(reader.hasPacket(0))
+		{
+		  //std::cout<<"ksSumVBFFiles: Found Packet 0 in file: "
+		  //   <<fInputFileName<<std::endl;
+		  packet=reader.readPacket(0);  //0=Location of header
+		}
+	      else
+		{
+		  std::cout<<"ksSumVBFFiles: No header packet with index 0 "
+		    "found in file: "<<fInputFileName<<std::endl;
+		  exit(1);
+		}
 	      // *********************************************************** 
 	      // Check this packet has a VKascadeSimulationHeader in it
 	      // *********************************************************** 
 	      if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
-		{
-		  std::cout<<"ksSumVBFFiles: No KascadeSimulationHeader bank "
-		    "in file: "<<fInputFileName<<std::endl;
-		  exit(1);
-		}
+	      	{
+	      	  std::cout<<"ksSumVBFFiles: No KascadeSimulationHeader bank "
+	      	    "in file: "<<fInputFileName<<std::endl;
+	      	  exit(1);
+	      	}
+	      //else
+	      //	{
+	      //	  std::cout<<"ksSumVBFFiles: Found in packet 0 "
+	      //	    "KascadeSimulationHeader bank  in file: "
+	      //		   <<fInputFileName<<std::endl;
+	      //	}
 
 	      // ********************************************************
 	      // now get the KascadeSimulationHeader bank.  this will never 
@@ -353,7 +369,7 @@ int main(int argc, char** argv)
 	  // ***********************************************************
 	  if(fFirstFile)
 	    {
-	      fRunNumber = pfKSimHead->fRunNumber;
+	      fRunNumber = fReader.getRunNumber();
 	      std::string fConfigMask("0");
 	      pfWriter = new VBankFileWriter(OutputVBFFileName,fRunNumber,
 				     parseConfigMask(fConfigMask.c_str()));
@@ -504,9 +520,10 @@ int main(int argc, char** argv)
       // finish up.  this creates the index and writes the checksum.
       pfWriter->finish();
 
-      std::cout<<"ksSumVBFFiles:: Ouput summary file closed with "
+      std::cout<<"ksSumVBFFiles: Ouput summary file closed with "
 	       <<fArrayEventNum-1<<" events"<<std::endl;
-      std::cout<<"ksSumVBFFiles:: Normal end"<<std::endl;
+      std::cout<<"ksSumVBFFiles: End of Run at: "<<fEventTime<<std::endl;
+      std::cout<<"ksSumVBFFiles: Normal end"<<std::endl;
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
       // ----------------------------------------------------------------------

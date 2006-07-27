@@ -19,18 +19,20 @@ extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth,
 				   double& fElevation);
 
 KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE, 
-		     int CORSIKAType,KSSegmentHeadData* pSegmentHead,
-		     KSPeHeadData* pfPeHead)
+		     int CORSIKAType, KSSegmentHeadData* pSegmentHead,
+		     KSPeHeadData* pfPeHead, KSCamera* pCamera)
 {
   fCameraType=CameraType;
   fDigitalCountsPerPE=DigitalCountsPerPE;
 
   // ************************************************************************
-  //Constant Stuff for simulation banks
+  //Constant Stuff for simulation banks (VKascadeSimulationHeader)
   // ************************************************************************
   pfSegmentHead = pSegmentHead;
-  fCORSIKAType  = KascadeType2CorsikaType(pfSegmentHead->fType);
-  fEnergyGeV    = pfSegmentHead->fGeVEnergyPrimary;
+  fCORSIKAType  = (uword32) KascadeType2CorsikaType(pfSegmentHead->fType);
+  fEnergyGeV    = (float)   pfSegmentHead->fGeVEnergyPrimary;
+  fShowerID     = (uword32) pfSegmentHead->fShowerID;
+  fObsAlt       = (float)   pfSegmentHead->fObservationAltitudeM; 
 
   // *************************************************
   // Get mount directions az.,elev
@@ -51,9 +53,13 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
   fYSeg=pfPeHead->fYAreaWidthM;
   fXOffset=pfPeHead->fXCoreOffsetM;
   fYOffset=pfPeHead->fYCoreOffsetM;
+  
+  pfCamera=pCamera;
+
 
   pfWriter=NULL;
 }
+// *************************************************************************
 
 KSVBFFile::~KSVBFFile()
 {
@@ -63,31 +69,103 @@ KSVBFFile::~KSVBFFile()
 // ***************************************************************************
 
 
-bool KSVBFFile::Create(std::string fVBFFileName, int RunNumber, 
-			                     std::string fConfigMask)
+bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
+		       std::string fConfigMask,VATime& fEventTime)
 // ***************************************************************************
-//  Create an output VBF file.
+//  Create an output VBF file. Write out the header event (event 0) with a
+// VKascadeSimulationHeader bank.
 // ***************************************************************************
-
 {
- if(pfWriter!=NULL)
-   { 
-     std::cout<<"KSVBFFile-- Output VBF file already created"
-	      <<std::endl;
-     fFoundError=true;
-     return false;
-   }
- // open a file for writing, specifying that the filename is 'bogus.vbf'
- // that the run number is 400, and that the configuration mask
- // includes the first two telescopes.  note that you'll need to
- // provide the run number to the array event and array trigger below as
- // well.
- fRunNumber=RunNumber;
+  if(pfWriter!=NULL)
+    { 
+      std::cout<<"KSVBFFile-- Output VBF file already created"
+	       <<std::endl;
+      fFoundError=true;
+      return false;
+    }
+  // open a file for writing, specifying that the filename is 'bogus.vbf'
+  // that the run number is 400, and that the configuration mask
+  // includes the first two telescopes.  note that you'll need to
+  // provide the run number to the array event and array trigger below as
+  // well.
+  fRunNumber=pfDataIn->fRunNumber;
 
- pfWriter = new VBankFileWriter(fVBFFileName.c_str(),fRunNumber,
-				parseConfigMask(fConfigMask.c_str()));
- 
- return true;
+  pfWriter = new VBankFileWriter(pfDataIn->fVBFFileName.c_str(),fRunNumber,
+				 parseConfigMask(fConfigMask.c_str()));
+  if(pfWriter==NULL)
+    {
+      std::cout<<"KSVBFFile--Output VBF file failed to open"
+	       <<std::endl;
+      return false;
+      //throw exception
+    }
+
+  VPacket *packet=new VPacket();
+
+  // **********************************************************************
+  // Set up Simulation Header variables (see VSimulationHeader.h and 
+  // VKascadeSimulationHeader.h files for definitions.)
+  // **********************************************************************
+  // Set up Simulation Header variables
+  // **********************************************************************
+  //Get present time
+  VATime fTimeNow;
+  fTimeNow.setFromSystemTime();
+  uint32_t y,m,d;
+  fTimeNow.getCalendarDate(y,m,d);
+  uword32 fDateOfSimsUTC= y*10000ULL+ m*100ULL+ d;
+  uword32 fSimulationPackage   = KASCADE;  //Purdue Kascade
+  uword32 fSimulator           = SEMBROSKI;  //Purdue Sembroski
+  uword32 fDateOfArrayForSims  = 0;
+  if(pfDataIn->fPixelStatsRootFileName!=" ")
+    {
+      fEventTime.getCalendarDate(y,m,d);
+      fDateOfArrayForSims= y*10000ULL + m*100ULL + d;
+    }
+  uword32 fAtmosphericModel    = 0;  //no codes as of yet
+    
+  loadArrayConfiguration();
+  
+  fSimConfigFile = "Not Specified";
+  if(pfDataIn->fSimulationConfigFileName!=" ")
+    {
+      loadSimConfigFileFromFile(pfDataIn->fSimulationConfigFileName);
+    } 
+  
+  // ********************************************************************
+  //Kascade specific header stuff already filled in constructor.
+  // ********************************************************************
+  
+  VKascadeSimulationHeader* pfKSimHead = 
+    new VKascadeSimulationHeader(fDateOfSimsUTC, fSimulationPackage,
+				 fSimulator, fDateOfArrayForSims,
+				 fAtmosphericModel, fObsAlt, fArray,
+				 fSimConfigFile, fCORSIKAType,
+				 fEnergyGeV, fShowerID);
+    
+  // ***********************************************************************
+  // Fill a VKascadeSimulationHeader and write it out to event 0
+  // ***********************************************************************
+  // and put the simulation header data into the packet
+  packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);
+  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
+    {
+      std::cout<<"KSVBFFile: No KascadeSimulationHeader bank in packet when "
+	"we just put one in"<<std::endl;
+      exit(1);
+    }
+  // else
+  // {
+  //   std::cout<<"KSVBFFile: KascadeSimulationHeader in packet"
+  //	       <<std::endl;
+  //  }
+  // finally, write the packet into the file
+  uword32 fArrayEventNum=0;
+  pfWriter->writePacket(fArrayEventNum, packet);
+  
+  // dispose of the packet, so that we don't leak memory
+  delete packet;
+  return true;
 }
 // ***************************************************************************
 
@@ -100,19 +178,25 @@ void KSVBFFile::Close()
     {
       // finish up.  this creates the index and writes the checksum.
       pfWriter->finish();
+      std::cout<<"KSVBFFile: Finished (kind of a close) Output VBF file!"
+	       <<std::endl;
     }
   return;
 }
 // ***************************************************************************
 
-void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, 
-			 VATime& fEventTime, KSCamera* pfCamera,
-			 double fFADCStartGateTimeNS, KSTeData* pfTe) 
+void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime, 
+			 double fFADCStartGateTimeNS, KSTeData* pfTe,
+			 bool fPedestalEvent) 
 
 // ***************************************************************************
 // Write the VBF event(single telescope for now) to the output file.
 // ***************************************************************************
 {
+
+  // ******************************************************************
+  // Now proceed in writing out event (ped or normal)
+  // ******************************************************************
   if(pfWriter==NULL)
     {
       std::cout<<"KSVBFFile--Output VBF file is not yet opened"
@@ -184,29 +268,38 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
                 
   event->setGPSYear(fGPSYear);
   
-  event->setEventTypeCode(ET_ARRAY_TRIGGER);
-                
   event->setFlags(1); // enable compression
 
-  // *********************************************************************
-  // specify which channels triggered.
-  // *********************************************************************
-  for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
+  if(!fPedestalEvent)
     {
-      if(pfCamera->fPixel[k].fCFDTriggerTimeNS<gOverflowTime)
+      event->setEventTypeCode(ET_ARRAY_TRIGGER);
+                                       // specify which channels triggered.
+      for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
 	{
-	  event->setTriggerBit(k,true);
-	}
-      else
-	{
-	  event->setTriggerBit(k,false);
-	}
+	  if(pfCamera->fPixel[k].fCFDTriggerTimeNS<gOverflowTime)
+	    {
+	      event->setTriggerBit(k,true);
+	    }
+	  else
+	    {
+	      event->setTriggerBit(k,false);
+	    }
 		
+	}
+      if(gNumChannelsCamera[fCameraType]>gNumPixelsCamera[fCameraType])
+	{
+	  for (unsigned k=gNumPixelsCamera[fCameraType];
+	       k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
+	    {
+	      event->setTriggerBit(k,false);
+	    }
+	}
     }
-  if(gNumChannelsCamera[fCameraType]>gNumPixelsCamera[fCameraType])
-    {
-      for (unsigned k=gNumPixelsCamera[fCameraType];
-	   k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
+  else
+    {         //Pedestal event
+      event->setEventTypeCode(ET_PEDESTAL);
+                                  // specify no channels triggered.
+      for (unsigned k=0;k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
 	{
 	  event->setTriggerBit(k,false);
 	}
@@ -221,6 +314,14 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
       event->setHitBit(k,true);
     }
                 
+  // *************************************************************
+  // Since this VBF file is supposed to look like a VERITAS file 
+  // Use VERITAS499 for num of samples. Also use VERITAS499 
+  // pedestal
+  // *************************************************************
+  int fADCNumBins = (int)((gFADCNumSamples[VERITAS499]*gFADCBinSizeNS) /
+			  gWaveFormBinSizeNS);
+
   for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType]; ++k)
     {
       // *****************************************************************
@@ -238,41 +339,58 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 	}
       else
 	{
-	  int fStartGateBin=(int)((fFADCStartGateTimeNS-
-				   gFADCWindowOffsetNS[fCameraType]-
-				   pfCamera->fPixel[k].fWaveFormStartNS)/
-				  gWaveFormBinSizeNS);
-	  if(fStartGateBin<0)
+	  if(!fPedestalEvent)
 	    {
-	      std::cout<<"KSVBFFile: Start Gate bin was <0"<<std::endl;
-	      exit(1);
+	      int fStartGateBin=(int)((fFADCStartGateTimeNS-
+				       gFADCWindowOffsetNS[fCameraType]-
+				       pfCamera->fPixel[k].fWaveFormStartNS)/
+				      gWaveFormBinSizeNS);
+	      if(fStartGateBin<0)
+		{
+		  std::cout<<"KSVBFFile: Start Gate bin was <0"<<std::endl;
+		  exit(1);
+		}
+	      // *************************************************************
+	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
+	      // pedestal)
+	      // Added in MakeTrace
+	      pfCamera->fPixel[k].fFADC.makeFADCTrace(
+					       pfCamera->fPixel[k].fWaveForm,
+					       fStartGateBin, fADCNumBins,true,
+					       gPedestal[VERITAS499]);
+	      // **************************************************************
+	      // Now we are ready to load up the VBF samples.
+	      // ************************************************************* 
+	      event->setHiLo(k,pfCamera->fPixel[k].fFADC.fFADCLowGain);
+	      for (unsigned l=0; l<event->getNumSamples(); ++l)
+		{
+		  short unsigned int fTrc=
+		  (short unsigned int)pfCamera->fPixel[k].fFADC.fFADCTrace[l];
+		  event->setSample(k,l,fTrc);
+		}
 	    }
-	  // *************************************************************
-	  // Since this VBF file is supposed to look like a VERITAS file 
-	  // Use VERITAS499 for num of samples. Also use VERITAS499 
-	  // pedestal
-	  // *************************************************************
-	  int fADCNumBins = (int)((gFADCNumSamples[VERITAS499]*
-				   gFADCBinSizeNS) /
-				  gWaveFormBinSizeNS);
-	  // *************************************************************
-	  // Convert wave form to FADC trace.  Pedestal(use VERITAS pedestal)
-	  // Added in MakeTrace
-	  pfCamera->fPixel[k].fFADC.makeFADCTrace(
-	       pfCamera->fPixel[k].fWaveForm,fStartGateBin, fADCNumBins,true,
-						  gPedestal[VERITAS499]);
-	  // **************************************************************
-	  // Now we are ready to load up the VBF samples.
-	  // ************************************************************* 
-	  event->setHiLo(k,pfCamera->fPixel[k].fFADC.fFADCLowGain);
-	  for (unsigned l=0; l<event->getNumSamples(); ++l)
-	    {
-	      short unsigned int fTrc=
-		(short unsigned int)pfCamera->fPixel[k].fFADC.fFADCTrace[l];
-	      event->setSample(k,l,fTrc);
+	  else
+	    {   //Pedestal event, use fPedPixels for waveform source
+	      // *************************************************************
+	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
+	      // pedestal)
+	      // Added in MakeTrace
+	      pfCamera->fPedPixels[k].fFADC.makeFADCTrace(
+					  pfCamera->fPedPixels[k].fWaveForm,0,
+					  fADCNumBins,true,
+					  gPedestal[VERITAS499]);
+	      event->setHiLo(k,pfCamera->fPedPixels[k].fFADC.fFADCLowGain);
+	      for (unsigned l=0; l<event->getNumSamples(); ++l)
+		{
+		  short unsigned int fTrc=
+	      (short unsigned int)pfCamera->fPedPixels[k].fFADC.fFADCTrace[l];
+		  event->setSample(k,l,fTrc);
+		}
 	    }
 	}
-	  
+      // *******************************************************
+      // Fake Clock Trigger Boards 
+      // *******************************************************
       for (unsigned k=0; k<event->getNumClockTrigBoards(); ++k)
 	{
 	  for (unsigned l=0; l<7;  ++l) 
@@ -280,7 +398,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 	      event->getClockTrigData(k)[l]=0;
 	    }
 	}
-	  
+      
     }
   // add the event to the array event!
   ae->addEvent(event);
@@ -315,8 +433,14 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
             
   at->setGPSYear(fGPSYear);
             
-  at->setEventTypeCode(ET_ARRAY_TRIGGER);
-             
+  if(!fPedestalEvent)
+    {
+      at->setEventTypeCode(ET_ARRAY_TRIGGER);
+    }
+  else
+    {
+      at->setEventTypeCode(ET_PEDESTAL);
+    }
   at->setFlags(0);
             
   at->setATFlags(0);
@@ -363,8 +487,9 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
   float fCoreEastM  = -(fXSeg*fNx +fXOffset);
   float fCoreSouthM = -(fYSeg*fNy +fYOffset);
 
-  VKascadeSimulationData *simu_data=
-        new VKascadeSimulationData(fCORSIKAType,fEnergyGeV, fObservationZenithDeg,
+  VKascadeSimulationData *pfKSimdata=
+        new VKascadeSimulationData(fCORSIKAType,fEnergyGeV, 
+				   fObservationZenithDeg,
 				   fObservationAzimuthDeg, fPrimaryZenithDeg,
 				   fPrimaryAzimuthDeg, fCoreEastM,
 				   fCoreSouthM, fCoreElevationMASL,fNx, fNy,
@@ -375,7 +500,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
 				   (float)pfTe->fAomega);
 
   // and put the simulation data into the packet
-  packet->putSimulationData(simu_data);
+  packet->put(VGetKascadeSimulationDataBankName(),pfKSimdata);
             
   // finally, write the packet into the file
   pfWriter->writePacket(fArrayEventNum, packet);
@@ -383,4 +508,71 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID,
   // dispose of the packet, so that we don't leak memory
   delete packet;
   return;
+}
+// ***********************************************************************
+
+ 
+bool KSVBFFile::loadSimConfigFileFromFile(std::string SimConfigFileName)
+// **********************************************************************
+// Load the fSimConfigFile from a file.
+// **********************************************************************
+{
+// read the file
+  int fFile=open(SimConfigFileName.c_str(),O_RDONLY);
+  if (fFile<0)
+    {
+      //Throw exception
+      std::cout<<"VASimulationHeader--Failed to open input Simulation "
+	"configuration text file "<<SimConfigFileName<<std::endl;
+      return false;
+    }
+  int fLength=lseek(fFile,0,SEEK_END);
+  if (fLength<0)
+    {
+      //Throw exception
+      std::cout<<"VASimulationHeader--Failed to get length of Input "
+	"Simulation configuration text file "<<SimConfigFileName<<std::endl;
+      return false;
+	}
+
+  lseek(fFile,0,SEEK_SET);
+  char* fBuf=new char[fLength];
+  int fResult=read(fFile,fBuf,fLength);
+  if (fResult!=fLength) 
+    {
+      //Throw exception
+      std::cout<<"VASimulationHeader--Read length fails to match length of "
+	"input Simulation configuration text file "<<SimConfigFileName
+	       <<std::endl;
+      return false;
+    }
+  close(fFile);
+  fSimConfigFile=std::string(fBuf,fLength);
+  return true;
+}
+// **************************************************************************
+
+void  KSVBFFile::loadArrayConfiguration()
+// **********************************************************************
+// Load the ArrayConfiguration.
+// **********************************************************************
+{
+// **************************************************************************
+// This code is for a single telescope. Obvious expansion to multi telescopes
+// if desired.
+// **************************************************************************
+ VArrayConfiguration fArConfig;
+ fArConfig.fRelTelLocSouthM=0;
+ fArConfig.fRelTelLocEastM=0;
+ fArConfig.fRelTelLocUpM=0;
+ for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
+   {
+     VPixelLocation fPixLoc;
+     fPixLoc.fPixLocEastAtStowDeg = pfCamera->fPixel[i].fXDeg;
+     fPixLoc.fPixLocUpAtStowDeg   = pfCamera->fPixel[i].fYDeg;
+     fPixLoc.fPixRadiusDeg        = pfCamera->fPixel[i].fRadiusDeg;
+     fArConfig.fCamera.push_back(fPixLoc);
+   }
+ fArray.push_back(fArConfig);
+ return;
 }

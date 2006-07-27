@@ -40,7 +40,9 @@ class KSPixel
   void DetermineNoisePedestals();
   void RemovePedestalFromWaveForm(double fWaveFormPedestal);
   void AddPedestalToWaveForm(double fWaveFormPedestal);
-  double  GetCharge(double fTriggerTimeNS);
+  double  GetCharge(double fTriggerTimeNS, bool fPedestalEvent);
+  double  GetCharge(double fTriggerTimeNS)
+                                     {return GetCharge(fTriggerTimeNS,false);};
   void PrintWaveForm(int nx, int ny, int seqNum,double time);
 
  private:
