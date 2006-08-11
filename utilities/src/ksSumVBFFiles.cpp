@@ -52,7 +52,7 @@
 #include <VBF/VConfigMaskUtil.h>
 using namespace VConfigMaskUtil;
 
-const double kEventRateHZ=500.0;  //Allows for ~43*e6 event in a day(limit of
+const double kEventRateHZ=250.0;  //Allows for ~20*e6 event in a day(limit of
                                   //Qstats time etc).
 
 extern "C" void ranstart(int* printseedflag, char* random_seed_file_name, 
@@ -363,56 +363,57 @@ int main(int argc, char** argv)
 	  int fEnergyGeV=(int)pfKSimHead->fEnergyGeV;
 
 	  // ***********************************************************
-	  // First input file? Use its various objects for the summary file
+	  // First input file with an event in it0? Use its various objects 
+	  // for the summary file
 	  // Copy over the header packet and use the first event time as our
 	  // starting time
 	  // ***********************************************************
-	  if(fFirstFile)
-	    {
-	      fRunNumber = fReader.getRunNumber();
-	      std::string fConfigMask("0");
-	      pfWriter = new VBankFileWriter(OutputVBFFileName,fRunNumber,
-				     parseConfigMask(fConfigMask.c_str()));
-	      if(pfWriter==NULL)
-		{
-		  std::cout<<"ksSumVBFFiles--Output VBF file failed to open"
-			   <<std::endl;
-		  exit(1);
-		}	      
-	      
-	      // ************************************************************
-	      // copy over the first packet, this is the header packet, 
-	      // no events in it
-	      // ************************************************************
-	      pfWriter->writePacket(0, pfPacket);
-	      
-	      // **************************************************************
-	      // Now we need a first event time to use. Use first event time
-	      // in the first event in the first file
-	      // **************************************************************
-	      pfPacket=fReader.readPacket(1);
-	      pfAEIn=pfPacket->getArrayEvent();
-	      if(pfAEIn->hasTrigger())
-		{
-		  pfAT = pfAEIn->getTrigger();
-		  fEventTime.setFromVBF(2005,pfAT->getGPSTimeNumElements(),
-					pfAT->getGPSTime());
-		}
-	      else
-		{
-		  std::cout<<"ksSumVBFGFiles: Problem reading ArrayTrigger "
-		    "first event"<<std::endl;
-		  exit(1);
-		}
-	      std::cout<<"RunStart Time: "<< fEventTime<<std::endl;
-	      fFirstFile=false;
-	    }
 	  // ******************************************************************
 	  // Find number of packets in the input file
 	  // ******************************************************************
 	  int fNumArrayEvents = fReader.numPackets();
 	  if(fNumArrayEvents>1)  //packet 0 (header) should always be there
 	    {
+	      if(fFirstFile)
+		{
+		  fRunNumber = fReader.getRunNumber();
+		  std::string fConfigMask("0");
+		  pfWriter = new VBankFileWriter(OutputVBFFileName,fRunNumber,
+					 parseConfigMask(fConfigMask.c_str()));
+		  if(pfWriter==NULL)
+		    {
+		      std::cout<<"ksSumVBFFiles--Output VBF file failed to "
+			"open"<<std::endl;
+		      exit(1);
+		    }	      
+	      
+		  // *********************************************************
+		  // copy over the first packet, this is the header packet, 
+		  // no events in it
+		  // **********************************************************
+		  pfWriter->writePacket(0, pfPacket);
+	      
+		  // *********************************************************
+		  // Now we need a first event time to use. Use first event 
+		  // time in the first event in the first file
+		  // **********************************************************
+		  pfPacket=fReader.readPacket(1);
+		  pfAEIn=pfPacket->getArrayEvent();
+		  if(pfAEIn->hasTrigger())
+		    {
+		      pfAT = pfAEIn->getTrigger();
+		      fEventTime.setFromVBF(2005,pfAT->getGPSTimeNumElements(),
+					    pfAT->getGPSTime());
+		    }
+		  else
+		    {
+		      std::cout<<"ksSumVBFGFiles: Problem reading "
+			"ArrayTrigger first event"<<std::endl;
+		      exit(1);
+		    }
+		  std::cout<<"RunStart Time: "<< fEventTime<<std::endl;
+		  fFirstFile=false;
+		}
 	      float fWeight=1.0;
 	      if(fWeightBySpectrum)
 		{
@@ -426,6 +427,7 @@ int main(int argc, char** argv)
 		  if((fWeightBySpectrum &&pran(&fXDummy)<fWeight) || 
 		     !fWeightBySpectrum)
 		    {
+		      VPacket* pfWritePacket = new VPacket();
 		      pfPacket=fReader.readPacket(index); 
 
 		      // ******************************************************
@@ -444,7 +446,7 @@ int main(int argc, char** argv)
 		      pfKSimData->fRunNumber=fRunNumber;
 		      pfKSimData->fEventNumber=fArrayEventNum;
 
-		      pfPacket->put(VGetKascadeSimulationDataBankName(),
+		      pfWritePacket->put(VGetKascadeSimulationDataBankName(),
 				  pfKSimData);  
 		      // *****************************************************
 
@@ -495,10 +497,10 @@ int main(int argc, char** argv)
 			}
 		      // put the array event back into the packet
 		      // I'm told this will be a replacement
-		      pfPacket->putArrayEvent(pfAEOut);
+		      pfWritePacket->putArrayEvent(pfAEOut);
 
 		      // finally, write the packet into the file
-		      pfWriter->writePacket(fArrayEventNum,pfPacket);
+		      pfWriter->writePacket(fArrayEventNum,pfWritePacket);
 
  		      // **************************************************
 		      // Fix up time for next event and bump output 
@@ -511,11 +513,11 @@ int main(int argc, char** argv)
 		      fEventTimeMJD+=fTimeGapDay;
 		      fEventTime.setFromMJDDbl(fEventTimeMJD);
 		      fArrayEventNum++;
-
+		      delete pfWritePacket;
 		    }  //end of weight test bolck
 		}      //end of loop over input events
 	    }          //End of test that we have events in file
- 	}              //End of while loop over input files from list
+	}              //End of while loop over input files from list
 
       // finish up.  this creates the index and writes the checksum.
       pfWriter->finish();

@@ -26,7 +26,8 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
   fDigitalCountsPerPE=DigitalCountsPerPE;
 
   // ************************************************************************
-  //Constant Stuff for simulation banks (VKascadeSimulationHeader)
+  //Constant Stuff for simulation banks (VSimulationHeader and 
+  // VKascadeSimulationHeader)
   // ************************************************************************
   pfSegmentHead = pSegmentHead;
   fCORSIKAType  = (uword32) KascadeType2CorsikaType(pfSegmentHead->fType);
@@ -73,7 +74,7 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
 		       std::string fConfigMask,VATime& fEventTime)
 // ***************************************************************************
 //  Create an output VBF file. Write out the header event (event 0) with a
-// VKascadeSimulationHeader bank.
+// VSimulationHeader bank and a VKascadeSimulationHeader bank.
 // ***************************************************************************
 {
   if(pfWriter!=NULL)
@@ -133,20 +134,32 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
     } 
   
   // ********************************************************************
-  //Kascade specific header stuff already filled in constructor.
+  // We need to create and write a vSimulationHeader bank and a 
+  // VKascadeSimulationBank
+  // Kascade specific header stuff already filled in constructor.
   // ********************************************************************
   
+  VSimulationHeader* pfSimHead = 
+    new VSimulationHeader(fDateOfSimsUTC, fSimulationPackage,
+			  fSimulator, fDateOfArrayForSims,
+			  fAtmosphericModel, fObsAlt, fArray,
+			  fSimConfigFile);
+  
   VKascadeSimulationHeader* pfKSimHead = 
-    new VKascadeSimulationHeader(fDateOfSimsUTC, fSimulationPackage,
-				 fSimulator, fDateOfArrayForSims,
-				 fAtmosphericModel, fObsAlt, fArray,
-				 fSimConfigFile, fCORSIKAType,
-				 fEnergyGeV, fShowerID);
+    new VKascadeSimulationHeader(fCORSIKAType, fEnergyGeV, fShowerID);
     
   // ***********************************************************************
-  // Fill a VKascadeSimulationHeader and write it out to event 0
+  // Put these header banks into packet(0)
   // ***********************************************************************
   // and put the simulation header data into the packet
+  packet->put(VGetSimulationHeaderBankName(), pfSimHead);
+  if (!packet->has(VGetSimulationHeaderBankName())  )
+    {
+      std::cout<<"KSVBFFile: No SimulationHeader bank in packet when "
+	"we just put one in"<<std::endl;
+      exit(1);
+    }
+  // and put the KascadeSimulation header data into the packet
   packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);
   if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
     {
@@ -154,11 +167,6 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
 	"we just put one in"<<std::endl;
       exit(1);
     }
-  // else
-  // {
-  //   std::cout<<"KSVBFFile: KascadeSimulationHeader in packet"
-  //	       <<std::endl;
-  //  }
   // finally, write the packet into the file
   uword32 fArrayEventNum=0;
   pfWriter->writePacket(fArrayEventNum, packet);
@@ -487,19 +495,25 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   float fCoreEastM  = -(fXSeg*fNx +fXOffset);
   float fCoreSouthM = -(fYSeg*fNy +fYOffset);
 
+  VSimulationData *pfSimdata=
+        new VSimulationData(fCORSIKAType,fEnergyGeV, 
+			    fObservationZenithDeg,
+			    fObservationAzimuthDeg, fPrimaryZenithDeg,
+			    fPrimaryAzimuthDeg, fCoreEastM,
+			    fCoreSouthM, fCoreElevationMASL);
+
   VKascadeSimulationData *pfKSimdata=
-        new VKascadeSimulationData(fCORSIKAType,fEnergyGeV, 
-				   fObservationZenithDeg,
-				   fObservationAzimuthDeg, fPrimaryZenithDeg,
-				   fPrimaryAzimuthDeg, fCoreEastM,
-				   fCoreSouthM, fCoreElevationMASL,fNx, fNy,
-				   (uint32_t)pfTe->fDirectionIndex, 
-				   (float)pfTe->fEmissionAltitude,
-				   (float)pfTe->fEmissionAltitudeSigma,
-				   (float)pfTe->fMuonRatio,
-				   (float)pfTe->fAomega);
+    new VKascadeSimulationData(fNx, fNy,
+			       (uint32_t)pfTe->fDirectionIndex, 
+			       (float)pfTe->fEmissionAltitude,
+			       (float)pfTe->fEmissionAltitudeSigma,
+			       (float)pfTe->fMuonRatio,
+			       (float)pfTe->fAomega,
+			       (float)fFADCStartGateTimeNS);
 
   // and put the simulation data into the packet
+  packet->put(VGetSimulationDataBankName(),pfSimdata);
+  // and put the Kascade Simulation data into the packet
   packet->put(VGetKascadeSimulationDataBankName(),pfKSimdata);
             
   // finally, write the packet into the file

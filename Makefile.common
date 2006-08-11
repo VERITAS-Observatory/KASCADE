@@ -123,8 +123,8 @@ CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i386-linux/3.2.3 -lstdc++
 
 
 CXX           = g++
-ARCHCFLAGS    = -Wall -g -fPIC -O3
-#ARCHCFLAGS    = -Wall -g -fPIC
+#ARCHCFLAGS    = -Wall -g -fPIC -O3
+ARCHCFLAGS    = -Wall -g -fPIC
 LD            = g++
 ARCHLDFLAGS   =  
 ARCHSOFLAGS   = -shared
