@@ -14,8 +14,8 @@
 
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
-extern "C" int    KascadeType2CorsikaType(int fKType);
-extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth, 
+extern "C" int     KascadeType2CorsikaType(int fKType);
+extern "C" void    GetAzElevFromVec(double* X, double& fAzimuth, 
 				   double& fElevation);
 
 KSArrayEvent::KSArrayEvent(std::string fOutputRootFileName,
@@ -75,16 +75,32 @@ KSArrayEvent::KSArrayEvent(std::string fOutputRootFileName,
   // QStatsData. PixelsStatusData RelGainData and SimulationHeader
   // **************************************************************************
 
-  pfVDFOut= new KSArrayVFDHelper(fArray,fFirstValidEventTime);
-  pfVDFOut->WriteRunHeader();
-  pfVDFOut->WriteArrayInfo();
-  pfVDFOut->WriteQStatsData();
-  pfVDFOut->WritePixelStatusData();
-  pfVDFOut->WriteRelGainData();
-  pfVDFOut->WriteSimulationHeader();
+  pfVDFOut= new KSArrayVFDHelper(&fArray,fFirstValidEventTime);
+  pfVDFOut->CreateArrayVDFFile(fOutputRootFileName);
+
+
+
+, fEastLongitude, fLatitude);
+
+
+  pfVDFOut->FillRunHeader();  //Write this at end of run when we add EndRunTime
+  pfVDFOut->WriteArrayInfo(); //This was created in the CreateArrayVDFFile 
+                              //method
+  pfVDFOut->FillAndWriteQStatsData();
+  pfVDFOut->FillAndWritePixelStatusData();
+  pfVDFOut->FillAndWriteRelGainData();
+  pfVDFOut->FillAndWriteSimulationHeader();
 
   // ***********************************************************************
   // Set up for the trigger search 
+  // **********************************************************************
+  // First set up offsets for the telescopes.
+  for(int i=0;i<fNumTels;i++)
+    {
+      fArray[i]->fNxOffset=pfVDFOut->GetNxOffset(fArray[i]->fTelID);
+      fArray[i]->fNyOffset=pfVDFOut->GetNyOffset(fArray[i]->fTelID);
+    }
+
   // **********************************************************************
   // We need to make fGridDirMap's for all the telescopes except the first one
   // **********************************************************************
@@ -94,7 +110,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputRootFileName,
     }
 
   fBaseTel=0; //Index to base telescope in fArray for search.
-  fBaseIndex=0;  //Index in Base TTree of next event to look at for a trigger
+  fBaseIndex=-1;  //Index in Base TTree of next event-1 to look at for a 
+                  //trigger
 }
 // ***************************************************************************
 
@@ -115,7 +132,8 @@ bool KSArrayEvent FindTrigger()
       // *********************************************************************
       while(1)
 	{
-	  if(!fArray[fBaseTel]->pfArrayEventsUsed[fBaseIndex])
+	   fBaseIndex++;
+	   if(!fArray[fBaseTel]->pfArrayEventsUsed[fBaseIndex])
 	    {
 	      fBaseIndex++;
 	      if(fBaseIndex==fArray[fBaseTel]->fNumEvents)
@@ -128,8 +146,8 @@ bool KSArrayEvent FindTrigger()
 		  // careful to not use events that have already been tested. 
 		  // *********************************************************
 		  fBaseTel++;
-		  fBaseIndex=0;
-		  if(fNumTels-fBaseTel<pfDataIn->fArrayTriggerMultiplicty)
+		  fBaseIndex=-1;
+		  if((fNumTels-fBaseTel)<pfDataIn->fArrayTriggerMultiplicty)
 		    {
 		      // *********************************************
 		      // Were done. Shower is finished
@@ -150,8 +168,7 @@ bool KSArrayEvent FindTrigger()
       int fNx;
       int fNy;
       int fDir;
-      int64_t fBaseGridDirKey=fArray[fBaseTel]->getGridDirIndex(fBaseIndex,
-								fNx,fNy,fDir);
+      fArray[fBaseTel]->getGridDirForIndex(fBaseIndex,fNx,fNy,fDir);
       int fMult=1;
       
       fTriggerEvents.clear();
@@ -171,7 +188,7 @@ bool KSArrayEvent FindTrigger()
 	  // **********************************************************
 	  // See if this telescope has an event with this GridKey
 	  // **********************************************************
-	  int fIndex=fArray[i]->getIndexThisGridDirKey(fKey);
+	  int fIndex=fArray[i]->getIndexForGridDirKey(fKey);
 	  // Returns -1 if event doesn't exist
 	  if(fIndex>-1)
 	    {
@@ -198,4 +215,30 @@ bool KSArrayEvent FindTrigger()
 	  return true;   
 	}
     }
+}
+
+
+int64_t KSArrayEvent::GetTelescopeGridDirKey(int fBaseTel, int fNx, int fNy, 
+					     int fDir,int fTel)
+// ************************************************************************
+// Find the GridDirKey  for telescope fTel which has the correct offset from
+// telescope fBaseTel which is at Nx,Ny and with fDir. Return the GridDir key 
+// for the nx,ny area telescope fTel needs to be in if telescope fBaseTel is
+// in area fNx,fNy and has directioon fDir
+// *************************************************************************
+{
+  // *********************************************************************
+  // Get the nx and ny telescope fTel needs if telescope fBasTel is ar fNx,fNy
+  // *********************************************************************
+  // Find position of center of array
+
+  int fArrayCenterNx=fNx - fArray[fBaseTel]->fNxOffset;
+  int fArrayCenterNy=fNy - fArray[fBaseTel]->fNyOffset;
+
+  //Find position of fTel
+  int fTelNx=fArrayCenterNx + fArray[fTel]->fNxOffset;
+  int fTelNy=fArrayCenterNy + fArray[fTel]->fNyOffset;
+
+  int64_t fKey=fArray[fTel]->makeGridDirKey(fTelNx,fTelNy,fDir);
+  return fKey;
 }

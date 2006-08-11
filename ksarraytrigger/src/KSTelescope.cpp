@@ -80,10 +80,10 @@ void KSTelescope::makeGridDirMap()
   fGridDirMap.reset();
   for(int i=0;i<fNumEvents)
     {
-      pfSimTree->GetEntry(i);
-      int fNx=pfSimData->fNx;
-      int fNy=pfSimData->fNy;
-      int fDir=pfSimData->fDirectionIndex;
+      int fNx;
+      int fNy;
+      int fDir;
+      getGridDirForIndex(i,fNx,fNy, fDir);
       int64_t fKey=makeGrinDirKey(fNx,fNy,fDir);
       fGridDirMap[fKey]=i;
     }
@@ -119,8 +119,37 @@ void KSTelescope::unmakeGridDirKey(int64_t fKey,  int fNx, int fNy, int fDir)
    fNx=fTempKey-fDir*fNumNxNy;
    return;
 }
+// **************************************************************************
 
 
+void KSTelescope::getGridDirForIndex(int fIndex, int& fNx, int& fNy, 
+				     int& fDir)
+// ************************************************************************
+// Find for event at fIndex the Nx,ny and dir
+// ************************************************************************
+{
+  pfSimTree->GetEntry(i);
+  int fNx=pfSimData->fNx;
+  int fNy=pfSimData->fNy;
+  int fDir=pfSimData->fDirectionIndex;
+  return;
+}
 
-
+int  KSTelescope::getIndexForGridDirKey(int64_t fKey)
+// ***********************************************************************
+// For the GridDir Key fKey, look in our map for an index. Return the index.
+// If the fKey is not in the map return -1
+// ***********************************************************************
+{
   
+  fMapPos=fGridDirMap.find(fKey);
+  if(fMapPos==fGridDirMap.end())  //If fKey doesn't exist as a key return -1
+    {
+      return -1;
+    }
+  else
+    {
+      int fIndex=fMapPos->second;
+      return fIndex;
+    }
+}

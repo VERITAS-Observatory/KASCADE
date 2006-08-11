@@ -49,25 +49,28 @@ class KSTelescope
   void makeGridDirMap();
   int64_t makeGridDirKey( int fNx, int fNy,int fDir);
   void unmakeGridDirKey(int64_t fKey, int,fDir, int fNx, int fNy);
-
-
- private:
-  VATelID fTelID;
-  KSArrayTriggerDataIn* pfDataIn;
-  VATime fFirstValidEventTime;
-
-  int fNumEvents;
-  std::bitset* pfArrayEventsUsed;
-
+  void getGridDirForIndex(int fBaseIndex, int& fNx, int& fNy, int& fDir);
+  int getIndexForGridDirKey(int64_t fKey);
   VAVDF* pfEventFile;
   VARunHeader* pfRunHeader;
   TTree* pfSimTree;
   VAKascadeSimulationData* pfSimData;
 
+ private:
+  KSArrayTriggerDataIn* pfDataIn;
+  VATime fFirstValidEventTime;
+
+
+
   std::map< int64_t,int32_t> fGridDirMap;
-   
+  std::map< int64_t,int32_t>::iterator fMapPos;   
   
  public:
+  int fNumEvents;
+  std::bitset* pfArrayEventsUsed;
+  VATelID fTelID;
+  int fNxOffset;
+  int fNyOffset;
 
 };
 // ***************************************************************************

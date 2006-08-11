@@ -51,17 +51,15 @@ class KSASrrayEvent
   virtual ~KSASrrayEvent();
 
  private:
+  int64_t GetTelescopeGridDirKey(int fBaseTel, int fNx, int fNy,  int fDir,
+				 int fTel);
+
   KSArrayTriggerDataIn* pfDataIn;
   std::vector<KSTelescope*> fArray;
 
-  std::vector<TrigEvent>  fTriggerEvents;
+  std::vector<TrigEvent> fTriggerEvents;
   int fBaseTel;
-  int fBasIndex;
-
-
-  int fArrayEventIndex;
-  double fMeanTimeBetweenASrrayEventsSec;
-  float fXDummy;
+  int fBaseIndex;
 
  public:
   bool FindTrigger();
