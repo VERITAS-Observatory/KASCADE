@@ -848,6 +848,7 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfSimEvent->fEmissionAltitudeSigma=(float)pfTe->fEmissionAltitudeSigma;
   pfSimEvent->fMuonRatio=(float)pfTe->fMuonRatio;
   pfSimEvent->fAomega=(float)pfTe->fAomega;
+  pfSimEvent->fRelTriggerTimeNS=(float)fFADCStartGateTimeNS;
   
   return;
 }

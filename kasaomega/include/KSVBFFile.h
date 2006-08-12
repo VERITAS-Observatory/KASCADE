@@ -23,6 +23,7 @@
 #include <VBF/VPacket.h>
 #include <VBF/VArrayEvent.h>
 #include <VBF/VDatum.h>
+#include <VBF/VEventType.h>
 
 // include the simulation data structure
 #include <VBF/VKascadeSimulationHeader.h>

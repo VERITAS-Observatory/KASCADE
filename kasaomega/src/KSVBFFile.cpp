@@ -280,7 +280,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
   if(!fPedestalEvent)
     {
-      event->setEventTypeCode(ET_ARRAY_TRIGGER);
+      event->setEventTypeCode(VEventType::L2_TRIGGER);
                                        // specify which channels triggered.
       for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
 	{
@@ -305,7 +305,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
     }
   else
     {         //Pedestal event
-      event->setEventTypeCode(ET_PEDESTAL);
+      event->setEventTypeCode(VEventType::PED_TRIGGER);
                                   // specify no channels triggered.
       for (unsigned k=0;k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
 	{
@@ -443,11 +443,11 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
             
   if(!fPedestalEvent)
     {
-      at->setEventTypeCode(ET_ARRAY_TRIGGER);
+      at->setEventTypeCode(VEventType::L2_TRIGGER);
     }
   else
     {
-      at->setEventTypeCode(ET_PEDESTAL);
+      at->setEventTypeCode(VEventType::PED_TRIGGER);
     }
   at->setFlags(0);
             
