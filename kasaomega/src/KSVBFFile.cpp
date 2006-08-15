@@ -146,12 +146,12 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
 			  fSimConfigFile);
   
   VKascadeSimulationHeader* pfKSimHead = 
-    new VKascadeSimulationHeader(fCORSIKAType, fEnergyGeV, fShowerID);
+         new VKascadeSimulationHeader(fCORSIKAType, fEnergyGeV, fShowerID);
     
   // ***********************************************************************
   // Put these header banks into packet(0)
   // ***********************************************************************
-  // and put the simulation header data into the packet
+  // Put the simulation header data into the packet
   packet->put(VGetSimulationHeaderBankName(), pfSimHead);
   if (!packet->has(VGetSimulationHeaderBankName())  )
     {
@@ -159,18 +159,24 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
 	"we just put one in"<<std::endl;
       exit(1);
     }
+  //else
+  // {
+  //   std::cout<<"KSVBFFile: Packet has VSimulationHeader"<<std::endl; 
+  // }
+ 
   // and put the KascadeSimulation header data into the packet
   packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);
   if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
     {
       std::cout<<"KSVBFFile: No KascadeSimulationHeader bank in packet when "
-	"we just put one in"<<std::endl;
-      exit(1);
+  	"we just put one in"<<std::endl;
+      // exit(1);
     }
   // finally, write the packet into the file
   uword32 fArrayEventNum=0;
   pfWriter->writePacket(fArrayEventNum, packet);
-  
+  //std::cout<<"Wrote Packet: 0"<<std::endl;
+
   // dispose of the packet, so that we don't leak memory
   delete packet;
   return true;
@@ -195,7 +201,8 @@ void KSVBFFile::Close()
 
 void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime, 
 			 double fFADCStartGateTimeNS, KSTeData* pfTe,
-			 bool fPedestalEvent) 
+			 bool fPedestalEvent, float fCoreEastM,
+			 float fCoreSouthM) 
 
 // ***************************************************************************
 // Write the VBF event(single telescope for now) to the output file.
@@ -280,7 +287,11 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
   if(!fPedestalEvent)
     {
-      event->setEventTypeCode(VEventType::L2_TRIGGER);
+      VEventType fEvType;
+      fEvType.trigger=VEventType::L2_TRIGGER;
+      event->setEventType(fEvType);
+      //event->setEventTypeCode(0); //0 is an acceptable L2_TRIGGER
+      //event->setEventTypeCode(VEventType::L2_TRIGGER);
                                        // specify which channels triggered.
       for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
 	{
@@ -305,7 +316,11 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
     }
   else
     {         //Pedestal event
-      event->setEventTypeCode(VEventType::PED_TRIGGER);
+      VEventType fEvType;
+      fEvType.trigger=VEventType::PED_TRIGGER;
+      event->setEventType(fEvType);
+
+      //event->setEventTypeCode(VEventType::PED_TRIGGER);
                                   // specify no channels triggered.
       for (unsigned k=0;k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
 	{
@@ -342,7 +357,9 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	  event->setHiLo(k,false); //set hi?
 	  for (unsigned l=0; l<event->getNumSamples(); ++l)
 	    {
-	      event->setSample(k,l,0);
+	      short unsigned int fSam = 
+		                  (short unsigned int)gPedestal[fCameraType];
+	      event->setSample(k,l,fSam);
 	    }
 	}
       else
@@ -443,11 +460,17 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
             
   if(!fPedestalEvent)
     {
-      at->setEventTypeCode(VEventType::L2_TRIGGER);
+      VEventType fEvType;
+      fEvType.trigger=VEventType::L2_TRIGGER;
+      at->setEventType(fEvType);
+      //at->setEventTypeCode(VEventType::L2_TRIGGER);
     }
   else
     {
-      at->setEventTypeCode(VEventType::PED_TRIGGER);
+      VEventType fEvType;
+      fEvType.trigger=VEventType::PED_TRIGGER;
+      at->setEventType(fEvType);
+      //at->setEventTypeCode(VEventType::PED_TRIGGER);
     }
   at->setFlags(0);
             
@@ -462,7 +485,11 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   at->setAltitude(0,0.0);
   at->setAzimuth(0,0.0);
   at->setTDCTime(0,0);
-  at->setSpecificEventTypeCode(0,1);
+  VEventType fEvType;
+  fEvType.trigger=VEventType::L2_TRIGGER;
+  at->setSpecificEventType(0,fEvType);
+
+  //  at->setSpecificEventTypeCode(0,1);
   at->setShowerDelay(0,0);
   at->setCompDelay(0,0);
    
@@ -489,11 +516,6 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
   uint32_t fNx=pfTe->fNx;
   uint32_t fNy=pfTe->fNy;
-  // ***********************************************************
-  // ???????Need to fix triangular grid corections here
-  // **********************************************************
-  float fCoreEastM  = -(fXSeg*fNx +fXOffset);
-  float fCoreSouthM = -(fYSeg*fNy +fYOffset);
 
   VSimulationData *pfSimdata=
         new VSimulationData(fCORSIKAType,fEnergyGeV, 
@@ -518,6 +540,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
             
   // finally, write the packet into the file
   pfWriter->writePacket(fArrayEventNum, packet);
+  //std::cout<<"Wrote packet: "<<fArrayEventNum<<std::endl;
             
   // dispose of the packet, so that we don't leak memory
   delete packet;

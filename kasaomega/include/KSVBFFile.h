@@ -72,7 +72,7 @@ class KSVBFFile
   void Close();
   void WriteVBF(int fArrayEventNum, int fTelID,VATime& fEventTime, 
 		double fFADCStartGateTimeNS, KSTeData* pfTe, 
-		bool fPedestalEvent); 
+		bool fPedestalEvent, float fCoreEastM, float fCoreSouthM); 
   bool foundWriteError(){return fFoundError;};
 
  private:

@@ -14,12 +14,14 @@
 #include <VBF/VPacket.h>
 #include <VBF/VArrayEvent.h>
 #include <VBF/VDatum.h>
+#include <VBF/VSimulationData.h>
+#include <VBF/VSimulationHeader.h>
 #include <VBF/VKascadeSimulationData.h>
 #include <VBF/VKascadeSimulationHeader.h>
-
+#include <VBF/VEventType.h>
 
 #include "VAException.h"
-
+#include "VATime.h"
 // declare that we're using the VConfigMaskUtil namespace, which gives us
 // easy access to parseConfigMask().
 // include the configuration mask utilities, which give us parseConfigMask()
@@ -31,142 +33,152 @@ int main(int argc, char** argv)
 { 
   try
     {
-      std::string fVBFFileName("VBFTest.vbf");
-      {
-	int fRunNumber=90000;
-	std::string fConfigMask("0");
-	VBankFileWriter* pfWriter = 
-	  new VBankFileWriter(fVBFFileName.c_str(),fRunNumber,
-				 parseConfigMask(fConfigMask.c_str()));
-	if(pfWriter==NULL)
-	  {
-	    std::cout<<"TestVBF:--Output VBF file failed to open"
-		     <<std::endl;
-	    return 1;
-	    //throw exception
-	  }
-	else
-	  {
-	    std::cout<<"TestVBF: Ouput VBF file opened ok"<<std::endl;
-	  }
+      int fDebugLimit=100;
+      VPacket*       pfPacket = NULL;
+      VArrayEvent*   pfAEIn   = NULL;
+      VEvent*        pfEvent  = NULL;
+      VArrayTrigger* pfAT     = NULL;
 
-	VPacket *packet=new VPacket();
+      // *****************************************************************
+      // Open file
+      // ************************************************************
+      //std::string fInputFileName("1V.vbf");
+      //std::string fInputFileName("./protons/P1VGeV422.d1.vbf");
+      std::string fInputFileName("./test/P1VGeV250.vbf");
+      VBankFileReader fReader(fInputFileName);
+      if(fReader.hasPacket(0))
+	{
+	  std::cout<<"TestVBF: Found Packet 0 in file: "
+		   <<fInputFileName<<std::endl;
+	  pfPacket=fReader.readPacket(0);  //0=Location of header
+	}
+      else
+	{
+	  std::cout<<"TestVBF: No header packet with index 0 "
+	    "found in file: "<<fInputFileName<<std::endl;
+	  exit(1);
+	}
+      if (!pfPacket->has(VGetSimulationHeaderBankName())  )
+      	{
+      	  std::cout<<"TestVBF: No SimulationHeader bank "
+      	    "in file: "<<fInputFileName<<std::endl;
+      	  exit(1);
+      	}
+      VSimulationHeader *pfSimHead =
+      	pfPacket->get< VSimulationHeader >(VGetSimulationHeaderBankName());
+      // pfSimHead->Print();
 
-	// *******************************************************************
-	// Set up Simulation Header variables
-	// *******************************************************************
-	//Get a time
-	uint32_t y=2006;
-	uint32_t m=7;
-	uint32_t d=26;
-	uword32 fDateOfSimsUTC= y*10000ULL+ m*100ULL+ d;
-	uword32 fSimulationPackage   = KASCADE;  //Purdue Kascade
-	uword32 fSimulator           = SEMBROSKI;  //Purdue Sembroski
-	uword32 fDateOfArrayForSims  = 0;
-	uword32 fAtmosphericModel    = 0;  //no codes as of yet
-	
-	std::vector<VArrayConfiguration>  fArray;
-	VArrayConfiguration fArConfig;
-	fArConfig.fRelTelLocSouthM=0;
-	fArConfig.fRelTelLocEastM=0;
-	fArConfig.fRelTelLocUpM=0;
-	for(int i=0;i<499;i++)
-	  {
-	    VPixelLocation fPixLoc;
-	    fPixLoc.fPixLocEastAtStowDeg = i*.1;
-	    fPixLoc.fPixLocUpAtStowDeg   = i*.2;
-	    fPixLoc.fPixRadiusDeg        = .15;
-	    fArConfig.fCamera.push_back(fPixLoc);
-	  }
-	fArray.push_back(fArConfig);
-	
-	float fObsAlt=1275;
-	std::string fSimConfigFile = "Not Specified";
-	uword32 fCORSIKAType=14;
-	float   fEnergyGeV=20;
-	uword32 fShowerID=1;
-	// ******************************************************************
-      
-  
-	// Fill a VKascadeSimulationHeader and write it out to event 0
-	VSimulationHeader* pfSimHead = 
-	  new VSimulationHeader(fDateOfSimsUTC, fSimulationPackage,
-				       fSimulator, fDateOfArrayForSims,
-				       fAtmosphericModel, fObsAlt, fArray,
-				fSimConfigFile);
-	packet->put(VGetSimulationHeaderBankName(), pfSimHead);
-	if (!packet->has(VGetSimulationHeaderBankName())  )
-	  {
-	    std::cout<<"TestVBF: No SimulationHeader bank in packet "
-	      "when we just put one in"<<std::endl;
-	    return 1;
-	  }
-	else
-	  {
-	    std::cout<<"TestVBF: Packet does indeed have a "
-	      "SimulationHeader bank in it"<<std::endl;
-	  }
-
-	VKascadeSimulationHeader* pfKSimHead = 
-	  new VKascadeSimulationHeader( fCORSIKAType,
-				       fEnergyGeV, fShowerID);
-	packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);
-	if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
-	  {
-	    std::cout<<"TestVBF: No KascadeSimulationHeader bank in packet "
-	      "when we just put one in"<<std::endl;
-	    return 1;
-	  }
-	else
-	  {
-	    std::cout<<"TestVBF: Packet does indeed have a "
-	      "KascadeSimulationHeader bank in it"<<std::endl;
-	  }
-
-	// finally, write the packet into the file
-	uword32 fArrayEventNum=0;
-	pfWriter->writePacket(fArrayEventNum, packet);
-	
-	// dispose of the packet, so that we don't leak memory
-	delete packet;
-	
-	pfWriter->finish();
-	std::cout<<"TestVBF: Ouput file Finished"<<std::endl;
-
-      }
+      if (!pfPacket->has(VGetKascadeSimulationHeaderBankName())  )
+	{
+	  std::cout<<"TestVBF: No KascadeSimulationHeader bank "
+	    "in file: "<<fInputFileName<<std::endl;
+	  exit(1);
+	}
+      VKascadeSimulationHeader *pfKSimHead =
+	              pfPacket->get< VKascadeSimulationHeader >
+	                              (VGetKascadeSimulationHeaderBankName());
+      //pfKSimHead->Print();
 
       // ******************************************************************
-      // End of test file creation
+      // Find number of packets in the input file
       // ******************************************************************
+      int fNumArrayEvents = fReader.numPackets();
+      std::cout<<"TestVBF: fNumArrayEvents:"<<fNumArrayEvents-1<<std::endl;
+      if(fNumArrayEvents>1)  //packet 0 (header) should always be there
+	{
+	  int fRunNumber = fReader.getRunNumber();
+	  std::cout<<"TestVBF: fRunNumber: "<<fRunNumber<<std::endl;
+	  
+	  for(int index=1;index<fNumArrayEvents;index++)//Events start at 1
+	    {
+	      pfPacket=fReader.readPacket(index); 
 
-      // ******************************************************************
-      // Now reopen the file and try reading the first packet back in.
-      // ******************************************************************
-      
-      {
-	VBankFileReader reader(fVBFFileName.c_str());
-
-	std::cout<<"TestVBF: Input file opened"<<std::endl;
-	
-	VPacket* packet;
-	if(reader.hasPacket(0))
-	  {
-	    std::cout<<"TestVBF: hasPacket(0) returns: true"<<std::endl;
-	    packet=reader.readPacket(0);  //0=Location of header
-	    std::cout<<"TestVBF: Packet(0) read OK!"<<std::endl;
-	  }
-	else
-	  {
-	    std::cout<<"TestVBF: No header packet with index 0 "
-	      "found in file: "<<fVBFFileName<<std::endl;
-	    exit(1);
-	  }
-	VSimulationHeader *pfSimHead =
-	  packet->get< VSimulationHeader >
-	                               (VGetSimulationHeaderBankName());
-	std::cout<<"fSimConfigFile:"<<pfSimHead->fSimConfigFile<<std::endl;
-
-      }
+	      if (!pfPacket->has(VGetSimulationDataBankName())  )
+		{
+		  std::cout<<"TestVBF: No SimulationData bank in file: "
+			   <<fInputFileName<<" at paccketA# "<<index
+			   <<std::endl;
+		  exit(1);
+		}
+	      VSimulationData *pfSimData =
+		pfPacket->get< VSimulationData >(VGetSimulationDataBankName());
+	      if(index<fDebugLimit)
+		{
+		  //pfSimData->Print();
+		}
+	      if (!pfPacket->has(VGetKascadeSimulationDataBankName())  )
+		{
+		  std::cout<<"TestVBF: No KascadeSimulationData bank "
+		    "in file: "<<fInputFileName<<std::endl;
+		  exit(1);
+		}
+	      VKascadeSimulationData *pfKSimData =
+	              pfPacket->get< VKascadeSimulationData >
+		                       (VGetKascadeSimulationDataBankName());
+	      if(index<fDebugLimit)
+		{
+		  //pfKSimData->Print();
+		}
+	      // ******************************************
+	      // Now the ArrayEvents
+	      // First fix times and event number in array Trigger
+	      // *********************************************
+	      pfAEIn=pfPacket->getArrayEvent();
+	      int fNumTriggeredTels = (int) pfAEIn->getNumEvents();
+	      pfAT = pfAEIn->getTrigger();
+	      VATime fEventTime;
+	      int fArrayEventNum=pfAT->getEventNumber();
+	      fEventTime.setFromVBF(5,pfAT->getGPSTimeNumElements(),
+					    pfAT->getGPSTime());
+	      if(index<fDebugLimit)
+		{
+		  std::cout<<"ATEventNumber: "
+			   <<pfAT->getEventNumber()<<std::endl;
+		  std::cout<<"AT: fEventTime: "<<fEventTime<<std::endl;
+		  std::cout<<"fNumTriggeredTels: "<<fNumTriggeredTels
+			   <<std::endl;
+		  if(pfAT->getEventType().trigger==
+		     VEventType::L2_TRIGGER)
+		    {
+		      std::cout<<" AT: Found L2_trigger event at: "
+			       <<fArrayEventNum<<" at: "<<fEventTime
+			       <<std::endl;
+		    }
+		}
+	      if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
+		{
+		  std::cout<<" Found Pedestal ArrayTrigger event at: "
+			   <<fArrayEventNum<<" at: "<<fEventTime
+			   <<std::endl;
+		}
+	      
+	      for(int i=0;i<fNumTriggeredTels;i++)
+		{
+		  pfEvent=pfAEIn->getEvent(i);
+		  int fEventNum=pfEvent->getEventNumber();
+		  fEventTime.setFromVBF(5,pfEvent->getGPSTimeNumElements(),
+					    pfEvent->getGPSTime());
+		  if(index<fDebugLimit)
+		    {
+		      std::cout<<"EventNumber: " <<fEventNum<<std::endl;
+		      std::cout<<"Event: fEventTime: "<<fEventTime<<std::endl;
+		      if(pfEvent->getEventType().trigger==
+			 VEventType::L2_TRIGGER)
+			{
+			  std::cout<<" Found L2_trigger event at: "
+				   <<fEventNum<<" at: "<<fEventTime
+				   <<std::endl;
+			}
+		    }
+		  if(pfEvent->getEventType().trigger==VEventType::PED_TRIGGER)
+		    {
+		      std::cout<<" Found Pedestal event at: "
+			       <<fEventNum<<" at: "<<fEventTime
+			       <<std::endl;
+		    }
+		}
+	    }          //End of test that we have events in file
+	}              //End of while loop over input files from list
     }
 
  catch(VAException &ex)
@@ -176,7 +188,7 @@ int main(int argc, char** argv)
     }
   catch(...)
     {
-      std::cout<<"ksSumVBFFiles - Fatal--Unknown exception found."
+      std::cout<<"TestVBF - Fatal--Unknown exception found."
 	       <<std::endl;
       return 1;
     }

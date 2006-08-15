@@ -614,7 +614,8 @@ void KSEvent::SaveImage()
 	      bool fPedestalEvent=true;
 	      pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, 
 			     fPedestalEventTime, 
-			     fFADCStartGateTimeNS, pfTe,fPedestalEvent);
+				 fFADCStartGateTimeNS, pfTe,fPedestalEvent,
+				 0.0,0.0);
 	    }
 	  if(pfDataIn->fRootFileName!=" ")
 	    {
@@ -659,8 +660,11 @@ void KSEvent::SaveImage()
       // ********************************************************************
       // Write out a VAArrayEvent
       // ********************************************************************
+      float fCoreEastM=(float)-findCoreXM();
+      float fCoreSouthM=(float)-findCoreYM();
       pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
-			 fFADCStartGateTimeNS, pfTe,false);
+			 fFADCStartGateTimeNS, pfTe,false,fCoreEastM,
+			 fCoreSouthM);
     } 
   fEventIndex++;
   return;
@@ -825,18 +829,10 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfSimEvent->fEventNumber=pfVDFOut->getNumArrayEvents()-1;
   pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
   pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
+  pfSimEvent->fCoreEastM=-findCoreXM();
+  pfSimEvent->fCoreSouthM=-findCoreYM();
+  
 
-  // ***********************************************************
-  // ???????Need to fix triangular grid corections here
-  // **********************************************************
-  
-  double fMountXLocationM=pfPeHead->fXAreaWidthM*pfTe->fNx +
-    pfPeHead->fXCoreOffsetM;
-  double fMountYLocationM=pfPeHead->fYAreaWidthM*pfTe->fNy +
-    pfPeHead->fYCoreOffsetM;
-  pfSimEvent->fCoreEastM=-fMountXLocationM;
-  pfSimEvent->fCoreSouthM=-fMountYLocationM;
-  
   // ********************************************************************
   // Now tags for KASCADE puposes
   // ********************************************************************
@@ -852,4 +848,69 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   
   return;
 }
-// ****************************************************************************
+// **********************************************************************
+
+double  KSEvent::findCoreXM()
+// *********************************************************************
+// convert from triangular array indicess.
+// This supposedly works for both NS and EW arrays. We alwyas want to round 
+// more negative.)
+// ********************************************************************
+{  
+  if(pfPeHead->fNorthSouthGrid)
+    {
+      double fX=pfPeHead->fXAreaWidthM*pfTe->fNx + pfPeHead->fXCoreOffsetM;
+      return fX;
+    }
+  else
+    {
+      // **************************************************************
+      // Check to see if we are on odd or even row
+      // **************************************************************
+      if(pfTe->fNy%2==0) 
+	{                   //Ny even
+	  double fX=pfPeHead->fXAreaWidthM*pfTe->fNx + pfPeHead->fXCoreOffsetM;
+	  return fX;
+	}
+      else
+	{
+	  double fX=pfPeHead->fXAreaWidthM*(pfTe->fNx+.5) + 
+	                                            pfPeHead->fXCoreOffsetM;
+	  return fX;
+
+	}
+    }
+}
+
+double  KSEvent::findCoreYM()
+// *********************************************************************
+// convert from triangular array indicess.
+// This supposedly works for both NS and EW arrays. We alwyas want to round 
+// more negative.)
+// ********************************************************************
+{  
+  if(!pfPeHead->fNorthSouthGrid)
+    {
+      double fY=pfPeHead->fYAreaWidthM*pfTe->fNy + pfPeHead->fYCoreOffsetM;
+      return fY;
+    }
+  else
+    {
+      // **************************************************************
+      // Check to see if we are on odd or even column
+      // **************************************************************
+      if(pfTe->fNx%2==0) 
+	{                   //Nx even
+	  double fY=pfPeHead->fYAreaWidthM*pfTe->fNy + pfPeHead->fYCoreOffsetM;
+	  return fY;
+	}
+      else
+	{
+	  double fY=pfPeHead->fYAreaWidthM*(pfTe->fNy+.5) + 
+	                                            pfPeHead->fYCoreOffsetM;
+	  return fY;
+
+	}
+    }
+}
+// *************************************************************************

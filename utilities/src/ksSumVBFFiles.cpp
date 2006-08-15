@@ -39,11 +39,12 @@
 #include <VBF/VDatum.h>
 #include <VBF/VKascadeSimulationData.h>
 #include <VBF/VKascadeSimulationHeader.h>
-
+#include <VBF/VEventType.h>
 
 #include "VATime.h"
 #include "VAException.h"
 #include "VAOptions.h"
+
 
 #include "KSEventWeights.h"
 // declare that we're using the VConfigMaskUtil namespace, which gives us
@@ -340,6 +341,8 @@ int main(int argc, char** argv)
       // ****************************************************************
       int fArrayEventNum=1;   //VBF events start at 1, 0 is for header
       uword32 fRunNumber=0;
+      int fNumPedEvents=0;
+      int fNumNormalEvents=0;
       while(getline(fListIn,fInputFileName))
 	{
 	  VPacket*       pfPacket = NULL;
@@ -402,7 +405,7 @@ int main(int argc, char** argv)
 		  if(pfAEIn->hasTrigger())
 		    {
 		      pfAT = pfAEIn->getTrigger();
-		      fEventTime.setFromVBF(2005,pfAT->getGPSTimeNumElements(),
+		      fEventTime.setFromVBF(5,pfAT->getGPSTimeNumElements(),
 					    pfAT->getGPSTime());
 		    }
 		  else
@@ -436,6 +439,21 @@ int main(int argc, char** argv)
 
 		      // *************************************************
 		      // Fix up simulation data bank in this packet
+		      // *************************************************
+		      VSimulationData *pfSimData =
+		           pfPacket->get< VSimulationData >
+		                      (VGetSimulationDataBankName());
+		      // I think the following is ignored but do anyway
+		      // If it is ignored then we didn't have to do this 
+		      // section
+		      pfSimData->fRunNumber=fRunNumber;
+		      pfSimData->fEventNumber=fArrayEventNum;
+
+		      pfWritePacket->put(VGetSimulationDataBankName(),
+				  pfSimData);  
+		      // *****************************************************
+		      // *************************************************
+		      // Fix up Kascade simulation data bank in this packet
 		      // *************************************************
 		      VKascadeSimulationData *pfKSimData =
 		           pfPacket->get< VKascadeSimulationData >
@@ -472,13 +490,31 @@ int main(int argc, char** argv)
 		      pfAT->getGPSTime()[4]=fGPSWords[4];
             
 		      pfAT->setGPSYear(fGPSYear);
+		      if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
+		      	{
+			  fNumPedEvents++;
+		      //  std::cout<<" Found Pedestal ArrayTrigger event at: "
+		      //	   <<fArrayEventNum<<" at: "<<fEventTime
+		      //		   <<std::endl;
+		      	}
+		      else if(pfAT->getEventType().trigger==
+			      VEventType::L2_TRIGGER)
+			{
+			  fNumNormalEvents++;
+			}
 		      // now put array trigger back into the array event
 		      pfAEOut->setTrigger(pfAT);
 
 		      // ***************************************************
 		      // Now fix telescope events
 		      // ***************************************************
-		      int fNumTriggeredTels = (int) pfAEIn->getNumEvents();
+		      int fNumTriggeredTels = 
+			              (int) pfAEIn->getNumEvents();
+		      if(fNumTriggeredTels!=1)
+			{
+			  std::cout<<"fNumTriggeredTels: "<<fNumTriggeredTels
+			       <<std::endl;
+			}
 		      for(int i=0;i<fNumTriggeredTels;i++)
 			{
 			  // set the event number
@@ -493,7 +529,14 @@ int main(int argc, char** argv)
 			  pfEvent->setGPSYear(fGPSYear);
 			  // add the event to the array event!
 			  pfAEOut->addEvent(pfEvent);
-			  
+
+			  // if(pfEvent->getEventTypeCode()==
+			  //                           VEventType::PED_TRIGGER)
+			  //{
+			  //  std::cout<<" Found Pedestal event at: "
+			  //       <<fArrayEventNum<<" at: "<<fEventTime
+			  //       <<std::endl;
+			  //}
 			}
 		      // put the array event back into the packet
 		      // I'm told this will be a replacement
@@ -524,6 +567,10 @@ int main(int argc, char** argv)
 
       std::cout<<"ksSumVBFFiles: Ouput summary file closed with "
 	       <<fArrayEventNum-1<<" events"<<std::endl;
+      std::cout<<"ksSumVBFFiles: Number of Normal Events written:"
+	       <<fNumNormalEvents<<std::endl;
+      std::cout<<"ksSumVBFFiles: Number of Pedestal Events written:"
+	       <<fNumPedEvents<<std::endl;
       std::cout<<"ksSumVBFFiles: End of Run at: "<<fEventTime<<std::endl;
       std::cout<<"ksSumVBFFiles: Normal end"<<std::endl;
       // ----------------------------------------------------------------------

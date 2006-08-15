@@ -59,6 +59,8 @@ class KSEvent
 
  private:
   void CreateRootEvent(bool fPedestalEvent, VATime& EventTime);
+  double findCoreXM();
+  double findCoreYM();
 
   KSSegmentHeadData* pfSegmentHead;
   KSPeHeadData*      pfPeHead;
