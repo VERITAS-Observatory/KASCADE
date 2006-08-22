@@ -556,7 +556,7 @@ bool KSVBFFile::loadSimConfigFileFromFile(std::string SimConfigFileName)
 {
 // read the file
   int fFile=open(SimConfigFileName.c_str(),O_RDONLY);
-  if (fFile<0)
+  if (!fFile)
     {
       //Throw exception
       std::cout<<"VASimulationHeader--Failed to open input Simulation "
