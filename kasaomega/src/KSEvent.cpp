@@ -389,8 +389,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       uint32_t y,m,d;
       fTimeNow.getCalendarDate(y,m,d);
       fSimHeader.fDateOfSimsUTC= y*10000ULL+ m*100ULL+ d;
-      fSimHeader.fSimulationPackage   = KASCADE;  //Purdue Kascade
-      fSimHeader.fSimulator           = SEMBROSKI;  //Purdue Sembroski
+      fSimHeader.fSimulationPackage   = VASimulationHeader::E_KASCADE;  //Purdue Kascade
+      fSimHeader.fSimulator           = VASimulationHeader::E_SEMBROSKI;  //Purdue Sembroski
       if(pfDataIn->fPixelStatsRootFileName!=" ")
 	{
 	  fEventTime.getCalendarDate(y,m,d);
