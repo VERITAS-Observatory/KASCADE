@@ -192,8 +192,8 @@ int main(int argc, char** argv)
 	      fFileIn.OpenForStage3(fInputFileName);
 	      VASimulationHeader* pfSimHead=fFileIn.getSimulationHeaderPtr();
 	      VAKascadeSimulationHead *pfKSimHead;
-	      if(pfSimHead->fSimulationPackage==KASCADE)
-		{
+	      //if(pfSimHead->fSimulationPackage==VASimulationHeader::E_KASCADE)
+	      //	{
 		  pfKSimHead = 
 		    dynamic_cast< VAKascadeSimulationHead* >(pfSimHead);
 		  if(pfKSimHead==NULL)
@@ -203,13 +203,13 @@ int main(int argc, char** argv)
 		      exit(1);
 		    }
 		}
-	      else
-		{
-		  std::cout<<"ksSumVDFFile: Wrong simulation package found. "
-		    "fSimulationPackage: "<< pfSimHead->fSimulationPackage
-			   <<std::endl;
-		  exit(1);
-		}
+	  //else
+	  //	{
+	  //	  std::cout<<"ksSumVDFFile: Wrong simulation package found. "
+	  //	    "fSimulationPackage: "<< pfSimHead->fSimulationPackage
+	  //		   <<std::endl;
+	  //	  exit(1);
+	  //	}
 	      //Now get stuff from the header
 	      //Primary type first
 	      int fType = pfKSimHead->fCORSIKAParticleID;
@@ -348,8 +348,8 @@ int main(int argc, char** argv)
 	      // ************************************************************
 	      VASimulationHeader* pfSimHead=fFileIn.getSimulationHeaderPtr();
 	      VAKascadeSimulationHead *pfKSimHead;
-	      if(pfSimHead->fSimulationPackage==KASCADE)
-		{
+	      //if(pfSimHead->fSimulationPackage==VASimulationHeader::E_KASCADE)
+	      //	{
 		  pfKSimHead = 
 		    dynamic_cast< VAKascadeSimulationHead* >(pfSimHead);
 		  if(pfKSimHead==NULL)
@@ -358,14 +358,14 @@ int main(int argc, char** argv)
 			       <<"has no VASimulationHeader record"<<std::endl;
 		      exit(1);
 		    }
-		}
-	      else
-		{
-		  std::cout<<"ksSumVDFFile: Wrong simulation package found. "
-		    "fSimulationPackage: "<< pfSimHead->fSimulationPackage
-			   <<std::endl;
-		  exit(1);
-		}
+		  //	}
+		  //else
+		  //{
+		  // std::cout<<"ksSumVDFFile: Wrong simulation package found. "
+		  //  "fSimulationPackage: "<< pfSimHead->fSimulationPackage
+		  //	   <<std::endl;
+		  //exit(1);
+		  //}
 	      // *************************************************************
 	      // The following works for anything inherited from 
 	      // VASimulationHeader since VASimulationHeader is a TObject and
