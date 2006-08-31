@@ -14,12 +14,26 @@
 #include <iostream>
 
 #include "KSCamera.h"
+
+extern "C" double Gauss();
+
 // In the constructor is where most of the work gets done.
+// ************************************************************************
+
+KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
+		   bool fUsePatternTrigger, double DigCntsPePE,
+		   double NoiseRateSigma)
+{
+  fDigCntsPerPEHiGain=DigCntsPePE;
+  fNoiseRateSigma=NoiseRateSigma;
+  InitCamera(CameraType,pTeHead,fUsePatternTrigger);
+}
 // ************************************************************************
 
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		   bool fUsePatternTrigger, double DigCntsPePE)
 {
+  fNoiseRateSigma=0.0;
   fDigCntsPerPEHiGain=DigCntsPePE;
   InitCamera(CameraType,pTeHead,fUsePatternTrigger);
 }
@@ -28,6 +42,7 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		                                      bool fUsePatternTrigger)
 {
+  fNoiseRateSigma=0.0;
   fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
   InitCamera(CameraType,pTeHead,fUsePatternTrigger);
 }
@@ -244,7 +259,13 @@ void KSCamera::generateCameraPixels()
        // *******************************************************************
        // Noise generation: Num of pe's in disc window from sky shine.
        // *******************************************************************
-       double fPixNoiseRate=fNoiseRate*                   //Base Noise rate
+       double fNoise=fNoiseRate;
+       if(fNoiseRateSigma>0.0)   //Jitter noise rate if requested.
+	 {
+	   fNoise=fNoiseRate+Gauss()*fNoiseRateSigma;
+	 }
+
+       double fPixNoiseRate=fNoise*                   //Base Noise rate
 	                    (sqrt(3)*2*fHalfSpc*fHalfSpc) //Hexagon pixel area
 	                    *fPixelEff;                   //Lightcone eff.
 
@@ -257,7 +278,7 @@ void KSCamera::generateCameraPixels()
    // outer 111 pixels of WHIPPLE490 pixel camera have no light cones
    // ********************************************************************
    if(fCameraType==WHIPPLE490)
-     {
+     {//Note no variance for noise rate
        for(int i=379;i<490;i++)
 	 {
 	   fPixel[i].fBaseEfficiency = fBaseEfficiency;

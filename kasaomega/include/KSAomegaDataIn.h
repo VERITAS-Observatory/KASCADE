@@ -41,6 +41,7 @@ private:
   static double      sDefaultNewADCGateWidthNS;
   static double      sDefaultNewDiscriminatorThresholdPes;
   static double      sDefaultNewNoiseRate;	
+  static double      sDefaultNoiseRateSigma;	
   static double      sDefaultNewEfficiency;
   static double      sDefaultNewLightConeConcentration; 
   static double      sDefaultDigitalCountsPerPE; 
@@ -63,6 +64,7 @@ public:
   double      fNewADCGateWidthNS;
   double      fNewDiscriminatorThresholdPes;
   double      fNewNoiseRate;	
+  double      fNoiseRateSigma;	
   double      fNewLightConeConcentration;
   double      fNewEfficiency;
   double      fDigitalCountsPerPE; 

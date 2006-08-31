@@ -116,7 +116,7 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
   fTimeNow.getCalendarDate(y,m,d);
   uword32 fDateOfSimsUTC= y*10000ULL+ m*100ULL+ d;
   uword32 fSimulationPackage   = KASCADE;  //Purdue Kascade
-  uword32 fSimulator           = SEMBROSKI;  //Purdue Sembroski
+  std::string fSimulator           = "SEMBROSKI";  //Purdue Sembroski
   uword32 fDateOfArrayForSims  = 0;
   if(pfDataIn->fPixelStatsRootFileName!=" ")
     {

@@ -55,9 +55,11 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfTeHead->fTriggerMultiplicity      =pfDataIn->fNewTriggerMultiplicity; 
   pfTeHead->fLightConeConcentration   =pfDataIn->fNewLightConeConcentration;
   double fFADCDigCntsPerPEHiGain      =pfDataIn->fDigitalCountsPerPE;
-
+  double fNoiseRateSigma              =pfDataIn->fNoiseRateSigma;
+  //pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
+  //			                              fFADCDigCntsPerPEHiGain);
   pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
-			                              fFADCDigCntsPerPEHiGain);
+			fFADCDigCntsPerPEHiGain,fNoiseRateSigma);
   pfCamera->Print();
 
   // ************************************************************************

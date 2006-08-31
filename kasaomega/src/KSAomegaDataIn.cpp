@@ -33,6 +33,7 @@ int         KSAomegaDataIn::sDefaultNewTriggerMultiplicity=3;
 double      KSAomegaDataIn::sDefaultNewADCGateWidthNS=20.0;
 double      KSAomegaDataIn::sDefaultNewDiscriminatorThresholdPes=10.0;
 double      KSAomegaDataIn::sDefaultNewNoiseRate=12.5;	
+double      KSAomegaDataIn::sDefaultNoiseRateSigma=0.0;	
 double      KSAomegaDataIn::sDefaultNewEfficiency=1.0;
 double      KSAomegaDataIn::sDefaultNewLightConeConcentration=0.35; 
 double      KSAomegaDataIn::sDefaultDigitalCountsPerPE=4.2; 
@@ -159,6 +160,7 @@ KSAomegaDataIn::KSAomegaDataIn()
   fNewADCGateWidthNS            = sDefaultNewADCGateWidthNS;
   fNewDiscriminatorThresholdPes = sDefaultNewDiscriminatorThresholdPes;
   fNewNoiseRate                 = sDefaultNewNoiseRate;
+  fNoiseRateSigma                 = sDefaultNoiseRateSigma;
  
   fNewEfficiency = sDefaultNewEfficiency;
   if(sDefaultNewEfficiency>1.0 || sDefaultNewEfficiency<0.0)
@@ -196,6 +198,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.fName = std::string("KSAomegaData");
   config.setValue("DiscriminatorThresholdPes",fNewDiscriminatorThresholdPes);
   config.setValue("NoiseRate",fNewNoiseRate);
+  config.setValue("NoiseRateSigma",fNoiseRateSigma);
   config.setValue("Efficiency",fNewEfficiency);
   config.setValue("DigitalCountsPerPE",fDigitalCountsPerPE);
   config.setValue("VBFOutputFileName",fVBFFileName);
@@ -227,8 +230,15 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
   doVAConfiguration(file, command_line,
 		    "NoiseRate",sDefaultNewNoiseRate,
 		    "KSAomegaDataIn",
-		    "Night sky shine rate in pes/deg/ns (after application of "
-                    "all efficiency factors)");
+		    "Must be set! Mean Night Sky shine rate in pes/deg/ns "
+		    "(before application of all efficiency factors)");
+  doVAConfiguration(file, command_line,
+		    "NoiseRateSigma",sDefaultNoiseRateSigma,
+		    "KSAomegaDataIn",
+		    "Sigma of Jitter of Night Sky Rates to generate across "
+		    "pixels. This models the variance in night sky rates in "
+		    "the field-of-view. In pes/deg/ns. Applied before"
+                    "all efficiency factors");
   doVAConfiguration(file, command_line, 
 		    "Efficiency",sDefaultNewEfficiency,
 		    "KSAomegaDataIn",
@@ -360,6 +370,7 @@ void KSAomegaDataIn::Print()
   std::cout<<" New DiscriminatorThresholdPes: "
 	   <<fNewDiscriminatorThresholdPes<<std::endl;
   std::cout<<"                 New NoiseRate: "<<fNewNoiseRate<<std::endl;
+  std::cout<<"                NoiseRateSigma: "<<fNoiseRateSigma<<std::endl;
   std::cout<<"                New Efficiency: "<<fNewEfficiency<<std::endl;
   std::cout<<"         Digital Counts per PE: "<<fDigitalCountsPerPE
 	   <<std::endl; 

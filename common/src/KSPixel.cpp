@@ -1,5 +1,5 @@
 /**
- * \class KSPixel 
+ * \class KSPixel
  * \ingroup common
  * \brief File of methods for KSPixel.
  *  
@@ -96,7 +96,7 @@ void KSPixel::BuildPeWaveForm()
   return;
 }
 
-void KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
+int KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
 // **************************************************************************
 // In fWaveForm, Add the noise pulses to it.
 // Note that this noise rate is not affected by the base efficiency!!!
@@ -119,7 +119,7 @@ void KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
       icount++;
     }
   //std::cout<<"Num noise pe's:"<<icount<<std::endl;
-  return;
+  return icount;
 }
 
 void KSPixel::addPe(double fPeTimeNS,bool fAfterPulse)
@@ -177,7 +177,7 @@ void KSPixel::DetermineNoisePedestals()
 
   //bool fAfterPulse=true;
   bool fAfterPulse=false;
-  AddNoiseToWaveForm(fAfterPulse);  //Note that this noise has not been 
+  int fICount= AddNoiseToWaveForm(fAfterPulse);  //Note that this noise has not been 
                                     //modified by overall efficiency but has 
                                     //been modified by light cone efficiency
 
@@ -263,6 +263,7 @@ void KSPixel::DetermineNoisePedestals()
 	{
 	  int fChargeSum =                    // Start next window at i
 	             (int)fFADC.getWindowArea(i,gFADCWinSize[fCameraType]);
+	  //std::cout<<fChargeSum<<std::endl;
 	  fPedSum+=fChargeSum;
 	  fPed2Sum+=fChargeSum*fChargeSum;
 	  fCount++;//Just being careful here.
@@ -270,9 +271,13 @@ void KSPixel::DetermineNoisePedestals()
       fPedDC  =  fPedSum/(double)fCount; //This is Charge pedestal in FADC's
       double fPedMean2 =  fPed2Sum/(double)fCount;
       fChargeVarDC=sqrt(fPedMean2-fPedDC*fPedDC);
-      //std::cout<<"fCount,fPedSum,fPedDC,fWaveFormNightSkyPedestal: "<<fCount
-      //	       <<" "<<fPedSum<<" "<<fPedDC
-      //	       <<" "<<fWaveFormNightSkyPedestal<<std::endl;
+      //      std::cout<<"fID,fCount,fPedSum,fPedDC,fChargeVarDC, "
+      //	"fWaveFormNightSkyPedestal: "
+      //std::cout<<fID<<" "<<fICount<<" "<<fNoiseRatePerNS
+      //	       <<" "<<fCount
+      //	       <<" "<<fPedSum<<" "<<fPedDC<<" "<<fChargeVarDC
+      //       <<" "<<fWaveFormNightSkyPedestal<<" "<<fSinglePeMeanFADCArea
+      //	       <<std::endl;
     }
   return;
 }

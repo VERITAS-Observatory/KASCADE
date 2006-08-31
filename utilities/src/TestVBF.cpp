@@ -44,7 +44,7 @@ int main(int argc, char** argv)
       // ************************************************************
       //std::string fInputFileName("1V.vbf");
       //std::string fInputFileName("./protons/P1VGeV422.d1.vbf");
-      std::string fInputFileName("./test/P1VGeV250.vbf");
+      std::string fInputFileName("./P1VGeV422.d1.vbf");
       VBankFileReader fReader(fInputFileName);
       if(fReader.hasPacket(0))
 	{
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
       	}
       VSimulationHeader *pfSimHead =
       	pfPacket->get< VSimulationHeader >(VGetSimulationHeaderBankName());
-      // pfSimHead->Print();
+      //pfSimHead->Print();
 
       if (!pfPacket->has(VGetKascadeSimulationHeaderBankName())  )
 	{

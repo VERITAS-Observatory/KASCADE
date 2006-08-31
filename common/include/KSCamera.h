@@ -39,6 +39,10 @@ class KSCamera
 	                                             bool fUsePatternTrigger);
   KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
 	                  bool fUsePatternTrigger, double fDigCntPerPEHiGain);
+
+  KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
+	   bool fUsePatternTrigger, double fDigCntPerPEHiGain,
+	   double fNoiseRateSigma);
  private:
   void InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 	                  bool fUsePatternTrigger);
@@ -88,6 +92,7 @@ class KSCamera
   double  fLatitude;
   double  fEastLongitude;
   double  fDigCntsPerPEHiGain;
+  double  fNoiseRateSigma;
   
   double  fMaxFOVDeg2;
   float* pfTelescopePixelX;

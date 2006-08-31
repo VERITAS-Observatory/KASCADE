@@ -36,7 +36,7 @@ class KSPixel
   void InitPixel();
   void InitWaveForm(double fWaveFormStart,double fWaveFormLength);
   void BuildPeWaveForm();
-  void AddNoiseToWaveForm(bool fAfterPulse);
+  int  AddNoiseToWaveForm(bool fAfterPulse);
   void DetermineNoisePedestals();
   void RemovePedestalFromWaveForm(double fWaveFormPedestal);
   void AddPedestalToWaveForm(double fWaveFormPedestal);

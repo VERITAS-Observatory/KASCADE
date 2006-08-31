@@ -32,8 +32,9 @@ const int    gNumLines[2]                = {          13,          11};
 const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
 const double gPixelActiveCathRadiusMM[2] = {       12.00,         5.0};
 
-const double gPedestal[2]                = {        14.0,         2.0};
-const int    gNightSkyWaveFormNS[2]      = {         700,        1000};
+const double gPedestal[2]                = {        14.5,         2.0};
+//const int    gNightSkyWaveFormNS[2]      = {         700,        1000};
+const int    gNightSkyWaveFormNS[2]      = {        5000,        1000};
 const int    gFADCNumSamples[2]          = {          24,          10};
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
@@ -77,7 +78,6 @@ const double gFADCBinSizeNS         = 2.0;
 const int    gFADCHiLoGainThreshold = 250;
 const int    gFADCLowGainDelayNS    =  20;
 const double gFADCHiLoGainRatio     = 6.0;
-
 const double gTrigMultiplicityWidthNS = 10.0;  // WHIPPLE490 CFD Pulse width
 const int    gAbsNXAbsNYMax         =16000;    //Ranges of nx,ny
 #endif

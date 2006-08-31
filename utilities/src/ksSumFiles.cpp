@@ -338,6 +338,7 @@ int main(int argc, char** argv)
 		  fType = pfKRootSimHead->fCORSIKAParticleID;
 		  // Now get energy
 		  fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
+		  fFileIn.Close();
 		}
 		  
 	      // **********************************************************
@@ -393,7 +394,8 @@ int main(int argc, char** argv)
       
       VBankFileWriter* pfWriter=NULL;
 
-      VAVDF* pfSumFile;
+      VAVDF* pfSumFile= new VAVDF();
+
       VACalibratedArrayEvent* pfSumCalEvent=NULL;
       VAKascadeSimulationData* pfSumSimEvent=NULL;
 
@@ -427,6 +429,7 @@ int main(int argc, char** argv)
       int fNumPedEvents=0;
       int fNumNormalEvents=0;
       int fCountOut=0;
+      uint8_t  fGPSYear=6;
       while(getline(fListIn,fInputFile))
 	{
 
@@ -454,6 +457,7 @@ int main(int argc, char** argv)
 	      // *************************************************************
 	      // Open file from list
 	      // ************************************************************
+	   
 	      fVBFFileName= fInputFile + ".vbf";
 	      pfReader = new VBankFileReader(fVBFFileName);
 	      fNumVBFArrayEvents = pfReader->numPackets()-1;
@@ -477,13 +481,12 @@ int main(int argc, char** argv)
 	  VAKascadeSimulationHead *pfKRootSimHead;
 	  VAKascadeSimulationData* pfKInSimEvent;
 	  std::string fRootFileName;
-
+	  
 	  if(fOutputRoot)
 	    {
 	      // Open file from list
 	      fRootFileName= fInputFile + ".root";
 	      fFileIn.OpenForStage3(fRootFileName);
-	      
 	      pfKInSimEvent = fFileIn.getKascadeSimulationDataPtr();
 	      if(pfKInSimEvent==NULL)
 	      	{
@@ -499,9 +502,8 @@ int main(int argc, char** argv)
 		dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
 	      fType = pfKRootSimHead->fCORSIKAParticleID;
 	      fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
-	      pfInCalEvent = fFileIn.getCalibratedArrayEventPtr();
 	    }
-
+	  
 	  if(fOutputVBF && fOutputRoot)
 	    {
 	      if( fNumVBFArrayEvents!=fNumRootArrayEvents)
@@ -530,7 +532,7 @@ int main(int argc, char** argv)
 		      std::string fConfigMask("0");
 		      pfWriter = new VBankFileWriter(fOutputVBFFileName,
 						     fRunNumber,
-				      parseConfigMask(fConfigMask.c_str()));
+						     parseConfigMask(fConfigMask.c_str()));
 		      if(pfWriter==NULL)
 			{
 			  std::cout<<"ksSumFiles--Output VBF file failed to "
@@ -553,7 +555,7 @@ int main(int argc, char** argv)
 		      if(pfAEIn->hasTrigger())
 			{
 			  pfAT = pfAEIn->getTrigger();
-			  fEventTime.setFromVBF(5,
+			  fEventTime.setFromVBF(fGPSYear,
 						pfAT->getGPSTimeNumElements(),
 						pfAT->getGPSTime());
 			}
@@ -563,14 +565,14 @@ int main(int argc, char** argv)
 			    "ArrayTrigger first event"<<std::endl;
 			  exit(1);
 			}
-		      std::cout<<"RunStart Time: "<< fEventTime<<std::endl;
+		      std::cout<<"VBF RunStart Time: "<< fEventTime<<std::endl;
 		    }         //End VBF file
 		  if(fOutputRoot)
 		    {
 		      // *****************************************************
 		      // First input file? Use its various objects for the 
 		      // summaryfile
-
+		      
 		      VARunHeader* pfInRunHeader=fFileIn.getRunHeaderPtr();
 		      if(pfInRunHeader==NULL)
 			{
@@ -629,6 +631,19 @@ int main(int argc, char** argv)
 		      // ******************************************************
 		      pfSumFile->createTheCalibratedArrayEventTree();
 		      pfSumCalEvent=pfSumFile->getCalibratedArrayEventPtr();
+		      if(pfSumCalEvent==NULL)
+			{
+			  std::cout<<"ksSumFiles: Failed to "
+			    "getCalibratedArrayEventPtr during first file "
+			    "processing"<<std::endl;
+			  exit(1);
+			}
+		      else
+			{
+			  std::cout<<"ksSumFiles: Success with "
+			    "getCalibratedArrayEventPtr during first file "
+			    "processing"<<std::endl;
+			}
 		      
 		      std::cout<<"ksSumSiles: Creating Simulation Event "
 			"Tree"<<std::endl;
@@ -649,13 +664,11 @@ int main(int argc, char** argv)
 			       0);
 		      pfSumFile->setSimulationPtr(pfSumSimEvent);
 		      pfSumFile->setSimulationEventTree(pfSimulationEventTree);
-		      fFirstFile=false;
 		    } //End first root file
 		  fFirstFile=false;
 		  std::cout<<"ksSumFiles:Starting Summing Pass"
 			   <<std::endl;
 		}  //End First File
-	      
 	      float fWeight=1.0;
 	      if(fWeightBySpectrum)
 		{
@@ -719,9 +732,8 @@ int main(int argc, char** argv)
 			  pfAT = pfAEIn->getTrigger();
 			  // set the event number
 			  pfAT->setEventNumber(fArrayEventNum);
-			  uint8_t  fGPSYear;
 			  uint16_t fGPSWords[5];
-			  fEventTime.getForVBF(fGPSYear,6,fGPSWords);
+			  fEventTime.getForVBF(fGPSYear,5,fGPSWords);
 			  // SEtGPS Time, I know it looks like a get but its 
 			  //not
 			  pfAT->getGPSTime()[0]=fGPSWords[0];
@@ -776,33 +788,54 @@ int main(int argc, char** argv)
 			  
 			  // finally, write the packet into the file
 			  pfWriter->writePacket(fArrayEventNum,pfWritePacket);
+			  //delete pfAEOut;
 			  delete pfWritePacket;
 			}
 		      if(fOutputRoot)
 			{
-			  fFileIn.readSimulationData(index);
-			  
+			  // *****************************************
+			  // Now calibrated event
+			  // *****************************************
+			  pfInCalEvent = fFileIn.getCalibratedArrayEventPtr();
+			  if(pfInCalEvent==NULL)
+			    {
+			      std::cout<<"ksSumFiles: Failed to "
+				"getCalibratedArrayEventPtr"
+				       <<std::endl;
+			      exit(1);
+			    } 
 			  // *************************************************
 			  // Update event numbers here and maybe times
 			  // **************************************************
 			  fFileIn.loadInArrayEvent(index);
-			  
+			  pfSumCalEvent=
+			    pfSumFile->getCalibratedArrayEventPtr();
+			  if(pfSumCalEvent==NULL)
+			    {
+			      std::cout<<"ksSumFiles: Faile to "
+				"getCalibratedArrayEventPtr"<<std::endl;
+			      exit(1);
+			    }
 			  *pfSumCalEvent=*pfInCalEvent;  //copy over
 			  
-			  *pfSumSimEvent=*pfKInSimEvent;
-			  
-			  pfSumCalEvent->fArrayEventNum=fArrayEventNum;
-			  
-			  pfSumCalEvent->fArrayTime=fEventTime;
 			  int fEventNumTels=pfSumCalEvent->fTelEvents.size();
 			  for(int i=0;i<fEventNumTels;i++)
 			    {
 			      pfSumCalEvent->fTelEvents[i].fTelTime=fEventTime;
 			    }
-			  pfSumFile->writeCalibratedArrayEvent(fNumTels);
+			  pfSumCalEvent->fArrayEventNum=fArrayEventNum;
+			  pfSumCalEvent->fArrayTime=fEventTime;
+			  pfSumFile->writeCalibratedArrayEvent(fEventNumTels);
+			  
+			  
+			  // ************************************************
+			  // Now sim data
+			  // ************************************************
+			  fFileIn.readSimulationData(index);
+			  *pfSumSimEvent=*pfKInSimEvent;
 			  pfSumFile->writeSimulationData();
 			}  //End root event write
-		      
+
 		      fLastValidEventTime=fEventTime;
 		      double fEventTimeMJD=fEventTime.getMJDDbl();
 		      double fTimeGapDay=
@@ -812,13 +845,19 @@ int main(int argc, char** argv)
 		      fEventTime.setFromMJDDbl(fEventTimeMJD);
 		      fArrayEventNum++;
 		      fCountOut++;
-		  
+		      
 		    }   //end weight test
 		}       //end event for loop
 	    }          //End of test that we have events in file
-	  fFileIn.Close();
+	  if(fOutputVBF)
+	    {
+	      delete pfReader;
+	    }
+	  if(fOutputRoot)
+	    {
+	      fFileIn.Close();
+	    }
 	}              //End of while loop over input files from list
-
       // finish up.  
       if(fOutputVBF)
 	{
@@ -834,7 +873,6 @@ int main(int argc, char** argv)
 	}
       if(fOutputRoot)
 	{
-	  
 	  VARunHeader* pfSumRunHeader=pfSumFile->getRunHeaderPtr();
 	  pfSumRunHeader->pfRunDetails->fLastValidEventTime=
 	    fLastValidEventTime;
@@ -843,8 +881,6 @@ int main(int argc, char** argv)
 	  pfSumFile->writeSimulationEventTree();
 	  pfSumFile->Close();
 	}
-  
-  
       std::cout<<"ksSumFiles: End of Run at: "<<fEventTime<<std::endl;
       std::cout<<"ksSumFiles: Normal end"<<std::endl;
       // ----------------------------------------------------------------------

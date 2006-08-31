@@ -2,6 +2,7 @@
 
 #This is the conversion (from kas01.scr) to use at Purdue on pbs
 #Glenn Sembroski 16/05/05
+#This is a test version . goes to veritas/test
 #$0 ./kas02.scr
 #$1 has Type-direction specification code. like: P1W,He4_1W,G1W,DG1W
 #   Giveing a Type code of 'CR1W' will cause both P1W and He4_1W to be run
@@ -89,7 +90,7 @@ function P1V()
 {
     parspec="P1V"      
     echo Protons at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/protons"
+    datadir="/project/veritas/sembrosk/veritas/test"
 
   if [ "$kssc" = "ksaom" ]; then
     echo Removing P1V*GeV*.root files
@@ -107,10 +108,17 @@ function P1V()
     pwd
   fi
     let processEnd=35
-    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-       energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   141 1   144 1   1   87  1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 140 280 143 287 143 86  172 77 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+#    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+ #      energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+  #      start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   141 1   144 1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+   #       end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 140 280 143 287 143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+
+
+#######################################422 .d1 only########################
+    enableGEN=([1]=OFF  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
+       energy=([1]=422 422 422 422 422 422 422 422 422 422 422 422 422 422 49  58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   2   3   4   5   6   7   8   9   10  11  12  13  14  144 1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=1   2   3   4   5   6   7   8   9   10  11  12  13  14  287 143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
    
     SubmitPBSJobs
 }
@@ -124,7 +132,7 @@ function He4_1V()
 {
     parspec="He4_1V"      
     echo He4 at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/he4"
+    datadir="/project/veritas/sembrosk/veritas/test"
 
   if [ "$kssc" = "ksaom" ]; then
     echo Removing He4_1V*GeV*.root files
@@ -160,7 +168,7 @@ function G1V()
 {
     parspec="G1V"      
     echo Gammas at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/gammas"
+    datadir="/project/veritas/sembrosk/veritas/test"
     let processEnd=18
     enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
        energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
@@ -220,11 +228,11 @@ user=$USER
 #Specify queues
 #queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
+queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
