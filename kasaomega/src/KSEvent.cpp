@@ -855,7 +855,7 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 double  KSEvent::findCoreXM()
 // *********************************************************************
 // convert from triangular array indicess.
-// This supposedly works for both NS and EW arrays. We alwyas want to round 
+// This supposedly works for both NS and EW arrays. We always want to round 
 // more negative.)
 // ********************************************************************
 {  

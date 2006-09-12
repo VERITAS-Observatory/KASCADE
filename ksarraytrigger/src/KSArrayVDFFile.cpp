@@ -1,10 +1,10 @@
 //-*-mode:c++; mode:font-lock;-*-
 /**
- * \class KSArrayVDFHelper.cpp
+ * \class KSArrayVDFFile.cpp
  * \ingroup common 
- * \brief File of methods for KSArrayVDFHelper.
+ * \brief File of methods for KSArrayVDFFile.
  * This file has various methods to build the some of the various records 
- * needed for a VEGAS stage 2 multi-telescope output root file for veritas
+ * needed for a VEGAS stage2 multi-telescope output root file for veritas
  * data. This includes the VAQStatsData, VAPixelStatusData, VARelGainData,
  * VAKascadeSimulationHeader and VAArrayInfo records. 
  *
@@ -17,13 +17,13 @@
  **/
 // This is where the code starts.
 // ***********************************************************************
-#include "KSArrayVDFHelper.h"
+#include "KSArrayVDFFile.h"
 
-KSArrayVDFHelper::KSArrayVDFHelper(std::vector< KSTelescope* >* pArray,
+KSArrayVDFFile::KSArrayVDFFile(std::vector< KSTelescope* >& pArray,
 			 VATime& startTime)
 {
   pfArray=pArray;
-  fNumTels=pfArray->size();
+  fNumTels=pfArray.size();
   fStartTime=startTime;
   // *************************************************************
   // Get end time for time slices as a day later
@@ -33,21 +33,19 @@ KSArrayVDFHelper::KSArrayVDFHelper(std::vector< KSTelescope* >* pArray,
 }
 // ***********************************************************************
 
-KSArrayVDFHelper::~KSArrayVDFHelper()
+KSArrayVDFFile::~KSArrayVDFFile()
 {
   //Nothing to do
 }
 // ***********************************************************************
 
-void KSArrayVDFHelper::CreateArrayVDFFile(string fFileName)
-, double& fEastLongitude, 
+void KSArrayVDFFile::CreateVDFFile(string fFileName)
 // ***********************************************************************
 // Create the ArrayVDF file with the correct VAArrayInfo
 // ***********************************************************************
 {
   pfOut= new VAVDF();
   pfOut->createFile(fFileName,4,fStartTime);
-    }
   if(pfOut==NULL)
     {
       std::cout<<"ksArrayTrigger: Failed to create ArrayVDF output file "
@@ -58,7 +56,7 @@ void KSArrayVDFHelper::CreateArrayVDFFile(string fFileName)
 }
 // ************************************************************************
 
-void KSArrayVDFHelper::FillRunHeader(int runNumber)
+void KSArrayVDFFile::FillRunHeader(int& runNumber)
 // ****************************************************************
 // Create the VARunHeader 
 // ****************************************************************
@@ -72,7 +70,7 @@ void KSArrayVDFHelper::FillRunHeader(int runNumber)
   pfRunHeader->pfRunDetails->fExpectedTels.resize(4,false);
   for (int i=0;i<fNumTels;i++)
     {
-      VATelID fTelID=pfArray->at(i).fTelID;
+      VATelID fTelID=pfArray[i]->fTelID;
       pfRunHeader->pfRunDetails->fExpectedTels[fTelID]=true;
     }
   pfRunHeader->pfRunDetails->fFirstValidEventTime=fStartTime;
@@ -82,28 +80,28 @@ void KSArrayVDFHelper::FillRunHeader(int runNumber)
   // at the end of the run.
   return;
 }
+// *******************************************************************
 
-
-void KSArrayVDFHelper::FillAndWriteQStats()
+void KSArrayVDFFile::FillAndWriteQStatsData()
 // ****************************************************************
 // Create the VAQStatsData 
 // ****************************************************************
 {
- //Set up the time slice. We only have one for simulations
+  //Set up the time slice. We only have one for simulations
   VATimeSliceQStats fTimeSliceQStatsForArray;
   fTimeSliceQStatsForArray.fTelColl.clear();
   //Copy in the telescopes VATelQStats . Set the tel id.
-  for(int i=0;i<pfArray->size())
+  for(int i=0;i<fNumTels;i++)
     {
       VAQStatsData* pfQStatsForTel = 
-	pfArray->at(i).pfEventFile->getQStatsDataPtr();
-
+	pfArray[i]->pfVDFEventFile->getQStatsDataPtr();
+      
       //We have only one time slice.
       VATimeSliceQStats fTimeSliceQStatsForTel=
-	                                    pfQStatsForTel->fTimeSliceColl[0];
+	pfQStatsForTel->fTimeSliceColl[0];
       VATelQStats fTelQStatsForTel=fTimeSliceQStatsForTel.fTelColl[0];
-      fTelQStatsForTel.fTelId=pfArray->at(i).fTelID;
-
+      fTelQStatsForTel.fTelId=pfArray[i]->fTelID;
+      
       // ***************************************************************
       // At this point we have obtained VATelQStats for a telescope, chnaged
       // the tel ID to what is appropriate. Now at this into the output
@@ -117,7 +115,7 @@ void KSArrayVDFHelper::FillAndWriteQStats()
   // *********************************************************************
   fTimeSliceQStatsForArray.fStartTime=fStartTime;
   fTimeSliceQStatsForArray.fEndTime=fEndTime;
-
+  
   //Put this time slice (only one we've got) into QStats Data.
   VAQStatsData* pfQStatsForArray=pfOut->getQStatsDataPtr();
   pfQStatsForArray->fTimeSliceColl.clear();
@@ -127,61 +125,48 @@ void KSArrayVDFHelper::FillAndWriteQStats()
 }
 // ***************************************************************************
 
-void KSArrayVDFHelper::FillAndWriteRelGains();
+void KSArrayVDFFile::FillAndWriteRelGainsData()
 // ****************************************************************
 // Create the VARelGainsData 
 // ****************************************************************
 {
   
   VARelGainData* pfRelGainDataForArray=pfOut->getRelGainDataPtr();
-  pfRelGainDataForAray->fTelColl.clear();
+  pfRelGainDataForArray->fTelColl.clear();
   for(int i=0;i<fNumTels;i++)
     {
       VARelGainData* pfRelGainDataForTel=
-	pfArray->at(i).pfEventFile->getRelGainDataPtr();
+	pfArray[i]->pfVDFEventFile->getRelGainDataPtr();
       VATelRelGains  fTelRelGains=pfRelGainDataForTel->fTelColl[0];
-      fTelRelGains.fTelId=pfArray->at(i).fTelID;
-      pfRelGainDataForAray->fTelColl.push_back(fTelRelGains);
+      fTelRelGains.fTelId=pfArray[i]->fTelID;
+      pfRelGainDataForArray->fTelColl.push_back(fTelRelGains);
     }
-  pfOut->writeRelGain();
+  pfOut->writeRelGainData();
   return;
 }
 // ***************************************************************************
 
-void KSArrayVDFHelper::FillAndWritePixelStatus()
+void KSArrayVDFFile::FillAndWritePixelStatusData()
 // ****************************************************************
 // Copy the PixelStatus
 // ****************************************************************
 {
-  VAPixelStatus* pfPixelStatusForArray=pfOut->getPixelStatusPtr();
+
   // *************************************************************
   // Easiest is to just copy over all the data in detail
   // *************************************************************
   for(int i=0;i<fNumTels;i++)
     {
       TelOnOffLogType tempTelOnOffLog;
-      tempTelOnOffLog.fTelId=pfArray->at(i).fTelID;
-
-      TelSuppressedLogType tempTelSuppressedLog;
-      tempTelSuppressedLog.fTelId=pfArray->at(i).fTelID;
+      tempTelOnOffLog.fTelId=pfArray[i]->fTelID;
       
-      VAPixelStatus* pfPixelStatusForTel=
-	pfArray->at(i).pfEventFile->getPixelStatusPtr();
-
-
-
-
+      TelSuppressedLogType tempTelSuppressedLog;
+      tempTelSuppressedLog.fTelId=pfArray[i]->fTelID;
+      
       for(int i=0;i<fNumPixels;i++)
 	{
 	  OnOffStatus tempOnOffStatus;
-	  if(i<fNumPMT)
-	    {
-	      tempOnOffStatus.isOn=!off[i];
-	    }
-	  else
-	    {
-	      tempOnOffStatus.isOn=false;
-	    }
+	  tempOnOffStatus.isOn=true;
 	  tempOnOffStatus.startTime=fStartTime;
 	  tempOnOffStatus.stopTime=fEndTime;  //A day later
 	  ChOnOffLogType tempChanOnOffLog;
@@ -189,25 +174,73 @@ void KSArrayVDFHelper::FillAndWritePixelStatus()
 	  tempTelOnOffLog.fChColl.push_back(tempChanOnOffLog); 
 	  
 	  SuppressedStatus tempSuppressedStatus;
-	  if(i<fNumPMT)
-	    {
-	      tempSuppressedStatus.isSuppressed=off[i];
-	    }
-	  else
-	    {
-	      tempSuppressedStatus.isSuppressed=true;
-	    }
+
+	  tempSuppressedStatus.isSuppressed=false;
 	  tempSuppressedStatus.startTime=fStartTime;
 	  tempSuppressedStatus.stopTime=fEndTime;
-
+	  
 	  ChSuppressedLogType tempChanSuppressedLog;
 	  tempChanSuppressedLog.push_back(tempSuppressedStatus);
 	  tempTelSuppressedLog.fChColl.push_back(tempChanSuppressedLog);
 	}
-
-  pfPixelStatus->fOnOffLogs.push_back(tempTelOnOffLog);
-  pfPixelStatus->fSuppressedLogs.push_back(tempTelSuppressedLog);
+      
+      VAPixelStatusData* pfPixelStatusForArray=pfOut->getPixelStatusPtr();
+      pfPixelStatusForArray->fOnOffLogs.push_back(tempTelOnOffLog);
+      pfPixelStatusForArray->fSuppressedLogs.push_back(tempTelSuppressedLog);
+    }
   return;
 }
 // ***************************************************************************
 
+void KSArrayVDFFile::FillAndWriteSimulationHeader()
+// ********************************************************************
+// As it says
+// ********************************************************************
+{
+  VASimulationHeader* pfRootSimHead = 
+                        pfArray[0]->pfVDFEventFile->getSimulationHeaderPtr();
+  VAKascadeSimulationHead* pfKRootSimHead =
+                       dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
+  // ******************************************************
+  //Copy over Simulation header
+  // ******************************************************
+  if(pfKRootSimHead==NULL)
+    {
+      std::cout<<"ksArrayTrigger: Input File has no "
+	"VAKascadeSimulationHeader record"<<std::endl;
+      exit(1);
+    }
+  if(pfRootSimHead->fSimulationPackage!=
+     VASimulationHeader::E_KASCADE)
+    {
+      std::cout<<"ksArrayTrigger: Wrong simulation package "
+	"found. fSimulationPackage: "<< pfRootSimHead->fSimulationPackage
+	       <<std::endl;
+      exit(1);
+    }
+  pfOut->setSimulationHeaderPtr(pfKRootSimHead); 
+  pfOut->writeSimulationHeader();
+  return;
+}
+// ************************************************************************
+
+void KSArrayVDFFile::CreateKascadeSimulationDataEventTree()
+// ************************************************************************
+// Create VAKJascadeSimulationData pointer, TTree etc;
+// ************************************************************************
+{
+  pfVDFKSimEvent= new VAKascadeSimulationData();
+  pfVDFSimulationEventTree=new TTree(gSimulatedEventsTreeName.c_str(),
+					    "Simulation Parameters");
+  if(pfVDFSimulationEventTree==NULL)
+    {
+      std::cout<<"KSArrayTrigger: Problem creating pfSimulationEventTree"
+	       <<std::endl;
+      exit(1);
+    }
+  pfVDFSimulationEventTree->Branch(gSimulatedEventsBranchName.c_str(),
+			"VAKascadeSimulationData", &pfVDFKSimEvent, 16000, 0);
+  pfOut->setSimulationPtr(pfVDFKSimEvent);
+  pfOut->setSimulationEventTree(pfVDFSimulationEventTree);
+  return;
+}

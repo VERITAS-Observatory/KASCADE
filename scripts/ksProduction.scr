@@ -186,11 +186,11 @@ StatusRunFileSpecification=$3
 user=$USER
 
 #Specify queues
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro)
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro)
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro astro astro astro workq workq workq workq workq workq workq workq)
 
-queues=([1]=astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro astro astro workq workq astro astro astro astro astro)
+#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro astro astro workq workq astro astro astro astro astro)
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 

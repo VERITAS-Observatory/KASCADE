@@ -10,15 +10,16 @@
 #ifndef KSAOMEGADATAIN_H
 #define KSAOMEGADATAIN_H
 
+#include "stdint.h"
+#include <cmath>
+#include <string>
+#include <algorithm>
+
 #include "VAAlgorithm.h"
 #include "VAConfigurationHelper.h"
 #include "VAConfigurationData.h"
 #include "VACommon.h"
 
-#include "stdint.h"
-#include <cmath>
-#include <string>
-#include <algorithm>
 #include "KSCommon.h"
 
 class KSAomegaDataIn : public VAAlgorithm  //VAAlgoritm specifys a virtual 

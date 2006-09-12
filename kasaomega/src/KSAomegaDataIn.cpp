@@ -11,8 +11,6 @@
  * $Tag$
  *
  **/
-#include <algorithm>
-
 #include "KSAomegaDataIn.h"
 
 

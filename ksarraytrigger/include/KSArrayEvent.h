@@ -18,54 +18,69 @@
 #include <string>
 #include <bitset>
 
-#include "KSArrayEventDataIn.h"
+#include "KSArrayTriggerDataIn.h"
 #include "KSCommon.h"
-#include "KSVDFHelper.h"
+#include "KSArrayVDFFile.h"
+#include "KSArrayVBFFile.h"
 
 #include "VAVDF.h"
-#include "VAArrayInfo.h"
-#include "VAQStatsData.h"
-#include "VAPixelStatusData.h"
-#include "VASimulationDataClasses.h"
-#include "VAKascadeSimulationData.h"
-#include "VATime.h"
-#include "VADataClasses.h"
+//#include "VAArrayInfo.h"
+//#include "VAQStatsData.h"
+//#include "VAPixelStatusData.h"
+//#include "VASimulationDataClasses.h"
+//#include "VAKascadeSimulationData.h"
+//#include "VATime.h"
+//#include "VADataClasses.h"
 #include "VACommon.h"
 #include "VAAzElRADecXY.h"
 
 #include "TTree.h"
 
+const double kMeanEventRateHz=50.0;
+
 struct TrigEvent
 {
-  int fIndex;
-  int fTel;
+  int fEventIndex;
+  int fTelIndex;
 };
 
 
 // ** ArrayEvent class for ksAomega. This does all the work in ksArrayTrigger
 // *******************************************************
-class KSASrrayEvent
+class KSArrayEvent
 {
  public:
-  KSASrrayEvent(std:;string fRootFileName, KSAomegaDataIn* pDataIn);
-  virtual ~KSASrrayEvent();
+  KSArrayEvent(std::string fRootFileName, KSArrayTriggerDataIn* pDataIn);
+  virtual ~KSArrayEvent();
 
  private:
-  int64_t GetTelescopeGridDirKey(int fBaseTel, int fNx, int fNy,  int fDir,
-				 int fTel);
-
+  int fRunNumber;
   KSArrayTriggerDataIn* pfDataIn;
-  std::vector<KSTelescope*> fArray;
+  KSArrayTriggerDataType fDataType;
+
+  std::vector<KSTelescope*> pfTelsInArray;
 
   std::vector<TrigEvent> fTriggerEvents;
-  int fBaseTel;
-  int fBaseIndex;
+  int fNumTels;
+  double fMeanTimeBetweenEventsSec;
+  int fBaseTelIndex; //Index to base telescope in pfTelsInArray for search. 
+  int fBaseIndex;    //Index to event in base telescope file (packet or TTree)
+
+  VATime fEventTime;
+  int fOutEventIndex;
+
+  KSArrayVDFFile* pfVDFOut;
+  KSArrayVBFFile* pfVBFOut;
+
+  VACalibratedArrayEvent* pfCalEvent;
+  VAKascadeSimulationData* pfVDFKSimEvent;
+
 
  public:
   bool FindTrigger();
   void SaveEvent();
   void Close();
-  void PrintStats();
+  //void PrintStats();
 };
 // ***************************************************************************
 

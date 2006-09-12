@@ -13,9 +13,9 @@ inpDir=$KASCADEBASE'/inputs'
 
 cd /project/veritas/sembrosk/whipple
 
-find ./protons -name P1W*GeV*.vbf >1WL
-find ./he4 -name He4_1W*GeV*.vbf >>1WL
-gawk 'gsub(/.vbf/,"",$1)' 1WL >1WList  
+find ./protons -name P1W*GeV*.root >1WL
+find ./he4 -name He4_1W*GeV*.root >>1WL
+gawk 'gsub(/.root/,"",$1)' 1WL >1WList  
 
 
 

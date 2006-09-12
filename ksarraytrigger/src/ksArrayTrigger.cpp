@@ -5,7 +5,7 @@
  * \brief This code parses command line, loads config files as needed and runs
  * the array event trigger finding code. It
  * then creates events that look like real data and puts them into a
- * stage2 output type root.
+ * either a stage2 output root file or a VBF file.
  * FOR SINGLE SHOWER FILES ONLY
  *
  * Original Author: Glenn H. Sembroski * $Author$
@@ -51,12 +51,12 @@ extern "C" float pran(float* dummy);
 void usage(const std::string& progname, const VAOptions& command_line)
 {
   std::cout << std::endl;
-  std::cout << "ksArrayTriggerRoot: Usage: " << progname 
-	    << " [options]  <Ouput Array Event root File>  "
+  std::cout << "ksArrayTrigger: Usage: " << progname 
+	    << " [options]  <Ouput Array Event File>  "
 	    << std::endl;
-  std::cout <<"ksArrayTriggerRoot: Output file name required "
+  std::cout <<"ksArrayTrigger: Output file name required "
 	    <<std::endl;
-  std::cout<<"ksArrayTriggerRoot: Options: "<<std::endl;
+  std::cout<<"ksArrayTrigger: Options: "<<std::endl;
   command_line.printUsage(std::cout);
 }
 
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
   try
     {
       time_t thetime=time(NULL);
-      std::cout<<"ksArrayTriggerRoot: START------"<<ctime(&thetime)<<std::endl;
+      std::cout<<"ksArrayTrigger: START------"<<ctime(&thetime)<<std::endl;
 
       std::string progname = *argv;
 
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
     // -----------------------------------------------------------------------
       if(load_config)
 	{
-	  std::cout<<"ksArrayTriggerRoot: Config File Name:"<<load_filename<<std::endl;
+	  std::cout<<"ksArrayTrigger: Config File Name:"<<load_filename<<std::endl;
 	  config_file.loadConfigFile(load_filename);
 	}
 
@@ -169,18 +169,18 @@ int main(int argc, char** argv)
 	config_file.saveConfigFile(save_filename);
       if(only_save_config)exit(EXIT_SUCCESS);
 
-    //Input Triggered event file name: Left on the command line should now be
-    // only the program name and Input Te file name. Get it.
+    //Input Array event Ouput file name: Left on the command line should now be
+    // only the program name and Ouput file name. Get it.
       argv++;
       argc--;
       if(argc<1)
 	{
-	  std::cout<<"ksArrayTriggerRoot: No Output root file name arguments. "
+	  std::cout<<"ksArrayTrigger: No Output root file name arguments. "
 	    " Assume -help reqested"<<std::endl;
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
-      std::string fOutputRootFileName=*argv;
+      std::string fOutputFileName=*argv;
 
   //Now that all the possible keywords that may be found in the configuration
   //file have been registered with config we can read in the configuration 
@@ -197,15 +197,8 @@ int main(int argc, char** argv)
 	  exit(EXIT_SUCCESS);
 	}
 
-    // ----------------------------------------------------------------------
-    //Open the input Te file and read in the seg, pe, and te headers
-    // Note: The Te file may be a sum of events from many showers
-    //       (See program ksTeSum).
-    //       In that case the header records will all come from the 
-    //       first shower in the file.
-    // -----------------------------------------------------------------------
-      std::cout<<"ksArrayTriggerRoot: Output Root Array Event File: "
-	       <<fOutputRootFileName<<std::endl;
+      std::cout<<"ksArrayTrigger: Output Array Event File: "
+	       <<fOutputFileName<<std::endl;
 
     // --------------------------------------------------------------------
     // Load up the configuration values
@@ -224,6 +217,10 @@ int main(int argc, char** argv)
       // ---------------------------------------------------------------------
       // The KSArrayEvent class does all the event processing and output file
       // creating and writing. It tests for triggers etc.
+      // *********************************************************************
+      // Note that this code works for either root input/output or VBF 
+      // input/output modes. Mode used is determined by input option:
+      // -DataType=VBFFILE or -DataType=ROOTFILE
       // ---------------------------------------------------------------------
 
       KSArrayEvent fArrayEvent(fOutputFileName,pfDataIn);
@@ -243,7 +240,7 @@ int main(int argc, char** argv)
 
       fArrayEvent.Close();
 
-      fArrayEvent.PrintStats();
+      //fArrayEvent.PrintStats();
 
     // ------------------------------------------------------------------------
     // Save the random number generator seeds.
@@ -253,7 +250,7 @@ int main(int argc, char** argv)
 
 
       thetime=time(NULL);
-      std::cout<<"ksArrayTriggerRoot: NORMAL END------"<<ctime(&thetime)
+      std::cout<<"ksArrayTrigger: NORMAL END------"<<ctime(&thetime)
 	       <<std::endl;
       //and we are done
       return 0;
