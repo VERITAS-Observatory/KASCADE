@@ -154,7 +154,7 @@ c		asyn_mult,isyn_mult
 c ** Segment Header Structure **
 	integer segment_head_size
 	parameter (segment_head_size=13)	!Length in longwords of header.
-	STRUCTURE /segment_HEAD/
+	STRUCTURE /segment_HEAD_dev/
 	    UNION
 	    MAP
 		INTEGER*4   ITYPE	! Primary particle type.
@@ -182,7 +182,7 @@ c ** Segment Header Structure **
 c ** Segment Record Structure **
 	integer segment_size
 	parameter (segment_size=11)	!Length in longwords of record.
-	STRUCTURE /segment/
+	STRUCTURE /segment_dev/
 	    UNION
 	    MAP
 		real*4 xstart        !Initial xy,z of segment.
@@ -211,7 +211,7 @@ c	Modified 16/1/97 GHS
 	STRUCTURE /PE_HEAD/
 	    UNION
 	    MAP
-		record /segment_head/segment_head
+		record /segment_head_dev/segment_head
 		REAL*4	    DL		! Mount direction(can recreate dnm)
 		REAL*4	    DM		! Mount direction(can recreate dnm)
 		REAL*4	    XSEG	! Grid width in x direction.
@@ -452,7 +452,7 @@ c	Generic M file record structure used by KAS_ARRAY_TRIGGER
 	integer m_size,mr_size
 	parameter (m_size=mv_size)
 	parameter (mr_size=m_size-4)
-	structure/m/
+	structure/m_dev/
 		union
 			map
 				integer		nx
@@ -467,8 +467,8 @@ c	Generic M file record structure used by KAS_ARRAY_TRIGGER
 		endunion
 	endstructure
 
-	RECORD/segment_head/segment_head	   	
-	RECORD/segment/segment	   	
+	RECORD/segment_head_dev/segment_head	   	
+	RECORD/segment_dev/segment	   	
 	common/segments/segment_head,segment
 
 !******************************************************************************

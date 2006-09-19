@@ -340,7 +340,7 @@ c             18:anti-neutrino(muon)
 	include 'kascade_command_line.h'
 	include 'kascade.h'
 
-
+	logical got_energy
         data got_energy/.false./
 
 	data version/'V:2.0.0'/
@@ -742,7 +742,7 @@ c	And north only!
 ! 08/02/05 GHS Replaced by new values: see comment above.
 		b_field=0.4795      !Gauss
 		dip_angle=58.3    !Degrees.
-		write(coutstring,1000),'WHIPPLE',b_field,dip_angle
+		write(coutstring,1000)'WHIPPLE',b_field,dip_angle
 	        call kscharstring2cout(trim(coutstring)//char(0))
 
 	else if(index(segment_head.magnet_field,'S').ne.0)then
@@ -3675,7 +3675,8 @@ c		Fix handeling of up going particles.
 	integer ispec
 
 	real*4 GMS,YDS
-	real*4 g,r,gr,hd,tsofar,tstart,ttend,tsegment,z_nuclei
+	real*4 g,r,gr,hd,tsofar,tstart,ttend,tsegment
+	integer z_nuclei
 	integer*4 nnnn
 !****************************************************************************
 c              Neutral particles.(gammas,K long,K short, Neutron, Neutrinos)

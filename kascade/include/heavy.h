@@ -10,7 +10,7 @@ c	common/RSEEDS/ ISEED
 	COMMON /CLENNN/ SIGNUC(60), ALNUC(60)
 	real signuc,alnuc
 
-	real iamax,iamax2
+	integer iamax,iamax2
 	parameter (iamax=56)
 	parameter (iamax2=3136)
 

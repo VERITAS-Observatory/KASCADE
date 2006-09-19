@@ -13,7 +13,7 @@ c		pixels after cleanup to determine image parameters.
 c ** Segment Record Structure **
 	integer segment_size
 	parameter (segment_size=11)	!Length in longwords of record.
-	STRUCTURE /segment/
+	STRUCTURE /segment_dev/
 	    UNION
 	    MAP
 		real*4 xstart        !Initial xy,z of segment.
@@ -59,7 +59,7 @@ C	PE structure(new)
 	END STRUCTURE
 
 
-	record /segment/segment
+	record /segment_dev/segment
 	RECORD /PE_REC/PE
         integer pe_next
 	common /perec/pe,segment,pe_next
