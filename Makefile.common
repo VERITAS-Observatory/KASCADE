@@ -117,7 +117,8 @@ F77FLAGS =  -g -O  -132 -lowercase -save -zero -c -nus  $(KASINCFLAGS)
 #thus, that has to be explicitly given in the Library path to the libstdc++.so 
 #library. Also, if the  main program is not fortran we have to tell 
 #ifort that.
-CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i386-linux/3.2.3 -lstdc++ 
+#CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i386-linux/3.2.3 -lstdc++ 
+CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i486-linux/3.3.5 -lstdc++ 
 
 
 

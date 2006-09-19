@@ -17,6 +17,7 @@
 
 #include "KSPeFile.h"
 
+#include "TFile.h"
 #include "TROOT.h"
 #include "TObject.h"
 #include "TTree.h"
