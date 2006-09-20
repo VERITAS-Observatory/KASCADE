@@ -136,7 +136,7 @@ ifdef INTEL_FORTRAN
   endif
 endif
 
-CXX           = g++-3.3
+CXX           = g++
 #ARCHCFLAGS    = -Wall -g -fPIC -O3
 ARCHCFLAGS    = -Wall -g -fPIC
 LD            = g++
