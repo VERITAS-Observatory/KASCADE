@@ -9,6 +9,11 @@
 # $Tag$
 #
 # -----------------------------------------------------------------------------
+# Set environmental variable in .profile or .bashrc, etc. to identity
+# fortran compiler. INTEL_FORTRAN or ABSOFTV10_FORTRAN must be defined
+# as an environmental variable.
+#   for INTEL compiler,      export INTEL_FORTRAN=<something>
+#   for ABSOFT V10 compiler, export ABSOFTV10_FORTRAN=<something>
 
 # -----------------------------------------------------------------------------
 # Standard directories
@@ -25,6 +30,7 @@ TMPDIR = out
 TOPCOMMONDIR = $(TOPDIR)/common
 TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
 TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
+
 
 #Define VEGASBASE in .bashrc (or wherever)
 #VEGASBASE = /home/sembrosk/vegas
@@ -88,41 +94,49 @@ CCLIB=-L/usr/lib -lstdc++
 
 ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
 
-# -------------------------------------------------------------------------
-#Using ABSOFT Fortran:
-# -------------------------------------------------------------------------
-#Standrd absoft and gcc access to stdc++
-#CLDFLAGS = -L/usr/lib -lstdc++
-#F77  =f77 
-#F90  =f90
-#Absoft Flags for version 10.0 fortran compiler
-#F90FLAGS = -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
-#	-p $(TOPCOMMONDIR)
-#F77FLAGS = -g -O -V  -W  -f -C  -c -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 
+ifdef INTEL_FORTRAN
 
-# -------------------------------------------------------------------------
-#Using Intel Fortran:
-# -------------------------------------------------------------------------
-F77  =ifort
-F90  =ifort
-#Intel ifort Flags
-F90FLAGS =  -g -O  -lowercase -save -zero -c -nus $(KASINCFLAGS) \
-	    -module $(TOPCOMMONDIR)
-F77FLAGS =  -g -O  -132 -lowercase -save -zero -c -nus  $(KASINCFLAGS)
+  # -------------------------------------------------------------------------
+  #Using Intel Fortran:
+  # -------------------------------------------------------------------------
+  F77  =ifort
+  F90  =ifort
+  #Intel ifort Flags
+  F90FLAGS =  -g -O  -lowercase -save -zero -c -nus $(KASINCFLAGS) \
+     -module $(TOPCOMMONDIR)
+  F77FLAGS =  -g -O  -132 -lowercase -save -zero -c -nus  $(KASINCFLAGS)
 
-#Intel access to stdc++
-#Note: When building, the Intel Compiler doesn't know what version of the 
-#libstdc++ to use (ie which version of g++ was used to compile other things), 
-#thus, that has to be explicitly given in the Library path to the libstdc++.so 
-#library. Also, if the  main program is not fortran we have to tell 
-#ifort that.
-CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i486-linux/3.3.5 -lstdc++ 
+  #Intel access to stdc++
+  #Note: When building, the Intel Compiler doesn't know what version of the 
+  #libstdc++ to use (ie which version of g++ was used to compile other things), 
+  #thus, that has to be explicitly given in the Library path to the libstdc++.so 
+  #library. Also, if the  main program is not fortran we have to tell 
+  #ifort that.
+    CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i486-linux-gnu/3.3.6 -lstdc++ 
 
+  else
+    ifdef ABSOFTV10_FORTRAN
 
+    # -------------------------------------------------------------------------
+    #Using ABSOFT Fortran:
+    # -------------------------------------------------------------------------
+    #Standrd absoft and gcc access to stdc++
+    CLDFLAGS = -L/usr/lib -lstdc++
+    F77  :=f77 
+    F90  :=f90
+    #Absoft Flags for version 10.0 fortran compiler
+    F90FLAGS := -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
+  	-p $(TOPCOMMONDIR)
+    F77FLAGS := -g -O -V  -W  -f -C  -c -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
 
+    else
+    $(error This makefile requires either INTEL fortran or ABSOFT v10 fortran)
 
-CXX           = g++
+  endif
+endif
+
+CXX           = g++-3.3
 #ARCHCFLAGS    = -Wall -g -fPIC -O3
 ARCHCFLAGS    = -Wall -g -fPIC
 LD            = g++
