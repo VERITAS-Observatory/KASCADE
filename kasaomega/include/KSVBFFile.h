@@ -45,6 +45,8 @@
 //Vegas includes
 #include "VATime.h"
 #include "VACommon.h"
+#include "VAArrayInfo.h"
+#include "VAArrayInfoFactoryLite.h"
 
 // some system headers; you may or may not want these depending on how you
 // use the library
@@ -97,8 +99,11 @@ class KSVBFFile
   float       fPrimaryZenithDeg;
   float       fPrimaryAzimuthDeg;
   float       fCoreElevationMASL;
+
   double fXSeg;
   double fYSeg;
+  uword32 fNSFlag;
+
   double fXOffset;
   double fYOffset;
 

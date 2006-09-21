@@ -52,6 +52,11 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
 
   fXSeg=pfPeHead->fXAreaWidthM;
   fYSeg=pfPeHead->fYAreaWidthM;
+  fNSFlag=0;
+  if(pfPeHead->fNorthSouthGrid)
+    {
+      fNSFlag=1;
+    }
   fXOffset=pfPeHead->fXCoreOffsetM;
   fYOffset=pfPeHead->fYCoreOffsetM;
   
@@ -77,7 +82,8 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
 // VSimulationHeader bank and a VKascadeSimulationHeader bank.
 // ***************************************************************************
 {
-  if(pfWriter!=NULL)
+   fFoundError=false;
+   if(pfWriter!=NULL)
     { 
       std::cout<<"KSVBFFile-- Output VBF file already created"
 	       <<std::endl;
@@ -146,7 +152,8 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
 			  fSimConfigFile);
   
   VKascadeSimulationHeader* pfKSimHead = 
-         new VKascadeSimulationHeader(fCORSIKAType, fEnergyGeV, fShowerID);
+    new VKascadeSimulationHeader(fCORSIKAType, fEnergyGeV, fShowerID,
+				      (float)fXSeg, (float)fYSeg, fNSFlag);
     
   // ***********************************************************************
   // Put these header banks into packet(0)
@@ -165,8 +172,7 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
   // }
  
   // and put the KascadeSimulation header data into the packet
-  packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);
-  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
+  packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
     {
       std::cout<<"KSVBFFile: No KascadeSimulationHeader bank in packet when "
   	"we just put one in"<<std::endl;
@@ -595,21 +601,32 @@ void  KSVBFFile::loadArrayConfiguration()
 // **********************************************************************
 {
 // **************************************************************************
-// This code is for a single telescope. Obvious expansion to multi telescopes
+// This code is for a Multiple telescopes. Uses VAArrayInfo factory
 // if desired.
 // **************************************************************************
- VArrayConfiguration fArConfig;
- fArConfig.fRelTelLocSouthM=0;
- fArConfig.fRelTelLocEastM=0;
- fArConfig.fRelTelLocUpM=0;
- for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
-   {
-     VPixelLocation fPixLoc;
-     fPixLoc.fPixLocEastAtStowDeg = pfCamera->fPixel[i].fXDeg;
-     fPixLoc.fPixLocUpAtStowDeg   = pfCamera->fPixel[i].fYDeg;
-     fPixLoc.fPixRadiusDeg        = pfCamera->fPixel[i].fRadiusDeg;
-     fArConfig.fCamera.push_back(fPixLoc);
-   }
- fArray.push_back(fArConfig);
- return;
+  //This will load the default VERITAS arrayInfo at fTime.
+  VATime fTime("2006-08-23 22:00:00 UTC");
+  VAArrayInfo* pfArrayInfo=
+    VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
+  // ***********************************************************************
+  // For values in a VAArrayInfo positionEW:East is positive,
+  //  positionNS: North is positive, positionUD: Up is positive
+
+  for(int iTel=0;iTel<4;iTel++)  //East is positive,North positive
+    {
+      VArrayConfiguration fArConfig;
+      fArConfig.fRelTelLocSouthM = -pfArrayInfo->telescope(iTel)->positionNS();
+      fArConfig.fRelTelLocEastM  = pfArrayInfo->telescope(iTel)->positionEW();
+      fArConfig.fRelTelLocUpM    = pfArrayInfo->telescope(iTel)->positionUD();
+      for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
+	{
+	  VPixelLocation fPixLoc;
+	  fPixLoc.fPixLocEastAtStowDeg = pfCamera->fPixel[i].fXDeg;
+	  fPixLoc.fPixLocUpAtStowDeg   = pfCamera->fPixel[i].fYDeg;
+	  fPixLoc.fPixRadiusDeg        = pfCamera->fPixel[i].fRadiusDeg;
+	  fArConfig.fCamera.push_back(fPixLoc);
+	}
+      fArray.push_back(fArConfig);
+    }
+  return;
 }

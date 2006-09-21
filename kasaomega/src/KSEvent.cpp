@@ -490,8 +490,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       pfVBFOut = new KSVBFFile(fCameraType, pfDataIn->fDigitalCountsPerPE,
 			       fCorsikaType,pfSegmentHead,pfPeHead,pfCamera); 
       std::string fConfigMask("0");
-      pfVBFOut->Create(pfDataIn,fConfigMask,fEventTime);
-      if(pfVBFOut->foundWriteError())
+      bool fCreatedVBFFile=pfVBFOut->Create(pfDataIn,fConfigMask,fEventTime);
+      if(!fCreatedVBFFile)
 	{
 	  std::cout<<"ksAomega: Got error while trying to open VBF file: "
 		   <<pfDataIn->fVBFFileName<<std::endl;
@@ -711,11 +711,11 @@ void KSEvent::PrintStats()
 // Finish up and close up any ouput files.
 // ************************************************************************
 {
-  //std::cout<<"Total Number of Events Written to Root file: "<<
-  //  numOfEvents<<std::endl;
-  //std::cout<<"Number of Pedestal Events Written to Root file: "<<
-  //  numPedestalEvents<<std::endl;
-  std::cout<<"Number of Normal Events Written to Root file: "<<
+  //std::cout<<"ksSAomega:Total Number of Events Written to Output file(s): "
+  //<<numOfEvents<<std::endl;
+  //std::cout<<"ksSAomega:Number of Pedestal Events Written to Output "
+  //"file(s): "<<numPedestalEvents<<std::endl;
+  std::cout<<"ksSAomega:Normal Events Written to Output file(s): "<<
     fEventIndex<<std::endl;
   return;
 }
@@ -817,10 +817,10 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 		  chanData.fSignalToNoise=chanData.fCharge/
 		    pfCamera->fPixel[i].fChargeVarDC;
 		}
-	      chanData.fHiLo=false;  //We assume always hi gain mode for now.
-	      chanData.fWindowWidth=gFADCWinSize[fCameraType];
-	      pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	    }
+	  chanData.fHiLo=false;  //We assume always hi gain mode for now.
+	  chanData.fWindowWidth=gFADCWinSize[fCameraType];
+	  pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
 	}
     }
   // ****************************************************************
