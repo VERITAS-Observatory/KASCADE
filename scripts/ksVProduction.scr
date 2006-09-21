@@ -99,9 +99,9 @@ function P1V()
     pwd
   fi
   if [ "$kssc" = "ksaomVBF" ]; then
-    echo Removing P1V*GeV*.root and vbf files
+    echo Removing P1V*GeV*.vbf files
     cd $datadir
-    rm -f P1V*GeV*.root
+#   rm -f P1V*GeV*.root
     rm -f P1V*GeV*.vbf
     cd $lcl
     pwd
@@ -134,10 +134,10 @@ function He4_1V()
     pwd
   fi
 
-  if [ "$kssc" = "ksaom" ]; then
-    echo Removing He4_1V*GeV*.root and .vbf files
+  if [ "$kssc" = "ksaomVBF" ]; then
+    echo Removing He4_1V*GeV*.vbf files
     cd $datadir
-    rm -f He4_1V*GeV*.root
+#    rm -f He4_1V*GeV*.root
     rm -f He4_1V*GeV*.vbf
     cd $lcl
     pwd
@@ -277,19 +277,19 @@ if [ "$parspec" != $1 ]; then   #This test to see if there was a DGW1 in $1
     let pspecset=1;
 fi
 
-if [ $1 = "CR1V" ]; then
+if [ $1 = "CR1V" ] || [ $1 = "CR1V2" ] ; then
 
     if [ "$kssc" = "ksaom" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
                                     $KASCADEBASE/inputs/ksAomegaP1V.config 
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
                                     $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
     fi
 
     if [ "$kssc" = "ksaomVBF" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
                                     $KASCADEBASE/inputs/ksAomegaP1V.config 
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1V.config  \
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
                                     $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
     fi
 

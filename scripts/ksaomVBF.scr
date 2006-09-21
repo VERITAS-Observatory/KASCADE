@@ -91,7 +91,8 @@ while test $i -le $4
     rootFile=$Shwr'.d'$i'.root'
     VBFFile=$Shwr'.d'$i'.vbf'
 
-    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile -VBFOutputFileName=$VBFFile $StatsFileNameOption $teFile
+#    $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -RootOutputFileName=$rootFile -VBFOutputFileName=$VBFFile $StatsFileNameOption $teFile 
+   $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran -VBFOutputFileName=$VBFFile $StatsFileNameOption $teFile
 		   
     i=$((i+1))			#do next shower
 done
