@@ -109,7 +109,7 @@ class KSPST
  public:
   KSPST(KSCameraTypes CameraType, int TriggerMultiplicity);
   virtual ~KSPST();
-  bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime); 
+  bool isTriggered(double* pfTimeTrigger, double& fImageTriggerTime); 
   double SlideWindow(std::vector<KSPixelTimes>& pfPatchTimes,
 		    double fWindowWidth, int fMultiplicity);
 

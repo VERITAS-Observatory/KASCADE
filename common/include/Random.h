@@ -16,7 +16,7 @@ public:
 
 private:
   RandomNumbers( const RandomNumbers & );
-  RandomNumbers RandomNumbers::operator=( const RandomNumbers & );
+  RandomNumbers operator=( const RandomNumbers & );
 
   void ran2_read();
   void ran2_write();
