@@ -1,0 +1,104 @@
+#!/bin/bash
+#This runs production ksArrayTrigger. Arguments are:
+#$0 ./ksarraytriggerVBF.scr
+#$1 primary Energy in gev (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower namesLike P1W,G1W, He4_1W)
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te are and root and VBF files are to go,
+# cannot be blank!!!)
+#$6 PixelStatus Run Fule Name(used by ksAomega only)(can be blank)
+echo "**********************************************************************"
+echo "**********************************************************************"
+
+echo $0 $1 $2 $3 $4 $5 
+src=$KASCADEBASE'/bin'
+echo binary src dir is $src
+
+inpDir=$KASCADEBASE'/inputs'
+echo inputs dir is $inpDir
+
+host=$(hostname -s)
+while [ -z "$host" ]; 
+  do
+    echo "Failed to get hostname. Retrying"
+    host=$(hostname -s)
+done
+echo Running on $host
+
+#Set up private working directory for this run. 
+whp="/project/veritas/sembrosk/whipple"
+
+#Keeps random number independent
+#use combo of process id ($$)and number of nanosec(date +%N) since last 
+#second tick to get unique value. (least count is micro sec at best)
+let dirID=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+while [ -d "$dirID" ]; do
+  let dirID=$(date +10#%N)+$$
+done
+wrkdir=$whp/$dirID
+
+#create working directory.
+mkdir  $wrkdir
+cd $wrkdir
+echo Working Directory is `pwd`
+
+
+#Make links to config files
+ksArrayTriggerConfig=ksArrayTrigger$2'.config'
+ln -s $inpDir/$ksArrayTriggerConfig $ksArrayTriggerConfig
+
+#All auxillary files are in wrkdir.
+#All temp data kept in $wrkdir. 
+#Final results go into $5;
+#Make sure directory exists, if not create it.
+if [ -z "$5" ]; then
+    echo "ksall:Data Directory must be specified"
+    exit
+fi
+if [ ! -d "$5" ]; then
+       mkdir -p $5
+fi
+
+#Setup unique random seed file into working dir.
+cp -v $inpDir/ksArrayTrigger.ran ksArrayTrigger.ran 
+                                              #Copy in a file to overwrite
+let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
+
+$src/randomCreateRanluxSeed -s $seedK -o ksArrayTrigger.ran
+	                    #date +%N  +$$ gives Number of nanoseconds from 
+			    #last second  + process id.
+#Set up base name of showers. 
+#Note it includes data path which better not be blank
+ShwBase=$2'GeV'$1
+Shwr=$5'/'$2'GeV'$1
+
+#Setup to loop over showers
+i="$3"
+while test $i -le $4
+  do
+#ksArrayTrigger
+    VBFFile=$Shwr'.d'$i'.vbf'             #Not local
+#Maske copies of files to use for different telescopes
+    VBFFileT1=$ShwBase'.d'$i'.T1.vbf'       #local
+    VBFFileT2=$ShwBase'.d'$i'.T2.vbf'       #local
+    VBFFileMult=$Shwr'.d'$i'Mult.vbf'      #Not local
+    cp -v $VBFFile $VBFFileT1 
+    cp -v $VBFFile $VBFFileT2 
+
+   $src/ksArrayTrigger -config=$ksArrayTriggerConfig -RandomSeedFileName=ksArrayTrigger.ran -T1ShowerFileName=$VBFFileT1 -T2ShowerFileName=$VBFFileT2 $VBFFileMult
+    i=$((i+1))			#do next shower
+done
+
+
+
+#Cleanup
+cd $wrkdir
+rm -vf *
+cd ..
+rmdir $dirID
+
+
+
+

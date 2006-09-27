@@ -20,6 +20,15 @@ function He4_1W()
     parspec="He4_1W"      
     echo He4 at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/whipple/he4"
+
+  if [ "$kssc" = "ksaom" ]; then
+    echo Removing He4_1W*GeV*.root files
+    cd $datadir
+    rm -f He4_1W*GeV*.root
+    cd $lcl
+    pwd
+  fi
+
     let processEnd=19
     enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON ON ON ON ON ON ON ON ON ON ON ON ON)
     #enableGEN=([1]=OFF  OFF  OFF  OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF)
@@ -39,6 +48,16 @@ function P1W()
     parspec="P1W"      
     echo Protons at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/whipple/protons"
+
+  if [ "$kssc" = "ksaom" ]; then
+    echo Removing P1W*GeV*.root files
+    cd $datadir
+    rm -f P1W*GeV*.root
+    cd $lcl
+    pwd
+  fi
+
+
     let processEnd=30
     enableGEN=([1]=ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
     #enableGEN=([1]=OFF OFF   OFF   OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF   OFF  OFF   ON   OFF   OFF   OFF)
@@ -179,7 +198,8 @@ function SubmitPBSJobs()
 
 #script directory
 sdr=$KASCADEBASE"/scripts"
-ksScript=$sdr/$2'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
+kssc=$2
+ksScript=$sdr/$kssc'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
                          #ksaom: Makes .root (and eventually .cvbf) files from
                          #       te files
 StatusRunFileSpecification=$3 
@@ -206,10 +226,10 @@ queues=([1]=astro astro astro astro astro astro astro astro astro astro astro as
 let pspecset=0
 if [ $1 = "CR1W" ]; then
 
-    if [ "$2" = "ksaom" ]; then
-	cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+    if [ "kssc" = "ksaom" ]; then
+	cp -v $KASCADEBASE/inputs/ksAomega$1.config  \
                                     $KASCADEBASE/inputs/ksAomegaP1W.config 
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+        cp -v $KASCADEBASE/inputs/ksAomega$1.config  \
                                     $KASCADEBASE/inputs/ksAomegaHe4_1W.config 
     fi
 

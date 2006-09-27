@@ -5,7 +5,13 @@
 #$0 ./kas02.scr
 #$1 has Type-direction specification code. like: P1W,He4_1W,G1W,DG1W
 #   Giveing a Type code of 'CR1W' will cause both P1W and He4_1W to be run
-#$2 has which script to run: ksall or ksaom
+#   CR1V: Single telescope threshold(ksaom*)
+#   CR1V2: Multi Telescope threshold(ksaom*)
+#$2 has which script to run: ksall:make showers throuth te files
+#                            ksaom:makes .root files
+#                            ksaomVBF:makes .vbf files
+#                            ksaomVBFRoot:makes .vbf and .root files
+#                            ksarraytriggerVBF:makes .vbf multi trigger files.
 #$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
 #          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 
@@ -91,21 +97,28 @@ function P1V()
     echo Protons at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/protons"
 
-  if [ "$kssc" = "ksaom" ]; then
+  if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing P1V*GeV*.root files
     cd $datadir
     rm -f P1V*GeV*.root
     cd $lcl
     pwd
   fi
-  if [ "$kssc" = "ksaomVBF" ]; then
+  if [ "$kssc" = "ksaomVBF" ] ||[ "$kssc" = "ksaomVBFRoot" ] ; then
     echo Removing P1V*GeV*.vbf files
     cd $datadir
-#   rm -f P1V*GeV*.root
     rm -f P1V*GeV*.vbf
     cd $lcl
     pwd
   fi
+  if [ "$kssc" = "ksarraytriggerVBF" ]; then
+    echo Removing P1V*GeV*Mult.vbf files
+    cd $datadir
+    rm -f P1V*GeV*Mult.vbf
+    cd $lcl
+    pwd
+  fi
+    
     let processEnd=35
     enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
@@ -126,7 +139,7 @@ function He4_1V()
     echo He4 at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/he4"
 
-  if [ "$kssc" = "ksaom" ]; then
+  if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing He4_1V*GeV*.root files
     cd $datadir
     rm -f He4_1V*GeV*.root
@@ -134,11 +147,19 @@ function He4_1V()
     pwd
   fi
 
-  if [ "$kssc" = "ksaomVBF" ]; then
+  if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing He4_1V*GeV*.vbf files
     cd $datadir
 #    rm -f He4_1V*GeV*.root
     rm -f He4_1V*GeV*.vbf
+    cd $lcl
+    pwd
+  fi
+
+  if [ "$kssc" = "ksarraytriggerVBF" ]; then
+    echo Removing He4_1V*GeV*Multi.vbf files
+    cd $datadir
+    rm -f He4_1V*GeV*Multi.vbf
     cd $lcl
     pwd
   fi
@@ -222,9 +243,9 @@ user=$USER
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
@@ -279,18 +300,17 @@ fi
 
 if [ $1 = "CR1V" ] || [ $1 = "CR1V2" ] ; then
 
-    if [ "$kssc" = "ksaom" ]; then
+    if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
         cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
                                     $KASCADEBASE/inputs/ksAomegaP1V.config 
         cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
                                     $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
     fi
-
-    if [ "$kssc" = "ksaomVBF" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
-                                    $KASCADEBASE/inputs/ksAomegaP1V.config 
-        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
-                                    $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
+    if [ "$kssc" = "ksarraytriggerVBF" ]; then
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
+                                  $KASCADEBASE/inputs/ksArrayTriggerP1V.config 
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
+                               $KASCADEBASE/inputs/ksArrayTriggerHe4_1V.config 
     fi
 
     P1V

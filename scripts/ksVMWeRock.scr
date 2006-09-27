@@ -13,9 +13,9 @@ inpDir=$KASCADEBASE'/inputs'
 
 cd /project/veritas/sembrosk/veritas
 
-find ./protons -name P1V*GeV*.vbf >1VL
-find ./he4 -name He4_1V*GeV*.vbf >>1VL
-gawk 'gsub(/.vbf/,"",$1)' 1VL >1VList  
+find ./protons -name P1V*GeV*Mult.vbf >1VL
+find ./he4 -name He4_1V*GeV*Mult.vbf >>1VL
+gawk 'gsub(/.vbf/,"",$1)' 1VL >1VMultList  
 
 
 
@@ -29,7 +29,7 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
 
-$KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting -OutputVBFFileName=1V.vbf   1VList 
+$KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting -OutputVBFFileName=1VMult.vbf   1VMultList 
 
 #Here is where we would put the stage1,stage2 stuff also.
 #Not yet
