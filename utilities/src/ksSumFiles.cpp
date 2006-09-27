@@ -459,6 +459,8 @@ int main(int argc, char** argv)
 	      // ************************************************************
 	   
 	      fVBFFileName= fInputFile + ".vbf";
+	      std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
+	      
 	      pfReader = new VBankFileReader(fVBFFileName);
 	      fNumVBFArrayEvents = pfReader->numPackets()-1;
 	      fNumArrayEvents=fNumVBFArrayEvents;
@@ -687,7 +689,15 @@ int main(int argc, char** argv)
 		      if(fOutputVBF)
 			{
 			  VPacket* pfWritePacket = new VPacket();
+			  if(!pfReader->hasPacket(index+1))
+			    {
+			      std::cout<<"ksSumFiles: Missing packet. File: "
+				       <<fVBFFileName<<" at packet#: "<<index
+				       <<std::endl;
+			      continue;
+			    }
 			  pfPacket=pfReader->readPacket(index+1); 
+
 			  
 			  // *************************************************
 			  // Update event numbers here and maybe times
@@ -696,38 +706,57 @@ int main(int argc, char** argv)
 			  // *************************************************
 			  // Fix up simulation data bank in this packet
 			  // *************************************************
-			  VSimulationData *pfSimData =
-			    pfPacket->get< VSimulationData >
-			    (VGetSimulationDataBankName());
-			  // I think the following is ignored but do anyway
-			  // If it is ignored then we didn't have to do this 
-			  // section
-			  pfSimData->fRunNumber=fRunNumber;
-			  pfSimData->fEventNumber=fArrayEventNum;
+			  if (!pfPacket->
+			            has(VGetKascadeSimulationDataBankName())  )
+			    {
+			      std::cout<<"ksSumFiles: Missing "
+				"SimulationDataBank.File:"
+				       <<fVBFFileName<<" at packet#: "<<index
+				       <<std::endl;
+			    } 
+			  else
+			    {
+			      VSimulationData *pfSimData =
+				pfPacket->get< VSimulationData >
+				(VGetSimulationDataBankName());
+			      // I think the following is ignored but do anyway
+			      // If it is ignored then we didn't have to do 
+			      // this section
+			      pfSimData->fRunNumber=fRunNumber;
+			      pfSimData->fEventNumber=fArrayEventNum;
 			  
-			  pfWritePacket->put(VGetSimulationDataBankName(),
-					     pfSimData);  
-			  // *************************************************
-			  // Fix up Kascade simulation data bank in this packet
-			  // *************************************************
-			  VKascadeSimulationData *pfKSimData =
-			    pfPacket->get< VKascadeSimulationData >
-			    (VGetKascadeSimulationDataBankName());
-			  // I think the following is ignored but do anyway
-			  // If it is ignored then we didn't have to do this 
-			  // section
-			  pfKSimData->fRunNumber=fRunNumber;
-			  pfKSimData->fEventNumber=fArrayEventNum;
+			      pfWritePacket->put(VGetSimulationDataBankName(),
+						 pfSimData);  
+			      // **********************************************
+			      // Fix up Kascade simulation data bank in this 
+			      // packet
+			      // **********************************************
+			      VKascadeSimulationData *pfKSimData =
+				pfPacket->get< VKascadeSimulationData >
+				(VGetKascadeSimulationDataBankName());
+			      // I think the following is ignored but do anyway
+			      // If it is ignored then we didn't have to do
+			      //  this section
+			      pfKSimData->fRunNumber=fRunNumber;
+			      pfKSimData->fEventNumber=fArrayEventNum;
 			  
-			  pfWritePacket->
-			    put(VGetKascadeSimulationDataBankName(),
-				pfKSimData);  
-			  // *************************************************
+			      pfWritePacket->
+				put(VGetKascadeSimulationDataBankName(),
+				    pfKSimData);  
+			    }
+			  // **********************************************
 			  // Now the ArrayEvents
 			  // First fix times and event number in array Trigger
 			  // *********************************************
 			  VArrayEvent* pfAEOut  = new VArrayEvent();
-			  
+			  if (!pfPacket->hasArrayEvent())
+			    {
+			      std::cout<<"ksSumFiles: Missing "
+				"ArrayEventin File:"
+				       <<fVBFFileName<<" at packet#: "<<index
+				       <<std::endl;
+			      continue;
+			    } 
 			  pfAEIn=pfPacket->getArrayEvent();
 			  pfAT = pfAEIn->getTrigger();
 			  // set the event number
@@ -761,12 +790,12 @@ int main(int argc, char** argv)
 			  // *************************************************
 			  int fNumTriggeredTels = 
 			    (int) pfAEIn->getNumEvents();
-			  if(fNumTriggeredTels!=1)
-			    {
-			      std::cout<<"fNumTriggeredTels: "
-				       <<fNumTriggeredTels
-				       <<std::endl;
-			    }
+			  //if(fNumTriggeredTels!=1)
+			  //  {
+			  //   std::cout<<"fNumTriggeredTels: "
+			  //	       <<fNumTriggeredTels
+			  //	       <<std::endl;
+			  // }
 			  for(int i=0;i<fNumTriggeredTels;i++)
 			    {
 			      // set the event number
