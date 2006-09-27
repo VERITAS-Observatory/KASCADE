@@ -65,10 +65,10 @@ class KSTelescope
   VATime fFirstValidEventTime;
   
   VARunHeader* pfInRunHeader;
-  VASimulationHeader* pfVDFSimHead;
   VAKascadeSimulationHead *pfKVDFSimHead;
   TTree* pfVDFSimTree;
-  VAKascadeSimulationData* pfVDFSimData;
+  //  VASimulationData*        pfVDFSimData;
+  VAKascadeSimulationData* pfVDFKSimData;
   VACalibratedArrayEvent* pfVDFCalEvent;
   
   VPacket*         pfHeaderPacket;
@@ -81,6 +81,7 @@ class KSTelescope
   std::map< int64_t,int32_t> fGridDirMap;
   std::map< int64_t,int32_t>::iterator fMapPos;   
   
+
   std::vector< float>fXPositionsM;
   std::vector< float>fYPositionsM;
   std::vector< float>fZPositionsM;
@@ -89,6 +90,7 @@ class KSTelescope
   bool  fNorthSouthGrid;
   int fBaseTelIndex;
 
+
   //Methods
  public:
   VATime getFirstValidEventTime(){return fFirstValidEventTime;};
@@ -96,9 +98,11 @@ class KSTelescope
   void makeGridDirMap();
   int64_t makeGridDirKey( int fNx, int fNy,int fDir);
   void unmakeGridDirKey(int64_t fKey, int fDir, int fNx, int fNy);
-  void getGridDirForIndex(int fBaseIndex, int& fNx, int& fNy, int& fDir);
+  bool getGridDirForIndex(int fBaseIndex, int& fNx, int& fNy, int& fDir);
+  bool isAPedestalEvent(int fIndex);
+
   int getIndexForGridDirKey(int64_t fKey);
-  
+
   void DetermineOffsets(int fBaseTel);
   int  GetNXOffset(int fNy);
   int  GetNYOffset(int fNX);
@@ -111,13 +115,16 @@ class KSTelescope
   
   
   VAKascadeSimulationData* getKascadeSimulationDataPtr()
-    {return pfVDFSimData;};
+    {return pfVDFKSimData;};
  
   
  public:
-  bool fIsInArray;
+  bool fFileExists;
   int fNumEvents;
   std::vector<bool> pfArrayEventsUsed;
+  std::vector<int > pfPedIndexList;
+  int fPedListIndex;
+ 
   VATelID fTelID;
   int fNXOffsetEven;
   int fNYOffsetEven;

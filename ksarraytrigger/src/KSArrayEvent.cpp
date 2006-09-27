@@ -1,6 +1,6 @@
 //-*-mode:c++; mode:font-lock;-*-
 /**
- * \class KSArrayEvent
+ * \class238 KSArrayEvent
  * \brief Class to hold and process an ArrayEvent.
  *
  * Original Author: Glenn H. Sembroski
@@ -35,51 +35,94 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // ****************************************************************
   // Try each telescope
   
+  KSTelescope* pfFirstTelFile=NULL;  //Used for building ouput file when 
+                                     //inputs give no events.
+                                     //Possible this tel has no events
   KSTelescope* pfT1 = new KSTelescope(E_T1,pfDataIn);
-  if(pfT1->fIsInArray)
+  if(pfT1->fFileExists)
     {
-      pfTelsInArray.push_back(pfT1);
+      if(pfFirstTelFile==NULL)
+	{
+	  pfFirstTelFile=pfT1;
+	}
+      if(pfT1->fNumEvents>0)
+	{
+	  pfTelsInArray.push_back(pfT1);
+	}
     }
+
   KSTelescope* pfT2 = new KSTelescope(E_T2,pfDataIn);
-  if(pfT2->fIsInArray)
+  if(pfT2->fFileExists)
     {
-      pfTelsInArray.push_back(pfT2);
+      if(pfFirstTelFile==NULL)
+	{
+	  pfFirstTelFile=pfT2;
+	}
+      if(pfT2->fNumEvents>0)
+	{
+	  pfTelsInArray.push_back(pfT2);
+	}
     }
+
   KSTelescope* pfT3 = new KSTelescope(E_T3,pfDataIn);
-  if(pfT3->fIsInArray)
+  if(pfT3->fFileExists)
     {
-      pfTelsInArray.push_back(pfT3);
+      if(pfFirstTelFile==NULL)
+	{
+	  pfFirstTelFile=pfT3;
+	}
+      if(pfT3->fNumEvents>0)
+	{
+	  pfTelsInArray.push_back(pfT3);
+	}
     }
+
   KSTelescope* pfT4 = new KSTelescope(E_T4,pfDataIn);
-  if(pfT4->fIsInArray)
+  if(pfT4->fFileExists)
     {
-      pfTelsInArray.push_back(pfT4);
+      if(pfFirstTelFile==NULL)
+	{
+	  pfFirstTelFile=pfT4;
+	}
+      if(pfT4->fNumEvents>0)
+	{
+	  pfTelsInArray.push_back(pfT4);
+	}
     }
-  
-  
-  //Check we have enough for multiplicity
-  fNumTels=pfTelsInArray.size();
-  if(fNumTels<pfDataIn->fArrayTriggerMultiplicity)
+
+
+  VATime fFirstValidEventTime("2006-08-23 22:00:00 UTC"); //Default if we can't
+                                                          //find a time.
+  if(pfFirstTelFile!=NULL)
     {
-      std::cout<<"ksArrayTrigger: Too few telescopes specified to make "
-	"multiplicty requirements"<<std::endl;
+      fFirstValidEventTime = pfFirstTelFile->getFirstValidEventTime();
+    }
+  else
+    {
+      // *********************************
+      //None of the input files exists.
+      // *******************************
+      std::cout<<"ksArrayTrigger: Found no existing input files."<<std::endl;
       exit(1);
     }
-  if(fNumTels<2)
+
+  // *****************************************************************
+  // If we do not have telescopes with data we will not loop through things
+  // but we do need to create an 'empty' output file so that we can 'count' 
+  // the shower in our weighting scheme.
+  // *****************************************************************
+  fNumTelsWithData=pfTelsInArray.size();
+  if(fNumTelsWithData==0)
     {
-      std::cout<<"ksArrayTrigger: Need at least 2 telescopes to make an array"
-	       <<std::endl;
-      exit(1);
-    }
-  
-  VATime fFirstValidEventTime = pfTelsInArray[0]->getFirstValidEventTime();
-  
+      pfTelsInArray.push_back(pfFirstTelFile);// Just so we can get stuff to 
+                                              // create empty output file
+    } 
+
   // **************************************************************************
-  // Open the ouput file. 
+  // Open the output file. 
   // *************************************************************************
   if(fDataType==ROOTFILE)
     {
-      
       // **************
       // DataType is root
       // **************
@@ -90,8 +133,6 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       pfVDFOut->CreateVDFFile(fOutputFileName);
       pfVDFOut->FillRunHeader(fRunNumber);  //Write this at end of run when 
                                             // we add EndRunTime
-      //pfVDFOut->WriteArrayInfo(); //This was created in the 
-      //                            //CreateArrayVDFFile method
       pfVDFOut->FillAndWriteQStatsData();
       pfVDFOut->FillAndWritePixelStatusData();
       pfVDFOut->FillAndWriteRelGainsData();
@@ -106,15 +147,48 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       pfVBFOut->CreateVBFFile(fOutputFileName);
       pfVBFOut->CopyOutHeaderPacket();
     }
+
+  // *********************************************************************
+  // Check we have enough for multiplicity
+  // *********************************************************************
+  if(fNumTelsWithData<pfDataIn->fArrayTriggerMultiplicity)
+    {
+      std::cout<<"ksArrayTrigger: Too few telescopes specified or have events "
+	" to make multiplicty requirements"<<std::endl;
+      if(fDataType==ROOTFILE)
+	{
+	  for(int i=0;i<fNumTelsWithData;i++)
+	    {
+	      pfTelsInArray[i]->pfVDFEventFile->Close();
+	    }
+	  VAVDF* pfOut=pfVDFOut->getVDFFilePtr();
+	  VARunHeader* pfVDFRunHeader=pfOut->getRunHeaderPtr();
+	  pfVDFRunHeader->pfRunDetails->fLastValidEventTime=
+	                                                fFirstValidEventTime;
+	  pfOut->writeRunHeader();
+	  pfOut->Close();
+	}
+      if(fDataType==VBFFILE)
+	{
+	  //this creates the index and writes the checksum.
+	  VBankFileWriter* pfWriter=pfVBFOut->getVBFFilePtr();
+	  pfWriter->finish();
+	}  
+      std::cout<<"ksArrayTrigger: Normal exit for empty file"<<std::endl;
+      exit(0);
+    }
   
   // **********************************************************************
-  // We need to make fGridDirMap's for all the telescopes except the first one
+  // We need to make fGridDirMap's for all the telescopes with data 
   // These maps associate a particular nx,ny,direction index combined 
   // togeteher as a key,  with the event's index (VBF: packet ID, 
   // VDF: EventIndex)
+  // We don't really need one for the first one but we do need to set up each
+  // telescope pfArrayInEvent vectors. Init to ingore pedestal events.
   // Also copy over the nx,ny offset info
+  // Also makes a vector of all the Pedestal events.
   // **********************************************************************
-  for(int i=1;i<fNumTels;i++)
+  for(int i=0;i<fNumTelsWithData;i++)
     {
       pfTelsInArray[i]->makeGridDirMap();
     }
@@ -122,9 +196,10 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   fBaseTelIndex=0; //Index to base telescope in pfTelsInArray for search.
   
   // **********************************************************************
-  // Determine all nx,ny offsets relative to this Base tel.
-  for(int i=1;i<fNumTels;i++)
+  // Determine all nx,ny offsets using each telescope as Base tel.
+  for(int i=1;i<fNumTelsWithData;i++)
     {
+      //This sets tells each telescope what its offset is from the base tel
       pfTelsInArray[i]->DetermineOffsets(pfTelsInArray[fBaseTelIndex]->fTelID);
     }
   
@@ -148,6 +223,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // ************************************************************************
   fEventTime=fFirstValidEventTime;
   fMeanTimeBetweenEventsSec=1./kMeanEventRateHz;
+
+  fPedEventCount=0;
 }
 // ***************************************************************************
 
@@ -160,62 +237,68 @@ KSArrayEvent::~KSArrayEvent()
 
 bool KSArrayEvent::FindTrigger()
 // ***************************************************************************
-// Find the next trigger in the array. Return false if shower has ended
+// Find the next trigger in the array. Return true if shower has ended
 // ***************************************************************************
 {
   while(1)   //Search for trigger
     {
       // ********************************************************************
-      // First test that  this event in this telescope has not been used yet
+      // First test that we havent run out of events in this base telescope
       // ********************************************************************
-      while(1)
+      if(
+	 (fDataType==ROOTFILE&&
+	  fBaseIndex==pfTelsInArray[fBaseTelIndex]->fNumEvents-1) ||
+	 (fDataType==VBFFILE&&
+	  fBaseIndex==pfTelsInArray[fBaseTelIndex]->fNumEvents)    )
 	{
-	   fBaseIndex++;
-	   if(pfTelsInArray[fBaseTelIndex]->pfArrayEventsUsed[fBaseIndex])
+	  std::cout<<"fBaseIndex,fNumEvents :"<<fBaseIndex<<" "
+		   <<pfTelsInArray[fBaseTelIndex]->fNumEvents<<std::endl;
+	  // *********************************************************
+	  // We have finished looking for array triggers were this
+	  // telscope (fBaseTelIndex) is in the trigger. If our required
+	  // multiplicity allows us, switch to the next telescope as 
+	  // the next telescope to use as our Base Telescope.
+	  // *********************************************************
+	  fBaseTelIndex++;
+	  if((fNumTelsWithData-fBaseTelIndex)<pfDataIn->fArrayTriggerMultiplicity)
 	    {
-	      fBaseIndex++;
-	      if(fBaseIndex==pfTelsInArray[fBaseTelIndex]->fNumEvents)
-		{
-		  // *********************************************************
-		  // We have finished looking for array triggers were this
-		  // telscope (fBaseTelIndex) is in the trigger. If out 
-		  // required
-		  // multiplicity allows us switch to the next telescope as 
-		  // the next telescope to use as our Base Telescope. Be 
-		  // careful to not use events that have already been tested. 
-		  // *********************************************************
-		  fBaseTelIndex++;
-
-		  if((fNumTels-fBaseTelIndex)
-		     <pfDataIn->fArrayTriggerMultiplicity)
-		    {
-		      // *********************************************
-		      // Were done. Shower is finished
-		      // *********************************************
-		      return false;
-		    }
-		  if(pfDataIn->fDataType==VBFFILE)
-		    {
-		      fBaseIndex=0;  //VBF data packets start a at index 1.
-		    }
-		  else if(pfDataIn->fDataType==ROOTFILE)
-		    {
-		      fBaseIndex=-1; //Root TTree data index startas at 0.
-		    }
-		  // *******************************************************
-		  // Determine all nx,ny offsets relative to this new Base 
-		  //tel.
-		  // ********************************************************
-		  for(int i=fBaseTelIndex+1;i<fNumTels;i++)
-		    {
-		      pfTelsInArray[i]->
-			DetermineOffsets(pfTelsInArray[fBaseTelIndex]->fTelID);
-		    }
-		  continue;
-		}
+	      // *********************************************
+	      // Were done. Shower is finished
+	      // *********************************************
+	      return true;
 	    }
-	
+	  if(pfDataIn->fDataType==VBFFILE)
+	    {
+	      fBaseIndex=0;  //VBF data packets start a at index 1.
+	    }
+	  else if(pfDataIn->fDataType==ROOTFILE)
+	    {
+	      fBaseIndex=-1; //Root TTree data index startas at 0.
+	    }
+	  // Determine all nx,ny offsets using each telescope as Base tel.
+	  for(int i=fBaseTelIndex+1;i<fNumTelsWithData;i++)
+	    {
+	      //This sets tells each telescope what its offset is from the 
+	      //base tel
+	      pfTelsInArray[i]->
+		     DetermineOffsets(pfTelsInArray[fBaseTelIndex]->fTelID);
+	    }
+	  continue;
 	}
+      // ************************************************************
+      // Now look for a trigger
+      // *********************************************************
+      fBaseIndex++;
+
+      // ****************************************************************
+      // Test that the next event in this telescope has not been 
+      // used yet
+      // *****************************************************************
+      if(pfTelsInArray[fBaseTelIndex]->pfArrayEventsUsed[fBaseIndex])
+	{
+	  continue;
+	}
+
       // ****************************************************************
       // Try using this event this telescope as a base event
       // ****************************************************************
@@ -229,15 +312,14 @@ bool KSArrayEvent::FindTrigger()
       int fDir;
       
       pfTelsInArray[fBaseTelIndex]->
-	getGridDirForIndex(fBaseIndex,fNx,fNy,fDir);
-
+	                          getGridDirForIndex(fBaseIndex,fNx,fNy,fDir);
       fTriggerEvents.clear();
       TrigEvent fTEvent;
       fTEvent.fEventIndex=fBaseIndex;
       fTEvent.fTelIndex=fBaseTelIndex;
       fTriggerEvents.push_back(fTEvent);
       
-      for(int i=fBaseTelIndex+1;i<fNumTels;i++)
+      for(int i=fBaseTelIndex+1;i<fNumTelsWithData;i++)
 	{
 	  // ***********************************************************
 	  // Find the GridDir Key for the next telescope relative to this 
@@ -250,12 +332,16 @@ bool KSArrayEvent::FindTrigger()
 	                                   makeGridDirKey(fTelNx,fTelNy,fDir);
 	  
 	  // **********************************************************
-	  // See if this telescope has an event with this GridKey
+	  // See if this telescope has a nomal event with this GridKey
+	  // This checks the map which has no ped events in it.
 	  // **********************************************************
 	  int fEventIndex=pfTelsInArray[i]->getIndexForGridDirKey(fKey);
 	  // Returns -1 if event doesn't exist.
-	  if(fEventIndex>-1)
-	    {
+	  //std::cout<<"fBaseIndex,fNx,fNy,fDir,fTelNx,fTelNy,fEventIndex: "
+	  //	   <<fBaseIndex<<" "<<fNx<<" "<<fNy<<" "<<fDir<<" "<<fTelNx
+	  //	   <<" "<<fTelNy<<" "<<fEventIndex<<std::endl;
+	  if(fEventIndex>-1)  
+	    {  // good event!
 	      //put the event into Trigger events vector.
 	      fTEvent.fEventIndex=fEventIndex;
 	      fTEvent.fTelIndex=i;
@@ -280,7 +366,7 @@ bool KSArrayEvent::FindTrigger()
 	}
       else
 	{
-	  return true;   
+	  return false;   
 	}
     }
 }
@@ -313,7 +399,7 @@ void KSArrayEvent::SaveEvent()
   // *********************************************************************
   if(fNewSeconds>fOriginalSeconds)
     {
-      // Nothing here yet but there will be
+      SavePedestalEvent();
     }
 
   // ****************************************************************
@@ -490,7 +576,20 @@ void KSArrayEvent::SaveEvent()
       
       // finally, write the packet into the file
       VBankFileWriter* pfWriter=pfVBFOut->getVBFFilePtr();
+      if (!pfWritePacket->
+	  has(VGetKascadeSimulationDataBankName())  )
+	{
+	  std::cout<<"ksArrayTrigger:SaveEvent: Missing "
+	    "SimulationDataBank at packet#: "<<fOutEventIndex<<std::endl;
+	} 
+      if (!pfWritePacket->hasArrayEvent())
+	{
+	  std::cout<<"ksArrayTrigger:SaveEvent: Missing ArrayEvent at "
+	    "packet#: "<<fOutEventIndex<<std::endl;
+	} 
+      //std::cout<<"Event Packet at: "<<fOutEventIndex<<std::endl;
       pfWriter->writePacket(fOutEventIndex,pfWritePacket);
+      delete pfAEOut;
       delete pfWritePacket;
     }
   return;
@@ -502,9 +601,33 @@ void KSArrayEvent::Close()
 // Close files.
 // **********************************************************************
 {
+  // ****************************************************************
+  // First check that we have written at least one event
+  // ****************************************************************
+  if(fOutEventIndex>0)
+    {
+      // ****************************************************************
+      // First that we have written at least one pedestal event
+      // ****************************************************************
+      int fPedListIndex= pfTelsInArray[0]->fPedListIndex;
+      if(fPedListIndex==0)
+	{
+	  // **************************************************************
+	  // Cross a second, will be rest by SavePedEvent to second tick.
+	  // **************************************************************
+	  VATime fOriginalEventTime=fEventTime;
+	  double fEventTimeMJD=fEventTime.getMJDDbl();
+	  fEventTimeMJD+=1.0/(60.*60.*24.); //Bump a second
+	  fEventTime.setFromMJDDbl(fEventTimeMJD);
+	  
+	  SavePedestalEvent();  //If there are no ped events in the list this
+                                //should just return
+	}
+    }
+  
   if(fDataType==ROOTFILE)
     {
-      for(int i=0;i<fNumTels;i++)
+      for(int i=0;i<fNumTelsWithData;i++)
 	{
 	  pfTelsInArray[i]->pfVDFEventFile->Close();
 	}
@@ -525,3 +648,235 @@ void KSArrayEvent::Close()
   return;
 }
 // **********************************************************************
+
+void KSArrayEvent::PrintStats()
+{
+  std::cout<<"ksArrayTrigger: End of Run Stats"<<std::endl;
+  if(fDataType==ROOTFILE)
+    {
+      std::cout<<"   Number of Normal events writen to output file: "
+	       <<fOutEventIndex+1<<std::endl;
+    }
+  if(fDataType==VBFFILE)
+    {
+      std::cout<<"   Number of Normal events writen to output file: "
+	       <<fOutEventIndex<<std::endl;
+    }
+  std::cout<<" Number of Pedestal events writen to output file: "
+	   <<fPedEventCount<<std::endl;
+  return;
+}
+// **********************************************************************
+
+void KSArrayEvent::SavePedestalEvent()
+// **********************************************************************
+// Write a pedestal event to the output file
+// **********************************************************************
+{
+  //Get time onf the event (on the tick)
+  uint32_t fYear,fMonth,fDay,H,M,S,NS;
+  fEventTime.getCalendarDate(fYear,fMonth,fDay);
+  fEventTime.getTime(H,M,S,NS);
+  NS=0;   //On the tick!
+  VATime fPedestalEventTime;
+  fPedestalEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
+						H,M,S,NS);
+  int fPedListIndex=pfTelsInArray[0]->fPedListIndex;
+  if(fPedListIndex>=(int)pfTelsInArray[0]->pfPedIndexList.size()-1)
+    {
+      return;          //No more ped events to use.
+    }
+  pfTelsInArray[0]->fPedListIndex++;
+  fPedListIndex=pfTelsInArray[0]->fPedListIndex;
+
+  int fPedIndex= pfTelsInArray[0]->pfPedIndexList[fPedListIndex]; 
+
+  if(fDataType==ROOTFILE)
+    {
+      pfCalEvent->Reset();//pfCalEvent has # telescopes preset.
+      pfCalEvent->fTels=fNumTelsWithData;
+      pfCalEvent->fArrayEventNum=fOutEventIndex;
+      pfCalEvent->fEventType=ET_PEDESTAL;//Pedestal event
+      pfCalEvent->fArrayTime=fEventTime;
+      pfCalEvent->fTelEvents.resize(fNumTelsWithData);
+      pfCalEvent->fPresentTels.clear();
+      pfCalEvent->fPresentTels.resize(4,false);
+      
+      for(int i=0;i<fNumTelsWithData;i++)
+	{
+	  int fTelID=pfTelsInArray[i]->fTelID;
+	  pfCalEvent->fPresentTels[i]=true;
+	  
+	  // ****************************************************************
+	  //Fill the Calibrated Telescope event
+	  // ****************************************************************
+	  VACalibratedArrayEvent* pfInCalEvent = pfTelsInArray[i]->
+	    pfVDFEventFile->getCalibratedArrayEventPtr();
+	  pfTelsInArray[i]->pfVDFEventFile->
+	                      loadInArrayEvent(fPedIndex);
+	  if(pfInCalEvent==NULL)
+	    {
+	      std::cout<<"ksSumFiles: Failed to "
+		"getCalibratedArrayEventPtr for Pedestal Event at index:"
+		       <<fPedIndex<<std::endl;
+	      exit(1);
+	    }
+	  
+	  pfCalEvent->fTelEvents[i].fTelTime=fEventTime;
+	  pfCalEvent->fTelEvents[i].fPointingData=pfInCalEvent->
+	                                          fTelEvents[0].fPointingData;
+	  pfCalEvent->fTelEvents[i].fTelID=fTelID;
+	  pfCalEvent->fTelEvents[i].fChanData=
+	                                 pfInCalEvent->fTelEvents[0].fChanData;
+	}
+      pfVDFOut->writeCalibratedArrayEvent(fNumTelsWithData);
+
+      // ************************************************
+      // Now sim data: Just copy it over from first telescope
+      // ************************************************
+      pfTelsInArray[0]->pfVDFEventFile->readSimulationData(fPedIndex); 
+      VAKascadeSimulationData*  pfKInSimEvent=
+             pfTelsInArray[0]->getKascadeSimulationDataPtr();
+      *pfVDFKSimEvent=*pfKInSimEvent;
+      pfVDFOut->writeSimulationData();
+      fOutEventIndex++;
+
+    }
+  else if(fDataType==VBFFILE)
+    {
+      VPacket* pfWritePacket = new VPacket();
+      // *********************************************************************
+      // First fill in simulation packets. Use first telescope's
+      // *********************************************************************
+
+      VPacket* pfReadPacket=pfTelsInArray[0]->
+	                                   readPacket(fPedIndex);
+      // *************************************************
+      // Update event numbers here and maybe times
+      // *************************************************
+      
+      // *************************************************
+      // Fix up simulation data bank in this packet.
+      // *************************************************
+      VSimulationData *pfSimData = pfReadPacket->get< VSimulationData >
+	                                      (VGetSimulationDataBankName());
+      pfSimData->fEventNumber=fOutEventIndex;
+      pfWritePacket->put(VGetSimulationDataBankName(), pfSimData);  
+      // *************************************************
+      // Fix up Kascade simulation data bank in this packet
+      // *************************************************
+      VKascadeSimulationData *pfKSimData = 
+	                     pfReadPacket->get< VKascadeSimulationData >
+			    (VGetKascadeSimulationDataBankName());
+      //pfKSimData->fRunNumber=fRunNumber;
+      pfKSimData->fEventNumber=fOutEventIndex;
+      pfWritePacket->put(VGetKascadeSimulationDataBankName(),
+				pfKSimData);  
+      // *************************************************
+      // Now the ArrayEvents
+      // First fix times and event number in array Trigger
+      // *********************************************
+      VArrayEvent* pfAEOut  = new VArrayEvent();
+			  
+      VArrayEvent* pfAEIn = pfReadPacket->getArrayEvent();
+      VArrayTrigger* pfAT = pfAEIn->getTrigger();
+      float fAlt=pfAT->getAltitude(0);  //get stuff we need to propagate
+      float fAz=pfAT->getAzimuth(0);
+
+      // ****************************************************************
+      //Resize things. Array trigger will contains fNumTrigTels telescopes
+      // ****************************************************************
+      pfAT->resizeSubarrayTelescopes(fNumTelsWithData);
+      pfAT->resizeTriggerTelescopes(fNumTelsWithData);
+      
+      // ********************************************************************
+      // have to set the telescope ID's that this record corresponds to.
+      // in this case, the record number and telescope ID happen to
+      // be the same
+      for(int i=0;i<fNumTelsWithData;i++)
+	{
+	  int fTelID=pfTelsInArray[i]->fTelID;
+	  pfAT->setSubarrayTelescopeId(i,fTelID);
+	  VEventType fEvType;
+	  fEvType.trigger=VEventType::PED_TRIGGER;
+	  pfAT->setSpecificEventType(i,fEvType);
+	  pfAT->setShowerDelay(i,0);
+	  pfAT->setCompDelay(i,0);
+	  pfAT->setAltitude(i,fAlt);
+	  pfAT->setAzimuth(i,fAz);
+	  pfAT->setTDCTime(i,0);
+	}
+      // Original AT from first triggered tel already has: node number=255,
+      // run number(but may want to do this explictly later)
+      //  pfAT->setRunNumber(fRunNumber).  flags=0;
+   
+      // set the event number
+      pfAT->setEventNumber(fOutEventIndex);
+      uint16_t fGPSWords[5];
+      uint8_t  fGPSYear=6;   
+      fEventTime.getForVBF(fGPSYear,5,fGPSWords);
+			  // SEtGPS Time, I know it looks like a get but its 
+			  //not
+      pfAT->getGPSTime()[0]=fGPSWords[0];
+      pfAT->getGPSTime()[1]=fGPSWords[1];
+      pfAT->getGPSTime()[2]=fGPSWords[2];
+      pfAT->getGPSTime()[3]=fGPSWords[3];
+      pfAT->getGPSTime()[4]=fGPSWords[4];
+			  
+      pfAT->setGPSYear(fGPSYear);
+      // now put array trigger back into the array event
+      pfAEOut->setTrigger(pfAT);
+			  
+      // **************************************************
+      // Now copy over and fix telescope events.
+      // *************************************************
+      for(int i=0;i<fNumTelsWithData;i++)
+	{
+	  int fTelID=pfTelsInArray[i]->fTelID;
+	  // set the event number
+	  VPacket* pfReadPacket=pfTelsInArray[i]->
+	                                   readPacket(fPedIndex);
+	  VArrayEvent* pfAEIn=pfReadPacket->getArrayEvent();
+ 	  VEvent* pfEvent=pfAEIn->getEvent(0);  //Only one telescope in input 
+	                                        //file, its a 0;
+	  pfEvent->setEventNumber(fOutEventIndex);
+	  pfEvent->setNodeNumber(fTelID);
+	  
+	  pfEvent->getGPSTime()[0]=fGPSWords[0];
+	  pfEvent->getGPSTime()[1]=fGPSWords[1];
+	  pfEvent->getGPSTime()[2]=fGPSWords[2];
+	  pfEvent->getGPSTime()[3]=fGPSWords[3];
+	  pfEvent->getGPSTime()[4]=fGPSWords[4];
+			      
+	  pfEvent->setGPSYear(fGPSYear);
+	  // add the event to the array event!
+	  pfAEOut->addEvent(pfEvent);
+	}
+      // put the array event back into the packet
+      // I'm told this will be a replacement
+      pfWritePacket->putArrayEvent(pfAEOut);
+      
+      // finally, write the packet into the file
+      VBankFileWriter* pfWriter=pfVBFOut->getVBFFilePtr();
+      if (!pfWritePacket->
+	  has(VGetKascadeSimulationDataBankName())  )
+	{
+	  std::cout<<"ksArrayTrigger:SavePedestalEvent: Missing "
+	    "SimulationDataBank at packet#: "<<fOutEventIndex<<std::endl;
+	} 
+      if (!pfWritePacket->hasArrayEvent())
+	{
+	  std::cout<<"ksArrayTrigger:SavePedestalEvent: Missing ArrayEvent "
+	    " at packet#: "<<fOutEventIndex<<std::endl;
+	} 
+      //std::cout<<"Ped Packet at: "<<fOutEventIndex<<std::endl;
+      pfWriter->writePacket(fOutEventIndex,pfWritePacket);
+      fOutEventIndex++;
+      delete pfAEOut;
+      delete pfWritePacket;
+    }
+  fPedEventCount++;
+  return;
+}
+// *************************************************************************
+

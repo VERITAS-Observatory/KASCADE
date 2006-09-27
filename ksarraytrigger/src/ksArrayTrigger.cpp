@@ -203,7 +203,7 @@ int main(int argc, char** argv)
     // --------------------------------------------------------------------
     // Load up the configuration values
     // --------------------------------------------------------------------
-      KSAomegaDataIn* pfDataIn=new KSAomegaDataIn();
+      KSArrayTriggerDataIn* pfDataIn=new KSArrayTriggerDataIn();
       pfDataIn->Print();
       
     // --------------------------------------------------------------------
@@ -240,7 +240,7 @@ int main(int argc, char** argv)
 
       fArrayEvent.Close();
 
-      //fArrayEvent.PrintStats();
+      fArrayEvent.PrintStats();
 
     // ------------------------------------------------------------------------
     // Save the random number generator seeds.
@@ -268,5 +268,3 @@ int main(int argc, char** argv)
     }
 }
 // ****************************************************************************
-
-

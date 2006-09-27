@@ -152,12 +152,13 @@ void KSArrayTriggerDataIn::configure(VAConfigInfo& file,
 		    sDefaultTelescopeEventGateWidthNS,
 		    "KSArrayTriggerDataIn",
 		    "Individual Telescope event Pulse width in NS as fed "
-		    "into the L3 trigger coincidence.");
+		    "into the L3 trigger coincidence.(Ignored at Present!)");
   doVAConfiguration(file, command_line, 
 		    "ArrayCoincidenceGateWidthNS",
 		    sDefaultArrayCoincidenceGateWidthNS,
 		    "KSArrayTriggerDataIn",
-		    "Coincidence window width in NS for the array trigggers.");
+		    "Coincidence window width in NS for the array trigggers. "
+		    "(Ignored at Present!)");
   doVAConfiguration(file, command_line, 
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSArrayTriggerDataIn",

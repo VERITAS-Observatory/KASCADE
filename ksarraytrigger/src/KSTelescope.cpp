@@ -1,4 +1,4 @@
-/inc//-*-mode:c++; mode:font-lock;-*-
+//-*-mode:c++; mode:font-lock;-*-
 /**
  * \class KSTelescope
  * \brief Class to hold and process an Telescope.
@@ -24,7 +24,7 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
   // ****************************************************************
   // Open the input file
   // ****************************************************************
-  fIsInArray=false;
+  fFileExists=false;
   fTelID=TelID;
   fDataType=pfDataIn->fDataType;
   pfVDFEventFile=NULL;
@@ -41,9 +41,8 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 		       <<pfDataIn->fFileName[fTelID]<<std::endl;
 	      exit(1);
 	    }
-	  fIsInArray=true;
+	  fFileExists=true;
 	  fNumEvents=pfVDFEventFile->getNumArrayEvents();
-
 	  //Get start of run so we can get start time
 	  pfInRunHeader=pfVDFEventFile->getRunHeaderPtr();
 	  if(pfInRunHeader==NULL)
@@ -67,7 +66,7 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	            dynamic_cast< VAKascadeSimulationHead* >(pfVDFSimHead);
 	  if(pfKVDFSimHead==NULL)
 	    {
-	      std::cout<<"ksSumFiles: File "<<fVDFFileName
+	      std::cout<<"ksSumFiles: File "<<pfDataIn->fFileName[fTelID]
 		       <<"has no VASimulationHeader record"
 		       <<std::endl;
 	      exit(1);
@@ -78,26 +77,28 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  fZPositionsM.resize(fNumTelPositions);
 	  for(int i=0;i<fNumTelPositions;i++)
 	    {
-	      fXPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocSouthM; 
-	      fYPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocEastM;
-	      fXPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocUpM;
+	      fXPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocEastM;
+	      fYPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocSouthM; 
+	      fZPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocUpM;
 	    }
 	  fXAreaWidthM=pfKVDFSimHead->fXAreaWidthM;
 	  fYAreaWidthM=pfKVDFSimHead->fYAreaWidthM;
 	  fNorthSouthGrid=pfKVDFSimHead->fNorthSouthGrid;
 
 	  pfVDFSimTree = (TTree*)pfVDFEventFile->getSimulationEventTreePtr();
-	  pfVDFSimData = pfVDFEventFile->getSimulationDataPtr();
+	  pfVDFKSimData = pfVDFEventFile->getKascadeSimulationDataPtr();
 	  pfVDFCalEvent= pfVDFEventFile->getCalibratedArrayEventPtr();
 	}
       else if(pfDataIn->fDataType==VBFFILE)
 	{
-	  pfVBFEventFile   = new VBankFileReader(fFileName[fTelID]);
+	  pfVBFEventFile   = new VBankFileReader(pfDataIn->fFileName[fTelID]);
+	  if(pfVBFEventFile==NULL)
+	    {
+	      return;
+	    }
+	  fFileExists=true;
 
-
-	  fIsInArray=true;
-	  fNumEvents = pfVBFEventFile->numPackets()-1;
-
+	      
 	  // *************************************************************
 	  //Now get stuff from the Simulation headers
 	  // *************************************************************
@@ -116,13 +117,18 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  fZPositionsM.resize(fNumTelPositions);
 	  for(int i=0;i<fNumTelPositions;i++)
 	    {
-	      fXPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocSouthM; 
-	      fYPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocEastM;
-	      fXPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocUpM;
+	      fXPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocEastM;
+	      fYPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocSouthM; 
+	      fZPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocUpM;
 	    }
 	  fXAreaWidthM=pfKVBFSimHead->fXAreaWidthM;
 	  fYAreaWidthM=pfKVBFSimHead->fYAreaWidthM;
 	  fNorthSouthGrid=pfKVBFSimHead->fNorthSouthGrid;
+	  fNumEvents = pfVBFEventFile->numPackets()-1; //
+	  if(fNumEvents==0)
+	    {
+	      return;
+	    }
 
 	  VPacket* pfPacket=pfVBFEventFile->readPacket(1);
 	  pfAEIn=pfPacket->getArrayEvent();
@@ -139,10 +145,10 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
       pfArrayEventsUsed.resize(fNumEvents,false);
     }
 }
-  // ************************************************************************
+// ************************************************************************
 
 
-KSTelescope::~KSTelescope
+KSTelescope::~KSTelescope()
 {
   //Nothing here
 }
@@ -160,30 +166,45 @@ void KSTelescope::makeGridDirMap()
 // *****************************************************************
 // Go through simulation TTree filling map
 {
-  fGridDirMap.reset();
-  int fStart;
+  fGridDirMap.clear();
+  pfPedIndexList.clear();
+  fPedListIndex=-1;
+
+  int fStart=0;
+  int fNum;
   if(fDataType==ROOTFILE)
     {
       fStart=0;
+      fNum=fNumEvents;
     }
   else if (fDataType==VBFFILE)
     {
-      fStart=1;
+      fStart=1;    //Skip first packet
+      fNum=fNumEvents+1;
     }
-  int fIndex=fStart;
-  for(int i=fIndex;i<fNumEvents+fIndex)  // Being a little lazy here using 
-                                         // fIndex. Note, its used for input
-                                         // and output starting values
+  for(int i=fStart;i<fNum;i++) 
     {
       int fNx;
       int fNy;
       int fDir;
-      bool fTriggerEvent=getGridDirForIndex(i,fNx,fNy, fDir);
+      bool fTriggerEvent = getGridDirForIndex(i, fNx, fNy, fDir);
       if(fTriggerEvent)    //Don't want pedestal events, yet!
 	{
-	  int64_t fKey=makeGrinDirKey(fNx,fNy,fDir);
-	  fGridDirMap[fKey]=fIndex;
-	  fIndex++;
+	  int64_t fKey=makeGridDirKey(fNx,fNy,fDir);
+	  fGridDirMap[fKey]=i;
+	  pfArrayEventsUsed[i]=false;
+	  //std::cout<<"i,nx,ny,dir,key: "<<i<<" "<<fNx<<" "<<fNy<<" "<<fDir
+	  //	   <<" "<<fKey<<std::endl;
+	}
+      else
+	{
+	  pfArrayEventsUsed[i]=true;   //Disable (for now) non normal events 
+	                             //(pedestal events  mostly)
+	}
+      bool fPedEvent = isAPedestalEvent(i);
+      if(fPedEvent)
+	{
+	  pfPedIndexList.push_back(i);
 	}
     }
   return;
@@ -224,39 +245,65 @@ void KSTelescope::unmakeGridDirKey(int64_t fKey,  int fNx, int fNy, int fDir)
 bool KSTelescope::getGridDirForIndex(int fIndex, int& fNx, int& fNy, 
 				     int& fDir)
 // ************************************************************************
-// Find for event at fIndex the Nx,ny and dir
+// Find for true event at fIndex the Nx,ny and dir. Return if not true event
 // ************************************************************************
 {
   if(fDataType==ROOTFILE)
     {
-      pfVDFCalEvent->GetEntry(fIndex);
-      if(pfCalEvent->fEventType!=ET_ARRAY_TRIGGER)  //add ped capability later
+      pfVDFEventFile->loadInArrayEvent(fIndex);
+      if(pfVDFCalEvent->fEventType!=ET_ARRAY_TRIGGER)  //add ped capability 
+	                                               //later
 	{
 	  return false;    //Not a trigger event;
 	}
       pfVDFSimTree->GetEntry(fIndex);
     
-      fNx=pfVDFSimData->fNx;
-      fNy=pfVDFSimData->fNy;
-      fDir=pfVDFSimData->fDirectionIndex;
+      fNx=pfVDFKSimData->fNx;
+      fNy=pfVDFKSimData->fNy;
+      fDir=pfVDFKSimData->fDirectionIndex;
     }
   else if(fDataType==VBFFILE)
     {
-      VPacket* pfPacket=pfVBFEventFile->readPacket(fIndex);  
 
-      VArrayEvent* pfAEIn= pfPacket->getArrayEvent();
-      VArrayTrigger*     = pfAEIn->getTrigger();
+      if(fIndex==3032)
+	{
+	  //return false;
+	}
+      if(!pfVBFEventFile->hasPacket(fIndex))
+	{
+	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Could not find "
+	    " packet: "<<fIndex<<" In file: "<<pfDataIn->fFileName[fTelID]
+		   <<std::endl;
+	  std::cout<<"ksArrayTrigger:getGridDirForIndex: File has: "
+		   <<fNumEvents+1<<" packets"<<std::endl;
+	  return false;
+	}
+      VPacket* pfPacket   = pfVBFEventFile->readPacket(fIndex);  
+      if (!pfPacket->hasArrayEvent())
+	{
+	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Missing ArrayEvent "
+	    "at packet#: "<<fIndex<<std::endl;
+	  return false;
+	} 
+      VArrayEvent* pfAEIn = pfPacket->getArrayEvent();
+      VArrayTrigger* pfAT = pfAEIn->getTrigger();
       // Skip ped event for now!
       if(pfAT->getEventType().trigger!=VEventType::L2_TRIGGER)
 	{
 	  return false;
 	}
+      if (!pfPacket->has(VGetKascadeSimulationDataBankName())  )
+	{
+	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Missing "
+	    "KascadeSimulationData bank at packet#: "<<fIndex<<std::endl;
+	  return false;
+	}
       VKascadeSimulationData* pfKVBFSimData =
 			    pfPacket->get< VKascadeSimulationData >
 			    (VGetKascadeSimulationDataBankName());
-      fNx=pfKVBFSimData->fNx;
-      fNx=pfKVBFSimData->fNy;
-      fDir=pfKVBFSimData->fDirectionIndex;
+      fNx  = pfKVBFSimData->fNx;
+      fNy  = pfKVBFSimData->fNy;
+      fDir = pfKVBFSimData->fDirectionIndex;
     }
     return true;
 }
@@ -264,10 +311,9 @@ bool KSTelescope::getGridDirForIndex(int fIndex, int& fNx, int& fNy,
 int  KSTelescope::getIndexForGridDirKey(int64_t fKey)
 // ***********************************************************************
 // For the GridDir Key fKey, look in our map for an index. Return the index.
-// If the fKey is not in the map return -1
+// If the fKey is not in the map return -1. Ped events not in map!
 // ***********************************************************************
 {
-  
   fMapPos=fGridDirMap.find(fKey);
   if(fMapPos==fGridDirMap.end())  //If fKey doesn't exist as a key return -1
     {
@@ -286,6 +332,7 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
 // Determine best nx,ny offsets relative to TelID=fBaseTel for this telescope.
 // May be different for odd and even, so make both
 // Ignore Z for now.  Introduces correction later that may be of interest
+//  NOte KASCADE convention +x axis is east, +y axis is south
 // ************************************************************************
 {
   // ************************************************************************
@@ -299,14 +346,14 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
     }
   float fBaseX=fXPositionsM[fBaseTel];
   float fBaseY=fYPositionsM[fBaseTel];
-  float fBaseZ=fZPositionsM[fBaseTel];
+  //float fBaseZ=fZPositionsM[fBaseTel];
 
-  fXRelativeM=fXPositionsM[fTel]-fBaseX;
-  fYRelativeM=fYPositionsM[fTel]-fBaseY;
-  fZRelativeM=fZPositionsM[fTel]-fBaseZ;
+  float fXRelativeM=fXPositionsM[fTelID]-fBaseX;
+  float fYRelativeM=fYPositionsM[fTelID]-fBaseY;
+  //float fZRelativeM=fZPositionsM[fTelID]-fBaseZ;
 
   //For any fNX on N-S grid: no changes
-  fNXOffsetEven= int(abs(fXRelativeM)/fXAreaWidthM+.5);
+  fNXOffsetEven= (int)(fabs(fXRelativeM)/fXAreaWidthM+.5);
   if(fXRelativeM<0)
     {
       fNXOffsetEven=-fNXOffsetEven;
@@ -318,7 +365,7 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
   // NX even on N-S grid: Ny has no shift 
   if(fNXOffsetEven%2==0)                  // % is the C++ mod operator
     {
-      fNyOffsetEven= int(abs(fYRelativeM)/fYAreaWidthM+.5);
+      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM+.5);
       if(fYRelativeM<0)
 	{
 	  fNYOffsetEven=-fNYOffsetEven;
@@ -327,7 +374,7 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
      }
   else
     {                                // NY Odd on N-S grid:
-      fNyOffsetEven= int(abs(fYRelativeM)/fYAreaWidthM);
+      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM);
       if(fYRelativeM<0)
 	{
 	  fNYOffsetEven=-fNYOffsetEven-1;
@@ -338,7 +385,7 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
 }
 // **************************************************************************
 
-int GetNXOffset(int fNY)
+int KSTelescope::GetNXOffset(int fNY)
 // **************************************************************************
 // Get offset fro this telescope. WSince we use triangular grid will depend on
 // odd or even of fNY
@@ -355,7 +402,7 @@ int GetNXOffset(int fNY)
 }
 // **************************************************************************
 
-int GetNYOffset(int fNX)
+int KSTelescope::GetNYOffset(int fNX)
 // **************************************************************************
 // Get offset for this telescope. Since we use triangular grid will depend on
 // odd or even of fNX
@@ -373,6 +420,48 @@ int GetNYOffset(int fNX)
 // **************************************************************************
 
 
+
+bool KSTelescope::isAPedestalEvent(int fIndex)
+// ************************************************************************
+// See if  event at fIndex is a pedestal event. Return false if not.
+// ************************************************************************
+{
+  if(fDataType==ROOTFILE)
+    {
+      pfVDFEventFile->loadInArrayEvent(fIndex);
+      if(pfVDFCalEvent->fEventType!=ET_PEDESTAL)
+	{
+	  return false;    //Not a trigger event;
+	}
+    }
+  else if(fDataType==VBFFILE)
+    {
+      if(!pfVBFEventFile->hasPacket(fIndex))
+	{
+	  std::cout<<"ksArrayTrigger:isAPedestalEvent: Could not find "
+	    " packet: "<<fIndex<<" In file: "<<pfDataIn->fFileName[fTelID]
+		   <<std::endl;
+	  std::cout<<"ksArrayTrigger:isAPedestalEvent: File has: "
+		   <<fNumEvents+1<<" packets"<<std::endl;
+	  return false;
+	}
+      VPacket* pfPacket   = pfVBFEventFile->readPacket(fIndex);  
+      if (!pfPacket->hasArrayEvent())
+	{
+	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Missing ArrayEvent "
+	    "at packet#: "<<fIndex<<std::endl;
+	  return false;
+	} 
+      VArrayEvent* pfAEIn = pfPacket->getArrayEvent();
+      VArrayTrigger* pfAT = pfAEIn->getTrigger();
+      if(pfAT->getEventType().trigger!=VEventType::PED_TRIGGER)
+	{
+	  return false;
+	}
+    }
+    return true;
+}
+// *********************************************************************
 
 
 

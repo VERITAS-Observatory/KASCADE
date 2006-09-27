@@ -61,7 +61,7 @@ class KSArrayEvent
   std::vector<KSTelescope*> pfTelsInArray;
 
   std::vector<TrigEvent> fTriggerEvents;
-  int fNumTels;
+  int fNumTelsWithData;
   double fMeanTimeBetweenEventsSec;
   int fBaseTelIndex; //Index to base telescope in pfTelsInArray for search. 
   int fBaseIndex;    //Index to event in base telescope file (packet or TTree)
@@ -75,12 +75,15 @@ class KSArrayEvent
   VACalibratedArrayEvent* pfCalEvent;
   VAKascadeSimulationData* pfVDFKSimEvent;
 
+  int fPedEventCount;
+
 
  public:
   bool FindTrigger();
   void SaveEvent();
+  void SavePedestalEvent();
   void Close();
-  //void PrintStats();
+  void PrintStats();
 };
 // ***************************************************************************
 
