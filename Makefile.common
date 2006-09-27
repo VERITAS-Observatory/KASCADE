@@ -137,8 +137,8 @@ else
 endif
 
 CXX           = g++
-#ARCHCFLAGS    = -Wall -g -fPIC -O3
-ARCHCFLAGS    = -Wall -g -fPIC
+ARCHCFLAGS    = -Wall -g -fPIC -O3
+#ARCHCFLAGS    = -Wall -g -fPIC
 LD            = g++
 ARCHLDFLAGS   =  
 ARCHSOFLAGS   = -shared
