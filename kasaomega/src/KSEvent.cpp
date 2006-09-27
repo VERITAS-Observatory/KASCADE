@@ -23,6 +23,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 		 KSAomegaDataIn* pDataIn)
 {
   fEventIndex=0;
+  fNumPedestalEvents=0;
   pfDataIn      = pDataIn;
   pfSegmentHead = pSegmentHead;
   pfPeHead      = pPeHead;
@@ -630,6 +631,7 @@ void KSEvent::SaveImage()
 	      pfVDFOut->writeCalibratedArrayEvent(1);
 	      pfVDFOut->writeSimulationData();
 	    }
+	  fNumPedestalEvents++;
 
 	  if(pfDataIn->fVBFFileName!=" " ||pfDataIn->fRootFileName!=" ")
 	    {
@@ -678,7 +680,46 @@ void KSEvent::Close()
 // ************************************************************************
 // Finish up and close up any ouput files.
 // ************************************************************************
+// If we have any events, make sure we have at least one pedestal event.
 {
+  if(fEventIndex>0 && fNumPedestalEvents==0)
+    {
+      double fEventTimeMJD=fEventTime.getMJDDbl();
+      fEventTimeMJD+=1./(60.*60.*24.);
+      fEventTime.setFromMJDDbl(fEventTimeMJD);
+
+      uint32_t fYear,fMonth,fDay,H,M,S,NS;
+      fEventTime.getCalendarDate(fYear,fMonth,fDay);
+      fEventTime.getTime(H,M,S,NS);
+      NS=0;   //On the tick!
+      fEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
+							H,M,S,NS);
+      pfCamera->loadAPedestalEventIntoPedPixels();
+
+      //Pedestal event to VBF file
+      if(pfDataIn->fVBFFileName!=" ")
+	{
+	  bool fPedestalEvent=true;
+	  pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, 
+			     fEventTime, 
+			     fFADCStartGateTimeNS, pfTe,fPedestalEvent,
+			     0.0,0.0);
+	}
+      if(pfDataIn->fRootFileName!=" ")
+	{
+	  // *************************************************************
+	  //Create, Fill and Write out a Pedestal VACalibratedEvent and 
+	  // Save  the VASimulation event MC tags
+	  // *************************************************************
+	  bool fPedestalEvent=true;
+	  CreateRootEvent(fPedestalEvent,fEventTime);
+	  pfVDFOut->writeCalibratedArrayEvent(1);
+	  pfVDFOut->writeSimulationData();
+	}
+      fNumPedestalEvents++;
+      fEventIndex++; 
+    }
+
   if(pfVDFOut!=NULL)
     {
       pfVDFOut->writeCalibratedEventTree();
@@ -713,10 +754,10 @@ void KSEvent::PrintStats()
 {
   //std::cout<<"ksSAomega:Total Number of Events Written to Output file(s): "
   //<<numOfEvents<<std::endl;
-  //std::cout<<"ksSAomega:Number of Pedestal Events Written to Output "
-  //"file(s): "<<numPedestalEvents<<std::endl;
   std::cout<<"ksSAomega:Normal Events Written to Output file(s): "<<
-    fEventIndex<<std::endl;
+    fEventIndex-fNumPedestalEvents<<std::endl;
+  std::cout<<"ksSAomega:Number of Pedestal Events Written to Output "
+  "file(s): "<<fNumPedestalEvents<<std::endl;
   return;
 }
 // **************************************************************************

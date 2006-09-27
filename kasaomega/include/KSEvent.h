@@ -85,6 +85,8 @@ class KSEvent
 
   int fNumPixels;
   int fEventIndex;
+  int fNumPedestalEvents;
+
   double fMeanTimeBetweenEventsSec;
   float fXDummy;
   double fAzimuth;
