@@ -260,6 +260,7 @@ bool KSArrayEvent::FindTrigger()
 	  // the next telescope to use as our Base Telescope.
 	  // *********************************************************
 	  fBaseTelIndex++;
+
 	  if((fNumTelsWithData-fBaseTelIndex)<pfDataIn->fArrayTriggerMultiplicity)
 	    {
 	      // *********************************************
@@ -310,9 +311,11 @@ bool KSArrayEvent::FindTrigger()
       int fNx;
       int fNy;
       int fDir;
+      bool fTrigEvt;
+      bool fPedEvt;
       
       pfTelsInArray[fBaseTelIndex]->
-	                          getGridDirForIndex(fBaseIndex,fNx,fNy,fDir);
+	getGridDirForIndex(fBaseIndex, fNx, fNy, fDir, fTrigEvt, fPedEvt);
       fTriggerEvents.clear();
       TrigEvent fTEvent;
       fTEvent.fEventIndex=fBaseIndex;
@@ -476,8 +479,10 @@ void KSArrayEvent::SaveEvent()
       VSimulationData *pfSimData = pfReadPacket->get< VSimulationData >
 	                                      (VGetSimulationDataBankName());
       //pfSimData->fRunNumber=fRunNumber;
-      pfSimData->fEventNumber=fOutEventIndex;
-      pfWritePacket->put(VGetSimulationDataBankName(), pfSimData);  
+      VSimulationData* pfWriteSimData = pfSimData->copySimData();
+      pfWriteSimData->fEventNumber=fOutEventIndex;
+      pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
+
       // *************************************************
       // Fix up Kascade simulation data bank in this packet
       // *************************************************
@@ -485,9 +490,12 @@ void KSArrayEvent::SaveEvent()
 	                     pfReadPacket->get< VKascadeSimulationData >
 			    (VGetKascadeSimulationDataBankName());
       //pfKSimData->fRunNumber=fRunNumber;
-      pfKSimData->fEventNumber=fOutEventIndex;
+      VKascadeSimulationData *pfWriteKSimData = 
+	                                    pfKSimData->copyKascadeSimData();
+      pfWriteKSimData->fEventNumber=fOutEventIndex;
       pfWritePacket->put(VGetKascadeSimulationDataBankName(),
-				pfKSimData);  
+				pfWriteKSimData);  
+    
       // *************************************************
       // Now the ArrayEvents
       // First fix times and event number in array Trigger
@@ -541,21 +549,24 @@ void KSArrayEvent::SaveEvent()
       pfAT->getGPSTime()[4]=fGPSWords[4];
 			  
       pfAT->setGPSYear(fGPSYear);
+
       // now put array trigger back into the array event
-      pfAEOut->setTrigger(pfAT);
+      VArrayTrigger* pfWriteAT = pfAT->copyAT();
+      pfAEOut->setTrigger(pfWriteAT);
 			  
       // **************************************************
       // Now copy over and fix telescope events.
       // *************************************************
+      VPacket** pfTelReadPacket = new VPacket*[fNumTrigTel]; 
       for(int i=0;i<fNumTrigTel;i++)
 	{
 	  int fTrigTelIndex=fTriggerEvents[i].fTelIndex;
 	  int fTrigTelEventIndex=fTriggerEvents[i].fEventIndex;
 	  int fTelID=pfTelsInArray[fTrigTelIndex]->fTelID;
 	  // set the event number
-	  VPacket* pfReadPacket=pfTelsInArray[fTrigTelIndex]->
+	  pfTelReadPacket[i]=pfTelsInArray[fTrigTelIndex]->
 	                                   readPacket(fTrigTelEventIndex);
-	  VArrayEvent* pfAEIn=pfReadPacket->getArrayEvent();
+	  VArrayEvent* pfAEIn=pfTelReadPacket[i]->getArrayEvent();
  	  VEvent* pfEvent=pfAEIn->getEvent(0);
 	  pfEvent->setEventNumber(fOutEventIndex);
 	  pfEvent->setNodeNumber(fTelID);
@@ -568,7 +579,8 @@ void KSArrayEvent::SaveEvent()
 			      
 	  pfEvent->setGPSYear(fGPSYear);
 	  // add the event to the array event!
-	  pfAEOut->addEvent(pfEvent);
+	  VEvent* pfWriteEvent= pfEvent->copyEvent();
+	  pfAEOut->addEvent(pfWriteEvent);
 	}
       // put the array event back into the packet
       // I'm told this will be a replacement
@@ -589,8 +601,9 @@ void KSArrayEvent::SaveEvent()
 	} 
       //std::cout<<"Event Packet at: "<<fOutEventIndex<<std::endl;
       pfWriter->writePacket(fOutEventIndex,pfWritePacket);
-      delete pfAEOut;
       delete pfWritePacket;
+      delete []pfTelReadPacket;
+      delete pfReadPacket;
     }
   return;
 }
@@ -620,6 +633,7 @@ void KSArrayEvent::Close()
 	  fEventTimeMJD+=1.0/(60.*60.*24.); //Bump a second
 	  fEventTime.setFromMJDDbl(fEventTimeMJD);
 	  
+	  fOutEventIndex++;
 	  SavePedestalEvent();  //If there are no ped events in the list this
                                 //should just return
 	}
@@ -760,18 +774,20 @@ void KSArrayEvent::SavePedestalEvent()
       // *************************************************
       VSimulationData *pfSimData = pfReadPacket->get< VSimulationData >
 	                                      (VGetSimulationDataBankName());
-      pfSimData->fEventNumber=fOutEventIndex;
-      pfWritePacket->put(VGetSimulationDataBankName(), pfSimData);  
+      VSimulationData* pfWriteSimData=pfSimData->copySimData();
+      pfWriteSimData->fEventNumber=fOutEventIndex;
+      pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
       // *************************************************
       // Fix up Kascade simulation data bank in this packet
       // *************************************************
       VKascadeSimulationData *pfKSimData = 
 	                     pfReadPacket->get< VKascadeSimulationData >
 			    (VGetKascadeSimulationDataBankName());
-      //pfKSimData->fRunNumber=fRunNumber;
-      pfKSimData->fEventNumber=fOutEventIndex;
+      VKascadeSimulationData* pfWriteKSimData = 
+	                                     pfKSimData->copyKascadeSimData();
+      pfWriteKSimData->fEventNumber=fOutEventIndex;
       pfWritePacket->put(VGetKascadeSimulationDataBankName(),
-				pfKSimData);  
+				pfWriteKSimData);  
       // *************************************************
       // Now the ArrayEvents
       // First fix times and event number in array Trigger
@@ -825,18 +841,20 @@ void KSArrayEvent::SavePedestalEvent()
 			  
       pfAT->setGPSYear(fGPSYear);
       // now put array trigger back into the array event
-      pfAEOut->setTrigger(pfAT);
+      VArrayTrigger* pfWriteAT = pfAT->copyAT();
+      pfAEOut->setTrigger(pfWriteAT);
 			  
       // **************************************************
       // Now copy over and fix telescope events.
       // *************************************************
+      VPacket** pfTelReadPacket = new VPacket*[fNumTelsWithData]; 
       for(int i=0;i<fNumTelsWithData;i++)
 	{
 	  int fTelID=pfTelsInArray[i]->fTelID;
 	  // set the event number
-	  VPacket* pfReadPacket=pfTelsInArray[i]->
+	  pfTelReadPacket[i]=pfTelsInArray[i]->
 	                                   readPacket(fPedIndex);
-	  VArrayEvent* pfAEIn=pfReadPacket->getArrayEvent();
+	  VArrayEvent* pfAEIn=pfTelReadPacket[i]->getArrayEvent();
  	  VEvent* pfEvent=pfAEIn->getEvent(0);  //Only one telescope in input 
 	                                        //file, its a 0;
 	  pfEvent->setEventNumber(fOutEventIndex);
@@ -850,7 +868,8 @@ void KSArrayEvent::SavePedestalEvent()
 			      
 	  pfEvent->setGPSYear(fGPSYear);
 	  // add the event to the array event!
-	  pfAEOut->addEvent(pfEvent);
+	  VEvent* pfWriteEvent=pfEvent->copyEvent();
+	  pfAEOut->addEvent(pfWriteEvent);
 	}
       // put the array event back into the packet
       // I'm told this will be a replacement
@@ -872,8 +891,9 @@ void KSArrayEvent::SavePedestalEvent()
       //std::cout<<"Ped Packet at: "<<fOutEventIndex<<std::endl;
       pfWriter->writePacket(fOutEventIndex,pfWritePacket);
       fOutEventIndex++;
-      delete pfAEOut;
+      delete pfReadPacket;
       delete pfWritePacket;
+      delete []pfTelReadPacket;
     }
   fPedEventCount++;
   return;

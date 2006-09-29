@@ -98,8 +98,9 @@ class KSTelescope
   void makeGridDirMap();
   int64_t makeGridDirKey( int fNx, int fNy,int fDir);
   void unmakeGridDirKey(int64_t fKey, int fDir, int fNx, int fNy);
-  bool getGridDirForIndex(int fBaseIndex, int& fNx, int& fNy, int& fDir);
-  bool isAPedestalEvent(int fIndex);
+  void  getGridDirForIndex(int fBaseIndex, int& fNx, int& fNy, int& fDir,
+			   bool& fTrigger, bool& fPedestal);
+  //bool isAPedestalEvent(int fIndex);
 
   int getIndexForGridDirKey(int64_t fKey);
 

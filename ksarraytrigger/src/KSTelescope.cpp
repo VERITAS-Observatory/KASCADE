@@ -88,6 +88,7 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  pfVDFSimTree = (TTree*)pfVDFEventFile->getSimulationEventTreePtr();
 	  pfVDFKSimData = pfVDFEventFile->getKascadeSimulationDataPtr();
 	  pfVDFCalEvent= pfVDFEventFile->getCalibratedArrayEventPtr();
+	  pfArrayEventsUsed.resize(fNumEvents,false);
 	}
       else if(pfDataIn->fDataType==VBFFILE)
 	{
@@ -137,12 +138,13 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  fFirstValidEventTime.setFromVBF(fGPSYear,
 					  pfAT->getGPSTimeNumElements(),
 					  pfAT->getGPSTime());
+	  delete pfPacket;
+	  pfArrayEventsUsed.resize(fNumEvents+1,false); //index starts at 1
 	}
       // ****************************************************************
       // Make up a vector<bool> array to keep track of which events have been
       // checked for being in an event
       // ****************************************************************
-      pfArrayEventsUsed.resize(fNumEvents,false);
     }
 }
 // ************************************************************************
@@ -167,11 +169,16 @@ void KSTelescope::makeGridDirMap()
 // Go through simulation TTree filling map
 {
   fGridDirMap.clear();
+  //std::cout<<"Max possible map size:"<<fGridDirMap.max_size()<<std::endl;
+
+  bool fTriggerEvent;
+  bool fPedestalEvent;
+
   pfPedIndexList.clear();
   fPedListIndex=-1;
 
   int fStart=0;
-  int fNum;
+  int fNum=0;
   if(fDataType==ROOTFILE)
     {
       fStart=0;
@@ -187,8 +194,8 @@ void KSTelescope::makeGridDirMap()
       int fNx;
       int fNy;
       int fDir;
-      bool fTriggerEvent = getGridDirForIndex(i, fNx, fNy, fDir);
-      if(fTriggerEvent)    //Don't want pedestal events, yet!
+      getGridDirForIndex(i, fNx, fNy, fDir,fTriggerEvent,fPedestalEvent);
+      if(fTriggerEvent)    //Trigger event?
 	{
 	  int64_t fKey=makeGridDirKey(fNx,fNy,fDir);
 	  fGridDirMap[fKey]=i;
@@ -201,11 +208,10 @@ void KSTelescope::makeGridDirMap()
 	  pfArrayEventsUsed[i]=true;   //Disable (for now) non normal events 
 	                             //(pedestal events  mostly)
 	}
-      bool fPedEvent = isAPedestalEvent(i);
-      if(fPedEvent)
-	{
-	  pfPedIndexList.push_back(i);
-	}
+      if(fPedestalEvent)
+       	{
+      	  pfPedIndexList.push_back(i);
+      	}
     }
   return;
 }
@@ -242,33 +248,38 @@ void KSTelescope::unmakeGridDirKey(int64_t fKey,  int fNx, int fNy, int fDir)
 // **************************************************************************
 
 
-bool KSTelescope::getGridDirForIndex(int fIndex, int& fNx, int& fNy, 
-				     int& fDir)
+void KSTelescope::getGridDirForIndex(int fIndex, int& fNx, int& fNy, 
+				     int& fDir, bool& fTrigger,
+				     bool& fPedestal)
 // ************************************************************************
-// Find for true event at fIndex the Nx,ny and dir. Return if not true event
+// Find for true event at fIndex the Nx,ny and dir. Return Flags  for Normal 
+// event or pedestal events
 // ************************************************************************
 {
+  fTrigger=false;
+  fPedestal=false;
   if(fDataType==ROOTFILE)
     {
       pfVDFEventFile->loadInArrayEvent(fIndex);
-      if(pfVDFCalEvent->fEventType!=ET_ARRAY_TRIGGER)  //add ped capability 
-	                                               //later
+      if(pfVDFCalEvent->fEventType==ET_ARRAY_TRIGGER)
 	{
-	  return false;    //Not a trigger event;
+	  fTrigger=true;//trigger event;
+	  pfVDFSimTree->GetEntry(fIndex);
+	  
+	  fNx=pfVDFKSimData->fNx;
+	  fNy=pfVDFKSimData->fNy;
+	  fDir=pfVDFKSimData->fDirectionIndex;
+	  return;
 	}
-      pfVDFSimTree->GetEntry(fIndex);
-    
-      fNx=pfVDFKSimData->fNx;
-      fNy=pfVDFKSimData->fNy;
-      fDir=pfVDFKSimData->fDirectionIndex;
+      if(pfVDFCalEvent->fEventType==ET_PEDESTAL)
+	{
+	  fPedestal=true;
+	  return;
+	}
+      return;
     }
   else if(fDataType==VBFFILE)
     {
-
-      if(fIndex==3032)
-	{
-	  //return false;
-	}
       if(!pfVBFEventFile->hasPacket(fIndex))
 	{
 	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Could not find "
@@ -276,36 +287,51 @@ bool KSTelescope::getGridDirForIndex(int fIndex, int& fNx, int& fNy,
 		   <<std::endl;
 	  std::cout<<"ksArrayTrigger:getGridDirForIndex: File has: "
 		   <<fNumEvents+1<<" packets"<<std::endl;
-	  return false;
+	  return;
 	}
       VPacket* pfPacket   = pfVBFEventFile->readPacket(fIndex);  
       if (!pfPacket->hasArrayEvent())
 	{
 	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Missing ArrayEvent "
 	    "at packet#: "<<fIndex<<std::endl;
-	  return false;
+	  delete pfPacket;
+	  return;
 	} 
       VArrayEvent* pfAEIn = pfPacket->getArrayEvent();
       VArrayTrigger* pfAT = pfAEIn->getTrigger();
-      // Skip ped event for now!
-      if(pfAT->getEventType().trigger!=VEventType::L2_TRIGGER)
+ 
+      // ***************************************************************
+      // Trigger event
+      // ************************************************
+      if(pfAT->getEventType().trigger==VEventType::L2_TRIGGER)
 	{
-	  return false;
+	  fTrigger=true;
+	  if (!pfPacket->has(VGetKascadeSimulationDataBankName())  )
+	    {
+	      std::cout<<"ksArrayTrigger:getGridDirForIndex: Missing "
+		"KascadeSimulationData bank at packet#: "<<fIndex<<std::endl;
+	      fTrigger=false;
+	      delete pfPacket;
+	      return;
+	    }
+	  VKascadeSimulationData* pfKVBFSimData =
+	    pfPacket->get< VKascadeSimulationData >
+	    (VGetKascadeSimulationDataBankName());
+	  fNx  = pfKVBFSimData->fNx;
+	  fNy  = pfKVBFSimData->fNy;
+	  fDir = pfKVBFSimData->fDirectionIndex;
+	  delete pfPacket;
+	  return;
 	}
-      if (!pfPacket->has(VGetKascadeSimulationDataBankName())  )
+      if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
 	{
-	  std::cout<<"ksArrayTrigger:getGridDirForIndex: Missing "
-	    "KascadeSimulationData bank at packet#: "<<fIndex<<std::endl;
-	  return false;
+	  fPedestal=true;
+	  delete pfPacket;
+	  return;
 	}
-      VKascadeSimulationData* pfKVBFSimData =
-			    pfPacket->get< VKascadeSimulationData >
-			    (VGetKascadeSimulationDataBankName());
-      fNx  = pfKVBFSimData->fNx;
-      fNy  = pfKVBFSimData->fNy;
-      fDir = pfKVBFSimData->fDirectionIndex;
+      delete pfPacket;
+      return;
     }
-    return true;
 }
 
 int  KSTelescope::getIndexForGridDirKey(int64_t fKey)
@@ -420,7 +446,7 @@ int KSTelescope::GetNYOffset(int fNX)
 // **************************************************************************
 
 
-
+/*
 bool KSTelescope::isAPedestalEvent(int fIndex)
 // ************************************************************************
 // See if  event at fIndex is a pedestal event. Return false if not.
@@ -461,6 +487,8 @@ bool KSTelescope::isAPedestalEvent(int fIndex)
     }
     return true;
 }
+*/
+
 // *********************************************************************
 
 
