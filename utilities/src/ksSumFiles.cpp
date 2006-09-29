@@ -241,8 +241,8 @@ int main(int argc, char** argv)
 	  std::string fInputFile;
 	  while(getline(fListIn,fInputFile))
 	    {
-	      int fType;
-	      int fEnergyGeV;
+	      int fType=0;
+	      int fEnergyGeV=0;
 	      if(fOutputVBF)
 		{
 		  // *********************************************************
@@ -303,6 +303,7 @@ int main(int argc, char** argv)
 		  fType = pfKVBFSimHead->fCORSIKAParticleID;
 		  // Now get energy
 		  fEnergyGeV = (int)pfKVBFSimHead->fEnergyGeV;
+		  delete packet;
 		}
 	      else
 		{                     //Must be only a root file specified
@@ -433,16 +434,16 @@ int main(int argc, char** argv)
       while(getline(fListIn,fInputFile))
 	{
 
-	  int fType;
-	  int fEnergyGeV;
-	  VBankFileReader* pfReader;
-	  VPacket*       pfPacket = NULL;
-	  VArrayEvent*   pfAEIn   = NULL;
-	  VEvent*        pfEvent  = NULL;
-	  VArrayTrigger* pfAT     = NULL;
-	  int fNumArrayEvents;
-	  int fNumVBFArrayEvents;
-	  int fNumRootArrayEvents;
+	  int fType=0;
+	  int fEnergyGeV=0;
+	  VBankFileReader* pfReader = NULL;
+	  VPacket*       pfPacket   = NULL;
+	  VArrayEvent*   pfAEIn     = NULL;
+	  VEvent*        pfEvent    = NULL;
+	  VArrayTrigger* pfAT       = NULL;
+	  int fNumArrayEvents=0;
+	  int fNumVBFArrayEvents=0;
+	  int fNumRootArrayEvents=0;
 	  std::string fVBFFileName;
 	  
 
@@ -459,7 +460,7 @@ int main(int argc, char** argv)
 	      // ************************************************************
 	   
 	      fVBFFileName= fInputFile + ".vbf";
-	      std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
+	      //std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
 	      
 	      pfReader = new VBankFileReader(fVBFFileName);
 	      fNumVBFArrayEvents = pfReader->numPackets()-1;
@@ -479,9 +480,9 @@ int main(int argc, char** argv)
 	    }
 	  VAVDF fFileIn;
 	  VACalibratedArrayEvent* pfInCalEvent;
-	  VASimulationHeader* pfRootSimHead;
-	  VAKascadeSimulationHead *pfKRootSimHead;
-	  VAKascadeSimulationData* pfKInSimEvent;
+	  VASimulationHeader* pfRootSimHead=NULL;
+	  VAKascadeSimulationHead *pfKRootSimHead=NULL;
+	  VAKascadeSimulationData* pfKInSimEvent=NULL;
 	  std::string fRootFileName;
 	  
 	  if(fOutputRoot)
@@ -547,7 +548,8 @@ int main(int argc, char** argv)
 		      // packet, no events in it
 		      // ******************************************************
 		      pfWriter->writePacket(0, pfPacket);
-		      
+		      delete pfPacket;
+
 		      // ******************************************************
 		      // Now we need a first event time to use. Use first 
 		      // event time in the first event in the first file
@@ -568,6 +570,7 @@ int main(int argc, char** argv)
 			  exit(1);
 			}
 		      std::cout<<"VBF RunStart Time: "<< fEventTime<<std::endl;
+		      delete pfPacket;
 		    }         //End VBF file
 		  if(fOutputRoot)
 		    {
@@ -725,8 +728,10 @@ int main(int argc, char** argv)
 			      pfSimData->fRunNumber=fRunNumber;
 			      pfSimData->fEventNumber=fArrayEventNum;
 			  
+			      VSimulationData* pfWriteSimData = 
+				                     pfSimData->copySimData();
 			      pfWritePacket->put(VGetSimulationDataBankName(),
-						 pfSimData);  
+						 pfWriteSimData);  
 			      // **********************************************
 			      // Fix up Kascade simulation data bank in this 
 			      // packet
@@ -740,9 +745,11 @@ int main(int argc, char** argv)
 			      pfKSimData->fRunNumber=fRunNumber;
 			      pfKSimData->fEventNumber=fArrayEventNum;
 			  
+			      VKascadeSimulationData* pfWriteKSimData = 
+				pfKSimData->copyKascadeSimData();
 			      pfWritePacket->
 				put(VGetKascadeSimulationDataBankName(),
-				    pfKSimData);  
+				    pfWriteKSimData);  
 			    }
 			  // **********************************************
 			  // Now the ArrayEvents
@@ -783,19 +790,15 @@ int main(int argc, char** argv)
 			      fNumNormalEvents++;
 			    }
 			  // now put array trigger back into the array event
-			  pfAEOut->setTrigger(pfAT);
+			  VArrayTrigger* pfWriteAT=pfAT->copyAT();
+			  pfAEOut->setTrigger(pfWriteAT);
 			  
 			  // **************************************************
 			  // Now fix telescope events
 			  // *************************************************
 			  int fNumTriggeredTels = 
 			    (int) pfAEIn->getNumEvents();
-			  //if(fNumTriggeredTels!=1)
-			  //  {
-			  //   std::cout<<"fNumTriggeredTels: "
-			  //	       <<fNumTriggeredTels
-			  //	       <<std::endl;
-			  // }
+
 			  for(int i=0;i<fNumTriggeredTels;i++)
 			    {
 			      // set the event number
@@ -809,16 +812,16 @@ int main(int argc, char** argv)
 			      
 			      pfEvent->setGPSYear(fGPSYear);
 			      // add the event to the array event!
-			      pfAEOut->addEvent(pfEvent);
+			      VEvent* pfWriteEvent=pfEvent->copyEvent();
+			      pfAEOut->addEvent(pfWriteEvent);
 			    }
 			  // put the array event back into the packet
-			  // I'm told this will be a replacement
 			  pfWritePacket->putArrayEvent(pfAEOut);
 			  
 			  // finally, write the packet into the file
 			  pfWriter->writePacket(fArrayEventNum,pfWritePacket);
-			  //delete pfAEOut;
 			  delete pfWritePacket;
+			  delete pfPacket;
 			}
 		      if(fOutputRoot)
 			{
