@@ -622,9 +622,10 @@ void  kssegmentwrite(float* XStart, float* YStart, float* HStart,
     }
   else if(GrISUOutput)
     {
-      int fCorsikaSpec=KascadeType2CorsikaType(*Spec);
+      //int fCorsikaSpec=KascadeType2CorsikaType(*Spec);
       double tsegss= *EndTime - (*ZSTim-*ZPTim);
-      *pfGrISUOut<<std::setw(2)<<fCorsikaSpec<<' '
+      //*pfGrISUOut<<std::setw(2)<<fCorsikaSpec<<' '
+      *pfGrISUOut<<std::setw(2)<<(*Spec)<<' '
 		<<std::scientific<<std::setprecision(6)<<std::setw(12)
 		<<std::showpoint<<*XStart<<' '
 		<<std::scientific<<std::setprecision(6)<<std::setw(12)
@@ -665,8 +666,9 @@ void ksgrisuheadwrite(int* Spec,float* XInitial, float* YInitial,
     {
       int istore=-1000;           //dummy seed I think
 
-      int fCorsikaSpec=KascadeType2CorsikaType(*Spec);
-      *pfGrISUOut<<std::setw(5)<<-fCorsikaSpec<<' '
+      //int fCorsikaSpec=KascadeType2CorsikaType(*Spec);
+      //*pfGrISUOut<<std::setw(5)<<-fCorsikaSpec<<' '
+      *pfGrISUOut<<std::setw(5)<<-(*Spec)<<' '
 		<<std::scientific<<std::setprecision(6)<<std::setw(13)
 		<<std::showpoint<<*XInitial<<' '
 		<<std::scientific<<std::setprecision(6)<<std::setw(13)
