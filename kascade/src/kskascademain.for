@@ -1483,6 +1483,7 @@ c       e1(daughter,total)=AU*M(parent)=(M**2+m1**2-m2**2)/(2*M)
 
 cSet up arrays for transformation matrix for subroutine_ daughter.
 
+       if ((1.0 - dn).gt.(1.0e-12)) then
        f=qq(dl,dm)
        a(1)=dl*dn/f
        a(2)=-dm/f
@@ -1493,6 +1494,20 @@ cSet up arrays for transformation matrix for subroutine_ daughter.
        a(7)=-f
        a(8)=0.
        a(9)=dn
+
+       else
+
+c  dn = 1 so lab and track coor systems are the same
+
+         do jjjj = 1,9
+           a(jjjj)=0.0
+         enddo
+         a(1)=1.0
+         a(5)=1.0
+         a(9)=1.0
+
+       endif
+
 c             | a(1) a(2) a(3) |  | b(1) |  |r9(1) |
 c             | a(4) a(5) a(6) | x| b(2) |= |r9(2) |
 c             | a(7) a(8) a(9) |  | b(3) |  |r9(3) |
@@ -1889,6 +1904,7 @@ c                            unit vector
 c       Dl1,dm1,dn1 is unit vector in lab of the composite direction
 c       enter it into the transformation matrix.
 
+       if ((1.0 - dn1).gt.(1.0e-12)) then
        f=qq(dl1,dm1)
        a(1)=dl1*dn1/f
        a(2)=-dm1/f
@@ -1899,6 +1915,19 @@ c       enter it into the transformation matrix.
        a(7)=-f
        a(8)=0.
        a(9)=dn1
+
+       else
+
+c  dn = 1 so lab and track coor systems are the same
+
+         do jjjj = 1,9
+           a(jjjj)=0.0
+         enddo
+         a(1)=1.0
+         a(5)=1.0
+         a(9)=1.0
+
+       endif
 
        XM0 = XM0*SQRT(XM2S)       !Total mass of the composite
       XM1S = (XM(LL2)/XM0)**2       !Normalized mass**2 of daughters 2 ,3
@@ -2072,16 +2101,31 @@ c		for small tix.
 	dm_local=dm_local/vlength
 	dn_local=dn_local/vlength
 
-       f=qq(dl_local,dm_local)       !f is sin of verticle angle.
-       a(1)=dl_local*dn_local/f
-       a(2)=-dm_local/f
-       a(3)=dl_local
-       a(4)=dm_local*dn_local/f
-       a(5)=dl_local/f
-       a(6)=dm_local
-       a(7)=-f
-       a(8)=0.
-       a(9)=dn_local
+       if ((1.0 - dn_local).gt.(1.0e-12)) then
+         f=qq(dl_local,dm_local)       !f is sin of verticle angle.
+         a(1)=dl_local*dn_local/f
+         a(2)=-dm_local/f
+         a(3)=dl_local
+         a(4)=dm_local*dn_local/f
+         a(5)=dl_local/f
+         a(6)=dm_local
+         a(7)=-f
+         a(8)=0.
+         a(9)=dn_local
+
+       else
+
+c  dn = 1 so lab and track coor systems are the same
+
+         do jjjj = 1,9
+           a(jjjj)=0.0
+         enddo
+         a(1)=1.0
+         a(5)=1.0
+         a(9)=1.0
+
+       endif
+
 c             | a(1) a(2) a(3) |  | b(1) |  |r9(1) |
 c             | a(4) a(5) a(6) | x| b(2) |= |r9(2) |
 c             | a(7) a(8) a(9) |  | b(3) |  |r9(3) |
@@ -4208,17 +4252,41 @@ c                                   incident particles.
 
         PTE=FPTE(etev)                     !Average Transverse momentum.(in some 
 c                                   funny units)
-
-       f=qq(dl,dm)              !Set up arrays for transformation matrix for 
-       a(1)=dl*dn/f              !subroutine daughter.
-       a(2)=-dm/f              !  | a(1) a(2) a(3) |  | b(1) |  |r9(1) |
-       a(3)=dl                     !  | a(4) a(5) a(6) | x| b(2) |= |r9(2) |
-       a(4)=dm*dn/f              !  | a(7) a(8) a(9) |  | b(3) |  |r9(3) |
+       if ((1.0 - dn).gt.(1.0e-12)) then
+       f=qq(dl,dm)
+       a(1)=dl*dn/f
+       a(2)=-dm/f
+       a(3)=dl
+       a(4)=dm*dn/f
        a(5)=dl/f
-       a(6)=dm                     !Vector b is new direction in frame of track.
+       a(6)=dm
        a(7)=-f
-       a(8)=0.                     !Vector a(3);a(6);a(9)  is track in lab frame -v
+       a(8)=0.
        a(9)=dn
+
+       else
+
+c  dn = 1 so lab and track coor systems are the same
+
+         do jjjj = 1,9
+           a(jjjj)=0.0
+         enddo
+         a(1)=1.0
+         a(5)=1.0
+         a(9)=1.0
+
+       endif
+
+c       f=qq(dl,dm)              !Set up arrays for transformation matrix for 
+c       a(1)=dl*dn/f              !subroutine daughter.
+c       a(2)=-dm/f              !  | a(1) a(2) a(3) |  | b(1) |  |r9(1) |
+c       a(3)=dl                     !  | a(4) a(5) a(6) | x| b(2) |= |r9(2) |
+c       a(4)=dm*dn/f              !  | a(7) a(8) a(9) |  | b(3) |  |r9(3) |
+c       a(5)=dl/f
+c       a(6)=dm                     !Vector b is new direction in frame of track.
+c       a(7)=-f
+c       a(8)=0.                     !Vector a(3);a(6);a(9)  is track in lab frame -v
+c       a(9)=dn
 c                            Vector a(2);a(5);.. is vector product
 c                            vxz normalized (mod=1)
 
