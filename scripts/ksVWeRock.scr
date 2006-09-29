@@ -13,8 +13,8 @@ inpDir=$KASCADEBASE'/inputs'
 
 cd /project/veritas/sembrosk/veritas
 
-find ./protons -name P1V*GeV*.vbf >1VL
-find ./he4 -name He4_1V*GeV*.vbf >>1VL
+find ./protons -name P1V*GeV*.vbf | grep -v Mult >1VL
+find ./he4 -name He4_1V*GeV*.vbf  | grep -v Mult >>1VL
 gawk 'gsub(/.vbf/,"",$1)' 1VL >1VList  
 
 

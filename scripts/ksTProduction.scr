@@ -95,26 +95,26 @@ function P1V()
 {
     parspec="P1V"      
     echo Protons at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/protons"
+    datadir="/project/veritas/sembrosk/veritas/test"
 
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
-    echo Removing P1V*GeV*.root files
+    #echo Removing P1V*GeV*.root files
     cd $datadir
-    rm -f P1V*GeV*.root
+    #rm -f P1V*GeV*.root
     cd $lcl
     pwd
   fi
   if [ "$kssc" = "ksaomVBF" ] ||[ "$kssc" = "ksaomVBFRoot" ] ; then
-    echo Removing P1V*GeV*.vbf files
+    #echo Removing P1V*GeV*.vbf files
     cd $datadir
-    rm -f P1V*GeV*.vbf
+    #rm -f P1V*GeV*.vbf
     cd $lcl
     pwd
   fi
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
-    echo Removing P1V*GeV*Mult.vbf files
+    #echo Removing P1V*GeV*Mult.vbf files
     cd $datadir
-    rm -f P1V*GeV*Mult.vbf
+    #rm -f P1V*GeV*Mult.vbf
     cd $lcl
     pwd
   fi
@@ -126,10 +126,10 @@ function P1V()
    #       end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 140 280 143 287 143 86  172 77 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 
 
-     enableGEN=([1]=OFF OFF OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  ON   OFF)
+     enableGEN=([1]=OFF OFF OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF  OFF  OFF  OFF  OFF  OFF  OFF)
         energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-         start=([1]=1   346 691  1036 1   356 551 1   271 1   321 1   141 1   144 1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-           end=([1]=345 690 1035 1372 275 356 829 270 536 320 635 140 280 143 287 143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+         start=([1]=1   346 691  1036 1   356 551 1   271 1   321 1   141 1   144 1   1   87  1   1   1   1   1   30  1   1   1   2   1    1    1    1    1    1    1)
+           end=([1]=345 690 1035 1372 275 356 829 270 536 320 635 140 280 143 287 143 86  172 77  80  48  39  29  58  17  14  6   2   2    1    1    1    1    1    1)
    
     SubmitPBSJobs
 }
