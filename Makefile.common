@@ -19,6 +19,9 @@
 # Standard directories
 # -----------------------------------------------------------------------------
 
+OPTIMIZATION=ON
+
+
 SRCDIR = src
 INCDIR = include
 BINDIR = bin
@@ -132,14 +135,18 @@ else
   #Purdue's
   CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i386-linux/3.2.3 -lstdc++
 
-  #Grinnell/Iowa:
-  #CLDFLAGS = -nofor_main -L/usr/lib/gcc/i486-linux-gnu/4.1.2 -lstdc++
+  #Granell/Iowa:
   #CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i486-linux-gnu/3.3.6 -lstdc++ 
 endif
 
 CXX           = g++
-ARCHCFLAGS    = -Wall -g -fPIC -O3
-#ARCHCFLAGS    = -Wall -g -fPIC
+
+ifdef OPTIMIZATION
+	ARCHCFLAGS    = -Wall -g -fPIC -O3
+else
+	ARCHCFLAGS    = -Wall -g -fPIC
+endif
+
 LD            = g++
 ARCHLDFLAGS   =  
 ARCHSOFLAGS   = -shared
@@ -149,8 +156,7 @@ ARCHSOFLAGS   = -shared
 #CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
 #	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS) $(ROOTCFLAGS)
 CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
-	-D_REENTRANT $(KASINCFLAGS) $(ROOTCFLAGS) -D__STDC_LIMIT_MACROS \
-        -D__STDC_CONSTANT_MACROS 
+	-D_REENTRANT $(KASINCFLAGS) $(ROOTCFLAGS)
 
 LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) -lU77 
  
