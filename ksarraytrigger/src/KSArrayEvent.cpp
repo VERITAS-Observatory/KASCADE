@@ -145,7 +145,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   else   if(fDataType==VBFFILE)
     {
       pfVBFOut=new KSArrayVBFFile(pfTelsInArray);
-      pfVBFOut->CreateVBFFile(fOutputFileName);
+      pfVBFOut->CreateVBFFile(fOutputFileName,(uint)fRunNumber);
       pfVBFOut->CopyOutHeaderPacket();
     }
 

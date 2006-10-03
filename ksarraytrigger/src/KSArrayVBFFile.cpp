@@ -31,12 +31,13 @@ KSArrayVBFFile::~KSArrayVBFFile()
 }
 // ***********************************************************************
 
-void KSArrayVBFFile::CreateVBFFile(std::string fOutputVBFFileName)
+void KSArrayVBFFile::CreateVBFFile(std::string fOutputVBFFileName, 
+				   uint fRunNumber)
 // ***********************************************************************
 // Create the Array VBF file
 // ***********************************************************************
 {
-  uint fRunNumber=pfArray[0]->getRunNumber();
+  //uint fRunNumber=pfArray[0]->getRunNumber();
   std::string fConfigMask;
   for(int i=0;i<fNumTels;i++)  //brute force
     {

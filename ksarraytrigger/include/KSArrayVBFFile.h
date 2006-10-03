@@ -45,7 +45,7 @@ class KSArrayVBFFile
   KSArrayVBFFile(std::vector< KSTelescope* >& pArray);
   virtual ~KSArrayVBFFile();
 
-  void CreateVBFFile(std::string fFileName);
+  void CreateVBFFile(std::string fFileName, uint fRunNumber);
   void CopyOutHeaderPacket();
 
   VBankFileWriter* getVBFFilePtr(){return pfWriter;};
