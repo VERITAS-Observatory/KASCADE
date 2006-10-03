@@ -44,13 +44,23 @@ void KSArrayVBFFile::CreateVBFFile(std::string fOutputVBFFileName)
       else if(pfArray[i]->fTelID==E_T2)fConfigMask+="1";
       else if(pfArray[i]->fTelID==E_T3)fConfigMask+="2";
       else if(pfArray[i]->fTelID==E_T4)fConfigMask+="3";
-      if(i!=fNumTels-1)fConfigMask+=",";
+      fConfigMask+=",";
     }
+  std::cout<<"fConfigMask: "<<fConfigMask<<std::endl;
+
   
   pfWriter = new VBankFileWriter(fOutputVBFFileName,
 				 fRunNumber,
 				 parseConfigMask(fConfigMask.c_str()));
-  if(pfWriter==NULL)
+  
+  std::vector< bool > fCMask= pfWriter->getConfigMask();
+  //for(int i=0;i<(int)fCMask.size();i++)
+  // {
+  //   std::cout<<"i,cmask: "<<i<<": "<<fCMask[i]<<std::endl;
+  //  }
+
+
+ if(pfWriter==NULL)
     {
       std::cout<<"ksArrayTrigger--Output VBF file failed to "
 	"open"<<std::endl;

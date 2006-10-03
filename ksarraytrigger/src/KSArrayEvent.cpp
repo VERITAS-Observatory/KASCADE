@@ -23,7 +23,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 {
   pfDataIn=pDataIn;
   fDataType=pfDataIn->fDataType;
-  
+  fRunNumber=pfDataIn->fRunNumber;
+
   // ****************************************************************
   // Open the input files, check we have enough telescopes for multiplicity
   // ****************************************************************
@@ -478,9 +479,9 @@ void KSArrayEvent::SaveEvent()
       // *************************************************
       VSimulationData *pfSimData = pfReadPacket->get< VSimulationData >
 	                                      (VGetSimulationDataBankName());
-      //pfSimData->fRunNumber=fRunNumber;
       VSimulationData* pfWriteSimData = pfSimData->copySimData();
       pfWriteSimData->fEventNumber=fOutEventIndex;
+      //pfWriteSimData->fRunNumber=fRunNumber;
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
 
       // *************************************************
@@ -489,10 +490,10 @@ void KSArrayEvent::SaveEvent()
       VKascadeSimulationData *pfKSimData = 
 	                     pfReadPacket->get< VKascadeSimulationData >
 			    (VGetKascadeSimulationDataBankName());
-      //pfKSimData->fRunNumber=fRunNumber;
       VKascadeSimulationData *pfWriteKSimData = 
 	                                    pfKSimData->copyKascadeSimData();
       pfWriteKSimData->fEventNumber=fOutEventIndex;
+      //pfWriteKSimData->fRunNumber=fRunNumber;
       pfWritePacket->put(VGetKascadeSimulationDataBankName(),
 				pfWriteKSimData);  
     
@@ -510,33 +511,52 @@ void KSArrayEvent::SaveEvent()
       // ****************************************************************
       //Resize things. Array trigger will contains fNumTrigTels telescopes
       // ****************************************************************
-      pfAT->resizeSubarrayTelescopes(fNumTrigTel);
+      pfAT->resizeSubarrayTelescopes(fNumTelsWithData);
       pfAT->resizeTriggerTelescopes(fNumTrigTel);
       
       // ********************************************************************
       // have to set the telescope ID's that this record corresponds to.
       // in this case, the record number and telescope ID happen to
       // be the same
-      for(int i=0;i<fNumTrigTel;i++)
+      // Fill up the subarrytels vector
+      for(int i=0;i<fNumTelsWithData;i++)
 	{
-	  int fTrigTelIndex=fTriggerEvents[i].fTelIndex;
-	  int fTel=pfTelsInArray[fTrigTelIndex]->fTelID;
-	  pfAT->setSubarrayTelescopeId(i,fTel);
+	  int fTelID=pfTelsInArray[i]->fTelID;
 	  VEventType fEvType;
 	  fEvType.trigger=VEventType::L2_TRIGGER;
+
 	  pfAT->setSpecificEventType(i,fEvType);
+	  pfAT->setSubarrayTelescopeId(i,fTelID);
 	  pfAT->setShowerDelay(i,0);
 	  pfAT->setCompDelay(i,0);
 	  pfAT->setAltitude(i,fAlt);
 	  pfAT->setAzimuth(i,fAz);
 	  pfAT->setTDCTime(i,0);
 	}
+
+      std::string fConfigMask;
+      for(int i=0;i<fNumTrigTel;i++)
+	{
+	  int fTrigTelIndex=fTriggerEvents[i].fTelIndex;
+	  int fTelID=pfTelsInArray[fTrigTelIndex]->fTelID;
+	  pfAT->setTriggerTelescopeId(i,fTelID);
+
+	  if(fTelID==E_T1)fConfigMask+="0";
+	  else if(fTelID==E_T2)fConfigMask+="1";
+	  else if(fTelID==E_T3)fConfigMask+="2";
+	  else if(fTelID==E_T4)fConfigMask+="3";
+	  fConfigMask+=",";
+  	}
       // Original AT from first triggered tel already has: node number=255,
       // run number(but may want to do this explictly later)
       //  pfAT->setRunNumber(fRunNumber).  flags=0;
-   
+
+      unsigned short fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
+      pfAT->setConfigMask(fCMask);
+
       // set the event number
       pfAT->setEventNumber(fOutEventIndex);
+      //pfAT->setRunNumber(fRunNumber);
       uint16_t fGPSWords[5];
       uint8_t  fGPSYear=6;   
       fEventTime.getForVBF(fGPSYear,5,fGPSWords);
@@ -550,10 +570,6 @@ void KSArrayEvent::SaveEvent()
 			  
       pfAT->setGPSYear(fGPSYear);
 
-      // now put array trigger back into the array event
-      VArrayTrigger* pfWriteAT = pfAT->copyAT();
-      pfAEOut->setTrigger(pfWriteAT);
-			  
       // **************************************************
       // Now copy over and fix telescope events.
       // *************************************************
@@ -570,6 +586,7 @@ void KSArrayEvent::SaveEvent()
  	  VEvent* pfEvent=pfAEIn->getEvent(0);
 	  pfEvent->setEventNumber(fOutEventIndex);
 	  pfEvent->setNodeNumber(fTelID);
+	  pfAT->setTriggerTelescopeId(i,fTelID);
 	  
 	  pfEvent->getGPSTime()[0]=fGPSWords[0];
 	  pfEvent->getGPSTime()[1]=fGPSWords[1];
@@ -582,6 +599,13 @@ void KSArrayEvent::SaveEvent()
 	  VEvent* pfWriteEvent= pfEvent->copyEvent();
 	  pfAEOut->addEvent(pfWriteEvent);
 	}
+      // now put array trigger back into the array event
+      VArrayTrigger* pfWriteAT = pfAT->copyAT();
+      pfAEOut->setTrigger(pfWriteAT);
+			  
+
+
+
       // put the array event back into the packet
       // I'm told this will be a replacement
       pfWritePacket->putArrayEvent(pfAEOut);
@@ -776,6 +800,7 @@ void KSArrayEvent::SavePedestalEvent()
 	                                      (VGetSimulationDataBankName());
       VSimulationData* pfWriteSimData=pfSimData->copySimData();
       pfWriteSimData->fEventNumber=fOutEventIndex;
+      //pfWriteSimData->fRunNumber=fRunNumber;
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
       // *************************************************
       // Fix up Kascade simulation data bank in this packet
@@ -786,6 +811,7 @@ void KSArrayEvent::SavePedestalEvent()
       VKascadeSimulationData* pfWriteKSimData = 
 	                                     pfKSimData->copyKascadeSimData();
       pfWriteKSimData->fEventNumber=fOutEventIndex;
+      //pfWriteKSimData->fRunNumber=fRunNumber;
       pfWritePacket->put(VGetKascadeSimulationDataBankName(),
 				pfWriteKSimData);  
       // *************************************************
@@ -809,10 +835,12 @@ void KSArrayEvent::SavePedestalEvent()
       // have to set the telescope ID's that this record corresponds to.
       // in this case, the record number and telescope ID happen to
       // be the same
+      std::string fConfigMask;
       for(int i=0;i<fNumTelsWithData;i++)
 	{
 	  int fTelID=pfTelsInArray[i]->fTelID;
 	  pfAT->setSubarrayTelescopeId(i,fTelID);
+	  pfAT->setTriggerTelescopeId(i,fTelID);
 	  VEventType fEvType;
 	  fEvType.trigger=VEventType::PED_TRIGGER;
 	  pfAT->setSpecificEventType(i,fEvType);
@@ -821,13 +849,25 @@ void KSArrayEvent::SavePedestalEvent()
 	  pfAT->setAltitude(i,fAlt);
 	  pfAT->setAzimuth(i,fAz);
 	  pfAT->setTDCTime(i,0);
+
+
+	  if(fTelID==E_T1)fConfigMask+="0";
+	  else if(fTelID==E_T2)fConfigMask+="1";
+	  else if(fTelID==E_T3)fConfigMask+="2";
+	  else if(fTelID==E_T4)fConfigMask+="3";
+	  fConfigMask+=",";
 	}
       // Original AT from first triggered tel already has: node number=255,
       // run number(but may want to do this explictly later)
-      //  pfAT->setRunNumber(fRunNumber).  flags=0;
+      //pfAT->setRunNumber(fRunNumber);
    
       // set the event number
       pfAT->setEventNumber(fOutEventIndex);
+
+      unsigned short fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
+      pfAT->setConfigMask(fCMask);
+
+
       uint16_t fGPSWords[5];
       uint8_t  fGPSYear=6;   
       fEventTime.getForVBF(fGPSYear,5,fGPSWords);
@@ -840,9 +880,6 @@ void KSArrayEvent::SavePedestalEvent()
       pfAT->getGPSTime()[4]=fGPSWords[4];
 			  
       pfAT->setGPSYear(fGPSYear);
-      // now put array trigger back into the array event
-      VArrayTrigger* pfWriteAT = pfAT->copyAT();
-      pfAEOut->setTrigger(pfWriteAT);
 			  
       // **************************************************
       // Now copy over and fix telescope events.
@@ -858,8 +895,10 @@ void KSArrayEvent::SavePedestalEvent()
  	  VEvent* pfEvent=pfAEIn->getEvent(0);  //Only one telescope in input 
 	                                        //file, its a 0;
 	  pfEvent->setEventNumber(fOutEventIndex);
+
 	  pfEvent->setNodeNumber(fTelID);
-	  
+	  pfAT->setTriggerTelescopeId(i,fTelID);
+
 	  pfEvent->getGPSTime()[0]=fGPSWords[0];
 	  pfEvent->getGPSTime()[1]=fGPSWords[1];
 	  pfEvent->getGPSTime()[2]=fGPSWords[2];
@@ -871,6 +910,11 @@ void KSArrayEvent::SavePedestalEvent()
 	  VEvent* pfWriteEvent=pfEvent->copyEvent();
 	  pfAEOut->addEvent(pfWriteEvent);
 	}
+
+      // now put array trigger back into the array event
+      VArrayTrigger* pfWriteAT = pfAT->copyAT();
+      pfAEOut->setTrigger(pfWriteAT);
+
       // put the array event back into the packet
       // I'm told this will be a replacement
       pfWritePacket->putArrayEvent(pfAEOut);
