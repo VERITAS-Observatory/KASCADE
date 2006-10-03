@@ -335,7 +335,7 @@ void KSArea::ProcessImages()
 	  pfCamera->fPixel[fPixelIndex].fTimePe.push_back(fPeTime);
 
 	  fPeHits++;
-	  if(fType==4 || fType==5)
+	  if(fPes[ipe].fTrackType==4 || fPes[ipe].fTrackType==5)
 	    {
 	      fMuonSum++;
 	    }
