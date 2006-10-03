@@ -487,9 +487,9 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   // in this case, the record number and telescope ID happen to
   // be the same
   at->setSubarrayTelescopeId(0,fTelID);
-                
-  at->setAltitude(0,0.0);
-  at->setAzimuth(0,0.0);
+
+  at->setAltitude(0,(float)fPrimaryZenithDeg);
+  at->setAzimuth(0,(float)fPrimaryAzimuthDeg);
   at->setTDCTime(0,0);
   VEventType fEvType;
   fEvType.trigger=VEventType::L2_TRIGGER;
