@@ -427,6 +427,7 @@ int main(int argc, char** argv)
       // ****************************************************************
       int fArrayEventNum=1;   //VBF events start at 1, 0 is for header
       uword32 fRunNumber=0;
+      std::vector< bool> fConfigMask;
       int fNumPedEvents=0;
       int fNumNormalEvents=0;
       int fCountOut=0;
@@ -532,10 +533,10 @@ int main(int argc, char** argv)
 		  if(fOutputVBF)
 		    {
 		      fRunNumber = pfReader->getRunNumber();
-		      std::string fConfigMask("0");
+		      fConfigMask= pfReader->getConfigMask();
 		      pfWriter = new VBankFileWriter(fOutputVBFFileName,
 						     fRunNumber,
-						     parseConfigMask(fConfigMask.c_str()));
+						     fConfigMask);
 		      if(pfWriter==NULL)
 			{
 			  std::cout<<"ksSumFiles--Output VBF file failed to "
@@ -554,6 +555,7 @@ int main(int argc, char** argv)
 		      // Now we need a first event time to use. Use first 
 		      // event time in the first event in the first file
 		      // ******************************************************
+		      //std::cout<<"fVBFFileNmae: "<<fVBFFileName<<std::endl;
 		      pfPacket=pfReader->readPacket(1);
 		      pfAEIn=pfPacket->getArrayEvent();
 		      if(pfAEIn->hasTrigger())
@@ -799,10 +801,14 @@ int main(int argc, char** argv)
 			  int fNumTriggeredTels = 
 			    (int) pfAEIn->getNumEvents();
 
+			  //std::cout<<"fNumTriggeredTels:"<<fNumTriggeredTels
+			  //	   <<std::endl;
 			  for(int i=0;i<fNumTriggeredTels;i++)
 			    {
 			      // set the event number
 			      pfEvent=pfAEIn->getEvent(i);
+			      //int fNodeNum=pfEvent->getNodeNumber();
+			      //std::cout<<"fTelID: "<<fNodeNum<<std::endl;
 			      pfEvent->setEventNumber(fArrayEventNum);
 			      pfEvent->getGPSTime()[0]=fGPSWords[0];
 			      pfEvent->getGPSTime()[1]=fGPSWords[1];
