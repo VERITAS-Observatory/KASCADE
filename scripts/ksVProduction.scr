@@ -117,6 +117,7 @@ function P1V()
     rm -f P1V*GeV*Mult.vbf
     cd $lcl
     pwd
+    maxMem=75MB
   fi
     
     let processEnd=35
@@ -162,6 +163,7 @@ function He4_1V()
     rm -f He4_1V*GeV*Multi.vbf
     cd $lcl
     pwd
+    maxMem=75MB
   fi
 
     let processEnd=20
@@ -215,7 +217,7 @@ function SubmitPBSJobs()
       echo "#"PBS -m ae                                             >>$pbsFile
       echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
       echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
-      echo "#"PBS -l mem=240mb                                      >>$pbsFile
+      echo "#"PBS -l mem=$maxMem                                    >>$pbsFile
       echo "#"PBS -l walltime=20:00:00                              >>$pbsFile
       echo "#"PBS -l nodes=1                                        >>$pbsFile
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
@@ -258,6 +260,7 @@ queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  w
 #*****************************************************************************
 lcl="$PWD"
 let pspecset=0
+maxMem=240MB
 if [ $1 = "CR1W" ]; then
 
     if [ "$kssc" = "ksaom" ]; then
