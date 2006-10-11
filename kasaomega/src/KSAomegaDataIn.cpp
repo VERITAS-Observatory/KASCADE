@@ -20,6 +20,7 @@ std::string KSAomegaDataIn::sDefaultRootFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultPixelStatsRootFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultRandomSeedFileName=" ";//empty;;
 std::string KSAomegaDataIn::sDefaultSimulationConfigFileName=" ";//empty;;
+//std::string KSAomegaDataIn::sDefaultMountDirectionsFileName=" ";
 
 std::string KSAomegaDataIn::sDefaultRelativeGains="ON"; 
 std::string KSAomegaDataIn::sDefaultRelativePedVars="ON";
@@ -45,6 +46,7 @@ KSAomegaDataIn::KSAomegaDataIn()
   fPixelStatsRootFileName   = sDefaultPixelStatsRootFileName;
   fRandomSeedFileName       = sDefaultRandomSeedFileName;
   fSimulationConfigFileName = sDefaultSimulationConfigFileName;
+  //fMountDirectionFileName=sDefaultMountDirectionsFileName;  
   if(fRandomSeedFileName==string())
     {
       std::cout<<"Fatal--Random Seed file name must be specified"<<std::endl;
@@ -204,6 +206,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("PixelStatusRootFileName",fPixelStatsRootFileName);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
   config.setValue("SimulationConfigFileName",fSimulationConfigFileName);
+  //config.setValue("MountDirectionsFileName",fMountDirectionFileName);
   config.setValue("RelativeGains",sDefaultRelativeGains);
   config.setValue("RelativePedVars",sDefaultRelativePedVars);
   config.setValue("BadPixelSupression",sDefaultBadPixelSupression);
@@ -273,6 +276,10 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "ksAomega. This file is saved in the VBF and VDF files in "
 		    "the simulation headers as a single very long string: "
 		    "fSimConfigfile.");
+  //  doVAConfiguration(file, command_line, 
+  //		    "MountDirectionsFileName",sDefaultMountDirectionsFileName,
+  //		    "KSAomegaDataIn",
+  //		    "File Name for Mount Directions Binary File.");
   doVAConfiguration(file, command_line, 
 		    "RootOutputFileName",sDefaultRootFileName,
 		    "KSAomegaDataIn",

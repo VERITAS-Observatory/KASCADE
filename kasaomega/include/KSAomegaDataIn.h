@@ -31,6 +31,7 @@ private:
   static std::string sDefaultPixelStatsRootFileName;
   static std::string sDefaultRandomSeedFileName;
   static std::string sDefaultSimulationConfigFileName;
+  //  static std::string sDefaultMountDirectionsFileName;
 
   static std::string sDefaultRelativeGains;   //These have "ON" or "OFF" values
   static std::string sDefaultRelativePedVars;
@@ -77,7 +78,7 @@ public:
   std::string fPixelStatsRootFileName;
   std::string fRandomSeedFileName;
   std::string fSimulationConfigFileName;
-  
+  //  std::string fMountDirectionFileName;  
 };
 #endif
 

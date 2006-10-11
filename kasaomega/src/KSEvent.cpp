@@ -872,6 +872,10 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfSimEvent->fEventNumber=pfVDFOut->getNumArrayEvents()-1;
   pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
   pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
+  pfSimEvent->fPrimaryZenithDeg=
+  pfSimEvent->fPrimaryAzimuthDeg=
+
+
   pfSimEvent->fCoreEastM=-findCoreXM();
   pfSimEvent->fCoreSouthM=-findCoreYM();
   
@@ -882,7 +886,7 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfSimEvent->fNx=pfTe->fNx;         //used for shower sort
   pfSimEvent->fNy=pfTe->fNy;         //           '      '
   pfSimEvent->fDirectionIndex=pfTe->fDirectionIndex;// '      '
-  
+
   pfSimEvent->fEmissionAltitudeM=(float)pfTe->fEmissionAltitude;
   pfSimEvent->fEmissionAltitudeSigma=(float)pfTe->fEmissionAltitudeSigma;
   pfSimEvent->fMuonRatio=(float)pfTe->fMuonRatio;
