@@ -132,7 +132,7 @@ else
   #library. Also, if the  main program is not fortran we have to tell 
   #ifort that.
 
-  CLDFLAGS = -nofor_main -L$(dir $(shell g++ -print-libgcc-file-name)) \
+  CLDFLAGS = -nofor_main -L$(dir $(shell $(CXX) -print-libgcc-file-name)) \
              -lstdc++ 
 
 endif
