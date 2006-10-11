@@ -15,7 +15,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include <fcntl.h>
 
 #include "KSSegmentDataClasses.h"
 #include "KSPeDataClasses.h"
@@ -44,8 +44,10 @@ class KSPeFile
   bool foundReadError(){return fFoundError;};
 
  private:
-  std::ifstream* pfInFile;
-  std::ofstream* pfOutFile;
+  //std::ifstream* pfInFile;
+  //std::ofstream* pfOutFile;
+  int pfInFile;
+  int pfOutFile;
   bool fSegmentHeadWritten;
   bool fSegmentHeadRead;
   bool fPeHeadWritten;

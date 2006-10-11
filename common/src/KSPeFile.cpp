@@ -19,8 +19,14 @@
 
 KSPeFile::KSPeFile()
 {
-  pfInFile=NULL;
-  pfOutFile=NULL;
+  // ********************************************************************
+  // Replace C++ Stlib  open for lower level c open. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //pfInFile=NULL;
+  //pfOutFile=NULL;
+  pfInFile=-1;
+  pfOutFile=-1;
   fSegmentHeadWritten=false;
   fSegmentHeadRead=false;
   fPeHeadWritten=false;
@@ -44,22 +50,43 @@ bool KSPeFile::Create(std::string PeFileName)
 // ***************************************************************************
 
 {
-  if(pfOutFile!=NULL || pfInFile!=NULL)
+  // ********************************************************************
+  // Replace C++ Stlib  open for lower level c open. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //if(pfOutFile!=NULL || pfInFile!=NULL)
+  if(pfOutFile!=-1 || pfInFile!=-1)
     {
       std::cout<<"KSPeFile-- Output file already created or Input opened"
 	       <<std::endl;
+      exit(1);
       //throw an exception here
     }
-  pfOutFile=new std::ofstream(PeFileName.c_str(), 
-			      std::ios::out | std::ios::binary);
-  if(pfOutFile->fail())
+  //pfOutFile=new std::ofstream(PeFileName.c_str(), 
+  //			      std::ios::out | std::ios::binary);
+  //if(pfOutFile->fail())
+  // {
+  //   std::cout<<"KSPeFile--Failed to Open a new output Pe file"
+  //	       <<std::endl;
+  //   exit(1);
+  //   //Throw an exception here.
+  // }
+  // ********************************************************************
+  // Create a new file, Open for write only. Replace any existing file 
+  // (O_TRUNC does this) set the permissions to 644
+  // ******************************************************************* 
+  pfOutFile=open(PeFileName.c_str(),O_CREAT|O_WRONLY|O_TRUNC,0644);
+
+  //Check file opened ok
+  if (pfOutFile<0) 
     {
       std::cout<<"KSPeFile--Failed to Open a new output Pe file"
-	       <<std::endl;
+  	       <<std::endl;
       exit(1);
-      //Throw an exception here.
     }
-  return pfOutFile->is_open();
+ 
+  //return  pfOutFile->is_open();
+  return  true;
 }
 // ***************************************************************************
 
@@ -70,22 +97,34 @@ bool KSPeFile::Open(std::string PeFileName)
 // ***************************************************************************
 
 {
-  if(pfInFile!=NULL || pfOutFile!=NULL)
+  // ********************************************************************
+  // Replace C++ Stlib  open for lower level c open. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //  if(pfInFile!=NULL || pfOutFile!=NULL)
+  if(pfInFile!=-1 || pfOutFile!=-1)
     {
       std::cout<<"KSPeFile-- Input file already opened or Output created"
 	       <<std::endl;
+      exit(1);
       //throw an exception here
     }
-  pfInFile=new std::ifstream(PeFileName.c_str(), 
-			     std::ios::in | std::ios::binary);
-  if(pfInFile->fail())
-    {
+
+  //  pfInFile=new std::ifstream(PeFileName.c_str(), 
+  //			     std::ios::in | std::ios::binary);
+
+  pfInFile=open(PeFileName.c_str(),O_RDONLY);
+
+  //if(pfInFile->fail())
+  if(pfInFile<0)
+   {
       std::cout<<"KSPeFile--Failed to Open an existing input pe file"
 	       <<std::endl;
       exit(1);
       //Throw an exception here.
     }
-  return pfInFile->is_open();
+  //return pfInFile->is_open();
+  return true;
 }
 // ***************************************************************************
 
@@ -94,20 +133,28 @@ void KSPeFile::Close()
 //  Close the opened file.
 // ***************************************************************************
 {
-  if(pfOutFile!=NULL)
+  // ********************************************************************
+  // Replace C++ Stlib  open for lower level c open. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  if(pfOutFile!=-1)
     {
-      pfOutFile->clear();
-      pfOutFile->close();
-      pfOutFile=NULL;
+      //pfOutFile->clear();
+      //pfOutFile->close();
+      //pfOutFile=NULL;
+      close(pfOutFile);
+      pfOutFile=-1;
       fSegmentHeadWritten=false;
       fPeHeadWritten=false;
    //std::cout<<"KSPeFile: Number of Pe records written: "<<fNumPe<<std::endl;
     }
-  if(pfInFile!=NULL)
+  if(pfInFile!=-1)
     {
-      pfInFile->clear();
-      pfInFile->close();
-      pfInFile=NULL;
+      //pfInFile->clear();
+      //pfInFile->close();
+      //pfInFile=NULL;
+      close(pfInFile);
+      pfInFile=-1;
       fSegmentHeadRead=false;
       fPeHeadRead=false;
    //std::cout<<"KSPeFile: Number of Pe records read: "<<fNumPe<<std::endl;
@@ -122,21 +169,29 @@ void KSPeFile::WriteSegmentHead(KSSegmentHeadData* segHead)
 // written to the file. And it should only be written once.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
+  // ********************************************************************
+  // Replace C++ Stlib  write for lower level c write. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //if(pfOutFile==NULL)
+  if(pfOutFile==-1)
     {
       std::cout<<"KSPeFile--Output pe file is not yet opened"
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else if(fSegmentHeadWritten)
     {
       std::cout<<"KSSegmentFile--Segment Header already written."
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else
     {
-      pfOutFile->write((char*)segHead, sizeof(KSSegmentHeadData));
+      //pfOutFile->write((char*)segHead, sizeof(KSSegmentHeadData));
+      write(pfOutFile,(char*)segHead, sizeof(KSSegmentHeadData));
       fSegmentHeadWritten=true;
     }
   return;
@@ -151,27 +206,36 @@ void KSPeFile::WritePeHead(KSPeHeadData* peHead)
 // to the file after the seg head. And it should only be written once.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
+  // ********************************************************************
+  // Replace C++ Stlib  write for lower level c write. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //  if(pfOutFile==NULL)
+  if(pfOutFile==-1)
     {
       std::cout<<"KSPeFile--Output pe file is not yet opened"
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else if(!fSegmentHeadWritten)
     {
       std::cout<<"KSPeFile--Segment Header not yet written."
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else if(fPeHeadWritten)
     {
       std::cout<<"KSPeFile--Pe Header already written."
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else
     {
-      pfOutFile->write((char*)peHead, sizeof(KSPeHeadData));
+      //pfOutFile->write((char*)peHead, sizeof(KSPeHeadData));
+      write(pfOutFile,(char*)peHead, sizeof(KSPeHeadData));
       fPeHeadWritten=true;
     }
   return;
@@ -184,27 +248,36 @@ void KSPeFile::WritePe(KSPeData* pe)
 //be written before any pe's written out.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
+  // ********************************************************************
+  // Replace C++ Stlib  write for lower level c write. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  // if(pfOutFile==NULL)
+  if(pfOutFile==-1)
     {
       std::cout<<"KSPeFile--Output pe file is not yet opened"
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else if(!fSegmentHeadWritten)
     {
       std::cout<<"KSPeFile--Segment Header Not yet written."
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else if(!fPeHeadWritten)
     {
       std::cout<<"KSPeFile--Pe Header Not yet written."
 	       <<std::endl;
+      exit(1);
       //throw exception
     }
   else
     {
-      pfOutFile->write((char*)pe, sizeof(KSPeData));
+      //pfOutFile->write((char*)pe, sizeof(KSPeData));
+      write(pfOutFile,(char*)pe, sizeof(KSPeData));
       fNumPe++;
     }
   return;
@@ -218,7 +291,12 @@ bool KSPeFile::ReadSegmentHead(KSSegmentHeadData* segHead)
 // And it should only be read once.
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
+  // ********************************************************************
+  // Replace C++ Stdlib  read for lower level c read. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //if(pfInFile==NULL)
+  if(pfInFile==-1)
     {
       std::cout<<"KSPeFile--Input segment file is not yet opened"
 	       <<std::endl;
@@ -234,11 +312,14 @@ bool KSPeFile::ReadSegmentHead(KSSegmentHeadData* segHead)
     {
       
       std::cout<<"KSPeFile: Reading Segment Head"<<std::endl;
-      pfInFile->read((char*)segHead, sizeof(KSSegmentHeadData));
-      if(!pfInFile->good())
+      //pfInFile->read((char*)segHead, sizeof(KSSegmentHeadData));
+      int fReadFlag=read(pfInFile, (char*)segHead, sizeof(KSSegmentHeadData));
+      //if(!pfInFile->good())
+      if(fReadFlag==-1)
 	{
 	  std::cout<<"KSPeFile--Failed to read Segment Header."
 		   <<std::endl;
+	  exit(1);
 	}
       fSegmentHeadRead=true;
       return true;
@@ -253,7 +334,12 @@ bool KSPeFile::ReadPeHead(KSPeHeadData* peHead)
 // And it should only be read once.
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
+  // ********************************************************************
+  // Replace C++ Stdlib  read for lower level c read. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //  if(pfInFile==NULL)
+  if(pfInFile==-1)
     {
       std::cout<<"KSPeFile--Input pe file is not yet opened"
 	       <<std::endl;
@@ -274,24 +360,33 @@ bool KSPeFile::ReadPeHead(KSPeHeadData* peHead)
   else
     {
       
-     pfInFile->read((char*)peHead, sizeof(KSPeHeadData));
-     if(!pfInFile->good())
-       {
-	 std::cout<<"KSPeFile--Failed to read Pe Header."
-		  <<std::endl;
-       }
-     fPeHeadRead=true;
-     return true;
+      //pfInFile->read((char*)peHead, sizeof(KSPeHeadData));
+      int fReadFlag=read(pfInFile,(char*)peHead, sizeof(KSPeHeadData));
+      //if(!pfInFile->good())
+      if(fReadFlag==-1)
+	{
+	  std::cout<<"KSPeFile--Failed to read Pe Header."
+		   <<std::endl;
+	  exit(1);
+	}
+      fPeHeadRead=true;
+      return true;
     }
 }
 // ***************************************************************************
 
 bool KSPeFile::ReadPe(KSPeData* pe)
 // ***************************************************************************
-// Read pe data from the input file. The segment head and the pe head need to be read before and pe's are read
+// Read pe data from the input file. The segment head and the pe head need 
+// to be read before and pe's are read
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
+  // ********************************************************************
+  // Replace C++ Stdlib  read for lower level c read. Do this for large file
+  // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
+  // ********************************************************************
+  //if(pfInFile==NULL)
+  if(pfInFile==-1)
     {
       std::cout<<"KSPeFile--Input pe file is not yet opened"
 	       <<std::endl;
@@ -311,21 +406,24 @@ bool KSPeFile::ReadPe(KSPeData* pe)
     }
   else
     {
-     pfInFile->read((char*)pe, sizeof(KSPeData));
-     if(pfInFile->eof())
-       {
-	 fFoundEOF=true;
-	 return false;
-       }
-     if(!pfInFile->good())
-       {
-	 std::cout<<"KSPeFile--Failed to read Pe."
-		  <<std::endl;
-	 fFoundError=true;
-	 return false;
-       }
-     fNumPe++;
-     return true;
+      //pfInFile->read((char*)pe, sizeof(KSPeData));
+      int fReadFlag=read(pfInFile,(char*)pe, sizeof(KSPeData));
+      //if(pfInFile->eof())
+      if(fReadFlag==0)
+	{
+	  fFoundEOF=true;
+	  return false;
+	}
+      //if(!pfInFile->good())
+      if(fReadFlag==-1)
+	{
+	  std::cout<<"KSPeFile--Failed to read Pe."
+		   <<std::endl;
+	  fFoundError=true;
+	  return false;
+	}
+      fNumPe++;
+      return true;
     }
 }
 // ***************************************************************************
