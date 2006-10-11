@@ -132,11 +132,9 @@ else
   #library. Also, if the  main program is not fortran we have to tell 
   #ifort that.
 
-  #Purdue's
-  CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i386-linux/3.2.3 -lstdc++
+  CLDFLAGS = -nofor_main -L$(dir $(shell g++ -print-libgcc-file-name)) \
+             -lstdc++ 
 
-  #Granell/Iowa:
-  #CLDFLAGS = -nofor_main -L/usr/lib/gcc-lib/i486-linux-gnu/3.3.6 -lstdc++ 
 endif
 
 CXX           = g++
@@ -156,7 +154,8 @@ ARCHSOFLAGS   = -shared
 #CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
 #	-D_REENTRANT $(KASINCFLAGS) $(INCHDF5) $(VHDF5INCFLAGS) $(ROOTCFLAGS)
 CFLAGS   = $(ARCHCFLAGS) -D_OAWG -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  \
-	-D_REENTRANT $(KASINCFLAGS) $(ROOTCFLAGS)
+	-D_REENTRANT $(KASINCFLAGS) $(ROOTCFLAGS) -D__STDC_LIMIT_MACROS \
+        -D__STDC_CONSTANT_MACROS
 
 LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) -lU77 
  
