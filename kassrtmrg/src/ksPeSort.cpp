@@ -121,10 +121,15 @@ int main(int argc, char** argv)
 
   TFile* pfTempTreeFile = (TFile*) new TFile("SortTempTreeFile.root", 
 				   "RECREATE","Temoprary Sort ROOT file");
+ 
+  
   pfTempTreeFile->cd();
   TTree* pfPeTree=new TTree("PeTree","Pe Tree");
+  pfPeTree->SetMaxTreeSize(20000000000LL);
+
   //pfPeTree->Branch("Pe","KSRootPeData",&pfRootPe,16000,0);
-  pfPeTree->Branch("Pe","KSRootPeData",&pfRootPe,1000,0);
+  //pfPeTree->Branch("Pe","KSRootPeData",&pfRootPe,1000,0);
+  pfPeTree->Branch("Pe","KSRootPeData",&pfRootPe,1000,99);
 
   // ------------------------------------------------------------------
   // Read pe's , transfer over to a RootPe record and fill the ttree. 
@@ -146,11 +151,19 @@ int main(int argc, char** argv)
 	    {
 	      nymin=pfBinaryPe->fNy;
 	    }
+
+	  //std::cout<<"nx,ny: "<<pfBinaryPe->fNx<<" "<<pfBinaryPe->fNy
+	  //	   <<std::endl;
+
 	  pfRootPe->CopyInPe(pfBinaryPe);
-	  pfTempTreeFile->cd();
+	  // pfTempTreeFile->cd();
+	  // if(icount>30000000)
+	  //  {
+	  //    std::cout<<"icount: "<<icount<<std::endl;
+	  //  }
 	  pfPeTree->Fill();
 	  icount++;
-	  //if(icount%1000==0)
+	  //if(icount%10000000==0)
 	  //  {
 	  //    std::cout<<icount<<std::endl;
 	  //  }
@@ -164,10 +177,12 @@ int main(int argc, char** argv)
 	    }
 	  else
 	    {
+	      std::cout<<"ksPeSort: Found input file EOF"<<std::endl;
 	      break;
 	    }
 	}
     }
+  //pfPeTree->Print();
   thetime=time(NULL);
   std::cout<<"ksPeSort:  Input file read successfully------"
 	   <<ctime(&thetime)<<std::endl;
@@ -187,11 +202,12 @@ int main(int argc, char** argv)
 	       <<ctime(&thetime)<<std::endl;
       return 0;
     }
-      int fNumEntries=pfPeTree->GetEntries();
-      std::cout<<"ksPeSort: Number of PEs in tree: "<<fNumEntries<<std::endl;
-      std::cout<<"ksPeSort: NX minimum= "<<nxmin<<std::endl;
-      std::cout<<"ksPeSort: NY minimum= "<<nymin<<std::endl;
-      std::cout<<"ksPeSort: Sorting by NY fastest and increasing"<<std::endl;
+
+  int fNumEntries=pfPeTree->GetEntries();
+  std::cout<<"ksPeSort: Number of PEs in tree: "<<fNumEntries<<std::endl;
+  std::cout<<"ksPeSort: NX minimum= "<<nxmin<<std::endl;
+  std::cout<<"ksPeSort: NY minimum= "<<nymin<<std::endl;
+  std::cout<<"ksPeSort: Sorting by NY fastest and increasing"<<std::endl;
 
   // -----------------------------------------------------------------------
   //Build the index of the ttree.
@@ -203,15 +219,15 @@ int main(int argc, char** argv)
 
   //Build the index sorting strings.
   char nxStr[80];
-  sprintf(nxStr,"Pe->fNx + %i",nxoffset);
+  sprintf(nxStr,"Pe.fNx + %i",nxoffset);
   char nyStr[80];
-  sprintf(nyStr,"Pe->fNy + %i",nyoffset);
+  sprintf(nyStr,"Pe.fNy + %i",nyoffset);
 
   // BuildIndex is probably where all the time is spent
   //  std::cout<<"Major,minor: "<<nxStr<<" -- "<<nyStr<<std::endl;
 
   int fNumIndexes=pfPeTree->BuildIndex(nxStr,nyStr);   //Ny varies fastest
-  if(fNumIndexes!=fNumEntries)
+  if(fNumIndexes!=icount)
     {
       std::cout<<"ksPrSort: Got wrong number of sorted indexes: "<<fNumIndexes
 	       <<std::endl;

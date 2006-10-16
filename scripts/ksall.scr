@@ -115,6 +115,11 @@ while test $i -le $4
     if [ -e "$pesfile" ]; then
 	rm $pesfile
     fi
+
+    if [ -e "SortTempTreeFile.root" ]; then
+	rm -v SortTempTreeFile.root
+    fi
+
     $src/ksPeSort $pefile $pesfile
     rm $pefile		#Delete pe file
 
@@ -149,10 +154,10 @@ done
 
 
 #Cleanup
-cd $wrkdir
-rm -vf *
-cd ..
-rmdir $dirID
+#cd $wrkdir
+#rm -vf *
+#cd ..
+#rmdir $dirID
 
 
 

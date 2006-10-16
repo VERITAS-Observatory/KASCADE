@@ -182,9 +182,9 @@ function SubmitPBSJobs()
       echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
       echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
       echo "#"PBS -l mem=240mb                                      >>$pbsFile
-      echo "#"PBS -l walltime=20:00:00                             >>$pbsFile
+      echo "#"PBS -l walltime=20:00:00                              >>$pbsFile
       echo "#"PBS -l nodes=1                                        >>$pbsFile
-      echo time $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
+      echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\        >>$pbsFile
       echo ${end[$i]} $datadir $StatusRunFileSpecification     \\   >>$pbsFile
       echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
       qsub $pbsFile
@@ -209,11 +209,11 @@ StatusRunFileSpecification=$3
 user=$USER
 
 #Specify queues
-queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro)
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro)
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro astro astro astro workq workq workq workq workq workq workq workq)
 
-#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro astro astro workq workq astro astro astro astro astro)
+queues=([1]=astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro astro astro workq workq astro astro astro astro astro)
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 

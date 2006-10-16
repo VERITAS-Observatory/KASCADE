@@ -122,8 +122,10 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	               (TDirectory*)pfVDFStats->Get(gRunHeaderDirName.c_str());
       if(pfRunHeaderDir==NULL)
 	{
-	  std::cout<<"ksAomega: No Run header directory in Reference File"
-		   <<std::endl;
+	  pfVDFStats->ls();
+	  std::cout<<"ksAomega: Failed to find Run header directory:"
+		   <<gRunHeaderDirName
+		   <<" in Reference File"<<std::endl;
 	  exit(1);
 	}
       VARunHeader* pfStatsRunHeader = 

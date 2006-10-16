@@ -34,6 +34,6 @@ $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting -OutputRootFileName=1W.root
 #Here is where we would put the stage1,stage2 stuff also.
 #Not yet
 #step 2.4
-$VEGASBASE/bin/vaStage3  1W.root
+$VEGASBASE/bin/vaStage3 -CleanUpApp=CleanUpStd  1W.root
 
 #and thats it!
