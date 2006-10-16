@@ -545,14 +545,14 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   packet->put(VGetKascadeSimulationDataBankName(),pfKSimdata);
             
   // finally, write the packet into the file
-  if(fPedestalEvent)
-    {
-      std::cout<<"Wrote Ped Packet: "<<fArrayEventNum<<std::endl;
-    }
-  else
-    {
-      std::cout<<"Wrote packet: "<<fArrayEventNum<<std::endl;
-    }
+  //if(fPedestalEvent)
+  // {
+  //   std::cout<<"Wrote Ped Packet: "<<fArrayEventNum<<std::endl;
+  // }
+  //else
+  //  {
+  //    std::cout<<"Wrote packet: "<<fArrayEventNum<<std::endl;
+  //  }
   pfWriter->writePacket(fArrayEventNum, packet);
             
   // dispose of the packet, so that we don't leak memory

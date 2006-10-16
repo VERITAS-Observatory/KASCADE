@@ -67,8 +67,9 @@ $(EXETARGET): $(LIBTARGET)
 	         
 
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS)   $(VBFCFLAGS) \
-	$< -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
+	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS)   $(VBFCFLAGS) $<
+
+# -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
 
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS) $(VBFCFLAGS)  $<
