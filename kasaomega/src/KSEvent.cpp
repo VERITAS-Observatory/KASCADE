@@ -471,6 +471,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       std::cout<<"ksAomega: Kascade Primary Type: "<<pfSegmentHead->fType
 	       <<" ->Corsika Primary Type: "<<fCorsikaType<<std::endl;
       pfSimEvent->fCORSIKAParticleID=fCorsikaType;
+      pfSimEvent->fTriggeredArray=true;
 
       double X[3];
       X[0]=pfSegmentHead->fDlInitial;

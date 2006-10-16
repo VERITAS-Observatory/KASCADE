@@ -49,6 +49,7 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
   fPrimaryZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
   fPrimaryAzimuthDeg = fAzimuth*gRad2Deg;
   fCoreElevationMASL=pfSegmentHead->fObservationAltitudeM;
+  fGrISUTrigger=1;
 
   fXSeg=pfPeHead->fXAreaWidthM;
   fYSeg=pfPeHead->fYAreaWidthM;
@@ -528,7 +529,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 			    fObservationZenithDeg,
 			    fObservationAzimuthDeg, fPrimaryZenithDeg,
 			    fPrimaryAzimuthDeg, fCoreEastM,
-			    fCoreSouthM, fCoreElevationMASL);
+			    fCoreSouthM, fCoreElevationMASL,fGrISUTrigger);
 
   VKascadeSimulationData *pfKSimdata=
     new VKascadeSimulationData(fNx, fNy,

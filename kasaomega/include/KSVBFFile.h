@@ -99,6 +99,7 @@ class KSVBFFile
   float       fPrimaryZenithDeg;
   float       fPrimaryAzimuthDeg;
   float       fCoreElevationMASL;
+  unsigned int fGrISUTrigger;
 
   double fXSeg;
   double fYSeg;
