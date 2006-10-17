@@ -208,9 +208,9 @@ function G1V()
     let processEnd=26
     WALLTIME=40:00:00
 
-    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF)
+    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON )
        energy=([1]=20  24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   54  1   1   1   1   1    1    1    1    1)
+        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
           end=([1]=100 90  80  70  60  50  50  50  50  50  50  50  50  50  50  50  54  30  30  19  10  5    2    1    1    1)
 
     SubmitPBSJobs
