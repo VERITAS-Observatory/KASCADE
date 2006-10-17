@@ -30,7 +30,7 @@ function He4_1W()
     enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+q          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
     
     SubmitPBSJobs
 }
@@ -121,15 +121,21 @@ function P1V()
   fi
     
     let processEnd=35
-    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
+#    enableGEN=([1]=ON    OFF  OFF  OFF   ON  OFF  OFF  ON   OFF  ON   ON   ON  OFF  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   OFF  OFF  OFF  ON   OFF  OFF)
 
-       energy=([1]=20   20   20   20   24   24   24   28   28   34   34   41   41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+ 
+#Filling in
+#    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  ON   ON   OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF ON  OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
+#       energy=([1]=20    20   20   20    24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+#        start=([1]=1373  346  691  1036 830  276  551  537  271  636  737  281 141  772  1010 144 313 501 78  273 158 141 59  66  57  46  17  9   5    1    1    1    5    1    1)
+#          end=([1]=1378  690  1035 1372 830  550  829  540  536  736  941  290 280  800  1148 175 500 688 80  320 198 156 65  70  68  55  24  15  7    1    1    1    5    5    5)
 #set 1
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
+       energy=([1]=20    20   20   20    24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1    346  691  1036 1    276  551  1    271  1    321  1    141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=345  690  1035 1372 275  550  829  270  536  320  635  140  280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 
-#    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF   OFF)
-#   enableGEN=([1]=OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  ON)
+
 #set 5
 #        start=([1]=5489 5835 6180 6525 3317 3592 3866 2145 2416 2541 2862 1121 1262 1149 1293 573 689 776 309 321 193 157 233 263 69  57  25  17  8    5    5    5    5    5    5)
 #          end=([1]=5834 6179 6524 6860 3591 3865 4145 2415 2680 2861 3175 1261 1400 1292 1435 715 775 860 386 400 240 195 262 290 85  70  30  20  10   5    5    5    5    5    5)
@@ -176,15 +182,16 @@ function He4_1V()
   fi
 
     let processEnd=20
-#    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
+#set1
     enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
        energy=([1]=49  58  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
+
+#    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
 #set 5
-        start=([1]=437 281 285 153 141 97  73  121 137 37  33  17  13  9    5    5    5    5    5    5)
-          end=([1]=545 350 355 190 175 120 90  136 150 45  40  20  15  10   5    5    5    5    5    5)
-#set1
-#        start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
-#          end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
+#        start=([1]=437 281 285 153 141 97  73  121 137 37  33  17  13  9    5    5    5    5    5    5)
+#          end=([1]=545 350 355 190 175 120 90  136 150 45  40  20  15  10   5    5    5    5    5    5)
     
     SubmitPBSJobs
 }
@@ -201,9 +208,9 @@ function G1V()
     let processEnd=26
     WALLTIME=40:00:00
 
-    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF ON  ON  ON  ON  ON  OFF  OFF  OFF  OFF  OFF)
+    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF)
        energy=([1]=20  24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-        start=([1]=1   1   1   1   1   1   1   1   1   1   1   43  1   1   1   1   15  13  12  10  7   1    1    1    1    1)
+        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   54  1   1   1   1   1    1    1    1    1)
           end=([1]=100 90  80  70  60  50  50  50  50  50  50  50  50  50  50  50  54  30  30  19  10  5    2    1    1    1)
 
     SubmitPBSJobs

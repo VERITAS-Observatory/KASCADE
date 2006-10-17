@@ -34,6 +34,10 @@ $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting -OutputVBFFileName=1VMult.v
 #Here is where we would put the stage1,stage2 stuff also.
 #Not yet
 #step 2.4
-#$VEGASBASE/bin/vaStage3  1V.root
+#step 2.4
+~/vegas/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 1VMult.vbf 1VMult.root  
+~/vegas/bin/vaStage2 -G_SimulationMode=1 1VMult.vbf 1VMult.root 1VLaser.root 
+~/vegas/bin/vaStage3 -CleanUpApp=CleanUpStd -EnableProgressDisplay 1VMult.root 
+
 
 #and thats it!
