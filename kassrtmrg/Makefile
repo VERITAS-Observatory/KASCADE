@@ -17,14 +17,14 @@ include ../Makefile.common
 
 LIBTARGET = $(LIBDIR)/libkassrtmrg.a
 EXETARGET = ksPeSort.cpp
-TESTTARGET = LargeTTreeTest.cpp
+#TESTTARGET = LargeTTreeTest.cpp
 
 #Nothing below here should have to change (much, maybe)
 
 #F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
 #F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
-CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET) | \
-                                                    grep -v $(TESTTARGET) ))
+CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET) ))
+#                                                 | grep -v $(TESTTARGET) ))
 
 
 #INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
@@ -33,11 +33,13 @@ CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET) | \
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
-TESTEXEOBJECT = $(addprefix $(TMPDIR)/, $(TESTTARGET:.cpp=.o)) 
-TESTEXE = $(addprefix $(BINDIR)/, $(TESTTARGET:.cpp=)) 
+#TESTEXEOBJECT = $(addprefix $(TMPDIR)/, $(TESTTARGET:.cpp=.o)) 
+#TESTEXE = $(addprefix $(BINDIR)/, $(TESTTARGET:.cpp=)) 
 
 ifdef ROOTSYS
-all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) $(TESTEXEOBJECT) $(TESTTARGET) 
+all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
+
+#$(TESTEXEOBJECT) $(TESTTARGET) 
 else
 all: norootcomment
 endif
@@ -55,10 +57,10 @@ $(EXETARGET): $(LIBTARGET)
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
 	          $(CCLIB) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
 
-$(TESTTARGET): $(LIBTARGET) 
-	$(CXX) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
-	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
-	          $(CCLIB) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
+#$(TESTTARGET): $(LIBTARGET) 
+#	$(CXX) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+#	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+#	          $(CCLIB) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
@@ -75,15 +77,16 @@ $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $<
 
-$(addprefix $(TMPDIR)/, $(TESTTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) $<
+#$(addprefix $(TMPDIR)/, $(TESTTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+#	$(CXX) -o $@ -c $(CFLAGS) $<
 
 
 .PHONY: install
 
 ifdef ROOTSYS
 install:
-	$(INSTALLCMD) $(EXE) $(TESTEXE) $(TOPDIR)/bin 
+	$(INSTALLCMD) $(EXE)  $(TOPDIR)/bin 
+#        $(TESTEXE)
 else
 install: norootcomment
 endif
