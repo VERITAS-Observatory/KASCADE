@@ -549,14 +549,14 @@ void KSArrayEvent::SaveEvent()
   	}
       // Original AT from first triggered tel already has: node number=255,
       // run number(but may want to do this explictly later)
-      //  pfAT->setRunNumber(fRunNumber).  flags=0;
+      //.  flags=0;
 
       unsigned short fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
       pfAT->setConfigMask(fCMask);
 
       // set the event number
       pfAT->setEventNumber(fOutEventIndex);
-      //pfAT->setRunNumber(fRunNumber);
+      pfAT->setRunNumber(fRunNumber);
       uint16_t fGPSWords[5];
       uint8_t  fGPSYear=6;   
       fEventTime.getForVBF(fGPSYear,5,fGPSWords);
@@ -859,7 +859,7 @@ void KSArrayEvent::SavePedestalEvent()
 	}
       // Original AT from first triggered tel already has: node number=255,
       // run number(but may want to do this explictly later)
-      //pfAT->setRunNumber(fRunNumber);
+      pfAT->setRunNumber(fRunNumber);
    
       // set the event number
       pfAT->setEventNumber(fOutEventIndex);
