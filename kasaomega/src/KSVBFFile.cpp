@@ -302,15 +302,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
                                        // specify which channels triggered.
       for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
 	{
-	  if(pfCamera->fPixel[k].fCFDTriggerTimeNS<gOverflowTime)
-	    {
-	      event->setTriggerBit(k,true);
-	    }
-	  else
-	    {
-	      event->setTriggerBit(k,false);
-	    }
-		
+	  event->setTriggerBit(k,pfCamera->isCFDTriggered(k));
 	}
       if(gNumChannelsCamera[fCameraType]>gNumPixelsCamera[fCameraType])
 	{
@@ -338,12 +330,13 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
   // *********************************************************************
   // specify that all channels passed zero suppression
+  // Set trigger bits as needed
   // *********************************************************************
   for (unsigned k=0;k<event->getMaxNumChannels();++k)
     {
       event->setHitBit(k,true);
     }
-                
+
   // *************************************************************
   // Since this VBF file is supposed to look like a VERITAS file 
   // Use VERITAS499 for num of samples. Also use VERITAS499 
