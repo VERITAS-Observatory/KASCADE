@@ -73,6 +73,8 @@ const double gOverflowTime=1000001.;
 const double gWaveFormBinSizeNS=.25;     // Bin size in ns
 
 
+const double gPSTPulseWidthNS       =10.0; //ECL Pulses to PST's from CFD's 
+                                           // measured by GHS in 09/01
 const double gFADCDelayNS           =-8.0;
 const double gFADCBinSizeNS         = 2.0;
 const int    gFADCHiLoGainThreshold = 250;

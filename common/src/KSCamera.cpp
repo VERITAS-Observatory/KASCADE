@@ -645,7 +645,7 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	    }
 	}
     }
-  fWaveFormStartNS=fPixelMinTimeNS-kPSTPulseWidth-
+  fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS-
                                         gFADCWindowOffsetNS[fCameraType];
 
   fPixelMaxTimeNS = fPixelMaxTimeNS 
@@ -686,3 +686,28 @@ void KSCamera::loadAPedestalEventIntoPedPixels()
   return;
 }
 // ***********************************************************************
+
+//bool KSCamera::isCFDTriggered(int fPixelIndex)
+// ***********************************************************************
+// Determine if pixel 's CFD is firing at time of the trigger.
+// ***********************************************************************
+//{
+//  bool fCFDTriggered=false;
+//  if(fPixel[fPixelIndex].fCFDTriggerTimeNS < gOverflowTime)
+//    {
+//      if(getPSTTriggerTimeNS()>=fPixel[fPixelIndex].fCFDTriggerTimeNS)       //{
+//	  if(getPSTTriggerTimeNS()<=
+//	               fPixel[fPixelIndex].fCFDTriggerTimeNS+gPSTPulseWidthNS)
+//	    {
+//	      std::cout<<"getPSTTriggerTimeNS,i,time: "
+//		       <<getPSTTriggerTimeNS()<<" "<<fPixelIndex<<" "
+//		       <<fPixel[fPixelIndex].fCFDTriggerTimeNS<<std::endl;
+//	      fCFDTriggered=true;
+//	    }
+//	}
+//  }
+//  return fCFDTriggered;
+//}
+
+// **************************************************************************
+

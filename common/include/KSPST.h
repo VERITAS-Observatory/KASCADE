@@ -24,8 +24,6 @@
 #include "KSCameraGrid.h"
 
 
-const double kPSTPulseWidth   =10.0; //ECL Pulses to PST's from CFD's measured
-                                  // by GHS in 09/01
 const double kStrobeDelay      = 6.0; //Strobe delay after mult trigger in PST 
                                      //to latch pattern address
 const int kNumPatchesPerModule=  5;
@@ -112,9 +110,12 @@ class KSPST
   bool isTriggered(double* pfTimeTrigger, double& fImageTriggerTime); 
   double SlideWindow(std::vector<KSPixelTimes>& pfPatchTimes,
 		    double fWindowWidth, int fMultiplicity);
+  std::vector<bool> fL2TriggerPixels;
+  std::vector<bool> fL2TriggerPixelsForPatch;
 
  private:
   KSCameraTypes fCameraType;
+  int fNumPixelsCamera;
   int fTriggerMultiplicity;
 
   int fNumPatches;

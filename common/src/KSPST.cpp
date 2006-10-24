@@ -21,6 +21,7 @@ KSPST::KSPST(KSCameraTypes CameraType, int TriggerMultiplicity)
   fTriggerMultiplicity  = TriggerMultiplicity;
 
   fNumPatches=kNumPatches[fCameraType];
+  fNumPixelsCamera=gNumPixelsCamera[fCameraType];
   pfPatchTriggerTimes.resize(fNumPatches);          //time a patch triggers
   pfPatchTriggerPattern = new int[fNumPatches];  //patttern that caused trig
 
@@ -33,6 +34,24 @@ KSPST::KSPST(KSCameraTypes CameraType, int TriggerMultiplicity)
       pfPixelsInPatchTimes[i].resize(kNumPixelsPerPatch);
     }
   FillPixelsInPatch();
+
+  // **************************************************************
+  //Debug dump
+  // *************************************************************
+  //for(int i=0;i<fNumPatches;i++)
+  // {
+  //   std::cout<<"Patch: "<<i<<std::endl;
+  //   for(int j=0;j<kNumPixelsPerPatch;j++)
+  //	{
+  //	  // ***************************************************************
+  //	  // Note: Pixels start at 1, pixel index's start at 0
+  //	  //       Missing patch pixels flaged as -1
+  //	  // *****************************************************************
+  //	  int fPixelIndex=pfPixelsInPatch[i][j];  //Get a pixel index 
+  //	  std::cout<<"j,pix: "<<j<<" "<<fPixelIndex<<std::endl;
+  //	}
+  // }
+  // ***********************************************************************
  
   FillPSTPatterns();
 
@@ -66,6 +85,9 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 
   bool fTriggered=false;
   fImageTriggerTime=gOverflowTime;    // Default: no trigger
+  fL2TriggerPixels.clear();
+  fL2TriggerPixels.resize(fNumPixelsCamera,false);
+
 // **********************************************************************
 // PST first finds patches that have a multiplicity trigger.
 // **********************************************************************
@@ -104,7 +126,7 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
       // dead for a second even if the first doesn't have a good pattern?
       // *****************************************************************
       pfPatchTriggerTimes[i].fTime = SlideWindow(pfPixelsInPatchTimes[i],
-					 kPSTPulseWidth,fTriggerMultiplicity);
+				       gPSTPulseWidthNS,fTriggerMultiplicity);
       pfPatchTriggerTimes[i].fIndex=i;
     }
 	
@@ -125,34 +147,46 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 	                                          //strobed into address. If 
 	                                          //this patch triggers this 
 	                                          //will be trigger time
-	// *****************************************************************
-	// Go through patch pixel trigger times and form address of pattern of
-	// patch with those pixels that are high at fTIMESTROBE.
-	// *****************************************************************
-	//Note: This use of fTimeStrobe may cause us to loose pixels from
-	//the start of the kPSTPulseWidth window but on the other hand we may
-	//gain some after the window.
-	// ******************************************************************
+      fL2TriggerPixelsForPatch.clear();
+      fL2TriggerPixelsForPatch.resize(fNumPixelsCamera,false);
+
+      // *****************************************************************
+      // Go through patch pixel trigger times and form address of pattern of
+      // patch with those pixels that are high at fTIMESTROBE.
+      // *****************************************************************
+      //Note: This use of fTimeStrobe may cause us to loose pixels from
+      //the start of the gPSTPulseWidthNS window but on the other hand we may
+      //gain some after the window.
+      // ******************************************************************
+      // Note: We don't quit when we find the first trigger (though thats 
+      // the trigger time we keep) since we want all acceptable triggered 
+      // patch patterns.
+      // *******************************************************************
+
       fMemoryAddressBits.reset();
                        //Cause the 2nd sort rearrainged things
       int fPatchIndex=pfPatchTriggerTimes[i].fIndex;
 
       for(int j=0;j<kNumPixelsPerPatch;j++)
 	{				// test pixel is on at strobe time.
-
 	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime>fTimeStrobe)
 	    {
 	      break;  //We are past the gate. Don't need to check anymore.
 	    }
-	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime+kPSTPulseWidth > 
+	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime+gPSTPulseWidthNS > 
 	                                                           fTimeStrobe)
 	    {
 	      //Cause the 1st sort rearrainged things
 	      int idx=pfPixelsInPatchTimes[fPatchIndex][j].fIndex;
-	      //std::cout<<" "<<idx;
+
+	    //std::cout<<" "<<idx<<" "<<pfPixelsInPatch[fPatchIndex][idx]<<" "
+	    //	       <<pfPixelsInPatchTimes[fPatchIndex][j].fTime<<std::endl;
+
 	      if(idx>=0)           //ignore missing pixels (but above should 
 		{		   //have done that)
 		  fMemoryAddressBits.set(idx);
+		  int fPixelInd=pfPixelsInPatch[fPatchIndex][idx];
+		  fL2TriggerPixelsForPatch[fPixelInd]=true;
 		}	    
 	    }
 	}
@@ -162,12 +196,22 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 	{
 	  fTriggered=true;
 	  pfPatchTriggerPattern[i]=(int)fMemoryAddress;
+	  for(int i=0;i<fNumPixelsCamera;i++)
+	    {
+	      if(fL2TriggerPixelsForPatch[i])
+		{
+		  fL2TriggerPixels[i]=true;
+		}
+	    }
+
 	  if(fImageTriggerTime==gOverflowTime)
 	    {
-	      fImageTriggerTime=fTimeTrigger;
+	      fImageTriggerTime=fTimeTrigger; //This test insures we keep only
+	                                      // earliest patch trigger time
+	      //std::cout<<"fImageTriggerTime: "<<fImageTriggerTime<<std::endl;
 	    }
 	  //std::cout<<" T:"<<std::oct<<fMemoryAddress<<std::dec
-	  //     <<" "<<pfPSTPatterns[fMemoryAddress]<<std::endl;
+	  //	   <<" "<<pfPSTPatterns[fMemoryAddress]<<std::endl;
 	}
       else
 	{
@@ -318,22 +362,22 @@ void KSPST::FillPixelsInPatch()
   //corners)which have no PMT's in the veritas 499 pixel camera.( and then 
   //compress stuff)
   // *************************************************************************
-  if(fCameraType==VERITAS499)
-    {
-      int fId=397;    // (destination)First corner pixel index
-      int fISource=399;
-      for(int k=0;k<6;k++)  // six corners 
-	{
-	  for(int j=0;j<11;j++)
-	    {
-              fXDeg[fId]=fXDeg[fISource+j];
-              fYDeg[fId]=fYDeg[fISource+j];
-              fId++;
-	    }
-          fISource+=12;
-	}
-      fNumPixels=fId; // # of pixels(should be 463)
-    }
+   if(fCameraType==VERITAS499)
+     {
+       int fId=397;    // (destination)First corner pixel index
+       int fISource=398;
+       for(int k=0;k<6;k++)  // six corners 
+	 {
+	   for(int j=0;j<11;j++)
+	     {
+             fXDeg[fId]=fXDeg[fISource+j];
+             fYDeg[fId]=fYDeg[fISource+j];
+             fId++;
+  	    }
+         fISource+=12;
+  	}
+     fNumPixels=fId; // # of pixels(should be 463)
+     }
   //  ************************************************************************
 
 

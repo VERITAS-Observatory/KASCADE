@@ -40,6 +40,7 @@ class KSCameraTrigger
   void FindWaveFormLimits(double& fWaveFormStartNS,double& fWaveFormLengthNS);
   double fMultiplicityTriggerTime;
   double fPSTTriggerTimeNS;
+  KSPST* pfPST;
   
  private:
   void fillPST();
@@ -51,7 +52,6 @@ class KSCameraTrigger
   std::vector<KSPixel>* pfPixel;
 
   std::vector< KSPixelTimes> pfPixelTriggerTime;
-  KSPST* pfPST;
   short* pfPSTPatterns;
   KSCameraTypes fCameraType;
   int fNumPixelsTrigger;

@@ -59,6 +59,8 @@ class KSCamera
   void InitPixelImageData();
   void Print();
   void loadAPedestalEventIntoPedPixels();
+  bool isCFDTriggered(int fPixelIndex)
+              {return pfCameraTrigger->pfPST->fL2TriggerPixels[fPixelIndex];};
 
  private:
   double fWaveFormStart;
