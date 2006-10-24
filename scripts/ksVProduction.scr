@@ -30,7 +30,7 @@ function He4_1W()
     enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
        energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-q          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
     
     SubmitPBSJobs
 }
@@ -208,10 +208,25 @@ function G1V()
     let processEnd=26
     WALLTIME=40:00:00
 
-    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON )
-       energy=([1]=20  24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
-          end=([1]=100 90  80  70  60  50  50  50  50  50  50  50  50  50  50  50  54  30  30  19  10  5    2    1    1    1)
+#set1
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+
+
+#    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
+#       energy=([1]=20  20  20  20  20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+#        start=([1]=901 911 921 931 941 145 77  98  47  51  33  28  31  16  16  16  16  16  16  16  11  6    4    2    2    2)
+#          end=([1]=910 920 930 940 950 288 152 194 92  100 64  54  50  30  30  30  30  30  30  30  15  10   4    2    2    2)
+
+
+#          end=([1]=550  350 240 300 140 155 90  105 50  50  50  50  50  50  50  50  54  30  30  19  10  5    2    1    1    1)
+
+#    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON ON  ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF )
+#       energy=([1]=28  34  41  49  58  70  84 100 120 143 605 867 24  24  24  70  70  70  41  41  41  41  49  49  49  49 )
+#        start=([1]=241 301 141 156 91  106 51 51  51  51  20  20  501 551 601 61  66  71  61  76  91  106 51  66  81  96 )
+#          end=([1]=450 566 266 288 152 194 92 100 64  54  30  30  555 600 658 65  70  75  75  90  105 120 65  80  95  110)
 
     SubmitPBSJobs
 }
@@ -266,11 +281,11 @@ user=$USER
 #Specify queues
 #queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
+#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
