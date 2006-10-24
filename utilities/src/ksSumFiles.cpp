@@ -32,6 +32,7 @@
 #include <string>
 #include <cmath>
 #include <time.h>
+#include <exception>
 
 #include <VBF/VBankFileReader.h>
 #include <VBF/VBankFileWriter.h>
@@ -41,6 +42,11 @@
 #include <VBF/VKascadeSimulationData.h>
 #include <VBF/VKascadeSimulationHeader.h>
 #include <VBF/VEventType.h>
+
+// include the simulation data structure
+#include <VBF/VSimulationData.h>
+
+ 
 
 #include "VAVDF.h"
 #include "VAKascadeSimulationData.h"
@@ -533,6 +539,8 @@ int main(int argc, char** argv)
 		  if(fOutputVBF)
 		    {
 		      fRunNumber = pfReader->getRunNumber();
+		      std::cout<<"ksSumFile: RunNumber: "<<fRunNumber
+			       <<std::endl;
 		      fConfigMask= pfReader->getConfigMask();
 		      pfWriter = new VBankFileWriter(fOutputVBFFileName,
 						     fRunNumber,
@@ -556,6 +564,13 @@ int main(int argc, char** argv)
 		      // event time in the first event in the first file
 		      // ******************************************************
 		      //std::cout<<"fVBFFileNmae: "<<fVBFFileName<<std::endl;
+		      if(!pfReader->hasPacket(1))
+			{
+			  std::cout<<"ksSumFiles: Missing packet #1. File: "
+				   <<fVBFFileName<<" fNumArrayEvents: "
+				   <<fNumArrayEvents<<std::endl;
+			  exit(1);
+			}
 		      pfPacket=pfReader->readPacket(1);
 		      pfAEIn=pfPacket->getArrayEvent();
 		      if(pfAEIn->hasTrigger())
@@ -928,10 +943,10 @@ int main(int argc, char** argv)
 	     (int)fRandomSeedFileName.length());
       return 0;
     }
- 
-  catch(VAException &ex)
+  
+  catch (const std::exception &e) 
     {
-      std::cerr<<ex;
+      std::cerr<<"Error: "<<e.what()<<std::endl;
       return 1;
     }
   catch(...)

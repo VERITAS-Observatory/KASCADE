@@ -56,7 +56,8 @@ $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 
 $(addprefix $(TMPDIR)/, $(CPPTARGET2:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS)   $(VBFCFLAGS) \
-	$< -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
+	$<
+# -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
 
 #$(addprefix $(TMPDIR)/, $(CPPTARGET3:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 #	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS) $(VBFCFLAGS) \
@@ -64,7 +65,8 @@ $(addprefix $(TMPDIR)/, $(CPPTARGET2:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 
 $(addprefix $(TMPDIR)/, $(CPPTARGET4:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS) $(VBFCFLAGS) \
-	 $< -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
+	 $<
+# -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
 
 $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)): $(LIBTARGET) 
 	$(F90) -o $(@) $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) $^  \
