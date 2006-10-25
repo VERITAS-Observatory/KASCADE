@@ -525,6 +525,9 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 			    fCoreSouthM, fCoreElevationMASL);
   //,fGrISUTrigger);
 
+  float fIntergralRatePerEventHz=0;
+  float fDifferentialRatePerEventHz=0;
+
   VKascadeSimulationData *pfKSimdata=
     new VKascadeSimulationData(fNx, fNy,
 			       (uint32_t)pfTe->fDirectionIndex, 
@@ -532,7 +535,11 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 			       (float)pfTe->fEmissionAltitudeSigma,
 			       (float)pfTe->fMuonRatio,
 			       (float)pfTe->fAomega,
-			       (float)fFADCStartGateTimeNS);
+			       (float)fFADCStartGateTimeNS,
+			       fIntergralRatePerEventHz,
+			       fDifferentialRatePerEventHz
+			       );
+
 
   // and put the simulation data into the packet
   packet->put(VGetSimulationDataBankName(),pfSimdata);
