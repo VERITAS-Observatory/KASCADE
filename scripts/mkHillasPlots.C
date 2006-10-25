@@ -12,7 +12,19 @@ void HillasPlots(char* fFileName)
       pfHParTree=(TTree*)fHillasFile.Get("ParameterisedEvents/ParEventTree");
       fBasicCuts="H.fGoodImage && H.fPixelsInImage>2";
     }
+
+  TTree* pfSimTree=NULL;
+  pfSimTree=(TTree*)fHillasFile.Get("SimulatedEvents/SimulatedEventsTree");
+  TH1F* IntegralRate=NULL;
+  //  if(pfSimTree!=NULL)
+  // {
+  //   IntegralRate = new TH1F("IntegralRate","IntegralRate",
+  //				      12000,0,12000.0);
+  //   IntegralRate->SetDirectory(0);
+  // }
+
 	 
+
   TCanvas* fC1 = new TCanvas("fC1","Hillas Params pg1",600,700);
   TCanvas* fC2 = new TCanvas("fC2","Hillas Params pg2",600,700);
   TCanvas* fC3 = new TCanvas("fC3","Hillas Params pg3",600,700);
@@ -84,6 +96,18 @@ void HillasPlots(char* fFileName)
   fC3->cd(3);
   fCuts=fBasicCuts +"&& abs(H.fAsymmetry)<1.0 && H.fAsymmetry!=0.0"; 
   pfHParTree->Draw("H.fAsymmetry",fCuts.c_str());
+
+  if(pfSimTree!=NULL)
+    {
+      fC3->cd(4);
+      pfSimTree->Draw("Sim.fEnergyGeV",
+		   "Sim.fDifferentialRatePerEventHz*(Sim.fEnergyGeV<500.0)");
+      fC3->cd(5);
+      pfSimTree->Draw("Sim.fEnergyGeV",
+		   "Sim.fIntegralRatePerEventHz*(Sim.fEnergyGeV<12000.0)");
+ 
+      cout<<"Trigger rate(Hz): "<<htemp->Integral()<<endl;
+    }
 
   fC4->cd(1);
   fCuts=fBasicCuts + "&& H.fLengthOverSize>0.0 && H.fLengthOverSize<.0015";

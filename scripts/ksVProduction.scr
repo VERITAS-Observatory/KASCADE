@@ -276,7 +276,7 @@ function P20V()
 #          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 
 #followup
-    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF OFF  OFF  OFF  OFF  ON   ON   OFF OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
+    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF OFF  OFF  OFF  OFF  OFF  ON   OFF OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
        energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1    346  691  1036 1   276  551  1    271  306  632  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
@@ -358,6 +358,12 @@ function G20V()
        energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
         start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
           end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+
+#followup
+#    enableGEN=([1]=ON   ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  ON   OFF  OFF  OFF )
+#       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+#        start=([1]=259  64  54  45  37  34  28  24  1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+#          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
 
     SubmitPBSJobs
 }
