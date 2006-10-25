@@ -210,6 +210,7 @@ int main(int argc, char** argv)
 
       KSEventWeights* pfWeights=NULL;
       float fXDummy=0;
+      double fMaxWeight=0;
       if(fWeightBySpectrum)
 	{
 	  std::cout<<"ksSumFiles:Determining Spectrum weights"
@@ -393,6 +394,7 @@ int main(int argc, char** argv)
 	  pfWeights = new KSEventWeights(fTypes);
 	  pfWeights->calculateWeights();
 	  pfWeights->Print();
+	  fMaxWeight=pfWeights->getMaximumWeight();
 	} //end of weight calculation
 
 
@@ -692,9 +694,12 @@ int main(int argc, char** argv)
 			   <<std::endl;
 		}  //End First File
 	      float fWeight=1.0;
+	      double fDiffRateHzPerM2=0;
 	      if(fWeightBySpectrum)
 		{
 		  fWeight=pfWeights->getWeight(fType,fEnergyGeV);
+		  fDiffRateHzPerM2 = pfWeights->
+                         getWeightedDifferentialRateHzPerM2(fType,fEnergyGeV); 
 		}
 	      for(int index=0;index<fNumArrayEvents;index++)//VBF Events start
 		// at 1, Root at 0
@@ -744,7 +749,7 @@ int main(int argc, char** argv)
 			      // this section
 			      pfSimData->fRunNumber=fRunNumber;
 			      pfSimData->fEventNumber=fArrayEventNum;
-			  
+
 			      VSimulationData* pfWriteSimData = 
 				                     pfSimData->copySimData();
 			      pfWritePacket->put(VGetSimulationDataBankName(),
@@ -761,7 +766,21 @@ int main(int argc, char** argv)
 			      //  this section
 			      pfKSimData->fRunNumber=fRunNumber;
 			      pfKSimData->fEventNumber=fArrayEventNum;
-			  
+			      // *******************************************
+			      // At this point we can determine the event rate
+			      // this event can contribute. We first convert
+			      // the relative weight back to the flux per 
+			      // shower. We then multiply by the Aomega this
+			      // event can contribute. The division by the 
+			      // number of showers is built into the weight.
+			      // *********************************************
+			      if(fWeightBySpectrum)
+				{
+				   pfKSimData->fIntegralRatePerEventHz =
+				       fMaxWeight*fWeight*pfKSimData->fAomega;
+				   pfKSimData->fDifferentialRatePerEventHz =
+				       fDiffRateHzPerM2*pfKSimData->fAomega;
+				}
 			      VKascadeSimulationData* pfWriteKSimData = 
 				pfKSimData->copyKascadeSimData();
 			      pfWritePacket->

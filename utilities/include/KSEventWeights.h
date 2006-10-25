@@ -37,6 +37,7 @@ class KSEventWeights
   void calculateWeights();
   float getWeight(int type, int fEnergyGeV);
   float getMaximumWeight(){return fMaxWeight;};
+  float getWeightedDifferentialRateHzPerM2(int type, int energyGeV);
   void  Print();
  private:
   std::map<int, fShwrMap_t> fShowers;

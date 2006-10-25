@@ -269,6 +269,56 @@ float KSEventWeights::getWeight(int type, int energyGeV)
 }
 // **************************************************************************
 
+float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, int energyGeV)
+// **************************************************************************
+// Get differential rate, wieghted by number of showers. units /sec/M**2
+// **************************************************************************
+{
+  fNumPos=fNumMap.find(type);
+  if(fNumPos == fNumMap.end())
+    {
+      std::cout<<"KSEventWeights: Failed to find Corsika type: "
+	       <<type<<std::endl;
+      exit(1);
+    }
+  pos=fNumPos->second.find(energyGeV);
+  if(pos == fNumPos->second.end())
+    {
+      std::cout<<"KSEventWeights: Failed to find Energy(GeV): "
+	       <<energyGeV<<std::endl;
+      exit(1);
+    }
+  int fNum=pos->second;
+  double fIAlpha=0;  //Integrel index
+  double fIPhi=0;
+  if(type==1)  //Check Corsika type
+    {
+      fIAlpha=gGammaAlpha;
+      fIPhi=gGammaIPhi;
+    }
+  else if(type==14)
+    {
+      fIAlpha=gProtonAlpha;
+      fIPhi=gProtonIPhi;
+    }
+  else if(type==402)
+    {
+      fIAlpha=gHe4Alpha;
+      fIPhi=gHe4IPhi;
+    }
+  else
+    {
+      std::cout<<"KSEventWeights: We are not set up for this Corsika "
+	"Particle type: "<<type<<std::endl;
+      exit(1);
+    }
+  double fDifferentialRateHzPerM2= fIPhi*pow((double)energyGeV,fIAlpha)/fNum;
+  return  (float)fDifferentialRateHzPerM2;
+}
+// **************************************************************************
+
+
+
 void KSEventWeights::Print()
 // **************************************************************************
 {
