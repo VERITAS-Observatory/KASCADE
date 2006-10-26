@@ -695,11 +695,14 @@ int main(int argc, char** argv)
 		}  //End First File
 	      float fWeight=1.0;
 	      double fDiffRateHzPerM2=0;
+	      int fNumShowersAtEnergy=1;
 	      if(fWeightBySpectrum)
 		{
 		  fWeight=pfWeights->getWeight(fType,fEnergyGeV);
 		  fDiffRateHzPerM2 = pfWeights->
                          getWeightedDifferentialRateHzPerM2(fType,fEnergyGeV); 
+		  fNumShowersAtEnergy=
+		                   pfWeights->getNumShowers(fType,fEnergyGeV);
 		}
 	      for(int index=0;index<fNumArrayEvents;index++)//VBF Events start
 		// at 1, Root at 0
@@ -780,6 +783,8 @@ int main(int argc, char** argv)
 				       fMaxWeight*fWeight*pfKSimData->fAomega;
 				   pfKSimData->fDifferentialRatePerEventHz =
 				       fDiffRateHzPerM2*pfKSimData->fAomega;
+				   pfKSimData->fAomega=
+				      pfKSimData->fAomega/fNumShowersAtEnergy;
 				}
 			      VKascadeSimulationData* pfWriteKSimData = 
 				pfKSimData->copyKascadeSimData();
@@ -918,6 +923,8 @@ int main(int argc, char** argv)
 				    fMaxWeight*fWeight*pfKInSimEvent->fAomega;
 			      pfKInSimEvent->fDifferentialRatePerEventHz =
 				fDiffRateHzPerM2*pfKInSimEvent->fAomega;
+			      pfKInSimEvent->fAomega=
+				pfKInSimEvent->fAomega/fNumShowersAtEnergy;
 			    }
 
 			  *pfSumSimEvent=*pfKInSimEvent;
