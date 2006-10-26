@@ -481,9 +481,22 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   // in this case, the record number and telescope ID happen to
   // be the same
   at->setSubarrayTelescopeId(0,fTelID);
+  // ********************************************************************
+  // now construct the simulation data. Common data first
+  // ********************************************************************
+  double X[3];
+  double fAzimuth;
+  double fElevation;
+  X[0]=pfTe->fMountDl;
+  X[1]=pfTe->fMountDm;
+  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+  GetAzElevFromVec(X,fAzimuth,fElevation);
 
-  at->setAltitude(0,(float)fPrimaryZenithDeg);
-  at->setAzimuth(0,(float)fPrimaryAzimuthDeg);
+  float fObservationZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
+  float fObservationAzimuthDeg = fAzimuth*gRad2Deg;
+
+  at->setAltitude(0,(float)fObservationZenithDeg);
+  at->setAzimuth(0,(float)fObservationAzimuthDeg);
   at->setTDCTime(0,0);
   VEventType fEvType;
   fEvType.trigger=VEventType::L2_TRIGGER;
@@ -500,19 +513,6 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   // put the array event into the packet
   packet->putArrayEvent(ae);
             
-  // ********************************************************************
-  // now construct the simulation data. Common data first
-  // ********************************************************************
-  double X[3];
-  double fAzimuth;
-  double fElevation;
-  X[0]=pfTe->fMountDl;
-  X[1]=pfTe->fMountDm;
-  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
-  GetAzElevFromVec(X,fAzimuth,fElevation);
-
-  float fObservationZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
-  float fObservationAzimuthDeg = fAzimuth*gRad2Deg;
 
   uint32_t fNx=pfTe->fNx;
   uint32_t fNy=pfTe->fNy;

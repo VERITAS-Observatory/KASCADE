@@ -101,29 +101,8 @@ void KSEventWeights::calculateWeights()
 	}
       else
 	{
-	  double fIAlpha=0;  //Integrel index
-	  double fIPhi=0;
-	  if(fShowerType==1)  //Check Corsika type
-	    {
-	      fIAlpha=1.+gGammaAlpha;
-	      fIPhi=gGammaIPhi;
-	    }
-	  else if(fShowerType==14)
-	    {
-	      fIAlpha=1.+gProtonAlpha;
-	      fIPhi=gProtonIPhi;
-	    }
-	  else if(fShowerType==402)
-	    {
-	      fIAlpha=1.+gHe4Alpha;
-	      fIPhi=gHe4IPhi;
-	    }
-	  else
-	    {
-	      std::cout<<"KSEventWeights: We are not set up for this Corsika "
-		"Particle type: "<<fShowerType<<std::endl;
-	      exit(1);
-	    }
+	  double fIAlpha=1.0+getAlpha(fShowerType);  //Integrel index
+	  double fIPhi=getIPhi(fShowerType);         //Spectral amplitude
 	  
 	  // *****************************************************************
 	  //get stuff into vectors just to maske the code clearer
@@ -289,29 +268,8 @@ float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, int energyGeV
       exit(1);
     }
   int fNum=pos->second;
-  double fIAlpha=0;  //Integrel index
-  double fIPhi=0;
-  if(type==1)  //Check Corsika type
-    {
-      fIAlpha=gGammaAlpha;
-      fIPhi=gGammaIPhi;
-    }
-  else if(type==14)
-    {
-      fIAlpha=gProtonAlpha;
-      fIPhi=gProtonIPhi;
-    }
-  else if(type==402)
-    {
-      fIAlpha=gHe4Alpha;
-      fIPhi=gHe4IPhi;
-    }
-  else
-    {
-      std::cout<<"KSEventWeights: We are not set up for this Corsika "
-	"Particle type: "<<type<<std::endl;
-      exit(1);
-    }
+  double fAlpha=getAlpha(type);         //Differential Index
+  double fIPhi=getIPhi(type);           //Spectral amplitude
   double fDifferentialRateHzPerM2= fIPhi*pow((double)energyGeV,fIAlpha)/fNum;
   return  (float)fDifferentialRateHzPerM2;
 }
@@ -344,3 +302,60 @@ void KSEventWeights::Print()
     }
   return;
 }
+// ***********************************************************************
+
+double KSEventWeights::getIPhi(int type)
+// ********************************************************************
+// Return the spectrum amplitude for this Corseka particle type
+// ********************************************************************
+{
+  double fPhi=0;
+  if(fShowerType==1)  //Check Corsika type
+    {
+      fPhi=gGammaIPhi;
+    }
+  else if(fShowerType==14)
+    {
+      fPhi=gProtonIPhi;
+    }
+  else if(fShowerType==402)
+    {
+      fPhi=gHe4IPhi;
+    }
+  else
+    {
+      std::cout<<"KSEventWeights: We are not set up for this Corsika "
+	"Particle type: "<<fShowerType<<std::endl;
+      exit(1);
+    }
+  return fPhi;
+}
+// ************************************************************************
+
+double KSEventWeights::getAlpha(int type);
+// ************************************************************************
+// Return Alpha spectral differential index for this Corseka particle type.
+// ************************************************************************
+{
+  double fAlpha=0;
+  if(fShowerType==1)  //Check Corsika type
+    {
+      fAlpha=gGammaAlpha;
+    }
+  else if(fShowerType==14)
+    {
+      fAlpha=gProtonAlpha;
+    }
+  else if(fShowerType==402)
+    {
+      fAlpha=gHe4Alpha;
+    }
+  else
+    {
+      std::cout<<"KSEventWeights: We are not set up for this Corsika "
+	"Particle type: "<<fShowerType<<std::endl;
+      exit(1);
+    }
+  return fAlpha;
+}
+// ************************************************************************

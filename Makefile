@@ -17,6 +17,7 @@ STAGES =common \
 	kassrtmrg \
 	kastrigger \
 	kasaomega \
+	ksarraytrigger \
 	utilities
 
 #VHDF5 \
@@ -28,6 +29,7 @@ INSTALLTARGETS =kascade \
 		kassrtmrg \
 		kastrigger \
 		kasaomega \
+		ksarraytrigger \
 		utilities
 
 all: $(STAGES) install

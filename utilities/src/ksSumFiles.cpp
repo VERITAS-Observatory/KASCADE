@@ -904,7 +904,24 @@ int main(int argc, char** argv)
 			  // Now sim data
 			  // ************************************************
 			  fFileIn.readSimulationData(index);
+			  // *******************************************
+			  // At this point we can determine the event rate
+			  // this event can contribute. We first convert
+			  // the relative weight back to the flux per 
+			  // shower. We then multiply by the Aomega this
+			  // event can contribute. The division by the 
+			  // number of showers is built into the weight.
+			  // *********************************************
+			  if(fWeightBySpectrum)
+			    {
+			      pfKInSimEvent->fIntegralRatePerEventHz =
+				    fMaxWeight*fWeight*pfKInSimEvent->fAomega;
+			      pfKInSimEvent->fDifferentialRatePerEventHz =
+				fDiffRateHzPerM2*pfKInSimEvent->fAomega;
+			    }
+
 			  *pfSumSimEvent=*pfKInSimEvent;
+
 			  pfSumFile->writeSimulationData();
 			}  //End root event write
 
