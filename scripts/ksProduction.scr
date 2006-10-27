@@ -76,8 +76,8 @@ function G1W()
     parspec="G1W"      
     echo Gammas at 1 deg: $parspec
     datadir="/project/veritas/sembrosk/whipple/gammas"
-    let processEnd=18
-    enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
+    let processEnd=19
+    enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   OFF  OFF )
        energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
         start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20  1    1    1    1    1)
           end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37  11   10   6    6    6)
