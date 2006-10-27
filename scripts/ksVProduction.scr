@@ -208,17 +208,24 @@ function G1V()
     let processEnd=26
     WALLTIME=40:00:00
 
-#set1
+#set1/ksaom
     enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
        energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
         start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
           end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+#set1/ksall
+#    let processEnd=26
+#    enableGEN=([1]=ON  ON  ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+#       energy=([1]=20  20  20   24  24  28  28  34  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+#        start=([1]=1   345 689  1   330 1   226 1   285 1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+#          end=([1]=344 688 1032 329 658 225 450 284 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
 
 
-#    enableGEN=([1]=OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
-#       energy=([1]=20  20  20  20  20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-#        start=([1]=901 911 921 931 941 145 77  98  47  51  33  28  31  16  16  16  16  16  16  16  11  6    4    2    2    2)
-#          end=([1]=910 920 930 940 950 288 152 194 92  100 64  54  50  30  30  30  30  30  30  30  15  10   4    2    2    2)
+#Foolowup
+    enableGEN=([1]=OFF OFF OFF OFF  OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
+       energy=([1]=20  20  20  20   20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=626 701 801 901  921 931 941 145 77  98  47  51  33  28  31  16  16  16  16  16  16  16  11  6    4    2    2    2)
+          end=([1]=700 800 900 1032 00910 920 930 940 950 288 152 194 92  100 64  54  50  30  30  30  30  30  30  30  15  10   4    2    2    2)
 
 
 #          end=([1]=550  350 240 300 140 155 90  105 50  50  50  50  50  50  50  50  54  30  30  19  10  5    2    1    1    1)
@@ -350,20 +357,28 @@ function G20V()
     parspec="G20V"      
     echo Gammas at 20 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/gammas"
-    let processEnd=26
     WALLTIME=40:00:00
 
-#set1
-    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
-       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
-          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
-
-#followup
-#    enableGEN=([1]=ON   ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  ON   OFF  OFF  OFF )
+#set1/ksaom
+#    let processEnd=26
+#    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
 #       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-#        start=([1]=259  64  54  45  37  34  28  24  1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+#        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
 #          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+#set1/ksall
+#    let processEnd=31
+#    enableGEN=([1]=ON  ON  ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+#       energy=([1]=20  20  20   24  24  28  28  34  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+#        start=([1]=1   345 689  1   330 1   226 1   285 1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+#          end=([1]=344 688 1032 329 658 225 450 284 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+
+
+#Folowup
+    let processEnd=31
+    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
+       energy=([1]=20  20  20   20   24  24  28  34  34  34  34  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=626 701 801  901  515 601 433 354 401 451 501 1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+          end=([1]=700 800 900  1032 600 658 450 400 450 500 566 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
 
     SubmitPBSJobs
 }
