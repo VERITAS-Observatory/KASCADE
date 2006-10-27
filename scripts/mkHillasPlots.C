@@ -99,14 +99,21 @@ void HillasPlots(char* fFileName)
 
   if(pfSimTree!=NULL)
     {
+      gStyle->SetMarkerStyle(21);
       fC3->cd(4);
       pfSimTree->Draw("Sim.fEnergyGeV",
-		   "Sim.fDifferentialRatePerEventHz*(Sim.fEnergyGeV<500.0)");
+		      "Sim.fDifferentialRatePerEventHz*(Sim.fEnergyGeV<500.0)",
+		      "P");
       fC3->cd(5);
+      pfSimTree->Draw("Sim.fEnergyGeV",
+		      "Sim.fAomega*(Sim.fEnergyGeV<10000.0)",
+		      "P");
+      fC3->cd(6);
       pfSimTree->Draw("Sim.fEnergyGeV",
 		   "Sim.fIntegralRatePerEventHz*(Sim.fEnergyGeV<12000.0)");
  
       cout<<"Trigger rate(Hz): "<<htemp->Integral()<<endl;
+      cout<<"Trigger rate(/min): "<<htemp->Integral()*60.0<<endl;
     }
 
   fC4->cd(1);
