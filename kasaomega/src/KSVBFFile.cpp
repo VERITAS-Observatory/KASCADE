@@ -501,6 +501,8 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   GetAzElevFromVec(X,fAzimuth,fElevation);
 
   float fObservationZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
+
+  //Azimuth may be off by 180 deg
   float fObservationAzimuthDeg = fAzimuth*gRad2Deg;
 
   at->setAltitude(0,(float)(90.0-fObservationZenithDeg));
