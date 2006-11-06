@@ -645,7 +645,7 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	    }
 	}
     }
-  fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS-
+  fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS[fCameraType]-
                                         gFADCWindowOffsetNS[fCameraType];
 
   fPixelMaxTimeNS = fPixelMaxTimeNS 

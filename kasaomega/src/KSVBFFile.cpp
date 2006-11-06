@@ -373,7 +373,15 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	      if(fStartGateBin<0)
 		{
 		  std::cout<<"KSVBFFile: Start Gate bin was <0"<<std::endl;
-		  exit(1);
+		  std::cout<<"KSVBFFile:fStartGateBin,fFADCStartGateTimeNS,"
+		    "gFADCWindowOffsetNS,fWaveFormStartNS,gWaveFormBinSizeNS"
+			   <<fStartGateBin<<" "<<fFADCStartGateTimeNS<<" "
+			   <<gFADCWindowOffsetNS[fCameraType]<<" "
+			   <<pfCamera->fPixel[k].fWaveFormStartNS<<" "
+			   <<gWaveFormBinSizeNS<<std::endl;
+		  std::cerr<<"KSVBFFile: Setting start Gate bin to 0"
+			   <<std::endl;
+		  fStartGateBin=0;
 		}
 	      // *************************************************************
 	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
@@ -495,7 +503,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   float fObservationZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
   float fObservationAzimuthDeg = fAzimuth*gRad2Deg;
 
-  at->setAltitude(0,(float)fObservationZenithDeg);
+  at->setAltitude(0,(float)(90.0-fObservationZenithDeg));
   at->setAzimuth(0,(float)fObservationAzimuthDeg);
   at->setTDCTime(0,0);
   VEventType fEvType;

@@ -1,16 +1,26 @@
-//Makes 3 Canvas' of Hillas plots
-void HillasPlots(char* fFileName)
+
+void HillasPlots(int fTelId,char* fFileName)
 {
   TFile fHillasFile(fFileName," Input Hillas File");
-  std::string fBasicCuts=
-                     "H.fGoodImage && H.fPixelsInImage>2 &&H.fTriggerCode==1";
+  std::string fBasicCuts;
+  if(fTelId==0)
+    {
+      fBasicCuts="H.fTelId==0";
+    }
+  else
+    {
+      fBasicCuts="H.fTelId==1";
+    }
+
+  fBasicCuts=fBasicCuts+" && H.fGoodImage && H.fPixelsInImage>2 && "
+                        "H.fTriggerCode==1";
   TTree* pfHParTree=NULL;
   pfHParTree=(TTree*)fHillasFile.Get("ParameterisedEvents/ParEventsTree");
 
   if(pfHParTree==NULL)
     {
       pfHParTree=(TTree*)fHillasFile.Get("ParameterisedEvents/ParEventTree");
-      fBasicCuts="H.fGoodImage && H.fPixelsInImage>2";
+      fBasicCuts=fBasicCuts + " && H.fGoodImage && H.fPixelsInImage>2";
     }
 
   TTree* pfSimTree=NULL;
@@ -133,4 +143,23 @@ void HillasPlots(char* fFileName)
   pfHParTree->Draw("H.fMax3",fCuts.c_str());
     
   return;
+}
+//Makes 3 Canvas' of Hillas plots
+void HillasPlotsT1(char* fFileName)
+{
+  HillasPlots(0,fFileName);
+  return;
+}
+// *****************************
+
+void HillasPlotsT2(char* fFileName)
+{
+  HillasPlots(1,fFileName);
+  return;
+}
+// *******************************
+
+void HillasPlots(char* fFileName)
+{
+  HillasPlots(0,fFileName);
 }

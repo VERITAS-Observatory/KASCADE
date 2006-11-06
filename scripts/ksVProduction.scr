@@ -100,21 +100,24 @@ function P1V()
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing P1V*GeV*.root files
     cd $datadir
-    rm -f P1V*GeV*.root
+    find . | grep P1V |grep .root | grep  -v Mult | xargs rm -fv 
+#    rm -f P1V*GeV*.root
     cd $lcl
     pwd
   fi
   if [ "$kssc" = "ksaomVBF" ] ||[ "$kssc" = "ksaomVBFRoot" ] ; then
     echo Removing P1V*GeV*.vbf files
     cd $datadir
-    rm -f P1V*GeV*.vbf
+    find . | grep P1V |grep .vbf | grep  -v Mult | xargs rm -fv 
+#    rm -f P1V*GeV*.vbf
     cd $lcl
     pwd
   fi
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
     echo Removing P1V*GeV*Mult.vbf files
     cd $datadir
-    rm -f P1V*GeV*Mult.vbf
+    find . | grep P1V |grep .root | grep Mult | xargs rm -fv 
+#    rm -f P1V*GeV*Mult.vbf
     cd $lcl
     pwd
     maxMem=75MB
@@ -158,7 +161,8 @@ function He4_1V()
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing He4_1V*GeV*.root files
     cd $datadir
-    rm -f He4_1V*GeV*.root
+    find . | grep He4_1V |grep .root | grep  -v Mult | xargs rm -fv 
+    #rm -f He4_1V*GeV*.root
     cd $lcl
     pwd
   fi
@@ -166,8 +170,8 @@ function He4_1V()
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing He4_1V*GeV*.vbf files
     cd $datadir
-#    rm -f He4_1V*GeV*.root
-    rm -f He4_1V*GeV*.vbf
+    find . | grep He4_1V |grep .vbf | grep  -v Mult | xargs rm -fv 
+#    rm -f He4_1V*GeV*.vbf
     cd $lcl
     pwd
   fi
@@ -175,7 +179,8 @@ function He4_1V()
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
     echo Removing He4_1V*GeV*Multi.vbf files
     cd $datadir
-    rm -f He4_1V*GeV*Multi.vbf
+    find . | grep He4_1V |grep .vbf | grep  Mult | xargs rm -fv 
+#    rm -f He4_1V*GeV*Mult.vbf
     cd $lcl
     pwd
     maxMem=75MB
@@ -207,6 +212,32 @@ function G1V()
     datadir="/project/veritas/sembrosk/veritas/gammas"
     let processEnd=26
     WALLTIME=40:00:00
+
+  if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+    echo Removing G1V*GeV*.root files
+    cd $datadir
+    find . | grep G1V |grep .root| grep -v Mult | xargs rm -v 
+    #rm -f G1V*GeV*.root
+    cd $lcl
+    pwd
+  fi
+  if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+    echo Removing G1V*GeV*.vbf files
+    cd $datadir
+    find . | grep G1V |grep .vbf | grep -v Mult | xargs rm -v 
+    #rm -vf G1V*GeV*.vbf
+    cd $lcl
+    pwd
+  fi
+  if [ "$kssc" = "ksarraytriggerVBF" ]; then
+    echo Removing G1V*GeV*Multi.vbf files
+    cd $datadir
+    find . | grep G1V |grep .vbf | grep  Mult | xargs rm -v 
+    #rm -vf G1V*GeV*Multi.vbf
+    cd $lcl
+    pwd
+    maxMem=75MB
+  fi
 
 #set1/ksaom
     enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
@@ -245,21 +276,24 @@ function P20V()
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing P20V*GeV*.root files
     cd $datadir
-    rm -f P20V*GeV*.root
+    find . | grep P20V |grep .root | grep  -v Mult | xargs rm -fv 
+#    rm -f P20V*GeV*.root
     cd $lcl
     pwd
   fi
   if [ "$kssc" = "ksaomVBF" ] ||[ "$kssc" = "ksaomVBFRoot" ] ; then
     echo Removing P20V*GeV*.vbf files
     cd $datadir
-    rm -f P20V*GeV*.vbf
+    find . | grep P20V |grep .vbf | grep  -v Mult | xargs rm -fv 
+#    rm -f P20V*GeV*.vbf
     cd $lcl
     pwd
   fi
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
     echo Removing P20V*GeV*Mult.vbf files
     cd $datadir
-    rm -f P20V*GeV*Mult.vbf
+    find . | grep P20V |grep .vbf | grep  Mult | xargs rm -fv 
+#    rm -f P20V*GeV*Mult.vbf
     cd $lcl
     pwd
     maxMem=75MB
@@ -304,7 +338,8 @@ function He4_20V()
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing He4_20V*GeV*.root files
     cd $datadir
-    rm -f He4_20V*GeV*.root
+    find . | grep He4_20V |grep .root | grep  -v Mult | xargs rm -fv 
+#    rm -f He4_20V*GeV*.root
     cd $lcl
     pwd
   fi
@@ -312,8 +347,8 @@ function He4_20V()
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing He4_20V*GeV*.vbf files
     cd $datadir
-#    rm -f He4_20V*GeV*.root
-    rm -f He4_20V*GeV*.vbf
+    find . | grep He4_20V |grep .vbf | grep  -v Mult | xargs rm -fv 
+#    rm -f He4_20V*GeV*.vbf
     cd $lcl
     pwd
   fi
@@ -321,7 +356,8 @@ function He4_20V()
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
     echo Removing He4_20V*GeV*Multi.vbf files
     cd $datadir
-    rm -f He4_20V*GeV*Multi.vbf
+    find . | grep He4_20V |grep .vbf | grep  Mult | xargs rm -fv 
+#    rm -f He4_20V*GeV*Multi.vbf
     cd $lcl
     pwd
     maxMem=75MB
@@ -351,6 +387,32 @@ function G20V()
     echo Gammas at 20 deg: $parspec
     datadir="/project/veritas/sembrosk/veritas/gammas"
     WALLTIME=40:00:00
+
+  if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+    echo Removing G20V*GeV*.root files
+    cd $datadir
+    find . | grep G20V |grep .root| grep -v Mult | xargs rm -v 
+    #rm -f G20V*GeV*.root
+    cd $lcl
+    pwd
+  fi
+  if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+    echo Removing G20V*GeV*.vbf files
+    cd $datadir
+    find . | grep G20V |grep .vbf | grep -v Mult | xargs rm -v 
+    #rm -vf G20V*GeV*.vbf
+    cd $lcl
+    pwd
+  fi
+  if [ "$kssc" = "ksarraytriggerVBF" ]; then
+    echo Removing G20V*GeV*Multi.vbf files
+    cd $datadir
+    find . | grep G20V |grep .vbf | grep  Mult | xargs rm -v 
+    #rm -vf G20V*GeV*Multi.vbf
+    cd $lcl
+    pwd
+    maxMem=75MB
+  fi
 
 #set1/ksaom
 #    let processEnd=26

@@ -126,7 +126,7 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
       // dead for a second even if the first doesn't have a good pattern?
       // *****************************************************************
       pfPatchTriggerTimes[i].fTime = SlideWindow(pfPixelsInPatchTimes[i],
-				       gPSTPulseWidthNS,fTriggerMultiplicity);
+			  gPSTPulseWidthNS[fCameraType],fTriggerMultiplicity);
       pfPatchTriggerTimes[i].fIndex=i;
     }
 	
@@ -173,8 +173,8 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 	    {
 	      break;  //We are past the gate. Don't need to check anymore.
 	    }
-	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime+gPSTPulseWidthNS > 
-	                                                           fTimeStrobe)
+	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime+
+	                          gPSTPulseWidthNS[fCameraType] >fTimeStrobe)
 	    {
 	      //Cause the 1st sort rearrainged things
 	      int idx=pfPixelsInPatchTimes[fPatchIndex][j].fIndex;

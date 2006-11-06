@@ -777,14 +777,26 @@ int main(int argc, char** argv)
 			      // event can contribute. The division by the 
 			      // number of showers is built into the weight.
 			      // *********************************************
+			      // The fIntegralRatePerEventHz, fAomega (per 
+			      // event)and fDifferentialRatePerEventHz 
+			      // function all assume all events from all 
+			      // showers used. However, since we reduce the 
+			      // number of events by fWeight we need to 
+			      // correct for this by dividing by fWeight
+			      // *********************************************
 			      if(fWeightBySpectrum)
 				{
 				   pfKSimData->fIntegralRatePerEventHz =
 				       fMaxWeight*fWeight*pfKSimData->fAomega;
+				   pfKSimData->fIntegralRatePerEventHz=
+				     pfKSimData->fIntegralRatePerEventHz/
+				                                     fWeight;
 				   pfKSimData->fDifferentialRatePerEventHz =
-				       fDiffRateHzPerM2*pfKSimData->fAomega;
+				       fDiffRateHzPerM2*pfKSimData->fAomega/
+				                                     fWeight;
 				   pfKSimData->fAomega=
-				      pfKSimData->fAomega/fNumShowersAtEnergy;
+				     pfKSimData->fAomega/(fNumShowersAtEnergy*
+				     fWeight);
 				}
 			      VKascadeSimulationData* pfWriteKSimData = 
 				pfKSimData->copyKascadeSimData();
@@ -920,11 +932,14 @@ int main(int argc, char** argv)
 			  if(fWeightBySpectrum)
 			    {
 			      pfKInSimEvent->fIntegralRatePerEventHz =
-				    fMaxWeight*fWeight*pfKInSimEvent->fAomega;
+				    fMaxWeight*fWeight*pfKInSimEvent->fAomega/
+				                                     fWeight;
 			      pfKInSimEvent->fDifferentialRatePerEventHz =
-				fDiffRateHzPerM2*pfKInSimEvent->fAomega;
+				fDiffRateHzPerM2*pfKInSimEvent->fAomega/
+				                                     fWeight;
 			      pfKInSimEvent->fAomega=
-				pfKInSimEvent->fAomega/fNumShowersAtEnergy;
+				pfKInSimEvent->fAomega/(fNumShowersAtEnergy*
+							fWeight);
 			    }
 
 			  *pfSumSimEvent=*pfKInSimEvent;

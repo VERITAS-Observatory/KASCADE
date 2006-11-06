@@ -48,7 +48,9 @@ const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
 
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
-
+const double gPSTPulseWidthNS[2]         = {        10.0,        10.0}; 
+                                     //Whipple ECL Pulses to PST's from CFD's 
+                                     // measured by GHS in 09/01
 const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};
 //5:const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
 
@@ -72,9 +74,6 @@ const double gOverflowTime=1000001.;
 
 const double gWaveFormBinSizeNS=.25;     // Bin size in ns
 
-
-const double gPSTPulseWidthNS       =10.0; //ECL Pulses to PST's from CFD's 
-                                           // measured by GHS in 09/01
 const double gFADCDelayNS           =-8.0;
 const double gFADCBinSizeNS         = 2.0;
 const int    gFADCHiLoGainThreshold = 250;
