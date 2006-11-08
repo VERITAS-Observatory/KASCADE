@@ -40,9 +40,9 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
   // *************************************************
 
   double X[3];
-  X[0]=pfSegmentHead->fDlInitial;
-  X[1]=pfSegmentHead->fDmInitial;
-  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+  X[0]=-pfSegmentHead->fDlInitial;   // Reverse direction to get source
+  X[1]=-pfSegmentHead->fDmInitial;   // not destination
+  X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]); // Elevation positive
   double fAzimuth;
   double fElevation;
   GetAzElevFromVec(X,fAzimuth,fElevation);
@@ -504,6 +504,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
   //Azimuth may be off by 180 deg
   float fObservationAzimuthDeg = fAzimuth*gRad2Deg;
+  //std::cout<<"  fObservationZenithDeg:"<<fObservationZenithDeg<<std::endl;
 
   at->setAltitude(0,(float)(90.0-fObservationZenithDeg));
   at->setAzimuth(0,(float)fObservationAzimuthDeg);
