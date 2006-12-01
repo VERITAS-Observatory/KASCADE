@@ -752,7 +752,6 @@ int main(int argc, char** argv)
 			      // this section
 			      pfSimData->fRunNumber=fRunNumber;
 			      pfSimData->fEventNumber=fArrayEventNum;
-
 			      VSimulationData* pfWriteSimData = 
 				                     pfSimData->copySimData();
 			      pfWritePacket->put(VGetSimulationDataBankName(),
