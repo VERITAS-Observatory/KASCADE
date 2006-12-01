@@ -117,12 +117,16 @@ void KSCamera::Print()
 
 
   std::cout<<"Camera Initalized:"<<std::endl;
-  std::cout<<"Pixel 1 light Total collection effciency = "
-	   <<fPixel[1].fEfficiency<<std::endl;
-  std::cout<<"Pixel 1 light Total Light Cone collection effciency = "
-	   <<fPixel[1].fEfficiency/fPixel[1].fBaseEfficiency<<std::endl;
+  std::cout<<"         Pixel 1 light Total collection effciency = "
+	   <<fPixel[0].fEfficiency<<std::endl;
+  std::cout<<"    Pixel 1 Total Light Cone collection effciency = "
+	   <<fPixel[0].fEfficiency/fPixel[0].fBaseEfficiency<<std::endl;
+  std::cout<<"            Pixel 1 Single Pe Mean FADC Area (DC) = "
+	   <<fPixel[0].fSinglePeMeanFADCArea<<std::endl;
 
   pfCameraTrigger->Print();
+  //fPixel[0].PrintPulseHeightsOfLightPulse();
+
   return;
 }
 // ************************************************************************

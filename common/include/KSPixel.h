@@ -44,7 +44,7 @@ class KSPixel
   double  GetCharge(double fTriggerTimeNS)
                                      {return GetCharge(fTriggerTimeNS,false);};
   void PrintWaveForm(int nx, int ny, int seqNum,double time);
-
+  void PrintPulseHeightsOfLightPulse();
  private:
   void addPe(double fPeTime,bool fAfterPulse);
   float fXDummy;

@@ -14,6 +14,8 @@
 // This is where the code starts.
 
 #include "KSPixel.h"
+#include <iostream>
+#include <iomanip>
 
 extern "C" float pran(float* fXDummy);
 extern "C" double Rexp(double fRate);
@@ -152,6 +154,7 @@ void KSPixel::addPe(double fPeTimeNS,bool fAfterPulse)
 	  fPeEndIndex=fNumWaveFormBins-fStartBin-1;
 	}
       double fPulseHeight=pfSinglePe->getPulseHeight(fAfterPulse);
+      //double fPulseHeight=1.0;
       // Now load in the single pe
       int fWaveFormIndex=fStartBin;     
       for(int i=fPeStartIndex;i<=fPeEndIndex;i++)
@@ -177,7 +180,8 @@ void KSPixel::DetermineNoisePedestals()
 
   //bool fAfterPulse=true;
   bool fAfterPulse=false;
-  int fICount= AddNoiseToWaveForm(fAfterPulse);  //Note that this noise has not been 
+  //int fICount= AddNoiseToWaveForm(fAfterPulse);  //Note that this noise has not been 
+  AddNoiseToWaveForm(fAfterPulse);  //Note that this noise has not been 
                                     //modified by overall efficiency but has 
                                     //been modified by light cone efficiency
 
@@ -374,3 +378,69 @@ void KSPixel::PrintWaveForm(int nx, int ny, int seqNum,
   return;
 }
 // ***************************************************************************
+
+
+void KSPixel::PrintPulseHeightsOfLightPulse()
+// ***********************************************************************
+// This is a debug method to find how the pulse height is related to the
+// Number of single pe's summed but spread in time.
+// **********************************************************************
+{
+  // Make 5000 6 pe light pulses.
+  int fNumPes[6]={4,5,6,8,10,12};
+  std::cout<<"N/I:P1/F:A1/F:P2/F:A2/F:P3/F:A3/F:P4/F:A4/F:P5/F:A5/F"
+	   <<std::endl;
+  double fTimeSpreadNS[5]= {0.0,2.0,4.5,6.0,8.0};
+  for(int n=0;n<6;n++)  //Over Number pes
+    {
+      for(int i=0;i<5000;i++)  //over trials
+	{
+      
+	  std::cout<<fNumPes[n]<<" ";
+	  for(int k=0;k<5;k++)  //Over Time spread
+	    {
+	      
+	      //Make a clean WaveForm 
+	      InitWaveForm(0,fSinglePeSizeNS +fTimeSpreadNS[k]);
+	      //Add in 6 pes'
+	      bool fAfterPulse=false;
+	      for(int j=0;j<fNumPes[n];j++)
+		{
+		  double fPeTimeNS=pran(&fXDummy)*fTimeSpreadNS[k];
+		  addPe(fPeTimeNS,fAfterPulse);    //This uses pulse height dist
+		}
+	      //Find max of this wave form and print it out.
+	      double fWaveFormMax=0.0;
+	      int fNumBins=fWaveForm.size();
+	      for(int j=0;j<fNumBins;j++)
+		{
+		  if(fWaveForm.at(j)>fWaveFormMax)
+		    {
+		      fWaveFormMax=fWaveForm.at(j);
+		    }
+		}
+	      // *************************************************************
+	      // Also get mean size in FADC DC of single pe.
+	      // *************************************************************
+	      //Number of Bins in FADC wave form.
+	      int fNumTraceBins=(int)(fNumBins*gWaveFormBinSizeNS/
+				      gFADCBinSizeNS)+1+1;  
+	                                      //Extra 1 is just for insruance.
+	      fFADC.makeFADCTrace(fWaveForm,0,fNumTraceBins,false,
+				  gPedestal[VERITAS499]);
+	      double fSinglePeFADCArea=(fFADC.getWindowArea(0,fNumTraceBins)-
+			      fNumTraceBins*gPedestal[VERITAS499])/fNumPes[n];
+
+
+	      std::cout<<std::fixed<<std::setprecision(10)
+		       <<fWaveFormMax<<" "
+		       <<fSinglePeFADCArea<<" ";
+	    }
+	  std::cout<<std::endl;
+	}
+    }
+
+  return;
+}
+
+ 

@@ -52,11 +52,13 @@ const double gPSTPulseWidthNS[2]         = {        10.0,        10.0};
                                      //Whipple ECL Pulses to PST's from CFD's 
                                      // measured by GHS in 09/01
 const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};
-//5:const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+//const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
 
-const double gSinglePeFallTimeNS[2]      = {         6.0,         8.5};
-//1:3:const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
-//1:3:const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
+//const double gSinglePeFallTimeNS[2]      = {         6.0,         8.5};
+const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+
+//const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
+
 
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
