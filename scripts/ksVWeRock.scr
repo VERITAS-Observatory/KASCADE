@@ -36,4 +36,5 @@ $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting -OutputVBFFileName=1V.vbf  
 #step 2.4
 ~/vegas/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 1V.vbf 1V.root  
 ~/vegas/bin/vaStage2 -G_SimulationMode=1 1V.vbf 1V.root 1VLaser.root 
-~/vegas/bin/vaStage3 -CleanUpApp=CleanUpStd -EnableProgressDisplay 1V.root 
+#~/vegas/bin/vaStage3 -CleanUpApp=CleanUpStd -EnableProgressDisplay 1V.root 
+~/vegas/bin/vaStage3 -EnableProgressDisplay 1V.root 

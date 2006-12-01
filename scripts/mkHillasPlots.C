@@ -13,7 +13,9 @@ void HillasPlots(int fTelId,char* fFileName)
     }
 
   fBasicCuts=fBasicCuts+" && H.fGoodImage && H.fPixelsInImage>2 && "
-                        "H.fTriggerCode==1";
+                     "H.fTriggerCode==1";
+  // fBasicCuts=fBasicCuts+" && H.fGoodImage && H.fPixelsInImage==3 && "
+  //                    "H.fTriggerCode==1";
   TTree* pfHParTree=NULL;
   pfHParTree=(TTree*)fHillasFile.Get("ParameterisedEvents/ParEventsTree");
 

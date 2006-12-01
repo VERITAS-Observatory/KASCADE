@@ -224,7 +224,7 @@ function G1V()
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing G1V*GeV*.vbf files
     cd $datadir
-    find . | grep G1V |grep .vbf | grep -v Mult | xargs rm -v 
+    #find . | grep G1V |grep .vbf | grep -v Mult | xargs rm -v 
     #rm -vf G1V*GeV*.vbf
     cd $lcl
     pwd
@@ -253,11 +253,12 @@ function G1V()
 #          end=([1]=344 688 1032 329 658 225 450 284 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
 
 
-#Foolowup
-    enableGEN=([1]=OFF OFF OFF OFF  OFF OFF OFF OFF OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
-       energy=([1]=20  20  20  20   20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-        start=([1]=626 701 801 901  921 931 941 145 77  98  47  51  1   28  31  16  16  16  16  16  16  16   11   2    2    2)
-          end=([1]=700 800 900 1032 910 920 930 940 950 288 152 194 1   100 64  54  50  30  30  30  30  30   30   2    2    2)
+#Followup
+    let processEnd=24
+    enableGEN=([1]=ON   OFF OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
+       energy=([1]=20   20   20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=1    701 801 901  921 931 941 145 77  98  47  51  1   28  31  16  16  16  16  16   16   16   11   2   )
+          end=([1]=1    800 900 1032 910 920 930 940 950 288 152 194 1   100 64  54  50  30  30  30   30   30   30   2   )
 
     SubmitPBSJobs
 }
@@ -490,9 +491,9 @@ user=$USER
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
-queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")

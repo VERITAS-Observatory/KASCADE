@@ -31,9 +31,9 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting -OutputVBFFileName=1VGMult.vbf   1VGMultList 
 
 #step 2.4
-~/vegas/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 1VGMult.vbf 1VGMult.root  
+~/vegas/bin/vaStage1 -G_SimulationMode=1 -Stage1_RunMode=data 1VGMult.vbf 1VGMult.root  
 ~/vegas/bin/vaStage2 -G_SimulationMode=1 1VGMult.vbf 1VGMult.root 1VLaser.root 
-~/vegas/bin/vaStage3 -CleanUpApp=CleanUpStd -EnableProgressDisplay 1VGMult.root 
+~/vegas/bin/vaStage3 -G_SimulationMode=1 -EnableProgressDisplay 1VGMult.root 
 
 
 #and thats it!
