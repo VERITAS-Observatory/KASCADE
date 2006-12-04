@@ -489,11 +489,11 @@ user=$USER
 #Specify queues
 #queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
 
-#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
+queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
 
-queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")

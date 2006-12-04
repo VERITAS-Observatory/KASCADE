@@ -1,6 +1,22 @@
 //Makes 3 Canvas' of Hillas plots
-void ScaleAndPlot(TH1F* pfDataHist, TH1F* pfSimHist);
-void CompareHillasPlots(char* fDataName, char* fSimName)
+void ScaleAndPlot(TH1F* pfDataHist, TH1F* pfSimHist,bool fNormalizePeak);
+void CompareAreaHillasPlots(char* fDataName, char* fSimName)
+{
+  bool fNormalizePeak=false;
+  CompareHillasPlots(fDataName,fSimName,fNormalizePeak);
+}
+// ****************************************************************
+
+void ComparePeakHillasPlots(char* fDataName, char* fSimName)
+{
+  bool fNormalizePeak=true;
+  CompareHillasPlots(fDataName,fSimName,fNormalizePeak);
+}
+// ****************************************************************
+
+
+void CompareHillasPlots(char* fDataName, char* fSimName, 
+			                            bool fNormalizePeak=false)
 {
  //Open data file and get Hillas parameter tree and set up basic cuts
   TFile fDataFile(fDataName," Input Data File");
@@ -54,38 +70,50 @@ void CompareHillasPlots(char* fDataName, char* fSimName)
   //project into histograms, get scale factor data/sim,scale sim hist and plot both  
 pfHParTree->Draw("H.fLengthOverSize >> pfDataLOS",fCuts.c_str());
  pfSimParTree->Draw("H.fLengthOverSize >> pfSimLOS",fCuts.c_str());
- ScaleAndPlot(pfDataLOS,pfSimLOS);
+ ScaleAndPlot(pfDataLOS,pfSimLOS,fNormalizePeak);
 
   fC4->cd(2);
   fCuts=fBasicCuts;
   pfHParTree->Draw("H.fLength >> pfDataL",fCuts.c_str());
   pfSimParTree->Draw("H.fLength >> pfSimL",fCuts.c_str());
- ScaleAndPlot(pfDataL,pfSimL);
+ ScaleAndPlot(pfDataL,pfSimL,fNormalizePeak);
 
   fC4->cd(3);
   fCuts=fBasicCuts; 
   pfHParTree->Draw("H.fSize >> pfDataS",fCuts.c_str());
   pfSimParTree->Draw("H.fSize >> pfSimS",fCuts.c_str());
- ScaleAndPlot(pfDataS,pfSimS);
+ ScaleAndPlot(pfDataS,pfSimS,fNormalizePeak);
 
   fC4->cd(4);
   fCuts=fBasicCuts;
   pfHParTree->Draw("H.fMax3 >> pfDataM3",fCuts.c_str());
   pfSimParTree->Draw("H.fMax3 >> pfSimM3",fCuts.c_str());
- ScaleAndPlot(pfDataM3,pfSimM3);    
+  ScaleAndPlot(pfDataM3,pfSimM3,fNormalizePeak);    
   return;
 }
-void ScaleAndPlot(TH1F* pfDataHist, TH1F* pfSimHist)
+void ScaleAndPlot(TH1F* pfDataHist, TH1F* pfSimHist, bool fNormalizePeak)
 {
  double fSumData, fSumSim, fScale;
- // scale the simulation hist to the data hist
-fSumData = pfDataHist->Integral();
-fSumSim = pfSimHist->Integral();
-fScale = fSumData/fSumSim;
+ double fDataMax, fSimMax;
+
+ if(!fNormalizePeak)
+   {
+     // scale the simulation hist area to the data hist area
+     fSumData = pfDataHist->Integral();
+     fSumSim = pfSimHist->Integral();
+     fScale = fSumData/fSumSim;
+   }
+ else
+   {
+     //Nomalize to peaks.
+     fDataMax=pfDataHist->GetMaximum();
+     fSimMax=pfSimHist->GetMaximum();
+     fScale = fDataMax/fSimMax;
+   }
+     
 pfSimHist->Scale(fScale);
 
 //Find which one has maximun value and draw that one first
- double fDataMax, fSimMax;
 pfDataHist->SetLineColor(kBlack);
 pfSimHist->SetLineColor(kRed);
  fDataMax=pfDataHist->GetMaximum();
