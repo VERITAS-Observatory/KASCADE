@@ -249,7 +249,7 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "dirty pmts/lightcones etc.  Allowed range is 0.0 -> 1.0 "
 		    "inclusive.");
   doVAConfiguration(file, command_line, 
-		    "DigtalCountsPerPE",sDefaultDigitalCountsPerPE,
+		    "DigitalCountsPerPE",sDefaultDigitalCountsPerPE,
 		    "KSAomegaDataIn",
 		    "Conversion factor from pe's to digital counts in FADC" 
                     "traces.");
