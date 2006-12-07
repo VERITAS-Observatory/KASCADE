@@ -125,7 +125,16 @@ void KSCamera::Print()
 	   <<fPixel[0].fSinglePeMeanFADCArea<<std::endl;
 
   pfCameraTrigger->Print();
-  //fPixel[0].PrintPulseHeightsOfLightPulse();
+
+  std::cout<<"                  Pixel 1 Single Pe Rise Time(ns) = "
+	   <<fPixel[0].pfSinglePe->getRiseTimeNS()<<std::endl;
+  std::cout<<"                  Pixel 1 Single Pe Fall Time(ns) = "
+	   <<fPixel[0].pfSinglePe->getFallTimeNS()<<std::endl;
+
+
+  //fPixel[0].pfSinglePe->PrintSinglePe();
+
+//fPixel[0].PrintPulseHeightsOfLightPulse();
 
   return;
 }

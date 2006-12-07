@@ -390,7 +390,7 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
   int fNumPes[6]={4,5,6,8,10,12};
   std::cout<<"N/I:P1/F:A1/F:P2/F:A2/F:P3/F:A3/F:P4/F:A4/F:P5/F:A5/F"
 	   <<std::endl;
-  double fTimeSpreadNS[5]= {0.0,2.0,4.5,6.0,8.0};
+  double fTimeSpreadNS[5]= {0.0, 2.0, 4.5, 6.0, 8.0};
   for(int n=0;n<6;n++)  //Over Number pes
     {
       for(int i=0;i<5000;i++)  //over trials

@@ -37,6 +37,8 @@ const static double kBasePulse[kBaseSize]=
 class KSSinglePe
 {
  private:
+  double fSinglePulseRiseTimeNS;
+  double fSinglePulseFallTimeNS;
   double fLengthNS;       //ns
   double fArea;   
   float fXDummy;
@@ -51,6 +53,10 @@ class KSSinglePe
   double getArea(){return fArea;};
   double getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC);
   double getPulseHeight(bool fAfterPulse);
+  double getRiseTimeNS(){return fSinglePulseRiseTimeNS;};
+  double getFallTimeNS(){return fSinglePulseFallTimeNS;};
+
+  void  PrintSinglePe();
 
   double* pfSinglePulse;
   int fNumBinsInPulse;

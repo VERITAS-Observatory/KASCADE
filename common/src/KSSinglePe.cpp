@@ -28,14 +28,18 @@ KSSinglePe::KSSinglePe(double singlePulseRiseNS,double singlePulseFallNS)
 }
 // ************************************************************************
 
-void  KSSinglePe::setRiseFallTimes(double fSinglePulseRiseTimeNS, 
-				        double fSinglePulseFallTimeNS)
+void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS, 
+				        double SinglePulseFallTimeNS)
 // ************************************************************************
 //    This method builds the single pe pulse shape. Max value is normalized 
 //    to 1. Scale the size of the pulse to the risetime using interpolation.
 //    Inital pulse has 2.0 ns risetime.  Also determine area.
 // ************************************************************************
-{                                                    //Ratio of pulse widths.
+{
+  fSinglePulseRiseTimeNS=SinglePulseRiseTimeNS;
+  fSinglePulseFallTimeNS=SinglePulseFallTimeNS;
+
+                                                    //Ratio of pulse widths.
   double fRiseTimeRatio=(fSinglePulseRiseTimeNS/kBaseRiseTimeNS);
   double fFallTimeRatio=(fSinglePulseFallTimeNS/kBaseFallTimeNS);
   int fNumBinsInRisingPulse=int(fRiseTimeRatio*kBaseRiseSize);
@@ -247,3 +251,19 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
   double fSinglePeMeanFADCArea=fSinglePeFADCAreaSum/fNumWaveFormBinsPerFADCBin;
   return fSinglePeMeanFADCArea;
 }
+// *************************************************************************
+
+
+void  KSSinglePe::PrintSinglePe()
+// **************************************************************************
+// Dump single pe to terminal
+// **************************************************************************
+{
+  for(int i=0;i<fNumBinsInPulse;i++)
+    {
+      double fBinTime=i*gWaveFormBinSizeNS;
+      std::cout<<fBinTime<<" "<<pfSinglePulse[i]<<std::endl;
+    }
+  return;
+}
+
