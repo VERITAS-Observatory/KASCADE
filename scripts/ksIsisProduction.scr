@@ -1,0 +1,448 @@
+#!/bin/bash
+
+#This is the conversion of ksVProduction in o use at Purdue on pbs to
+#ksIsisProduction which runs on Depauw's Isis.
+#Isis jobs run as up to 4 scripts at a time (only 4 cpu's, but they are 
+#"KickAss!" (Ref. Kertzman, 2006))
+#Each of the scripts may have anynumber of sub scripts in them(ksall.scr, 
+#ksaomVBF.scr etc), but without "&",so each subscript that want to run has to 
+#wait for the previous subs scripts to finish before they run.  With this 
+#scheme we probably will want to run all of each energy with a single 
+#sub-script call.
+
+#Glenn Sembroski 16/05/05
+#$0 ./kas02.scr
+#$1 has Type-direction specification code. like: P1W,He4_1W,G1W,DG1W
+#   Giveing a Type code of 'CR1W' will cause both P1W and He4_1W to be run
+#   CR1V: Single telescope threshold(ksaom*)
+#   CR1V2: Multi Telescope threshold(ksaom*)
+#$2 has which script to run: ksall:make showers throuth te files
+#                            ksaom:makes .root files
+#                            ksaomVBF:makes .vbf files
+#                            ksaomVBFRoot:makes .vbf and .root files
+#                            ksarraytriggerVBF:makes .vbf multi trigger files.
+
+#Functions to define thigs for various particle specs
+
+funjction RemoveOldFiles()
+#**********************************************************************
+#Removes old files.
+#**********************************************************************
+{
+  if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+    echo Removing $parspec'*GeV*.root' files
+    cd $datadir
+    find . | grep $parspec |grep .root | grep  -v Mult | xargs rm -fv 
+    cd $lcl
+    pwd
+  fi
+  if [ "$kssc" = "ksaomVBF" ] ||[ "$kssc" = "ksaomVBFRoot" ] ; then
+    echo Removing $parspec'*GeV*.vbf files'
+    cd $datadir
+    find . | grep $parspec |grep .vbf | grep  -v Mult | xargs rm -fv 
+    cd $lcl
+    pwd
+  fi
+  if [ "$kssc" = "ksarraytriggerVBF" ]; then
+    echo Removing $parspec'*GeV*Mult.vbf' files
+    cd $datadir
+    find . | grep $parspec |grep .root | grep Mult | xargs rm -fv 
+    cd $lcl
+    pwd
+  fi
+}
+
+
+function P1W()
+#**********************************************************************
+#1 deg whipple protons 10%
+#**********************************************************************
+{
+    parspec="P1W"      
+    echo Whipple Protons at 1 deg: $parspec
+    datadir="/whipple/sim/protons"
+    RemoveOldFiles
+
+#set 1
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=1372 829 536 635 280 287 143 172 77  80  48  39  58  17  14  6   4   2    1    1    1    1    1    1)
+
+    BuildScriptList(1,1,6)
+    BuildScriptList(2,7,12)
+    BuildScriptList(3,13,18)
+    BuildScriptList(4,19,22)
+}
+#******************************************************************************
+
+
+function He4_1W()
+#**********************************************************************
+#1 deg whipple He4 10%
+#**********************************************************************
+{
+    parspec="He4_1W"      
+    echo He4 at 1 deg: $parspec
+    datadir="/whipple/sim/he4"
+    RemoveOldFiles
+
+#set 1
+    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   OFF  OFF  OFF )
+       energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
+    
+    BuildScriptList(1,1,4)
+    BuildScriptList(2,5,8)
+    BuildScriptList(3,9,12)
+    BuildScriptList(4,12,16)
+}
+#**********************************************************************
+
+
+function G1W()
+#**********************************************************************
+#1 deg whipple Gammas
+#**********************************************************************
+{
+    parspec="G1W"      
+    echo Gammas at 1 deg: $parspec
+    datadir="/whipple/sim/gammas"
+
+#set1/ksaom/kasall
+    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+       energy=([1]=84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+          end=([1]=92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+
+    BuildScriptList(1,1,4)
+    BuildScriptList(2,5,8)
+    BuildScriptList(3,9,12)
+    BuildScriptList(4,12,15)
+}
+#**********************************************************************
+
+function P1V()
+#**********************************************************************
+#1 deg whipple protons 10%
+#**********************************************************************
+{
+    parspec="P1V"      
+    echo Veritas Protons at 1 deg: $parspec
+    datadir="/veritas/sim/protons"
+    RemoveOldFiles
+
+#set 1
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=1372 829 536 635 280 287 143 172 77  80  48  39  58  17  14  6   4   2    1    1    1    1    1    1)
+
+    BuildScriptList(1,1,6)
+    BuildScriptList(2,7,12)
+    BuildScriptList(3,13,18)
+    BuildScriptList(4,19,22)
+}
+#******************************************************************************
+
+function He4_1V()
+#**********************************************************************
+#1 deg whipple He4 10%
+#**********************************************************************
+{
+    parspec="He4_1V"      
+    echo Veritas He4 at 1 deg: $parspec
+    datadir="/veritas/sim/he4"
+
+    RemoveOldFiles
+
+#set 1
+    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   OFF  OFF  OFF )
+       energy=([1]=49  58  70  84  100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=109 70  71  38  35  24  18  30  9   8   4   3   2    1    1    1    1    1    1)
+
+    
+    BuildScriptList(1,1,4)
+    BuildScriptList(2,5,8)
+    BuildScriptList(3,9,12)
+    BuildScriptList(4,12,16)
+}
+#**********************************************************************
+
+function G1V()
+#**********************************************************************
+#1 deg whipple Gammas
+#**********************************************************************
+{
+    parspec="G1V"      
+    echo Veritas Gammas at 1 deg: $parspec
+    datadir="/veritas/sim/gammas"
+    RemoveOldFiles
+
+#set1/ksaom/kasall
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+
+    BuildScriptList(1,1,6)
+    BuildScriptList(2,7,12)
+    BuildScriptList(3,13,18)
+    BuildScriptList(4,18,23)
+ }
+#**********************************************************************
+
+#**********************************************************************
+function P20V()
+#**********************************************************************
+#20 deg whipple protons 
+#**********************************************************************
+{
+    parspec="P20V"      
+    echo Protons at 20 deg: $parspec
+    datadir="/veritas/sim/protons"
+
+    RemoveOldFiles
+#set 1
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=1372 829 536 635 280 287 143 172 77  80  48  39  58  17  14  6   4   2    1    1    1    1    1    1)
+
+    BuildScriptList(1,1,6)
+    BuildScriptList(2,7,12)
+    BuildScriptList(3,13,18)
+    BuildScriptList(4,19,22)
+}
+#******************************************************************************
+
+
+function He4_20V()
+#**********************************************************************
+#20 deg whipple He4
+#**********************************************************************
+{
+    parspec="He4_20V"      
+    echo He4 at 20 deg: $parspec
+    datadir="/veritas/sim/he4"
+    RemoveOldFiles
+#set 1
+    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   OFF  OFF  OFF )
+       energy=([1]=49  58  70  84  100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=109 70  71  38  35  24  18  30  9   8   4   3   2    1    1    1    1    1    1)
+    
+    BuildScriptList(1,1,4)
+    BuildScriptList(2,5,8)
+    BuildScriptList(3,9,12)
+    BuildScriptList(4,12,16)
+}
+#**********************************************************************
+
+function G20V()
+#**********************************************************************
+#20 deg Veritas Gammas
+#**********************************************************************
+{
+    parspec="G20V"      
+    echo Gammas at 20 deg: $parspec
+    datadir="/veritas/sim/gammas"
+    RemoveOldFiles
+
+#set1/ksaom/kasall
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+
+    BuildScriptList(1,1,6)
+    BuildScriptList(2,7,12)
+    BuildScriptList(3,13,18)
+    BuildScriptList(4,18,23)
+}
+#**********************************************************************
+
+function BuildScriptList()
+#**********************************************************************
+# Causes sub-script list to be created and run
+#**********************************************************************
+{
+ pr=$parspec
+ if [ $1 -eq "1" ] jobScript=$JobScript1
+ if [ $1 -eq "2" ] jobScript=$JobScript2
+ if [ $1 -eq "3" ] jobScript=$JobScript3
+ if [ $1 -eq "4" ] jobScript=$JobScript4
+
+ let processStart=$2
+ let processEnd=$3
+
+ let i=$processStart
+ while test $i -le $processEnd
+ do
+    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]}
+    if [ "${enableGEN[$i]}" == "ON" ]; then 
+      echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
+      echo ${end[$i]} $datadir                            \\   >>$jobScript
+      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"              >>$jobScript
+    fi
+    i=$((i+1))			#do next process
+  done
+}
+
+# ************************************************************************
+# Main program
+# ***********************************************************************
+#script directory
+sdr=$KASCADEBASE"/scripts"
+kssc=$2
+ksScript=$sdr/$kssc'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
+                            #ksaom: Makes .root (and eventually .cvbf) files from
+                            #       te files
+#Fuctions specify which energies are to be used ("ON" or "OFF")
+#Funtions also specify the energy and specify the starting and ending shower 
+#IDs.
+#******************************************************************************
+# Set up scripts for cpus
+#*****************************************************************************
+#define job script names
+JobScript1=$lcl'/js1_'$pr'.scr'
+JobScript1=$lcl'/js2_'$pr'.scr'
+JobScript1=$lcl'/js3_'$pr'.scr'
+JobScript1=$lcl'/js4_'$pr'.scr'
+
+#Initialze the script files
+echo echo Starting $JobScript1 >$JobScript1
+echo echo Starting $JobScript2 >$JobScript2
+echo echo Starting $JobScript3 >$JobScript3
+echo echo Starting $JobScript4 >$JobScript4
+
+lcl="$PWD"
+let pspecset=0
+
+if [ $1 = "CR1W" ]; then
+    if [ "$kssc" = "ksaom" ]; then
+	cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+                                    $KASCADEBASE/inputs/ksAomegaP1W.config 
+        cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
+                                    $KASCADEBASE/inputs/ksAomegaHe4_1W.config 
+    fi
+
+    P1W
+    He4_1W
+    let pspecset=1;
+fi
+
+if [ $1 = "P1W" ]; then
+    P1W
+    let pspecset=1;
+fi
+
+if [ $1 = "He4_1W" ]; then
+    He4_1W
+    let pspecset=1;
+fi
+if [ $1 = "G1W" ]; then
+    G1W
+    let pspecset=1;
+fi
+
+if [ $1 = "CR1V" ]; then
+
+    if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
+                                    $KASCADEBASE/inputs/ksAomegaP1V.config 
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
+                                    $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
+    fi
+    if [ "$kssc" = "ksarraytriggerVBF" ]; then
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
+                                  $KASCADEBASE/inputs/ksArrayTriggerP1V.config 
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
+                               $KASCADEBASE/inputs/ksArrayTriggerHe4_1V.config 
+    fi
+
+    P1V
+    He4_1V
+    let pspecset=1;
+fi
+
+if [ $1 = "P1V" ]; then
+    P1V
+    let pspecset=1;
+fi
+
+if [ $1 = "He4_1V" ]; then
+    He4_1V
+    let pspecset=1;
+fi
+
+if [ $1 = "G1V" ]; then
+    G1V
+    let pspecset=1;
+fi
+
+if [ $1 = "CR20V" ] ; then
+
+    if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
+                                    $KASCADEBASE/inputs/ksAomegaP20V.config 
+        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
+                                    $KASCADEBASE/inputs/ksAomegaHe4_20V.config 
+    fi
+    if [ "$kssc" = "ksarraytriggerVBF" ]; then
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
+                                  $KASCADEBASE/inputs/ksArrayTriggerP20V.config 
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
+                               $KASCADEBASE/inputs/ksArrayTriggerHe4_20V.config 
+    fi
+
+    P20V
+    He4_20V
+    let pspecset=1;
+fi
+
+if [ $1 = "P20V" ]; then
+    P20V
+    let pspecset=1;
+fi
+
+if [ $1 = "He4_20V" ]; then
+    He4_20V
+    let pspecset=1;
+fi
+
+if [ $1 = "G20V" ]; then
+    G20V
+    let pspecset=1;
+fi
+
+if [ $pspecset -ne 1 ]; then
+    echo No such Particle spec: $1
+    exit
+fi
+
+chmod 777 $JobScript1
+chmod 777 $JobScript2
+chmod 777 $JobScript3
+chmod 777 $JobScript4
+
+./$JobScript1 &
+./$JobScript2 &
+./$JobScript3 &
+./$JobScript4 &
+
+
+
+
+###########################################################################
+#Arguments for ksScript
+#$1 primary Energy in GeV (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower names:Like P1W,G1W, He4_1W)
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te/root  files go, cannot be blank!!!)
+#$6 PixelStatus Run Fule Name(used by ksAomega only)(can be blank)
+#############################################################################
