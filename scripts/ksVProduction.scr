@@ -224,7 +224,7 @@ function G1V()
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing G1V*GeV*.vbf files
     cd $datadir
-    #find . | grep G1V |grep .vbf | grep -v Mult | xargs rm -v 
+    find . | grep G1V |grep .vbf | grep -v Mult | xargs rm -v 
     #rm -vf G1V*GeV*.vbf
     cd $lcl
     pwd
@@ -240,10 +240,10 @@ function G1V()
   fi
 
 #set1/ksaom
-#    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
-#       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-#        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
-#          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
+    enableGEN=([1]=ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   OFF  OFF  OFF )
+       energy=([1]=20   24  28  34  41  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+        start=([1]=1    1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
+          end=([1]=1032 658 450 566 266 288 152 194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
 
 #set1/ksall
 #    let processEnd=31
@@ -254,11 +254,11 @@ function G1V()
 
 
 #Followup
-    let processEnd=24
-    enableGEN=([1]=ON   OFF OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
-       energy=([1]=20   20   20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
-        start=([1]=1    701 801 901  921 931 941 145 77  98  47  51  1   28  31  16  16  16  16  16   16   16   11   2   )
-          end=([1]=1    800 900 1032 910 920 930 940 950 288 152 194 1   100 64  54  50  30  30  30   30   30   30   2   )
+#    let processEnd=24
+#    enableGEN=([1]=ON   OFF OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
+#       energy=([1]=20   20   20  49  58  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
+#        start=([1]=1    701 801 901  921 931 941 145 77  98  47  51  1   28  31  16  16  16  16  16   16   16   11   2   )
+#          end=([1]=1    800 900 1032 910 920 930 940 950 288 152 194 1   100 64  54  50  30  30  30   30   30   30   2   )
 
     SubmitPBSJobs
 }
@@ -300,21 +300,18 @@ function P20V()
     maxMem=75MB
   fi
     
-    let processEnd=35
-#    enableGEN=([1]=ON    OFF  OFF  OFF   ON  OFF  OFF  ON   OFF  ON   ON   ON  OFF  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   OFF  OFF  OFF  ON   OFF  OFF)
-
- 
 #set 1
-#    enableGEN=([1]=ON   ON   ON   ON   ON  ON   ON   ON   ON   ON   ON   ON  ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
-#       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-#        start=([1]=1    346  691  1036 1   276  551  1    271  1    321  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-#          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+    let processEnd=35
+    enableGEN=([1]=ON   ON   ON   ON   ON  ON   ON   ON   ON   ON   ON   ON  ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
+       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+        start=([1]=1    346  691  1036 1   276  551  1    271  1    321  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 
 #followup
-    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF OFF  OFF  OFF  OFF  OFF  ON   OFF OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
-       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1    346  691  1036 1   276  551  1    271  306  632  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+#    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF OFF  OFF  OFF  OFF  OFF  ON   OFF OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
+#       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+#        start=([1]=1    346  691  1036 1   276  551  1    271  306  632  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+#          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 
 
 #set 5

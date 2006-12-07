@@ -13,9 +13,8 @@ void HillasPlots(int fTelId,char* fFileName)
     }
 
   fBasicCuts=fBasicCuts+" && H.fGoodImage && H.fPixelsInImage>2 && "
-                     "H.fTriggerCode==1";
-  // fBasicCuts=fBasicCuts+" && H.fGoodImage && H.fPixelsInImage==3 && "
-  //                    "H.fTriggerCode==1";
+    "H.fTriggerCode==1";
+
   TTree* pfHParTree=NULL;
   pfHParTree=(TTree*)fHillasFile.Get("ParameterisedEvents/ParEventsTree");
 
@@ -111,21 +110,41 @@ void HillasPlots(int fTelId,char* fFileName)
 
   if(pfSimTree!=NULL)
     {
+      pfSimTree->AddFriend(pfHParTree);
       gStyle->SetMarkerStyle(21);
+      std::string fBasicSimCuts=fBasicCuts;
+      // *********************************************************
+      //Trigger rate curve
+      // ********************************************************
+      fCuts="(" + fBasicSimCuts + 
+	" && Sim.fEnergyGeV<500.0)*Sim.fDifferentialRatePerEventHz";
+
       fC3->cd(4);
-      pfSimTree->Draw("Sim.fEnergyGeV",
-		      "Sim.fDifferentialRatePerEventHz*(Sim.fEnergyGeV<500.0)",
-		      "P");
+      pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str(),"P");
+      // ********************************************************
+      
+      
+      // ********************************************************
+      //Detection area curve
+      // ********************************************************
       fC3->cd(5);
-      pfSimTree->Draw("Sim.fEnergyGeV",
-		      "Sim.fAomega*(Sim.fEnergyGeV<10000.0)",
-		      "P");
+      fCuts="(" + fBasicSimCuts +
+	"&& Sim.fEnergyGeV<10000.0)*Sim.fAomega "; 
+      pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str(),"P");
+      // ********************************************************
+      
+      
+      // *********************************************************
+      //Total rate calculation
+      // ********************************************************
+      fCuts="(" +fBasicSimCuts +
+	"&&Sim.fEnergyGeV<12000.0)*Sim.fIntegralRatePerEventHz "; 
       fC3->cd(6);
-      pfSimTree->Draw("Sim.fEnergyGeV",
-		   "Sim.fIntegralRatePerEventHz*(Sim.fEnergyGeV<12000.0)");
- 
+      pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str());
+      
       cout<<"Trigger rate(Hz): "<<htemp->Integral()<<endl;
       cout<<"Trigger rate(/min): "<<htemp->Integral()*60.0<<endl;
+     // ********************************************************
     }
 
   fC4->cd(1);
