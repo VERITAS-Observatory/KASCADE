@@ -178,8 +178,8 @@ void KSCamera::generateCameraPixels()
       fPixel[i].fID=i;  //Set pixel index ID's
       fPixel[i].fHalfSpacingDeg = fHalfSpacingDeg;
       fPixel[i].fRadiusDeg      = (double)pfTelescopePixelRadius[i];
-      fPixel[i].fYDeg           = (double)pfTelescopePixelX[i];
-      fPixel[i].fXDeg           = (double)pfTelescopePixelY[i];
+      fPixel[i].fXDeg           = (double)pfTelescopePixelX[i];
+      fPixel[i].fYDeg           = (double)pfTelescopePixelY[i];
     }
 
 
@@ -635,8 +635,9 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 // **********************************************************************
 // Find when we should start the waveform and how long it should be.
 // **********************************************************************
+// This look like it works for pe times <0 which happens for non-zenith 
+// showers.
 {
-
   double fPixelMinTimeNS=gOverflowTime;
   double fPixelMaxTimeNS=0;
   for(int i=0;i<fNumPixelsTrigger;i++)

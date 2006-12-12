@@ -323,8 +323,11 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 // Write the te pixel data in compressed format with zero supression to the 
 // output file. Must follow its Te tage record.
 // ***************************************************************************
-// Format of this record: First word is an int with the number of characters 
-//                      that follow (doesn't include itself);
+// Format of this record:First is the base time(float). This time has been 
+//                      subtracted from Pe times in the buffer to insure they 
+//                      are positive.
+//                      Next word is an int with the number of characters 
+//                      that follow (doesn't include itself).
 //                      Next follows data for first non zero pixel:
 //                      First word is negative pixel index (pixel index starts
 //                      at 1) Minus sign is flag that this is start of a 
@@ -352,6 +355,7 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
     {
       int fNumPixels=fPixel.size();
       std::vector<float> fCompressionBuffer;
+      float fBasePeTime=getMinPeTime(fPixel);
       for(int i=0;i<fNumPixels;i++)
 	{
 	  int fNumTimes=fPixel[i].fTimePe.size();
@@ -364,8 +368,9 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 	      fCompressionBuffer.push_back(fIndex);
 	      for(int j=0;j<fNumTimes;j++)
 		{
-		  //Could put in a check here that time is indeed positive
-		  float fPeTime=fPixel[i].fTimePe[j];
+		  //Times may be negative for inclined showers, so subtract 
+		  //out the minimum time seen.
+		  float fPeTime=fPixel[i].fTimePe[j] - fBasePeTime;
 		  fCompressionBuffer.push_back(fPeTime);
 		}
 	    }
@@ -380,6 +385,9 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 	}
       fLength=fNumInBuffer*sizeof(float);
       //std::cout<<"fLength: "<<fLength<<std::endl;
+ 
+      pfOutFile->write((char*)&fBasePeTime, sizeof(float));
+
       pfOutFile->write((char*)&fLength, sizeof(int));
       pfOutFile->write((char*)pfWriteBuffer, fLength);
       fTeWritten=false;
@@ -627,7 +635,7 @@ bool KSTeFile::ReadTe(KSTeData* te)
 }
 // ***************************************************************************
 
-  bool KSTeFile::ReadTePixelData(std::vector<KSPixel>& fPixel)
+bool KSTeFile::ReadTePixelData(std::vector<KSPixel>& fPixel)
 // ***************************************************************************
 // Read pe tag data from the input file. The segment head, pe head and Te head
 // need to be read before and pe's are read
@@ -651,10 +659,17 @@ bool KSTeFile::ReadTe(KSTeData* te)
   else
     {
       //Format is a little special here. See WriteTePixelData method above
-      // First comes one word which is the total length in (char) of the 
-      // remaing data in the TePixelData Record
+      // First comes the base time of pe's  which must be added back in to 
+      // get correct time of pes.
+      //Then comes the one word which is the total length in (char) of the 
+      // remaing data in the TePixelData Record.
+      float fBaseTime=0;
+      pfInFile->read((char*)&fBaseTime, sizeof(float));
+
       int fLength=0;
       pfInFile->read((char*)&fLength, sizeof(int));
+
+
       if(!pfInFile->good())
 	{
 	  std::cout<<"KSTeFile--Failed to read Te Pixel Data."
@@ -697,7 +712,7 @@ bool KSTeFile::ReadTe(KSTeData* te)
 	   }
 	 else
 	   {
-	     fPixel[fPixelIndex].fTimePe.push_back(pfReadBuffer[i]);
+	     fPixel[fPixelIndex].fTimePe.push_back(pfReadBuffer[i]+fBaseTime);
 	   }
        }
      fFoundError=false;
@@ -706,6 +721,30 @@ bool KSTeFile::ReadTe(KSTeData* te)
 }
 // ***************************************************************************
 
-
+float KSTeFile::getMinPeTime(std::vector<KSPixel>& fPixel)
+// *************************************************************************
+// Search though all pixels for the most negative pe time or 0.0 whichever is 
+// more negative. This is used as an offset to make pe times all positive.
+// *************************************************************************
+{
+  int fNumPixels=fPixel.size();
+  float fFirstPeTime=0.0;     //defaults to 0
+  for(int i=0;i<fNumPixels;i++)
+    {
+      int fNumTimes=fPixel[i].fTimePe.size();
+      if(fNumTimes>0)
+	{
+	  for(int j=0;j<fNumTimes;j++)
+	    {
+		float fPeTime=fPixel[i].fTimePe[j];
+		if(fPeTime<fFirstPeTime)
+		  {
+		    fFirstPeTime=fPeTime;
+		  }
+	    }
+	}
+    }
+  return fFirstPeTime;
+}
 
 
