@@ -45,235 +45,113 @@ function RemoveOldFiles()
 }
 
 
-function He4_1W()
+function Protons()
 #**********************************************************************
-#1 deg whipple He4 10%
-#**********************************************************************
-{
-    parspec="He4_1W"      
-    echo He4 at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/whipple/he4"
-    let processEnd=19
-    enableGEN=([1]=ON  ON ON ON ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-       energy=([1]=49  58 70 84 100 120 143 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   1  1  1  1   1   1   1   1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=125 80 81 43 40  27  20  34  10  9   4   3   2    1    1    1    1    1    1)
-    
-    SubmitPBSJobs
-}
-#**********************************************************************
-
-function P1W()
-#**********************************************************************
-#1 deg whipple protons 10%
+#Veritas Protons
 #**********************************************************************
 {
-    parspec="P1W"      
-    echo Protons at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/whipple/protons"
-    let processEnd=32
-    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON)
-       energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  49  58  70  84 100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   1   1   1   1  1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345 690 1035 1380 275 550 830 270 540 320 640 280 290 143 175 78 80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
-    
-    SubmitPBSJobs
-}
-#******************************************************************************
-
-function G1W()
-#**********************************************************************
-#1 deg whipple Gammas
-#**********************************************************************
-{
-    parspec="G1W"      
-    echo Gammas at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/whipple/gammas"
-    let processEnd=18
-    enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON)
-       energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867 1243 1781 2553 3660 5246)
-        start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20  1    1    1    1    1)
-          end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37  11   10   6    6    6)
-    
-    SubmitPBSJobs
-}
-#**********************************************************************
-
-function DG1W()
-#**********************************************************************
-#1 deg whipple DRIFT Gammas
-#**********************************************************************
-{
-    echo Gammas at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/whipple/dgammas"
-    let processEnd=18
-    enableGEN=([1]=ON ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON)
-       energy=([1]=84 100 120 143 172 205 246 294 353 422 505 605 867 867  1243 1781 2553 3660 5246)
-        start=([1]=1  1   1   1   1   1   1   1   1   1   1   1   1   20   1    1    1    1    1)
-          end=([1]=50 50  50  50  50  50  50  50  54  30  30  19  19  37   11   10   6    6    6)
-    
-    SubmitPBSJobs
-}
-#**********************************************************************
-function P1V()
-#**********************************************************************
-#1 deg whipple protons 10%
-#**********************************************************************
-{
-    parspec="P1V"      
-    echo Protons at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/protons"
+    echo Protons: $parspec
+    WALLTIME=40:00:00
     RemoveOldFiles
 
-
-    
-    let processEnd=35
-#    enableGEN=([1]=ON    OFF  OFF  OFF   ON  OFF  OFF  ON   OFF  ON   ON   ON  OFF  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   OFF  OFF  OFF  ON   OFF  OFF)
-
- 
-#Filling in
-#    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  OFF  ON   ON   OFF OFF OFF OFF ON  OFF OFF OFF OFF OFF ON  OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
-#       energy=([1]=20    20   20   20    24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-#        start=([1]=1373  346  691  1036 830  276  551  537  271  636  737  281 141  772  1010 144 313 501 78  273 158 141 59  66  57  46  17  9   5    1    1    1    5    1    1)
-#          end=([1]=1378  690  1035 1372 830  550  829  540  536  736  941  290 280  800  1148 175 500 688 80  320 198 156 65  70  68  55  24  15  7    1    1    1    5    5    5)
-#set 1
-    enableGEN=([1]=ON  ON  ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
-       energy=([1]=20  20  20   20   24  24  24  28  28  34  34  41  41  49  49  58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   346 691  1036 1   276 551 1   271 1   321 1   141 1   144 1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345 690 1035 1372 275 550 829 270 536 320 635 140 280 143 287 143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
-
-
-#set 5
-#        start=([1]=5489 5835 6180 6525 3317 3592 3866 2145 2416 2541 2862 1121 1262 1149 1293 573 689 776 309 321 193 157 233 263 69  57  25  17  8    5    5    5    5    5    5)
-#          end=([1]=5834 6179 6524 6860 3591 3865 4145 2415 2680 2861 3175 1261 1400 1292 1435 715 775 860 386 400 240 195 262 290 85  70  30  20  10   5    5    5    5    5    5)
-
-   
-    SubmitPBSJobs
-}
-#******************************************************************************
-
-
-function He4_1V()
-#**********************************************************************
-#1 deg whipple He4 10%
-#**********************************************************************
-{
-    parspec="He4_1V"      
-    echo He4 at 1 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/he4"
-    RemoveOldFiles
-
- 
-    let processEnd=20
-#set1
-    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
-       energy=([1]=49  58  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
-
-#    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
-#set 5
-#        start=([1]=437 281 285 153 141 97  73  121 137 37  33  17  13  9    5    5    5    5    5    5)
-#          end=([1]=545 350 355 190 175 120 90  136 150 45  40  20  15  10   5    5    5    5    5    5)
-    
-    SubmitPBSJobs
-}
-#**********************************************************************
-
-
-#**********************************************************************
-function P20V()
-#**********************************************************************
-#20 deg whipple protons 
-#**********************************************************************
-{
-    parspec="P20V"      
-    echo Protons at 20 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/protons"
-    RemoveOldFiles
-
-    
+#Veritas$ whipple set1/ksaom/kasall
 #set 1
     let processEnd=35
     enableGEN=([1]=ON   ON   ON   ON   ON  ON   ON   ON   ON   ON   ON   ON  ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
        energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1    346  691  1036 1   276  551  1    271  1    321  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+    if [ $host = 'isis' ] ; then
+	BuildIsisScriptList(1,1,9)
+	BuildIsisScriptList(2,10,18)
+	BuildIsisScriptList(3,19,27)
+	BuildIsisScriptList(4,27,35)
+    else
+	SubmitAmdahlPBSJobs        #amdahl
 
-#followup
-#    enableGEN=([1]=OFF  OFF  OFF  OFF  OFF OFF  OFF  OFF  OFF  OFF  ON   OFF OFF  OFF  OFF  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF  OFF  OFF)
-#       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-#        start=([1]=1    346  691  1036 1   276  551  1    271  306  632  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-#          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
-
-
-#set 5
-#        start=([1]=5489 5835 6180 6525 3317 3592 3866 2145 2416 2541 2862 1121 1262 1149 1293 573 689 776 309 321 193 157 233 263 69  57  25  17  8    5    5    5    5    5    5)
-#          end=([1]=5834 6179 6524 6860 3591 3865 4145 2415 2680 2861 3175 1261 1400 1292 1435 715 775 860 386 400 240 195 262 290 85  70  30  20  10   5    5    5    5    5    5)
-
-c   
-    SubmitPBSJobs
+    fi
 }
-#******************************************************************************
-
-
-function He4_20V()
 #**********************************************************************
-#20 deg whipple He4
+
+
+function Helium4()
+#**********************************************************************
+#Veritas  and whipple Helium4
 #**********************************************************************
 {
-    parspec="He4_20V"      
-    echo He4 at 20 deg: $parspec
-    datadir="/project/veritas/sembrosk/veritas/he4"
+    echo Helium4: $parspec
+    WALLTIME=40:00:00
     RemoveOldFiles
 
+#Veritas$ whipple set1/ksaom/kasall
+#set 1
     let processEnd=20
 #set1
     enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   OFF  OFF)
        energy=([1]=49  58  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
-
-#set 5
-#        start=([1]=437 281 285 153 141 97  73  121 137 37  33  17  13  9    5    5    5    5    5    5)
-#          end=([1]=545 350 355 190 175 120 90  136 150 45  40  20  15  10   5    5    5    5    5    5)
-    
-    SubmitPBSJobs
+    if [ $host = 'isis' ] ; then
+	BuildIsisScriptList(1,1,5)
+	BuildIsisScriptList(2,6,10)
+	BuildIsisScriptList(3,11,15)
+	BuildIsisScriptList(4,16,20)
+    else
+	SubmitAmdahlPBSJobs        #amdahl
+    fi
 }
 #**********************************************************************
 
-function VeritasGammas()
+
+function Gammas()
 #**********************************************************************
-#Veritas Gammas
+#Gammas
 #**********************************************************************
 {
-    echo Veritas Gammas: $parspec
-    datadir="/project/veritas/sembrosk/veritas/gammas"
+    echo Gammas: $parspec
     let processEnd=26
     WALLTIME=40:00:00
     RemoveOldFiles
 
-#set1/ksaom/kasall
+#Veritas set1/ksaom/kasall
+#Whipple set1/kasaom/kasall starts at 84 GeV
     let processEnd=28
-    enableGEN=([1]=OFF OFF  OFF OFF OFF OFF OFF OFF OFF ON  ON  ON  ON  ON  ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
+    enableGEN=([1]=ON  ON   ON  ON  ON  OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF OFF  OFF  OFF  OFF  OFF )
        energy=([1]=20  20   24  28  34  41  49  58  70  70  84  100 120 143 172 205 246 294 353 422 505 605 867 1243 1781 2553 3660 5246)
         start=([1]=1   517  1   1   1   1   1   1   1   98  1   1   1   1   1   1   1   1   1   1   1   1   1   1    1    1    1    1)
           end=([1]=516 1032 658 450 566 266 288 152 97  194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    1    1    1)
 
-    SubmitPBSJobs
+    if [ $host = 'isis' ] ; then
+	if [ $parspec = "G1W" ] || [ $parspec = "G20W" ] || [ $parspec = "G30W" ] || [ $parspec = "G40W" ] || [  $parspec = "G50W" ] ; then
+	    BuildIsisScriptList(1,11,15)
+	    BuildIsisScriptList(2,16,20)
+	    BuildIsisScriptList(3,21,24)
+	    BuildIsisScriptList(4,25,28)
+	fi
+
+
+	if [ $parspec = "G1V" ] || [ $parspec = "G20V" ] || [ $parspec = "G30V" ] || [ $parspec = "G40V" ] || [  $parspec = "G50V" ] ; then
+	    BuildIsisScriptList(1,1,7)
+	    BuildIsisScriptList(2,8,14)
+	    BuildIsisScriptList(3,15,21)
+	    BuildIsisScriptList(4,22,28)
+	fi
+    else
+
+	SubmitAmdahlPBSJobs        #amdahl
+    fi
 }
 
 
 
 
-function SubmitPBSJobs()
+function SubmitAmdahlPBSJobs()
 #**********************************************************************
 # Cause pbs jobs to be submitted.
 #**********************************************************************
 {
  pr=$parspec
 
- let processStart=1
 
  let i=$processStart
  while test $i -le $processEnd
@@ -302,13 +180,70 @@ function SubmitPBSJobs()
     done
 }
 
+function BuildIsisScriptList()
+#**********************************************************************
+# Causes sub-script list to be created and run
+#**********************************************************************
+{
+ pr=$parspec
+ if [ $1 -eq "1" ] jobScript=$JobScript1
+ if [ $1 -eq "2" ] jobScript=$JobScript2
+ if [ $1 -eq "3" ] jobScript=$JobScript3
+ if [ $1 -eq "4" ] jobScript=$JobScript4
 
+ let processStart=$2
+ let processEnd=$3
+
+ let i=$processStart
+ while test $i -le $processEnd
+ do
+    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]}
+    if [ "${enableGEN[$i]}" == "ON" ]; then 
+      echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
+      echo ${end[$i]} $datadir                            \\   >>$jobScript
+      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"              >>$jobScript
+    fi
+    i=$((i+1))			#do next process
+  done
+}
+
+# ************************************************************************
+
+
+#*************************************************************
+#Start of main script.
+#*************************************************************
+lcl="$PWD"
+host=$(hostname -s)
 #script directory
 sdr=$KASCADEBASE"/scripts"
 kssc=$2
 ksScript=$sdr/$kssc'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
                          #ksaom: Makes .root (and eventually .cvbf) files from
                          #       te files
+
+if [ $host = 'isis' ] ; then
+    dataDirBase=$dataDirBasr/
+
+#define job script names
+    JobScript1=$lcl'/js1_'$pr'.scr'
+    JobScript1=$lcl'/js2_'$pr'.scr'
+    JobScript1=$lcl'/js3_'$pr'.scr'
+    JobScript1=$lcl'/js4_'$pr'.scr'
+
+#Initialze the script files
+    echo echo Starting $JobScript1 >$JobScript1
+    echo echo Starting $JobScript2 >$JobScript2
+    echo echo Starting $JobScript3 >$JobScript3
+    echo echo Starting $JobScript4 >$JobScript4
+
+#amdahl
+else
+
+    dataDirBase=/simulations
+fi
+
+
 StatusRunFileSpecification=$3 
 user=$USER
 
@@ -330,155 +265,136 @@ queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  a
 #******************************************************************************
 # Set up arrays for node submission and submit
 #*****************************************************************************
-lcl="$PWD"
 let pspecset=0
 maxMem=240MB
 WALLTIME=20:00:00
-if [ $1 = "CR1W" ]; then
 
-    if [ "$kssc" = "ksaom" ]; then
-	cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
-                                    $KASCADEBASE/inputs/ksAomegaP1W.config 
-        cp -v $KASCADEBASE/inputs/ksAomegaCR1W.config  \
-                                    $KASCADEBASE/inputs/ksAomegaHe4_1W.config 
-    fi
+if [ $1 = "CR1W" ] || [ $1 = "CR20W" ] [ $1 = "CR30W" ] ||  [ $1 = "CR40W" ] ||  [ $1 = "CR50W" ]; then
 
-    P1W
-    He4_1W
-
-    let pspecset=1;
-fi
-if [ $1 = "P1W" ]; then
-    P1W
-    echo parspec: $parspec
-    let pspecset=1;
-fi
-if [ $1 = "He4_1W" ]; then
-    He4_1W
-    echo parspec: $parspec
-    let pspecset=1;
-fi
-if [ $1 = "G1W" ]; then
-    G1W
-    echo parspec: $parspec
-    let pspecset=1;
-fi
-
-
-parspec=$1
-parspec=${parspec#DG1W}         #This removes an DGW1 from the start of parspec
-if [ "$parspec" != $1 ]; then   #This test to see if there was a DGW1 in $1
     parspec=$1
-    DG1W
-    echo parspec: $parspec
-    let pspecset=1;
-fi
-
-if [ $1 = "CR1V" ] || [ $1 = "CR1V2" ] ; then
+    Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
+                                               #see pg 97 Bash book.
+    He4spec=He4_${parspec#CR} #Replace CR with He4_
 
     if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
-                                    $KASCADEBASE/inputs/ksAomegaP1V.config 
-        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
-                                    $KASCADEBASE/inputs/ksAomegaHe4_1V.config 
-    fi
-    if [ "$kssc" = "ksarraytriggerVBF" ]; then
-        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
-                                  $KASCADEBASE/inputs/ksArrayTriggerP1V.config 
-        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
-                               $KASCADEBASE/inputs/ksArrayTriggerHe4_1V.config 
+        cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
+                                    $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
+
+        cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
+                                    $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
     fi
 
-    P1V
-    He4_1V
-    echo parspec: $parspec
+    let processStart=1
+    parspec=$Pspec
+    datadir="$dataDirBasr/whipple/protons"
+    Protons
+    parspec=$He4spec
+    datadir="$dataDirBasr/whipple/he4"
+    Helium4
     let pspecset=1;
 fi
 
-if [ $1 = "P1V" ]; then
-    P1V
-    echo parspec: $parspec
+if [ $1 = "P1W" ] || [ $1 = "P20W" ] || [ $1 = "P30W" ] || [ $1 = "P40W" ] || [ $1 = "P50W" ] ; then
+    parspec=$1
+    datadir="$dataDirBasr/whipple/protons"
+    let processStart=1
+    Protons
     let pspecset=1;
 fi
 
-if [ $1 = "He4_1V" ]; then
-    He4_1V
-    echo parspec: $parspec
+if [ $1 = "He4_1W" ] || [ $1 = "He4_20W" ] || [ $1 = "He4_30W" ] || [ $1 = "He4_40W" ] || [ $1 = "He4_50W" ] ; then
+    parspec=$1
+    datadir="$dataDirBasr/whipple/he4"
+    let processStart=1
+    Helium4
+    let pspecset=1;
+fi
+
+if [ $1 = "G1W" ] || [ $1 = "G20W" ] || [ $1 = "G30W" ] || [ $1 = "G40W" ] || [  $1 = "G50W" ] ; then
+    parspec=$1
+    datadir="$dataDirBasr/whipple/gammas"
+    let processStart=11
+    Gammas
     let pspecset=1;
 fi
 
 
-if [ $1 = "CR20V" ] || [ $1 = "CR20V2" ] ; then
+if [ $1 = "CR1V" ] || [ $1 = "CR20V" ] [ $1 = "CR30V" ] ||  [ $1 = "CR40V" ] ||  [ $1 = "CR50V" ]; then
+
+    parspec=$1
+    Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
+                                               #see pg 97 Bash book.
+    He4spec=He4_${parspec#CR} #Replace CR with He4_
 
     if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
-                                    $KASCADEBASE/inputs/ksAomegaP20V.config 
-        cp -v $KASCADEBASE/inputs/ksAomega$1'.config'  \
-                                    $KASCADEBASE/inputs/ksAomegaHe4_20V.config 
+    if [ "$kssc" = "ksaom" ]; then
+    
+        cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
+                                    $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
+
+        cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
+                                    $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
     fi
+
     if [ "$kssc" = "ksarraytriggerVBF" ]; then
-        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
-                                  $KASCADEBASE/inputs/ksArrayTriggerP20V.config 
-        cp -v $KASCADEBASE/inputs/ksArrayTrigger$1'.config'  \
-                               $KASCADEBASE/inputs/ksArrayTriggerHe4_20V.config 
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$parspec'.config'  \
+                                  $KASCADEBASE/inputs/ksArrayTrigger$Pspec'.config' 
+        cp -v $KASCADEBASE/inputs/ksArrayTrigger$parspec'.config'  \
+                               $KASCADEBASE/inputs/ksArrayTrigger$He4spec'.config' 
     fi
 
-    P20V
-    He4_20V
-    echo parspec: $parspec
+    let processStart=1
+    parspec=$Pspec
+    datadir="$dataDirBasr/veritas/protons"
+    Protons
+    parspec=$He4spec
+    datadir="$dataDirBasr/veritas/he4"
+    Helium4
     let pspecset=1;
 fi
 
-if [ $1 = "P20V" ]; then
-    P20V
-    echo parspec: $parspec
+
+if [ $1 = "P1V" ] || [ $1 = "P20V" ] || [ $1 = "P30V" ] || [ $1 = "P40V" ] || [ $1 = "P50V" ] ; then
+    parspec=$1
+    datadir="$dataDirBasr/veritas/protons"
+    let processStart=1
+    Protons
     let pspecset=1;
 fi
 
-if [ $1 = "He4_20V" ]; then
-    He4_20V
-    echo parspec: $parspec
+if [ $1 = "He4_1V" ] || [ $1 = "He4_20V" ] || [ $1 = "He4_30V" ] || [ $1 = "He4_40V" ] || [ $1 = "He4_50V" ] ; then
+    parspec=$1
+    datadir="$dataDirBasr/veritas/he4"
+    let processStart=1
+    Helium4
     let pspecset=1;
 fi
 
 if [ $1 = "G1V" ] || [ $1 = "G20V" ] || [ $1 = "G30V" ] || [ $1 = "G40V" ] || [  $1 = "G50V" ] ; then
     parspec=$1
-    VeritasGammas
+    datadir="$dataDirBasr/veritas/gammas"
+    let processStart=1
+    Gammas
     let pspecset=1;
 fi
-
-
-
-
-#
-#if [ $1 = "G20V" ]; then
-#    G20V
-#    echo parspec: $parspec
-#    let pspecset=1;
-#fi
-#
-#if [ $1 = "G30V" ]; then
-#    G30V
-#    echo parspec: $parspec
-#    let pspecset=1;
-#fi
-#
-#if [ $1 = "G40V" ]; then
-#    G40V
-#    echo parspec: $parspec
-#    let pspecset=1;
-#fi
-#
-#if [ $1 = "G50V" ]; then
-#    G50V
-#    echo parspec: $parspec
-#    let pspecset=1;
-#fi
 
 if [ $pspecset -ne 1 ]; then
     echo No such Particle spec: $1
     exit
 fi
+
+if [ $host = 'isis' ] ; then
+    chmod 777 $JobScript1
+    chmod 777 $JobScript2
+    chmod 777 $JobScript3
+    chmod 777 $JobScript4
+
+    ./$JobScript1 &
+    ./$JobScript2 &
+    ./$JobScript3 &
+    ./$JobScript4 &
+fi
+
 
 
 
