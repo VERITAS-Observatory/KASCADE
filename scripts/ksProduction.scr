@@ -228,7 +228,7 @@ function BuildIsisScriptList()
 #Start of main script.
 #*************************************************************
 lcl="$PWD"
-host=$(hostname -s)
+host=$(hostname)
 #script directory
 sdr=$KASCADEBASE"/scripts"
 kssc=$2
