@@ -241,9 +241,9 @@ if [ $host = 'isis' ] ; then
 
 #define job script names
     JobScript1=$lcl'/js1_'$pr'.scr'
-    JobScript1=$lcl'/js2_'$pr'.scr'
-    JobScript1=$lcl'/js3_'$pr'.scr'
-    JobScript1=$lcl'/js4_'$pr'.scr'
+    JobScript2=$lcl'/js2_'$pr'.scr'
+    JobScript3=$lcl'/js3_'$pr'.scr'
+    JobScript4=$lcl'/js4_'$pr'.scr'
 
 #Initialze the script files
     echo echo Starting $JobScript1 >$JobScript1
