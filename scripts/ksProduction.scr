@@ -401,10 +401,10 @@ if [ $host = 'isis' ] ; then
     chmod 777 $JobScript3
     chmod 777 $JobScript4
 
-    ./$JobScript1 &
-#    ./$JobScript2 &
-#    ./$JobScript3 &
-#    ./$JobScript4 &
+    $JobScript1 &
+#    $JobScript2 &
+#    $JobScript3 &
+#    $JobScript4 &
 fi
 
 ###########################################################################
