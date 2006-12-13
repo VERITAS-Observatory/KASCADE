@@ -240,10 +240,10 @@ if [ $host = 'isis' ] ; then
     dataDirBase=/simulations
 
 #define job script names
-    JobScript1=$lcl'/js1_'$pr'.scr'
-    JobScript2=$lcl'/js2_'$pr'.scr'
-    JobScript3=$lcl'/js3_'$pr'.scr'
-    JobScript4=$lcl'/js4_'$pr'.scr'
+    JobScript1=$lcl'/js1_'$1'.scr'
+    JobScript2=$lcl'/js2_'$1'.scr'
+    JobScript3=$lcl'/js3_'$1'.scr'
+    JobScript4=$lcl'/js4_'$1'.scr'
 
 #Initialze the script files
     echo echo Starting $JobScript1 >$JobScript1

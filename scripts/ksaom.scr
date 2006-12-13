@@ -35,7 +35,7 @@ done
 echo Running on $host
 
 #Set up private working directory for this run. 
-whp="/project/veritas/sembrosk/whipple"
+whp="$PWD"
 
 #Keeps random number independent
 #use combo of process id ($$)and number of nanosec(date +%N) since last 
