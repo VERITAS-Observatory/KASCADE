@@ -65,10 +65,14 @@ function Protons()
         start=([1]=1    346  691  1036 1   276  551  1    271  1    321  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
     if [ $host = 'isis' ]; then
-	BuildIsisScriptList 1  1  9 
-	BuildIsisScriptList 2 10 18 
-	BuildIsisScriptList 3 19 27
-	BuildIsisScriptList 4 27 35 
+	BuildIsisScriptList 1  1  4
+	BuildIsisScriptList 2  5  8 
+	BuildIsisScriptList 3  11 12
+	BuildIsisScriptList 4  13 16 
+	BuildIsisScriptList 5  17 20 
+	BuildIsisScriptList 6  21 25 
+	BuildIsisScriptList 7  26 30
+	BuildIsisScriptList 8  31 35
     else
 	SubmitAmdahlPBSJobs        #amdahl
 
@@ -95,10 +99,14 @@ function Helium4()
         start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
     if [ $host = 'isis' ]; then
-	BuildIsisScriptList 1 1 5
-	BuildIsisScriptList 2 6 10
-	BuildIsisScriptList 3 11 15
-	BuildIsisScriptList 4 16 20
+	BuildIsisScriptList 1 1  2
+	BuildIsisScriptList 2 3  4
+	BuildIsisScriptList 3 5  6
+	BuildIsisScriptList 4 7  9
+	BuildIsisScriptList 5 10 12
+	BuildIsisScriptList 6 13 15
+	BuildIsisScriptList 7 16 18
+	BuildIsisScriptList 8 19 20
     else
 	SubmitAmdahlPBSJobs        #amdahl
     fi
@@ -126,18 +134,26 @@ function Gammas()
 
     if [ $host = 'isis' ]; then
 	if [ $parspec = "G1W" ] || [ $parspec = "G20W" ] || [ $parspec = "G30W" ] || [ $parspec = "G40W" ] || [  $parspec = "G50W" ]; then
-	    BuildIsisScriptList 1 11 15
-	    BuildIsisScriptList 2 16 20
-	    BuildIsisScriptList 3 21 24
-	    BuildIsisScriptList 4 25 28
+	    BuildIsisScriptList 1 11 12
+	    BuildIsisScriptList 2 13 14
+	    BuildIsisScriptList 3 15 16
+	    BuildIsisScriptList 4 17 18
+	    BuildIsisScriptList 5 19 20
+	    BuildIsisScriptList 6 21 23
+	    BuildIsisScriptList 7 24 26
+	    BuildIsisScriptList 8 27 28
 	fi
 
 
 	if [ $parspec = "G1V" ] || [ $parspec = "G20V" ] || [ $parspec = "G30V" ] || [ $parspec = "G40V" ] || [  $parspec = "G50V" ]; then
-	    BuildIsisScriptList 1 1 7
-	    BuildIsisScriptList 2 8 14
-	    BuildIsisScriptList 3 15 21
-	    BuildIsisScriptList 4 22 28
+	    BuildIsisScriptList 1 1 3
+	    BuildIsisScriptList 2 4 6
+	    BuildIsisScriptList 3 7 9
+	    BuildIsisScriptList 4 10 12
+	    BuildIsisScriptList 5 13 16
+	    BuildIsisScriptList 6 17 20
+	    BuildIsisScriptList 7 21 24
+	    BuildIsisScriptList 8 25 28
 	fi
     else
 
@@ -189,21 +205,7 @@ function BuildIsisScriptList()
 #**********************************************************************
 {
  pr=$parspec
- if [ $1 -eq "1" ]; then
-    jobScript=$JobScript1
- fi
-
- if [ $1 -eq "2" ]; then
-    jobScript=$JobScript2
- fi
-
- if [ $1 -eq "3" ]; then
-    jobScript=$JobScript3
- fi
-
- if [ $1 -eq "4" ]; then
-    jobScript=$JobScript4
- fi
+ jobScript = $lcl'/js'$1'_'$pr'.scr'
 
  let processStart=$2
  let processEnd=$3
@@ -238,19 +240,16 @@ ksScript=$sdr/$kssc'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
 
 if [ $host = 'isis' ] ; then
     dataDirBase=/simulations
+    let jobNum=1
 
-#define job script names
-    JobScript1=$lcl'/js1_'$1'.scr'
-    JobScript2=$lcl'/js2_'$1'.scr'
-    JobScript3=$lcl'/js3_'$1'.scr'
-    JobScript4=$lcl'/js4_'$1'.scr'
-
-#Initialze the script files
-    echo echo Starting $JobScript1 >$JobScript1
-    echo echo Starting $JobScript2 >$JobScript2
-    echo echo Starting $JobScript3 >$JobScript3
-    echo echo Starting $JobScript4 >$JobScript4
-
+    while test $jobNum -le 8
+    do
+	    #define job script name
+	JobScript = $lcl'/js'$jobNum'_'$1'.scr'
+	    #Initialze the script files
+	echo echo Starting $JobScript >$JobScript
+    jobNum=$((jobNum+1))
+    done
 #amdahl
 else
 
@@ -397,20 +396,18 @@ fi
 
 if [ $host = 'isis' ] ; then
    
-    echo echo Script $JobScript1 finshed >>$JobScript1
-    echo echo Script $JobScript2 finshed >>$JobScript2
-    echo echo Script $JobScript3 finshed >>$JobScript3
-    echo echo Script $JobScript4 finshed >>$JobScript4
+    let jobNum=1
 
-    chmod 777 $JobScript1
-    chmod 777 $JobScript2
-    chmod 777 $JobScript3
-    chmod 777 $JobScript4
-
-    $JobScript1 &
-    $JobScript2 &
-    $JobScript3 &
-    $JobScript4 &
+    while test $jobNum -le 8
+    do
+	    #define job script name
+	JobScript = $lcl'/js'$jobNum'_'$1'.scr'
+	    #Initialze the script files
+	echo echo Script $JobScript finshed >>$JobScript
+	chmod 777 $JobScript
+	$JobScript &
+    jobNum=$((jobNum+1))
+    done
 fi
 
 ###########################################################################
