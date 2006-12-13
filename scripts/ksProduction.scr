@@ -396,6 +396,12 @@ if [ $pspecset -ne 1 ]; then
 fi
 
 if [ $host = 'isis' ] ; then
+   
+    echo echo Script $JobScript1 finshed >>$JobScript1
+    echo echo Script $JobScript2 finshed >>$JobScript2
+    echo echo Script $JobScript3 finshed >>$JobScript3
+    echo echo Script $JobScript4 finshed >>$JobScript4
+
     chmod 777 $JobScript1
     chmod 777 $JobScript2
     chmod 777 $JobScript3
