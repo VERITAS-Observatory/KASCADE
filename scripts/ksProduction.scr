@@ -218,6 +218,10 @@ function BuildIsisScriptList()
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
       echo ${end[$i]} $datadir                            \\   >>$jobScript
       echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"              >>$jobScript
+
+      echo d=$(date)                                           >>$jobScript 
+      echo Finished on \$d": "$pr ${energy[$i]} GeV from   \\  >>$jobScript
+      echo ${start[$i]} to ${end[$i]}                          >>$jobScript
     fi
     i=$((i+1))			#do next process
   done
@@ -402,10 +406,11 @@ if [ $host = 'isis' ] ; then
     do
 	    #define job script name
 	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
+	JobScriptLog=$lcl'/js'$jobNum'_'$1'.log'
 	    #Initialze the script files
 	echo echo Script $JobScript finshed >>$JobScript
 	chmod 777 $JobScript
-	$JobScript &
+	$JobScript & >$JobScriptLog
     jobNum=$((jobNum+1))
     done
 fi
