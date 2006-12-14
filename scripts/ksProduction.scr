@@ -54,7 +54,7 @@ function Protons()
 #**********************************************************************
 {
     echo Protons: $parspec
-    WALLTIME=40:00:00
+    WALLTIME=50:00:00
     RemoveOldFiles
 
 #Veritas$ whipple set1/ksaom/kasall
@@ -87,7 +87,7 @@ function Helium4()
 #**********************************************************************
 {
     echo Helium4: $parspec
-    WALLTIME=40:00:00
+    WALLTIME=50:00:00
     RemoveOldFiles
 
 #Veritas$ whipple set1/ksaom/kasall
@@ -121,7 +121,7 @@ function Gammas()
 {
     echo Gammas: $parspec
     let processEnd=26
-    WALLTIME=40:00:00
+    WALLTIME=50:00:00
     RemoveOldFiles
 
 #Veritas set1/ksaom/kasall
