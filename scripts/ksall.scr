@@ -140,11 +140,11 @@ while test $i -le $4
 	rm $MDirFile
     fi
  
-#    $src/ksTrigger  -config=$ksTriggerConfig \
-#		    -SaveMountDirectionsToFile=ON \
-#		    -MountDirectionsFileName=$MDirFile \
-#                    -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
-#     rm $pesfile
+    $src/ksTrigger  -config=$ksTriggerConfig \
+		    -SaveMountDirectionsToFile=ON \
+		    -MountDirectionsFileName=$MDirFile \
+                    -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
+     rm $pesfile
 
 #compress te file: THIS DOESN'T SEEM TO WORK!
 #
