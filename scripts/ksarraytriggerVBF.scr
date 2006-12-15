@@ -28,21 +28,23 @@ done
 echo Running on $host
 
 #Set up private working directory for this run. 
-whp="$PWD"
-
 #Keeps random number independent
+
 #use combo of process id ($$)and number of nanosec(date +%N) since last 
 #second tick to get unique value. (least count is micro sec at best)
 let dirID=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
 while [ -d "$dirID" ]; do
   let dirID=$(date +10#%N)+$$
 done
-wrkdir=$whp/$dirID
+
+cd workingScratch
 
 #create working directory.
-mkdir  $wrkdir
-cd $wrkdir
-echo Working Directory is `pwd`
+mkdir  $dirID
+cd $dirID
+
+wrkdir="$PWD"
+echo Working Directory is $wrkdir
 
 
 #Make links to config files
