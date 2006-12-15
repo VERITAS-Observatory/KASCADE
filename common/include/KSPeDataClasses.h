@@ -72,5 +72,20 @@ class KSPeData
   int    fTrackType;       // Type of emitting particle.
   int    fLambda;          // Wavelength of emmited photon(nm)
   double fEmissionAltitude;// emmison altitude
+
+  inline bool operator < (const KSPeData& o) const;//This for use with sort
 };
+
+inline bool KSPeData::operator < (const KSPeData& o) const
+{
+  if(fNx==o.fNx && fNy<o.fNy)
+    {
+      return true;
+    }
+  else if(fNx<o.fNx)
+    {
+      return true;
+    }
+  return false;
+}
 #endif
