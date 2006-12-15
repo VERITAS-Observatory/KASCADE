@@ -28,22 +28,25 @@ done
 echo Running on $host
 
 #Set up private working directory for this run. 
-whp="$PWD"
-
-
 #Keeps random number independent
+
 #use combo of process id ($$)and number of nanosec(date +%N) since last 
 #second tick to get unique value. (least count is micro sec at best)
 let dirID=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
 while [ -d "$dirID" ]; do
   let dirID=$(date +10#%N)+$$
 done
-wrkdir=$whp/$dirID
+
+cd workingScratch          #This may be a link from the home dir (amdahl)
+                           # or an actual sub dir of the running dir (isis)
 
 #create working directory.
-mkdir  $wrkdir
-cd $wrkdir
-echo Working Directory is `pwd`
+mkdir $dirID
+cd $dirID
+
+wrkdir="$PWD"
+
+echo Working Directory is $wrkdir
 
 
 #Make links to config files
@@ -111,18 +114,19 @@ while test $i -le $4
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran $segfile $pefile
     rm -v $segfile		#Remove segment file
 
-#ksPeSort
+#ksPeSortMerg
     pesfile='Pes.d'$i
     if [ -e "$pesfile" ]; then
 	rm $pesfile
     fi
 
-    if [ -e "SortTempTreeFile.root" ]; then
-	rm -v SortTempTreeFile.root
-    fi
+#    if [ -e "SortTempTreeFile.root" ]; then
+#	rm -v SortTempTreeFile.root
+#    fi
 
-    $src/ksPeSort $pefile $pesfile
+    $src/ksPeSortMerge $pefile $pesfile
     rm $pefile		#Delete pe file
+    rm Temp*            #delete temp sort files.
 
 #ksTrigger
     tefile=$Shwr$i
@@ -136,11 +140,11 @@ while test $i -le $4
 	rm $MDirFile
     fi
  
-    $src/ksTrigger  -config=$ksTriggerConfig \
-		    -SaveMountDirectionsToFile=ON \
-		    -MountDirectionsFileName=$MDirFile \
-                    -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
-     rm $pesfile
+#    $src/ksTrigger  -config=$ksTriggerConfig \
+#		    -SaveMountDirectionsToFile=ON \
+#		    -MountDirectionsFileName=$MDirFile \
+#                    -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
+#     rm $pesfile
 
 #compress te file: THIS DOESN'T SEEM TO WORK!
 #
