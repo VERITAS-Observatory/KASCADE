@@ -345,7 +345,6 @@ int main(int argc, char** argv)
     // shifted 1/2 fXAreaWidthM to right.To insure correct triangular spacing 
     // and a minimum dimension of 12m use 12m x 13.856m
     // ------------------------------------------------------------------------
-
       if(pfPeHead->fWhippleMount || pfPeHead->fVeritasMount)
 	{
 	  if(pfPeHead->fNorthSouthGrid)
@@ -364,6 +363,18 @@ int main(int argc, char** argv)
 	  pfPeHead->fXAreaWidthM=12.0;       //SQUARE grid
 	  pfPeHead->fYAreaWidthM=12.0;
 	}
+      // *****************************************************************
+      //THIS IS A HACK!!!
+      // Modify for inclination angle. Mirror shadow gets bigger. This may be 
+      // an over correction until I can get the exact geometry worked out.
+      //Note: this is also not right because this is primary direction not 
+      // mount direction.
+      // ******************************************************************
+      pfPeHead->fXAreaWidthM=
+	               fabs(pfPeHead->fXAreaWidthM/pfSegmentHead->fDnInitial);
+      pfPeHead->fYAreaWidthM=
+                       fabs(pfPeHead->fYAreaWidthM/pfSegmentHead->fDnInitial);
+  
 
     // ------------------------------------------------------------------------
     // Generate a random X_OFFSET and a Y_OFFSET for this shower if requested.
