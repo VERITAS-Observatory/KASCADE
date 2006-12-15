@@ -39,14 +39,14 @@ inline bool FileAndPe::operator < (const FileAndPe& o) const
 int main(int argc, char** argv)
 { 
   time_t thetime=time(NULL);
-  std::cout<<"ksPeSortMerge  START------"<<ctime(&thetime)<<std::endl;
+  std::cout<<"ksPeSortMerge:  START------"<<ctime(&thetime)<<std::endl;
 
   argv++;
   argc--;
   if(argc<2)
     {
       std::cout
-	<<"ksPeSortMergeUsage: ./ksPeSortMerge <peInputFileName> "
+	<<"ksPeSortMerge:Usage: ./ksPeSortMerge <peInputFileName> "
 	"<peSortedOuputFileName>"<<std::endl;
       exit(EXIT_FAILURE);
     }
@@ -55,8 +55,8 @@ int main(int argc, char** argv)
   argv++;
   std::string PeSortedFileName=*argv;
   
-  std::cout<<"ksPeSortMergeInput UnSorted Pe File: "<<PeFileName<<std::endl;
-  std::cout<<"ksPeSortMergeOuput Sorted Pe File: "<<PeSortedFileName
+  std::cout<<"ksPeSortMerge:Input UnSorted Pe File: "<<PeFileName<<std::endl;
+  std::cout<<"ksPeSortMerge:Ouput Sorted Pe File: "<<PeSortedFileName
 	   <<std::endl;
   
   
@@ -69,14 +69,14 @@ int main(int argc, char** argv)
   KSPeFile* pfPeFile=new KSPeFile();
   pfPeFile->Open(PeFileName.c_str());
   if(pfPeFile==NULL)    {
-      std::cout<<"ksPeSortMergeFailed to open Input Pe File: "<<PeFileName
+      std::cout<<"ksPeSortMerge:Failed to open Input Pe File: "<<PeFileName
 	       <<std::endl;
       return 1;
     }
   bool goodread=pfPeFile->ReadSegmentHead(pfSegmentHead);
   if(!goodread)
     {
-      std::cout<<"ksPeSortMerge Failed to read Segment Header from Pe File"
+      std::cout<<"ksPeSortMerge: Failed to read Segment Header from Pe File"
 	       <<std::endl;
       return 1;
     }
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
   goodread=pfPeFile->ReadPeHead(pfPeHead);
   if(!goodread)
     {
-      std::cout<<"ksPeSortMerge Failed to read Pe Header from Pe File"
+      std::cout<<"ksPeSortMerge: Failed to read Pe Header from Pe File"
 	       <<std::endl;
       return 1;
     }
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
   pfSortedPeFile->Create(PeSortedFileName.c_str());
   if(pfSortedPeFile==NULL)
     {
-      std::cout<<"ksPeSortMergeFailed to Create Output Pe File: "
+      std::cout<<"ksPeSortMerge:Failed to Create Output Pe File: "
 	       <<PeSortedFileName
 	       <<std::endl;
       return 1;
@@ -120,6 +120,8 @@ int main(int argc, char** argv)
   KSPeData* pfBinaryPe = new KSPeData();
   int fInputNumPe=0;
   int fNumFiles=0;
+  int fNxMinimum=0;
+  int fNyMinimum=0;
   while(1)
     {
       pfPeSortVector.clear();
@@ -130,6 +132,14 @@ int main(int argc, char** argv)
 	  bool goodread=pfPeFile->ReadPe(pfBinaryPe);
 	  if(goodread)
 	    {
+	      if(pfBinaryPe->fNx<fNxMinimum)
+		{
+		  fNxMinimum=pfBinaryPe->fNx;
+		}
+	      if(pfBinaryPe->fNy<fNyMinimum)
+		{
+		  fNyMinimum=pfBinaryPe->fNy;
+		}
 	      pfPeSortVector.push_back(*pfBinaryPe);
 	      fInputNumPe++;
 	    }
@@ -137,12 +147,12 @@ int main(int argc, char** argv)
 	    {
 	      if(!pfPeFile->foundEOF())
 		{
-		  std::cout<<"ksPeSortMerge Pe file read failure"<<std::endl;
+		  std::cout<<"ksPeSortMerge: Pe file read failure"<<std::endl;
 		  exit(1);
 		}
 	      else
 		{
-		  std::cout<<"ksPeSortMerge Found input file EOF"<<std::endl;
+		  std::cout<<"ksPeSortMerge: Found input file EOF"<<std::endl;
 		  break;
 		}
 	    }
@@ -189,64 +199,57 @@ int main(int argc, char** argv)
   // *********************************************************************
   if(fInputNumPe==0)
     {
-      std::cout<<"ksPeSortMerge No pes in input Pe file. Possible but not "
+      std::cout<<"ksPeSortMerge: No pes in input Pe file. Possible but not "
 	"likely. Skipping sort (obviously)"<<std::endl;
-      std::cout<<"ksPeSortMerge Number of Sorted PEs written out: "
+      std::cout<<"ksPeSortMerge: Number of Sorted PEs written out: "
 	   << fInputNumPe<<std::endl;
       thetime=time(NULL);
-      std::cout<<"ksPeSortMerge  Not quite but close to a: NORMAL END------"
+      std::cout<<"ksPeSortMerge:  Not quite but close to a: NORMAL END------"
 	       <<ctime(&thetime)<<std::endl;
       return 0;
     }
 
 
   thetime=time(NULL);
-  std::cout<<"ksPeSortMerge Sorts Finished. "<<ctime(&thetime)<<std::endl;
-  std::cout<<"ksPeSortMerge Checking & Mertging &writing out sorted file."
+  std::cout<<"ksPeSortMerge: Input Read Finished."<<ctime(&thetime)<<std::endl;
+  std::cout<<"ksPeSortMerge: Merging, Checking, and Writing out sorted file."
 	   <<std::endl;
 
-  std::cout<<"ksPesort: Number of PEs read in: "<<(long)pfPeFile->getNumPes()
-	   <<std::endl;
-  std::cout<<"ksPesort: Number of Temporary Sort files of max size "
+  std::cout<<"ksPesortMerge: Number of PEs read in: "
+	   <<(long)pfPeFile->getNumPes()<<std::endl;
+  std::cout<<"ksPesortMerge: Number of Temporary Sort files of maximum size "
 	   <<kSortMax<<" created: "<<pfTempFileNames.size()<<std::endl;
 
- 
-
+  std::cout<<"ksPesortMerge: NX Minimum= "<<fNxMinimum<<std::endl;
+  std::cout<<"ksPesortMerge: NY Minimum= "<<fNyMinimum<<std::endl;
 
   // ***********************************************************************
   // That was the sort part. Now the merge part.
   // Open for reading all the temp files and place in a vector.Using 
   // as vector of structs and iterators here so erase() will be available 
   // later.
-  // ***********************************************************************
+  // ************************************************************************
+  // Init setup for merge loop. Note this will also work for only 1 file
+  // ************************************************************************
   FileAndPe fTempFileAndPe;
   std::vector<FileAndPe> pfFilePeList;
+  KSPeData fPe;
+  std::vector<FileAndPe>::iterator fPos;
   for(int i=0;i<(int)pfTempFileNames.size();i++)
     {
       fTempFileAndPe.pfFile=new std::ifstream(pfTempFileNames.at(i).c_str(), 
 		            std::ios::in | std::ios::binary);
-      pfFilePeList.push_back(fTempFileAndPe);
-    }
-
-
-  // ************************************************************************
-  // Init setup for merge loop. Note this will also work for only 1 file
-  // ************************************************************************
-  KSPeData fPe;
-  std::vector<FileAndPe>::iterator fPos;
-  for(fPos=pfFilePeList.begin();fPos!=pfFilePeList.end();++fPos)
-    {
-     
-      fTempFileAndPe=*fPos;
       fTempFileAndPe.pfFile->read((char*)&fTempFileAndPe.fPe, 
 				                            sizeof(KSPeData));
-    }
+      pfFilePeList.push_back(fTempFileAndPe);
+   }
 
   // ************************************************************************
   // Merge and write loop
   // ************************************************************************
   int fNxOld=0;
   int fNyOld=0;
+  int fNumOut=0;
   for(int i=0;i<fInputNumPe;i++)
     {
       // **************************************************************
@@ -265,12 +268,13 @@ int main(int argc, char** argv)
 	  bool fOrderOK=ksCheckSort(fNxOld,fNyOld,&fTempFileAndPe.fPe);
 	  if(!fOrderOK)
 	    {
-	      std::cout<<"ksPeSortMerge Sort failed at sort index: "<<i
+	      std::cout<<"ksPeSortMerge: Sort failed at sort index: "<<i
 		       <<std::endl;
 	      return 1;
 	    }
 	}
       pfSortedPeFile->WritePe(&fTempFileAndPe.fPe);
+      fNumOut++;
       fNxOld=fTempFileAndPe.fPe.fNx;   //save new "olds"
       fNyOld=fTempFileAndPe.fPe.fNy;
       // ******************************************************************
@@ -289,14 +293,14 @@ int main(int argc, char** argv)
 	  *fNextFileAndPePos=fTempFileAndPe;
 	}
     }
-  std::cout<<"ksPeSortMerge Successful Sort(I checked!)"<<std::endl;
+  std::cout<<"ksPeSortMerge: Successful Sort(I checked!)"<<std::endl;
   pfSortedPeFile->Close();
-  std::cout<<"ksPeSortMerge Number of Sorted PEs written out: "
+  std::cout<<"ksPeSortMerge: Number of Sorted PEs written out: "
 	   << (long)pfSortedPeFile->getNumPes()
 	   <<std::endl;
       
   thetime=time(NULL);
-  std::cout<<"ksPeSortMerge  NORMAL END------"<<ctime(&thetime)
+  std::cout<<"ksPeSortMerge:  NORMAL END------"<<ctime(&thetime)
 	   <<std::endl;
 
   return 0;
@@ -311,14 +315,14 @@ bool ksCheckSort(int nxold, int nyold, KSPeData* pfPe)
   int nynew=pfPe->fNy;
   if(nxnew==nxold && nynew<nyold)
     {
-      std::cout<<"ksPeSortMerge Check-error--NY out of seq."<<std::endl;
+      std::cout<<"ksPeSortMerge: Check-error--NY out of seq."<<std::endl;
       return false;
     }
   else if(nxnew<nxold)
     {
-      std::cout<<"ksPeSortMergeksCheckSort: nxnew,nxold: "<<nxnew<<" "<<nxold
+      std::cout<<"ksPeSortMerge:ksCheckSort: nxnew,nxold: "<<nxnew<<" "<<nxold
 	       <<std::endl;
-      std::cout<<"ksPeSortMerge Check-error--NX out of seq."<<std::endl;
+      std::cout<<"ksPeSortMerge: Check-error--NX out of seq."<<std::endl;
       return false;
     }
   return true;
