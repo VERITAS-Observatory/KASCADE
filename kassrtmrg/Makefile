@@ -16,7 +16,7 @@ include ../Makefile.common
 
 
 LIBTARGET = $(LIBDIR)/libkassrtmrg.a
-EXETARGET = ksPeSort.cpp
+EXETARGET = ksPeSortMerge.cpp
 #TESTTARGET = LargeTTreeTest.cpp
 
 #Nothing below here should have to change (much, maybe)
