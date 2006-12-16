@@ -13,7 +13,7 @@ inpDir=$KASCADEBASE'/inputs'
 
 cd /project/veritas/sembrosk/veritas
 
-find ./gammas -name G20V*GeV*.vbf | grep -v Mult >1VL
+find ./gammas -name G1V*GeV*.vbf | grep -v Mult >1VL
 #find ./gammas -name G1V*GeV*.vbf | grep -v Mult >1VL
 gawk 'gsub(/.vbf/,"",$1)' 1VL >1VGList  
 
