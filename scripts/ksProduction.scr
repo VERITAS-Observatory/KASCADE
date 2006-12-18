@@ -15,7 +15,7 @@
 #$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
 #          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 #$3 Array Multiplicity and Trigger multiplicity for ksarraytriggerVBF only. 
-                             Like 2of2_12--(default)  or 2of3_12-4.
+#                             Like 2of2_12--(default)  or 2of3_12-4.
 
 
 #Functions to define thigs for various particle specs

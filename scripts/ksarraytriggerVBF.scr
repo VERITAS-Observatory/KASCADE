@@ -9,7 +9,7 @@
 #$5 Adata disk directory.(Where output Te are and root and VBF files are to go,
 # cannot be blank!!!)
 #$6 Array Multiplicity and Trigger multiplicity for ksarraytriggerVBF only. 
-                             Like 12--M2(default)  or 12-4M3.
+#                             Like 12--M2(default)  or 12-4M3.
 echo "**********************************************************************"
 echo "**********************************************************************"
 
