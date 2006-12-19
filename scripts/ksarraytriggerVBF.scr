@@ -100,7 +100,7 @@ while test $i -le $4
 #ksArrayTrigger
     VBFFile=$Shwr'.d'$i'.vbf'             #Not local
 #Make copies of files to use for different telescopes
-    VBFFileMult=$Shwr'.d'$i'Mult.vbf'      #Not local
+    VBFFileMult=$Shwr'.d'$i'Mult'.vbf'      #Not local
 
     ShowerNameOptions=
 
