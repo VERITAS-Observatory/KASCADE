@@ -27,10 +27,14 @@ cd $dataDirBase
 if [ -n $2 ];then
 	MultSpec=Mult
 fi
+echo $MultSpec
+
+
 
 if [ $1 = "G1V" ] || [ $1 = "G20V" ] || [ $1 = "G30V" ] || [ $1 = "G40V" ] || [  $1 = "G50V" ] ; then
 	find ./gammas -name $Spec*GeV*.vbf | grep -v $MultSpec >GList
 	gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
+	cat ShowerList
 fi
 
 if [  $1 = "CR1V" ]; then 
