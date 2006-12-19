@@ -181,7 +181,7 @@ function SubmitAmdahlPBSJobs()
     echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
     if [ "${enableGEN[$i]}" == "ON" ]; then 
 
-      pbsFile=$lcl/ks_$i$pr.pbs
+      pbsFile=$lcl/ks_$i$jobSpec.pbs
 
       echo "#"PBS -N "pbs"$i'_'$pr                                   >$pbsFile
       echo "#"PBS -e "pbs"$i'_'$pr'.err'                            >>$pbsFile
@@ -208,7 +208,8 @@ function BuildIsisScriptList()
 #**********************************************************************
 {
  pr=$parspec
- jobScript=$lcl'/js'$1'_'$pr'.scr'
+ 
+ jobScript=$lcl'/js'$1'_'$jobSpec'.scr'
 
  let processStart=$2
  let processEnd=$3
@@ -284,10 +285,12 @@ queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  a
 let pspecset=0
 maxMem=240MB
 WALLTIME=20:00:00
+jobSpec=$1
 
 if [ $1 = "CR1W" ] || [ $1 = "CR20W" ] || [ $1 = "CR30W" ] ||  [ $1 = "CR40W" ] ||  [ $1 = "CR50W" ]; then
 
     parspec=$1
+
     Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
                                                #see pg 97 Bash book.
     He4spec=He4_${parspec#CR} #Replace CR with He4_
@@ -404,8 +407,8 @@ if [ $host = 'isis' ] ; then
     while test $jobNum -le 8
     do
 	    #define job script name
-	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
-	JobScriptLog=$lcl'/js'$jobNum'_'$1'.log'
+	JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
+	JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
 	    #Initialze the script files
 	chmod 777 $JobScript
 	$JobScript  >$JobScriptLog &
