@@ -37,6 +37,11 @@ if [ $1 = "G1V" ] || [ $1 = "G20V" ] || [ $1 = "G30V" ] || [ $1 = "G40V" ] || [ 
 	gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 fi
 
+if [ $1 = "G1W" ] ; then
+	find ./gammas -name $Spec'*GeV*.root' $MultRej >GList
+	gawk 'gsub(/.root/,"",$1)' GList >ShowerList
+fi
+
 if [  $1 = "CR1V" ]; then 
 	find ./protons -name P1V'*GeV*'$MultSpec'.vbf $MultRej >CRList
 	find ./he4 -name He4_1V'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
@@ -44,8 +49,8 @@ if [  $1 = "CR1V" ]; then
 fi
 
 if [ $1 = "CR1W" ]; then 
-	find ./protons -name P1V*GeV*.root | grep -v $MultRej >CRList
-	find ./he4 -name He4_1V*GeV*.root  | grep -v $MultRej >>CRList
+	find ./protons -name P1W*GeV*.root $MultRej >CRList
+	find ./he4 -name He4_1W*GeV*.root  $MultRej >>CRList
 	gawk 'gsub(/.root/,"",$1)' CRList  >ShowerList  
 fi
 
