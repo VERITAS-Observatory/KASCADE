@@ -28,18 +28,18 @@ if [ -n $2 ];then            #Arrayconfig/Multiplicity arg not null
 	MultRej=
 	MultSpec=Mult
 else
-	MultRej=Mult
+	MultRej="| grep -v Mult"
 	MultSpec=
 fi
 
 if [ $1 = "G1V" ] || [ $1 = "G20V" ] || [ $1 = "G30V" ] || [ $1 = "G40V" ] || [  $1 = "G50V" ] ; then
-	find ./gammas -name $Spec'*GeV*'$MultSpec'.vbf'|grep -v $MultRej >GList
+	find ./gammas -name $Spec'*GeV*'$MultSpec'.vbf' $MultRej >GList
 	gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 fi
 
 if [  $1 = "CR1V" ]; then 
-	find ./protons -name P1V'*GeV*'$MultSpec'.vbf | grep -v $MultRej >CRList
-	find ./he4 -name He4_1V'*GeV*'$MultSpec'.vbf  | grep -v $MultRej >>CRList
+	find ./protons -name P1V'*GeV*'$MultSpec'.vbf $MultRej >CRList
+	find ./he4 -name He4_1V'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
 	gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
