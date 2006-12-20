@@ -71,14 +71,14 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
 
-if [  [ [ ${Spec:0:1} = "G" ] || [ ${Spec:0:2} = "CR" ]  ]  && [ ${Spec:$SpecEnd:1} = "W" ] ] ; then
+if  [ [ ${Spec:0:1} = "G" ] || [ ${Spec:0:2} = "CR" ]  ]  && [ ${Spec:$SpecEnd:1} = "W" ] ; then
    $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
 	                             -OutputRootFileName=$Spec.root ShowerList 
    $VEGASBASE/bin/vaStage3 -EnableProgressDisplay $Spec.root
 fi
 
 
-if [ [ [ ${Spec:0:1} = "G" ] || [ ${Spec:0:2} = "CR" ] ] && [ ${Spec:$SpecEnd:1} = "V" ] ] ; then
+if [ [ ${Spec:0:1} = "G" ] || [ ${Spec:0:2} = "CR" ] ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
 
    $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
                                      -OutputVBFFileName=$Spec$2.vbf ShowerList 
