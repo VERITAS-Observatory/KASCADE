@@ -70,7 +70,7 @@ function Protons()
     if [ $host = 'isis' ]; then
 	BuildIsisScriptList 1  1  4
 	BuildIsisScriptList 2  5  8 
-	BuildIsisScriptList 3  11 12
+	BuildIsisScriptList 3  9  12
 	BuildIsisScriptList 4  13 16 
 	BuildIsisScriptList 5  17 20 
 	BuildIsisScriptList 6  21 25 
