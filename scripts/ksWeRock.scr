@@ -12,6 +12,8 @@ inpDir=$KASCADEBASE'/inputs'
 #step 2.2
 
 Spec=$1
+let SpecEnd=$(expr length $Spec)
+SpecEnd=$((SpecEnd-1))
 
 host=$(hostname)
 if [ $host = 'isis' ] ; then
@@ -32,28 +34,32 @@ else
 	MultSpec=
 fi
 
-if [ $1 = "G1V" ] || [ $1 = "G20V" ] || [ $1 = "G30V" ] || [ $1 = "G40V" ] || [  $1 = "G50V" ] ; then
+if [ ${Spec:0:1} = "G" ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
 	find ./gammas -name $Spec'*GeV*'$MultSpec'.vbf' $MultRej >GList
 	gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 fi
 
-if [ $1 = "G1W" ] ; then
+if [ ${Spec:0:1} = "G" ] && [ ${Spec:$SpecEnd:1} = "W" ] ; then
 	find ./gammas -name $Spec'*GeV*.root' $MultRej >GList
 	gawk 'gsub(/.root/,"",$1)' GList >ShowerList
 fi
 
-if [  $1 = "CR1V" ]; then 
-	find ./protons -name P1V'*GeV*'$MultSpec'.vbf $MultRej >CRList
-	find ./he4 -name He4_1V'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
+if [ ${Spec:0:2} = "CR" ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
+    	Pspec=P${Spec#CR}   	#Fancy string manipulation here,replace CR 
+				#with P. see pg 97 Bash book.
+        He4spec=He4_${parspec#CR} #Replace CR with He4_
+	find ./protons -name $Pspec'*GeV*'$MultSpec'.vbf $MultRej >CRList
+	find ./he4 -name $He4spec'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
 	gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
-if [ $1 = "CR1W" ]; then 
-	find ./protons -name P1W*GeV*.root $MultRej >CRList
-	find ./he4 -name He4_1W*GeV*.root  $MultRej >>CRList
-	gawk 'gsub(/.root/,"",$1)' CRList  >ShowerList  
+if [ ${Spec:0:2} = "CR" ] && [ ${Spec:$SpecEnd:1} = "W" ] ; then
+    	Pspec=P${Spec#CR}
+        He4spec=He4_${parspec#CR}
+	find ./protons -name $Pspec'*GeV*'$MultSpec'.vbf $MultRej >CRList
+	find ./he4 -name $He4spec'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
+	gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
-
 
 #step 2.3
 
