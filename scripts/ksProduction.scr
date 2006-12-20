@@ -3,7 +3,7 @@
 #This is the conversion (from kas01.scr) to use at Purdue and Depauw
 #Glenn Sembroski 16/05/05
 #$0 ./kas02.scr
-#$1 has Type-direction specification code. like: P1W,He4_1W,G1W,DG1W
+#$1 has Type-direction specification code. like: P1W,He4_1W,G1W,G1N0.5V
 #   Giveing a Type code of 'CR1W' will cause both P1W and He4_1W to be run
 #   CR1V: Single telescope threshold(ksaom*)
 #   CR1V2: Multi Telescope threshold(ksaom*)
@@ -286,21 +286,20 @@ let pspecset=0
 maxMem=240MB
 WALLTIME=20:00:00
 jobSpec=$1
+let specEnd=$(expr length $jobSpec)
+specEnd=$((specEnd-1))
 
-if [ $1 = "CR1W" ] || [ $1 = "CR20W" ] || [ $1 = "CR30W" ] ||  [ $1 = "CR40W" ] ||  [ $1 = "CR50W" ]; then
-
+if [ ${jobSpec:0:2} = "CR" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
     parspec=$1
-
     Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
                                                #see pg 97 Bash book.
     He4spec=He4_${parspec#CR} #Replace CR with He4_
 
     if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
         cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                    $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
-
+                                   $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
         cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                    $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
+                                $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
     fi
 
     let processStart=1
@@ -313,7 +312,7 @@ if [ $1 = "CR1W" ] || [ $1 = "CR20W" ] || [ $1 = "CR30W" ] ||  [ $1 = "CR40W" ] 
     let pspecset=1;
 fi
 
-if [ $1 = "P1W" ] || [ $1 = "P20W" ] || [ $1 = "P30W" ] || [ $1 = "P40W" ] || [ $1 = "P50W" ]; then
+if [ ${jobSpec:0:1} = "P" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
     parspec=$1
     datadir="$dataDirBase/whipple/protons"
     let processStart=1
@@ -321,7 +320,7 @@ if [ $1 = "P1W" ] || [ $1 = "P20W" ] || [ $1 = "P30W" ] || [ $1 = "P40W" ] || [ 
     let pspecset=1;
 fi
 
-if [ $1 = "He4_1W" ] || [ $1 = "He4_20W" ] || [ $1 = "He4_30W" ] || [ $1 = "He4_40W" ] || [ $1 = "He4_50W" ] ; then
+if [ ${jobSpec:0:4} = "He4_" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
     parspec=$1
     datadir="$dataDirBase/whipple/he4"
     let processStart=1
@@ -329,7 +328,7 @@ if [ $1 = "He4_1W" ] || [ $1 = "He4_20W" ] || [ $1 = "He4_30W" ] || [ $1 = "He4_
     let pspecset=1;
 fi
 
-if [ $1 = "G1W" ] || [ $1 = "G20W" ] || [ $1 = "G30W" ] || [ $1 = "G40W" ] || [  $1 = "G50W" ]; then
+if [ ${jobSpec:0:1} = "G" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
     parspec=$1
     datadir="$dataDirBase/whipple/gammas"
     let processStart=11
@@ -337,9 +336,7 @@ if [ $1 = "G1W" ] || [ $1 = "G20W" ] || [ $1 = "G30W" ] || [ $1 = "G40W" ] || [ 
     let pspecset=1;
 fi
 
-
-if [ $1 = "CR1V" ] || [ $1 = "CR20V" ] || [ $1 = "CR30V" ] ||  [ $1 = "CR40V" ] ||  [ $1 = "CR50V" ]; then
-
+if [ ${jobSpec:0:2} = "CR" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
     parspec=$1
     Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
                                                #see pg 97 Bash book.
@@ -347,17 +344,16 @@ if [ $1 = "CR1V" ] || [ $1 = "CR20V" ] || [ $1 = "CR30V" ] ||  [ $1 = "CR40V" ] 
 
     if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
 	cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                    $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
-
+                                   $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
 	cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                    $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
+                                 $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
     fi
 
     if [ "$kssc" = "ksarraytriggerVBF" ]; then
         cp -v $KASCADEBASE/inputs/ksArrayTrigger$parspec'.config'  \
-                                  $KASCADEBASE/inputs/ksArrayTrigger$Pspec'.config' 
+                             $KASCADEBASE/inputs/ksArrayTrigger$Pspec'.config' 
         cp -v $KASCADEBASE/inputs/ksArrayTrigger$parspec'.config'  \
-                               $KASCADEBASE/inputs/ksArrayTrigger$He4spec'.config' 
+                           $KASCADEBASE/inputs/ksArrayTrigger$He4spec'.config' 
     fi
 
     let processStart=1
@@ -370,8 +366,7 @@ if [ $1 = "CR1V" ] || [ $1 = "CR20V" ] || [ $1 = "CR30V" ] ||  [ $1 = "CR40V" ] 
     let pspecset=1;
 fi
 
-
-if [ $1 = "P1V" ] || [ $1 = "P20V" ] || [ $1 = "P30V" ] || [ $1 = "P40V" ] || [ $1 = "P50V" ] ; then
+if [ ${jobSpec:0:1} = "P" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
     parspec=$1
     datadir="$dataDirBase/veritas/protons"
     let processStart=1
@@ -379,7 +374,7 @@ if [ $1 = "P1V" ] || [ $1 = "P20V" ] || [ $1 = "P30V" ] || [ $1 = "P40V" ] || [ 
     let pspecset=1;
 fi
 
-if [ $1 = "He4_1V" ] || [ $1 = "He4_20V" ] || [ $1 = "He4_30V" ] || [ $1 = "He4_40V" ] || [ $1 = "He4_50V" ] ; then
+if [ ${jobSpec:0:4} = "He4_" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
     parspec=$1
     datadir="$dataDirBase/veritas/he4"
     let processStart=1
@@ -387,7 +382,7 @@ if [ $1 = "He4_1V" ] || [ $1 = "He4_20V" ] || [ $1 = "He4_30V" ] || [ $1 = "He4_
     let pspecset=1;
 fi
 
-if [ $1 = "G1V" ] || [ $1 = "G20V" ] || [ $1 = "G30V" ] || [ $1 = "G40V" ] || [  $1 = "G50V" ] ; then
+if [ ${jobSpec:0:1} = "G" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
     parspec=$1
     datadir="$dataDirBase/veritas/gammas"
     let processStart=1
@@ -420,7 +415,7 @@ fi
 #Arguments for ksScript
 #$1 primary Energy in GeV (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower names:Like P1W,G1W, He4_1W)
+#                              in shower names:Like P1W,G1W, He4_1W, G20N0.3V)
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te/root  files go, cannot be blank!!!)
