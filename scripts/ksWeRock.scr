@@ -48,17 +48,17 @@ if [ ${Spec:0:2} = "CR" ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
     	Pspec=P${Spec#CR}   	#Fancy string manipulation here,replace CR 
 				#with P. see pg 97 Bash book.
         He4spec=He4_${parspec#CR} #Replace CR with He4_
-	find ./protons -name $Pspec'*GeV*'$MultSpec'.vbf $MultRej >CRList
-	find ./he4 -name $He4spec'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
+	find ./protons -name $Pspec'*GeV*'$MultSpec'.vbf' $MultRej >CRList
+	find ./he4 -name $He4spec'*GeV*'$MultSpec'.vbf'  $MultRej >>CRList
 	gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
 if [ ${Spec:0:2} = "CR" ] && [ ${Spec:$SpecEnd:1} = "W" ] ; then
     	Pspec=P${Spec#CR}
         He4spec=He4_${parspec#CR}
-	find ./protons -name $Pspec'*GeV*'$MultSpec'.vbf $MultRej >CRList
-	find ./he4 -name $He4spec'*GeV*'$MultSpec'.vbf  $MultRej >>CRList
-	gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
+	find ./protons -name $Pspec'*GeV*'$MultSpec'.root' $MultRej >CRList
+	find ./he4 -name $He4spec'*GeV*'$MultSpec'.root'  $MultRej >>CRList
+	gawk 'gsub(/.root/,"",$1)' CRList  >ShowerList  
 fi
 
 #step 2.3
