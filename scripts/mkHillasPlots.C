@@ -137,7 +137,7 @@ void HillasPlots(int fTelId,char* fFileName)
       // *********************************************************
       //Total rate calculation
       // ********************************************************
-      fCuts="("Sim.fEnergyGeV<12000.0)*Sim.fIntegralRatePerEventHz "; 
+      fCuts="(Sim.fEnergyGeV<12000.0)*Sim.fIntegralRatePerEventHz "; 
       fC3->cd(6);
       pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str());
       
