@@ -25,39 +25,44 @@ fi
 
 cd $dataDirBase
 
-
-if [ -n "$2" ]; then        #Arrayconfig/Multiplicity arg not null
-	MultRej=
-	MultSpec=Mult
-else
-	MultRej="| grep -v Mult"
-	MultSpec=
-fi
-
 if [ ${Spec:0:1} = "G" ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
-	find ./gammas -name $Spec'*GeV*'$MultSpec'.vbf' $MultRej >GList
-	gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
+
+   if [ -n "$2" ]; then
+	find ./gammas -name $Spec'*GeV*Mult.vbf'  >GList
+   else
+	find ./gammas -name $Spec'*GeV*.vbf' | grep -v Mult >GList
+   fi
+
+   gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
+
 fi
 
 if [ ${Spec:0:1} = "G" ] && [ ${Spec:$SpecEnd:1} = "W" ] ; then
-	find ./gammas -name $Spec'*GeV*.root' $MultRej >GList
+	find ./gammas -name $Spec'*GeV*.root'  >GList
 	gawk 'gsub(/.root/,"",$1)' GList >ShowerList
 fi
 
 if [ ${Spec:0:2} = "CR" ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
-    	Pspec=P${Spec#CR}   	#Fancy string manipulation here,replace CR 
+   Pspec=P${Spec#CR}   	#Fancy string manipulation here,replace CR 
 				#with P. see pg 97 Bash book.
-        He4spec=He4_${parspec#CR} #Replace CR with He4_
-	find ./protons -name $Pspec'*GeV*'$MultSpec'.vbf' $MultRej >CRList
-	find ./he4 -name $He4spec'*GeV*'$MultSpec'.vbf'  $MultRej >>CRList
-	gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
+   He4spec=He4_${parspec#CR} #Replace CR with He4_
+
+
+   if [ -n "$2" ]; then
+	find ./protons -name $Pspec'*GeV*Mult.vbf'  >CRList
+	find ./he4 -name $He4spec'*GeV*Mult.vbf'    >>CRList
+   else
+	find ./protons -name $Pspec'*GeV*.vbf' | grep -v Mult  >CRList
+	find ./he4 -name $He4spec'*GeV*.vbf'  | grep -v Mult   >>CRList
+   fi
+   gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
 if [ ${Spec:0:2} = "CR" ] && [ ${Spec:$SpecEnd:1} = "W" ] ; then
     	Pspec=P${Spec#CR}
         He4spec=He4_${parspec#CR}
-	find ./protons -name $Pspec'*GeV*'$MultSpec'.root' $MultRej >CRList
-	find ./he4 -name $He4spec'*GeV*'$MultSpec'.root'  $MultRej >>CRList
+	find ./protons -name $Pspec'*GeV*.root'  >CRList
+	find ./he4 -name $He4spec'*GeV*.root'    >>CRList
 	gawk 'gsub(/.root/,"",$1)' CRList  >ShowerList  
 fi
 
