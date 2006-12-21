@@ -110,14 +110,15 @@ void HillasPlots(int fTelId,char* fFileName)
 
   if(pfSimTree!=NULL)
     {
-      pfSimTree->AddFriend(pfHParTree);
+      //pfSimTree->AddFriend(pfHParTree);
       gStyle->SetMarkerStyle(21);
-      std::string fBasicSimCuts=fBasicCuts;
+      //std::string fBasicSimCuts=fBasicCuts;
       // *********************************************************
       //Trigger rate curve
       // ********************************************************
-      fCuts="(" + fBasicSimCuts + 
-	" && Sim.fEnergyGeV<500.0)*Sim.fDifferentialRatePerEventHz";
+      //fCuts="(" + fBasicSimCuts + 
+      //	" && Sim.fEnergyGeV<500.0)*Sim.fDifferentialRatePerEventHz";
+      fCuts="(Sim.fEnergyGeV<500.0)*Sim.fDifferentialRatePerEventHz";
 
       fC3->cd(4);
       pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str(),"P");
@@ -128,8 +129,7 @@ void HillasPlots(int fTelId,char* fFileName)
       //Detection area curve
       // ********************************************************
       fC3->cd(5);
-      fCuts="(" + fBasicSimCuts +
-	"&& Sim.fEnergyGeV<10000.0)*Sim.fAomega "; 
+      fCuts="(Sim.fEnergyGeV<10000.0)*Sim.fAomega "; 
       pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str(),"P");
       // ********************************************************
       
@@ -137,8 +137,7 @@ void HillasPlots(int fTelId,char* fFileName)
       // *********************************************************
       //Total rate calculation
       // ********************************************************
-      fCuts="(" +fBasicSimCuts +
-	"&&Sim.fEnergyGeV<12000.0)*Sim.fIntegralRatePerEventHz "; 
+      fCuts="("Sim.fEnergyGeV<12000.0)*Sim.fIntegralRatePerEventHz "; 
       fC3->cd(6);
       pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str());
       
