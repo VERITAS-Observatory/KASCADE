@@ -26,7 +26,8 @@ fi
 cd $dataDirBase
 
 
-if [ -n $2 ];then            #Arrayconfig/Multiplicity arg not null
+#if [ -n $2 ];then #This doesn't work sometimes for some reason. Replace with:
+if [ ${2:4:1} = "M" ]; then           #Arrayconfig/Multiplicity arg not null
 	MultRej=
 	MultSpec=Mult
 else
