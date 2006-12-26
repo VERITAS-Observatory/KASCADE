@@ -17,13 +17,23 @@ SpecEnd=$((SpecEnd-1))
 
 host=$(hostname)
 if [ $host = 'isis' ] ; then
-    dataDirBase=/simulations/veritas
+    dataDirBase=/simulations
 else
 
-    dataDirBase=/project/veritas/sembrosk/veritas
+    dataDirBase=/project/veritas/sembrosk
+fi
+
+if [ ${Spec:$SpecEnd:1} = "V" ] ; then
+	dataDirBase=$dataDirBase'/veritas'
+fi
+
+if [ ${Spec:$SpecEnd:1} = "W" ] ; then
+	dataDirBase=$dataDirBase'/whipple'
 fi
 
 cd $dataDirBase
+
+
 
 if [ ${Spec:0:1} = "G" ] && [ ${Spec:$SpecEnd:1} = "V" ] ; then
 
