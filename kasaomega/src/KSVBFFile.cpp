@@ -38,10 +38,15 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
   // *************************************************
   // Get mount directions az.,elev
   // *************************************************
-
-  double X[3];
+  //Get direction shower is COMING from! Reverse direction.
+  //Vegas definition x+ east, y + north z+ up
+  //Kascade definition x+ east y + south z + down
+  //Convert to vegas definition
+  // *******************************************************************
+   double X[3];
   X[0]=-pfSegmentHead->fDlInitial;   // Reverse direction to get source
-  X[1]=-pfSegmentHead->fDmInitial;   // not destination
+  X[1]=-pfSegmentHead->fDmInitial;   //double negative. once for reverse, 
+                                     //once for converting to vegas
   X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]); // Elevation positive
   double fAzimuth;
   double fElevation;
@@ -492,11 +497,16 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   // ********************************************************************
   // now construct the simulation data. Common data first
   // ********************************************************************
+  //Get direction mount is pointing
+  //Vegas definition x+ east, y + north z+ up
+  //Kascade definition x+ east y + south z + down
+  //Convert to vegas definition
+  // *******************************************************************
   double X[3];
   double fAzimuth;
   double fElevation;
   X[0]=pfTe->fMountDl;
-  X[1]=pfTe->fMountDm;
+  X[1]=-pfTe->fMountDm;  //South to north
   X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
   GetAzElevFromVec(X,fAzimuth,fElevation);
 

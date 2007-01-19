@@ -15,8 +15,6 @@
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
 extern "C" int    KascadeType2CorsikaType(int fKType);
-extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth, 
-				   double& fElevation);
 
 KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 {
@@ -358,7 +356,8 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
 // Determine best nx,ny offsets relative to TelID=fBaseTel for this telescope.
 // May be different for odd and even, so make both
 // Ignore Z for now.  Introduces correction later that may be of interest
-//  NOte KASCADE convention +x axis is east, +y axis is south
+//  Note KASCADE convention +x axis is east, +y axis is south
+//  Note VEGAS convention +x axis is east, +y axis is north
 // ************************************************************************
 {
   // ************************************************************************
@@ -370,8 +369,8 @@ void KSTelescope::DetermineOffsets(int fBaseTel)
 	"presently"<<std::endl;
       exit(1);
     }
-  float fBaseX=fXPositionsM[fBaseTel];
-  float fBaseY=fYPositionsM[fBaseTel];
+  float fBaseX=fXPositionsM[fBaseTel];   //X +east
+  float fBaseY=fYPositionsM[fBaseTel];   //Y +south
   //float fBaseZ=fZPositionsM[fBaseTel];
 
   float fXRelativeM=fXPositionsM[fTelID]-fBaseX;

@@ -473,10 +473,18 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       pfSimEvent->fCORSIKAParticleID=fCorsikaType;
       pfSimEvent->fTriggeredArray=true;
 
+      // *******************************************************************
+      //Get direction shower is COMING from! Reverse direction.
+      //Vegas definition x+ east, y + north z+ up
+      //Kascade definition x+ east y + south z + down
+      //Convert to vegas definition
+      // *******************************************************************
       double X[3];
-      X[0]=pfSegmentHead->fDlInitial;
-      X[1]=pfSegmentHead->fDmInitial;
-      X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+      X[0]=-pfSegmentHead->fDlInitial; //Negative for reverse   
+      X[1]=pfSegmentHead->fDmInitial;  //double negative. once for reverse, 
+                                       //once for converting to vegas
+      X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);//Elevation positive(reverse)
+
       GetAzElevFromVec(X,fAzimuth,fElevation);
       pfSimEvent->fPrimaryZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
       pfSimEvent->fPrimaryAzimuthDeg=fAzimuth*gRad2Deg;
@@ -667,8 +675,8 @@ void KSEvent::SaveImage()
       // ********************************************************************
       // Write out a VAArrayEvent
       // ********************************************************************
-      float fCoreEastM=(float)-findCoreXM();
-      float fCoreSouthM=(float)-findCoreYM();
+      float fCoreEastM  = (float)findCoreXM();
+      float fCoreSouthM = (float)findCoreYM();
       pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
 			 fFADCStartGateTimeNS, pfTe,false,fCoreEastM,
 			 fCoreSouthM);
@@ -795,10 +803,17 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfCalEvent->fTelEvents[0].fTelTime=EventTime;
   VAPointingData fPointing;
 
+  // *******************************************************************
+  //Get direction mount is pointing to.
+  //Vegas definition x+ east, y + north z+ up
+  //Kascade definition x+ east y + south z + down
+  //Convert to vegas definition
+  // *******************************************************************
   double X[3];
   X[0]=pfTe->fMountDl;
-  X[1]=pfTe->fMountDm;
+  X[1]=-pfTe->fMountDm;   //Kascade to vegas flip
   X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
+
   GetAzElevFromVec(X,fAzimuth,fElevation);
   pfAzElRADecXY->AzEl2RADec2000(fAzimuth, fElevation, EventTime,
 				fSourceRA2000,fSourceDec2000);
@@ -876,8 +891,8 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
   pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
 
-  pfSimEvent->fCoreEastM=-findCoreXM();
-  pfSimEvent->fCoreSouthM=-findCoreYM();
+  pfSimEvent->fCoreEastM  = findCoreXM();
+  pfSimEvent->fCoreSouthM = findCoreYM();
   
 
   // ********************************************************************
@@ -902,6 +917,7 @@ double  KSEvent::findCoreXM()
 // convert from triangular array indicess.
 // This supposedly works for both NS and EW arrays. We always want to round 
 // more negative.)
+//Kascade x + east, y + south
 // ********************************************************************
 {  
   if(pfPeHead->fNorthSouthGrid)

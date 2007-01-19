@@ -309,9 +309,13 @@ int KascadeType2CorsikaType(int fKType)
 // **************************************************************************
     
 void GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
-  // **************************************************************************
-  //   Get the Az and Elevation(radians) of a vector X 
-  // **************************************************************************
+// **************************************************************************
+//   Get the Az and Elevation(radians) of a vector X 
+// **************************************************************************
+// Kascade definition X + east, y + south. 
+// Vegas definition X + east, y+ north and z + up
+// USING VEGAS Definition here
+//***************************************************************************
 {
   fElevation=M_PI/2-(acos(fabs(X[2])));
   fAzimuth=0.0;
@@ -319,29 +323,29 @@ void GetAzElevFromVec(double* X, double& fAzimuth, double& fElevation)
     {      //At zenith
       fAzimuth=0.0;
     }
-  else if(X[1]==0 && X[0]>0)    //along + x axis  (270 deg)
+  else if(X[1]==0 && X[0]<0)    //along - x axis  (270 deg)
     {
       fAzimuth=3*M_PI/2;
     }
-  else if(X[1]==0 && X[0]<0)    //along - x axis (90 deg)
+  else if(X[1]==0 && X[0]>0)    //along + x axis (90 deg)
     {
       fAzimuth=M_PI/2;
     }
-  else if(X[1]>0 && X[0]<=0.0)     //Quadrant 1 (0 to 90 deg)
+  else if(X[1]>0 && X[0]>=0.0)     //Quadrant 1 (0 to 90 deg)
     {
-      fAzimuth=-atan(X[0]/X[1]);
+      fAzimuth=atan(X[0]/X[1]);
     }
-  else if(X[1]<0 && X[0]<=0.0)     //Quadrant 2 (90 to 180 deg)
+  else if(X[1]<0 && X[0]>=0.0)     //Quadrant 2 (90 to 180 deg)
     {
-      fAzimuth=M_PI/2+atan(X[0]/X[1]);
+      fAzimuth=M_PI/2+atan(-X[1]/X[0]);
     }
-  else if(X[1]<0 && X[0]>=.0)      //Quadrant 3 (180 to 270 deg)
+  else if(X[1]<0 && X[0]<=.0)      //Quadrant 3 (180 to 270 deg)
     {
-      fAzimuth=M_PI-atan(X[0]/X[1]);
+      fAzimuth=M_PI+atan(X[0]/X[1]);
     }
-  else if(X[1]>0 && X[0]>0.0)       //Quadrant 4 (270 to 360 deg)
+  else if(X[1]>0 && X[0]<0.0)       //Quadrant 4 (270 to 360 deg)
     {
-      fAzimuth=2*M_PI-atan(X[0]/X[1]);
+      fAzimuth=3*M_PI/2+atan(-X[1]/X[0]);
     }
   return;
 }

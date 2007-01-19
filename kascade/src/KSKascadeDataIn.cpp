@@ -18,10 +18,10 @@
 
 // **************************************************************************
 int               KSKascadeDataIn::sDefaultType = 1;  //Gamma
-                             //1 deg from South(+ is north, - is south I think)
+                             //1 deg from South(+ is south, - is north I think)
 double            KSKascadeDataIn::sDefaultGeVEnergyPrimary=1000.0; //1 Tev
 double            KSKascadeDataIn::sDefaultDlInitial=1.e-15; 
-double            KSKascadeDataIn::sDefaultDmInitial=-0.017452212;
+double            KSKascadeDataIn::sDefaultDmInitial=0.017452212;
 double            KSKascadeDataIn::sDefaultEnergyThresholdMeV=10.; //MeV
 double            KSKascadeDataIn::sDefaultMaxCoulombScatSegmentLength=0.02;
                                                                      //gm/cm**2
@@ -144,11 +144,11 @@ void KSKascadeDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
   doVAConfiguration(file, command_line, 
 		    "dlInitial", sDefaultDlInitial,
 		    "KSKascadeDataIn",
-		    "Primary Inital x direction cosign");
+		    "Primary Inital x direction cosign (x+ east)");
   doVAConfiguration(file, command_line, 
 		    "dmInitial", sDefaultDmInitial,
 		    "KSKascadeDataIn",
-		    "Primary Inital y direction cosign");
+		    "Primary Inital y direction cosign (y + south, z +down");
   doVAConfiguration(file, command_line, 
 		    "EnergyThresholdMeV", 
 		    sDefaultEnergyThresholdMeV,

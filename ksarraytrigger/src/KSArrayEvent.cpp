@@ -15,8 +15,6 @@
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
 extern "C" int     KascadeType2CorsikaType(int fKType);
-extern "C" void    GetAzElevFromVec(double* X, double& fAzimuth, 
-				    double& fElevation);
 
 KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 			   KSArrayTriggerDataIn* pDataIn)
