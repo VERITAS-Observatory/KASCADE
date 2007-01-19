@@ -39,7 +39,7 @@ int         KSTriggerDataIn::sDefaultPatternTriggerLevel=3;
 int         KSTriggerDataIn::sDefaultTriggerMultiplicity=3; 
 double      KSTriggerDataIn::sDefaultLightConeConcentration=1.0; 
 double      KSTriggerDataIn::sDefaultMountDl=-1.e-15;                
-double      KSTriggerDataIn::sDefaultMountDm=0.017452212;                
+double      KSTriggerDataIn::sDefaultMountDm=-0.017452212;                
 double      KSTriggerDataIn::sDefaultMountDn=-.9998477;                
 double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;      
 // **************************************************************************
@@ -364,12 +364,12 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "MountDirectionXDl",sDefaultMountDl,
 		    "KSTriggerDataIn",
 		    "X direction cosign of the mount direction. X goes "
-		    "East. Maybe!");
+		    "East.");
   doVAConfiguration(file, command_line, 
 		    "MountDirectionYDm",sDefaultMountDm,
 		    "KSTriggerDataIn",
 		    "Y direction cosign of the mount direction, Y goes "
-		    "North, maybe!");
+		    "South");
   doVAConfiguration(file, command_line, 
 		    "MountDirectionZDn",sDefaultMountDn,
 		    "KSTriggerDataIn",
