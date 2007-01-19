@@ -305,6 +305,10 @@ void KSArea::ProcessImages()
 	      fWX=-fWX;         // rotate by 180 deg both axis
 	      fWY=-fWY;
 	    }
+	  if(pfCamera->fCameraType==VERITAS499)
+	    {
+	      fWX=-fWX;         // rotate by 180 deg only X  axis
+	    }
 
 	  // ******************************************************************
 	  // Find which PMT this hits.
