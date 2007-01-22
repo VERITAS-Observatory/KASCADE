@@ -305,10 +305,11 @@ void KSArea::ProcessImages()
 	      fWX=-fWX;         // rotate by 180 deg both axis
 	      fWY=-fWY;
 	    }
-	  if(pfCamera->fCameraType==VERITAS499)
-	    {
-	      fWX=-fWX;         // rotate by 180 deg only X  axis
-	    }
+	  // ****************************************************************
+	  // The Veritas 499 pixel camera need no rotation (or flipping).
+	  // It already has X + east and Y + south for the pixel locations.
+	  // ****************************************************************
+
 
 	  // ******************************************************************
 	  // Find which PMT this hits.
