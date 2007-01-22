@@ -45,7 +45,7 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
   // *******************************************************************
    double X[3];
   X[0]=-pfSegmentHead->fDlInitial;   // Reverse direction to get source
-  X[1]=-pfSegmentHead->fDmInitial;   //double negative. once for reverse, 
+  X[1]=pfSegmentHead->fDmInitial;   //double negative. once for reverse, 
                                      //once for converting to vegas
   X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]); // Elevation positive
   double fAzimuth;
