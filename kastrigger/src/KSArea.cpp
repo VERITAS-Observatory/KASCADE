@@ -306,9 +306,14 @@ void KSArea::ProcessImages()
 	      fWY=-fWY;
 	    }
 	  // ****************************************************************
-	  // The Veritas 499 pixel camera need no rotation (or flipping).
+	  // The Veritas 499 pixel camera also needs to flip.
 	  // It already has X + east and Y + south for the pixel locations.
 	  // ****************************************************************
+	  if(pfCamera->fCameraType==VERITAS499)
+	    {
+	      fWX=-fWX;         // rotate by 180 deg both axis
+	      fWY=-fWY;
+	    }
 
 
 	  // ******************************************************************
