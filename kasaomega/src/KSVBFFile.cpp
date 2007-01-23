@@ -505,10 +505,17 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   double X[3];
   double fAzimuth;
   double fElevation;
+
+
   X[0]=pfTe->fMountDl;
   X[1]=-pfTe->fMountDm;  //South to north
   X[2]=sqrt(1.-X[0]*X[0]-X[1]*X[1]);   //Elevation positive
   GetAzElevFromVec(X,fAzimuth,fElevation);
+
+
+  //std::cout<<"fMountDl,fMountDm,fAzimuth,fElevation: "<<pfTe->fMountDl<<" "
+  //	   <<pfTe->fMountDm<<" "<<fAzimuth<<" "<<fElevation<<std::endl;
+
 
   float fObservationZenithDeg  = ((M_PI/2)-fElevation)*gRad2Deg;
 
