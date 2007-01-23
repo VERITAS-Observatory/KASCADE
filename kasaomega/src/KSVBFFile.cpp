@@ -545,6 +545,12 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   uint32_t fNx=pfTe->fNx;
   uint32_t fNy=pfTe->fNy;
 
+  // ********************************************************************
+  // Make core relative to center of array.
+  // ********************************************************************
+  fCoreEastM  = fCoreEastM  + fArray[fTelID].fRelTelLocEastM;
+  fCoreSouthM = fCoreSouthM + fArray[fTelID].fRelTelLocSouthM;
+  // ********************************************************************
   VSimulationData *pfSimdata=
         new VSimulationData(fCORSIKAType,fEnergyGeV, 
 			    fObservationZenithDeg,

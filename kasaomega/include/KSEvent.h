@@ -59,8 +59,8 @@ class KSEvent
 
  private:
   void CreateRootEvent(bool fPedestalEvent, VATime& EventTime);
-  double findCoreXM();
-  double findCoreYM();
+  double findTelescopeXM();
+  double findTelescopeYM();
 
   KSSegmentHeadData* pfSegmentHead;
   KSPeHeadData*      pfPeHead;

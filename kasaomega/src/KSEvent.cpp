@@ -675,8 +675,8 @@ void KSEvent::SaveImage()
       // ********************************************************************
       // Write out a VAArrayEvent
       // ********************************************************************
-      float fCoreEastM  = (float)findCoreXM();
-      float fCoreSouthM = (float)findCoreYM();
+      float fCoreEastM  = -(float)findTelescopeXM();
+      float fCoreSouthM = -(float)findTelescopeYM();
       pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
 			 fFADCStartGateTimeNS, pfTe,false,fCoreEastM,
 			 fCoreSouthM);
@@ -891,8 +891,8 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
   pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
 
-  pfSimEvent->fCoreEastM  = findCoreXM();
-  pfSimEvent->fCoreSouthM = findCoreYM();
+  pfSimEvent->fCoreEastM  = -findTelescopeXM();
+  pfSimEvent->fCoreSouthM = -findTelescopeYM();
   
 
   // ********************************************************************
@@ -912,7 +912,7 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 }
 // **********************************************************************
 
-double  KSEvent::findCoreXM()
+double  KSEvent::findTelescopeXM()
 // *********************************************************************
 // convert from triangular array indicess.
 // This supposedly works for both NS and EW arrays. We always want to round 
@@ -922,7 +922,7 @@ double  KSEvent::findCoreXM()
 {  
   if(pfPeHead->fNorthSouthGrid)
     {
-      double fX=pfPeHead->fXAreaWidthM*pfTe->fNx + pfPeHead->fXCoreOffsetM;
+      double fX=pfPeHead->fXAreaWidthM*pfTe->fNx - pfPeHead->fXCoreOffsetM;
       return fX;
     }
   else
@@ -932,12 +932,12 @@ double  KSEvent::findCoreXM()
       // **************************************************************
       if(pfTe->fNy%2==0) 
 	{                   //Ny even
-	  double fX=pfPeHead->fXAreaWidthM*pfTe->fNx + pfPeHead->fXCoreOffsetM;
+	  double fX=pfPeHead->fXAreaWidthM*pfTe->fNx - pfPeHead->fXCoreOffsetM;
 	  return fX;
 	}
       else
 	{
-	  double fX=pfPeHead->fXAreaWidthM*(pfTe->fNx+.5) + 
+	  double fX=pfPeHead->fXAreaWidthM*(pfTe->fNx+.5) - 
 	                                            pfPeHead->fXCoreOffsetM;
 	  return fX;
 
@@ -945,7 +945,7 @@ double  KSEvent::findCoreXM()
     }
 }
 
-double  KSEvent::findCoreYM()
+double  KSEvent::findTelescopeYM()
 // *********************************************************************
 // convert from triangular array indicess.
 // This supposedly works for both NS and EW arrays. We alwyas want to round 
@@ -954,7 +954,7 @@ double  KSEvent::findCoreYM()
 {  
   if(!pfPeHead->fNorthSouthGrid)
     {
-      double fY=pfPeHead->fYAreaWidthM*pfTe->fNy + pfPeHead->fYCoreOffsetM;
+      double fY=pfPeHead->fYAreaWidthM*pfTe->fNy - pfPeHead->fYCoreOffsetM;
       return fY;
     }
   else
@@ -964,12 +964,12 @@ double  KSEvent::findCoreYM()
       // **************************************************************
       if(pfTe->fNx%2==0) 
 	{                   //Nx even
-	  double fY=pfPeHead->fYAreaWidthM*pfTe->fNy + pfPeHead->fYCoreOffsetM;
+	  double fY=pfPeHead->fYAreaWidthM*pfTe->fNy - pfPeHead->fYCoreOffsetM;
 	  return fY;
 	}
       else
 	{
-	  double fY=pfPeHead->fYAreaWidthM*(pfTe->fNy+.5) + 
+	  double fY=pfPeHead->fYAreaWidthM*(pfTe->fNy+.5) - 
 	                                            pfPeHead->fYCoreOffsetM;
 	  return fY;
 
