@@ -195,11 +195,13 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   fBaseTelIndex=0; //Index to base telescope in pfTelsInArray for search.
   
   // **********************************************************************
-  // Determine all nx,ny offsets using each telescope as Base tel.
+  // Determine all nx,ny locations.
+  DetermineTelescopeNxNy();
+
   for(int i=1;i<fNumTelsWithData;i++)
     {
-      //This sets tells each telescope what its offset is from the base tel
-      pfTelsInArray[i]->DetermineOffsets(pfTelsInArray[fBaseTelIndex]->fTelID);
+      //This sets each telescope Nx,ny offsets from the base tel
+      SetTelescopeOffsetFromBaseTel(fBaseTelIndex,i);
     }
   
   // ***********************************************************************
@@ -280,8 +282,7 @@ bool KSArrayEvent::FindTrigger()
 	    {
 	      //This sets tells each telescope what its offset is from the 
 	      //base tel
-	      pfTelsInArray[i]->
-		     DetermineOffsets(pfTelsInArray[fBaseTelIndex]->fTelID);
+	      SetTelescopeOffsetFromBaseTel(fBaseTelIndex,i);
 	    }
 	  continue;
 	}
@@ -479,8 +480,9 @@ void KSArrayEvent::SaveEvent()
 	                                      (VGetSimulationDataBankName());
       VSimulationData* pfWriteSimData = pfSimData->copySimData();
       pfWriteSimData->fEventNumber=fOutEventIndex;
-      //pfWriteSimData->fRunNumber=fRunNumber;
-      pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
+
+
+
 
       // *************************************************
       // Fix up Kascade simulation data bank in this packet
@@ -491,10 +493,26 @@ void KSArrayEvent::SaveEvent()
       VKascadeSimulationData *pfWriteKSimData = 
 	                                    pfKSimData->copyKascadeSimData();
       pfWriteKSimData->fEventNumber=fOutEventIndex;
-      //pfWriteKSimData->fRunNumber=fRunNumber;
       pfWritePacket->put(VGetKascadeSimulationDataBankName(),
 				pfWriteKSimData);  
     
+
+      int fNX=pfWriteKSimData->fNx;
+      int fNY=pfWriteKSimData->fNy;
+      double fXM;
+      double fYM;
+      GetXYFromNXNY(fNX,fNY,fXM,fYM);
+      fXM=-fXM-fBestArrayX;        //X (+ east)distance from telescope to core
+      fYM=-fYM-fBestArrayY;        // Y + south
+      // Convert to coords. need position of telescope
+      int fTelID=pfTelsInArray[fFirstTrigTelIndex]->fTelID;
+      fXM=fXM+pfTelsInArray[0]->fXPositionsM[fTelID];  //+ east
+      fYM=fYM+pfTelsInArray[0]->fYPositionsM[fTelID];  //+ south
+
+      pfWriteSimData->fCoreEastM  = fXM;
+      pfWriteSimData->fCoreSouthM = fYM;
+      pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);
+
       // *************************************************
       // Now the ArrayEvents
       // First fix times and event number in array Trigger
@@ -941,4 +959,270 @@ void KSArrayEvent::SavePedestalEvent()
   return;
 }
 // *************************************************************************
+
+void KSArrayEvent::DetermineTelescopeNxNy()
+// ************************************************************************
+// Determine the Nx, Ny values of the telescopes to the best of our ability
+// This is a weak point of this method as its hard to fit them to a great fit 
+// especially when we have low zenith pointings (makes for large xseg or 
+// ysegs) or when we have telescopes large (agasin gives big xseg and yseg)
+// or if the telescopes are close to each other. This could easily have 2 
+// telescopes (t1 and t4) end up on top of each other. Good reason to point 
+// to the east when looking at low zenith angles.
+// ************************************************************************
+{
+  // ***********************************************************************
+  // We have the actual telescope locations from the sim header bank and the
+  // xseg and yseg from the KascadeSimHeader bank. These were read in when we 
+  // created the telescope object. Use values from first telescope.
+  // ***********************************************************************
+  // We should do a minimization here. The quatity we want to minimize is the 
+  // the error in aproximating the telescope positions to a praticular set of 
+  // Nx,Ny values. What we can vary is the origin of the array. Nominally its 
+  // at arrayX,arrayY=0,0 but we are free to vary this by +/- xseg/2 and 
+  // +/-yseg/2.
+  // Note we have to worry about both odd and even sets.
+  // ************************************************************************
+  // Brute force way to search is to try all values of arrayX, arrayY over 
+ // the range specified above. Stepping maybe 30 times each for a total of 900
+  // steps. This should take that much time.
+
+  pfTelNXSet1.resize(4);
+  pfTelNXSet2.resize(4);
+  pfTelNYSet1.resize(4);
+  pfTelNYSet2.resize(4);
+
+  std::vector<int> pfNXSet1(4);
+  std::vector<int> pfNYSet1(4);
+  std::vector<int> pfNXSet2(4);
+  std::vector<int> pfNYSet2(4);
+
+  double fBestError=-1;
+  int fNumSteps=30;
+  double fXSeg=pfTelsInArray.at(0)->fXAreaWidthM;
+  double fYSeg=pfTelsInArray.at(0)->fYAreaWidthM;
+  for(int i=0;i<fNumSteps;i++)
+    {
+      double fArrayX=i*fXSeg/fNumSteps-fXSeg/2.0;
+      for(int j=0;j<fNumSteps;j++)
+	{
+	  double fArrayY=j*fYSeg/fNumSteps-fYSeg/2.0;
+	  double fArrayError=GetTelsNxNy(fArrayX,fArrayY,pfNXSet1,pfNYSet1,
+					 pfNXSet2,pfNYSet2);
+	  if(fArrayError<fBestError || fBestError<0)
+	    {
+	      fBestError=fArrayError;
+	      pfTelNXSet1=pfNXSet1;
+	      pfTelNYSet1=pfNYSet1;
+	      pfTelNXSet2=pfNXSet2;
+	      pfTelNYSet2=pfNYSet2;
+	      fBestArrayX=fArrayX;
+	      fBestArrayY=fArrayY;
+	    }
+	}
+    }
+  return;
+}
+// ***********************************************************************
+
+double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
+				 std::vector<int>& pfNXSet1,
+				 std::vector<int>& pfNYSet1,
+				 std::vector<int>& pfNXSet2,
+				 std::vector<int>& pfNYSet2)
+// *************************************************************************
+// For the array origen cenetered at fArrayX,fArrayY, find the set of nx,ny 
+// values for the telescopes. Then in order to later (DetermineOffsets) have 
+// the ability to use even vs odd, recenter the origen at fArrayY+fYSeg and 
+// get the nx,ny values for that configuration. Then caculate the 'binning' 
+// error (squared) (for existing tels in array only) and return that.
+// *************************************************************************
+// Ignore Z for now.  Introduces correction later that may be of interest
+//  Note KASCADE convention +x axis is east, +y axis is south
+//  Note VEGAS convention +x axis is east, +y axis is north
+// ************************************************************************
+{
+  bool fNorthSouthGrid=pfTelsInArray.at(0)->fNorthSouthGrid;
+  if(!fNorthSouthGrid)
+    {
+      std::cout<<"ksArrayTrigger: Only North-South triangular grid are valid "
+	"presently"<<std::endl;
+      exit(1);
+    }
+  // ************************************************************************
+  // Only North-South Triangular grid is valid
+  // Set 1 first:
+  // ************************************************************************
+  //Find nx,ny for all tels.
+  double fXSeg=pfTelsInArray.at(0)->fXAreaWidthM;
+  double fYSeg=pfTelsInArray.at(0)->fYAreaWidthM;
+  int fNX;
+  int fNY;
+  for(int i=0;i<4;i++)
+    {
+      double fXM=pfTelsInArray.at(0)->fXPositionsM[i]+fArrayX;
+      double fYM=pfTelsInArray.at(0)->fYPositionsM[i]+fArrayY;
+      //For any fNX on N-S grid: no changes
+      fNX= (int)(fabs(fXM)/fXSeg+.5);
+      if(fXM<0)
+	{
+	  fNX=-fNX;
+	}
+      pfNXSet1.at(i)=fNX;
+      // **************************************************************
+      // For NX  Odd even NY are different
+      // **************************************************************
+      // NX even on N-S grid: Ny has no shift 
+      if(fNX%2==0)                  // % is the C++ mod operator
+	{
+	  fNY= (int)(fabs(fYM)/fYSeg+.5);
+	  if(fYM<0)
+	    {
+	      fNY=-fNY;
+	    }
+	}
+      else
+	{                                // NY Odd on N-S grid:
+	  fNY= (int)(fabs(fYM)/fYSeg);
+	  if(fYM<0)
+	    {
+	      fNY=-fNY-1;
+	    }
+	}
+      pfNYSet1.at(i)=fNY;
+    }
+  // **********************************************************************
+  // Now Set2. shift over in NX.
+
+  for(int i=0;i<4;i++)
+    {
+      double fXM=pfTelsInArray.at(0)->fXPositionsM[i]+(fArrayX+fXSeg);
+      double fYM=pfTelsInArray.at(0)->fYPositionsM[i]+fArrayY;
+      //For any fNX on N-S grid: no changes
+      fNX= (int)(fabs(fXM)/fXSeg+.5);
+      if(fXM<0)
+	{
+	  fNX=-fNX;
+	}
+      pfNXSet2.at(i)=fNX;
+      // **************************************************************
+      // For NX  Odd even NY are different
+      // **************************************************************
+      // NX even on N-S grid: Ny has no shift 
+      if(fNX%2==0)                  // % is the C++ mod operator
+	{
+	  fNY= (int)(fabs(fYM)/fYSeg+.5);
+	  if(fYM<0)
+	    {
+	      fNY=-fNY;
+	    }
+	}
+      else
+	{                                // NY Odd on N-S grid:
+	  fNY= (int)(fabs(fYM)/fYSeg);
+	  if(fYM<0)
+	    {
+	      fNY=-fNY-1;
+	    }
+	}
+      pfNYSet2.at(i)=fNY;
+    }
+
+  // **********************************************************************
+  // Now determine error of these. ONly look at teles in present config
+  // **********************************************************************
+  double fSumError2=0;
+  int fCount=0;
+  for(int j=0;j<(int)pfTelsInArray.size();j++)
+    {
+      int i=pfTelsInArray.at(j)->fTelID;
+      double fXM=pfTelsInArray.at(0)->fXPositionsM[i]+fArrayX;
+      double fYM=pfTelsInArray.at(0)->fYPositionsM[i]+fArrayY;
+      double fXFromNX;
+      double fYFromNY;
+      GetXYFromNXNY(pfNXSet1.at(i), pfNYSet1.at(i), fXFromNX, fYFromNY);
+      //fSumError2+=(fXFromNX-fXM)*(fXFromNX-fXM)	+(fYFromNY-fYM)*(fYFromNY-fYM);
+      fSumError2+=sqrt((fXFromNX-fXM)*(fXFromNX-fXM)+
+		       (fYFromNY-fYM)*(fYFromNY-fYM));
+      fCount++;
+      fXM=pfTelsInArray.at(0)->fXPositionsM[i]+(fArrayX+fXSeg);
+      fYM=pfTelsInArray.at(0)->fYPositionsM[i]+fArrayY;
+      GetXYFromNXNY(pfNXSet2.at(i), pfNYSet2.at(i),fXFromNX, fYFromNY);
+      //fSumError2+=(fXFromNX-fXM)*(fXFromNX-fXM)+(fYFromNY-fYM)*(fYFromNY-fYM);
+      fSumError2+=sqrt((fXFromNX-fXM)*(fXFromNX-fXM)+
+		       (fYFromNY-fYM)*(fYFromNY-fYM));
+      fCount++;
+    }
+  return fSumError2/fCount;
+}
+// **************************************************************************
+
+void KSArrayEvent::GetXYFromNXNY(int fNx, int fNy, double& fX, double& fY)
+// ************************************************************************
+// Get X,Y coords of center of NX,NY grid areas. This is for
+// North-South triangular arrays only.
+// ************************************************************************
+{
+  double fXSeg=pfTelsInArray.at(0)->fXAreaWidthM;
+  double fYSeg=pfTelsInArray.at(0)->fYAreaWidthM;
+
+  fX=fXSeg*fNx;
+
+  // **************************************************************
+  // Check to see if we are on odd or even column 
+  // **************************************************************
+  if(fNx%2==0) 
+    {                   //Nx even
+      fY=fYSeg*fNy;
+    }
+  else
+    {
+      fY=fYSeg*(fNy+.5);
+    }
+  return;
+}
+// ***************************************************************************
+
+void KSArrayEvent::SetTelescopeOffsetFromBaseTel(int fBaseTelIndex, 
+						 int fTelIndex)
+ // **************************************************************************
+ // Determine and set the Nx,Ny (odd and Even ) offsets for telescope
+ // fTelId from  the Base Telescope
+ // **************************************************************************
+{   
+  int fBaseID=pfTelsInArray[fBaseTelIndex]->fTelID;
+  int fBaseSet1NX=pfTelNXSet1.at(fBaseID);
+
+  int fTelID=pfTelsInArray[fTelIndex]->fTelID;
+
+  int fNXOffset= pfTelNXSet1.at(fTelID)-fBaseSet1NX;
+
+  pfTelsInArray.at(fTelIndex)->fNXOffsetEven=fNXOffset;
+  pfTelsInArray.at(fTelIndex)->fNXOffsetOdd=fNXOffset;
+
+  // ************************************************************************
+  // Check Odd and Evenness on the base telescope position
+  // ************************************************************************
+  int fNYOffsetEven = 0;
+  int fNYOffsetOdd  = 0;
+  if(fBaseSet1NX%2==0)
+    {
+      // ******************************************************************
+      // Set1 has the fBaseID telescope on an even NX
+      // ******************************************************************
+      fNYOffsetEven= pfTelNYSet1.at(fTelID)-pfTelNYSet1.at(fBaseID);
+      fNYOffsetOdd= pfTelNYSet2.at(fTelID)-pfTelNYSet2.at(fBaseID);
+    }
+  else
+    {
+      // ******************************************************************
+      // Set1 has the fBaseID telescope on an Odd NX
+      // ******************************************************************
+      fNYOffsetOdd= pfTelNYSet1.at(fTelID)-pfTelNYSet1.at(fBaseID);
+      fNYOffsetEven= pfTelNYSet2.at(fTelID)-pfTelNYSet2.at(fBaseID);
+    }
+  pfTelsInArray.at(fTelIndex)->fNYOffsetEven=fNYOffsetEven;
+  pfTelsInArray.at(fTelIndex)->fNYOffsetOdd=fNYOffsetOdd;
+ return;
+}
 

@@ -66,6 +66,18 @@ class KSArrayEvent
   int fBaseTelIndex; //Index to base telescope in pfTelsInArray for search. 
   int fBaseIndex;    //Index to event in base telescope file (packet or TTree)
 
+
+  std::vector< int > pfTelNXSet1;   // Nx,Ny of the telescopes.   
+  std::vector< int > pfTelNYSet1;
+                                   // Set1 and Set2 for Odd and Event for 
+                                   //   triangular arrays.
+  std::vector< int > pfTelNXSet2;  // Nx,Ny of the telescopes.   
+  std::vector< int > pfTelNYSet2;
+
+  double fBestArrayX;
+  double fBestArrayY;
+
+
   VATime fEventTime;
   int fOutEventIndex;
 
@@ -77,6 +89,13 @@ class KSArrayEvent
 
   int fPedEventCount;
 
+  void DetermineTelescopeNxNy();
+  double GetTelsNxNy(double fArrayX,double fArrayY,std::vector<int>& pfNXOdd,
+		     std::vector<int>& pfNYOdd,std::vector<int>& pfNXEven,
+		     std::vector<int>& pfNXEven);
+  void GetXYFromNXNY(int fNx, int fNy,double& fX, double& fY);
+  
+  void SetTelescopeOffsetFromBaseTel(int fBaseTelIndex, int fTelIndex);
 
  public:
   bool FindTrigger();

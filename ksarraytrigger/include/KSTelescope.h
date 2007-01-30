@@ -82,13 +82,6 @@ class KSTelescope
   std::map< int64_t,int32_t>::iterator fMapPos;   
   
 
-  std::vector< float>fXPositionsM;
-  std::vector< float>fYPositionsM;
-  std::vector< float>fZPositionsM;
-  float fXAreaWidthM;
-  float fYAreaWidthM;
-  bool  fNorthSouthGrid;
-  int fBaseTelIndex;
 
 
   //Methods
@@ -132,6 +125,13 @@ class KSTelescope
   int fNXOffsetOdd;
   int fNYOffsetOdd;
   int fRunNumber;
+  std::vector< float>fXPositionsM;
+  std::vector< float>fYPositionsM;
+  std::vector< float>fZPositionsM;
+  float fXAreaWidthM;
+  float fYAreaWidthM;
+  bool  fNorthSouthGrid;
+  int fBaseTelIndex;
 };
 // ***************************************************************************
 

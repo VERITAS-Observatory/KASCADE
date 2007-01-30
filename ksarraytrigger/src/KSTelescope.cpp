@@ -11,7 +11,6 @@
  *
  **/
 #include "KSTelescope.h"
-
 extern "C" float   pran(float* dummy);
 extern "C" double  Rexp(double fMeanIntervel);
 extern "C" int    KascadeType2CorsikaType(int fKType);
@@ -351,63 +350,64 @@ int  KSTelescope::getIndexForGridDirKey(int64_t fKey)
 }
 // *************************************************************************
 
-void KSTelescope::DetermineOffsets(int fBaseTel)
+//Obsolete
+//void KSTelescope::DetermineOffsets(int fBaseTel)
 // ************************************************************************
-// Determine best nx,ny offsets relative to TelID=fBaseTel for this telescope.
+// Determine nx,ny offsets relative to TelID=fBaseTel for this telescope.
 // May be different for odd and even, so make both
 // Ignore Z for now.  Introduces correction later that may be of interest
 //  Note KASCADE convention +x axis is east, +y axis is south
 //  Note VEGAS convention +x axis is east, +y axis is north
 // ************************************************************************
-{
-  // ************************************************************************
-  // Only North-South Triangular grid is valid
-  //
-  if(!fNorthSouthGrid)
-    {
-      std::cout<<"ksArrayTrigger: Only North-South triangular grid are valid "
-	"presently"<<std::endl;
-      exit(1);
-    }
-  float fBaseX=fXPositionsM[fBaseTel];   //X +east
-  float fBaseY=fYPositionsM[fBaseTel];   //Y +south
-  //float fBaseZ=fZPositionsM[fBaseTel];
-
-  float fXRelativeM=fXPositionsM[fTelID]-fBaseX;
-  float fYRelativeM=fYPositionsM[fTelID]-fBaseY;
-  //float fZRelativeM=fZPositionsM[fTelID]-fBaseZ;
-
-  //For any fNX on N-S grid: no changes
-  fNXOffsetEven= (int)(fabs(fXRelativeM)/fXAreaWidthM+.5);
-  if(fXRelativeM<0)
-    {
-      fNXOffsetEven=-fNXOffsetEven;
-    }
-  fNXOffsetOdd=fNXOffsetEven;
-  // **************************************************************
-  // For NX  Odd even NY are different
-  // **************************************************************
-  // NX even on N-S grid: Ny has no shift 
-  if(fNXOffsetEven%2==0)                  // % is the C++ mod operator
-    {
-      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM+.5);
-      if(fYRelativeM<0)
-	{
-	  fNYOffsetEven=-fNYOffsetEven;
- 	}
-      fNYOffsetOdd=fNYOffsetEven;      //If fNX origin is even or odd no shift
-     }
-  else
-    {                                // NY Odd on N-S grid:
-      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM);
-      if(fYRelativeM<0)
-	{
-	  fNYOffsetEven=-fNYOffsetEven-1;
-	}
-      fNYOffsetOdd=fNYOffsetEven+1; //If Nx origen odd we shift.
-    }
-  return;
-}
+//{
+//  // ************************************************************************
+//  // Only North-South Triangular grid is valid
+//  //
+//  if(!fNorthSouthGrid)
+//    {
+//      std::cout<<"ksArrayTrigger: Only North-South triangular grid are valid "
+//	"presently"<<std::endl;
+//      exit(1);
+//    }
+//  float fBaseX=fXPositionsM[fBaseTel];   //X +east
+//  float fBaseY=fYPositionsM[fBaseTel];   //Y +south
+//  //float fBaseZ=fZPositionsM[fBaseTel];
+//
+//  float fXRelativeM=fXPositionsM[fTelID]-fBaseX;
+//  float fYRelativeM=fYPositionsM[fTelID]-fBaseY;
+//  //float fZRelativeM=fZPositionsM[fTelID]-fBaseZ;
+//
+//  //For any fNX on N-S grid: no changes
+//  fNXOffsetEven= (int)(fabs(fXRelativeM)/fXAreaWidthM+.5);
+//  if(fXRelativeM<0)
+//    {
+//      fNXOffsetEven=-fNXOffsetEven;
+//    }
+//  fNXOffsetOdd=fNXOffsetEven;
+ // // **************************************************************
+//  // For NX  Odd even NY are different
+//  // **************************************************************
+//  // NX even on N-S grid: Ny has no shift 
+//  if(fNXOffsetEven%2==0)                  // % is the C++ mod operator
+//    {
+//      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM+.5);
+//      if(fYRelativeM<0)
+//	{
+//	  fNYOffsetEven=-fNYOffsetEven;
+// 	}
+//      fNYOffsetOdd=fNYOffsetEven;      //If fNX origin is even or odd no shift
+//     }
+//  else
+//    {                                // NY Odd on N-S grid:
+//      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM);
+//      if(fYRelativeM<0)
+//	{
+//	  fNYOffsetEven=-fNYOffsetEven-1;
+//	}
+//      fNYOffsetOdd=fNYOffsetEven+1; //If Nx origen odd we shift.
+//    }
+//  return;
+//}
 // **************************************************************************
 
 int KSTelescope::GetNXOffset(int fNY)
