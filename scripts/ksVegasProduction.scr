@@ -17,7 +17,7 @@ fi
 VBFFileName=$1
 RootFileName=${VBFFileName%".vbf"}'.root'
 
-echo RootFileName: $RootFileName
+#echo RootFileName: $RootFileName
 
 $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 $VBFFileName $RootFileName
 
