@@ -80,16 +80,29 @@ let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error
 $src/randomCreateRanluxSeed -s $seedK -o ksAomega.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
-#Set up base name of showers. 
+#Set up ouput base name of showers. 
 #Note it includes data path which better not be blank
 Shwr=$5'/'$2'GeV'$1
+
+#Setup input base name
+Spec=$2
+let specEnd=$(expr length $Spec)
+specEnd=$((specEnd-1))
+TelCode=${Spec:$specEnd:1}
+
+SpecIn=${Spec%Deg*}             #Drops last 'Deg' and anything that follows
+SpecIn=$SpecIn$TelCode          #Tack back on the V or W
+
+
+ShwrIn=$5'/'$SpecIn'GeV'$1
+
 
 #Setup to loop over showers
 i="$3"
 while test $i -le $4
   do
 #ksAomega
-    teFile=$Shwr'te.d'$i
+    teFile=$ShwrIn'te.d'$i
     rootFile=$Shwr'.d'$i'.root'
     VBFFile=$Shwr'.d'$i'.vbf'
 
