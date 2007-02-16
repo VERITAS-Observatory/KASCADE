@@ -326,24 +326,38 @@ float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, int energyGeV
 void KSEventWeights::Print()
 // **************************************************************************
 {
-  std::cout<<" Type Energy(GeV) Weight #showers"<<std::endl;
+  std::cout<<" Type Energy(GeV)   ELow  EHigh Weight #showers"<<std::endl;
 
   for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end();
       fWeightPos++)
     {
       
       int fShowerType=fWeightPos->first;
-      fNumPos = fNumMap.find(fShowerType);
+      fNumPos   = fNumMap.find(fShowerType);
+      fELowPos  = fELowMap.find(fShowerType);
+      fEHighPos = fEHighMap.find(fShowerType);
+      
+
       for(fShowerWeightPos=fWeightPos->second.begin();
 	  fShowerWeightPos!=fWeightPos->second.end();
 	  fShowerWeightPos++)
 	{
 	  int fEnrgy=fShowerWeightPos->first;
+
 	  pos=fNumPos->second.find(fEnrgy);
 	  int fNum=pos->second;
+
+	  fPos=fELowPos->second.find(fEnrgy);
+	  double fLowE=fPos->second;
+
+	  fPos=fEHighPos->second.find(fEnrgy);
+	  double fHighE=fPos->second;
+
+
 	  float fWt=fShowerWeightPos->second;
-	  std::cout<<std::setw(5)<<fShowerType<<std::setw(11)<<fEnrgy<<" "
-		   <<std::setw(6)<<fWt<<std::setw(9)<<fNum<<std::endl;
+	  std::cout<<std::setw(5)<<fShowerType<<std::setw(12)<<fEnrgy<<" "
+		   <<std::setw(6)<<fLowE<<" "<<std::setw(6)<<fHighE<<" "
+		   <<std::setw(6)<<fWt  <<" "<<std::setw(9)<<fNum<<std::endl;
 	}     
     }
   return;
