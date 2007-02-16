@@ -422,9 +422,9 @@ double KSEventWeights::getAlpha(int fShowerType)
 
 float KSEventWeights::getDistributedEnergy(int fType, int fEnergyGeV)
 // *************************************************************************
-// For energy band centered at fEnergyGev for partiocle type fType pick a new
-// energy from the energy band this represents followine E**(-alpha) 
-// distribution.  Use rejection method.
+// For energy band centered at fEnergyGev for particle type fType pick a new
+// energy from the energy band Pick from a flat distribution, its the best we 
+// can do at this point.
 // *************************************************************************
 {
   // *********************************************************************
@@ -464,32 +464,9 @@ float KSEventWeights::getDistributedEnergy(int fType, int fEnergyGeV)
     }
   double fEHigh = (double)fPos->second;
 
-  // *******************************************************************
-  // Find max value of E**(-Alpha) in band. will be at low edge. Use later 
-  // for rejection test
-  // *******************************************************************
-  
-  double fA=getAlpha(fType);
-  double fMax=pow(fELow,fA);
-  double fNewEnergyGeV;
-  float  fXDummy=0;         //For pran
-  while(1)
-    {
-      // *****************************************************************
-      // Get trial energy
-      // *****************************************************************
-      fNewEnergyGeV = fELow+pran(&fXDummy)*(fEHigh-fELow);
+  float  fXDummy=0;
+  double fNewEnergyGeV = fELow+pran(&fXDummy)*(fEHigh-fELow);
 
-      // *****************************************************************
-      // Test for rejection
-      // *****************************************************************
-      double fE=pow(fNewEnergyGeV,fA);
-      double fETest=pran(&fXDummy)*fMax;
-      if(fETest<fE)
-	{
-	  break;
-	}
-    }
   return (float)fNewEnergyGeV;
 }
 // *************************************************************************
