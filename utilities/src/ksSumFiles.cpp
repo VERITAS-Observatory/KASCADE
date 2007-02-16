@@ -819,9 +819,9 @@ int main(int argc, char** argv)
 				{
 				   pfKSimData->fIntegralRatePerEventHz =
 				       fMaxWeight*fWeight*pfKSimData->fAomega;
-				   pfKSimData->fIntegralRatePerEventHz=
-				     pfKSimData->fIntegralRatePerEventHz/
-				                                     fWeight;
+				   //pfKSimData->fIntegralRatePerEventHz=
+				   //  pfKSimData->fIntegralRatePerEventHz/
+				   //                                  fWeight;
 				   pfKSimData->fDifferentialRatePerEventHz =
 				       fDiffRateHzPerM2*pfKSimData->fAomega/
 				                                     fWeight;
