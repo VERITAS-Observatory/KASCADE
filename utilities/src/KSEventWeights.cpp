@@ -19,6 +19,8 @@
 
 #include "KSEventWeights.h"
 
+extern "C" float pran(float* dummy);
+
 //	New gamma flux parameters from Dave Lewis 15/5/96
 const double gGammaAlpha  = -2.45;
 const double gGammaIPhi   =  7.16e-3;          //Spectral Amplitude for gammas
@@ -81,12 +83,28 @@ void KSEventWeights::calculateWeights()
 	                           // element entry. see pg 202 C++ std book
 	  fWeightPos = fWeightMap.find(fShowerType);
 	}
+
       fNumPos = fNumMap.find(fShowerType);
       if(fNumPos==fNumMap.end())
 	{
 	  fNumMap[fShowerType];
 	  fNumPos = fNumMap.find(fShowerType);
 	}
+
+      fELowPos = fELowMap.find(fShowerType);
+      if(fELowPos==fELowMap.end())
+	{
+	  fELowMap[fShowerType];
+	  fELowPos = fELowMap.find(fShowerType);
+	}
+
+      fEHighPos = fEHighMap.find(fShowerType);
+      if(fEHighPos==fEHighMap.end())
+	{
+	  fEHighMap[fShowerType];
+	  fEHighPos = fEHighMap.find(fShowerType);
+	}
+
 
       // ******************************************************************
       // Energies will be sorted within the type map.
@@ -99,6 +117,8 @@ void KSEventWeights::calculateWeights()
 	  fWeightPos->second[fEnergy]=1.0;
 	  int fNum= fShowersPos->second.begin()->second;
 	  fNumPos->second[fEnergy]=fNum;
+	  fELowPos->second[fEnergy]=10.0;      //elow and ehigh arbitrary
+	  fEHighPos->second[fEnergy]=1000.0;    
 	}
       else
 	{
@@ -106,11 +126,14 @@ void KSEventWeights::calculateWeights()
 	  double fIPhi=getIPhi(fShowerType);         //Spectral amplitude
 	  
 	  // *****************************************************************
-	  //get stuff into vectors just to maske the code clearer
+	  //get stuff into vectors just to make the code clearer
 	  // *****************************************************************
 	  fEnergiesGeV.clear(); 
 	  fNumShowers.clear();
  	  fWeightsVector.resize(fNumEnergies,0.0);
+	  fELowVector.resize(fNumEnergies);
+	  fEHighVector.resize(fNumEnergies);
+
 	  for(pos=fShowersPos->second.begin()
 		;pos != fShowersPos->second.end();pos++)
 	    {
@@ -134,7 +157,11 @@ void KSEventWeights::calculateWeights()
 	  double fFluxConst=(fIPhi/(fIAlpha));
 	  double fW=pow(fWidthHigh,(fIAlpha)) -  pow(fWidthLow, (fIAlpha));
 	  fW=fFluxConst*fW/fNumShowers[0];
-	  fWeightsVector[0]=fW;
+	  fWeightsVector.at(0) = fW;
+	  fELowVector.at(0)    = fWidthLow;
+	  fEHighVector.at(0)   = fWidthHigh;
+
+
 	  // ****************************************************
 	  // Now the rest
 	  // ****************************************************
@@ -170,10 +197,15 @@ void KSEventWeights::calculateWeights()
 	      // *************************************************************
 	      // integrel of E**alpha from fWidthL to fWidthH; 
 	      // *************************************************************
-	      fWeightsVector[i]=fFluxConst*
+	      fWeightsVector.at(i) = fFluxConst*
 		(pow(fWidthHigh,(fIAlpha))-pow(fWidthLow,(fIAlpha)));
 		  //Compensate for multiple showers at each energy
-	      fWeightsVector[i] = fWeightsVector[i]/fNumShowers[i];
+	      fWeightsVector.at(i) = fWeightsVector[i]/fNumShowers[i];
+	      fELowVector.at(i)    = fWidthLow;
+	      fEHighVector.at(i)   = fWidthHigh;
+
+
+
 	      // *************************************************************
 	      // Now place this "weight" into the map. We will normalize later
 	      //after all types are done.
@@ -186,7 +218,9 @@ void KSEventWeights::calculateWeights()
 	  for(int i=0;i<fNumEnergies;i++)
 	    {
 	      fWeightPos->second[ fEnergiesGeV[i] ]=(float)fWeightsVector[i];
-	      fNumPos->second[ fEnergiesGeV[i] ]=fNumShowers[i];
+	      fNumPos->second[ fEnergiesGeV[i] ]   = fNumShowers[i];
+	      fELowPos->second[ fEnergiesGeV[i] ]  = (float)fELowVector.at(i);
+	      fEHighPos->second[ fEnergiesGeV[i] ] = (float)fEHighVector.at(i);
 	    }
 	}
     }
@@ -371,3 +405,77 @@ double KSEventWeights::getAlpha(int fShowerType)
   return fAlpha;
 }
 // ************************************************************************
+
+float KSEventWeights::getDistributedEnergy(int fType, int fEnergyGeV)
+// *************************************************************************
+// For energy band centered at fEnergyGev for partiocle type fType pick a new
+// energy from the energy band this represents followine E**(-alpha) 
+// distribution.  Use rejection method.
+// *************************************************************************
+{
+  // *********************************************************************
+  // Get low and high energy edges of the band.
+  // **********************************************************************
+
+  fELowPos=fELowMap.find(fType);
+  if(fELowPos == fELowMap.end())
+    {
+      std::cout<<"KSEventWeights: ELow: Failed to find Corsika type: "
+	       <<fType<<std::endl;
+      exit(1);
+    }
+  fPos=fELowPos->second.find(fEnergyGeV);
+  if(fPos == fELowPos->second.end())
+    {
+      std::cout<<"KSEventWeights: ELow:Failed to find Energy(GeV): "
+	       <<fEnergyGeV<<std::endl;
+      exit(1);
+    }
+  double  fELow = (double)fPos->second;
+
+
+  fEHighPos=fEHighMap.find(fType);
+  if(fEHighPos == fEHighMap.end())
+    {
+      std::cout<<"KSEventWeights: EHigh: Failed to find Corsika type: "
+	       <<fType<<std::endl;
+      exit(1);
+    }
+  fPos=fEHighPos->second.find(fEnergyGeV);
+  if(fPos == fEHighPos->second.end())
+    {
+      std::cout<<"KSEventWeights: EHigh:Failed to find Energy(GeV): "
+	       <<fEnergyGeV<<std::endl;
+      exit(1);
+    }
+  double fEHigh = (double)fPos->second;
+
+  // *******************************************************************
+  // Find max value of E**(-Alpha) in band. will be at low edge. Use later 
+  // for rejection test
+  // *******************************************************************
+  
+  double fA=getAlpha(fType);
+  double fMax=pow(fELow,fA);
+  double fNewEnergyGeV;
+  float  fXDummy=0;         //For pran
+  while(1)
+    {
+      // *****************************************************************
+      // Get trial energy
+      // *****************************************************************
+      fNewEnergyGeV = fELow+pran(&fXDummy)*(fEHigh-fELow);
+
+      // *****************************************************************
+      // Test for rejection
+      // *****************************************************************
+      double fE=pow(fNewEnergyGeV,fA);
+      double fETest=pran(&fXDummy)*fMax;
+      if(fETest<fE)
+	{
+	  break;
+	}
+    }
+  return (float)fNewEnergyGeV;
+}
+// *************************************************************************

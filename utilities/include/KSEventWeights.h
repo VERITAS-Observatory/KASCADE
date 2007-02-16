@@ -41,16 +41,19 @@ class KSEventWeights
   int getNumShowers(int type, int fEnergyGeV);
   double getIPhi(int type);
   double getAlpha(int type);
-
+  float  getDistributedEnergy(int type, int fEnergyGeV);
   void  Print();
  private:
   std::map<int, fShwrMap_t> fShowers;
   std::map<int, fShwrMap_t >::iterator fShowersPos;
   fShwrMap_t::iterator pos;
+  fShwrWeightMap_t::iterator fPos;
 
   float fMaxWeight;
 
-  std::vector<float> fWeightsVector;
+  std::vector<float> fWeightsVector;  //Temp vectors used to fill maps
+  std::vector<float> fELowVector;
+  std::vector<float> fEHighVector;
   std::vector<int> fEnergiesGeV;
   std::vector<int> fNumShowers;
 
@@ -60,6 +63,12 @@ class KSEventWeights
 
   std::map<int, fShwrMap_t > fNumMap;   //Map of a map
   std::map<int, fShwrMap_t >::iterator fNumPos;
+
+  std::map<int, fShwrWeightMap_t > fELowMap;   //Map of a map
+  std::map<int, fShwrWeightMap_t >::iterator fELowPos;
+
+  std::map<int, fShwrWeightMap_t > fEHighMap;   //Map of a map
+  std::map<int, fShwrWeightMap_t >::iterator fEHighPos;
 };
 
 #endif

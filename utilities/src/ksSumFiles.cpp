@@ -117,6 +117,19 @@ int main(int argc, char** argv)
 	{
 	  fWeightBySpectrum=true;
 	}
+
+      bool fDistributeEnergy=false;
+      if(command_line.find("DistributeEnergy",
+			   "Indicates that while appending events from files "
+			   "from the input file list, we are going to jitter "
+			   "the energy within the energy band each  event "
+			   "represents. This is for a special use in vaStage4 "
+			   " when it makes lookup tables.")
+	 == VAOptions::FS_FOUND)
+	{
+	  fDistributeEnergy=true;
+	}
+
       std::string fRandomSeedFileName;
       if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
 				    "Ranlux seed file")
@@ -752,6 +765,25 @@ int main(int argc, char** argv)
 			      // this section
 			      pfSimData->fRunNumber=fRunNumber;
 			      pfSimData->fEventNumber=fArrayEventNum;
+
+
+			      // ********************************************
+			      // If requested we reset the energy to one 
+			      // somewhere in the energy band this shower 
+			      // represents. Special use by vaStgae4 for 
+			      // lookupTable generation
+			      // ********************************************
+			      if(fDistributeEnergy)
+				{
+				  //pfSimData->fEnergyGeV= pfWeights->
+				  //  getDistributedEnergy(fType, fEnergyGeV);
+				  double fEGeV= pfWeights->
+				    getDistributedEnergy(fType, fEnergyGeV);
+				  std::cout<<fEnergyGeV<<","<<fEGeV<<std::endl;
+				  
+				}
+
+
 			      VSimulationData* pfWriteSimData = 
 				                     pfSimData->copySimData();
 			      pfWritePacket->put(VGetSimulationDataBankName(),
