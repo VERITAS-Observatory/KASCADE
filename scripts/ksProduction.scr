@@ -25,7 +25,7 @@ function RemoveOldFiles()
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing $parspec*GeV*.root files
     cd $datadir
-    find . | grep $parspec |grep .root| grep -v Mult | xargs rm -v 
+    find . | grep $parspec |grep .root| grep -v Mult | xargs  -n 1 rm -v 
     cd $lcl
     pwd
   fi
@@ -33,7 +33,7 @@ function RemoveOldFiles()
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing $parspec*GeV*.vbf files
     cd $datadir
-    find . | grep $parspec |grep .vbf | grep -v Mult | xargs rm -v 
+    find . | grep $parspec |grep .vbf | grep -v Mult | xargs -n 1 rm -v 
     cd $lcl
     pwd
   fi
@@ -41,7 +41,7 @@ function RemoveOldFiles()
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
     echo Removing $parspec*GeV*Multi.vbf files
     cd $datadir
-    find . | grep $parspec |grep .vbf | grep  Mult | xargs rm -v 
+    find . | grep $parspec |grep .vbf | grep  Mult | xargs  -n 1 rm -v 
     cd $lcl
     pwd
     maxMem=75MB
