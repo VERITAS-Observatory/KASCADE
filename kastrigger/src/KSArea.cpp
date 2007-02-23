@@ -62,7 +62,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   // ************************************************************************
   // Set up for the multiple mount directions stuff
   // ************************************************************************
-  fStepSizeRad  = pfDataIn->fDriftedGammaStepSizeRad;
+  fStepSizeRad  = pfDataIn->fGammaStepSizeRad;
   pfMountDir = new  KSMountDirection(pfDataIn->pfTeHead, fStepSizeRad);
  
   if(pfDataIn->fLoadMountDirectionsFromFile)

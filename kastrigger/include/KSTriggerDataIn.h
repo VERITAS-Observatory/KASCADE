@@ -28,6 +28,7 @@ private:
   static std::string sDefaultCameraType;
   static std::string sDefaultTraceEnable;
   static std::string sDefaultDriftingGammas;
+  static std::string sDefaultGammas2D;
   static std::string sDefaultUseElevationForDlDmDn;
   static std::string sDefaultMultipleMountDirections;
   static std::string sDefaultLoadMountDirectionsFromFile;
@@ -47,7 +48,7 @@ private:
   static double      sDefaultMountDm;                
   static double      sDefaultMountDn;                
   static double      sDefaultMountElevationDeg;      
-  static double      sDefaultDriftedGammaStepSizeDeg;
+  static double      sDefaultGammaStepSizeDeg;
 public:
   KSTriggerDataIn(KSTeHeadData* pfTeHead);
   virtual ~KSTriggerDataIn();
@@ -62,7 +63,7 @@ public:
                                     //decision
   double fMountElevationDeg;        //Mount elevation in deg -> 
                                     // fUseElevationForDlDmDn
-  double fDriftedGammaStepSizeRad;  // Drifted Gamma step size
+  double fGammaStepSizeRad;         // Drifted and 2d Gamma step size
   bool fLoadMountDirectionsFromFile;
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;

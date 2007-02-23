@@ -20,6 +20,7 @@
 std::string KSTriggerDataIn::sDefaultCameraType="WHIPPLE490";
 std::string KSTriggerDataIn::sDefaultTraceEnable="OFF";
 std::string KSTriggerDataIn::sDefaultDriftingGammas="OFF";
+std::string KSTriggerDataIn::sDefaultGammas2D="OFF";
 std::string KSTriggerDataIn::sDefaultUseElevationForDlDmDn="OFF";
 std::string KSTriggerDataIn::sDefaultMultipleMountDirections="OFF";
 std::string KSTriggerDataIn::sDefaultLoadMountDirectionsFromFile="OFF";
@@ -34,7 +35,7 @@ double      KSTriggerDataIn::sDefaultEfficiency=1.0;
 double      KSTriggerDataIn::sDefaultDiscriminatorThresholdPes=4.0;
 double      KSTriggerDataIn::sDefaultMaximumThetaDeg=9.0;
 int         KSTriggerDataIn::sDefaultNumDirections=150;	
-double      KSTriggerDataIn::sDefaultDriftedGammaStepSizeDeg=.1;
+double      KSTriggerDataIn::sDefaultGammaStepSizeDeg=.1;
 int         KSTriggerDataIn::sDefaultPatternTriggerLevel=3;
 int         KSTriggerDataIn::sDefaultTriggerMultiplicity=3; 
 double      KSTriggerDataIn::sDefaultLightConeConcentration=1.0; 
@@ -56,6 +57,9 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
 		 toupper);
   std::transform(sDefaultDriftingGammas.begin(),sDefaultDriftingGammas.end(),
 		 sDefaultDriftingGammas.begin(),
+		 toupper);
+  std::transform(sDefaultGammas2D.begin(),sDefaultGammas2D.end(),
+		 sDefaultGammas2D.begin(),
 		 toupper);
   std::transform(sDefaultUseElevationForDlDmDn.begin(),
 		 sDefaultUseElevationForDlDmDn.end(),
@@ -112,6 +116,25 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
       std::cout<<"Illegal option for DriftingGammas: "<<sDefaultDriftingGammas
 	       <<" Assuming DriftingGammas=OFF"<<std::endl;
     }
+
+  pfTeHead->fGammas2D=false;
+  if(sDefaultGammas2D=="ON")
+    {
+      pfTeHead->fGammas2D=true;
+    }
+  else if(sDefaultGammas2D!="OFF")
+    {
+      std::cout<<"Illegal option for Gammas2D: "<<sDefaultGammas2D
+	       <<" Assuming Gammas2D=OFF"<<std::endl;
+    }
+
+  if(pfTeHead->fDriftingGammas && pfTeHead->fGammas2D)
+    {
+      std::cout<<"ksTrigger : Fatal--You can't choose both DrifingGammas "
+	         "and Gammas2D at the same time"<<std::endl;
+      exit(1);
+    }
+
 
   fUseElevationForDlDmDn=false;
   if(sDefaultUseElevationForDlDmDn=="ON")
@@ -182,7 +205,7 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
   pfTeHead->fMaximumThetaRad           = sDefaultMaximumThetaDeg*gDeg2Rad;
   pfTeHead->fNumDirections             = sDefaultNumDirections;
 
-  fDriftedGammaStepSizeRad        = sDefaultDriftedGammaStepSizeDeg*gDeg2Rad;
+  fGammaStepSizeRad        = sDefaultGammaStepSizeDeg*gDeg2Rad;
 
   pfTeHead->fPatternTriggerLevel       = sDefaultPatternTriggerLevel; 
   if(pfTeHead->fPatternTriggerLevel>=2 ||pfTeHead->fPatternTriggerLevel<=4)
@@ -217,6 +240,7 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.setValue("CameraType",sDefaultCameraType);
   config.setValue("TraceEnable",sDefaultTraceEnable);
   config.setValue("DriftingGammas",sDefaultDriftingGammas);
+  config.setValue("Gammas2D",sDefaultGammas2D);
   config.setValue("UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn);
   config.setValue("LoadMountDirectionsFromFile",
 		  sDefaultLoadMountDirectionsFromFile);
@@ -232,7 +256,7 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.setValue("NumDirections",pfTeHead->fNumDirections);
   config.setValue("TriggerMultiplicity",pfTeHead->fTriggerMultiplicity);
   config.setValue("PatternTriggerLevel",pfTeHead->fPatternTriggerLevel);
-  config.setValue("DriftedGammaStepSizeDeg",sDefaultDriftedGammaStepSizeDeg);
+  config.setValue("GammaStepSizeDeg",sDefaultGammaStepSizeDeg);
   config.setValue("LightConeConcentration",pfTeHead->fLightConeConcentration);
   config.setValue("MountDl",pfTeHead->fMountDl);
   config.setValue("MountDm",pfTeHead->fMountDm);
@@ -266,18 +290,28 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "is chosen then you should also set -MaximumThetaDeg=1.0 "
 		    "(for example).");
   doVAConfiguration(file, command_line, 
+		    "Gammas2D",sDefaultGammas2D,
+		    "KSTriggerDataIn",
+		    "ON enables the use of a special X,Y mount "
+                    "redirection mode useful for 2D modeling of Gamma "
+		    "(signal) events. OFF (default) disables. This option "
+		    "when chosen uses -MaximumThetaDeg and -GammaStepSizeDeg");
+  doVAConfiguration(file, command_line, 
 		    "MaximumThetaDeg",sDefaultMaximumThetaDeg,
 		    "KSTriggerDataIn",
 		    "Random direction of hadrons is modeled by looking for "
 		    "triggers when the mount is pointed in a random direction "
 		    "less than this value form the nominal direction. Used "
 		    "when MultipleMountDirections=ON. Also used when "
-		    "DriftingGammas=ON chosen for range of directions.");
+		    "DriftingGammas=ON or Gamma2D=ON chosen for range of "
+		    "directions.");
   doVAConfiguration(file, command_line, 
-		    "DriftedGammaStepSizeDeg",sDefaultDriftedGammaStepSizeDeg,
+		    "GammaStepSizeDeg",sDefaultGammaStepSizeDeg,
 		    "KSTriggerDataIn",
-		    "For DriftedGammas=ON events: Specifies the size of steps "
-		    "to take in RA away from the original direction.");
+		    "For DriftedGammas=ON or Gammas2D=ON events: Specifies "
+		    "the "
+		    "size of steps to take,  in RA for Drifted Gammas and in "
+		    "X,Y for Gammas2D");
   doVAConfiguration(file, command_line, 
 		    "UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn,
 		    "KSTriggerDataIn",

@@ -25,6 +25,7 @@ KSMountDirection::KSMountDirection(KSTeHeadData* pTeHead,
 {
   pfTeHead                 = pTeHead;
   fDriftingGammas          = pfTeHead->fDriftingGammas;
+  fGammas2D                = pfTeHead->fGammas2D;
   fMultipleMountDirections = pfTeHead->fMultipleMountDirections;
   fNumDirections           = pfTeHead->fNumDirections;
   fStepSizeRad             = DriftedGammaStepSizeRad;
@@ -47,13 +48,12 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 //                        the mount pointed in different directions, 
 //                        usually this is false for gammas and true for
 //                        everything else (but see below for drifting 
-//                        gammas)
+//                        gammas and Gammas2D)
 //fMaximumThetaRad:   Nominally maximum distance from the inital Mount
 //                   direction that we will go
-//fStepSizeRad:Used only by drifting gammas as the size of theta 
+//fStepSizeRad:Used only by drifting gammas and Gammas2D as the size of 
 //                   steps we will take.
 //fNumDirections:Number of directions we will use for each event.
-//                   Not used by drifting gammas
 {
   if(fDriftingGammas)
     {
@@ -72,6 +72,30 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 
       fNumDirections = 2*fThetaSteps+1;
       fMultipleMountDirections=true;
+      fAomega=fXAreaWidthM*fYAreaWidthM;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
+    }
+  else if(fGammas2D)
+    {
+      // For the Maximum Likelihood Gamma source psf calculation: Set up a 
+      // grid of directions. Starting at 0 in field of view and stepping 
+      // fStepSizeRad(converted back to deg) in positive steps in both X and 
+      // Y out to fMaximumThetaRad (again back in deg). That is we only do
+      // the positive quadrant in X and Y. The other quadrants can be filled 
+      // in by reflections.
+      // ********************************************************************
+      // Values for fMaximumThetaRad and fStepSizeRad derived from original
+      // deg from config file: MaximumThetaDeg, GammaStepSizeDeg
+      // *******************************************************************
+      
+      fMaxThetaDeg=pfTeHead->fMaximumThetaRad/gDeg2Rad;
+      fStepSizeDeg=fStepSizeRad/gDeg2Rad;
+      fNumXSteps=(int)(fMaxThetaDeg/fStepSizeDeg + 
+		    fStepSizeDeg/2.) + 1;
+      fNumYSteps=fNumXSteps;
+      fNumDirections=fNumXSteps*fNumYSteps;
+      fMultipleMountDirections=true;
+      
       fAomega=fXAreaWidthM*fYAreaWidthM;
       std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
     }
@@ -135,6 +159,10 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 //  For Drifting Gammas we go +/- MaxThetaDeg in RA. This is a special mode
 //  for the whipple strip analyis.
 // ****************************************************************************
+// ****************************************************************************
+//  For Drifting Gammas we go  +/- MaxThetaDeg in RA. This is a special mode
+//  for the whipple strip analyis.
+// ****************************************************************************
 //	Modified:
 // Previous notes:
 //  Use only iphi=1 and iphi=itheta for gamma_drift. Hadrons same as before. 
@@ -192,7 +220,7 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       double fRANew;
       double fPhi=0;
       double fTheta=0;
-      if(!fDriftingGammas && fMultipleMountDirections)
+      if(!fDriftingGammas && !fGammas2D && fMultipleMountDirections)
 	{
 	  fPhi=2*M_PI*pran(&fXDummy);    //Must be in Radians
 	  fTheta=pfTeHead->fMaximumThetaRad *
@@ -233,6 +261,13 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 	      W10mGetVecFromRaDec(fRANew,fDec,fM,gLatitude[fCameraType]);
 	    }
 	}     
+      else if(fGammas2D)
+	{  
+	  // *************************************************************
+	  // *************************************************************
+
+
+	}
       else
 	{  //Single direciton (gammas)
 	  for(int k=0;k<3;k++)fM[k]=fMount[k];
@@ -321,7 +356,8 @@ void KSMountDirection::vectorRedirect(double theta, double phi, double* X, doubl
 }
 //  ***********************************************************************
 
-void KSMountDirection::getIThetaIPhi(int ithphi,int nsides,int& itheta,int& iphi)
+void KSMountDirection::getIThetaIPhi(int ithphi,int nsides,int& itheta,
+				     int& iphi)
 // ***************************************************************************
 // 	For a specific itheta and nsides get corresponding itheta/iphi.
 // ***************************************************************************

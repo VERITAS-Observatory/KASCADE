@@ -34,6 +34,7 @@ class KSMountDirection
  public:
   KSTeHeadData* pfTeHead;
   bool   fDriftingGammas;
+  bool   fGammas2D;
   bool   fMultipleMountDirections;
   double fStepSizeRad;
   KSCameraTypes fCameraType;
@@ -65,6 +66,10 @@ class KSMountDirection
   void vectorRedirect(double theta, double phi, double* X, double* Y,
 		      double* Z,double* R);
   float fXDummy;
+  int fNumXSteps;
+  int fNumYSteps;
+  double fMaxThetaDeg;
+  double fStepSizeDeg;
 };
 // ***************************************************************************
 #endif
