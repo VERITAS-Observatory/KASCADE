@@ -3,19 +3,23 @@
 #This is the conversion (from kas01.scr) to use at Purdue and Depauw
 #Glenn Sembroski 16/05/05
 #$0 ./kas02.scr
-#$1 has Type-direction specification code. like: P1W,He4_1W,G1W,G1N0.5V
-#   Giveing a Type code of 'CR1W' will cause both P1W and He4_1W to be run
-#   CR1V: Single telescope threshold(ksaom*)
-#   CR1V2: Multi Telescope threshold(ksaom*)
-#$2 has which script to run: ksall:make showers throuth te files
-#                            ksaom:makes .root files
-#                            ksaomVBF:makes .vbf files
-#                            ksaomVBFRoot:makes .vbf and .root files
-#                            ksarraytriggerVBF:makes .vbf multi trigger files.
+#$1 For ksall:
+#     Telescope-Type-direction specification code. like: WP1Deg,WHe4_1Deg,
+#     WG1Deg,VG1DegN0.5Deg.  Giveing a Type code of 'WCR1Deg will cause both 
+#     WP1Deg  and WHe4_1Deg to be  run
+#   For ksaomVBF and ksarraytriggerVBF:
+#     append the threshold specifier: VG1Deg50mv, VG1DegN0.5Deg70mv, 
+#     WCR20DegS0.3Deg50mv.
+#$2 has which script to run: 
+#               ksall:make showers throuth te files
+#               ksaom:makes .root files(depreciated)
+#               ksaomVBF:makes .vbf files
+#               ksaomVBFRoot:makes .vbf and .root files(depreciated)
+#               ksarraytriggerVBF:makes .vbf multi trigger files.
 #$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
 #          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 #$3 Array Multiplicity and Trigger multiplicity for ksarraytriggerVBF only. 
-#                             Like 2of2_12--(default)  or 2of3_12-4.
+#                             Like 12--M2(default)  or 12-4M3 or 123-M2.
 
 
 #Functions to define thigs for various particle specs
@@ -25,7 +29,7 @@ function RemoveOldFiles()
   if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing $parspec*GeV*.root files
     cd $datadir
-    find . | grep $parspec |grep .root| grep -v Mult | xargs  -n 1 rm -v 
+    find . | grep $parspec |grep .root | xargs  -n 1 rm -v 
     cd $lcl
     pwd
   fi
@@ -33,15 +37,15 @@ function RemoveOldFiles()
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
     echo Removing $parspec*GeV*.vbf files
     cd $datadir
-    find . | grep $parspec |grep .vbf | grep -v Mult | xargs -n 1 rm -v 
+    find . | grep $parspec |grep .vbf | xargs -n 1 rm -v 
     cd $lcl
     pwd
   fi
 
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
-    echo Removing $parspec*GeV*Multi.vbf files
+    echo Removing $parspec$Option3*GeV*.vbf files
     cd $datadir
-    find . | grep $parspec |grep .vbf | grep  Mult | xargs  -n 1 rm -v 
+    find . | grep $parspec$Option3 |grep .vbf | xargs  -n 1 rm -v 
     cd $lcl
     pwd
     maxMem=75MB
@@ -238,9 +242,10 @@ host=$(hostname)
 #script directory
 sdr=$KASCADEBASE"/scripts"
 kssc=$2
-ksScript=$sdr/$kssc'.scr'   #ksall: Makes seg,pe,pes,te files. Keeps te files
-                         #ksaom: Makes .root (and eventually .cvbf) files from
-                         #       te files
+ksScript=$sdr/$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
+                          #ksaom: Makes .root  files from te files(depreciated)
+                          #ksaomVBF: Makes .vbf files from te files
+                          #ksarraytriggerVBF: Makes array  .vbf files
 
 if [ $host = 'isis' ] ; then
     dataDirBase=/simulations
@@ -286,49 +291,42 @@ let pspecset=0
 maxMem=240MB
 WALLTIME=20:00:00
 jobSpec=$1
-let specEnd=$(expr length $jobSpec)
-specEnd=$((specEnd-1))
 
-if [ ${jobSpec:0:2} = "CR" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
-    parspec=$1
-    Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
-                                               #see pg 97 Bash book.
-    He4spec=He4_${parspec#CR} #Replace CR with He4_
-
-    if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
-        cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                   $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
-        cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
-    fi
-
+if [ ${jobSpec:1:2} = "CR" ]; then      # Only true for  ksaomVBF 
+                                        # and ksarraytriggerVBF
+    TelSpec=${jobSpec:0:1}              #gets W from WG20DegN0.5Deg50mv
+    spec=${jobSpec#*CR}      #gets 20DegN0.3Deg50mv from WCR20DegN0.3Deg50mv
     let processStart=1
-    parspec=$Pspec
+    parspec=$TelSpec'P'$spec #gives WP20DegN0.3Deg50mv from WCR20DegN0.3Deg50mv
+
     datadir="$dataDirBase/whipple/protons"
     Protons
-    parspec=$He4spec
+    parspec=$TelSpec'He4_'$spec
     datadir="$dataDirBase/whipple/he4"
     Helium4
     let pspecset=1;
 fi
 
-if [ ${jobSpec:0:1} = "P" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
-    parspec=$1
+if [ ${jobSpec:1:1} = "P" ] ; then 
+    parspec=$1 
     datadir="$dataDirBase/whipple/protons"
+
     let processStart=1
     Protons
     let pspecset=1;
 fi
 
-if [ ${jobSpec:0:4} = "He4_" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
-    parspec=$1
+*if [ ${jobSpec:1:4} = "He4_" ] ; then 
+    parspec=$1 
     datadir="$dataDirBase/whipple/he4"
+
     let processStart=1
     Helium4
     let pspecset=1;
 fi
 
-if [ ${jobSpec:0:1} = "G" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
+
+if [ ${jobSpec:0:2} = "G" ]; then
     parspec=$1
     datadir="$dataDirBase/whipple/gammas"
     let processStart=11
@@ -336,59 +334,6 @@ if [ ${jobSpec:0:1} = "G" ] && [ ${jobSpec:$specEnd:1} = "W" ] ; then
     let pspecset=1;
 fi
 
-if [ ${jobSpec:0:2} = "CR" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
-    parspec=$1
-    Pspec=P${parspec#CR}   #Fancy string manipulation here, replace CR with P 
-                                               #see pg 97 Bash book.
-    He4spec=He4_${parspec#CR} #Replace CR with He4_
-
-    if [ "$kssc" = "ksaom" ] || [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
-	cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                   $KASCADEBASE/inputs/ksAomega$Pspec'.config' 
-	cp -v $KASCADEBASE/inputs/ksAomega$parspec'.config'  \
-                                 $KASCADEBASE/inputs/ksAomega$He4spec'.config' 
-    fi
-
-    if [ "$kssc" = "ksarraytriggerVBF" ]; then
-        cp -v $KASCADEBASE/inputs/ksArrayTrigger$parspec'.config'  \
-                             $KASCADEBASE/inputs/ksArrayTrigger$Pspec'.config' 
-        cp -v $KASCADEBASE/inputs/ksArrayTrigger$parspec'.config'  \
-                           $KASCADEBASE/inputs/ksArrayTrigger$He4spec'.config' 
-    fi
-
-    let processStart=1
-    parspec=$Pspec
-    datadir="$dataDirBase/veritas/protons"
-    Protons
-    parspec=$He4spec
-    datadir="$dataDirBase/veritas/he4"
-    Helium4
-    let pspecset=1;
-fi
-
-if [ ${jobSpec:0:1} = "P" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
-    parspec=$1
-    datadir="$dataDirBase/veritas/protons"
-    let processStart=1
-    Protons
-    let pspecset=1;
-fi
-
-if [ ${jobSpec:0:4} = "He4_" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
-    parspec=$1
-    datadir="$dataDirBase/veritas/he4"
-    let processStart=1
-    Helium4
-    let pspecset=1;
-fi
-
-if [ ${jobSpec:0:1} = "G" ] && [ ${jobSpec:$specEnd:1} = "V" ] ; then
-    parspec=$1
-    datadir="$dataDirBase/veritas/gammas"
-    let processStart=1
-    Gammas
-    let pspecset=1;
-fi
 
 if [ $pspecset -ne 1 ]; then
     echo No such Particle spec: $1

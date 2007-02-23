@@ -3,7 +3,7 @@
 #$0 ./ksarraytriggerVBF.scr
 #$1 primary Energy in gev (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower namesLike P1W,G1W, He4_1W)
+#                                     in shower namesLike VHe4_30DegE0.3Deg50mv
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 Adata disk directory.(Where output Te are and root and VBF files are to go,
@@ -62,7 +62,7 @@ echo MultOption $MultOption
 
 
 #Make links to config files
-ksArrayTriggerConfig=ksArrayTrigger$2.config
+ksArrayTriggerConfig=ksArrayTrigger.config
 ln -s $inpDir/$ksArrayTriggerConfig $ksArrayTriggerConfig
 
 
@@ -90,7 +90,7 @@ $src/randomCreateRanluxSeed -s $seedK -o ksArrayTrigger.ran
 #Note it includes data path which better not be blank
 ShwBase=$2'GeV'$1
 Shwr=$5'/'$2'GeV'$1
-
+MultShwr=$5'/'$2$6'GeV'$1
 #Setup to loop over showers
 
 
@@ -100,7 +100,7 @@ while test $i -le $4
 #ksArrayTrigger
     VBFFile=$Shwr'.d'$i'.vbf'             #Not local
 #Make copies of files to use for different telescopes
-    VBFFileMult=$Shwr'.d'$i'Mult.vbf'      #Not local
+    VBFFileMult=$MultShwr'.d'$i'.vbf'      #Not local
 
     ShowerNameOptions=
 

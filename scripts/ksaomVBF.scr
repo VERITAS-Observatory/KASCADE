@@ -3,7 +3,7 @@
 #$0 ./kasaom.scr
 #$1 primary Energy in gev (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower namesLike P1W,G1W, He4_1W)
+#                                     in shower namesLike WP1DegN0.5Deg50mv
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te are and root and VBF files are to go,
@@ -55,7 +55,10 @@ echo Working Directory is $wrkdir
 
 
 #Make links to config files
-ksAomegaConfig=ksAomega$2'.config'
+jobSpec=$1
+TelSpec=${jobSpec:0:1}                  #gets W from WG20DegN0.5Deg50mv
+ThresholdSpec=$TelSpec${jobSpec##*Deg}  #gets V70mv VG20DegN0.5Deg70mv
+ksAomegaConfig=ksAomega$ThresholdSpec'.config'
 ln -s $inpDir/$ksAomegaConfig $ksAomegaConfig
 
 #make a links to the various input files:
@@ -85,14 +88,8 @@ $src/randomCreateRanluxSeed -s $seedK -o ksAomega.ran
 Shwr=$5'/'$2'GeV'$1
 
 #Setup input base name
-Spec=$2
-let specEnd=$(expr length $Spec)
-specEnd=$((specEnd-1))
-TelCode=${Spec:$specEnd:1}
 
-SpecIn=${Spec%Deg*}             #Drops last 'Deg' and anything that follows
-SpecIn=$SpecIn$TelCode          #Tack back on the V or W
-
+SpecIn=${jobSpec%Deg*}'Deg'  #Gets VG20DegS0.3Deg from  VG20DegS0.3Deg50mv
 
 ShwrIn=$5'/'$SpecIn'GeV'$1
 

@@ -3,7 +3,7 @@
 #$0 ./kasall.scr
 #$1 primary Energy in gev (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower namesLike P1W,G1W, He4_1W)
+#                                     in shower names like WP1DegN0.5Deg
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
@@ -49,13 +49,20 @@ wrkdir="$PWD"
 echo Working Directory is $wrkdir
 
 
+jobSpec=$2
+
 #Make links to config files
-ksKascadeConfig=ksKascade$2'.config'
-ksLightConfig=ksLight$2'.config'
-ksTriggerConfig=ksTrigger$2'.config'
+PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets VG20Deg from VG20DegN0.5Deg
+ksKascadeConfig=ksKascade$PrimarySpec'.config'
 ln -s $inpDir/$ksKascadeConfig $ksKascadeConfig
+
+TelSpec=${jobSpec:0:1}                  #gets W from WG20DegN0.5Deg50mv
+ksLightConfig=ksLight$TelSpec'.config'
 ln -s $inpDir/$ksLightConfig $ksLightConfig
+
+ksTriggerConfig=ksTrigger$jobSpec'.config'
 ln -s $inpDir/$ksTriggerConfig $ksTriggerConfig
+
 
 #make a links to the various input files:
 ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
@@ -120,10 +127,6 @@ while test $i -le $4
 	rm $pesfile
     fi
 
-#    if [ -e "SortTempTreeFile.root" ]; then
-#	rm -v SortTempTreeFile.root
-#    fi
-
     $src/ksPeSortMerge $pefile $pesfile
     rm $pefile		#Delete pe file
     rm Temp*            #delete temp sort files.
@@ -145,13 +148,6 @@ while test $i -le $4
 		    -MountDirectionsFileName=$MDirFile \
                     -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
      rm $pesfile
-
-#compress te file: THIS DOESN'T SEEM TO WORK!
-#
-#    if [ -e "$tefile.bz2" ]; then
-#	rm $tefile.bz2             #Remove any previous version of output
-#    fi
-#    bzip2 -zv $tefile        #compress the output Te file
 
     i=$((i+1))			#do next shower
 done
