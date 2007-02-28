@@ -775,11 +775,12 @@ int main(int argc, char** argv)
 			      // ********************************************
 			      if(fDistributeEnergy)
 				{
-				  //pfSimData->fEnergyGeV= pfWeights->
+				  pfSimData->fEnergyGeV= pfWeights->
+				     getDistributedEnergy(fType, fEnergyGeV);
+				  //double fEGeV= pfWeights->
 				  //  getDistributedEnergy(fType, fEnergyGeV);
-				  double fEGeV= pfWeights->
-				    getDistributedEnergy(fType, fEnergyGeV);
-				  std::cout<<fEnergyGeV<<","<<fEGeV<<std::endl;
+				  //std::cout<<fEnergyGeV<<","<<fEGeV
+				  //<<std::endl;
 				  
 				}
 
@@ -850,7 +851,8 @@ int main(int argc, char** argv)
 			    } 
 			  pfAEIn=pfPacket->getArrayEvent();
 			  pfAT = pfAEIn->getTrigger();
-			  // set the event number
+			  // set the Run Number and event number
+			  pfAT->SetRunNumber(fRunNumber);
 			  pfAT->setEventNumber(fArrayEventNum);
 			  uint16_t fGPSWords[5];
 			  fEventTime.getForVBF(fGPSYear,5,fGPSWords);
@@ -873,6 +875,7 @@ int main(int argc, char** argv)
 			    {
 			      fNumNormalEvents++;
 			    }
+			  
 			  // now put array trigger back into the array event
 			  VArrayTrigger* pfWriteAT=pfAT->copyAT();
 			  pfAEOut->setTrigger(pfWriteAT);
@@ -903,6 +906,9 @@ int main(int argc, char** argv)
 			      VEvent* pfWriteEvent=pfEvent->copyEvent();
 			      pfAEOut->addEvent(pfWriteEvent);
 			    }
+
+			  pfAEOut->setRun(fRunNumber);
+
 			  // put the array event back into the packet
 			  pfWritePacket->putArrayEvent(pfAEOut);
 			  
