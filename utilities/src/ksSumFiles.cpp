@@ -852,7 +852,7 @@ int main(int argc, char** argv)
 			  pfAEIn=pfPacket->getArrayEvent();
 			  pfAT = pfAEIn->getTrigger();
 			  // set the Run Number and event number
-			  pfAT->SetRunNumber(fRunNumber);
+			  pfAT->setRunNumber(fRunNumber);
 			  pfAT->setEventNumber(fArrayEventNum);
 			  uint16_t fGPSWords[5];
 			  fEventTime.getForVBF(fGPSYear,5,fGPSWords);
