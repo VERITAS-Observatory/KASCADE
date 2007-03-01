@@ -1,3 +1,4 @@
+//-*-mode:c++; mode:font-lock;-*-
 /**
  * Original Author: Glenn H. Sembroski
  * $Author$
@@ -15,8 +16,10 @@
 #include "KSTeDataClasses.h"
 #include "VASlalib.h" 
 
+
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 class KSMountDirection
 // *******************************************************
@@ -62,14 +65,19 @@ class KSMountDirection
 
  private:
   void unitCrossProduct(double* X,double* Y,double* Z);
+  double dotProduct(double* pfA, double* pfB);
   void getVector(double* X,double& x1,double& x2,double& x3);
   void vectorRedirect(double theta, double phi, double* X, double* Y,
 		      double* Z,double* R);
+  void allocateDirectionArrays(int fNumDir);
+  void loadDirectionArrays(int fIthPhi, double fSTheta,
+					   double fSPhi,double* fDir);
   float fXDummy;
   int fNumXSteps;
   int fNumYSteps;
   double fMaxThetaDeg;
   double fStepSizeDeg;
+  double fMount[3];
 };
 // ***************************************************************************
 #endif

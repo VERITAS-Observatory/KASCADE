@@ -1,3 +1,4 @@
+//-*-mode:c++; mode:font-lock;-*-
 /**
  * \class KSMountDirection 
  * \ingroup common
@@ -16,9 +17,15 @@
 #include "KSMountDirection.h"
 
 extern "C" float pran(float* fXDummy);
+extern "C" void  GetAzElevFromVec(double* pfX, double& fAzimuth, 
+				  double& fElevation);
+extern "C" void  GetVecFromXY( double fX, double fY, double fAzSrc, 
+			       double fElSrc, double* fM);
 
 void W10mGetRaDecFromVec(double* X, double& ra, double& dec,double fLatitude);
 void W10mGetVecFromRaDec(double ra, double dec, double* X,double fLatitude);
+
+
 
 KSMountDirection::KSMountDirection(KSTeHeadData* pTeHead, 
 				   double DriftedGammaStepSizeRad)
@@ -54,91 +61,14 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 //fStepSizeRad:Used only by drifting gammas and Gammas2D as the size of 
 //                   steps we will take.
 //fNumDirections:Number of directions we will use for each event.
-{
-  if(fDriftingGammas)
-    {
-      // --------------------------------------------------------------
-      //For the whipple strip we need to get GAMMA efficiencies all over 
-      //the camera. Do this by treating gammas as hadrons (tilting the 
-      //mount) along the RA direction. We want to step in theta from
-      // -MaximumThetaDeg to + MaximumThetaDeg(2. degs 
-      //nominally). We set the step size to StepSize (nominally 
-      // =.1 deg=.4 min))
-      // *****************************************************************
-      //Integer round down here
-      int fThetaSteps = (int)((pfTeHead->fMaximumThetaRad/fStepSizeRad) +
-	       fStepSizeRad/2.);
-      //we want ThetaSteps to be odd so that the central direction is a 0,0
-
-      fNumDirections = 2*fThetaSteps+1;
-      fMultipleMountDirections=true;
-      fAomega=fXAreaWidthM*fYAreaWidthM;
-      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
-    }
-  else if(fGammas2D)
-    {
-      // For the Maximum Likelihood Gamma source psf calculation: Set up a 
-      // grid of directions. Starting at 0 in field of view and stepping 
-      // fStepSizeRad(converted back to deg) in positive steps in both X and 
-      // Y out to fMaximumThetaRad (again back in deg). That is we only do
-      // the positive quadrant in X and Y. The other quadrants can be filled 
-      // in by reflections.
-      // ********************************************************************
-      // Values for fMaximumThetaRad and fStepSizeRad derived from original
-      // deg from config file: MaximumThetaDeg, GammaStepSizeDeg
-      // *******************************************************************
-      
-      fMaxThetaDeg=pfTeHead->fMaximumThetaRad/gDeg2Rad;
-      fStepSizeDeg=fStepSizeRad/gDeg2Rad;
-      fNumXSteps=(int)(fMaxThetaDeg/fStepSizeDeg + 
-		    fStepSizeDeg/2.) + 1;
-      fNumYSteps=fNumXSteps;
-      fNumDirections=fNumXSteps*fNumYSteps;
-      fMultipleMountDirections=true;
-      
-      fAomega=fXAreaWidthM*fYAreaWidthM;
-      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
-    }
-  else if(!fMultipleMountDirections)
-    {
-      fNumDirections=1;               //Treat as gamma. No redirection
-      fAomega=fXAreaWidthM*fYAreaWidthM;
-      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
-    }
-  else
-    {
-     double fOmega=2*M_PI*(1.-cos(pfTeHead->fMaximumThetaRad))/fNumDirections;
-      fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
-      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
-    }
-  std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections
-	   <<std::endl;
-// ***********************************************************************
-//  Allocate Some direction arrays and load them up.
-// ***********************************************************************
-  pfDlm    = new double[fNumDirections];
-  pfDmm    = new double[fNumDirections];
-  pfDnm    = new double[fNumDirections];
-  pfXDlm   = new double[fNumDirections];
-  pfXDmm   = new double[fNumDirections];
-  pfXDnm   = new double[fNumDirections];
-  pfYDlm   = new double[fNumDirections];
-  pfYDmm   = new double[fNumDirections];
-  pfYDnm   = new double[fNumDirections];
-  pfSTheta = new double[fNumDirections];
-  pfSPhi   = new double[fNumDirections];
-
-
 // ****************************************************************************
 // Build all the direction arrays for use by W10m_FullAperation and W10m_tilt
 // We produce a set of mount directions and we produce the X and Y focal plane
 // vectors for each direction.
 // ****************************************************************************
-// Major error:20/03/06 GHS I have been using the wrong convention for X and
-// Y directions. The X,Y vectors that are used in whippletilt and 
+// The X,Y vectors that are used in whippletilt and 
 // fullaberation, are assumed to be along the X,Y directions (as defined by the
-// pixel coordinates(azimultih and elevation) of the focal plane. Not along 
-// Ra and Dec in the focal plane as we have been using.
+// pixel coordinates(azimultih and elevation) of the focal plane.
 // *************************************************************************
 // Conventions(see above note):
 // All directions of the mount (M) are given in the upward(-Z) direction 
@@ -147,25 +77,20 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // That is X direction is Zenith x M.  Y unit vector is along  elevation. That
 // is Y direction is X x M
 // ****************************************************************************
-// If we want XRA along RA(but we don't, see above note) and in the focal 
-// plane then it is perpendicular to M and perpendicular to celestial North 
-// pole vector P (for polaris) That is,the XRA direction is M x P.  YDEC unit 
-// vector would then be along  +DEC. That is: YDEC directin is XRA x M. Not 
-// used anymore.
-// ****************************************************************************
-// For hadrons (multipleDirections) we random;ly pick the new direrctions 
+// For hadrons (multipleDirections) we randomly pick the new direrctions 
 // (fNumDirections of them) from a circle of radius fMaximumThetaRad.
 // ****************************************************************************
 //  For Drifting Gammas we go +/- MaxThetaDeg in RA. This is a special mode
 //  for the whipple strip analyis.
 // ****************************************************************************
 // ****************************************************************************
-//  For Drifting Gammas we go  +/- MaxThetaDeg in RA. This is a special mode
-//  for the whipple strip analyis.
+//  For Gammas2D  we go  in steps in X and Y out to radius MaxThetaDeg
+//  This is a special mode for the ML Tracking anaylsis
 // ****************************************************************************
 //	Modified:
 // Previous notes:
-//  Use only iphi=1 and iphi=itheta for gamma_drift. Hadrons same as before. 
+//  Use only iphi=1 and iphi=itheta for drifting_gammas. Hadrons same as 
+//  before. 
 //  Gamma_drift step_size is .4 min along +/- ra (iphi=1,itheta=iphi). Added a
 //  number of routines to do all this. Some c++ ones in Veritas.cpp. 
 //  Problems with our old scheme of itheta/iphi. Seen in 2d x,y plots.  We can
@@ -186,117 +111,226 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // **************************************************************************
 // INit original directions
 // *************************************************************************
-
-                      //define polaris
-  //  double fPolaris[3]={0.0,cos(gLatitude[fCameraType]),
-  //		         -sin(gLatitude[fCameraType])};
-  double fZenith[3]={0.0,0.0,-1.0};
-  double fMount[3]= {pfTeHead->fMountDl,//Direction unit vector 
-		     pfTeHead->fMountDm,//From input config file.
-		     pfTeHead->fMountDn};
-  double fX0[3];   // X direction:Zenith X Mount
-  double fY0[3];                 // Y direction: fX0 cross Mount
-  unitCrossProduct(fZenith,fMount,fX0);//Give X0 in focal plane and Horitzontal
-  unitCrossProduct(fX0,fMount,fY0);    //Gives Y0 in focal plane
+{
+  fMount[0] = pfTeHead->fMountDl;//Direction unit vector 
+  fMount[1] = pfTeHead->fMountDm;//From input config file.
+  fMount[2] = pfTeHead->fMountDn;
 
 
-// *************************************************************************
-//Gamma drift scan init only
-// *************************************************************************
-  double fRA;
-  double fDec;
-  if(fDriftingGammas)
-    {   
-      W10mGetRaDecFromVec(fMount,fRA,fDec,gLatitude[fCameraType]);
-    }                                          // See notes above
-
-// *************************************************************************
-//Iterate over all directions(only 1 step for pure gammas)
-// *************************************************************************
-
-  for(int ithphi=0;ithphi<fNumDirections;ithphi++)
+  // *******************************************************************
+  // Gammas2D. Grid in X and Y in steps of  fStepSizeDeg out to max
+  // sqrt(X**2+Y**2)<= fMaxThetaDeg.
+  // Used vectors fot temp sotorage unitl we know how many we have, then 
+  // transfer over.
+  // *******************************************************************
+  if(fGammas2D)
     {
-      double fM[3];        // Hadrons(and not gamma drift): random directions
-      double fRANew;
-      double fPhi=0;
-      double fTheta=0;
-      if(!fDriftingGammas && !fGammas2D && fMultipleMountDirections)
+      // For the Maximum Likelihood Gamma source Point Spread Function(PSF) 
+      // calculation we set up a grid of directions. Starting at 0 in field 
+      // of view and stepping 
+      // fStepSizeRad(converted back to deg) in positive steps in both X and 
+      // Y out to fMaximumThetaRad (again back in deg). That is we only do
+      // the positive quadrant in X and Y. The other quadrants can be filled 
+      // in by reflections. We do ignore directions past sqrt(Y**2+X**2)>
+      // fMaximumThetaRad/gDeg2Rad
+      // ********************************************************************
+      // Values for fMaximumThetaRad and fStepSizeRad derived from original
+      // deg from config file: MaximumThetaDeg, GammaStepSizeDeg
+      // *******************************************************************
+      
+      fMaxThetaDeg=pfTeHead->fMaximumThetaRad/gDeg2Rad;
+      fStepSizeDeg=fStepSizeRad/gDeg2Rad;
+      fNumXSteps=(int)(fMaxThetaDeg/fStepSizeDeg + 
+		    fStepSizeDeg/2.) + 1;
+      fNumYSteps=fNumXSteps;
+      fMultipleMountDirections=true;
+      
+      fAomega=fXAreaWidthM*fYAreaWidthM;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
+
+      std::vector< double > pfX;
+      std::vector< double > pfY;
+      pfX.clear();
+      pfY.clear();
+
+      // ******************************************************** *******
+      // Set up the conversion routine.
+      // Find az/elev in vegas coords for the mount
+      // ***************************************************************
+                          // fMount in KASCADE, fM in VEGAS
+      double fM[3];
+      fM[0]=fMount[0];    //X same
+      fM[1]=-fMount[1];   //Y changes sign
+      fM[2]=-fMount[2];   //Z changes sign
+
+      double fAzMount;
+      double fElevMount;
+      GetAzElevFromVec(fM,fAzMount,fElevMount);
+
+      double fX;
+      double fY;
+      for(int i=0;i<fNumXSteps;i++)
 	{
-	  fPhi=2*M_PI*pran(&fXDummy);    //Must be in Radians
-	  fTheta=pfTeHead->fMaximumThetaRad *
-	    sqrt(pran(&fXDummy));//Random r**2 distribution
-	  
-	  //repoint mount unit vector by theta,phi
-	  vectorRedirect(fTheta, fPhi, fX0,fY0,fMount,fM);
-	  pfSTheta[ithphi]=fTheta;     //Save theta and phi in radians
-	  pfSPhi[ithphi]=fPhi;
+	  fX=i*fStepSizeDeg;
+	  for(int j=0;j<fNumYSteps;j++)
+	    {
+	      fY=j*fStepSizeDeg;
+	      if(sqrt(fX*fX+fY*fY)<=fMaxThetaDeg)
+		{
+		  pfX.push_back(fX);
+		  pfY.push_back(fY);
+		}
+	    }
 	}
-      else if(fDriftingGammas)
-	{  
-	  // *************************************************************
-	  // Set up all the directions. ONly generate those we need. we do want
-	  // one in the center => fNumDirections should be odd.
+
+      fNumDirections=(int) pfX.size();
+      allocateDirectionArrays(fNumDirections);
+
+      for(int i=0;i<fNumDirections;i++)
+	{
+	  fX=pfX.at(i);
+	  fY=pfY.at(i);
+
+	  GetVecFromXY( fX, fY, fAzMount, fElevMount, fM);
+
+	  // ************************************************************
+	  // fM came back in VEGAS coord system. Convert to KASCADE system
+	  // ************************************************************
+	  fM[1]=-fM[1];
+	  fM[2]=-fM[2];
+
+	  double fTheta=sqrt(fX*fX+fY*fY)*gDeg2Rad;
+	  double fPhi=0;
+	  if(fTheta>0)
+	    {
+	      fPhi=acos(fX/sqrt(fX*fX+fY*fY));
+	      if(fY<0)
+		{
+		  fPhi=2*M_PI-fPhi;
+		}
+	    }
+	  loadDirectionArrays(i,fTheta,fPhi,fM);
+	}
+    }
+  if(fDriftingGammas)
+    {
+      // --------------------------------------------------------------
+      //For the whipple strip we need to get GAMMA efficiencies all over 
+      //the camera. Do this by treating gammas as hadrons (tilting the 
+      //mount) along the RA direction. We want to step in theta from
+      // -MaximumThetaDeg to + MaximumThetaDeg(2. degs 
+      //nominally). We set the step size to StepSize (nominally 
+      // =.1 deg=.4 min))
+      // *****************************************************************
+      //Integer round down here
+      int fThetaSteps = (int)((pfTeHead->fMaximumThetaRad/fStepSizeRad) +
+	       fStepSizeRad/2.);
+      //we want ThetaSteps to be odd so that the central direction is a 0,0
+
+      fNumDirections = 2*fThetaSteps+1;
+      fMultipleMountDirections=true;
+      fAomega=fXAreaWidthM*fYAreaWidthM;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
+
+      allocateDirectionArrays(fNumDirections);
+      // *********************************************************************
+      //Gamma drift scan init only. Base RA/Dec
+      // *********************************************************************
+      double fRA;
+      double fDec;
+      W10mGetRaDecFromVec(fMount,fRA,fDec,gLatitude[fCameraType]);
+
+      // *********************************************************************
+      //Iterate over all directions
+      // *********************************************************************
+      for(int ithphi=0;ithphi<fNumDirections;ithphi++)
+	{
+	  double fM[3];  
+	  double fRANew;
+
+	  // *********************************************************
+	  // Set up all the directions. ONly generate those we need. we 
+	  // do want one in the center => fNumDirections should be odd.
 	  // *************************************************************
 	  //Do theta=0 special. only phi=0.(itheta=1,iphi=1)
-	  pfSPhi[ithphi]=0;
+	  double fPhi=0;
+	  double fTheta=0;
 	  if(ithphi==0)
 	    {
 	      for(int k=0;k<3;k++)fM[k]=fMount[k];   
-	      pfSTheta[ithphi]=0;     //Save theta and phi in radians
+	      fTheta=0;     //Save theta and phi in radians
 	    }
- 	  else
+	  else
 	    {
 	      int fITheta=(ithphi-1)/2+1;  //Integer round down
 	      if(ithphi%2==1)  //ithphi odd :% is mod operator
 		{
 		  //Along positive X (-ra)
 		  fRANew=fRA-fITheta*fStepSizeRad;
-		  pfSTheta[ithphi]=-fITheta*fStepSizeRad; 
+		  fTheta=-fITheta*fStepSizeRad; 
 		}
 	      else
 		{    //ithphi even              //Along negative X (+ra)
 		  fRANew=fRA+fITheta*fStepSizeRad;
-		  pfSTheta[ithphi]=+fITheta*fStepSizeRad; 
+		  fTheta=+fITheta*fStepSizeRad; 
 		}
 	      W10mGetVecFromRaDec(fRANew,fDec,fM,gLatitude[fCameraType]);
 	    }
-	}     
-      else if(fGammas2D)
-	{  
-	  // *************************************************************
-	  // *************************************************************
-
+	  loadDirectionArrays(ithphi,fTheta,fPhi,fM);
 
 	}
-      else
-	{  //Single direciton (gammas)
-	  for(int k=0;k<3;k++)fM[k]=fMount[k];
-	  pfSTheta[ithphi]=0;     //Save theta and phi in radians
-	  pfSPhi[ithphi]=0;
-	} 
-      getVector(fM,pfDlm[ithphi],pfDmm[ithphi],pfDnm[ithphi]);
-
-      // ********************************************************************
-      //Now X,Y unit vectors in mirror plane (X inf focal plane Perpendicular 
-      //to zenith and mount direction.
-      // ********************************************************************
-      double fX[3];
-      double fY[3];
-      if(fM[0]==fZenith[0] && fM[1]==fZenith[1] && fM[2]==fZenith[2])
-     	{
-	  double fXtemp[3]={1.0,0.0,0.0}; //Force to east if we are strictly 
-	                                  //verticle
-	  getVector(fXtemp,pfXDlm[ithphi],pfXDmm[ithphi],pfXDnm[ithphi]);
-	}
-      else
-	{
-	  unitCrossProduct(fZenith,fM,fX);//Give fX in focal plane
-	  // and Horitzontal
-	  unitCrossProduct(fX,fM,fY);    //Gives fY in focal plane
-      	  getVector(fX,pfXDlm[ithphi],pfXDmm[ithphi],pfXDnm[ithphi]);
-      	  getVector(fY,pfYDlm[ithphi],pfYDmm[ithphi],pfYDnm[ithphi]);
-      	}
     }
+
+  // **********************************************************
+  // Hadrons(and not gamma drift): random directions
+  // **********************************************************
+  if(!fDriftingGammas && !fGammas2D && fMultipleMountDirections)
+    {
+      double fOmega=2*M_PI*(1.-cos(pfTeHead->fMaximumThetaRad))/fNumDirections;
+      fAomega=fXAreaWidthM*fYAreaWidthM*fOmega;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2-sr"<<std::endl;
+
+      double fZenith[3]={0.0,0.0,-1.0};
+      double fX0[3];   // X direction:Zenith X Mount
+      double fY0[3];                 // Y direction: fX0 cross Mount
+      unitCrossProduct(fZenith,fMount,fX0);//Give X0 in focal plane Horitzontal
+      unitCrossProduct(fX0,fMount,fY0);    //Gives Y0 in focal plane
+
+      allocateDirectionArrays(fNumDirections);
+      // *********************************************************************
+      //Iterate over all directions
+      // *********************************************************************
+      for(int ithphi=0;ithphi<fNumDirections;ithphi++)
+	{
+	  double fM[3];  
+	  double fPhi=0;
+	  double fTheta=0;
+	  fPhi=2*M_PI*pran(&fXDummy);    //Must be in Radians
+	  fTheta=pfTeHead->fMaximumThetaRad *sqrt(pran(&fXDummy));
+	                                 //Random r**2 distribution
+	  
+	  //repoint mount unit vector by theta,phi
+	  vectorRedirect(fTheta, fPhi, fX0,fY0,fMount,fM);
+
+	  loadDirectionArrays(ithphi,fTheta,fPhi,fM);
+	}
+    }
+ 
+  // ***********************************************************************
+  // Single gamma direction
+  // ***********************************************************************
+  if(!fDriftingGammas && !fGammas2D && !fMultipleMountDirections)
+    {
+      fNumDirections=1;               //Treat as gamma. No redirection
+      fAomega=fXAreaWidthM*fYAreaWidthM;
+      std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
+
+      allocateDirectionArrays(fNumDirections);       
+      loadDirectionArrays(0,0,0,fMount);    
+    }
+
+  std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections
+	   <<std::endl;
   return;
 }
 // **************************************************************************
@@ -323,9 +357,21 @@ void KSMountDirection::unitCrossProduct(double* X,double* Y,double* Z)
     }
   return;
 }
+// ***************************************************************************
 
-void KSMountDirection::vectorRedirect(double theta, double phi, double* X, double* Y,
-			      double* Z,double* R)
+double KSMountDirection::dotProduct(double* pfA, double* pfB)
+{
+  double fDotProd=0;
+  for(int i=0;i<3;i++)
+    {
+      fDotProd+=pfA[i]*pfB[i];
+    }
+  return fDotProd;
+}
+// *************************************************************************
+
+void KSMountDirection::vectorRedirect(double theta, double phi, double* X, 
+				      double* Y,double* Z,double* R)
 // *************************************************************************
 // Returns a unit vector defined by theta and phi(in radians) in coord system 
 // with unit vectors defineing  x axis: X,  y axis: Y and z axis: Z.  This 
@@ -441,22 +487,12 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
       exit(1);
     }
   fNumDirections = fLength/sizeof(double);
- std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections<<std::endl;
- // ***********************************************************************
-//  Allocate Some direction arrays and load them up.
-// ***********************************************************************
-  pfDlm    = new double[fNumDirections];
-  pfDmm    = new double[fNumDirections];
-  pfDnm    = new double[fNumDirections];
-  pfXDlm   = new double[fNumDirections];
-  pfXDmm   = new double[fNumDirections];
-  pfXDnm   = new double[fNumDirections];
-  pfYDlm   = new double[fNumDirections];
-  pfYDmm   = new double[fNumDirections];
-  pfYDnm   = new double[fNumDirections];
-  pfSTheta = new double[fNumDirections];
-  pfSPhi   = new double[fNumDirections];
-
+  std::cout<<"KSMountDirection:fNumDirections: "<<fNumDirections<<std::endl;
+  // ***********************************************************************
+  //  Allocate Some direction arrays and load them up.
+  // ***********************************************************************
+  allocateDirectionArrays(fNumDirections);
+  
   pfInFile->read((char*)pfDlm, fLength);
   pfInFile->read((char*)pfDmm, fLength);
   pfInFile->read((char*)pfDnm, fLength);  
@@ -476,13 +512,83 @@ void KSMountDirection::readMountDirections(std::ifstream* pfInFile)
     }
   return;
 }
+// *************************************************************************
+
+void KSMountDirection::allocateDirectionArrays(int fNumDir)
+// ********************************************************************
+//  Allocate Some direction arrays and load them up.
+// ********************************************************************
+{
+  pfDlm    = new double[fNumDir];
+  pfDmm    = new double[fNumDir];
+  pfDnm    = new double[fNumDir];
+  pfXDlm   = new double[fNumDir];
+  pfXDmm   = new double[fNumDir];
+  pfXDnm   = new double[fNumDir];
+  pfYDlm   = new double[fNumDir];
+  pfYDmm   = new double[fNumDir];
+  pfYDnm   = new double[fNumDir];
+  pfSTheta = new double[fNumDir];
+  pfSPhi   = new double[fNumDir];
+  return;
+}
+// *************************************************************************
+
+void KSMountDirection::loadDirectionArrays(int fIthPhi, double fSTheta,
+					   double fSPhi, double* fDir)
+// ************************************************************************
+// Load up the direction arrays.
+// ************************************************************************
+{
+  pfSTheta[fIthPhi]=fSTheta;     //Save theta and phi in radians
+  pfSPhi[fIthPhi]=fSPhi;
+                                 //Save direction cosigns
+  getVector(fDir,pfDlm[fIthPhi],pfDmm[fIthPhi],pfDnm[fIthPhi] );
+  
+  // *****************************************************************
+  // Now X,Y unit vectors in mirror plane (X in focal plane 
+  // Perpendicular to zenith and mount direction.
+  // *****************************************************************
+  double fZenith[3]={0.0,0.0,-1.0};
+  double fX[3];
+  double fY[3];
+  if(fDir[0]==fZenith[0] 
+     && fDir[1]==fZenith[1] 
+     && fDir[2]==fZenith[2] )
+    {
+      fX[0]=1.0;//Force to east if we are verticle
+      fX[1]=0.0;
+      fX[2]=0.0;
+    }
+  else
+    {
+      unitCrossProduct(fZenith,fDir,fX);//Give fX in focal plane
+    }
+
+  unitCrossProduct(fX,fDir,fY);    //Gives fY in focal plane
+  getVector(fX,pfXDlm[fIthPhi],pfXDmm[fIthPhi],pfXDnm[fIthPhi]);
+  getVector(fY,pfYDlm[fIthPhi],pfYDmm[fIthPhi],pfYDnm[fIthPhi]);
+
+  //Debug
+  double fDist=acos(dotProduct(fDir,fMount))/gDeg2Rad;
+  double fXProj=dotProduct(fDir,fX)*fDist;
+  double fYProj=dotProduct(fDir,fX)*fDist;
+
+  std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
+	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
+  //Enddebug
+
+  return;
+}
+// ************************************************************************
+
 
 void W10mGetRaDecFromVec(double* X, double& fRA, double& fDec, 
-			                                      double fLatitude)
-  // **************************************************************************
+			                                   double fLatitude)
+  // ************************************************************************
   //   Get the Ra and Dec of a vector X at sideraltime=12:00(chosen arbitray 
   //   time)
-  // **************************************************************************
+  // ************************************************************************
 {
   double elevation=M_PI/2-(acos(fabs(X[2])));
   double az=0.0;
@@ -552,3 +658,4 @@ void W10mGetVecFromRaDec(double fRA, double fDec, double* X, double fLatitude)
   return;
 }
 
+// ************************************************************************

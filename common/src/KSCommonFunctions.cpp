@@ -14,7 +14,8 @@ extern "C" int    NearestInt(double fX);
 extern "C" int    KascadeType2CorsikaType(int fKType);
 extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth, 
 				   double& fElevation);
-
+extern "C" void   GetVecFromXY( double fX, double fY, double fAzSrc, 
+				double fElSrc, double* fM);
 // **********************************************************************
 
 double Gauss()
@@ -329,3 +330,27 @@ void GetAzElevFromVec(double* pfX, double& fAzimuth, double& fElevation)
 }
 // *************************************************************************
 
+void GetVecFromXY( double fX, double fY, double fAzSrc, double fElSrc, 
+		  double* fM)
+// *********************************************************************
+//  The fX,fY are in camera coordinates(degrees). Get the unit vector in ground
+//  plane coords of the direction. 
+// Kascade definition X + east, y + south. 
+// Vegas definition X + east, y+ north and z + up
+// Using VEGAS  Definition here
+// ********************************************************************
+{
+  //Get the az,elev of this X,Y posistion.
+  double xi=-(fX*M_PI/180.);
+  double eta=-(fY*M_PI/180.);
+ 
+  // First the az/elev of the  source location
+  double fAzXY,fElXY;
+  slaDtp2s(xi,eta,fAzSrc,fElSrc,&fAzXY,&fElXY);
+
+  fM[2]=cos(M_PI/2-fElXY);                    //dn 
+  fM[1]=sin(M_PI/2-fElXY)*cos(fAzXY);           //dm
+  fM[0]=sin(M_PI/2-fElXY)*sin(fAzXY);           //dl
+  return;
+}
+// ********************************************************************
