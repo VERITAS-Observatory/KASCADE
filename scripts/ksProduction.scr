@@ -292,6 +292,14 @@ maxMem=240MB
 WALLTIME=20:00:00
 jobSpec=$1
 
+if [ ${jobSpec:0:1} = "W" ]; then
+   dataDirBase=$dataDirBase'/whipple'
+fi
+
+if [ ${jobSpec:0:1} = "V" ]; then
+   dataDirBase=$dataDirBase'/veritas'
+fi
+
 if [ ${jobSpec:1:2} = "CR" ]; then      # Only true for  ksaomVBF 
                                         # and ksarraytriggerVBF
     TelSpec=${jobSpec:0:1}              #gets W from WG20DegN0.5Deg50mv
@@ -299,17 +307,17 @@ if [ ${jobSpec:1:2} = "CR" ]; then      # Only true for  ksaomVBF
     let processStart=1
     parspec=$TelSpec'P'$spec #gives WP20DegN0.3Deg50mv from WCR20DegN0.3Deg50mv
 
-    datadir="$dataDirBase/whipple/protons"
+    datadir="$dataDirBase/protons"
     Protons
     parspec=$TelSpec'He4_'$spec
-    datadir="$dataDirBase/whipple/he4"
+    datadir="$dataDirBase/he4"
     Helium4
     let pspecset=1;
 fi
 
 if [ ${jobSpec:1:1} = "P" ] ; then 
     parspec=$1 
-    datadir="$dataDirBase/whipple/protons"
+    datadir="$dataDirBase/protons"
 
     let processStart=1
     Protons
@@ -318,7 +326,7 @@ fi
 
 *if [ ${jobSpec:1:4} = "He4_" ] ; then 
     parspec=$1 
-    datadir="$dataDirBase/whipple/he4"
+    datadir="$dataDirBase/he4"
 
     let processStart=1
     Helium4
@@ -328,7 +336,7 @@ fi
 
 if [ ${jobSpec:0:2} = "G" ]; then
     parspec=$1
-    datadir="$dataDirBase/whipple/gammas"
+    datadir="$dataDirBase/gammas"
     let processStart=11
     Gammas
     let pspecset=1;
