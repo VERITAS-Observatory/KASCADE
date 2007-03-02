@@ -324,7 +324,7 @@ if [ ${jobSpec:1:1} = "P" ] ; then
     let pspecset=1;
 fi
 
-*if [ ${jobSpec:1:4} = "He4_" ] ; then 
+if [ ${jobSpec:1:4} = "He4_" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/he4"
 
