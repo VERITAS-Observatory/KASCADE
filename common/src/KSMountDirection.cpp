@@ -569,10 +569,10 @@ void KSMountDirection::loadDirectionArrays(int fIthPhi, double fSTheta,
   getVector(fX,pfXDlm[fIthPhi],pfXDmm[fIthPhi],pfXDnm[fIthPhi]);
   getVector(fY,pfYDlm[fIthPhi],pfYDmm[fIthPhi],pfYDnm[fIthPhi]);
 
-  //Debug
-  double fDist=acos(dotProduct(fDir,fMount))/gDeg2Rad;
-  double fXProj=dotProduct(fDir,fX)*fDist;
-  double fYProj=dotProduct(fDir,fX)*fDist;
+  //Debug  //(Sin zenith)/magnitude dl,dm vec(sqrt((1-dn**2)/(dm**2+dl**2))
+  double fDist=sqrt((1.-fDir[2]*fDir[2])/(fDir[0]*fDir[0]+fDir[1]*fDir[1]));
+  double fXProj=fDir[0]*fDist/gDeg2Rad;
+  double fYProj=fDir[1]*fDist/gDeg2Rad;
 
   std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
 	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
