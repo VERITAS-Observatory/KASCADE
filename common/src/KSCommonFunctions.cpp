@@ -16,6 +16,8 @@ extern "C" void   GetAzElevFromVec(double* X, double& fAzimuth,
 				   double& fElevation);
 extern "C" void   GetVecFromXY( double fX, double fY, double fAzSrc, 
 				double fElSrc, double* fM);
+extern "C" void   GetXYFromVec(double fAzSrc, double fElSrc,double* fM, 
+			       double& fX, double& fY);
 // **********************************************************************
 
 double Gauss()
@@ -354,3 +356,31 @@ void GetVecFromXY( double fX, double fY, double fAzSrc, double fElSrc,
   return;
 }
 // ********************************************************************
+
+void GetXYFromVec(double fAzSrc, double fElSrc,double* fM, double& fX, 
+		  double& fY)
+// *********************************************************************
+//  The fX,fY are in camera coordinates(degrees). 
+// ********************************************************************
+{
+  double fAz;
+  double fElev;
+  GetAzElevFromVec(fM, fAz, fElev);
+
+  // **********************************************************************
+  // Get xi,eta of 'star' in tangent plane.
+  // **********************************************************************
+  int j;
+  double xi;
+  double eta;
+  slaDs2tp(fAz, fElev, fAzSrc, fElSrc, &xi, &eta, &j);
+
+  // ************************************************************************
+  // Convert back to our X,Y which is in degrees.
+  // ************************************************************************
+
+  fX=-(xi*180./M_PI);
+  fY=-(eta*180./M_PI);
+  return;
+}
+// **************************************************************************

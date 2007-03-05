@@ -78,6 +78,8 @@ class KSMountDirection
   double fMaxThetaDeg;
   double fStepSizeDeg;
   double fMount[3];
+  double fAzMount;
+  double fElevMount;
 };
 // ***************************************************************************
 #endif

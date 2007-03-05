@@ -21,6 +21,8 @@ extern "C" void  GetAzElevFromVec(double* pfX, double& fAzimuth,
 				  double& fElevation);
 extern "C" void  GetVecFromXY( double fX, double fY, double fAzSrc, 
 			       double fElSrc, double* fM);
+extern "C" void  GetXYFromVec(double fAzSrc, double fElSrc,double* fM, 
+			      double& fX, double& fY);
 
 void W10mGetRaDecFromVec(double* X, double& ra, double& dec,double fLatitude);
 void W10mGetVecFromRaDec(double ra, double dec, double* X,double fLatitude);
@@ -115,6 +117,17 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
   fMount[0] = pfTeHead->fMountDl;//Direction unit vector 
   fMount[1] = pfTeHead->fMountDm;//From input config file.
   fMount[2] = pfTeHead->fMountDn;
+  
+  // ******************************************************** *******
+  // Set up the conversion routine.
+  // Find az/elev in vegas coords for the mount
+  // ***************************************************************
+                          // fMount in KASCADE, fMntV in VEGAS
+  double fMntV[3];       //Convert to Vegas system.
+  fMntV[0]=fMount[0];    //X same
+  fMntV[1]=-fMount[1];   //Y changes sign
+  fMntV[2]=-fMount[2];   //Z changes sign
+  GetAzElevFromVec(fMntV,fAzMount,fElevMount);
 
 
   // *******************************************************************
@@ -153,20 +166,6 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       pfX.clear();
       pfY.clear();
 
-      // ******************************************************** *******
-      // Set up the conversion routine.
-      // Find az/elev in vegas coords for the mount
-      // ***************************************************************
-                          // fMount in KASCADE, fM in VEGAS
-      double fM[3];
-      fM[0]=fMount[0];    //X same
-      fM[1]=-fMount[1];   //Y changes sign
-      fM[2]=-fMount[2];   //Z changes sign
-
-      double fAzMount;
-      double fElevMount;
-      GetAzElevFromVec(fM,fAzMount,fElevMount);
-
       double fX;
       double fY;
       for(int i=0;i<fNumXSteps;i++)
@@ -186,6 +185,8 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       fNumDirections=(int) pfX.size();
       allocateDirectionArrays(fNumDirections);
 
+
+      double fM[3];
       for(int i=0;i<fNumDirections;i++)
 	{
 	  fX=pfX.at(i);
@@ -569,10 +570,14 @@ void KSMountDirection::loadDirectionArrays(int fIthPhi, double fSTheta,
   getVector(fX,pfXDlm[fIthPhi],pfXDmm[fIthPhi],pfXDnm[fIthPhi]);
   getVector(fY,pfYDlm[fIthPhi],pfYDmm[fIthPhi],pfYDnm[fIthPhi]);
 
-  //Debug  //(Sin zenith)/magnitude dl,dm vec(sqrt((1-dn**2)/(dm**2+dl**2))
-  double fDist=sqrt((1.-fDir[2]*fDir[2])/(fDir[0]*fDir[0]+fDir[1]*fDir[1]));
-  double fXProj=fDir[0]*fDist/gDeg2Rad;
-  double fYProj=fDir[1]*fDist/gDeg2Rad;
+  //Debug
+  double fXProj;
+  double fYProj;
+  double fDirV[3];
+  fDirV[0]=fDir[0];
+  fDirV[1]=-fDir[1];  //convert from KASCADE to VEGAS coord system.
+  fDirV[2]=-fDir[2];
+  GetXYFromVec(fAzMount, fElevMount, fDirV, fXProj, fYProj);
 
   std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
 	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
