@@ -45,7 +45,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   fType                 = fTe.fPrimaryType;
 
   pfDataIn                 = pDataIn;
-  fDriftingGammas          = pfDataIn->pfTeHead->fDriftingGammas;
+  fGammas2D                = pfDataIn->pfTeHead->fGammas2D;
   fMultipleMountDirections = pfDataIn->pfTeHead->fMultipleMountDirections;
   fCameraType              = pfDataIn->pfTeHead->fCameraType; 
 
@@ -213,7 +213,7 @@ void KSArea::ProcessImages()
   for(int ithphi=0;ithphi<fNumDirections;ithphi++)
     { 
       // ***************************************************************
-      // For drift scan we really only want positions along RA. This was set 
+      // For Gamma2D we really only want positions along X. This was set 
       // up in MOuntDirections
       // ***************************************************************
 			// Preset for efficiency:Used in WHIPPLE_TILT
@@ -382,7 +382,7 @@ void KSArea::ProcessImages()
 	  fTe.fNy=fAreaNy;
 	  fTe.fAomega=pfMountDir->fAomega;
 	  
-	  if(fDriftingGammas || fMultipleMountDirections)
+	  if(fGammas2D || fMultipleMountDirections)
 	    {	//Save actual theta phi (in radians*1000) for multiple 
                 //directions
 	      fTe.fThetaIndex     = (int)pfMountDir->pfSTheta[ithphi]*1000;
@@ -431,20 +431,20 @@ void KSArea::PrintStats()
 {
   if(fMultipleMountDirections)
     {
-      if(fDriftingGammas  )
+      if(fGammas2D  )
 	{
 	  
-	  std::cout<<"Gamma-ray: Drifting Gammas"<<std::endl;
-	  std::cout<<"                  Step Size for Drifting Gammas (deg) = "
+	  std::cout<<"Gamma-ray: Gammas2D"<<std::endl;
+	  std::cout<<"                         Step Size for Gammas2D (deg) = "
 		   <<fStepSizeRad*180/M_PI<<std::endl;
-	  std::cout<<"               Maximum Theta for Drifting GAMMAS(deg) = "
+	  std::cout<<"                      Maximum Theta for Gammas2D(deg) = "
 		   <<pfDataIn->pfTeHead->fMaximumThetaRad*180/M_PI<<std::endl;
-	  std::cout<<"  Number RA  Steps for Drifting Gammas (+/- MaxTheta) = "
+	  std::cout<<"             Number Steps for Gammas2D (+/- MaxTheta) = "
 		   <<fNumDirections<<std::endl;
 	}
       else
 	{
-	  //Not drifting Gammas. Treat as hadrons.
+	  //Not Gammas2D. Treat as hadrons.
 	  std::cout<<"Multiple Random Directions: "<<std::endl;
 	  std::cout<<"             Number of Random Directions = "
 		   <<fNumDirections<<std::endl;

@@ -19,7 +19,6 @@
 // **************************************************************************
 std::string KSTriggerDataIn::sDefaultCameraType="WHIPPLE490";
 std::string KSTriggerDataIn::sDefaultTraceEnable="OFF";
-std::string KSTriggerDataIn::sDefaultDriftingGammas="OFF";
 std::string KSTriggerDataIn::sDefaultGammas2D="OFF";
 std::string KSTriggerDataIn::sDefaultUseElevationForDlDmDn="OFF";
 std::string KSTriggerDataIn::sDefaultMultipleMountDirections="OFF";
@@ -54,9 +53,6 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
 		 toupper);
   std::transform(sDefaultTraceEnable.begin(),sDefaultTraceEnable.end(),
 		 sDefaultTraceEnable.begin(),
-		 toupper);
-  std::transform(sDefaultDriftingGammas.begin(),sDefaultDriftingGammas.end(),
-		 sDefaultDriftingGammas.begin(),
 		 toupper);
   std::transform(sDefaultGammas2D.begin(),sDefaultGammas2D.end(),
 		 sDefaultGammas2D.begin(),
@@ -106,17 +102,6 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
 	       <<" Assuming TraceEnable=OFF"<<std::endl;
     }
   
-  pfTeHead->fDriftingGammas=false;
-  if(sDefaultDriftingGammas=="ON")
-    {
-      pfTeHead->fDriftingGammas=true;
-    }
-  else if(sDefaultDriftingGammas!="OFF")
-    {
-      std::cout<<"Illegal option for DriftingGammas: "<<sDefaultDriftingGammas
-	       <<" Assuming DriftingGammas=OFF"<<std::endl;
-    }
-
   pfTeHead->fGammas2D=false;
   if(sDefaultGammas2D=="ON")
     {
@@ -127,14 +112,6 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
       std::cout<<"Illegal option for Gammas2D: "<<sDefaultGammas2D
 	       <<" Assuming Gammas2D=OFF"<<std::endl;
     }
-
-  if(pfTeHead->fDriftingGammas && pfTeHead->fGammas2D)
-    {
-      std::cout<<"ksTrigger : Fatal--You can't choose both DrifingGammas "
-	         "and Gammas2D at the same time"<<std::endl;
-      exit(1);
-    }
-
 
   fUseElevationForDlDmDn=false;
   if(sDefaultUseElevationForDlDmDn=="ON")
@@ -239,7 +216,6 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.fName = std::string("KSTriggerData");
   config.setValue("CameraType",sDefaultCameraType);
   config.setValue("TraceEnable",sDefaultTraceEnable);
-  config.setValue("DriftingGammas",sDefaultDriftingGammas);
   config.setValue("Gammas2D",sDefaultGammas2D);
   config.setValue("UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn);
   config.setValue("LoadMountDirectionsFromFile",
@@ -282,14 +258,6 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "This is slightly more accurate but much slower.(Not yet "
                     "implemented!) OFF disables (default)");
   doVAConfiguration(file, command_line, 
-		    "DriftingGammas",sDefaultDriftingGammas,
-		    "KSTriggerDataIn",
-		    "ON enables the use of a special Theta/Phi mount "
-                    "redirection mode useful for Drift-scan modeling of Gamma "
-		    "(signal) events. OFF (default) disables. If this option "
-		    "is chosen then you should also set -MaximumThetaDeg=1.0 "
-		    "(for example).");
-  doVAConfiguration(file, command_line, 
 		    "Gammas2D",sDefaultGammas2D,
 		    "KSTriggerDataIn",
 		    "ON enables the use of a special X,Y mount "
@@ -303,14 +271,14 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "triggers when the mount is pointed in a random direction "
 		    "less than this value form the nominal direction. Used "
 		    "when MultipleMountDirections=ON. Also used when "
-		    "DriftingGammas=ON or Gamma2D=ON chosen for range of "
+		    "Gamma2D=ON chosen for range of "
 		    "directions.");
   doVAConfiguration(file, command_line, 
 		    "GammaStepSizeDeg",sDefaultGammaStepSizeDeg,
 		    "KSTriggerDataIn",
-		    "For DriftedGammas=ON or Gammas2D=ON events: Specifies "
+		    "For Gammas2D=ON events: Specifies "
 		    "the "
-		    "size of steps to take,  in RA for Drifted Gammas and in "
+		    "size of steps to take, in "
 		    "X,Y for Gammas2D");
   doVAConfiguration(file, command_line, 
 		    "UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn,

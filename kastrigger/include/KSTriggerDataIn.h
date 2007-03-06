@@ -27,7 +27,6 @@ class KSTriggerDataIn : public VAAlgorithm  //VAAlgoritm specifys a virtual
 private:
   static std::string sDefaultCameraType;
   static std::string sDefaultTraceEnable;
-  static std::string sDefaultDriftingGammas;
   static std::string sDefaultGammas2D;
   static std::string sDefaultUseElevationForDlDmDn;
   static std::string sDefaultMultipleMountDirections;
@@ -63,7 +62,7 @@ public:
                                     //decision
   double fMountElevationDeg;        //Mount elevation in deg -> 
                                     // fUseElevationForDlDmDn
-  double fGammaStepSizeRad;         // Drifted and 2d Gamma step size
+  double fGammaStepSizeRad;         // 2d Gamma step size
   bool fLoadMountDirectionsFromFile;
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;

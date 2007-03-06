@@ -59,7 +59,7 @@ class KSArea
   int    fPhiSteps;
   int    fThetaSteps;
   int    fNumDirections;
-  bool   fDriftingGammas;
+  bool   fGammas2D;
   bool   fMultipleMountDirections;
   double fStepSizeRad;
   KSCameraTypes fCameraType;
