@@ -498,16 +498,16 @@ void KSMountDirection::loadDirectionArrays(int fIthPhi, double fSTheta,
   getVector(fY,pfYDlm[fIthPhi],pfYDmm[fIthPhi],pfYDnm[fIthPhi]);
 
   //Debug
-  double fXProj;
-  double fYProj;
-  double fDirV[3];
-  fDirV[0]=fDir[0];
-  fDirV[1]=-fDir[1];  //convert from KASCADE to VEGAS coord system.
-  fDirV[2]=-fDir[2];
-  GetXYFromVec(fAzMount, fElevMount, fDirV, fXProj, fYProj);
-
-  std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
-	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
+  //double fXProj;
+  //double fYProj;
+  //double fDirV[3];
+  //fDirV[0]=fDir[0];
+  //fDirV[1]=-fDir[1];  //convert from KASCADE to VEGAS coord system.
+  //fDirV[2]=-fDir[2];
+  //GetXYFromVec(fAzMount, fElevMount, fDirV, fXProj, fYProj);
+  //
+  //std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
+  //	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
   //Enddebug
 
   return;
