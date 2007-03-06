@@ -27,7 +27,7 @@ class KSMountDirection
 // *******************************************************
 {
  public:
-  KSMountDirection(KSTeHeadData* pfTeHead, double DriftedGammaStepSizeRad);
+  KSMountDirection(KSTeHeadData* pfTeHead, double GammaStepSizeRad);
   virtual ~KSMountDirection();
   void createMountDirections(double fXAreaWidthM, double fYAreaWidthM);
   void readMountDirections(std::ifstream* pMountDirFile);
@@ -36,7 +36,6 @@ class KSMountDirection
 
  public:
   KSTeHeadData* pfTeHead;
-  bool   fDriftingGammas;
   bool   fGammas2D;
   bool   fMultipleMountDirections;
   double fStepSizeRad;

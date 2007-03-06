@@ -30,7 +30,7 @@ class KSTeHeadData
 
   KSCameraTypes fCameraType;
   bool   fTraceCreation;            //Create pmt Pulse trace for all pixels
-  bool   fDriftingGammas;           //Use special theta/phi -> gamma drift scan
+  bool   fGammas2D;                 //Use special theta/phi -> gamma drift scan
   bool   fMultipleMountDirections;  //Generate mutiple mount directions for 
                                     //each event. Normal use for Hadrons
   //bool fMountDirectionsSaved;       //Mount directions are to be saved in the
@@ -50,7 +50,6 @@ class KSTeHeadData
   double fMountDl;                  //Original mount x direction cosign
   double fMountDm;                  //Original mount y direction cosign
   double fMountDn;                  //Original mount z direction cosign
-  bool   fGammas2D;                 //Use special theta/phi -> gamma drift scan
 //  char   fVersion[16];	    //Version of kastrig that made this m file.
 };
 // ***************************************************************************
