@@ -7,12 +7,12 @@
 
 #Now process the file:
 VBFFileName=$1
-RootFileName=${VBFFileName%".cvbf"}'.root'
-RootFileName=${RootFileName##"*/"}
+RootFile=${VBFFileName%".cvbf"}'.root'
+RootFileName=${RootFile##*/}
 
 VBFLSRFileName=$2
-LSRRootFileName=${VBFLSRFileName%".cvbf"}'.root'
-LSRRootFileName=${LSRRootFileName##"*/"}
+LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
+LSRRootFileName=${LSRRootFile##*/}
 
 echo RootFileName: $RootFileName
 echo LSRRootFileName: $LSRRootFileName
