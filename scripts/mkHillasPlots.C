@@ -41,7 +41,7 @@ void HillasPlots(int fTelId,char* fFileName)
   bool fDoC2=true;
   bool fDoC3=true;
   bool fDoC4=true;
-  bool fDoC5=false;
+  bool fDoC5=true;
   std::string fCuts;
   if(fDoC1)
     {
@@ -118,6 +118,10 @@ void HillasPlots(int fTelId,char* fFileName)
       fC3->cd(3);
       fCuts=fBasicCuts +"&& abs(H.fAsymmetry)<1.0 && H.fAsymmetry!=0.0"; 
       pfHParTree->Draw("H.fAsymmetry",fCuts.c_str());
+
+      fC3->cd(4);
+      fCuts=fBasicCuts +"&& H.fPixelsInImage<20"; 
+      pfHParTree->Draw("H.fPixelsInImage",fCuts.c_str());
     }
   
   if(fDoC4)

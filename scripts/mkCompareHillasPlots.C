@@ -10,27 +10,40 @@ void CompareAreaHillasPlots(char* fDataName, char* fSimName)
 void ComparePeakHillasPlots(char* fDataName, char* fSimName)
 {
   bool fNormalizePeak=true;
-  CompareHillasPlots(fDataName,fSimName,fNormalizePeak);
+  int fTelId=0;
+  CompareHillasPlots(fDataName,fSimName,fNormalizePeak,fTelId);
 }
 // ****************************************************************
 
 
 void CompareHillasPlots(char* fDataName, char* fSimName, 
-			                            bool fNormalizePeak=false)
+			bool fNormalizePeak=false, int fTelId)
 {
+  std::string fBasicCuts;
+  if(fTelId==0)
+    {
+      fBasicCuts="H.fTelId==0";
+    }
+  else
+    {
+      fBasicCuts="H.fTelId==1";
+    }
+
  //Open data file and get Hillas parameter tree and set up basic cuts
   TFile fDataFile(fDataName," Input Data File");
-  std::string fBasicCuts=
-                     "H.fGoodImage && H.fPixelsInImage>2 &&H.fTriggerCode==1";
   TTree* pfHParTree=NULL;
   pfHParTree=(TTree*)fDataFile.Get("ParameterisedEvents/ParEventsTree");
 
   if(pfHParTree==NULL)
     {
       pfHParTree=(TTree*)fHillasFile.Get("ParameterisedEvents/ParEventTree");
-      fBasicCuts="H.fGoodImage && H.fPixelsInImage>2";
+      fBasicCuts=fBasicCuts+ " && H.fGoodImage && H.fPixelsInImage>2";
     }
-	 
+  else
+    {
+      fBasicCuts=fBasicCuts+ " && H.fGoodImage && H.fPixelsInImage>2 && "
+	"H.fTriggerCode==1";
+    }
 //Open simulation file and get Hillas parameter tree
   TFile fSimFile(fSimName," Input Simulation File");
  
@@ -41,56 +54,197 @@ void CompareHillasPlots(char* fDataName, char* fSimName,
     {
       pfSimParTree=(TTree*)fSimFile.Get("ParameterisedEvents/ParEventTree");
     }
-	 
-//set up canvases  
-//  TCanvas* fC1 = new TCanvas("fC1","Hillas Params pg1",600,700);
-//  TCanvas* fC2 = new TCanvas("fC2","Hillas Params pg2",600,700);
-//  TCanvas* fC3 = new TCanvas("fC3","Hillas Params pg3",600,700);
-   TCanvas* fC4 = new TCanvas("fC4","Hillas Params pg4",600,700);
-   //  fC1->Divide(2,3);
-   // fC2->Divide(2,3);
-   //fC3->Divide(2,3);
-  fC4->Divide(2,2);
 
+	 
+//set up canvases and their hists  
   // Set up histograms
   // data
-  TH1F *pfDataLOS = new TH1F("pfDataLOS","Length Over Size",100,0,0.0016);
-  TH1F *pfDataL = new TH1F("pfDataL","Length",100,0,1.0);
+  TCanvas* fC1 = new TCanvas("fC1","Hillas Params pg1",600,700);
+  fC1->Divide(2,3);
+  TH1F *pfDataW = new TH1F("pfDataW","Width",100,0,0.5);
+  TH1F *pfDataL = new TH1F("pfDataL","Length",100,0,.8);
+  TH1F *pfDataM = new TH1F("pfDataM","Miss",100,0,1.75);
+  TH1F *pfDataD = new TH1F("pfDataD","Dist",100,0,1.75);
+  TH1F *pfDataA = new TH1F("pfDataA","Alpha",100,0,1.75);
   TH1F *pfDataS = new TH1F("pfDataS","Size",100,0,2000);
-  TH1F *pfDataM3 = new TH1F("pfDataM3","Max 3",100,0,200);
-//simulations
-  TH1F *pfSimLOS = new TH1F("pfSimLOS","Length Over Size",100,0,0.0016);
-  TH1F *psSimL = new TH1F("pfSimL","Length",100,0,1.0);
+
+  TCanvas* fC2 = new TCanvas("fC2","Hillas Params pg2",600,700);
+  fC2->Divide(2,3);
+  TH1F *pfDataLOS = new TH1F("pfDataLOS","LengthOverSize",100,0.0,0.0015);
+  TH1F *pfDataAzW = new TH1F("pfDataAzW","AzWidth",100,0,0.8);
+  TH1F *pfDataM1  = new TH1F("pfDataM1","Max1",100,0,200);
+  TH1F *pfDataM2  = new TH1F("pfDataM2","Max2",100,0,200);
+  TH1F *pfDataM3  = new TH1F("pfDataM3","Max3",100,0,200);
+  TH1F *pfDataF1  = new TH1F("pfDataF1","Frac1",100,0,1.1);
+
+
+  TCanvas* fC3 = new TCanvas("fC3","Hillas Params pg3",600,700);
+  fC3->Divide(2,3);
+  TH1F *pfDataF2  = new TH1F("pfDataF2","Frac2",100,0,1.1);
+  TH1F *pfDataF3  = new TH1F("pfDataF3","Frac3",100,0,1.1);
+  TH1F *pfDataAs  = new TH1F("pfDataAs","Asymmetry",100,-1.0,1.0);
+  TH1F *pfDataP   = new TH1F("pfDataP","NumPixelsInImage",100,0,20);
+
+  TCanvas* fC4 = new TCanvas("fC4","Hillas Params pg4",600,700);
+  fC4->Divide(2,2);
+  TH1F *pfData4LOS = new TH1F("pfData4LOS","LengthOverSize",100,0.0,0.0015);
+  TH1F *pfData4L   = new TH1F("pfData4L","Length",100,0,.8);
+  TH1F *pfData4S   = new TH1F("pfData4S","Size",100,0,2000);
+  TH1F *pfData4P   = new TH1F("pfData4P","NumPixelsInImage",100,0,20);
+
+  // Set up histograms
+  //simulations
+  TH1F *pfSimW = new TH1F("pfSimW","Width",100,0,0.5);
+  TH1F *pfSimL = new TH1F("pfSimL","Length",100,0,.8);
+  TH1F *pfSimM = new TH1F("pfSimM","Miss",100,0,1.75);
+  TH1F *pfSimD = new TH1F("pfSimD","Dist",100,0,1.75);
+  TH1F *pfSimA = new TH1F("pfSimA","Alpha",100,0,1.75);
   TH1F *pfSimS = new TH1F("pfSimS","Size",100,0,2000);
-  TH1F *pfSimM3 = new TH1F("pfSimM3","Max 3",100,0,200);
+
+  TH1F *pfSimLOS = new TH1F("pfSimLOS","LengthOverSize",100,0.00001,0.0015);
+  TH1F *pfSimAzW = new TH1F("pfSimAzW","AzWidth",100,0,0.8);
+  TH1F *pfSimM1  = new TH1F("pfSimM1","Max1",100,0,200);
+  TH1F *pfSimM2  = new TH1F("pfSimM2","Max2",100,0,200);
+  TH1F *pfSimM3  = new TH1F("pfSimM3","Max3",100,0,200);
+  TH1F *pfSimF1  = new TH1F("pfSimF1","Frac1",100,0,1.1);
+
+  TH1F *pfSimF2  = new TH1F("pfSimF2","Frac2",100,0,1.1);
+  TH1F *pfSimF3  = new TH1F("pfSimF3","Frac3",100,0,1.1);
+  TH1F *pfSimAs  = new TH1F("pfSimAs","Asymmetry",100,-1.0,1.0);
+  TH1F *pfSimP   = new TH1F("pfSimP","NumPixelsInImage",100,0,20);
+
+  TH1F *pfSim4LOS = new TH1F("pfSim4LOS","LengthOverSize",100,0.0,0.0015);
+  TH1F *pfSim4L   = new TH1F("pfSim4L","Length",100,0,.8);
+  TH1F *pfSim4S   = new TH1F("pfSim4S","Size",100,0,2000);
+  TH1F *pfSim4P   = new TH1F("pfSim4P","NumPixelsInImage",100,0,20);
+
+
+  bool fDoC1=true;
+  bool fDoC2=true;
+  bool fDoC3=true;
+  bool fDoC4=true;
+ 
 //For now, skipping a bunch of plots and only doing page 4
+  if(fDoC1)
+    {
+      fC1->cd(1);
+      pfHParTree->Draw("H.fWidth >> pfDataW",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fWidth >> pfSimW",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataW,pfSimW,fNormalizePeak);
 
-  fC4->cd(1);
-  fCuts=fBasicCuts + "&& H.fLengthOverSize>0.0 && H.fLengthOverSize<.0015";
-  //project into histograms, get scale factor data/sim,scale sim hist and plot both  
-pfHParTree->Draw("H.fLengthOverSize >> pfDataLOS",fCuts.c_str());
- pfSimParTree->Draw("H.fLengthOverSize >> pfSimLOS",fCuts.c_str());
- ScaleAndPlot(pfDataLOS,pfSimLOS,fNormalizePeak);
+      fC1->cd(2);
+      pfHParTree->Draw("H.fLength >> pfDataL",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fLength >> pfSimL",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataL,pfSimL,fNormalizePeak);
 
-  fC4->cd(2);
-  fCuts=fBasicCuts;
-  pfHParTree->Draw("H.fLength >> pfDataL",fCuts.c_str());
-  pfSimParTree->Draw("H.fLength >> pfSimL",fCuts.c_str());
- ScaleAndPlot(pfDataL,pfSimL,fNormalizePeak);
+      fC1->cd(3);
+      pfHParTree->Draw("H.fMiss >> pfDataM",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fMiss >> pfSimM",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataM,pfSimM,fNormalizePeak);
 
-  fC4->cd(3);
-  fCuts=fBasicCuts; 
-  pfHParTree->Draw("H.fSize >> pfDataS",fCuts.c_str());
-  pfSimParTree->Draw("H.fSize >> pfSimS",fCuts.c_str());
- ScaleAndPlot(pfDataS,pfSimS,fNormalizePeak);
+      fC1->cd(4);
+      pfHParTree->Draw("H.fDist >> pfDataD",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fDist >> pfSimD",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataD,pfSimD,fNormalizePeak);
 
-  fC4->cd(4);
-  fCuts=fBasicCuts;
-  pfHParTree->Draw("H.fMax3 >> pfDataM3",fCuts.c_str());
-  pfSimParTree->Draw("H.fMax3 >> pfSimM3",fCuts.c_str());
-  ScaleAndPlot(pfDataM3,pfSimM3,fNormalizePeak);    
+      fC1->cd(5);
+      pfHParTree->Draw("H.fAlpha >> pfDataA",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fAlpha >> pfSimA",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataA,pfSimA,fNormalizePeak);
+
+      fC1->cd(6);
+      pfHParTree->Draw("H.fSize >> pfDataS",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fSize >> pfSimS",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataS,pfSimS,fNormalizePeak);
+    }     
+
+  if(fDoC2)
+    {
+      fC2->cd(1);
+      pfHParTree->Draw("H.fLengthOverSize >> pfDataLOS",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fLengthOverSize >> pfSimLOS",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataLOS,pfSimLOS,fNormalizePeak);
+      
+
+      fC2->cd(2);
+      pfHParTree->Draw("H.fAzWidth >> pfDataAzW",fBasicCuts.c_str());
+
+      pfSimParTree->Draw("H.fAzWidth >> pfSimAzW",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataAzW,pfSimAzW,fNormalizePeak);
+
+      fC2->cd(3);
+      pfHParTree->Draw("H.fMax1 >> pfDataM1",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fMax1 >> pfSimM1",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataM1,pfSimM1,fNormalizePeak);
+
+      fC2->cd(4);
+      pfHParTree->Draw("H.fMax2 >> pfDataM2",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fMax2 >> pfSimM2",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataM2,pfSimM2,fNormalizePeak);
+
+      fC2->cd(5);
+      pfHParTree->Draw("H.fMax3 >> pfDataM3",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fMax3 >> pfSimM3",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataM3,pfSimM3,fNormalizePeak);
+
+      fC2->cd(6);
+      pfHParTree->Draw("H.fFrac1 >> pfDataF1",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fFrac1 >> pfSimF1",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataF1,pfSimF1,fNormalizePeak);
+    }     
+
+  if(fDoC3)
+    {
+      fC3->cd(1);
+      pfHParTree->Draw("H.fFrac2 >> pfDataF2",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fFrac2 >> pfSimF2",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataF2,pfSimF2,fNormalizePeak);
+
+      fC3->cd(2);
+      pfHParTree->Draw("H.fFrac3 >> pfDataF3",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fFrac3 >> pfSimF3",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataF3,pfSimF3,fNormalizePeak);
+
+      fC3->cd(3);
+      pfHParTree->Draw("H.fAsymmetry >> pfDataAs",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fAsymmetry >> pfSimAs",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataAs,pfSimAs,fNormalizePeak);
+
+      fC3->cd(4);
+      pfHParTree->Draw("H.fPixelsInImage >> pfDataP",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fPixelsInImage >> pfSimP",fBasicCuts.c_str());
+      ScaleAndPlot(pfDataP,pfSimP,fNormalizePeak);
+
+    }
+ 
+  if(fDoC4)
+    {
+      fC4->cd(1);
+      pfHParTree->Draw("H.fLengthOverSize >> pfData4LOS",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fLengthOverSize >> pfSim4LOS",fBasicCuts.c_str());
+      ScaleAndPlot(pfData4LOS,pfSim4LOS,fNormalizePeak);
+
+      
+      fC4->cd(2);
+      pfHParTree->Draw("H.fLength >> pfData4L",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fLength >> pfSim4L",fBasicCuts.c_str());
+      ScaleAndPlot(pfData4L,pfSim4L,fNormalizePeak);
+      
+      fC4->cd(3);
+      pfHParTree->Draw("H.fSize >> pfData4S",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fSize >> pfSim4S",fBasicCuts.c_str());
+      ScaleAndPlot(pfData4S,pfSim4S,fNormalizePeak);
+      
+      fC4->cd(4);
+      pfHParTree->Draw("H.fPixelsInImage >> pfData4P",fBasicCuts.c_str());
+      pfSimParTree->Draw("H.fPixelsInImage >> pfSim4P",fBasicCuts.c_str());
+      ScaleAndPlot(pfData4P,pfSim4P,fNormalizePeak);
+    }
   return;
 }
+// *************************************************************************
+
+
 void ScaleAndPlot(TH1F* pfDataHist, TH1F* pfSimHist, bool fNormalizePeak)
 {
  double fSumData, fSumSim, fScale;
@@ -111,24 +265,24 @@ void ScaleAndPlot(TH1F* pfDataHist, TH1F* pfSimHist, bool fNormalizePeak)
      fScale = fDataMax/fSimMax;
    }
      
-pfSimHist->Scale(fScale);
+ pfSimHist->Scale(fScale);
 
-//Find which one has maximun value and draw that one first
-pfDataHist->SetLineColor(kBlack);
-pfSimHist->SetLineColor(kRed);
+ //Find which one has maximun value and draw that one first
+ pfDataHist->SetLineColor(kBlack);
+ pfSimHist->SetLineColor(kRed);
  fDataMax=pfDataHist->GetMaximum();
  fSimMax=pfSimHist->GetMaximum();
  TH1F* pfTallHist=pfDataHist;
-TH1F* pfShortHist=pfSimHist;
+ TH1F* pfShortHist=pfSimHist;
  if(fSimMax>fDataMax) 
    {
      pfTallHist=pfSimHist;
      pfShortHist=pfDataHist;
    }
-pfTallHist->Draw();
-pfShortHist->Draw("same");
-pfSimHist->SetDirectory(0);
-pfDataHist->SetDirectory(0);
+ pfTallHist->Draw();
+ pfShortHist->Draw("same");
+ pfSimHist->SetDirectory(0);
+ pfDataHist->SetDirectory(0);
  return;
 }
  
