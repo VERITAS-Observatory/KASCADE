@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#This runs first 4 vegas stages on Kascade sim files;
+#$1 VBF file to process.
+
+#First we see if the simLaser file exists, if not we make it
+
+if [ ! -e "simLaser.root" ]; then
+     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser \
+        -AIF_DataSource=CompiledOnly \
+        -AIFC_OverrideArray=VC499    \
+	-G_SimulationMode=1 dummyFileName \
+        simLaser.root
+fi
+
+#Now process the file:
+VBFFileName=$1
+RootFileName=${VBFFileName%".vbf"}'.root'
+
+#echo RootFileName: $RootFileName
+
+$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 $VBFFileName $RootFileName
+
+$VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $VBFFileName $RootFileName simLaser.root
+
+$VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
+
+$VEGASBASE/bin/vaStage4 -stage4TableFile=$VEGASBASE/showerReconstruction/vegas_lookuptables/lookuptables_EcleanedNcutted.root $RootFileName
+
