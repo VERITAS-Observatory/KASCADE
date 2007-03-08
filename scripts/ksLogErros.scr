@@ -1,0 +1,6 @@
+#Test for error reported in the log files
+#Ignore the info warnings from kasKASCADE
+
+grep ail ks*.log | grep -v ***S | grep -v ***P
+grep err ks*.log | grep -v ***S | grep -v ***P
+grep Err ks*.log | grep -v ***S | grep -v ***P
