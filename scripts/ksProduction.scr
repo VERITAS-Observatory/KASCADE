@@ -391,7 +391,7 @@ if [ $host = 'isis' ] ; then
     do
 	    #define job script name
 	JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
-	if [ "$kssc" = "ksMissingVBF" ]; then
+	if [ "$kssc" != "ksMissingVBF" ]; then
 	    JobScriptLog='>'$lcl'/js'$jobNum'_'$jobSpec'.log'
 	else
 	    JobScriptLog=' '
