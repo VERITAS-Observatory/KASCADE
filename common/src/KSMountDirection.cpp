@@ -134,13 +134,12 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
   if(fGammas2D)
     {
       // For the Maximum Likelihood Gamma source Point Spread Function(PSF) 
-      // calculation we set up a grid of directions. Starting at 0 in field 
-      // of view and stepping 
-      // fStepSizeRad(converted back to deg) in positive steps in both X and 
-      // Y out to fMaximumThetaRad (again back in deg). That is we only do
-      // the positive quadrant in X and Y. The other quadrants can be filled 
-      // in by reflections. We do ignore directions past sqrt(Y**2+X**2)>
-      // fMaximumThetaRad/gDeg2Rad
+      // calculation we set up directions along the X axis. Starting at 0 in 
+      // field of view and stepping 
+      // fStepSizeRad(converted back to deg) in positive steps in X out to 
+      // fMaximumThetaRad (again back in deg). That is we only do
+      // the positive Axis in X. We casn then make a grid over all field of 
+      // view by rotations.
       // ********************************************************************
       // Values for fMaximumThetaRad and fStepSizeRad derived from original
       // deg from config file: MaximumThetaDeg, GammaStepSizeDeg
@@ -148,45 +147,29 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       
       fMaxThetaDeg=pfTeHead->fMaximumThetaRad/gDeg2Rad;
       fStepSizeDeg=fStepSizeRad/gDeg2Rad;
-      fNumXSteps=(int)(fMaxThetaDeg/fStepSizeDeg + 
-		    fStepSizeDeg/2.) + 1;
-      fNumYSteps=fNumXSteps;
+      fNumXSteps=(int)(fMaxThetaDeg/fStepSizeDeg + fStepSizeDeg/2.) + 1;
       fMultipleMountDirections=true;
-      
       fAomega=fXAreaWidthM*fYAreaWidthM;
       std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
 
       std::vector< double > pfX;
-      std::vector< double > pfY;
       pfX.clear();
-      pfY.clear();
-
       double fX;
-      double fY;
+      double fY=0.0;
       for(int i=0;i<fNumXSteps;i++)
 	{
 	  fX=i*fStepSizeDeg;
-	  for(int j=0;j<fNumYSteps;j++)
-	    {
-	      fY=j*fStepSizeDeg;
-	      if(sqrt(fX*fX+fY*fY)<=fMaxThetaDeg)
-		{
-		  pfX.push_back(fX);
-		  pfY.push_back(fY);
-		}
-	    }
+	  pfX.push_back(fX);
 	}
 
       fNumDirections=(int) pfX.size();
       allocateDirectionArrays(fNumDirections);
 
-
       double fM[3];
       for(int i=0;i<fNumDirections;i++)
 	{
 	  fX=pfX.at(i);
-	  fY=pfY.at(i);
-
+	  fY=0.0;
 	  GetVecFromXY( fX, fY, fAzMount, fElevMount, fM);
 
 	  // ************************************************************
