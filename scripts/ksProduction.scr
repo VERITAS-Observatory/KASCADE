@@ -391,10 +391,14 @@ if [ $host = 'isis' ] ; then
     do
 	    #define job script name
 	JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
-	JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
+	if [ "$kssc" = "ksMissingVBF" ]; then
+	    JobScriptLog='>'$lcl'/js'$jobNum'_'$jobSpec'.log'
+	else
+	    JobScriptLog=' '
+	fi
 	    #Initialze the script files
 	chmod 777 $JobScript
-	$JobScript  >$JobScriptLog &
+	$JobScript  $JobScriptLog &
     jobNum=$((jobNum+1))
     done
 fi
