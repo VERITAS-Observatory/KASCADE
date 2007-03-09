@@ -1,0 +1,35 @@
+#!/bin/bash
+#This Looks for missing files.:
+#$0 ./kasaom.scr
+#$1 primary Energy in gev (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower namesLike VP20Deg70mv
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te are and root and VBF files are to go,
+# cannot be blank!!!)
+#$6 PixelStatus Run Fule Name(used by ksAomega only)(can be blank)
+echo "**********************************************************************"
+echo Missing files for $1' GeV:'
+
+#echo $0 $1 $2 $3 $4 $5 $6
+
+DataDir=$5
+cd $DataDir
+
+FileNameBase=$2'GeV'$1'.d'
+
+#Setup to loop over showers
+i="$3"
+while test $i -le $4
+  do
+#ksAomega
+    File=$FileNameBase$i'.vbf'
+    if [ ! -e $File ]; then
+       echo "     "$File
+    fi
+    i=$((i+1))			#do next shower
+done
+
+
+ 
