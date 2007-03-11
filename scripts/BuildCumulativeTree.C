@@ -25,6 +25,19 @@ double fT1ImpactDist;
 double fT2ImpactDist;
 double fT3ImpactDist;
 double fT4ImpactDist;
+double fT1TrueImpactDist;
+double fT2TrueImpactDist;
+double fT3TrueImpactDist;
+double fT4TrueImpactDist;
+
+
+
+
+void GetArrayPositonsInMirrorPlane(VAArrayInfo* pfArrayInfo, 
+				   double fSourceAz, 
+				   double fSourceElev, 
+				   std::vector< double >& fArrayX, 
+				   std::vector< double >& fArrayY);
 
 int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 {
@@ -43,7 +56,6 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
       std::cout<<"Failed to BuildRootFileIndexes: "<<fFileNameIn<<std::endl;
       return 1;
     }
-
   // ************************************************
   // Set all indexs to access by fArrayEventNum(only Hillas tree access is by 
   // event index)
@@ -175,6 +187,26 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
   std::cout<<"Created Cumulative Branch:              T4ImpactDist"
 	   <<std::endl;
 
+  pfCTree->Branch("T1TrueImpactDist",&fT1TrueImpactDist,"T1TrueImpactDist/D");
+  pfCTree->Branch("T2TrueImpactDist",&fT2TrueImpactDist,"T2TrueImpactDist/D");
+  pfCTree->Branch("T3TrueImpactDist",&fT3TrueImpactDist,"T3TrueImpactDist/D");
+  pfCTree->Branch("T4TrueImpactDist",&fT4TrueImpactDist,"T4TrueImpactDist/D");
+  std::cout<<"Created Cumulative Branch:              T1TrueImpactDist"
+	   <<std::endl;
+  std::cout<<"Created Cumulative Branch:              T2TrueImpactDist"
+	   <<std::endl;
+  std::cout<<"Created Cumulative Branch:              T3TrueImpactDist"
+	   <<std::endl;
+  std::cout<<"Created Cumulative Branch:              T4TrueImpactDist"
+	   <<std::endl;
+
+  std::vector< double* >fTrueImpDist;
+  fTrueImpDist.push_back(&fT1TrueImpactDist);
+  fTrueImpDist.push_back(&fT2TrueImpactDist);
+  fTrueImpDist.push_back(&fT3TrueImpactDist);
+  fTrueImpDist.push_back(&fT4TrueImpactDist);
+
+
   // **********************************************************************
   // Now we are ready to load the tree. Use the hillas data to drive the
   // filling loop, but use fArrayEventNum to insure we stay in synch
@@ -280,7 +312,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	  continue;
 	}
 
-      // *******************************************************************
+     // *******************************************************************
       // Now fill in shower event
       // *******************************************************************
       if(pfShwrTree!=NULL)
@@ -359,6 +391,70 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		      }
 		}
 
+	      // *********************************************************
+	      // Fill in true impact dist.
+	      // *********************************************************
+	      if(pfSimTree!=NULL)
+		{
+		  // ******************************************************
+		  // we need to get the location of each telecope in the 
+		  // mirror plane for each  event. Get event direction 
+		  // (mirror plane direction)?
+		  double fSourceAz;
+		  double fSourceElev;
+		  pfConvertCoords->RADec2000ToAzEl(
+						   pfShower->fArrayTrackingRA,
+						   pfShower->fArrayTrackingDec,
+						   pfShower->fTime,
+						   fSourceAz,fSourceElev);
+		  // *****************************************************
+		  //  Now we need the "True" position in the
+		  //  mirror plane.
+		  // *****************************************************
+		  // We now go into the Sim tree to get the True location
+		  
+		  int fParIndex=pfSimulationEventTree->
+		                    GetEntryNumberWithIndex(fArrayEventNum,0);
+		  if(fIndex<0)
+		    {
+		      std::cout<<" Missing entry in Simulation "
+			"Event Tree for event Index :"<<i<<std::endl;
+		      continue;
+		    }
+		  
+		  pfSimulationEventTree->GetEntry(fIndex);
+		  
+		  double fXGround=pfSimulation->fCoreEastM;
+		  double fYGround=-pfSimulation->fCoreSouthM;
+		  //Note sign change
+		  
+		  // *****************************************************
+		  // Project this back to the mirror plane
+		  // *****************************************************
+		  double fXMirror;
+		  double fYMirror;
+		  fPlane.PointPlaneBackToPlane(0.0,M_PI/2.0,fXGround,
+					       fYGround,
+					       0.0,fSourceAz,fSourceElev,
+					       fXMirror,fYMirror);
+		  
+		  GetArrayPositonsInMirrorPlane(pfArrayInfo, fSourceAz, 
+						fSourceElev, fArrayX, 
+						fArrayY);
+		  
+		  for(int fTelId=0;fTelId<4;fTelId++)
+		    {
+		      // *************************************************
+		      // Find the impact distance
+		      // Now we can determine the Miss distance
+		      // *************************************************
+		      double fDiffX=(fXMirror- fArrayX.at(fTelId));
+		      double fDiffY=(fYMirror- fArrayY.at(fTelId));
+		      double fMissDistance=sqrt((fDiffX*fDiffX)+ 
+						(fDiffY*fDiffY));
+		      *fTrueImpDist[fTelId]=fMissDistance; 
+		    }
+		}
 	    }
 	  else
 	    {
@@ -398,5 +494,32 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
   std::cout<<"Done!"<<std::endl;
   return 0;
 }
+// ************************************************************************
+void GetArrayPositonsInMirrorPlane(VAArrayInfo* pfArrayInfo, 
+				   double fSourceAz, 
+				   double fSourceElev, 
+				   std::vector< double >& fArrayX, 
+				   std::vector< double >& fArrayY) 
+{
+  // ***********************************************************************
+  // Get Array Positions on the ground
+  // ***********************************************************************
+  VAPlaneToPlane fPlane;
+  for (int fTelId=0;fTelId<4;fTelId++)
+    {
+      double fXGround=pfArrayInfo->telescope(fTelId)->positionEW();
+      double fYGround=pfArrayInfo->telescope(fTelId)->positionNS();
+      double fZGround=pfArrayInfo->telescope(fTelId)->positionUD();
+      double fXMirror;
+      double fYMirror;
+      fPlane.PointPlaneBackToPlane(0.0,M_PI/2.0,fXGround,fYGround,
+				   fZGround,fSourceAz,fSourceElev,
+				   fXMirror,fYMirror);
+      fArrayX.at(fTelId)=fXMirror;
+      fArrayY.at(fTelId)=fYMirror;
+    }
+  return;
+}
+// ***************************************************************************
 
 

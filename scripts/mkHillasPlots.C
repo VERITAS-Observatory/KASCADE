@@ -149,7 +149,7 @@ void HillasPlots(int fTelId,char* fFileName)
     {
       if(pfSimTree!=NULL)
 	{
-	  TCanvas* fC5 = new TCanvas("fC5","Hillas Params pg4",600,700);
+	  TCanvas* fC5 = new TCanvas("fC5","Hillas Params pg5",600,700);
 	  fC5->Divide(2,2);
 	  gStyle->SetMarkerStyle(21);
 	  // *********************************************************
