@@ -238,12 +238,6 @@ function BuildIsisScriptList()
  
  jobScript=$lcl'/js'$1'_'$jobSpec'.scr'
 
- if [ "$kssc" != "ksMissingVBF" ]; then
-      logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
- else
-    logFile=' '
- fi
-
  let processStart=$2
  let processEnd=$3
 
@@ -251,6 +245,12 @@ function BuildIsisScriptList()
  let i=$processStart
  while test $i -le $processEnd
  do
+
+    if [ "$kssc" != "ksMissingVBF" ]; then
+	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
+    else
+	logFile=' '
+    fi
     echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]}
     if [ "${enableGEN[$i]}" == "ON" ]; then 
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
@@ -392,13 +392,15 @@ if [ $host = 'isis' ] ; then
 	    #define job script name
 	JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
 	if [ "$kssc" != "ksMissingVBF" ]; then
-	    JobScriptLog='>'$lcl'/js'$jobNum'_'$jobSpec'.log'
-	else
-	    JobScriptLog=' '
-	fi
+	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
 	    #Initialze the script files
-	chmod 777 $JobScript
-	$JobScript  $JobScriptLog &
+	    chmod 777 $JobScript
+	    $JobScript  >$JobScriptLog &
+	else
+	    #Initialze the script files
+	    chmod 777 $JobScript
+	    $JobScript 
+	fi
     jobNum=$((jobNum+1))
     done
 fi
