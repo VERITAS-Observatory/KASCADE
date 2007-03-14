@@ -476,7 +476,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		{
 		  fXDeg=1000000.0;
 		  fYDeg=1000000.0;
-+		}
+		}
 	    }
 	  else
 	    {
