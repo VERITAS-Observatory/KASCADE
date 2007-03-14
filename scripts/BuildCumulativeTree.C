@@ -30,6 +30,8 @@ double fT2TrueImpactDist;
 double fT3TrueImpactDist;
 double fT4TrueImpactDist;
 
+double fXdeg;
+double fYdeg;
 
 
 
@@ -206,6 +208,11 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
   fTrueImpDist[1]=&fT2TrueImpactDist;
   fTrueImpDist[2]=&fT3TrueImpactDist;
   fTrueImpDist[3]=&fT4TrueImpactDist;
+
+  pfCTree->Branch("XDeg",&fXDeg,"XDeg/D");
+  pfCTree->Branch("YDeg",&fYDeg,"YDeg/D");
+  std::cout<<"Created X direction position in camera  XDeg"<<std::endl;
+  std::cout<<"Created Y direction position in camera  YDeg"<<std::endl;
 
 
   // **********************************************************************
@@ -458,6 +465,21 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		      *fTrueImpDist[fTelId]=fMissDistance; 
 		    }
 		}
+	      if(pfShower->fIsDirection==1)
+		{
+		  double fShowerDirRA  = pfShower->fDirection.fX;
+		  double fShowerDirDec = pfShower->fDirection.fY;
+		  pfConvertCoords->RADec2000ToXY( fShowerDirRA, fShowerDirDec,
+						  pfShower->fTime,
+						  pfShower->fArrayTrackingRA,
+						  pfShower->fArrayTrackingDec,
+						  fXDeg,fYDeg);
+		}
+	      else
+		{
+		  fXDeg=1000000.0
+		  fYDeg=1000000.0
+
 	    }
 	  else
 	    {
