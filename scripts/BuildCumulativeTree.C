@@ -33,11 +33,12 @@ double fT4TrueImpactDist;
 
 
 
+
 void GetArrayPositonsInMirrorPlane(VAArrayInfo* pfArrayInfo, 
 				   double fSourceAz, 
 				   double fSourceElev, 
-				   std::vector< double >& fArrayX, 
-				   std::vector< double >& fArrayY);
+				   double* fArrayX, 
+				   double* fArrayY);
 
 int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 {
@@ -200,11 +201,11 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
   std::cout<<"Created Cumulative Branch:              T4TrueImpactDist"
 	   <<std::endl;
 
-  std::vector< double* >fTrueImpDist;
-  fTrueImpDist.push_back(&fT1TrueImpactDist);
-  fTrueImpDist.push_back(&fT2TrueImpactDist);
-  fTrueImpDist.push_back(&fT3TrueImpactDist);
-  fTrueImpDist.push_back(&fT4TrueImpactDist);
+  double* fTrueImpDist[4];
+  fTrueImpDist[0]=&fT1TrueImpactDist;
+  fTrueImpDist[1]=&fT2TrueImpactDist;
+  fTrueImpDist[2]=&fT3TrueImpactDist;
+  fTrueImpDist[3]=&fT4TrueImpactDist;
 
 
   // **********************************************************************
@@ -413,7 +414,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		  // *****************************************************
 		  // We now go into the Sim tree to get the True location
 		  
-		  int fParIndex=pfSimulationEventTree->
+		  int fIndex=pfSimTree->
 		                    GetEntryNumberWithIndex(fArrayEventNum,0);
 		  if(fIndex<0)
 		    {
@@ -422,7 +423,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		      continue;
 		    }
 		  
-		  pfSimulationEventTree->GetEntry(fIndex);
+		  pfSimTree->GetEntry(fIndex);
 		  
 		  double fXGround=pfSimulation->fCoreEastM;
 		  double fYGround=-pfSimulation->fCoreSouthM;
@@ -433,11 +434,13 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		  // *****************************************************
 		  double fXMirror;
 		  double fYMirror;
-		  fPlane.PointPlaneBackToPlane(0.0,M_PI/2.0,fXGround,
+		  pfPlane->PointPlaneBackToPlane(0.0,TMath::Pi()/2.0,fXGround,
 					       fYGround,
 					       0.0,fSourceAz,fSourceElev,
 					       fXMirror,fYMirror);
 		  
+		  double fArrayX[4];
+		  double fArrayY[4];
 		  GetArrayPositonsInMirrorPlane(pfArrayInfo, fSourceAz, 
 						fSourceElev, fArrayX, 
 						fArrayY);
@@ -448,8 +451,8 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		      // Find the impact distance
 		      // Now we can determine the Miss distance
 		      // *************************************************
-		      double fDiffX=(fXMirror- fArrayX.at(fTelId));
-		      double fDiffY=(fYMirror- fArrayY.at(fTelId));
+		      double fDiffX=(fXMirror - fArrayX[fTelId]);
+		      double fDiffY=(fYMirror - fArrayY[fTelId]);
 		      double fMissDistance=sqrt((fDiffX*fDiffX)+ 
 						(fDiffY*fDiffY));
 		      *fTrueImpDist[fTelId]=fMissDistance; 
@@ -498,8 +501,8 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 void GetArrayPositonsInMirrorPlane(VAArrayInfo* pfArrayInfo, 
 				   double fSourceAz, 
 				   double fSourceElev, 
-				   std::vector< double >& fArrayX, 
-				   std::vector< double >& fArrayY) 
+				   double* fArrayX, 
+				   double* fArrayY) 
 {
   // ***********************************************************************
   // Get Array Positions on the ground
@@ -512,11 +515,11 @@ void GetArrayPositonsInMirrorPlane(VAArrayInfo* pfArrayInfo,
       double fZGround=pfArrayInfo->telescope(fTelId)->positionUD();
       double fXMirror;
       double fYMirror;
-      fPlane.PointPlaneBackToPlane(0.0,M_PI/2.0,fXGround,fYGround,
+      pfPlane->PointPlaneBackToPlane(0.0,TMath::Pi()/2.0,fXGround,fYGround,
 				   fZGround,fSourceAz,fSourceElev,
 				   fXMirror,fYMirror);
-      fArrayX.at(fTelId)=fXMirror;
-      fArrayY.at(fTelId)=fYMirror;
+      fArrayX[fTelId]=fXMirror;
+      fArrayY[fTelId]=fYMirror;
     }
   return;
 }
