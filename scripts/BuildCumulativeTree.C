@@ -30,11 +30,8 @@ double fT2TrueImpactDist;
 double fT3TrueImpactDist;
 double fT4TrueImpactDist;
 
-double fXdeg;
-double fYdeg;
-
-
-
+double fXDeg;
+double fYDeg;
 
 void GetArrayPositonsInMirrorPlane(VAArrayInfo* pfArrayInfo, 
 				   double fSourceAz, 
