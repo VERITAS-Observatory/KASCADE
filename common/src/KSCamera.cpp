@@ -347,7 +347,12 @@ void KSCamera::loadNoiseRatesAndPeds()
 	  fPixel[i].fNoiseRatePerNS=
 	       fPixel[i].fNoiseRatePerNS*fPixel[i].fPedVarRel/fMeanNoise;
 	}
+      else
+	{
+	  fPixel[i].fNoiseRatePerNS=0.0;
+	}
     }
+
   // ***********************************************************************
   // Now do outer pmts of WHIPPLE490 camera
   // ***********************************************************************
@@ -372,6 +377,10 @@ void KSCamera::loadNoiseRatesAndPeds()
 	      fPixel[i].fNoiseRatePerNS=
 		   fPixel[i].fNoiseRatePerNS*fPixel[i].fPedVarRel/fMeanNoise;
 	    }
+	  else
+	    {
+	      fPixel[i].fNoiseRatePerNS=0.0;
+	    }
 	}
     }
   // *************************************************************************
@@ -380,8 +389,17 @@ void KSCamera::loadNoiseRatesAndPeds()
 // **************************************************************************
   for(int i=0;i<fNumPixels;i++)
     {
-      fPixel[i].DetermineNoisePedestals();
-
+      if(!fPixel[i].fBadPixel)
+	{
+	  fPixel[i].DetermineNoisePedestals();
+	}
+      else
+	{
+	  fPixel[i].fWaveFormNightSkyPedestal=0.0;
+	  fPixel[i].fChargeVarPE=0.0;
+	  fPixel[i].fChargeVarDC=0.0;
+	  fPixel[i].fPedDC=0.0;
+	}
       // Fill in stuff used to make ped traces
       fPedPixels[i].fNoiseRatePerNS = fPixel[i].fNoiseRatePerNS;
       fPedPixels[i].fWaveFormNightSkyPedestal = 
