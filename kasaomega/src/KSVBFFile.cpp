@@ -307,7 +307,14 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
                                        // specify which channels triggered.
       for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
 	{
-	  event->setTriggerBit(k,pfCamera->isCFDTriggered(k));
+	  if(!pfCamera->fPixel[k].fBadPixel)
+	    {
+	      event->setTriggerBit(k,pfCamera->isCFDTriggered(k));
+	    }
+	  else
+	    {
+	      event->setTriggerBit(k,false);
+	    }
 	}
       if(gNumChannelsCamera[fCameraType]>gNumPixelsCamera[fCameraType])
 	{
@@ -326,6 +333,9 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
       //event->setEventTypeCode(VEventType::PED_TRIGGER);
                                   // specify no channels triggered.
+      // ************************************************************
+      // Note here that real dat might actualy havce triggered a channel.
+      // ************************************************************
       for (unsigned k=0;k<(unsigned)gNumChannelsCamera[fCameraType];++k) 
 	{
 	  event->setTriggerBit(k,false);

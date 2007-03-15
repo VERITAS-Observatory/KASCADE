@@ -252,6 +252,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
                         //and Pedvars from VAQSatausData.
       uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
       uint16_t winSize=(uint16_t)gFADCWinSize[fCameraType];
+      int fNumBadPixels=0;
       for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
 	{
 	  double gain=1;
@@ -281,11 +282,22 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  if(fPixelSuppressed || !fChannelIsPMT)
 	    {
 	      pfCamera->fPixel[chan].fBadPixel=true;
-	    }	  
+	      if(fNumBadPixels%10==0)
+		{
+		  std::cout<<std::endl;
+		  std::cout<<"BadPixels: ";
+		}
+	      std::cout<<" "<<chan;
+	      fNumBadPixels++;
+	    }
 	  else
 	    {
-	    pfCamera->fPixel[chan].fBadPixel=false;
+	      pfCamera->fPixel[chan].fBadPixel=false;
 	    }
+	}
+      if(fNumBadPixels>0)
+	{
+	  std::cout<<std::endl;
 	}
     }
   fEventTime=fFirstValidEventTime;
@@ -551,6 +563,16 @@ bool KSEvent::BuildImage()
       std::cout<<"ksAomega: Abnormal error reading in Te Pixel data"
 	       <<std::endl;
       exit(1);
+    }
+  // *************************************************************************
+  // As a safety check. clear out the BadPixel times
+  // *************************************************************************
+  for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
+    {
+      if(pfCamera->fPixel[chan].fBadPixel)
+	{
+	  pfCamera->fPixel[chan].fTimePe.clear();
+	}
     }
   return false;        //False indicates event was read in ok and we are not at
                        //end of file
