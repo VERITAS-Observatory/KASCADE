@@ -256,7 +256,9 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	}
       else
 	{
-	  // Should really fill pfHillasT1, and pfHillas2DT1 with 0 here.
+	  // Fill pfHillasT1, and pfHillas2DT1 with 0 here.
+	  pfHillasT1->init();
+	  pfHillas2DT1->init();
 	  fT1=0;
 	}
 
@@ -271,7 +273,9 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	}
       else
 	{
-	  // Should really fill pfHillasT2, and pfHillas2DT2 with 0 here.
+	  // Fill pfHillasT2, and pfHillas2DT2 with 0 here.
+	  pfHillasT2->init();
+	  pfHillas2DT2->init();
 	  fT2=0;
 	}
 
@@ -286,7 +290,9 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	}
       else
 	{
-	  // Should really fill pfHillasT3, and pfHillas2DT3 with 0 here.
+	  // Fill pfHillasT3, and pfHillas2DT3 with 0 here.
+	  pfHillasT3->init();
+	  pfHillas2DT3->init();
 	  fT3=0;
 	}
 
@@ -301,7 +307,8 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	}
       else
 	{
-	  // Should really fill pfHillasT3, and pfHillas2DT3 with 0 here.
+	  pfHillasT4->init();
+	  pfHillas2DT4->init();
 	  fT4=0;
 	}
       // *******************************************************************
