@@ -88,9 +88,9 @@ class KSPixelUV
   // ***********************************************************************
  public:
   KSPixelUV(int StartIndex, int fNumUVIndex);
-  int  get(int U,int V){return fPixelUV[U-fStartIndex][V-fStartIndex];};
+  int  get(int U,int V){return fPixelUV.at(U-fStartIndex).at(V-fStartIndex);};
   void set(int U, int V, int Pixel)
-                    {fPixelUV[U-fStartIndex][V-fStartIndex]=Pixel; return;};
+  {fPixelUV.at(U-fStartIndex).at(V-fStartIndex)=Pixel; return;};
 private:
   std::vector< std::vector<int> > fPixelUV;
   int fStartIndex;
@@ -107,7 +107,7 @@ class KSPST
  public:
   KSPST(KSCameraTypes CameraType, int TriggerMultiplicity);
   virtual ~KSPST();
-  bool isTriggered(double* pfTimeTrigger, double& fImageTriggerTime); 
+  bool isTriggered(std::vector<double>& pfTimeTrigger, double& fImageTriggerTime); 
   double SlideWindow(std::vector<KSPixelTimes>& pfPatchTimes,
 		    double fWindowWidth, int fMultiplicity);
   std::vector<bool> fL2TriggerPixels;

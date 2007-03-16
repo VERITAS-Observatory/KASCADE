@@ -37,7 +37,8 @@ KSCameraTrigger::KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
   pfPixelTriggerTime.resize(fNumPixelsTrigger);//For use with sort,Slide
   if(fUsePatternTrigger)
     {
-      pfTimeTrigger= new double[fNumPixelsTrigger];
+      pfTimeTrigger.clear();
+      pfTimeTrigger.resize(fNumPixelsTrigger);
       fPatternTriggerLevel=pfTeHead->fPatternTriggerLevel;
       pfPST= new KSPST(fCameraType,fPatternTriggerLevel);
     }
@@ -221,11 +222,11 @@ bool KSCameraTrigger::isFastTriggered()
 	    {
 	      if(pfPixel->at(i).fDiscTrigger)
 		{
-		  pfTimeTrigger[i]=100.;// Put all trigger times at 100. ns.
+		  pfTimeTrigger.at(i)=100.;// Put all trigger times at 100. ns.
 		}
 	      else
 		{
-		  pfTimeTrigger[i]=gOverflowTime; //Time overflow value
+		  pfTimeTrigger.at(i)=gOverflowTime; //Time overflow value
 		}
 	    }
 
@@ -258,8 +259,8 @@ bool KSCameraTrigger::isWaveFormTriggered()
     {
       for(int i=0;i<fNumPixelsTrigger;i++)
 	{
-	  pfPixelTriggerTime[i].fTime=pfPixel->at(i).fCFDTriggerTimeNS; 
-	  pfPixelTriggerTime[i].fIndex=i; 
+	  pfPixelTriggerTime.at(i).fTime=pfPixel->at(i).fCFDTriggerTimeNS; 
+	  pfPixelTriggerTime.at(i).fIndex=i; 
 	}
       // ****************************************************************
       // Order pixel times. Since we defined < operator for KSPixelTimes
@@ -285,7 +286,7 @@ bool KSCameraTrigger::isWaveFormTriggered()
   //
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
-      pfTimeTrigger[i]=pfPixel->at(i).fCFDTriggerTimeNS; 
+      pfTimeTrigger.at(i)=pfPixel->at(i).fCFDTriggerTimeNS; 
     }
    bool fPSTTrigger=pfPST->isTriggered(pfTimeTrigger,fPSTTriggerTimeNS);
 

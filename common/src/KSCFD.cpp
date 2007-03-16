@@ -102,7 +102,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
       fThresholdIndex<fNumWaveFormBins-fCFDTriggerDelayBins-1;
       fThresholdIndex++)
     {
-      if(fPixel.fWaveForm[fThresholdIndex]>=fPixel.fThreshold)
+      if(fPixel.fWaveForm.at(fThresholdIndex)>=fPixel.fThreshold)
 	{
 	  // *********************************************************
 	  // Ok we are over threshold. Form CFD internal pulse and look
@@ -115,7 +115,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
                // Amplify and negate waveform(this is what CFD's do)
 	  for(int i=0;i<fNumWaveFormBins;i++)
 	    {
-	      fNegativePulse[i]=(-fPixel.fWaveForm[i]*fCFDGain);
+	      fNegativePulse.at(i)=(-fPixel.fWaveForm.at(i)*fCFDGain);
 	    }
 	  //if(fPrintWaveForms)
 	  // {
@@ -137,7 +137,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 	  for(int i=fNumCFDDelayBins;i<fNumWaveFormBins;i++)
 	    {
 	      int j=i-fNumCFDDelayBins;
-	      fMainPulse[i]=fPixel.fWaveForm[i]+fNegativePulse[j];
+	      fMainPulse.at(i)=fPixel.fWaveForm.at(i)+fNegativePulse.at(j);
 	    }
 
 	  // *****************************************************************
@@ -151,7 +151,8 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 	  // *****************************************************************
 	  bool fCFDFired=false;  //Flag that cfd has fired and has not yet
                                  //reset(gone positive)
-	  if(fMainPulse[fThresholdIndex]<fCFDOffsetPE)  //See if we start fired.
+	  if(fMainPulse.at(fThresholdIndex)<fCFDOffsetPE)
+	                                               //See if we start fired.
 	    {
 	      fCFDFired=true; //set flag.
             }
@@ -160,10 +161,11 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 	    {
 	      if(fCFDFired)
 		{
-		  if(fMainPulse[j]>fCFDOffsetPE)//neg->positive crossing.reset
+		  if(fMainPulse.at(j)>fCFDOffsetPE)
+		                                 //neg->positive crossing.reset
 		    fCFDFired=false;
 		}
-	      else if(fMainPulse[j]<=fCFDOffsetPE)//pos->neg crossing. 
+	      else if(fMainPulse.at(j)<=fCFDOffsetPE)//pos->neg crossing. 
 		{ 
 		  fCFDFired=true;
 		  // **************************
@@ -186,7 +188,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 		  // *************************
 		  else if(fCameraType==VERITAS499)
 		    {                      //Do we trigger. Check disc
-		      if(fPixel.fWaveForm[j+fCFDTriggerDelayBins]
+		      if(fPixel.fWaveForm.at(j+fCFDTriggerDelayBins)
 			 >=fPixel.fThreshold) 
 			{           //WE TRIGGER! Determine when and return
 			  //j+fCFDTriggerDelayBins is trigger 
@@ -234,7 +236,7 @@ void KSCFD::PrintWaveForm(int pixelID, int nx, int ny, int seqNum,
     {
       double fBinTime=waveFormStartNS+i*gWaveFormBinSizeNS;
       std::cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<pixelID<<" "<<fBinTime<<" "
-	       <<waveForm[i]<<" "<<time<<std::endl;
+	       <<waveForm.at(i)<<" "<<time<<std::endl;
     }
   return;
 }

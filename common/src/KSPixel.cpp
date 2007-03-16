@@ -90,7 +90,7 @@ void KSPixel::BuildPeWaveForm()
 	  if(pran(&fXDummy)<fEfficiency)
 	    {
 	      fDisc++;
-	      double fPeTime=fTimePe[i]-fWaveFormStartNS;
+	      double fPeTime=fTimePe.at(i)-fWaveFormStartNS;
 	      addPe(fPeTime,fAfterPulse);
 	    }
 	}
@@ -159,7 +159,8 @@ void KSPixel::addPe(double fPeTimeNS,bool fAfterPulse)
       int fWaveFormIndex=fStartBin;     
       for(int i=fPeStartIndex;i<=fPeEndIndex;i++)
 	{
-	  fWaveForm[fWaveFormIndex]+=pfSinglePe->pfSinglePulse[i]*fPulseHeight;
+	  fWaveForm.at(fWaveFormIndex)+=pfSinglePe->pfSinglePulse.at(i)*
+	                                                    fPulseHeight;
 	  fWaveFormIndex++;
 	}
     }
@@ -188,7 +189,7 @@ void KSPixel::DetermineNoisePedestals()
   double fWaveFormSum=0;
   for(int i=0;i<(int)fWaveForm.size();i++)
     {
-      fWaveFormSum+=fWaveForm[i];
+      fWaveFormSum+=fWaveForm.at(i);
     }
 
   fWaveFormNightSkyPedestal=fWaveFormSum/fWaveForm.size();
@@ -234,7 +235,7 @@ void KSPixel::DetermineNoisePedestals()
 	  fWaveFormSum=0;
 	  for(int j=0;j<fNumBinsFADCWindow;j++)
 	    {
-	      fWaveFormSum+=fWaveForm[k+j];
+	      fWaveFormSum+=fWaveForm.at(k+j);
 	    }
 	  fWaveFormSum=fWaveFormSum/fSinglePeArea;//convert to pe's
 	  fPedSum+=fWaveFormSum;
@@ -294,7 +295,7 @@ void KSPixel::RemovePedestalFromWaveForm(double fWaveFormPedestal)
 {
   for(int i=0;i<(int)fWaveForm.size();i++)
     {
-      fWaveForm[i]=fWaveForm[i]-fWaveFormPedestal;
+      fWaveForm.at(i)=fWaveForm.at(i)-fWaveFormPedestal;
     }
   return;
 }
@@ -307,7 +308,7 @@ void KSPixel::AddPedestalToWaveForm(double fWaveFormPedestal)
 {
   for(int i=0;i<(int)fWaveForm.size();i++)
     {
-      fWaveForm[i]=fWaveForm[i]+fWaveFormPedestal;
+      fWaveForm.at(i)+=fWaveFormPedestal;
     }
   return;
 }
@@ -337,7 +338,7 @@ double KSPixel::GetCharge(double fFADCGateStartTimeNS, bool fPedestalEvent)
       for(int i=0;i<fADCNumBins;i++)
 	{
 	  int j=i+fStartGateBin;
-	  fCharge+=fWaveForm[j];
+	  fCharge+=fWaveForm.at(j);
 	}
       fCharge=fCharge/fSinglePeArea;//Pe's
     }
@@ -373,7 +374,7 @@ void KSPixel::PrintWaveForm(int nx, int ny, int seqNum,
     {
       double fBinTime=fWaveFormStartNS+i*gWaveFormBinSizeNS;
       std::cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<fID<<" "<<fBinTime<<" "
-	       <<fWaveForm[i]<<" "<<time<<std::endl;
+	       <<fWaveForm.at(i)<<" "<<time<<std::endl;
     }
   return;
 }

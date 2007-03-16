@@ -67,9 +67,9 @@ class KSCellGrid
  private:
   std::vector< std::vector< std::vector<int> > >  pfCellGrid;
   std::vector< KSCellSeperation> fCellSeperation;
-  double* pfCellX;
-  double* pfCellY;
-  double* pfCellRadius;
+  std::vector<double> pfCellX;
+  std::vector<double> pfCellY;
+  std::vector<double> pfCellRadius;
 
   int fNumCells;
 

@@ -358,7 +358,7 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
       float fBasePeTime=getMinPeTime(fPixel);
       for(int i=0;i<fNumPixels;i++)
 	{
-	  int fNumTimes=fPixel[i].fTimePe.size();
+	  int fNumTimes=fPixel.at(i).fTimePe.size();
 	  if(fNumTimes>0)
 	    {
 	      float fIndex=-(float)(i+1); //- sign flags start of a pixels 
@@ -370,7 +370,7 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 		{
 		  //Times may be negative for inclined showers, so subtract 
 		  //out the minimum time seen.
-		  float fPeTime=fPixel[i].fTimePe[j] - fBasePeTime;
+		  float fPeTime=fPixel.at(i).fTimePe.at(j) - fBasePeTime;
 		  fCompressionBuffer.push_back(fPeTime);
 		}
 	    }
@@ -381,7 +381,7 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 
       for(int i=0;i<fNumInBuffer;i++)  
 	{
-	  pfWriteBuffer[i]=fCompressionBuffer[i];
+	  pfWriteBuffer[i]=fCompressionBuffer.at(i);
 	}
       fLength=fNumInBuffer*sizeof(float);
       //std::cout<<"fLength: "<<fLength<<std::endl;
@@ -693,7 +693,7 @@ bool KSTeFile::ReadTePixelData(std::vector<KSPixel>& fPixel)
      int fNumPixels=fPixel.size();
      for(int i=0;i<fNumPixels;i++)
        {
-	 fPixel[i].fTimePe.clear();
+	 fPixel.at(i).fTimePe.clear();
        }
 
      int fPixelIndex=-1;
@@ -712,7 +712,7 @@ bool KSTeFile::ReadTePixelData(std::vector<KSPixel>& fPixel)
 	   }
 	 else
 	   {
-	     fPixel[fPixelIndex].fTimePe.push_back(pfReadBuffer[i]+fBaseTime);
+	     fPixel.at(fPixelIndex).fTimePe.push_back(pfReadBuffer[i]+fBaseTime);
 	   }
        }
      fFoundError=false;
@@ -731,12 +731,12 @@ float KSTeFile::getMinPeTime(std::vector<KSPixel>& fPixel)
   float fFirstPeTime=0.0;     //defaults to 0
   for(int i=0;i<fNumPixels;i++)
     {
-      int fNumTimes=fPixel[i].fTimePe.size();
+      int fNumTimes=fPixel.at(i).fTimePe.size();
       if(fNumTimes>0)
 	{
 	  for(int j=0;j<fNumTimes;j++)
 	    {
-		float fPeTime=fPixel[i].fTimePe[j];
+	      float fPeTime=fPixel.at(i).fTimePe.at(j);
 		if(fPeTime<fFirstPeTime)
 		  {
 		    fFirstPeTime=fPeTime;

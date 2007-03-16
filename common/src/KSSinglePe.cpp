@@ -52,18 +52,19 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
       exit(1);
     }
   fNumBinsInPulse=fNumBinsInRisingPulse+fNumBinsInFallingPulse;
-  pfSinglePulse=new double[fNumBinsInPulse];
+  pfSinglePulse.clear();
+  pfSinglePulse.resize(fNumBinsInPulse);
 
   // ********************************************************************
   // Interpolate rising part of pulse
   // ********************************************************************
   if(fNumBinsInRisingPulse==kBaseRiseSize)
     {                                   //No change from base.
-      for(int i=0;i<fNumBinsInRisingPulse;i++)pfSinglePulse[i]=kBasePulse[i];
+      for(int i=0;i<fNumBinsInRisingPulse;i++)pfSinglePulse.at(i)=kBasePulse[i];
     }            
   else
     {
-      pfSinglePulse[0]=kBasePulse[0];    //Starts at same place
+      pfSinglePulse.at(0)=kBasePulse[0];    //Starts at same place
       for (int j=1;j<fNumBinsInRisingPulse-1; j++)
 	                                 //different from base:interpolate.
 	{
@@ -78,11 +79,11 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 		       <<std::endl;
 	      exit(1);
 	    }
-	  pfSinglePulse[j]=kBasePulse[k]+
+	  pfSinglePulse.at(j)=kBasePulse[k]+
 	                           fFraction*(kBasePulse[k+1]-kBasePulse[k]);
 	}
                                          //ends at same place. (1.0)
-      pfSinglePulse[fNumBinsInRisingPulse-1]=kBasePulse[kBaseRiseSize-1];  
+      pfSinglePulse.at(fNumBinsInRisingPulse-1)=kBasePulse[kBaseRiseSize-1];  
     }
   // **********************************************************************
   //Now the falling second half of the pulse.
@@ -93,7 +94,7 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 	{
 	  int j=fNumBinsInRisingPulse+i;
 	  int k=kBaseRiseSize+i;
-	  pfSinglePulse[j]=kBasePulse[k];
+	  pfSinglePulse.at(j)=kBasePulse[k];
 	}
     }
   else
@@ -123,14 +124,14 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 	    }
 
 	  int m=fNumBinsInRisingPulse+j;
-	  pfSinglePulse[m]=kBasePulse[k]+fFraction*fBaseDifference;
+	  pfSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
 	}
                                          //ends at same place.
-      pfSinglePulse[fNumBinsInPulse-1]=kBasePulse[kBaseSize-1];  
+      pfSinglePulse.at(fNumBinsInPulse-1)=kBasePulse[kBaseSize-1];  
     }
   fLengthNS=fNumBinsInPulse*gWaveFormBinSizeNS;
   fArea=0;
-  for(int i=0;i<fNumBinsInPulse;i++)fArea+=pfSinglePulse[i];
+  for(int i=0;i<fNumBinsInPulse;i++)fArea+=pfSinglePulse.at(i);
 }
 // ************************************************************************
 
@@ -238,7 +239,7 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
       for(int i=0;i<fNumBinsInPulse;i++)
 	{
 	  int k=j+i;
-	  fPulse[k]=1000.*pfSinglePulse[i];
+	  fPulse.at(k)=1000.*pfSinglePulse.at(i);
 	}
       // **********************************************************************
       // Because we use so many pe's here we don't really need to worry about 
@@ -262,7 +263,7 @@ void  KSSinglePe::PrintSinglePe()
   for(int i=0;i<fNumBinsInPulse;i++)
     {
       double fBinTime=i*gWaveFormBinSizeNS;
-      std::cout<<fBinTime<<" "<<pfSinglePulse[i]<<std::endl;
+      std::cout<<fBinTime<<" "<<pfSinglePulse.at(i)<<std::endl;
     }
   return;
 }

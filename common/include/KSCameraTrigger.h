@@ -57,7 +57,7 @@ class KSCameraTrigger
   int fNumPixelsTrigger;
   int fPatternTriggerLevel;
   int fTriggerMultiplicity;
-  double* pfTimeTrigger;
+  std::vector< double> pfTimeTrigger;
 
   float fXDummy;
 };

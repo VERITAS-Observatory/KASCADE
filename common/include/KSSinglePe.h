@@ -12,6 +12,7 @@
 
 #include "KSCommon.h"
 #include "KSFADC.h"
+#include <vector>
 
 
 //const double kSinglePePulseHeightSigma=.275;
@@ -58,7 +59,7 @@ class KSSinglePe
 
   void  PrintSinglePe();
 
-  double* pfSinglePulse;
+  std::vector< double > pfSinglePulse;
   int fNumBinsInPulse;
 };  
 

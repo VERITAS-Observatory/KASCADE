@@ -24,14 +24,19 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 // ***************************************************************************
 {
   fNumCells=NumCells;
-  pfCellX= new double[fNumCells];
-  pfCellY= new double[fNumCells];
-  pfCellRadius= new double[fNumCells];
+  pfCellX.clear();
+  pfCellX.resize(fNumCells);
+
+  pfCellY.clear();
+  pfCellY.resize(fNumCells);
+
+  pfCellRadius.clear();
+  pfCellRadius.resize(fNumCells);
   for(int i=0;i<fNumCells;i++)
     {
-      pfCellX[i]      = (double)pCellXLocations[i];
-      pfCellY[i]      = (double)pCellYLocations[i];
-      pfCellRadius[i] = (double)pCellRadius[i];
+      pfCellX.at(i)      = (double)pCellXLocations[i];
+      pfCellY.at(i)      = (double)pCellYLocations[i];
+      pfCellRadius.at(i) = (double)pCellRadius[i];
     }
   // *************************************************************************
   // Now create the grid first index is x, second is y, third will be position 
@@ -45,36 +50,34 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
   pfCellGrid.resize(fNumGridAreasX);
   for(int i=0;i<fNumGridAreasX;i++)
     {
-      pfCellGrid[i].resize(fNumGridAreasY);
+      pfCellGrid.at(i).resize(fNumGridAreasY);
       for(int j=0;j<fNumGridAreasY;j++)
 	{
-	  pfCellGrid[i][j].clear();   //Just to be sure.
-	  //std::cout<<"i,j,size: "<<i<<" "<<j<<" "<<pfCellGrid[i][j].size()
-	  //	   <<std::endl;
+	  pfCellGrid.at(i).at(j).clear();   //Just to be sure.
 	}
     }
   // **********************************************************************
   // Find minimum and max X and Y of grid.
   // **********************************************************************
-  double fGridMin=pfCellX[0]-2*pfCellRadius[0];  //starting place  
-  double fGridMax=pfCellX[0]+2*pfCellRadius[0];  //starting place  
+  double fGridMin=pfCellX.at(0)-2*pfCellRadius.at(0);  //starting place  
+  double fGridMax=pfCellX.at(0)+2*pfCellRadius.at(0);  //starting place  
   for(int i=0;i<fNumCells;i++)
     {
-      if(pfCellX[i]-2*pfCellRadius[i]<fGridMin)
+      if(pfCellX.at(i)-2*pfCellRadius.at(i)<fGridMin)
 	{
-	  fGridMin=pfCellX[i]-2*pfCellRadius[i];
+	  fGridMin=pfCellX.at(i)-2*pfCellRadius.at(i);
 	}
-      if(pfCellY[i]-2*pfCellRadius[i]<fGridMin)
+      if(pfCellY.at(i)-2*pfCellRadius.at(i)<fGridMin)
 	{
-	  fGridMin=pfCellY[i]-2*pfCellRadius[i];
+	  fGridMin=pfCellY.at(i)-2*pfCellRadius.at(i);
 	}
-      if(pfCellX[i]+2*pfCellRadius[i]>fGridMax)
+      if(pfCellX.at(i)+2*pfCellRadius.at(i)>fGridMax)
 	{
-	  fGridMax=pfCellX[i]+2*pfCellRadius[i];
+	  fGridMax=pfCellX.at(i)+2*pfCellRadius.at(i);
 	}
-      if(pfCellY[i]+2*pfCellRadius[i]>fGridMax)
+      if(pfCellY.at(i)+2*pfCellRadius.at(i)>fGridMax)
 	{
-	  fGridMax=pfCellY[i]+2*pfCellRadius[i];
+	  fGridMax=pfCellY.at(i)+2*pfCellRadius.at(i);
 	}
     }
   
@@ -114,12 +117,12 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 	  for(int k=0;k<fNumCells;k++)
 	    {
 	      double fCenterSeperation=sqrt(
-				    (fGridX-pfCellX[k])*(fGridX-pfCellX[k]) +
-				    (fGridY-pfCellY[k])*(fGridY-pfCellY[k]) );
+			      (fGridX-pfCellX.at(k))*(fGridX-pfCellX.at(k)) +
+			      (fGridY-pfCellY.at(k))* (fGridY-pfCellY.at(k)) );
             // The .87 is round up of .866=cos(30 deg) to get 
 	    // max Hex cell(light cone) size.
 	      if(fCenterSeperation<(fGridAreaDiagonal/2.0)+
-		                                       (pfCellRadius[i]/.87) )
+		                                       (pfCellRadius.at(i)/.87) )
 		{
 		  // This Cell may have area in this GridArea
 		  fCellSep.fSeperation=fCenterSeperation;
@@ -134,10 +137,7 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 	  // ***************************************************************
 	  if(fCellSeperation.size()==1)
 	    {
-	      pfCellGrid[i][j].push_back(fCellSeperation[0].fIndex);
-	      //		  std::cout<<"list:fSeperation,k: "
-	      //		   <<fCellSeperation[0].fSeperation<<" "
-	      //	  	   <<fCellSeperation[0].fIndex<<std::endl;
+	      pfCellGrid.at(i).at(j).push_back(fCellSeperation.at(0).fIndex);
 	    }
 	  else if(fCellSeperation.size()>1)
 	  // ****************************************************************
@@ -153,9 +153,7 @@ KSCellGrid::KSCellGrid(float* pCellXLocations, float* pCellYLocations, float* pC
 	      // *************************************************************
 	      for(int m=0;m<(int)fCellSeperation.size();m++)
 		{
-		  pfCellGrid[i][j].push_back(fCellSeperation[m].fIndex);
-		  //std::cout<<"list:k: "
-		  //	   <<pfCellGrid[i][j][m]<<std::endl;
+		  pfCellGrid.at(i).at(j).push_back(fCellSeperation.at(m).fIndex);
 		}
 	    }
 	}
@@ -203,10 +201,7 @@ bool KSCellGrid::GetCellIndex(double XLocation, double YLocation,
     }
   
 
-  //std::cout<<"fXIndex,fYIndex,size: "<<fXIndex<<" "<<fYIndex<<" "
-  //	   <<pfCellGrid[fXIndex][fYIndex].size()
-  //	   <<std::endl;
-  int fNumCellsToCheck=pfCellGrid[fXIndex][fYIndex].size();
+  int fNumCellsToCheck=pfCellGrid.at(fXIndex).at(fYIndex).size();
   if(fNumCellsToCheck==0)
     {
       fCellIndex=-1;
@@ -216,10 +211,10 @@ bool KSCellGrid::GetCellIndex(double XLocation, double YLocation,
     {
       for(int i=0;i<fNumCellsToCheck;i++)
 	{
-	  fCellIndex=pfCellGrid[fXIndex][fYIndex][i];
-	  double fX=XLocation-pfCellX[fCellIndex];
-	  double fY=YLocation-pfCellY[fCellIndex];
-	  double fLightConeWidth=2*pfCellRadius[fCellIndex];
+	  fCellIndex=pfCellGrid.at(fXIndex).at(fYIndex).at(i);
+	  double fX=XLocation-pfCellX.at(fCellIndex);
+	  double fY=YLocation-pfCellY.at(fCellIndex);
+	  double fLightConeWidth=2*pfCellRadius.at(fCellIndex);
 	  bool fInCell = IsInCell(fX,fY,fLightConeWidth);
 	  if(fInCell)
 	    {

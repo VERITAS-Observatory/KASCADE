@@ -30,8 +30,8 @@ KSPST::KSPST(KSCameraTypes CameraType, int TriggerMultiplicity)
 
   for(int i=0;i<fNumPatches;i++)
     {
-      pfPixelsInPatch[i].resize(kNumPixelsPerPatch);
-      pfPixelsInPatchTimes[i].resize(kNumPixelsPerPatch);
+      pfPixelsInPatch.at(i).resize(kNumPixelsPerPatch);
+      pfPixelsInPatchTimes.at(i).resize(kNumPixelsPerPatch);
     }
   FillPixelsInPatch();
 
@@ -64,7 +64,8 @@ KSPST::~KSPST()
 }
 // ********************************************************************
 
-bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
+bool KSPST::isTriggered(std::vector< double >& pfTimeTrigger, 
+			double& fImageTriggerTime)
 // ****************************************************************************
 // 	Determine if we have a trigger in the pst. If we do put the trigger
 // 	time into fImageTriggerTime. Return true if we have a trigger. 
@@ -99,23 +100,25 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 // Note: Pixels start at 1, pixel index's start at 0
 //       Missing patch pixels flaged as -1
 // **********************************************************************
-	  int fPixelIndex=pfPixelsInPatch[i][j];  //Get a pixel index 
+	  int fPixelIndex=pfPixelsInPatch.at(i).at(j);  //Get a pixel index 
 	  if(fPixelIndex>=0)
 	    {
-	      pfPixelsInPatchTimes[i][j].fTime=pfTimeTrigger[fPixelIndex]; 
-	      pfPixelsInPatchTimes[i][j].fIndex=j; //do this for sort
+	      pfPixelsInPatchTimes.at(i).at(j).fTime=
+		                               pfTimeTrigger.at(fPixelIndex); 
+	      pfPixelsInPatchTimes.at(i).at(j).fIndex=j; //do this for sort
 	    }
 	  else
 	    {
-	      pfPixelsInPatchTimes[i][j].fTime=gOverflowTime;
-	      pfPixelsInPatchTimes[i][j].fIndex=-1; 
+	      pfPixelsInPatchTimes.at(i).at(j).fTime=gOverflowTime;
+	      pfPixelsInPatchTimes.at(i).at(j).fIndex=-1; 
 	    }
 	}
       // ****************************************************************
       // Order patch pixel times. Since we defined < operator for KSPixelsTimes
       // this will for by fTime and bring the fIndex along. Tricky!
       // ****************************************************************
-      std::sort(pfPixelsInPatchTimes[i].begin(),pfPixelsInPatchTimes[i].end());
+      std::sort(pfPixelsInPatchTimes.at(i).begin(),
+		                           pfPixelsInPatchTimes.at(i).end());
 					
       // ****************************************************************
       // Look for multiplicity trigger. Slide window returns with 100001. 
@@ -125,9 +128,9 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
       // this mean that once the first multiplcity state is achieved we are 
       // dead for a second even if the first doesn't have a good pattern?
       // *****************************************************************
-      pfPatchTriggerTimes[i].fTime = SlideWindow(pfPixelsInPatchTimes[i],
+      pfPatchTriggerTimes.at(i).fTime = SlideWindow(pfPixelsInPatchTimes.at(i),
 			  gPSTPulseWidthNS[fCameraType],fTriggerMultiplicity);
-      pfPatchTriggerTimes[i].fIndex=i;
+      pfPatchTriggerTimes.at(i).fIndex=i;
     }
 	
   // ***********************************************************************
@@ -137,11 +140,11 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
   std::sort(pfPatchTriggerTimes.begin(),pfPatchTriggerTimes.end());
   for(int i=0;i<fNumPatches;i++)
     {
-      if(pfPatchTriggerTimes[i].fTime >= gOverflowTime)
+      if(pfPatchTriggerTimes.at(i).fTime >= gOverflowTime)
 	{
 	  break;      // Last trigger has been checked.
 	}
-      double fTimeTrigger=pfPatchTriggerTimes[i].fTime;//Get time this patch 
+      double fTimeTrigger=pfPatchTriggerTimes.at(i).fTime;//Get time this patch 
                                                      //triggered.
       double fTimeStrobe=fTimeTrigger+kStrobeDelay;// Get time patch bits are 
 	                                          //strobed into address. If 
@@ -165,19 +168,19 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 
       fMemoryAddressBits.reset();
                        //Cause the 2nd sort rearrainged things
-      int fPatchIndex=pfPatchTriggerTimes[i].fIndex;
+      int fPatchIndex=pfPatchTriggerTimes.at(i).fIndex;
 
       for(int j=0;j<kNumPixelsPerPatch;j++)
 	{				// test pixel is on at strobe time.
-	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime>fTimeStrobe)
+	  if(pfPixelsInPatchTimes.at(fPatchIndex).at(j).fTime>fTimeStrobe)
 	    {
 	      break;  //We are past the gate. Don't need to check anymore.
 	    }
-	  if(pfPixelsInPatchTimes[fPatchIndex][j].fTime+
+	  if(pfPixelsInPatchTimes.at(fPatchIndex).at(j).fTime+
 	                          gPSTPulseWidthNS[fCameraType] >fTimeStrobe)
 	    {
 	      //Cause the 1st sort rearrainged things
-	      int idx=pfPixelsInPatchTimes[fPatchIndex][j].fIndex;
+	      int idx=pfPixelsInPatchTimes.at(fPatchIndex).at(j).fIndex;
 
 	    //std::cout<<" "<<idx<<" "<<pfPixelsInPatch[fPatchIndex][idx]<<" "
 	    //	       <<pfPixelsInPatchTimes[fPatchIndex][j].fTime<<std::endl;
@@ -185,8 +188,8 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 	      if(idx>=0)           //ignore missing pixels (but above should 
 		{		   //have done that)
 		  fMemoryAddressBits.set(idx);
-		  int fPixelInd=pfPixelsInPatch[fPatchIndex][idx];
-		  fL2TriggerPixelsForPatch[fPixelInd]=true;
+		  int fPixelInd=pfPixelsInPatch.at(fPatchIndex).at(idx);
+		  fL2TriggerPixelsForPatch.at(fPixelInd)=true;
 		}	    
 	    }
 	}
@@ -198,9 +201,9 @@ bool KSPST::isTriggered(double* pfTimeTrigger, double& fImageTriggerTime)
 	  pfPatchTriggerPattern[i]=(int)fMemoryAddress;
 	  for(int i=0;i<fNumPixelsCamera;i++)
 	    {
-	      if(fL2TriggerPixelsForPatch[i])
+	      if(fL2TriggerPixelsForPatch.at(i))
 		{
-		  fL2TriggerPixels[i]=true;
+		  fL2TriggerPixels.at(i)=true;
 		}
 	    }
 
@@ -235,7 +238,7 @@ double KSPST::SlideWindow(std::vector<KSPixelTimes>& pfTimes,
   int fNumSearch=pfTimes.size();
   for(int i=0;i<fNumSearch-fMultiplicity+1;i++)
     {
-      double fStartWindow=pfTimes[i].fTime;
+      double fStartWindow=pfTimes.at(i).fTime;
       if(fStartWindow>=gOverflowTime)
 	{
 	  break;
@@ -243,7 +246,7 @@ double KSPST::SlideWindow(std::vector<KSPixelTimes>& pfTimes,
       double fEndWindow=fStartWindow+fWindowWidth;
       for(int j=i+1;j<kNumPixelsPerPatch;j++)
 	{
-	  double fThisPixelTime=pfTimes[j].fTime;
+	  double fThisPixelTime=pfTimes.at(j).fTime;
 	  if(fThisPixelTime>=gOverflowTime)
 	    {
 	      return gOverflowTime;
@@ -436,7 +439,7 @@ void KSPST::FillPixelsInPatch()
       int fY = kPatchV[j]+kMiddlePatchV[fPatch];// y-position within a module  
       int fU = pfA[fModule]*fX + pfB[fModule]*fY + pfU[fModule];//rotate,module
       int fV = pfC[fModule]*fX + pfD[fModule]*fY + pfV[fModule];//rotate,module
-      pfPixelsInPatch[fPatchNumber][j]=pfPixelUV->get(fU,fV);
+      pfPixelsInPatch.at(fPatchNumber).at(j)=pfPixelUV->get(fU,fV);
     }
 
   // ***********************************************************************
@@ -455,7 +458,7 @@ void KSPST::FillPixelsInPatch()
 	      int fY = kPatchV[j]+kMiddlePatchV[fPatch];// y-position
 	      int fU = pfA[fModule]*fX + pfB[fModule]*fY + pfU[fModule];
 	      int fV = pfC[fModule]*fX + pfD[fModule]*fY + pfV[fModule];
-	      pfPixelsInPatch[fPatchNumber][j]=pfPixelUV->get(fU,fV);
+	      pfPixelsInPatch.at(fPatchNumber).at(j)=pfPixelUV->get(fU,fV);
 	    }
 	}
     }
@@ -470,7 +473,7 @@ KSPixelUV::KSPixelUV(int StartIndex, int fNumUVIndex)
   fPixelUV.resize(fNumUVIndex);
   for(int i=0;i<fNumUVIndex;i++)
     {
-      fPixelUV[i].resize(fNumUVIndex);
+      fPixelUV.at(i).resize(fNumUVIndex);
     }
 }
 // *****************************************************************

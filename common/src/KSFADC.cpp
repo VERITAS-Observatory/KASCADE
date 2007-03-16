@@ -76,7 +76,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
       double fSum=0;
       for(int j=fStartBin;j<fStartBin+fNumWaveFormBins1NS;j++)
 	{
-	  fSum+=fWaveForm[j];
+	  fSum+=fWaveForm.at(j);
 	}
       // **********************************************************
       // This is where we add the constant ped.
@@ -90,7 +90,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
                                   //electronics.
 	}
                            //Amplify to digital counts Hi Gain
-      fFADCTrace[i]=(int)fSum;  
+      fFADCTrace.at(i)=(int)fSum;  
 
 // *****************************************************************
 // Hi/low: If we have a bin that goes over the HiLow threshold (usually about
@@ -101,7 +101,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 // *****************************************************************
       if(fEnableHiLoGainProcessing)
 	{                
-	  if((int)fFADCTrace[i]>gFADCHiLoGainThreshold)   //Look for high/low
+	  if((int)fFADCTrace.at(i)>gFADCHiLoGainThreshold)   //Look for high/low
 	    {
 	      fFADCLowGain=true;  //set Low gain flag.
 	      break;   //Go repeat pulse but at lower gain after a delay.
@@ -122,7 +122,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	  double fSum=0;
 	  for(int j=fStartBin;j<fStartBin+fNumWaveFormBins1NS;j++)
 	    {
-	      fSum+=fWaveForm[j];
+	      fSum+=fWaveForm.at(j);
 	    }
 	  // **********************************************************
 	  // This is where we add the constant ped, and mmplify to digital 
@@ -136,10 +136,10 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	                          //set it to 0, as it would be in the 
                                   //electronics.
 	    }
-	  fFADCTrace[i]=(int)fSum;  
-	  if((int)fFADCTrace[i]>gFADCHiLoGainThreshold) //Look for high/low
+	  fFADCTrace.at(i)=(int)fSum;  
+	  if((int)fFADCTrace.at(i)>gFADCHiLoGainThreshold) //Look for high/low
 	    {
-	      fFADCTrace[i]=gFADCHiLoGainThreshold;       //Saturated
+	      fFADCTrace.at(i)=gFADCHiLoGainThreshold;       //Saturated
 	    }
 	}
     }
@@ -164,7 +164,7 @@ double KSFADC::getWindowArea(int fStartTraceIndex, int fNumBinsToSum)
   for(int i=0;i<fNumBinsToSum;i++)
     {
       int fIndex=fStartTraceIndex+i;
-      fSum+=fFADCTrace[fIndex];
+      fSum+=fFADCTrace.at(fIndex);
     }
   return fSum;
 }
@@ -182,7 +182,7 @@ void  KSFADC::Print(int fStartTraceIndex, int fNumBinsToPrint)
   for(int i=0;i<fNumBinsToPrint;i++)
     {
       int fIndex=fStartTraceIndex+i;
-      std::cout<<i<<" "<<fIndex<<" "<<fFADCTrace[fIndex]<<std::endl;
+      std::cout<<i<<" "<<fIndex<<" "<<fFADCTrace.at(fIndex)<<std::endl;
     }
   return;
 }

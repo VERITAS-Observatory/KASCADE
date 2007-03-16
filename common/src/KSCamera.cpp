@@ -118,23 +118,23 @@ void KSCamera::Print()
 
   std::cout<<"Camera Initalized:"<<std::endl;
   std::cout<<"         Pixel 1 light Total collection effciency = "
-	   <<fPixel[0].fEfficiency<<std::endl;
+	   <<fPixel.at(0).fEfficiency<<std::endl;
   std::cout<<"    Pixel 1 Total Light Cone collection effciency = "
-	   <<fPixel[0].fEfficiency/fPixel[0].fBaseEfficiency<<std::endl;
+	   <<fPixel.at(0).fEfficiency/fPixel.at(0).fBaseEfficiency<<std::endl;
   std::cout<<"            Pixel 1 Single Pe Mean FADC Area (DC) = "
-	   <<fPixel[0].fSinglePeMeanFADCArea<<std::endl;
+	   <<fPixel.at(0).fSinglePeMeanFADCArea<<std::endl;
 
   pfCameraTrigger->Print();
 
   std::cout<<"                  Pixel 1 Single Pe Rise Time(ns) = "
-	   <<fPixel[0].pfSinglePe->getRiseTimeNS()<<std::endl;
+	   <<fPixel.at(0).pfSinglePe->getRiseTimeNS()<<std::endl;
   std::cout<<"                  Pixel 1 Single Pe Fall Time(ns) = "
-	   <<fPixel[0].pfSinglePe->getFallTimeNS()<<std::endl;
+	   <<fPixel.at(0).pfSinglePe->getFallTimeNS()<<std::endl;
 
 
-  //fPixel[0].pfSinglePe->PrintSinglePe();
+  //fPixel.at(0).pfSinglePe->PrintSinglePe();
 
-//fPixel[0].PrintPulseHeightsOfLightPulse();
+//fPixel.at(0).PrintPulseHeightsOfLightPulse();
 
   return;
 }
@@ -175,11 +175,11 @@ void KSCamera::generateCameraPixels()
                         gPixelHalfSpacingMM[fCameraType]/(fMetersPerDeg*1000.);
   for(int i=0;i<fNumPixels;i++)
     {
-      fPixel[i].fID=i;  //Set pixel index ID's
-      fPixel[i].fHalfSpacingDeg = fHalfSpacingDeg;
-      fPixel[i].fRadiusDeg      = (double)pfTelescopePixelRadius[i];
-      fPixel[i].fXDeg           = (double)pfTelescopePixelX[i];
-      fPixel[i].fYDeg           = (double)pfTelescopePixelY[i];
+      fPixel.at(i).fID=i;  //Set pixel index ID's
+      fPixel.at(i).fHalfSpacingDeg = fHalfSpacingDeg;
+      fPixel.at(i).fRadiusDeg      = (double)pfTelescopePixelRadius[i];
+      fPixel.at(i).fXDeg           = (double)pfTelescopePixelX[i];
+      fPixel.at(i).fYDeg           = (double)pfTelescopePixelY[i];
     }
 
 
@@ -258,16 +258,16 @@ void KSCamera::generateCameraPixels()
    double fThreshold       = pfTeHead->fDiscriminatorThresholdPes;
    for(int i=0;i<fNumPixels;i++)
      {
-       double fHalfSpc       = fPixel[i].fHalfSpacingDeg;
+       double fHalfSpc       = fPixel.at(i).fHalfSpacingDeg;
        double fActiveCathodeRadiusDeg =
                   gPixelActiveCathRadiusMM[fCameraType]/(fMetersPerDeg*1000.);
        double fRadSpace =fActiveCathodeRadiusDeg/fHalfSpc;
-       //double fRadSpace      = (fPixel[i].fRadiusDeg/fHalfSpc);
+       //double fRadSpace      = (fPixel.at(i).fRadiusDeg/fHalfSpc);
        double fFracPMTArea   = 0.9069*fRadSpace*fRadSpace;
        double fPixelEff      = (fFracPMTArea+fLightConeEff*(1.0-fFracPMTArea));
        double fEfficiency    = fBaseEfficiency*fPixelEff;
-       fPixel[i].fBaseEfficiency = fBaseEfficiency;
-       fPixel[i].fEfficiency = fEfficiency;
+       fPixel.at(i).fBaseEfficiency = fBaseEfficiency;
+       fPixel.at(i).fEfficiency = fEfficiency;
 
        // *******************************************************************
        // Noise generation: Num of pe's in disc window from sky shine.
@@ -282,9 +282,9 @@ void KSCamera::generateCameraPixels()
 	                    (sqrt(3)*2*fHalfSpc*fHalfSpc) //Hexagon pixel area
 	                    *fPixelEff;                   //Lightcone eff.
 
-       fPixel[i].fNoiseRatePerNS=fPixNoiseRate;
-       fPixel[i].fDiscNoise  = fPixNoiseRate*fDiscGateNS;
-       fPixel[i].fThreshold= fThreshold;
+       fPixel.at(i).fNoiseRatePerNS=fPixNoiseRate;
+       fPixel.at(i).fDiscNoise  = fPixNoiseRate*fDiscGateNS;
+       fPixel.at(i).fThreshold= fThreshold;
      }
 
    // ********************************************************************
@@ -294,10 +294,10 @@ void KSCamera::generateCameraPixels()
      {//Note no variance for noise rate
        for(int i=379;i<490;i++)
 	 {
-	   fPixel[i].fBaseEfficiency = fBaseEfficiency;
-	   fPixel[i].fEfficiency = fBaseEfficiency;
-	   fPixel[i].fDiscNoise = fDiscGateNS*fNoiseRate*M_PI*
-	                            fPixel[i].fRadiusDeg*fPixel[i].fRadiusDeg;
+	   fPixel.at(i).fBaseEfficiency = fBaseEfficiency;
+	   fPixel.at(i).fEfficiency = fBaseEfficiency;
+	   fPixel.at(i).fDiscNoise = fDiscGateNS*fNoiseRate*M_PI*
+	                            fPixel.at(i).fRadiusDeg*fPixel.at(i).fRadiusDeg;
 	 }
      }
 
@@ -332,24 +332,24 @@ void KSCamera::loadNoiseRatesAndPeds()
     }
   for(int i=0;i<fNum;i++)
     {
-      if(!fPixel[i].fBadPixel)
+      if(!fPixel.at(i).fBadPixel)
 	{
 	  fNumGoodPixels++;
-	  fPixel[i].fPedVarRel=fPixel[i].fPedVarRel*fPixel[i].fPedVarRel;
-	  fNoiseSum+=fPixel[i].fPedVarRel;
+	  fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
+	  fNoiseSum+=fPixel.at(i).fPedVarRel;
 	}
     }
   double fMeanNoise=fNoiseSum/fNumGoodPixels;
   for(int i=0;i<fNum;i++)
     {
-      if(!fPixel[i].fBadPixel)
+      if(!fPixel.at(i).fBadPixel)
 	{
-	  fPixel[i].fNoiseRatePerNS=
-	       fPixel[i].fNoiseRatePerNS*fPixel[i].fPedVarRel/fMeanNoise;
+	  fPixel.at(i).fNoiseRatePerNS=
+	       fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
 	}
       else
 	{
-	  fPixel[i].fNoiseRatePerNS=0.0;
+	  fPixel.at(i).fNoiseRatePerNS=0.0;
 	}
     }
 
@@ -362,24 +362,24 @@ void KSCamera::loadNoiseRatesAndPeds()
       fNoiseSum=0;
       for(int i=379;i<fNumPixels;i++)
 	{
-	  if(!fPixel[i].fBadPixel)
+	  if(!fPixel.at(i).fBadPixel)
 	    {
 	      fNumGoodPixels++;
-	      fPixel[i].fPedVarRel=fPixel[i].fPedVarRel*fPixel[i].fPedVarRel;
-	      fNoiseSum+=fPixel[i].fPedVarRel;
+	      fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
+	      fNoiseSum+=fPixel.at(i).fPedVarRel;
 	    }
 	}
       fMeanNoise=fNoiseSum/fNumGoodPixels;
       for(int i=379;i<fNumPixels;i++)
 	{
-	  if(!fPixel[i].fBadPixel)
+	  if(!fPixel.at(i).fBadPixel)
 	    {
-	      fPixel[i].fNoiseRatePerNS=
-		   fPixel[i].fNoiseRatePerNS*fPixel[i].fPedVarRel/fMeanNoise;
+	      fPixel.at(i).fNoiseRatePerNS=
+		   fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
 	    }
 	  else
 	    {
-	      fPixel[i].fNoiseRatePerNS=0.0;
+	      fPixel.at(i).fNoiseRatePerNS=0.0;
 	    }
 	}
     }
@@ -389,24 +389,24 @@ void KSCamera::loadNoiseRatesAndPeds()
 // **************************************************************************
   for(int i=0;i<fNumPixels;i++)
     {
-      if(!fPixel[i].fBadPixel)
+      if(!fPixel.at(i).fBadPixel)
 	{
-	  fPixel[i].DetermineNoisePedestals();
+	  fPixel.at(i).DetermineNoisePedestals();
 	}
       else
 	{
-	  fPixel[i].fWaveFormNightSkyPedestal=0.0;
-	  fPixel[i].fChargeVarPE=0.0;
-	  fPixel[i].fChargeVarDC=0.0;
-	  fPixel[i].fPedDC=0.0;
+	  fPixel.at(i).fWaveFormNightSkyPedestal=0.0;
+	  fPixel.at(i).fChargeVarPE=0.0;
+	  fPixel.at(i).fChargeVarDC=0.0;
+	  fPixel.at(i).fPedDC=0.0;
 	}
       // Fill in stuff used to make ped traces
-      fPedPixels[i].fNoiseRatePerNS = fPixel[i].fNoiseRatePerNS;
-      fPedPixels[i].fWaveFormNightSkyPedestal = 
-	                                   fPixel[i].fWaveFormNightSkyPedestal;
-      fPedPixels[i].fChargeVarPE    = fPixel[i].fChargeVarPE;
-      fPedPixels[i].fChargeVarDC    = fPixel[i].fChargeVarDC;
-      fPedPixels[i].fPedDC          = fPixel[i].fPedDC;
+      fPedPixels.at(i).fNoiseRatePerNS = fPixel.at(i).fNoiseRatePerNS;
+      fPedPixels.at(i).fWaveFormNightSkyPedestal = 
+	                                   fPixel.at(i).fWaveFormNightSkyPedestal;
+      fPedPixels.at(i).fChargeVarPE    = fPixel.at(i).fChargeVarPE;
+      fPedPixels.at(i).fChargeVarDC    = fPixel.at(i).fChargeVarDC;
+      fPedPixels.at(i).fPedDC          = fPixel.at(i).fPedDC;
     } 
   return;
 }
@@ -478,8 +478,9 @@ bool KSCamera::trywhipple490OuterPixels(double fXDeg, double fYDeg, int& fIPix)
 	  double fPMTRadiusDegSquared=fPMTRadiusDeg*fPMTRadiusDeg;
 	  for(int j=0;j<37;j++)
 	    {
-	      double fWDistanceSquared=pow((fPixel[fPixelID+j].fXDeg-fXDeg),2)+
-		pow((fPixel[fPixelID+j].fYDeg-fYDeg),2);
+	      double fWDistanceSquared=
+		pow((fPixel.at(fPixelID+j).fXDeg- fXDeg),2)+
+		pow((fPixel.at(fPixelID+j).fYDeg-fYDeg),2);
 	      if(fWDistanceSquared<=fPMTRadiusDegSquared)
 		{
 		  fIPix=fPixelID+j;	// Found a hit
@@ -508,11 +509,11 @@ void KSCamera::InitPixelImageData()
 {
   for(int i=0;i<fNumPixels;i++)
     {
-      fPixel[i].fDisc=0;               //Counts hits.
-      fPixel[i].fDiscPulseHeight=0;
-      fPixel[i].fDiscTrigger=false;        //This pixels fires
-      fPixel[i].fTimePe.clear();
-      fPixel[i].fCFDTriggerTimeNS=gOverflowTime;
+      fPixel.at(i).fDisc=0;               //Counts hits.
+      fPixel.at(i).fDiscPulseHeight=0;
+      fPixel.at(i).fDiscTrigger=false;        //This pixels fires
+      fPixel.at(i).fTimePe.clear();
+      fPixel.at(i).fCFDTriggerTimeNS=gOverflowTime;
     }
   return;
 }
@@ -548,26 +549,26 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
       // This check of fBadPixel leaves the fCFDTriggerTimeNS=gOverflowTimeNS
       // for bad pixels (set in BuildImage by call to InitPixelImageData)
       // ***********************************************************
-      if(fPixel[i].fTimePe.size()>0 && !fPixel[i].fBadPixel)
+      if(fPixel.at(i).fTimePe.size()>0 && !fPixel.at(i).fBadPixel)
 	{
-	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
-	  fPixel[i].BuildPeWaveForm();
-	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,1,0.0);
+	  fPixel.at(i).InitWaveForm(fWaveFormStart,fWaveFormLength);
+	  fPixel.at(i).BuildPeWaveForm();
+	  //if(fPrintWaveForm)fPixel.at(i).PrintWaveForm(nx,ny,1,0.0);
 
-	  fPixel[i].AddNoiseToWaveForm(false);//Note that this noise has not 
+	  fPixel.at(i).AddNoiseToWaveForm(false);//Note that this noise has not 
 	                                      //been modified by overall 
 	                                      //efficiency but has been 
 	                                      //modified by light cone 
 	                                      //efficiency
 
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
-	  fPixel[i].RemovePedestalFromWaveForm(
-					fPixel[i].fWaveFormNightSkyPedestal);
-	  //if(fPrintWaveForm)fPixel[i].PrintWaveForm(nx,ny,2,0.0);
+	  fPixel.at(i).RemovePedestalFromWaveForm(
+					fPixel.at(i).fWaveFormNightSkyPedestal);
+	  //if(fPrintWaveForm)fPixel.at(i).PrintWaveForm(nx,ny,2,0.0);
 
-	  if(fPixel[i].fDisc>0)
+	  if(fPixel.at(i).fDisc>0)
 	    {
-	      bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset,nx,ny);
+	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,nx,ny);
 	      if(fCFDTrig)
 		{
 		  fCFDTriggers++;
@@ -591,19 +592,19 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
       // This check of fBadPixel leaves the fCFDTriggerTimeNS=gOverflowTimeNS
       // For bad pixels (set in BuildImage by call to InitPixelImageData)
       // ***********************************************************
-      if(fPixel[i].fTimePe.size()==0 && !fPixel[i].fBadPixel)
+      if(fPixel.at(i).fTimePe.size()==0 && !fPixel.at(i).fBadPixel)
 	{
-	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
-	  fPixel[i].AddNoiseToWaveForm(false);//Note that this noise has not 
+	  fPixel.at(i).InitWaveForm(fWaveFormStart,fWaveFormLength);
+	  fPixel.at(i).AddNoiseToWaveForm(false);//Note that this noise has not 
 	                                      //been modified by overall 
 	                                      //efficiency but has been 
 	                                      //modified by light cone 
 	                                      //efficiency
 
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
-	  fPixel[i].RemovePedestalFromWaveForm(
-					fPixel[i].fWaveFormNightSkyPedestal);
-	  bool fCFDTrig=pfCFD->isFired(fPixel[i],fStartTimeOffset,nx,ny);
+	  fPixel.at(i).RemovePedestalFromWaveForm(
+					fPixel.at(i).fWaveFormNightSkyPedestal);
+	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,nx,ny);
 	  if(fCFDTrig)
 	    {
 	      fCFDTriggers++;
@@ -625,14 +626,14 @@ void KSCamera::buildNonTriggerWaveForms()
       // **************************************************************
       // This check of fBadPixel just saves some time
       // ***********************************************************
-      if(!fPixel[i].fBadPixel)
+      if(!fPixel.at(i).fBadPixel)
 	{
-	  fPixel[i].InitWaveForm(fWaveFormStart,fWaveFormLength);
-	  if(fPixel[i].fTimePe.size()>0)
+	  fPixel.at(i).InitWaveForm(fWaveFormStart,fWaveFormLength);
+	  if(fPixel.at(i).fTimePe.size()>0)
 	    {
-	      fPixel[i].BuildPeWaveForm();
+	      fPixel.at(i).BuildPeWaveForm();
 	    }
-	  fPixel[i].AddNoiseToWaveForm(false);//Note that this noise has not 
+	  fPixel.at(i).AddNoiseToWaveForm(false);//Note that this noise has not 
 	                                      //been modified by overall 
 	                                      //efficiency but has been 
 	                                      //modified by light cone 
@@ -640,8 +641,8 @@ void KSCamera::buildNonTriggerWaveForms()
 
 
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
-	  fPixel[i].RemovePedestalFromWaveForm(
-					fPixel[i].fWaveFormNightSkyPedestal);
+	  fPixel.at(i).RemovePedestalFromWaveForm(
+					fPixel.at(i).fWaveFormNightSkyPedestal);
 	}
     } 
   return;
@@ -660,12 +661,12 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   double fPixelMaxTimeNS=0;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
-      int fNumPes=fPixel[i].fTimePe.size();
+      int fNumPes=fPixel.at(i).fTimePe.size();
       if(fNumPes>0)
 	{
 	  for(int j=0;j<fNumPes;j++)
 	    {
-	      double fPeTime=fPixel[i].fTimePe[j];
+	      double fPeTime=fPixel.at(i).fTimePe.at(j);
 	      if(fPeTime<fPixelMinTimeNS)
 		{
 		  fPixelMinTimeNS=fPeTime;
@@ -683,7 +684,7 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   fPixelMaxTimeNS = fPixelMaxTimeNS 
                                  + gCFDDelayNS[fCameraType]
                                  + gCFDTriggerDelayNS[fCameraType]  
-                                 + fPixel[0].fSinglePeSizeNS
+                                 + fPixel.at(0).fSinglePeSizeNS
                                  + gFADCBinSizeNS*gFADCNumSamples[fCameraType] 
                                  - gFADCDelayNS;
   fWaveFormLength = fPixelMaxTimeNS-fWaveFormStartNS;
@@ -702,9 +703,9 @@ void KSCamera::loadAPedestalEventIntoPedPixels()
   double fTraceLengthNS=gFADCNumSamples[fCameraType]*gFADCBinSizeNS+1;
   for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
     {
-      fPedPixels[i].InitWaveForm(0.0,fTraceLengthNS);
+      fPedPixels.at(i).InitWaveForm(0.0,fTraceLengthNS);
       bool fAfterPulse=false;
-      fPedPixels[i].AddNoiseToWaveForm(fAfterPulse);  
+      fPedPixels.at(i).AddNoiseToWaveForm(fAfterPulse);  
       //Note that this noise has not been modified by overall efficiency 
       //but has been modified by light cone efficiency
       // ****************************************************************
@@ -712,34 +713,10 @@ void KSCamera::loadAPedestalEventIntoPedPixels()
       // ADC/FADC is ac coupled(0 mean) which in our case means the night 
       // sky pedestal has to be removed. 
       // ****************************************************************
-      fPedPixels[i].RemovePedestalFromWaveForm(
-			     fPedPixels[i].fWaveFormNightSkyPedestal);
+      fPedPixels.at(i).RemovePedestalFromWaveForm(
+			     fPedPixels.at(i).fWaveFormNightSkyPedestal);
     }
   return;
 }
 // ***********************************************************************
-
-//bool KSCamera::isCFDTriggered(int fPixelIndex)
-// ***********************************************************************
-// Determine if pixel 's CFD is firing at time of the trigger.
-// ***********************************************************************
-//{
-//  bool fCFDTriggered=false;
-//  if(fPixel[fPixelIndex].fCFDTriggerTimeNS < gOverflowTime)
-//    {
-//      if(getPSTTriggerTimeNS()>=fPixel[fPixelIndex].fCFDTriggerTimeNS)       //{
-//	  if(getPSTTriggerTimeNS()<=
-//	               fPixel[fPixelIndex].fCFDTriggerTimeNS+gPSTPulseWidthNS)
-//	    {
-//	      std::cout<<"getPSTTriggerTimeNS,i,time: "
-//		       <<getPSTTriggerTimeNS()<<" "<<fPixelIndex<<" "
-//		       <<fPixel[fPixelIndex].fCFDTriggerTimeNS<<std::endl;
-//	      fCFDTriggered=true;
-//	    }
-//	}
-//  }
-//  return fCFDTriggered;
-//}
-
-// **************************************************************************
 
