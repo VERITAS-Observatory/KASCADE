@@ -80,11 +80,11 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	       <<std::endl;
       for(int i=0;i<fNumPixels;i++)
 	{
-	  pfCamera->fPixel[i].fRelativeGain=1;//Used in 1 place:FADC TRaces
+	  pfCamera->fPixel.at(i).fRelativeGain=1;//Used in 1 place:FADC TRaces
 	                                    //affects effective CFD thresholds
-	  pfCamera->fPixel[i].fPedVarRel=1;//This is relative pedvars at this 
+	  pfCamera->fPixel.at(i).fPedVarRel=1;//This is relative pedvars at this 
 	                                //point.Used to model night sky.
-	  pfCamera->fPixel[i].fBadPixel=false;      //Set all pixels ON.
+	  pfCamera->fPixel.at(i).fBadPixel=false;      //Set all pixels ON.
 	}
       
       fFirstValidEventTime.setFromString(kFirstValidEventTimeStr.c_str());
@@ -260,7 +260,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    {
 	     gain=pfRelGain->getRelGainMean(fTel,chan, ifLO);
 	    }
-	  pfCamera->fPixel[chan].fRelativeGain=gain;
+	  pfCamera->fPixel.at(chan).fRelativeGain=gain;
 
 	  double pedvar=1;
 	  if(pfDataIn->fUseRelativePedVars)
@@ -268,7 +268,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	      pedvar= pfPeds->getTraceVar(fFirstValidEventTime,fTel,chan,
 			       winSize)/gain;
 	    }
-	  pfCamera->fPixel[chan].fPedVarRel=pedvar; 
+	  pfCamera->fPixel.at(chan).fPedVarRel=pedvar; 
 
 	  bool fPixelSuppressed=false;
 	  bool fChannelIsPMT=true;
@@ -281,7 +281,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	  if(fPixelSuppressed || !fChannelIsPMT)
 	    {
-	      pfCamera->fPixel[chan].fBadPixel=true;
+	      pfCamera->fPixel.at(chan).fBadPixel=true;
 	      if(fNumBadPixels%10==0)
 		{
 		  std::cout<<std::endl;
@@ -292,7 +292,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	  else
 	    {
-	      pfCamera->fPixel[chan].fBadPixel=false;
+	      pfCamera->fPixel.at(chan).fBadPixel=false;
 	    }
 	}
       if(fNumBadPixels>0)
@@ -349,23 +349,23 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       bool  off[fNumPixels];
       for(int i=0;i<fNumPixels;i++)
 	{
-	  gain[i] = (float)pfCamera->fPixel[i].fRelativeGain;
-	  off[i]  = pfCamera->fPixel[i].fBadPixel;
+	  gain[i] = (float)pfCamera->fPixel.at(i).fRelativeGain;
+	  off[i]  = pfCamera->fPixel.at(i).fBadPixel;
 	  if(fCameraType==WHIPPLE490)
 	    {
 	      // *********************************************************
 	      // Now we apply the DigitalCountsPerPE for whipple only here. 
 	      // For VERITAS499 this is applied within the KSFADC function
 	      // *********************************************************
-	      ped[i]  = (float)pfCamera->fPixel[i].fPedPE*
+	      ped[i]  = (float)pfCamera->fPixel.at(i).fPedPE*
 		pfDataIn->fDigitalCountsPerPE;
-	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarPE*
+	      pedvar[i]=(float)pfCamera->fPixel.at(i).fChargeVarPE*
 		pfDataIn->fDigitalCountsPerPE;
 	    }
 	  else if(fCameraType==VERITAS499)
 	    {
-	      ped[i]  = (float)pfCamera->fPixel[i].fPedDC;
-	      pedvar[i]=(float)pfCamera->fPixel[i].fChargeVarDC;
+	      ped[i]  = (float)pfCamera->fPixel.at(i).fPedDC;
+	      pedvar[i]=(float)pfCamera->fPixel.at(i).fChargeVarDC;
 	    }
 	}
 	
@@ -569,9 +569,9 @@ bool KSEvent::BuildImage()
   // *************************************************************************
   for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
     {
-      if(pfCamera->fPixel[chan].fBadPixel)
+      if(pfCamera->fPixel.at(chan).fBadPixel)
 	{
-	  pfCamera->fPixel[chan].fTimePe.clear();
+	  pfCamera->fPixel.at(chan).fTimePe.clear();
 	}
     }
   return false;        //False indicates event was read in ok and we are not at
@@ -822,7 +822,7 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   //First fill the Calibrated Telescope event
   // ****************************************************************
   pfCalEvent->fTelEvents.resize(1);
-  pfCalEvent->fTelEvents[0].fTelTime=EventTime;
+  pfCalEvent->fTelEvents.at(0).fTelTime=EventTime;
   VAPointingData fPointing;
 
   // *******************************************************************
@@ -841,16 +841,16 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 				fSourceRA2000,fSourceDec2000);
   fPointing.fCorRA  = fSourceRA2000;  //radians
   fPointing.fCorDec = fSourceDec2000;  //radians
-  pfCalEvent->fTelEvents[0].fPointingData=fPointing;
+  pfCalEvent->fTelEvents.at(0).fPointingData=fPointing;
       
-  pfCalEvent->fTelEvents[0].fTelID=pfDataIn->fTelescope;
+  pfCalEvent->fTelEvents.at(0).fTelID=pfDataIn->fTelescope;
 
   for(uint16_t i=0;i<fNumPixels;i++)  // No zero supression yet
     {
       // *************************************************************
       // ONly good, 'Live' pixels go out to fTelEvents
       // *******************************************************
-      if(!pfCamera->fPixel[i].fBadPixel)
+      if(!pfCamera->fPixel.at(i).fBadPixel)
 	{
 	  VATraceData chanData;
 	  chanData.fChanID=i;
@@ -859,17 +859,17 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 	      if(!fPedestalEvent)
 		{
 		  chanData.fCharge=
-		    pfCamera->fPixel[i].GetCharge(fFADCStartGateTimeNS,
+		    pfCamera->fPixel.at(i).GetCharge(fFADCStartGateTimeNS,
 						  fPedestalEvent);
 		  chanData.fSignalToNoise=chanData.fCharge/
-		    pfCamera->fPixel[i].fChargeVarPE;
+		    pfCamera->fPixel.at(i).fChargeVarPE;
 		}
 	      else
 		{
 		  chanData.fCharge=
-		    pfCamera->fPedPixels[i].GetCharge(0,fPedestalEvent);
+		    pfCamera->fPedPixels.at(i).GetCharge(0,fPedestalEvent);
 		  chanData.fSignalToNoise=chanData.fCharge/
-		    pfCamera->fPixel[i].fChargeVarPE;
+		    pfCamera->fPixel.at(i).fChargeVarPE;
 		}
 	      // *********************************************************
 	      // Now we apply the DigitalCountsPerPE for whipple onlyhere. 
@@ -886,22 +886,22 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 		  double fChargeStartTimeNS=fFADCStartGateTimeNS-
 		                            gFADCWindowOffsetNS[VERITAS499]+
 		                            gFADCChargeOffsetNS[VERITAS499];
-		  chanData.fCharge=pfCamera->fPixel[i].GetCharge(
+		  chanData.fCharge=pfCamera->fPixel.at(i).GetCharge(
 					fChargeStartTimeNS, fPedestalEvent);
 		  chanData.fSignalToNoise=chanData.fCharge/
-		    pfCamera->fPixel[i].fChargeVarDC;
+		    pfCamera->fPixel.at(i).fChargeVarDC;
 		}
 	      else
 		{
-		  chanData.fCharge=pfCamera->fPedPixels[i].GetCharge(
+		  chanData.fCharge=pfCamera->fPedPixels.at(i).GetCharge(
 			       gFADCChargeOffsetNS[VERITAS499],fPedestalEvent);
 		  chanData.fSignalToNoise=chanData.fCharge/
-		    pfCamera->fPixel[i].fChargeVarDC;
+		    pfCamera->fPixel.at(i).fChargeVarDC;
 		}
 	    }
 	  chanData.fHiLo=false;  //We assume always hi gain mode for now.
 	  chanData.fWindowWidth=gFADCWinSize[fCameraType];
-	  pfCalEvent->fTelEvents[0].fChanData.push_back(chanData);
+	  pfCalEvent->fTelEvents.at(0).fChanData.push_back(chanData);
 	}
     }
   // ****************************************************************

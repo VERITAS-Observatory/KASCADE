@@ -307,7 +307,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
                                        // specify which channels triggered.
       for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType];++k) 
 	{
-	  if(!pfCamera->fPixel[k].fBadPixel)
+	  if(!pfCamera->fPixel.at(k).fBadPixel)
 	    {
 	      event->setTriggerBit(k,pfCamera->isCFDTriggered(k));
 	    }
@@ -367,7 +367,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
       // *****************************************************************
       event->setCharge(k,0);          //Always set to 0.
       event->setPedestal(k,0);
-      if(pfCamera->fPixel[k].fBadPixel)
+      if(pfCamera->fPixel.at(k).fBadPixel)
 	{
 	  event->setHiLo(k,false); //set hi?
 	  for (unsigned l=0; l<event->getNumSamples(); ++l)
@@ -382,8 +382,8 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	  if(!fPedestalEvent)
 	    {
 	      int fStartGateBin=(int)((fFADCStartGateTimeNS-
-				       gFADCWindowOffsetNS[fCameraType]-
-				       pfCamera->fPixel[k].fWaveFormStartNS)/
+				      gFADCWindowOffsetNS[fCameraType]-
+				      pfCamera->fPixel.at(k).fWaveFormStartNS)/
 				      gWaveFormBinSizeNS);
 	      if(fStartGateBin<0)
 		{
@@ -392,7 +392,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 		    "gFADCWindowOffsetNS,fWaveFormStartNS,gWaveFormBinSizeNS"
 			   <<fStartGateBin<<" "<<fFADCStartGateTimeNS<<" "
 			   <<gFADCWindowOffsetNS[fCameraType]<<" "
-			   <<pfCamera->fPixel[k].fWaveFormStartNS<<" "
+			   <<pfCamera->fPixel.at(k).fWaveFormStartNS<<" "
 			   <<gWaveFormBinSizeNS<<std::endl;
 		  std::cerr<<"KSVBFFile: Setting start Gate bin to 0"
 			   <<std::endl;
@@ -402,18 +402,19 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
 	      // pedestal)
 	      // Added in MakeTrace
-	      pfCamera->fPixel[k].fFADC.makeFADCTrace(
-					       pfCamera->fPixel[k].fWaveForm,
+	      pfCamera->fPixel.at(k).fFADC.makeFADCTrace(
+					       pfCamera->fPixel.at(k).fWaveForm,
 					       fStartGateBin, fADCNumBins,true,
 					       gPedestal[VERITAS499]);
 	      // **************************************************************
 	      // Now we are ready to load up the VBF samples.
 	      // ************************************************************* 
-	      event->setHiLo(k,pfCamera->fPixel[k].fFADC.fFADCLowGain);
+	      event->setHiLo(k,pfCamera->fPixel.at(k).fFADC.fFADCLowGain);
 	      for (unsigned l=0; l<event->getNumSamples(); ++l)
 		{
 		  short unsigned int fTrc=
-		  (short unsigned int)pfCamera->fPixel[k].fFADC.fFADCTrace[l];
+		    (short unsigned int)pfCamera->
+		                          fPixel.at(k).fFADC.fFADCTrace.at(l);
 		  event->setSample(k,l,fTrc);
 		}
 	    }
@@ -423,15 +424,16 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
 	      // pedestal)
 	      // Added in MakeTrace
-	      pfCamera->fPedPixels[k].fFADC.makeFADCTrace(
-					  pfCamera->fPedPixels[k].fWaveForm,0,
-					  fADCNumBins,true,
-					  gPedestal[VERITAS499]);
-	      event->setHiLo(k,pfCamera->fPedPixels[k].fFADC.fFADCLowGain);
+	      pfCamera->fPedPixels.at(k).fFADC.makeFADCTrace(
+				    pfCamera->fPedPixels.at(k).fWaveForm,0,
+				    fADCNumBins,true,
+				    gPedestal[VERITAS499]);
+	      event->setHiLo(k,pfCamera->fPedPixels.at(k).fFADC.fFADCLowGain);
 	      for (unsigned l=0; l<event->getNumSamples(); ++l)
 		{
 		  short unsigned int fTrc=
-	      (short unsigned int)pfCamera->fPedPixels[k].fFADC.fFADCTrace[l];
+		    (short unsigned int)pfCamera->
+		    fPedPixels.at(k).fFADC.fFADCTrace.at(l);
 		  event->setSample(k,l,fTrc);
 		}
 	    }
@@ -558,8 +560,8 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   // ********************************************************************
   // Make core relative to center of array.
   // ********************************************************************
-  fCoreEastM  = fCoreEastM  + fArray[fTelID].fRelTelLocEastM;
-  fCoreSouthM = fCoreSouthM + fArray[fTelID].fRelTelLocSouthM;
+  fCoreEastM  = fCoreEastM  + fArray.at(fTelID).fRelTelLocEastM;
+  fCoreSouthM = fCoreSouthM + fArray.at(fTelID).fRelTelLocSouthM;
   // ********************************************************************
   VSimulationData *pfSimdata=
         new VSimulationData(fCORSIKAType,fEnergyGeV, 
@@ -674,9 +676,9 @@ void  KSVBFFile::loadArrayConfiguration()
       for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
 	{
 	  VPixelLocation fPixLoc;
-	  fPixLoc.fPixLocEastAtStowDeg = pfCamera->fPixel[i].fXDeg;
-	  fPixLoc.fPixLocUpAtStowDeg   = pfCamera->fPixel[i].fYDeg;
-	  fPixLoc.fPixRadiusDeg        = pfCamera->fPixel[i].fRadiusDeg;
+	  fPixLoc.fPixLocEastAtStowDeg = pfCamera->fPixel.at(i).fXDeg;
+	  fPixLoc.fPixLocUpAtStowDeg   = pfCamera->fPixel.at(i).fYDeg;
+	  fPixLoc.fPixRadiusDeg        = pfCamera->fPixel.at(i).fRadiusDeg;
 	  fArConfig.fCamera.push_back(fPixLoc);
 	}
       fArray.push_back(fArConfig);
