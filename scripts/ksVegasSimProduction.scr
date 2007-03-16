@@ -2,6 +2,7 @@
 
 #This runs first 4 vegas stages on Kascade sim files;
 #$1 VBF file to process.
+#$2 Bad pixel file name.
 
 #First we see if the simLaser file exists, if not we make it
 
@@ -19,9 +20,14 @@ RootFileName=${VBFFileName%".vbf"}'.root'
 
 #echo RootFileName: $RootFileName
 
+BadPixelFile=$2
+if [ -e $BadPixelFile ]; then
+    BadPixelOption='-BCI_BadChannelList='$BadPixelFile
+fi
+
 $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 $VBFFileName $RootFileName
 
-$VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $VBFFileName $RootFileName simLaser.root
+$VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption $VBFFileName $RootFileName simLaser.root
 
 $VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
 
