@@ -74,7 +74,7 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 #This is normal version with veags processing
        $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
                                    -OutputVBFFileName=$Spec$2.vbf ShowerList 
-       $KASCADEBASE/scripts/ksVegasSimProduction $Spec$2.vbf $3
+       $KASCADEBASE/scripts/ksVegasSimProduction.scr $Spec$2.vbf $3
 
 #   		$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data \
 #	                           -G_SimulationMode=1 $Spec$2.vbf $Spec$2.root
