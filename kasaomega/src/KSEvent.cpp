@@ -118,9 +118,9 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // *****************************************************************
       // Read the run header: Get run header directory, read run header
       // *****************************************************************
-      TDirectory* pfRunHeaderDir = 
+      TDirectory* pfStatsRunHeaderDir = 
 	               (TDirectory*)pfVDFStats->Get(gRunHeaderDirName.c_str());
-      if(pfRunHeaderDir==NULL)
+      if(pfStatsRunHeaderDir==NULL)
 	{
 	  pfVDFStats->ls();
 	  std::cout<<"ksAomega: Failed to find Run header directory:"
@@ -129,8 +129,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  exit(1);
 	}
       VARunHeader* pfStatsRunHeader = 
-                     (VARunHeader*)pfRunHeaderDir->Get(gRunHeaderName.c_str());
-      if(pfRunHeader==NULL)
+              (VARunHeader*)pfStatsRunHeaderDir-> Get(gRunHeaderName.c_str());
+      if(pfStatsRunHeader==NULL)
 	{
 	  std::cout<<"ksAomega: No Run header in Reference File"
 		   <<std::endl;
@@ -171,8 +171,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       VAPixelStatusData* pfPixOnOff=NULL;
       if(pfDataIn->fUseBadPixelSupression)
 	{
-	  pfPixOnOff = 
-	(VAPixelStatusData*) pfRunHeaderDir->Get(gPixelStatusDataName.c_str());
+	  pfPixOnOff = (VAPixelStatusData*) pfStatsRunHeaderDir->
+	                                 Get(gPixelStatusDataName.c_str());
 	  if(pfPixOnOff==NULL)
 	    {
 	      std::cout<<"ksAomega: No PixelStatusData  in Reference File"
@@ -209,8 +209,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // *****************************************************************
       // Get the ArrayInfo
       // *****************************************************************
-      VAArrayInfo* pfArrayInfo = 
-	          (VAArrayInfo*)pfRunHeaderDir->Get(gArrayInfoName.c_str());
+      VAArrayInfo* pfArrayInfo =  (VAArrayInfo*)pfStatsRunHeaderDir->
+	                                         Get(gArrayInfoName.c_str());
       if(pfArrayInfo==NULL)
 	    {
 	      std::cout<<"ksAomega: No ArrayInfo  in Reference File"
