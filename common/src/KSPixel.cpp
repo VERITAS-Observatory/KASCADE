@@ -149,7 +149,7 @@ void KSPixel::addPe(double fPeTimeNS,bool fAfterPulse)
 	  fStartBin=0;
 	}
       
-      else if((fStartBin+fSinglePeSizeNumBins-1)>fNumWaveFormBins)
+      else if((fStartBin+fSinglePeSizeNumBins-1)>=fNumWaveFormBins)
 	{
 	  fPeEndIndex=fNumWaveFormBins-fStartBin-1;
 	}
