@@ -91,7 +91,9 @@ void KSCamera::InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
   // ************************************************************************
   KSPixel fPixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
                                                      //pixel to start with
-  fPedPixels.resize(gNumPixelsCamera[fCameraType],fPixelElem);//Allocate pixels
+  int fPedPixelsSize=fPixel.size();
+  fPedPixels.clear();
+  fPedPixels.resize(fPedPixelsSize,fPixelElem);//Allocate pixels
   // Some stuff gets filled in in loadNoiseRatesAndPeds
   return;
 }

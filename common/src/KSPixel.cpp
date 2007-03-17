@@ -70,7 +70,7 @@ void KSPixel::InitWaveForm(double WaveFormStartNS,double fWaveFormLengthNS)
   fWaveFormStartNS=WaveFormStartNS;
   fNumWaveFormBins=(int)(fWaveFormLengthNS/gWaveFormBinSizeNS + 1.0);
   fWaveForm.clear();
-  fWaveForm.resize(fNumWaveFormBins);
+  fWaveForm.resize(fNumWaveFormBins,0.0);
   return;
 }
 // ********************************************************************
