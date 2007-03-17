@@ -250,7 +250,7 @@ void KSPixel::DetermineNoisePedestals()
     {    
       //This is much tougher since we need to make FADC wave forms.
       //Get number of trace FADC bins that fit into the waveform
-      int fTraceLengthBins=(fNumFADCWindows)*gFADCWinSize[fCameraType];
+      int fNumSamplesTrace=(fNumFADCWindows)*gFADCWinSize[fCameraType];
 
       // *****************************************************************
       // Determine fFADCTrace from almost entire fWaveForm
@@ -258,7 +258,7 @@ void KSPixel::DetermineNoisePedestals()
       // Note also that the conversion to dc from pe's is done within
       // the makeFADCTrace class. (Note Pedestal added there also)
       // *****************************************************************
-      fFADC.makeFADCTrace(fWaveForm,0,fTraceLengthBins,false,
+      fFADC.makeFADCTrace(fWaveForm,0,fNumSamplesTrace,false,
 			                                gPedestal[VERITAS499]);
       double fPedSum=0;
       double fPed2Sum=0;
@@ -326,8 +326,7 @@ double KSPixel::GetCharge(double fFADCGateStartTimeNS, bool fPedestalEvent)
       fStartGateBin=(int)((fFADCGateStartTimeNS-fWaveFormStartNS)/
 			  gWaveFormBinSizeNS);
     }
-  int fADCNumBins = (int)((gFADCWinSize[fCameraType]*gFADCBinSizeNS) /
-				                      gWaveFormBinSizeNS);
+
   double fCharge=0;
 
   // ************************************************************************
@@ -335,6 +334,8 @@ double KSPixel::GetCharge(double fFADCGateStartTimeNS, bool fPedestalEvent)
   // ************************************************************************
   if(fCameraType==WHIPPLE490)
     {
+      int fADCNumBins = (int)((gFADCWinSize[fCameraType]*gFADCBinSizeNS) /
+			      gWaveFormBinSizeNS);
       for(int i=0;i<fADCNumBins;i++)
 	{
 	  int j=i+fStartGateBin;
@@ -344,7 +345,12 @@ double KSPixel::GetCharge(double fFADCGateStartTimeNS, bool fPedestalEvent)
     }
   if(fCameraType==VERITAS499)
     {
-       fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fADCNumBins,true,
+      //int fNumSamplesTrace=(int)((gFADCWinSize[fCameraType]*gFADCBinSizeNS) /
+      //		      gWaveFormBinSizeNS);
+
+      int fNumSamplesTrace = gFADCWinSize[fCameraType];
+
+      fFADC.makeFADCTrace(fWaveForm,fStartGateBin,fNumSamplesTrace,true,
 			  gPedestal[VERITAS499]);
       // ******************************************************************
       // When building the FADC trace (both hi and low gain) a FADC pedestal 
@@ -408,7 +414,7 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 	      for(int j=0;j<fNumPes[n];j++)
 		{
 		  double fPeTimeNS=pran(&fXDummy)*fTimeSpreadNS[k];
-		  addPe(fPeTimeNS,fAfterPulse);    //This uses pulse height dist
+		  addPe(fPeTimeNS,fAfterPulse);   //This uses pulse height dist
 		}
 	      //Find max of this wave form and print it out.
 	      double fWaveFormMax=0.0;

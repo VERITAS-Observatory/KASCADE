@@ -2,8 +2,7 @@
  * \class KSFADC
  * \ingroup common
  * \brief File of methods for KSFADC.
- * Original Author: Glenn H. Sembroski * $Author$
- * $Date$
+ * Original Author: Glenn H. Sembroski * $Author$Date$
  * $Revision$
  * $Tag$
  *
@@ -45,12 +44,14 @@ void KSFADC::SetDigCntsPerPEGains(double DigCntsPerPEHiGain)
 // ************************************************************************
 
 void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm, 
-			   int fWaveFormStartIndex, int& fTraceLengthBins, 
+			   int fWaveFormStartIndex, int& fNumSamplesTrace, 
 			   bool fEnableHiLoGainProcessing, 
 			   double fFADCTracePed)
 // *********************************************************************
 // Convert the fWaveForm to a FADC Trace
 // *********************************************************************
+// The number of samples in the fFADCTrace is set by fNumSamplesTrace
+// **********************************************************************
 // Note: If fEnableHiLoGainProcessing= true and fWaveForm causes us to flip
 // into LOwGain mode then flage fFADCLowGain will be set true 
 // Unlike the real FADC we don't need to do a fancy delay for Low gain,
@@ -61,18 +62,18 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 // ************************************************************
 {
   fFADCTrace.clear();
-  fFADCTrace.resize(fTraceLengthBins);
+  fFADCTrace.resize(fNumSamplesTrace);
 
-  int fWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
+  int fWaveFormBinsPerFADCSample=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
   int fNumWaveFormBins1NS=(int)(1./gWaveFormBinSizeNS);
 
   fFADCLowGain=false;             //We start at High Gain
-  for( int i=0; i<fTraceLengthBins; i++)  //
+  for( int i=0; i<fNumSamplesTrace; i++)  //
     {
 // ********************************************************************
 //  Fadc electronics averages over 1 nsec.
 // ********************************************************************
-      int fStartBin=fWaveFormStartIndex+i*fWaveFormBinsPerFADCBin;
+      int fStartBin=fWaveFormStartIndex+i*fWaveFormBinsPerFADCSample;
       double fSum=0;
       for(int j=fStartBin;j<fStartBin+fNumWaveFormBins1NS;j++)
 	{
@@ -113,12 +114,12 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
   // *************************************************************************
   if(fEnableHiLoGainProcessing && fFADCLowGain)
     {
-      for( int i=0; i<fTraceLengthBins; i++)  //
+      for( int i=0; i<fNumSamplesTrace; i++)  //
 	{
 	  // ***************************************************************
 	  //  Fadc electronics averages over 1 nsec.
 	  // ***************************************************************
-	  int fStartBin=fWaveFormStartIndex+i*fWaveFormBinsPerFADCBin;
+	  int fStartBin=fWaveFormStartIndex+i*fWaveFormBinsPerFADCSample;
 	  double fSum=0;
 	  for(int j=fStartBin;j<fStartBin+fNumWaveFormBins1NS;j++)
 	    {

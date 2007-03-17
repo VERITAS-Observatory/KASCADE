@@ -222,11 +222,12 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
   double fSinglePeFADCAreaSum=0;
 
   //Number of Bins in FADC wave form.
-  int fNumTraceBins=(int)(fNumBinsInPulse*gWaveFormBinSizeNS/gFADCBinSizeNS)+
-                                        1+1;  //Extra 1 is just for insruance.
+  int fNumSamplesTrace=
+    (int)(fNumBinsInPulse*gWaveFormBinSizeNS/gFADCBinSizeNS)+ 1+1;  
+                                              //Extra 1 is just for insruance.
 
   //Number of bins in Wave form to span FADC Trace
-  int fNumWaveFormBins=fNumTraceBins*fNumWaveFormBinsPerFADCBin;
+  int fNumWaveFormBins=fNumSamplesTrace*fNumWaveFormBinsPerFADCBin;
 
   //Loop over progressive starting place of pe pulse.
   for(int j=0;j<fNumWaveFormBinsPerFADCBin;j++)
@@ -245,9 +246,9 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
       // Because we use so many pe's here we don't really need to worry about 
       // the pedestal.  But do so anyways
       // *********************************************************************
-      fFADC.makeFADCTrace(fPulse,0,fNumTraceBins,false,gPedestal[VERITAS499]);
-      fSinglePeFADCAreaSum+=(fFADC.getWindowArea(0,fNumTraceBins)-
-			     fNumTraceBins*gPedestal[VERITAS499])/1000.;
+      fFADC.makeFADCTrace(fPulse,0,fNumSamplesTrace,false,gPedestal[VERITAS499]);
+      fSinglePeFADCAreaSum+=(fFADC.getWindowArea(0,fNumSamplesTrace)-
+			     fNumSamplesTrace*gPedestal[VERITAS499])/1000.;
     }
   double fSinglePeMeanFADCArea=fSinglePeFADCAreaSum/fNumWaveFormBinsPerFADCBin;
   return fSinglePeMeanFADCArea;
