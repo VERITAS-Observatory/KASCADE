@@ -178,7 +178,8 @@ bool KSVBFFile::Create(KSAomegaDataIn* pfDataIn,
   // }
  
   // and put the KascadeSimulation header data into the packet
-  packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead);  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
+  packet->put(VGetKascadeSimulationHeaderBankName(), pfKSimHead); 
+  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
     {
       std::cout<<"KSVBFFile: No KascadeSimulationHeader bank in packet when "
   	"we just put one in"<<std::endl;
@@ -357,8 +358,15 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   // Use VERITAS499 for num of samples. Also use VERITAS499 
   // pedestal
   // *************************************************************
-  int fADCNumBins = (int)((gFADCNumSamples[VERITAS499]*gFADCBinSizeNS) /
-			  gWaveFormBinSizeNS);
+  //  int fNumSamplesTrace=(int)((gFADCNumSamples[VERITAS499]*gFADCBinSizeNS) /
+  //			  gWaveFormBinSizeNS);
+
+  int fNumSamplesTrace=gFADCNumSamples[VERITAS499];
+
+  //Lets test this to make sure we arn't too far out.
+  int fNumWaveFromBinsInTrace=(int)(fNumSamplesTrace*gFADCBinSizeNS/ 
+				    gWaveFormBinSizeNS);
+ 
 
   for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType]; ++k)
     {
@@ -387,7 +395,8 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 				      gWaveFormBinSizeNS);
 	      if(fStartGateBin<0)
 		{
-		  std::cout<<"KSVBFFile: Start Gate bin was <0"<<std::endl;
+		  std::cout<<"KSVBFFile: Warning Start Gate bin was <0"
+			   <<std::endl;
 		  std::cout<<"KSVBFFile:fStartGateBin,fFADCStartGateTimeNS,"
 		    "gFADCWindowOffsetNS,fWaveFormStartNS,gWaveFormBinSizeNS"
 			   <<fStartGateBin<<" "<<fFADCStartGateTimeNS<<" "
@@ -398,14 +407,26 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 			   <<std::endl;
 		  fStartGateBin=0;
 		}
+	      if(fStartGateBin+fNumWaveFromBinsInTrace+1 >
+		                (int)pfCamera->fPixel.at(k).fWaveForm.size())
+		{
+		  std::cout<<"KSVBFFile: Warning Attempt to extend Trace "
+		    "past end of WaveForm"<<std::endl;
+		  std::cout<<"KSVBFFile: Backing up fStartGateBin to fit "
+		    "Trace"<<std::endl;
+		  std::cerr<<"KSVBFFile:Backing up fStartGateBin to fit "
+		    "Trace"<<std::endl;
+		  fStartGateBin=pfCamera->fPixel.at(k).fWaveForm.size()-1-
+		                                    fNumWaveFromBinsInTrace;
+		}
 	      // *************************************************************
 	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
 	      // pedestal)
 	      // Added in MakeTrace
 	      pfCamera->fPixel.at(k).fFADC.makeFADCTrace(
-					       pfCamera->fPixel.at(k).fWaveForm,
-					       fStartGateBin, fADCNumBins,true,
-					       gPedestal[VERITAS499]);
+					     pfCamera->fPixel.at(k).fWaveForm,
+					     fStartGateBin, fNumSamplesTrace,
+					     true,gPedestal[VERITAS499]);
 	      // **************************************************************
 	      // Now we are ready to load up the VBF samples.
 	      // ************************************************************* 
@@ -426,7 +447,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	      // Added in MakeTrace
 	      pfCamera->fPedPixels.at(k).fFADC.makeFADCTrace(
 				    pfCamera->fPedPixels.at(k).fWaveForm,0,
-				    fADCNumBins,true,
+				    fNumSamplesTrace,true,
 				    gPedestal[VERITAS499]);
 	      event->setHiLo(k,pfCamera->fPedPixels.at(k).fFADC.fFADCLowGain);
 	      for (unsigned l=0; l<event->getNumSamples(); ++l)
