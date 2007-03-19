@@ -537,8 +537,11 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   findWaveFormLimits(fWaveFormStart,fWaveFormLength);
 
   int fCFDTriggers=0;
-  double fStartTimeOffset=0;   // Start searching for CFD trigger at beginning
-                               //  of fWaveForm;
+  double fStartTimeOffset = gFADCWindowOffsetNS[fCameraType]
+                          + gFADCTOffsetNS[fCameraType];
+                              // Start searching for CFD trigger at beginning
+                              //  of fWaveForm offset a bit to make room for
+                              // us being offset by the FADC trace;
   // bool fPrintWaveForm=false;
   //std::cout<<nx<<" "<<ny<<std::endl;
   //if(nx==0 and ny==0)
@@ -684,8 +687,9 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	}
     }
   fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS[fCameraType]-
-                                        gFADCWindowOffsetNS[fCameraType];
-
+                                        - gFADCWindowOffsetNS[fCameraType]
+                                        - gFADCTOffsetNS[fCameraType];
+  //      + gCFDDelayNS[fCameraType];
   double fWaveFormEndNS = fPixelMaxTimeNS 
                                  + gCFDDelayNS[fCameraType]
                                  + gCFDTriggerDelayNS[fCameraType]  
