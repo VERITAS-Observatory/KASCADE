@@ -33,7 +33,8 @@ KSCFD::~KSCFD()
 // ************************************************************************
 
 
-bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
+bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
+		    double fWaveFormLastThresholdNS, int nx, int ny)
 // ***************************************************************************
 // Test to see if this pixel's waveform fires its CFD
 // ***************************************************************************
@@ -78,6 +79,8 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
     }
  
   int fNumWaveFormBins=fPixel.fNumWaveFormBins;
+
+
   fPixel.fCFDTriggerTimeNS=gOverflowTime;             //Default is no trigger
   int fThresholdIndex;                       //Find if we go over threshold.
                                              //Get Bin to start searching at.
@@ -86,7 +89,17 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
     {                
       return false;    // no trigger
     }
-  
+  int fLastThresholdCheckBin=(int)((fWaveFormLastThresholdNS-
+                                fPixel.fWaveFormStartNS)/ gWaveFormBinSizeNS);
+  // *****************************************************************
+  // Stop looking so that we have enough room to make a FADC trace.
+  // Its probably possible to shorten this a bit more but this will 
+  // work
+  // *****************************************************************
+  int fLastCFDCrossingCheckBin=fNumWaveFormBins - 1 - fCFDTriggerDelayBins
+     - (int)(gFADCBinSizeNS*gFADCNumSamples[fCameraType]/gWaveFormBinSizeNS)
+     + (int)(gFADCTOffsetNS[fCameraType]/gWaveFormBinSizeNS);
+
   // *********************************************************************
   // Note: Since we have to look for a transision of the summed original
   //       waveform and the delayed negated amplified waveform we don't need 
@@ -98,8 +111,13 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
     }                                
   
   //Now look for when we cross the threshold
-  for(fThresholdIndex=fStartIndex;
-      fThresholdIndex<fNumWaveFormBins-fCFDTriggerDelayBins-1;
+  // ************************************************************************
+  // So where do we stop looking? At the very end of any possible real pulse+ 
+  // the PST Gate  width.
+  //for(fThresholdIndex=fStartIndex;
+  //    fThresholdIndex<fNumWaveFormBins-fCFDTriggerDelayBins-1;
+  //    fThresholdIndex++)
+  for(fThresholdIndex=fStartIndex; fThresholdIndex<=fLastThresholdCheckBin;
       fThresholdIndex++)
     {
       if(fPixel.fWaveForm.at(fThresholdIndex)>=fPixel.fThreshold)
@@ -149,6 +167,11 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 	  // *****************************************************************
 	  //Start looking for offset crossing:AFTER THRESHOLD REACHED!.
 	  // *****************************************************************
+	  // Stop looking so that we have enough room to make a FADC trace.
+	  // Its probably possible to shorten this a bit more but this will 
+	  // work
+	  // *****************************************************************
+
 	  bool fCFDFired=false;  //Flag that cfd has fired and has not yet
                                  //reset(gone positive)
 	  if(fMainPulse.at(fThresholdIndex)<fCFDOffsetPE)
@@ -156,8 +179,16 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,int nx, int ny)
 	    {
 	      fCFDFired=true; //set flag.
             }
-	  for(int j=fThresholdIndex+1;
-	      j<fNumWaveFormBins-1-fCFDTriggerDelayBins;j++)
+
+	  // **************************************************************
+	  // Now we look for the crossing which is a trigger.
+	  // **************************************************************
+	  // *****************************************************************
+	  // Stop looking so that we have enough room to make a FADC trace.
+	  // Its probably possible to shorten this a bit more but this will 
+	  // work
+	  // *****************************************************************
+	  for(int j=fThresholdIndex+1;j<fLastCFDCrossingCheckBin;j++)
 	    {
 	      if(fCFDFired)
 		{

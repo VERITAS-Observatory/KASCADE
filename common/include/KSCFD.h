@@ -32,7 +32,8 @@ class KSCFD
   KSCFD(KSCameraTypes CameraType);
   ~KSCFD();
 
-  bool isFired(KSPixel& fPixel, double fStartTimeOffsetNS, int nx, int ny);
+  bool isFired(KSPixel& fPixel, double fStartTimeOffsetNS, 
+	       double fWaveFormLastThresholdNS,int nx, int ny);
   void PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
 		     double time, std::vector<double>& waveForm,
 		     double waveFormStartNS);

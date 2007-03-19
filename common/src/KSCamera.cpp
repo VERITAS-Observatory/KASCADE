@@ -570,7 +570,8 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 
 	  if(fPixel.at(i).fDisc>0)
 	    {
-	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,nx,ny);
+	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,
+					   fWaveFormLastThresholdNS,nx,ny);
 	      if(fCFDTrig)
 		{
 		  fCFDTriggers++;
@@ -597,7 +598,8 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
       if(fPixel.at(i).fTimePe.size()==0 && !fPixel.at(i).fBadPixel)
 	{
 	  fPixel.at(i).InitWaveForm(fWaveFormStart,fWaveFormLength);
-	  fPixel.at(i).AddNoiseToWaveForm(false);//Note that this noise has not 
+	  fPixel.at(i).AddNoiseToWaveForm(false);
+                                              //Note that this noise has not 
 	                                      //been modified by overall 
 	                                      //efficiency but has been 
 	                                      //modified by light cone 
@@ -605,8 +607,9 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
 	  fPixel.at(i).RemovePedestalFromWaveForm(
-					fPixel.at(i).fWaveFormNightSkyPedestal);
-	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,nx,ny);
+				      fPixel.at(i).fWaveFormNightSkyPedestal);
+	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,
+				       fWaveFormLastThresholdNS,nx,ny);
 	  if(fCFDTrig)
 	    {
 	      fCFDTriggers++;
@@ -683,13 +686,20 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS[fCameraType]-
                                         gFADCWindowOffsetNS[fCameraType];
 
-  fPixelMaxTimeNS = fPixelMaxTimeNS 
+  double fWaveFormEndNS = fPixelMaxTimeNS 
                                  + gCFDDelayNS[fCameraType]
                                  + gCFDTriggerDelayNS[fCameraType]  
                                  + fPixel.at(0).fSinglePeSizeNS
                                  + gFADCBinSizeNS*gFADCNumSamples[fCameraType] 
                                  - gFADCDelayNS;
-  fWaveFormLength = fPixelMaxTimeNS-fWaveFormStartNS;
+  fWaveFormLength = fWaveFormEndNS-fWaveFormStartNS;
+
+  // *************************************************************************
+  // Now find the last time we should look at for the signal reaching threshold
+  // ************************************************************************ 
+  fWaveFormLastThresholdNS=fPixelMaxTimeNS 
+                                 + fPixel.at(0).fSinglePeSizeNS
+                                 + gPSTPulseWidthNS[fCameraType]; 
   return;
 }
 // ************************************************************************
