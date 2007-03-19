@@ -366,7 +366,46 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   //Lets test this to make sure we arn't too far out.
   int fNumWaveFromBinsInTrace=(int)(fNumSamplesTrace*gFADCBinSizeNS/ 
 				    gWaveFormBinSizeNS);
- 
+  //Now test we are in boundarys
+  int fStartGateBin=0;  //Peds always start at bin 0
+  if(!fPedestalEvent)
+    {
+      fStartGateBin=(int)((fFADCStartGateTimeNS-
+			       gFADCWindowOffsetNS[fCameraType]-
+			       pfCamera->fPixel.at(0).fWaveFormStartNS)/
+			       gWaveFormBinSizeNS);
+      if(fStartGateBin<0)
+	{
+	  std::cout<<"KSVBFFile: Warning Start Gate bin was <0"
+		   <<std::endl;
+	  std::cout<<"KSVBFFile:fStartGateBin,fFADCStartGateTimeNS,"
+	    "gFADCWindowOffsetNS,fWaveFormStartNS,gWaveFormBinSizeNS"
+		   <<fStartGateBin<<" "<<fFADCStartGateTimeNS<<" "
+		   <<gFADCWindowOffsetNS[fCameraType]<<" "
+		   <<pfCamera->fPixel.at(0).fWaveFormStartNS<<" "
+		   <<gWaveFormBinSizeNS<<std::endl;
+	  std::cerr<<"KSVBFFile: Setting start Gate bin to 0"
+		   <<std::endl;
+	  fStartGateBin=0;
+	}
+      if(fStartGateBin+fNumWaveFromBinsInTrace >
+	 (int)pfCamera->fPixel.at(0).fWaveForm.size())
+	{
+	  std::cout<<"KSVBFFile: Warning Attempt to extend Trace "
+	    "past end of WaveForm"<<std::endl;
+	  std::cout<<"fStartGateBin,fNumWaveFromBinsInTrace,"
+	    "fWaveForm.size: "<<fStartGateBin<<" "
+		   <<fNumWaveFromBinsInTrace<<" "
+		   <<pfCamera->fPixel.at(0).fWaveForm.size()
+		   <<std::endl;
+	  std::cout<<"KSVBFFile: Backing up fStartGateBin to fit "
+	    "Trace"<<std::endl;
+	  std::cerr<<"KSVBFFile:Backing up fStartGateBin to fit "
+	    "Trace"<<std::endl;
+	  fStartGateBin=pfCamera->fPixel.at(0).fWaveForm.size()-1-
+		                                    fNumWaveFromBinsInTrace;
+	}
+    }
 
   for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType]; ++k)
     {
@@ -387,76 +426,23 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	}
       else
 	{
-	  if(!fPedestalEvent)
+	  // *************************************************************
+	  // Convert wave form to FADC trace.  Pedestal(use VERITAS 
+	  // pedestal)
+	  // Added in MakeTrace
+	  pfCamera->fPixel.at(k).fFADC.makeFADCTrace(
+					    pfCamera->fPixel.at(k).fWaveForm,
+					    fStartGateBin, fNumSamplesTrace,
+					    true,gPedestal[VERITAS499]);
+	  // **************************************************************
+	  // Now we are ready to load up the VBF samples.
+	  // ************************************************************* 
+	  event->setHiLo(k,pfCamera->fPixel.at(k).fFADC.fFADCLowGain);
+	  for (unsigned l=0; l<event->getNumSamples(); ++l)
 	    {
-	      int fStartGateBin=(int)((fFADCStartGateTimeNS-
-				      gFADCWindowOffsetNS[fCameraType]-
-				      pfCamera->fPixel.at(k).fWaveFormStartNS)/
-				      gWaveFormBinSizeNS);
-	      if(fStartGateBin<0)
-		{
-		  std::cout<<"KSVBFFile: Warning Start Gate bin was <0"
-			   <<std::endl;
-		  std::cout<<"KSVBFFile:fStartGateBin,fFADCStartGateTimeNS,"
-		    "gFADCWindowOffsetNS,fWaveFormStartNS,gWaveFormBinSizeNS"
-			   <<fStartGateBin<<" "<<fFADCStartGateTimeNS<<" "
-			   <<gFADCWindowOffsetNS[fCameraType]<<" "
-			   <<pfCamera->fPixel.at(k).fWaveFormStartNS<<" "
-			   <<gWaveFormBinSizeNS<<std::endl;
-		  std::cerr<<"KSVBFFile: Setting start Gate bin to 0"
-			   <<std::endl;
-		  fStartGateBin=0;
-		}
-	      if(fStartGateBin+fNumWaveFromBinsInTrace+1 >
-		                (int)pfCamera->fPixel.at(k).fWaveForm.size())
-		{
-		  std::cout<<"KSVBFFile: Warning Attempt to extend Trace "
-		    "past end of WaveForm"<<std::endl;
-		  std::cout<<"KSVBFFile: Backing up fStartGateBin to fit "
-		    "Trace"<<std::endl;
-		  std::cerr<<"KSVBFFile:Backing up fStartGateBin to fit "
-		    "Trace"<<std::endl;
-		  fStartGateBin=pfCamera->fPixel.at(k).fWaveForm.size()-1-
-		                                    fNumWaveFromBinsInTrace;
-		}
-	      // *************************************************************
-	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
-	      // pedestal)
-	      // Added in MakeTrace
-	      pfCamera->fPixel.at(k).fFADC.makeFADCTrace(
-					     pfCamera->fPixel.at(k).fWaveForm,
-					     fStartGateBin, fNumSamplesTrace,
-					     true,gPedestal[VERITAS499]);
-	      // **************************************************************
-	      // Now we are ready to load up the VBF samples.
-	      // ************************************************************* 
-	      event->setHiLo(k,pfCamera->fPixel.at(k).fFADC.fFADCLowGain);
-	      for (unsigned l=0; l<event->getNumSamples(); ++l)
-		{
-		  short unsigned int fTrc=
-		    (short unsigned int)pfCamera->
+	      short unsigned int fTrc=(short unsigned int)pfCamera->
 		                          fPixel.at(k).fFADC.fFADCTrace.at(l);
-		  event->setSample(k,l,fTrc);
-		}
-	    }
-	  else
-	    {   //Pedestal event, use fPedPixels for waveform source
-	      // *************************************************************
-	      // Convert wave form to FADC trace.  Pedestal(use VERITAS 
-	      // pedestal)
-	      // Added in MakeTrace
-	      pfCamera->fPedPixels.at(k).fFADC.makeFADCTrace(
-				    pfCamera->fPedPixels.at(k).fWaveForm,0,
-				    fNumSamplesTrace,true,
-				    gPedestal[VERITAS499]);
-	      event->setHiLo(k,pfCamera->fPedPixels.at(k).fFADC.fFADCLowGain);
-	      for (unsigned l=0; l<event->getNumSamples(); ++l)
-		{
-		  short unsigned int fTrc=
-		    (short unsigned int)pfCamera->
-		    fPedPixels.at(k).fFADC.fFADCTrace.at(l);
-		  event->setSample(k,l,fTrc);
-		}
+	      event->setSample(k,l,fTrc);
 	    }
 	}
       // *******************************************************
