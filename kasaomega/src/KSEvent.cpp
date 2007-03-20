@@ -82,12 +82,12 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	{
 	  pfCamera->fPixel.at(i).fRelativeGain=1;//Used in 1 place:FADC TRaces
 	                                    //affects effective CFD thresholds
-	  pfCamera->fPixel.at(i).fPedVarRel=1;//This is relative pedvars at this 
-	                                //point.Used to model night sky.
+	  pfCamera->fPixel.at(i).fPedVarRel=1;//This is relative pedvars at 
+	                                //this point.Used to model night sky.
 	  pfCamera->fPixel.at(i).fBadPixel=false;      //Set all pixels ON.
 	}
       
-      fFirstValidEventTime.setFromString(kFirstValidEventTimeStr.c_str());
+
       
 
     }
@@ -300,6 +300,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  std::cout<<std::endl;
 	}
     }
+  fFirstValidEventTime.setFromString(kFirstValidEventTimeStr.c_str());
   fEventTime=fFirstValidEventTime;
 
   // ************************************************************************
