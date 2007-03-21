@@ -424,7 +424,7 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	      event->setSample(k,l,fSam);
 	    }
 	}
-      else
+      else if(!fPedestalEvent)
 	{
 	  // *************************************************************
 	  // Convert wave form to FADC trace.  Pedestal(use VERITAS 
@@ -442,6 +442,29 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	    {
 	      short unsigned int fTrc=(short unsigned int)pfCamera->
 		                          fPixel.at(k).fFADC.fFADCTrace.at(l);
+	      event->setSample(k,l,fTrc);
+	    }
+	}
+      else
+	{
+	  // *************************************************************
+	  // This is a pedestal event
+	  // *************************************************************
+	  // Convert wave form to FADC trace.  Pedestal(use VERITAS 
+	  // pedestal)
+	  // Added in MakeTrace
+	  pfCamera->fPedPixels.at(k).fFADC.makeFADCTrace(
+					 pfCamera->fPedPixels.at(k).fWaveForm,
+					 fStartGateBin, fNumSamplesTrace,
+					 true,gPedestal[VERITAS499]);
+	  // **************************************************************
+	  // Now we are ready to load up the VBF samples.
+	  // ************************************************************* 
+	  event->setHiLo(k,pfCamera->fPedPixels.at(k).fFADC.fFADCLowGain);
+	  for (unsigned l=0; l<event->getNumSamples(); ++l)
+	    {
+	      short unsigned int fTrc=(short unsigned int)pfCamera->
+		                    fPedPixels.at(k).fFADC.fFADCTrace.at(l);
 	      event->setSample(k,l,fTrc);
 	    }
 	}
