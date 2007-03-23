@@ -66,6 +66,9 @@ class KSCamera
   double fWaveFormStart;
   double fWaveFormLength;
   double fWaveFormLastThresholdNS;
+  double fStartTimeOffsetNS;
+
+
   void generateCameraPixels();
   void loadPixelCharacteristics();
   bool trywhipple490OuterPixels(double fXDeg, double fYDeg, int&fIPix);

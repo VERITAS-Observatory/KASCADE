@@ -537,11 +537,6 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   findWaveFormLimits(fWaveFormStart,fWaveFormLength);
 
   int fCFDTriggers=0;
-  double fStartTimeOffset = gFADCWindowOffsetNS[fCameraType]
-                          + gFADCTOffsetNS[fCameraType];
-                              // Start searching for CFD trigger at beginning
-                              //  of fWaveForm offset a bit to make room for
-                              // us being offset by the FADC trace;
   // bool fPrintWaveForm=false;
   //std::cout<<nx<<" "<<ny<<std::endl;
   //if(nx==0 and ny==0)
@@ -573,7 +568,7 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 
 	  if(fPixel.at(i).fDisc>0)
 	    {
-	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,
+	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
 					   fWaveFormLastThresholdNS,nx,ny);
 	      if(fCFDTrig)
 		{
@@ -611,7 +606,9 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
 	  fPixel.at(i).RemovePedestalFromWaveForm(
 				      fPixel.at(i).fWaveFormNightSkyPedestal);
-	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffset,
+
+
+	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
 				       fWaveFormLastThresholdNS,nx,ny);
 	  if(fCFDTrig)
 	    {
@@ -687,8 +684,14 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	}
     }
   fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS[fCameraType]-
-                                        - gFADCWindowOffsetNS[fCameraType]
-                                        - gFADCTOffsetNS[fCameraType];
+                     - gFADCWindowOffsetNS[fCameraType]
+                     - gFADCTOffsetNS[fCameraType];
+ 
+  fStartTimeOffsetNS = gFADCWindowOffsetNS[fCameraType]
+                     + gFADCTOffsetNS[fCameraType];
+                              // Start searching for CFD trigger at beginning
+                              //  of fWaveForm offset a bit to make room for
+                              // us being offset by the FADC trace;
   //      + gCFDDelayNS[fCameraType];
   double fWaveFormEndNS = fPixelMaxTimeNS 
                                  + gCFDDelayNS[fCameraType]
