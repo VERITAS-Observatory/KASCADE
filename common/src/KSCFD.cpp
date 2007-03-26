@@ -34,7 +34,8 @@ KSCFD::~KSCFD()
 
 
 bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
-		    double fWaveFormLastThresholdNS, int nx, int ny)
+		    double fLastTimeOffsetNS, double fLastCFDCrossingNS,
+		    int nx, int ny)
 // ***************************************************************************
 // Test to see if this pixel's waveform fires its CFD
 // ***************************************************************************
@@ -84,40 +85,32 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
   fPixel.fCFDTriggerTimeNS=gOverflowTime;             //Default is no trigger
   int fThresholdIndex;                       //Find if we go over threshold.
                                              //Get Bin to start searching at.
-  int fStartIndex=(int)(fStartTimeOffsetNS/gWaveFormBinSizeNS);
-  if(fStartIndex>fNumWaveFormBins-1)
+  int fStartThresholdCheckBin=(int)(fStartTimeOffsetNS/gWaveFormBinSizeNS);
+  if(fStartThresholdCheckBin>fNumWaveFormBins-1)
     {                
       return false;    // no trigger
     }
-  int fLastThresholdCheckBin=(int)((fWaveFormLastThresholdNS-
-                                fPixel.fWaveFormStartNS)/ gWaveFormBinSizeNS);
-  // *****************************************************************
-  // Stop looking so that we have enough room to make a FADC trace.
-  // Its probably possible to shorten this a bit more but this will 
-  // work
-  // *****************************************************************
-  int fLastCFDCrossingCheckBin=fNumWaveFormBins - 1 - fCFDTriggerDelayBins
-     - (int)(gFADCBinSizeNS*gFADCNumSamples[fCameraType]/gWaveFormBinSizeNS)
-     + (int)(gFADCTOffsetNS[fCameraType]/gWaveFormBinSizeNS);
+  int fLastThresholdCheckBin=(int)(fLastTimeOffsetNS/gWaveFormBinSizeNS);
 
+  int fLastCFDCrossingCheckBin= (int)(fLastCFDCrossingNS/gWaveFormBinSizeNS);
   // *********************************************************************
   // Note: Since we have to look for a transision of the summed original
   //       waveform and the delayed negated amplified waveform we don't need 
   //       to look for threshold before the delay value
   // *********************************************************************
-  if(fStartIndex<fNumCFDDelayBins)            //Force minimum.
+  if(fStartThresholdCheckBin<fNumCFDDelayBins)            //Force minimum.
     {
-      fStartIndex=fNumCFDDelayBins;  
+      fStartThresholdCheckBin=fNumCFDDelayBins;  
     }                                
   
-  //Now look for when we cross the threshold
+
   // ************************************************************************
+  //Now look for when we cross the threshold
   // So where do we stop looking? At the very end of any possible real pulse+ 
   // the PST Gate  width.
-  //for(fThresholdIndex=fStartIndex;
-  //    fThresholdIndex<fNumWaveFormBins-fCFDTriggerDelayBins-1;
-  //    fThresholdIndex++)
-  for(fThresholdIndex=fStartIndex; fThresholdIndex<=fLastThresholdCheckBin;
+  // ************************************************************************
+  for(fThresholdIndex=fStartThresholdCheckBin; 
+      fThresholdIndex<=fLastThresholdCheckBin;
       fThresholdIndex++)
     {
       if(fPixel.fWaveForm.at(fThresholdIndex)>=fPixel.fThreshold)

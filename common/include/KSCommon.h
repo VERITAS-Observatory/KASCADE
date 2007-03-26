@@ -76,7 +76,7 @@ const double gOverflowTime=1000001.;
 
 const double gWaveFormBinSizeNS=.25;     // Bin size in ns
 
-const double gFADCDelayNS           =-8.0;
+// double gFADCDelayNS           =-8.0;
 const double gFADCBinSizeNS         = 2.0;
 const int    gFADCHiLoGainThreshold = 250;
 const int    gFADCLowGainDelayNS    =  20;

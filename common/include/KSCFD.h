@@ -33,7 +33,8 @@ class KSCFD
   ~KSCFD();
 
   bool isFired(KSPixel& fPixel, double fStartTimeOffsetNS, 
-	       double fWaveFormLastThresholdNS,int nx, int ny);
+	       double fLastTimeOffsetNS,double fLastCFDCrossingOffsetNS,
+	       int nx, int ny);
   void PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
 		     double time, std::vector<double>& waveForm,
 		     double waveFormStartNS);

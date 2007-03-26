@@ -569,7 +569,8 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 	  if(fPixel.at(i).fDisc>0)
 	    {
 	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
-					   fWaveFormLastThresholdNS,nx,ny);
+					   fLastTimeOffsetNS,
+					   fLastCFDCrossingNS,nx,ny);
 	      if(fCFDTrig)
 		{
 		  fCFDTriggers++;
@@ -609,7 +610,8 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 
 
 	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
-				       fWaveFormLastThresholdNS,nx,ny);
+				       fLastTimeOffsetNS,
+				       fLastCFDCrossingNS,nx,ny);
 	  if(fCFDTrig)
 	    {
 	      fCFDTriggers++;
@@ -683,30 +685,45 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	    }
 	}
     }
-  fWaveFormStartNS=fPixelMinTimeNS-gPSTPulseWidthNS[fCameraType]-
-                     - gFADCWindowOffsetNS[fCameraType]
-                     - gFADCTOffsetNS[fCameraType];
+  fWaveFormStartNS=fPixelMinTimeNS- gPSTPulseWidthNS[fCameraType]-
+                                  + gCFDDelayNS[fCameraType]
+                                  + gCFDTriggerDelayNS[fCameraType]  
+                                  - gFADCWindowOffsetNS[fCameraType]
+                                  - gFADCTOffsetNS[fCameraType];
  
-  fStartTimeOffsetNS = gFADCWindowOffsetNS[fCameraType]
-                     + gFADCTOffsetNS[fCameraType];
-                              // Start searching for CFD trigger at beginning
-                              //  of fWaveForm offset a bit to make room for
-                              // us being offset by the FADC trace;
   //      + gCFDDelayNS[fCameraType];
   double fWaveFormEndNS = fPixelMaxTimeNS 
-                                 + gCFDDelayNS[fCameraType]
-                                 + gCFDTriggerDelayNS[fCameraType]  
-                                 + fPixel.at(0).fSinglePeSizeNS
-                                 + gFADCBinSizeNS*gFADCNumSamples[fCameraType] 
-                                 - gFADCDelayNS;
+    + fPixel.at(0).fSinglePeSizeNS
+    + gPSTPulseWidthNS[fCameraType]
+    + gCFDDelayNS[fCameraType]
+    + gCFDTriggerDelayNS[fCameraType]  
+    - gFADCWindowOffsetNS[fCameraType]
+    - gFADCTOffsetNS[fCameraType]
+    + gFADCBinSizeNS*gFADCNumSamples[fCameraType]+1;
+
+  //                                 - gFADCDelayNS;
   fWaveFormLength = fWaveFormEndNS-fWaveFormStartNS;
 
   // *************************************************************************
-  // Now find the last time we should look at for the signal reaching threshold
+  // Now find the first and last time we should look at for the signal 
+  // reaching threshold
   // ************************************************************************ 
-  fWaveFormLastThresholdNS=fPixelMaxTimeNS 
-                                 + fPixel.at(0).fSinglePeSizeNS
-                                 + gPSTPulseWidthNS[fCameraType]; 
+  fStartTimeOffsetNS = gFADCWindowOffsetNS[fCameraType]
+                     + gFADCTOffsetNS[fCameraType]
+                     - gCFDDelayNS[fCameraType]
+                     - gCFDTriggerDelayNS[fCameraType];
+                              // Start searching for CFD trigger at beginning
+                              //  of fWaveForm offset a bit to make room for
+                              // us being offset by the FADC trace;
+  fLastTimeOffsetNS  = fPixelMaxTimeNS + fPixel.at(0).fSinglePeSizeNS
+                                       + gPSTPulseWidthNS[fCameraType]
+                                       - fWaveFormStartNS; 
+
+  // *************************************************************************
+  // Now last time to check for a CFD zero crossing
+  // *****************************************************************
+  fLastCFDCrossingNS=(int)(fLastTimeOffsetNS+ gCFDDelayNS[fCameraType]);
+
   return;
 }
 // ************************************************************************

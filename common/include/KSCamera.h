@@ -65,8 +65,9 @@ class KSCamera
  private:
   double fWaveFormStart;
   double fWaveFormLength;
-  double fWaveFormLastThresholdNS;
   double fStartTimeOffsetNS;
+  double fLastTimeOffsetNS;
+  double fLastCFDCrossingNS;
 
 
   void generateCameraPixels();
