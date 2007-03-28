@@ -165,51 +165,61 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
   std::cout<<"Created Cumulative Branch:              T3"<<std::endl;
   std::cout<<"Created Cumulative Branch:              T4"<<std::endl;
  
-  pfCTree->Branch("T1Rcn",&fT1Rcn,"T1Rcn/I"); 
-  pfCTree->Branch("T2Rcn",&fT2Rcn,"T2Rcn/I");
-  pfCTree->Branch("T3Rcn",&fT3Rcn,"T3Rcn/I");
-  pfCTree->Branch("T4Rcn",&fT4Rcn,"T4Rcn/I");
-  std::cout<<"Created Cumulative Branch:              T1Rcn"<<std::endl;
-  std::cout<<"Created Cumulative Branch:              T2Rcn"<<std::endl;
-  std::cout<<"Created Cumulative Branch:              T3Rcn"<<std::endl;
-  std::cout<<"Created Cumulative Branch:              T4Rcn"<<std::endl;
+  if(pfShwrTree!=NULL)
+    {
+      pfCTree->Branch("T1Rcn",&fT1Rcn,"T1Rcn/I"); 
+      pfCTree->Branch("T2Rcn",&fT2Rcn,"T2Rcn/I");
+      pfCTree->Branch("T3Rcn",&fT3Rcn,"T3Rcn/I");
+      pfCTree->Branch("T4Rcn",&fT4Rcn,"T4Rcn/I");
+      std::cout<<"Created Cumulative Branch:              T1Rcn"<<std::endl;
+      std::cout<<"Created Cumulative Branch:              T2Rcn"<<std::endl;
+      std::cout<<"Created Cumulative Branch:              T3Rcn"<<std::endl;
+      std::cout<<"Created Cumulative Branch:              T4Rcn"<<std::endl;
 
-  pfCTree->Branch("T1ImpactDist",&fT1ImpactDist,"T1ImpactDist/D");
-  pfCTree->Branch("T2ImpactDist",&fT2ImpactDist,"T2ImpactDist/D");
-  pfCTree->Branch("T3ImpactDist",&fT3ImpactDist,"T3ImpactDist/D");
-  pfCTree->Branch("T4ImpactDist",&fT4ImpactDist,"T4ImpactDist/D");
-  std::cout<<"Created Cumulative Branch:              T1ImpactDist"
-	   <<std::endl;
-  std::cout<<"Created Cumulative Branch:              T2ImpactDist"
-	   <<std::endl;
-  std::cout<<"Created Cumulative Branch:              T3ImpactDist"
-	   <<std::endl;
-  std::cout<<"Created Cumulative Branch:              T4ImpactDist"
-	   <<std::endl;
+      pfCTree->Branch("T1ImpactDist",&fT1ImpactDist,"T1ImpactDist/D");
+      pfCTree->Branch("T2ImpactDist",&fT2ImpactDist,"T2ImpactDist/D");
+      pfCTree->Branch("T3ImpactDist",&fT3ImpactDist,"T3ImpactDist/D");
+      pfCTree->Branch("T4ImpactDist",&fT4ImpactDist,"T4ImpactDist/D");
+      std::cout<<"Created Cumulative Branch:              T1ImpactDist"
+	       <<std::endl;
+      std::cout<<"Created Cumulative Branch:              T2ImpactDist"
+	       <<std::endl;
+      std::cout<<"Created Cumulative Branch:              T3ImpactDist"
+	       <<std::endl;
+      std::cout<<"Created Cumulative Branch:              T4ImpactDist"
+	       <<std::endl;
 
-  pfCTree->Branch("T1TrueImpactDist",&fT1TrueImpactDist,"T1TrueImpactDist/D");
-  pfCTree->Branch("T2TrueImpactDist",&fT2TrueImpactDist,"T2TrueImpactDist/D");
-  pfCTree->Branch("T3TrueImpactDist",&fT3TrueImpactDist,"T3TrueImpactDist/D");
-  pfCTree->Branch("T4TrueImpactDist",&fT4TrueImpactDist,"T4TrueImpactDist/D");
-  std::cout<<"Created Cumulative Branch:              T1TrueImpactDist"
-	   <<std::endl;
-  std::cout<<"Created Cumulative Branch:              T2TrueImpactDist"
-	   <<std::endl;
-  std::cout<<"Created Cumulative Branch:              T3TrueImpactDist"
-	   <<std::endl;
-  std::cout<<"Created Cumulative Branch:              T4TrueImpactDist"
-	   <<std::endl;
+      pfCTree->Branch("XDeg",&fXDeg,"XDeg/D");
+      pfCTree->Branch("YDeg",&fYDeg,"YDeg/D");
+      std::cout<<"Created X direction position in camera  XDeg"<<std::endl;
+      std::cout<<"Created Y direction position in camera  YDeg"<<std::endl;
+    }
 
   double* fTrueImpDist[4];
-  fTrueImpDist[0]=&fT1TrueImpactDist;
-  fTrueImpDist[1]=&fT2TrueImpactDist;
-  fTrueImpDist[2]=&fT3TrueImpactDist;
-  fTrueImpDist[3]=&fT4TrueImpactDist;
-
-  pfCTree->Branch("XDeg",&fXDeg,"XDeg/D");
-  pfCTree->Branch("YDeg",&fYDeg,"YDeg/D");
-  std::cout<<"Created X direction position in camera  XDeg"<<std::endl;
-  std::cout<<"Created Y direction position in camera  YDeg"<<std::endl;
+  if(pfSimTree!=NULL)  //Assume its a KASCADE sim. We can clean this up later
+    {               
+      pfCTree->Branch("T1TrueImpactDist",&fT1TrueImpactDist,
+		      "T1TrueImpactDist/D");
+      pfCTree->Branch("T2TrueImpactDist",&fT2TrueImpactDist,
+		      "T2TrueImpactDist/D");
+      pfCTree->Branch("T3TrueImpactDist",&fT3TrueImpactDist,
+		      "T3TrueImpactDist/D");
+      pfCTree->Branch("T4TrueImpactDist",&fT4TrueImpactDist,
+		      "T4TrueImpactDist/D");
+      std::cout<<"Created Cumulative Branch:              T1TrueImpactDist"
+	       <<std::endl;
+      std::cout<<"Created Cumulative Branch:              T2TrueImpactDist"
+	       <<std::endl;
+      std::cout<<"Created Cumulative Branch:              T3TrueImpactDist"
+	       <<std::endl;
+      std::cout<<"Created Cumulative Branch:              T4TrueImpactDist"
+	       <<std::endl;
+ 
+      fTrueImpDist[0]=&fT1TrueImpactDist;
+      fTrueImpDist[1]=&fT2TrueImpactDist;
+      fTrueImpDist[2]=&fT3TrueImpactDist;
+      fTrueImpDist[3]=&fT4TrueImpactDist;
+    }
 
 
   // **********************************************************************
