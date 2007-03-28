@@ -685,23 +685,24 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	    }
 	}
     }
-  fWaveFormStartNS=fPixelMinTimeNS- gPSTPulseWidthNS[fCameraType]-
-                                  + gCFDDelayNS[fCameraType]
-                                  + gCFDTriggerDelayNS[fCameraType]  
-                                  - gFADCWindowOffsetNS[fCameraType]
-                                  - gFADCTOffsetNS[fCameraType];
+  fWaveFormStartNS=fPixelMinTimeNS + gCFDDelayNS[fCameraType]
+                                   + gCFDTriggerDelayNS[fCameraType]  
+                                   - gFADCWindowOffsetNS[fCameraType]
+                                   - gFADCTOffsetNS[fCameraType];
  
+  //- gPSTPulseWidthNS[fCameraType]
   //      + gCFDDelayNS[fCameraType];
+
   double fWaveFormEndNS = fPixelMaxTimeNS 
     + fPixel.at(0).fSinglePeSizeNS
-    + gPSTPulseWidthNS[fCameraType]
     + gCFDDelayNS[fCameraType]
     + gCFDTriggerDelayNS[fCameraType]  
     - gFADCWindowOffsetNS[fCameraType]
     - gFADCTOffsetNS[fCameraType]
     + gFADCBinSizeNS*gFADCNumSamples[fCameraType]+1;
 
-  //                                 - gFADCDelayNS;
+  //   + gPSTPulseWidthNS[fCameraType]
+ //                                 - gFADCDelayNS;
   fWaveFormLength = fWaveFormEndNS-fWaveFormStartNS;
 
   // *************************************************************************
@@ -716,9 +717,9 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
                               //  of fWaveForm offset a bit to make room for
                               // us being offset by the FADC trace;
   fLastTimeOffsetNS  = fPixelMaxTimeNS + fPixel.at(0).fSinglePeSizeNS
-                                       + gPSTPulseWidthNS[fCameraType]
                                        - fWaveFormStartNS; 
 
+  //                                     + gPSTPulseWidthNS[fCameraType]
   // *************************************************************************
   // Now last time to check for a CFD zero crossing
   // *****************************************************************
