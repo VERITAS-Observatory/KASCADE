@@ -323,9 +323,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	}
       // *******************************************************************
 
-
-
-      // ****************************************************************
+       // ****************************************************************
       // Check that we got any hillas for this event index
       // ****************************************************************
       if(fArrayEventNum<0)
@@ -344,32 +342,39 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	    {
 	      pfShwrTree->GetEntry(fIndex);
 	      *pfCShwr=*pfShower;
-
-	      //Aparently we can't dynamically index vectors inside root.
-	      //Therefore we do this long and cumbersome method to get the
-	      //Impact dist data
-	      double fImpactDists[4];
-	      int fRcn[4];
-	      int fNum=fT1+fT2+fT3+fT4;
-	      if(fNum>0)
+	      if(pfShower->fIsCorePosition==1)
 		{
-		  fImpactDists[0]=pfShower->fTelData.fTelImpactDist[0];
-		  fRcn[0]=pfShower->fTelData.fIsTelInReconstruction[0];
-		}
-	      if(fNum>1)
-		{
-		  fImpactDists[1]=pfShower->fTelData.fTelImpactDist[1];
-		  fRcn[1]=pfShower->fTelData.fIsTelInReconstruction[1];
-		}
-	      if(fNum>2)
-		{
-		  fImpactDists[2]=pfShower->fTelData.fTelImpactDist[2];
-		  fRcn[2]=pfShower->fTelData.fIsTelInReconstruction[2];
-		}
-	      if(fNum>3)
-		{
-		  fImpactDists[3]=pfShower->fTelData.fTelImpactDist[3];
-		  fRcn[3]=pfShower->fTelData.fIsTelInReconstruction[3];
+		  //Aparently we can't dynamically index vectors inside root.
+		  //Therefore we do this long and cumbersome method to get the
+		  //Impact dist data
+		  double fImpactDists[4];
+		  for(int k=0;k<4;k++)
+		    {
+		      fImpactDists[k]=-1;
+		    }
+		  int fRcn[4];
+		  int fNum=fT1+fT2+fT3+fT4;
+		  if(fNum>0)
+		    {
+		      
+		      fImpactDists[0]=pfShower->fTelData.fTelImpactDist[0];
+		      fRcn[0]=pfShower->fTelData.fIsTelInReconstruction[0];
+		    }
+		  if(fNum>1)
+		    {
+		      fImpactDists[1]=pfShower->fTelData.fTelImpactDist[1];
+		      fRcn[1]=pfShower->fTelData.fIsTelInReconstruction[1];
+		    }
+		  if(fNum>2)
+		    {
+		      fImpactDists[2]=pfShower->fTelData.fTelImpactDist[2];
+		      fRcn[2]=pfShower->fTelData.fIsTelInReconstruction[2];
+		    }
+		  if(fNum>3)
+		    {
+		      fImpactDists[3]=pfShower->fTelData.fTelImpactDist[3];
+		      fRcn[3]=pfShower->fTelData.fIsTelInReconstruction[3];
+		    }
 		}
 	      fT1Rcn=0;
 	      fT2Rcn=0;
@@ -403,7 +408,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 			fT3ImpactDist=fImpactDists[fTel];
 			fT3Rcn=fRcn[fTel];
 			fTel++;
-
+			
 		      }		
 		    else if(fTelId==3)
 		      {
@@ -412,7 +417,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 			fTel++;
 		      }
 		}
-
+      
 	      // *********************************************************
 	      // Fill in true impact dist.
 	      // *********************************************************
@@ -479,6 +484,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		      *fTrueImpDist[fTelId]=fMissDistance; 
 		    }
 		}
+
 	      if(pfShower->fIsDirection==1)
 		{
 		  double fShowerDirRA  = pfShower->fDirection.fX;
@@ -525,7 +531,6 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	// *****************************************************************
 	// Save this event into the tree
 	// *****************************************************************
-
 	pfCTree->Fill();
     }
 
