@@ -52,6 +52,7 @@ class KSEventWeights
   float fMaxWeight;
 
   std::vector<float> fWeightsVector;  //Temp vectors used to fill maps
+  std::vector<float> fFluxVector;
   std::vector<float> fELowVector;
   std::vector<float> fEHighVector;
   std::vector<int> fEnergiesGeV;
@@ -63,6 +64,9 @@ class KSEventWeights
 
   std::map<int, fShwrMap_t > fNumMap;   //Map of a map
   std::map<int, fShwrMap_t >::iterator fNumPos;
+
+  std::map<int, fShwrWeightMap_t > fFluxMap;   //Map of a map
+  std::map<int, fShwrWeightMap_t >::iterator fFluxPos;
 
   std::map<int, fShwrWeightMap_t > fELowMap;   //Map of a map
   std::map<int, fShwrWeightMap_t >::iterator fELowPos;

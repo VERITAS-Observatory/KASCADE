@@ -91,6 +91,13 @@ void KSEventWeights::calculateWeights()
 	  fNumPos = fNumMap.find(fShowerType);
 	}
 
+      fFluxPos = fFluxMap.find(fShowerType);
+      if(fFluxPos==fFluxMap.end())
+	{
+	  fFluxMap[fShowerType];
+	  fFluxPos = fFluxMap.find(fShowerType);
+	}
+
       fELowPos = fELowMap.find(fShowerType);
       if(fELowPos==fELowMap.end())
 	{
@@ -117,6 +124,7 @@ void KSEventWeights::calculateWeights()
 	  fWeightPos->second[fEnergy]=1.0;
 	  int fNum= fShowersPos->second.begin()->second;
 	  fNumPos->second[fEnergy]=fNum;
+	  fFluxPos->second[fEnergy]=1.0;      //Unitary flux
 	  fELowPos->second[fEnergy]=10.0;      //elow and ehigh arbitrary
 	  fEHighPos->second[fEnergy]=1000.0;    
 	}
@@ -131,6 +139,7 @@ void KSEventWeights::calculateWeights()
 	  fEnergiesGeV.clear(); 
 	  fNumShowers.clear();
  	  fWeightsVector.resize(fNumEnergies,0.0);
+	  fFluxVector.resize(fNumEnergies);
 	  fELowVector.resize(fNumEnergies);
 	  fEHighVector.resize(fNumEnergies);
 
@@ -146,17 +155,20 @@ void KSEventWeights::calculateWeights()
 	  // Since we now use delta(ln(E)) spaceing as a const, make for 
 	  // gap half way to second energy and down the same.
 	  // **************************************************************
-	  double fWidthLow=(double)fEnergiesGeV[0]-((double)fEnergiesGeV[1]-
-					     (double)fEnergiesGeV[0])*.5; 
-	  double fWidthHigh=(double)fEnergiesGeV[0]+((double)fEnergiesGeV[1]-
-					     (double)fEnergiesGeV[0])*.5; 
+	  double fWidthLow=(double)fEnergiesGeV.at(0)-
+	         ((double)fEnergiesGeV.at(1)-(double)fEnergiesGeV.at(0))*.5; 
+	  double fWidthHigh=(double)fEnergiesGeV.at(0) +
+	         ((double)fEnergiesGeV.at(1)-(double)fEnergiesGeV.at(0))*.5; 
 	  // ****************************************************************
 	  // Using C pow(x,y)=x**y  function,  integrel of E**alpha from wl to
 	  // wh; constants retained for different types
 	  // ****************************************************************
 	  double fFluxConst=(fIPhi/(fIAlpha));
 	  double fW=pow(fWidthHigh,(fIAlpha)) -  pow(fWidthLow, (fIAlpha));
-	  fW=fFluxConst*fW/fNumShowers[0];
+	  fW=fFluxConst*fW;
+	  fFluxVector.at(0)=fW;
+
+	  fW=fW/fNumShowers.at(0);
 	  fWeightsVector.at(0) = fW;
 	  fELowVector.at(0)    = fWidthLow;
 	  fEHighVector.at(0)   = fWidthHigh;
@@ -169,29 +181,32 @@ void KSEventWeights::calculateWeights()
 	    {
 	      //Go down to match previous and go up by the same amount.
 	      fWidthLow=fWidthHigh;
-	      fWidthHigh=(double)fEnergiesGeV[i]+
-		((double)fEnergiesGeV[i]-fWidthLow);
+	      fWidthHigh=(double)fEnergiesGeV.at(i)+
+		((double)fEnergiesGeV.at(i)-fWidthLow);
 	      if((fWidthHigh-fWidthLow)<0)
 		{
 		  std::cout<<" --WARNING--(dist.ftn)-Bad Shower Energy Spacing"
-		    " --between energies"<<fEnergiesGeV[i-1]<<"GeV and"
-			   <<fEnergiesGeV[i]<<" GeV"<<std::endl;
+		    " --between energies"<<fEnergiesGeV.at(i-1)<<"GeV and"
+			   <<fEnergiesGeV.at(i)<<" GeV"<<std::endl;
 		  std::cout<<" --WARNING--To compensate for Bad spacing--"
 		    "Useing uncentered bin at shower energy"
-			   <<fEnergiesGeV[i-1]<<"GeV"<<std::endl;
+			   <<fEnergiesGeV.at(i-1)<<"GeV"<<std::endl;
 		  //Have to first redo energy i-1. Find bin half width.
-		  double fWidthHalf=fWidthLow-(double)fEnergiesGeV[i-1];
-		  double fWidthL=(double)fEnergiesGeV[i-1]-fWidthHalf;
+		  double fWidthHalf=fWidthLow-(double)fEnergiesGeV.at(i-1);
+		  double fWidthL=(double)fEnergiesGeV.at(i-1)-fWidthHalf;
 		  //High side if halfway between
-		  double fWidthH=(double)fEnergiesGeV[i-1] +
-		    (((double)fEnergiesGeV[i]-(double)fEnergiesGeV[i-1])/2);
-		  fWeightsVector[i-1]=fFluxConst*
+		  double fWidthH=(double)fEnergiesGeV.at(i-1) +
+		 ( (double)fEnergiesGeV.at(i)-(double)fEnergiesGeV.at(i-1))/2;
+		     fWeightsVector.at(i-1)=fFluxConst*
 		    (pow(fWidthH,(fIAlpha))-pow(fWidthL,(fIAlpha)));
+		  fFluxVector.at(i-1)=fWeightsVector.at(i);
 
-		  fWeightsVector[i-1]=fWeightsVector[i-1]/fNumShowers[i-1];
+		  fWeightsVector.at(i-1)=fWeightsVector.at(i-1)/
+		                                           fNumShowers.at(i-1);
+
 		  fWidthLow=fWidthH;
-		  fWidthHigh=(double)fEnergiesGeV[i]+((double)fEnergiesGeV[i]-
-						      fWidthLow);
+		  fWidthHigh=(double)fEnergiesGeV.at(i)+
+				       ((double)fEnergiesGeV.at(i)-fWidthLow);
 		}
 	    
 	      // *************************************************************
@@ -200,7 +215,9 @@ void KSEventWeights::calculateWeights()
 	      fWeightsVector.at(i) = fFluxConst*
 		(pow(fWidthHigh,(fIAlpha))-pow(fWidthLow,(fIAlpha)));
 		  //Compensate for multiple showers at each energy
-	      fWeightsVector.at(i) = fWeightsVector[i]/fNumShowers[i];
+	      fFluxVector.at(i)=fWeightsVector.at(i);
+
+	      fWeightsVector.at(i) = fWeightsVector.at(i)/fNumShowers.at(i);
 	      fELowVector.at(i)    = fWidthLow;
 	      fEHighVector.at(i)   = fWidthHigh;
 
@@ -217,10 +234,15 @@ void KSEventWeights::calculateWeights()
 
 	  for(int i=0;i<fNumEnergies;i++)
 	    {
-	      fWeightPos->second[ fEnergiesGeV[i] ]=(float)fWeightsVector[i];
-	      fNumPos->second[ fEnergiesGeV[i] ]   = fNumShowers[i];
-	      fELowPos->second[ fEnergiesGeV[i] ]  = (float)fELowVector.at(i);
-	      fEHighPos->second[ fEnergiesGeV[i] ] = (float)fEHighVector.at(i);
+	      fWeightPos->second[ fEnergiesGeV.at(i) ]=
+		                                 (float)fWeightsVector.at(i);
+	      fNumPos->second[ fEnergiesGeV.at(i) ]   = fNumShowers.at(i);
+	      fFluxPos->second[ fEnergiesGeV.at(i) ]  = 
+		                                 (float)fFluxVector.at(i);
+	      fELowPos->second[ fEnergiesGeV.at(i) ]  = 
+                                                 (float)fELowVector.at(i);
+	      fEHighPos->second[ fEnergiesGeV.at(i) ] = 
+                                                 (float)fEHighVector.at(i);
 	    }
 	}
     }
@@ -308,7 +330,8 @@ int KSEventWeights::getNumShowers(int type, int energyGeV)
 }
 // **************************************************************************
 
-float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, int energyGeV)
+float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, 
+							 int energyGeV)
 // **************************************************************************
 // Get differential rate, wieghted by number of showers. units /sec/M**2
 // **************************************************************************
@@ -326,7 +349,7 @@ float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, int energyGeV
 void KSEventWeights::Print()
 // **************************************************************************
 {
-  std::cout<<" Type Energy(GeV)   ELow  EHigh Weight #showers"<<std::endl;
+  std::cout<<" Type Energy(GeV)      Flux      ELow  EHigh Weight #showers"<<std::endl;
 
   for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end();
       fWeightPos++)
@@ -334,6 +357,7 @@ void KSEventWeights::Print()
       
       int fShowerType=fWeightPos->first;
       fNumPos   = fNumMap.find(fShowerType);
+      fFluxPos  = fFluxMap.find(fShowerType);
       fELowPos  = fELowMap.find(fShowerType);
       fEHighPos = fEHighMap.find(fShowerType);
       
@@ -347,6 +371,9 @@ void KSEventWeights::Print()
 	  pos=fNumPos->second.find(fEnrgy);
 	  int fNum=pos->second;
 
+	  fPos=fFluxPos->second.find(fEnrgy);
+	  double fFlux=fPos->second;
+
 	  fPos=fELowPos->second.find(fEnrgy);
 	  double fLowE=fPos->second;
 
@@ -355,7 +382,8 @@ void KSEventWeights::Print()
 
 
 	  float fWt=fShowerWeightPos->second;
-	  std::cout<<std::setw(5)<<fShowerType<<std::setw(12)<<fEnrgy<<" "
+	  std::cout<<std::setw(5)<<fShowerType<<std::setw(9)<<fEnrgy<<" "
+		   <<std::setw(14)<<fFlux<<" "
 		   <<std::setw(6)<<fLowE<<" "<<std::setw(6)<<fHighE<<" "
 		   <<std::setw(6)<<fWt  <<" "<<std::setw(9)<<fNum<<std::endl;
 	}     
