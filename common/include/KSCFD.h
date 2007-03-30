@@ -14,7 +14,7 @@
 #include "KSCommon.h"
 //                                            (WHIPPLE490,VERITAS499)
 const double kCFDGain[2]                    = {       3.0,      1.51};
-const double kCFDOffsetPE[2]                = {       0.0,       0.0}; 
+ 
 
 class KSCFD
 {

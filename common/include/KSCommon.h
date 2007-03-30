@@ -48,6 +48,7 @@ const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
 
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
+const double gCFDOffsetPE[2]             = {         0.0,         0.0};
 const double gPSTPulseWidthNS[2]         = {        10.0,        10.0}; 
                                      //Whipple ECL Pulses to PST's from CFD's 
                                      // measured by GHS in 09/01
