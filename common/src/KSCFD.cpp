@@ -20,7 +20,7 @@ KSCFD::KSCFD(KSCameraTypes CameraType)
   fNumCFDDelayBins              = (int)(gCFDDelayNS[fCameraType]/
 					gWaveFormBinSizeNS);
   fCFDGain                      = kCFDGain[fCameraType];
-  fCFDOffsetPE                  = kCFDOffsetPE[fCameraType];
+  fCFDOffsetPE                  = gCFDOffsetPE[fCameraType];
   fCFDTriggerDelayBins =
                     (int)(gCFDTriggerDelayNS[fCameraType]/gWaveFormBinSizeNS);
 }
