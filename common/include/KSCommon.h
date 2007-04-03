@@ -17,10 +17,10 @@ enum KSCameraTypes                         {VERITAS499=0,WHIPPLE490=1};
 const double gFocalLengthM[2]            = {        12.0,         7.3};
 const double gFacetDiameterM[2]          = {        0.61,       0.602};
 const double gMirrorRadiusSquared[2]     = {        36.0,    24.98733};
-//const double gSpotSizeNorthSouthDeg[2]   = {       0.025,        0.06};
-//const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
-const double gSpotSizeNorthSouthDeg[2]   = {       0.06,        0.06};
-const double gSpotSizeEastWestDeg[2]     = {       0.06,        0.06};
+const double gSpotSizeNorthSouthDeg[2]   = {       0.025,        0.06};
+const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
+//const double gSpotSizeNorthSouthDeg[2]   = {       0.06,        0.06};
+//const double gSpotSizeEastWestDeg[2]     = {       0.06,        0.06};
 
 const double gLatitude[2]                = {    0.552828,    0.552978};
 const double gEastLongitude[2]           = {    -1.93649,   -1.935190};
@@ -48,7 +48,7 @@ const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
 
 const double gCFDDelayNS[2]              = {         1.5,         4.0};
 const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
-const double gCFDOffsetPE[2]             = {         0.0,         0.0};
+const double gCFDOffsetPE[2]             = {         0.1,         0.0};
 const double gPSTPulseWidthNS[2]         = {        10.0,        10.0}; 
                                      //Whipple ECL Pulses to PST's from CFD's 
                                      // measured by GHS in 09/01
