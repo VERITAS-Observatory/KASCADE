@@ -281,6 +281,207 @@ void KSEventWeights::calculateWeights()
   return;
 }
 // **************************************************************************
+void KSEventWeights::calculateLogWeights() 
+{
+  // ********************************************************************** 
+  //Maps are screwy and you have to look very carefully at whats being done 
+  // We use map iterators a lot (probably should use them more). See pg 200 
+  // of the C++Standard Library book
+  // ********************************************************************** 
+  //The fShowers argument is a map where the 'key' is the Corsika particle 
+  //type and the value is a fShwrMap_t.
+  //the fShwrMap_t are maps where the 'key' is the energy in GeV and the
+  //value is the number of showers at that energy.
+  // ********************************************************************** 
+  // Iterate through the types.
+  // **********************************************************************
+  for(fShowersPos=fShowers.begin();fShowersPos != fShowers.end();fShowersPos++)
+    {
+      // ******************************************************************
+      // Create entries in the ouput maps if we need to, and get
+      // iterators to maps of this type
+      // ******************************************************************
+      int fShowerType=fShowersPos->first;  //'first' is the 'key'
+      fWeightPos = fWeightMap.find(fShowerType);
+      if(fWeightPos==fWeightMap.end())
+	{
+	  fWeightMap[fShowerType]; // Using the [] operator will create an 
+	                           // element entry. see pg 202 C++ std book
+	  fWeightPos = fWeightMap.find(fShowerType);
+	}
+
+      fNumPos = fNumMap.find(fShowerType);
+      if(fNumPos==fNumMap.end())
+	{
+	  fNumMap[fShowerType];
+	  fNumPos = fNumMap.find(fShowerType);
+	}
+
+      fFluxPos = fFluxMap.find(fShowerType);
+      if(fFluxPos==fFluxMap.end())
+	{
+	  fFluxMap[fShowerType];
+	  fFluxPos = fFluxMap.find(fShowerType);
+	}
+
+      fELowPos = fELowMap.find(fShowerType);
+      if(fELowPos==fELowMap.end())
+	{
+	  fELowMap[fShowerType];
+	  fELowPos = fELowMap.find(fShowerType);
+	}
+
+      fEHighPos = fEHighMap.find(fShowerType);
+      if(fEHighPos==fEHighMap.end())
+	{
+	  fEHighMap[fShowerType];
+	  fEHighPos = fEHighMap.find(fShowerType);
+	}
+
+
+      // ******************************************************************
+      // Energies will be sorted within the type map.
+      // ******************************************************************
+      int fNumEnergies=fShowersPos->second.size(); //second is the 'value'  In 
+                                                  //this case a  fShwrMap_t map
+      if(fNumEnergies==1)	       //single shower only.
+	{
+	  int fEnergy=fShowersPos->second.begin()->first;
+	  fWeightPos->second[fEnergy]=1.0;
+	  int fNum= fShowersPos->second.begin()->second;
+	  fNumPos->second[fEnergy]=fNum;
+	  fFluxPos->second[fEnergy]=1.0;      //Unitary flux
+	  fELowPos->second[fEnergy]=10.0;      //elow and ehigh arbitrary
+	  fEHighPos->second[fEnergy]=1000.0;    
+	}
+      else
+	{
+	  double fIAlpha=1.0+getAlpha(fShowerType);  //Integrel index
+	  double fIPhi=getIPhi(fShowerType);         //Spectral amplitude
+	  
+	  // *****************************************************************
+	  //get stuff into vectors just to make the code clearer
+	  // *****************************************************************
+	  fEnergiesGeV.clear(); 
+	  fNumShowers.clear();
+ 	  fWeightsVector.resize(fNumEnergies,0.0);
+	  fFluxVector.resize(fNumEnergies);
+	  fELowVector.resize(fNumEnergies);
+	  fEHighVector.resize(fNumEnergies);
+
+	  for(pos=fShowersPos->second.begin()
+		;pos != fShowersPos->second.end();pos++)
+	    {
+	      fEnergiesGeV.push_back(pos->first);
+	      fNumShowers.push_back(pos->second);
+	    }
+	
+	  // **************************************************************
+	  // First width is halfway up to second IN LOG(E) and the same down.
+	  // Since we now use delta(ln(Estep)) spaceing as a const, 
+	  // **************************************************************
+	  double fLogE=log(fEnergiesGeV.at(0));
+	  double fLogEStep=log(fEnergiesGeV.at(1))-fLogE;
+	  double fWidthLow=(double)exp(fLogE-fLogEStep*.5);
+	  double fWidthHigh=(double)exp(fLogE+fLogEStep*.5);
+
+	  // ****************************************************************
+	  // Using C pow(x,y)=x**y  function,  integrel of E**alpha from wl to
+	  // wh; constants retained for different types
+	  // ****************************************************************
+	  double fFluxConst=(fIPhi/(fIAlpha));
+	  double fW=pow(fWidthHigh,(fIAlpha)) -  pow(fWidthLow, (fIAlpha));
+	  fW=fFluxConst*fW;
+	  fFluxVector.at(0)=fW;
+
+	  fW=fW/fNumShowers.at(0);
+	  fWeightsVector.at(0) = fW;
+	  fELowVector.at(0)    = fWidthLow;
+	  fEHighVector.at(0)   = fWidthHigh;
+
+
+	  // ****************************************************
+	  // Now the rest
+	  // ****************************************************
+	  for(int i=1;i<fNumEnergies;i++)
+	    {
+	      //Go down to match previous and go up by 1/2 log(E) spacing
+	      fWidthLow=fWidthHigh;
+	      fLogE=log(fEnergiesGeV.at(i));
+	      if(i!=fNumEnergies-1)
+		{
+		  fLogEStep=log(fEnergiesGeV.at(i+1))-fLogE;
+		}
+	      fWidthHigh=(double)exp(fLogE+fLogEStep*.5);
+	      // *************************************************************
+	      // integrel of E**alpha from fWidthL to fWidthH; 
+	      // *************************************************************
+	      fWeightsVector.at(i) = fFluxConst*
+		(pow(fWidthHigh,(fIAlpha))-pow(fWidthLow,(fIAlpha)));
+		  //Compensate for multiple showers at each energy
+	      fFluxVector.at(i)=fWeightsVector.at(i);
+
+	      fWeightsVector.at(i) = fWeightsVector.at(i)/fNumShowers.at(i);
+	      fELowVector.at(i)    = fWidthLow;
+	      fEHighVector.at(i)   = fWidthHigh;
+	      // *************************************************************
+	      // Now place this "weight" into the map. We will normalize later
+	      //after all types are done.
+	      // *************************************************************
+	    }
+
+	  // ****************************************************************
+	  // Now fill the Weight and Num maps
+
+	  for(int i=0;i<fNumEnergies;i++)
+	    {
+	      fWeightPos->second[ fEnergiesGeV.at(i) ]=
+		                                 (float)fWeightsVector.at(i);
+	      fNumPos->second[ fEnergiesGeV.at(i) ]   = fNumShowers.at(i);
+	      fFluxPos->second[ fEnergiesGeV.at(i) ]  = 
+		                                 (float)fFluxVector.at(i);
+	      fELowPos->second[ fEnergiesGeV.at(i) ]  = 
+                                                 (float)fELowVector.at(i);
+	      fEHighPos->second[ fEnergiesGeV.at(i) ] = 
+                                                 (float)fEHighVector.at(i);
+	    }
+	}
+    }
+  // *************************************************************
+  // Find the max weight
+  // *************************************************************
+  fMaxWeight=0.;
+  for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end();
+      fWeightPos++)
+    {
+
+    for(fShowerWeightPos=fWeightPos->second.begin();
+	fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
+      {
+	if((fShowerWeightPos->second) > fMaxWeight)
+	{
+	  fMaxWeight=fShowerWeightPos->second;
+	}
+      }    
+    }         
+  // ***********************************************************************
+  // Re-scale so maximum weight is 1.0: all types
+  // ***********************************************************************
+  for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end()
+;fWeightPos++)
+    {
+
+      for(fShowerWeightPos=fWeightPos->second.begin();
+	  fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
+	{
+
+	  fShowerWeightPos->second=fShowerWeightPos->second/fMaxWeight;
+	}
+    }
+    // And we are done.
+  return;
+}
+// **************************************************************************
 
 float KSEventWeights::getWeight(int type, int energyGeV)
 // **************************************************************************
