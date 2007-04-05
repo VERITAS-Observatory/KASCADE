@@ -114,8 +114,18 @@ function Helium4()
        energy=([1]=49  58  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
         start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
           end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
+
+    let processEnd=38
+
+#Set2
+#    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   )
+#       energy=([1]=20   23.5 27.6 32.4 38.1 44.7 52.5 61.7 72.5 85.1 100 117 138 162 190 224 263 426 500 587 689  810  951  1118 1313 1543 1812 2128 2500 2937 3449 4052 4759 5590 6566 7712 9059 10642)
+#        start=([1]=1    1    1    1    1    1    1    1    1    1    1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+#          end=([1]=1035 1372 829  536  635  280  287  172  143  100  80  48  39  30  28  17  14  10  9   8   7    6    5    4    1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+
     if [ $host = 'isis' ]; then
       if [ "$kssc" != "ksMissingVBF" ]; then
+#set 1
 	BuildIsisScriptList 1 1  2
 	BuildIsisScriptList 2 3  4
 	BuildIsisScriptList 3 5  6
@@ -124,6 +134,16 @@ function Helium4()
 	BuildIsisScriptList 6 13 15
 	BuildIsisScriptList 7 16 18
 	BuildIsisScriptList 8 19 20
+
+#set2
+#   	BuildIsisScriptList 1 1  2
+#	BuildIsisScriptList 2 3  4
+#	BuildIsisScriptList 3 5  6
+#	BuildIsisScriptList 4 7  9
+#	BuildIsisScriptList 5 10 12
+#	BuildIsisScriptList 6 13 15
+#	BuildIsisScriptList 7 16 20
+#	BuildIsisScriptList 8 21 25
       else
 	BuildIsisScriptList 1 1  $processEnd
       fi
