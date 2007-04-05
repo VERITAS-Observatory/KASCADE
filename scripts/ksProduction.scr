@@ -209,9 +209,9 @@ function Gammas()
 #	    BuildIsisScriptList 8 25 28
 
 	    BuildIsisScriptList 1 1 2
-	    BuildIsisScriptList 2 3 5
-	    BuildIsisScriptList 3 6 8
-	    BuildIsisScriptList 4 9 12
+	    BuildIsisScriptList 2 3 4
+	    BuildIsisScriptList 3 5 7
+	    BuildIsisScriptList 4 8 12
 	    BuildIsisScriptList 5 13 17
 	    BuildIsisScriptList 6 18 23
 	    BuildIsisScriptList 7 24 27
