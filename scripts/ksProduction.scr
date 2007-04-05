@@ -175,10 +175,10 @@ function Gammas()
 #          end=([1]=516 1032 658 450 566 266 288 152 97  194 92  100 64  54  43  30  30  18  17  11  10  10  12  5    4    2    2    1)
 #set2
     let processEnd=32
-    enableGEN=([1]=ON   ON    ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON    ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
-       energy=([1]=20   23.9  28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350   418 500 598 715 855 1022 1223 1462 1748 2091 2500 3575 5112 7310 10450)
-        start=([1]=1    1     1    1    1    1    1    1    1    1   1     1   1   1     1     1     1     1   1   1   1   1   1    1    1    1    1    1    1    1    1    1)
-          end=([1]=1032 796   615  474  366  283  218  168  130  100 78    60  46  36    28    22    17    13  10  8   6   5   4    3    3    2    2    1    1    1    1    1)
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 3575 5112 7310 10450)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1)
+          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  8   6   5   4    3    3    2    2    1    1    1    1    1)
 
     if [ $host = 'isis' ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
@@ -212,10 +212,10 @@ function Gammas()
 	    BuildIsisScriptList 2 3 5
 	    BuildIsisScriptList 3 6 8
 	    BuildIsisScriptList 4 9 12
-	    BuildIsisScriptList 5 13 16
-	    BuildIsisScriptList 6 17 22
-	    BuildIsisScriptList 7 23 26
-	    BuildIsisScriptList 8 27 32
+	    BuildIsisScriptList 5 13 17
+	    BuildIsisScriptList 6 18 23
+	    BuildIsisScriptList 7 24 27
+	    BuildIsisScriptList 8 28 32
           else
 	    BuildIsisScriptList 1 1  $processEnd
           fi
