@@ -405,7 +405,8 @@ int main(int argc, char** argv)
 	  //He(2,4)      402
 	  //Fe(26,56)    5626
 	  pfWeights = new KSEventWeights(fTypes);
-	  pfWeights->calculateWeights();
+	  //pfWeights->calculateWeights();
+	  pfWeights->calculateLogWeights();
 	  pfWeights->Print();
 	  fMaxWeight=pfWeights->getMaximumWeight();
 	} //end of weight calculation
