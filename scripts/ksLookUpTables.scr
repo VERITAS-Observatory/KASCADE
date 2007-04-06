@@ -1,22 +1,30 @@
 #!/bin/bash
-
+# assumes that all direcotrys $1/LT$Zen are temporary.
 #$1 dir
 
 function MakeLookUp()
 {
-	cd  $Dir/LT$Zen/
-	rm *
-	ln -s $Dir'/'$Pre$Zen$Post'.root' $Pre$Zen$Post'stage3.root'
+	
+   #First create empty temporary LT$Zen library 
+    if [ -d "$Dir/LT$Zen" ]; then
+        rm -f $Dir/LT$Zen/*              #Empty directory
+    else
+	mkdir -p $Dir/LT$Zen
+    fi
 
-	cd $lcl
+    cd  $Dir/LT$Zen/
+    rm *
+    ln -s $Dir'/'$Pre$Zen$Post'.root' $Pre$Zen$Post'stage3.root'
 
-	$VEGASBASE/showerReconstruction/bin/produce_lookuptables $Dir/LT$Zen/ \
-	$LTName'EclnNcut.root'
+    cd $lcl
 
-	$VEGASBASE/showerReconstruction/bin/produce_lookuptables \
-		-save_cuts GlensStdECuts.cuts \
-		-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=6  \
-		$Dir/LT$Zen/  $LTName'EclnEcut.root'
+    $VEGASBASE/showerReconstruction/bin/produce_lookuptables $Dir/LT$Zen/ \
+    $LTName'EclnNcut.root'
+
+    $VEGASBASE/showerReconstruction/bin/produce_lookuptables \
+	-save_cuts GlensStdECuts.cuts \
+	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=6  \
+	$Dir/LT$Zen/  $LTName'EclnEcut.root'
 }
 
 
