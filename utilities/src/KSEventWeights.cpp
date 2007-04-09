@@ -120,7 +120,8 @@ void KSEventWeights::calculateWeights()
                                                   //this case a  fShwrMap_t map
       if(fNumEnergies==1)	       //single shower only.
 	{
-	  int fEnergy=fShowersPos->second.begin()->first;
+	  //int fEnergy=fShowersPos->second.begin()->first;
+	  float fEnergy=fShowersPos->second.begin()->first;
 	  fWeightPos->second[fEnergy]=1.0;
 	  int fNum= fShowersPos->second.begin()->second;
 	  fNumPos->second[fEnergy]=fNum;
@@ -346,7 +347,8 @@ void KSEventWeights::calculateLogWeights()
                                                   //this case a  fShwrMap_t map
       if(fNumEnergies==1)	       //single shower only.
 	{
-	  int fEnergy=fShowersPos->second.begin()->first;
+	  //int fEnergy=fShowersPos->second.begin()->first;
+	  float fEnergy=fShowersPos->second.begin()->first;
 	  fWeightPos->second[fEnergy]=1.0;
 	  int fNum= fShowersPos->second.begin()->second;
 	  fNumPos->second[fEnergy]=fNum;
@@ -468,7 +470,7 @@ void KSEventWeights::calculateLogWeights()
   // Re-scale so maximum weight is 1.0: all types
   // ***********************************************************************
   for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end()
-;fWeightPos++)
+	;fWeightPos++)
     {
 
       for(fShowerWeightPos=fWeightPos->second.begin();
@@ -483,7 +485,8 @@ void KSEventWeights::calculateLogWeights()
 }
 // **************************************************************************
 
-float KSEventWeights::getWeight(int type, int energyGeV)
+//float KSEventWeights::getWeight(int type, int energyGeV)
+float KSEventWeights::getWeight(int type, float energyGeV)
 // **************************************************************************
 // Find in our map of maps 
 // **************************************************************************
@@ -507,7 +510,8 @@ float KSEventWeights::getWeight(int type, int energyGeV)
 // **************************************************************************
 
 
-int KSEventWeights::getNumShowers(int type, int energyGeV)
+//int KSEventWeights::getNumShowers(int type, int energyGeV)
+int KSEventWeights::getNumShowers(int type, float energyGeV)
 // **************************************************************************
 // Get Number of showers at type and energy
 // **************************************************************************
@@ -531,8 +535,10 @@ int KSEventWeights::getNumShowers(int type, int energyGeV)
 }
 // **************************************************************************
 
+//float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, 
+//							 int energyGeV)
 float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type, 
-							 int energyGeV)
+							 float energyGeV)
 // **************************************************************************
 // Get differential rate, wieghted by number of showers. units /sec/M**2
 // **************************************************************************
@@ -567,7 +573,8 @@ void KSEventWeights::Print()
 	  fShowerWeightPos!=fWeightPos->second.end();
 	  fShowerWeightPos++)
 	{
-	  int fEnrgy=fShowerWeightPos->first;
+	  //int fEnrgy=fShowerWeightPos->first;
+	  float fEnrgy=fShowerWeightPos->first;
 
 	  pos=fNumPos->second.find(fEnrgy);
 	  int fNum=pos->second;
@@ -649,7 +656,8 @@ double KSEventWeights::getAlpha(int fShowerType)
 }
 // ************************************************************************
 
-float KSEventWeights::getDistributedEnergy(int fType, int fEnergyGeV)
+//float KSEventWeights::getDistributedEnergy(int fType, int fEnergyGeV)
+float KSEventWeights::getDistributedEnergy(int fType, float fEnergyGeV)
 // *************************************************************************
 // For energy band centered at fEnergyGev for particle type fType pick a new
 // energy from the energy band Pick from a flat distribution, its the best we 

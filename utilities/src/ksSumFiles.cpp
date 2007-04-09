@@ -262,7 +262,8 @@ int main(int argc, char** argv)
 	  while(getline(fListIn,fInputFile))
 	    {
 	      int fType=0;
-	      int fEnergyGeV=0;
+	      //int fEnergyGeV=0;
+	      float fEnergyGeV=0;
 	      if(fOutputVBF)
 		{
 		  // *********************************************************
@@ -322,7 +323,8 @@ int main(int argc, char** argv)
 		  //Primary type first
 		  fType = pfKVBFSimHead->fCORSIKAParticleID;
 		  // Now get energy
-		  fEnergyGeV = (int)pfKVBFSimHead->fEnergyGeV;
+		  //fEnergyGeV = (int)pfKVBFSimHead->fEnergyGeV;
+		  fEnergyGeV = (float)pfKVBFSimHead->fEnergyGeV;
 		  delete packet;
 		}
 	      else
@@ -358,7 +360,8 @@ int main(int argc, char** argv)
 		  //Primary type first
 		  fType = pfKRootSimHead->fCORSIKAParticleID;
 		  // Now get energy
-		  fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
+		  //fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
+		  fEnergyGeV=(float)pfKRootSimHead->fEnergyGeV;
 		  fFileIn.Close();
 		}
 		  
@@ -458,7 +461,8 @@ int main(int argc, char** argv)
 	{
 
 	  int fType=0;
-	  int fEnergyGeV=0;
+	  //int fEnergyGeV=0;
+	  float fEnergyGeV=0;
 	  VBankFileReader* pfReader = NULL;
 	  VPacket*       pfPacket   = NULL;
 	  VArrayEvent*   pfAEIn     = NULL;
@@ -499,7 +503,8 @@ int main(int argc, char** argv)
 	      //Primary type first
 	      fType = pfKVBFSimHead->fCORSIKAParticleID;
 	      // Now get energy
-	      fEnergyGeV=(int)pfKVBFSimHead->fEnergyGeV;
+	      //fEnergyGeV=(int)pfKVBFSimHead->fEnergyGeV;
+	      fEnergyGeV=(float)pfKVBFSimHead->fEnergyGeV;
 	    }
 	  VAVDF fFileIn;
 	  VACalibratedArrayEvent* pfInCalEvent;
@@ -527,7 +532,8 @@ int main(int argc, char** argv)
 	      pfKRootSimHead = 
 		dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
 	      fType = pfKRootSimHead->fCORSIKAParticleID;
-	      fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
+	      //fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
+	      fEnergyGeV=(float)pfKRootSimHead->fEnergyGeV;
 	    }
 	  
 	  if(fOutputVBF && fOutputRoot)
