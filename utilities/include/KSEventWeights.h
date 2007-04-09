@@ -26,8 +26,10 @@
 #include <cmath>                       //For pow(x,y)=x**y  function.
 
 
-typedef std::map<int,int > fShwrMap_t;
-typedef std::map<int,float > fShwrWeightMap_t;
+//typedef std::map<int,int > fShwrMap_t;
+//typedef std::map<int,float > fShwrWeightMap_t;
+typedef std::map<float,int > fShwrMap_t;
+typedef std::map<float,float > fShwrWeightMap_t;
 
 class KSEventWeights
 {
@@ -36,13 +38,17 @@ class KSEventWeights
   ~KSEventWeights();
   void calculateWeights();
   void calculateLogWeights();
-  float getWeight(int type, int fEnergyGeV);
+  //  float getWeight(int type, int fEnergyGeV);
+  float getWeight(int type, float fEnergyGeV);
   float getMaximumWeight(){return fMaxWeight;};
-  float getWeightedDifferentialRateHzPerM2(int type, int energyGeV);
-  int getNumShowers(int type, int fEnergyGeV);
+  //  float getWeightedDifferentialRateHzPerM2(int type, int energyGeV);
+  float getWeightedDifferentialRateHzPerM2(int type, float energyGeV);
+  //int getNumShowers(int type, int fEnergyGeV);
+  int getNumShowers(int type, float fEnergyGeV);
   double getIPhi(int type);
   double getAlpha(int type);
-  float  getDistributedEnergy(int type, int fEnergyGeV);
+  //float  getDistributedEnergy(int type, int fEnergyGeV);
+  float  getDistributedEnergy(int type, float fEnergyGeV);
   void  Print();
  private:
   std::map<int, fShwrMap_t> fShowers;
@@ -56,7 +62,8 @@ class KSEventWeights
   std::vector<float> fFluxVector;
   std::vector<float> fELowVector;
   std::vector<float> fEHighVector;
-  std::vector<int> fEnergiesGeV;
+  //std::vector<int> fEnergiesGeV;
+  std::vector<float> fEnergiesGeV;
   std::vector<int> fNumShowers;
 
   std::map<int, fShwrWeightMap_t > fWeightMap;   //Map of a map
