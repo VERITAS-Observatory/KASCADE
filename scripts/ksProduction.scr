@@ -67,23 +67,39 @@ function Protons()
     fi
 
 #Veritas$ whipple set1/ksaom/kasall
+    let processEnd=36
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   4   3   2   2    1    1    1    1    1    1    1    1    1    1    1    1    1)
+
+
 #set 1
-    let processEnd=35
-    enableGEN=([1]=ON   ON   ON   ON   ON  ON   ON   ON   ON   ON   ON   ON  ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON )
-       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1    346  691  1036 1   276  551  1    271  1    321  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
+#    let processEnd=35
+#    enableGEN=([1]=ON   ON   ON   ON   ON  ON   ON   ON   ON   ON   ON   ON  ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON )
+#       energy=([1]=20    20   20   20  24  24   24   28   28   34   34   41  41   49   49   58  70  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+#        start=([1]=1    346  691  1036 1   276  551  1    271  1    321  1   141  1    144  1   1   87  1   1   1   1   1   30  1   1   1   1   1    1    1    1    1    1    1)
+#          end=([1]=345  690  1035 1372 275 550  829  270  536  320  635  140 280  143  287  143 86  172 77  80  48  39  29  58  17  14  6   4   2    1    1    1    1    1    1)
 
     if [ $host = 'isis' ]; then
       if [ "$kssc" != "ksMissingVBF" ]; then
-	BuildIsisScriptList 1  1  4
-	BuildIsisScriptList 2  5  8 
-	BuildIsisScriptList 3  9  12
-	BuildIsisScriptList 4  13 16 
-	BuildIsisScriptList 5  17 20 
-	BuildIsisScriptList 6  21 25 
-	BuildIsisScriptList 7  26 30
-	BuildIsisScriptList 8  31 35
+	BuildIsisScriptList 1 1 2
+	BuildIsisScriptList 2 3 4
+	BuildIsisScriptList 3 5 8
+	BuildIsisScriptList 4 9 13
+	BuildIsisScriptList 5 14 19
+	BuildIsisScriptList 6 20 25
+	BuildIsisScriptList 7 26 30
+	BuildIsisScriptList 8 31 36
+ 
+#	BuildIsisScriptList 1  1  4
+#	BuildIsisScriptList 2  5  8 
+#	BuildIsisScriptList 3  9  12
+#	BuildIsisScriptList 4  13 16 
+#	BuildIsisScriptList 5  17 20 
+#	BuildIsisScriptList 6  21 25 
+#	BuildIsisScriptList 7  26 30
+#	BuildIsisScriptList 8  31 35
       else
 	BuildIsisScriptList 1  1  $processEnd
       fi
@@ -107,43 +123,40 @@ function Helium4()
     fi
 
 #Veritas$ whipple set1/ksaom/kasall
+    let processEnd=36
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+          end=([1]=491  366  273  204  152  114  85   63   47   35  27    20  15  11    9     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
 #set 1
-    let processEnd=20
-#set1
-    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON )
-       energy=([1]=49  58  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
-        start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
-          end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
-
-    let processEnd=38
-
-#Set2
-#    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   )
-#       energy=([1]=20   23.5 27.6 32.4 38.1 44.7 52.5 61.7 72.5 85.1 100 117 138 162 190 224 263 426 500 587 689  810  951  1118 1313 1543 1812 2128 2500 2937 3449 4052 4759 5590 6566 7712 9059 10642)
-#        start=([1]=1    1    1    1    1    1    1    1    1    1    1   1   1   1   1   1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1    1)
-#          end=([1]=1035 1372 829  536  635  280  287  172  143  100  80  48  39  30  28  17  14  10  9   8   7    6    5    4    1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+#    let processEnd=20
+#    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON )
+#       energy=([1]=49  58  70  84  100 120 143 205 205 294 422 605 867 1243 1781 2553 3660 5246 7519 10777)
+#        start=([1]=1   1   1   1   1   1   1   1   16  1   1   1   1   1    1    1    1    1    1    1)
+#          end=([1]=109 70  71  38  35  24  18  15  30  9   8   4   3   2    1    1    1    1    1    1)
 
     if [ $host = 'isis' ]; then
       if [ "$kssc" != "ksMissingVBF" ]; then
 #set 1
-	BuildIsisScriptList 1 1  2
-	BuildIsisScriptList 2 3  4
-	BuildIsisScriptList 3 5  6
-	BuildIsisScriptList 4 7  9
-	BuildIsisScriptList 5 10 12
-	BuildIsisScriptList 6 13 15
-	BuildIsisScriptList 7 16 18
-	BuildIsisScriptList 8 19 20
+	BuildIsisScriptList 1 6  8
+	BuildIsisScriptList 2 9  11
+	BuildIsisScriptList 3 12 15
+	BuildIsisScriptList 4 16 19
+	BuildIsisScriptList 5 20 23
+	BuildIsisScriptList 6 24 27
+	BuildIsisScriptList 7 28 31
+	BuildIsisScriptList 8 32 36
 
-#set2
-#   	BuildIsisScriptList 1 1  2
+
+#	BuildIsisScriptList 1 1  2
 #	BuildIsisScriptList 2 3  4
 #	BuildIsisScriptList 3 5  6
 #	BuildIsisScriptList 4 7  9
 #	BuildIsisScriptList 5 10 12
 #	BuildIsisScriptList 6 13 15
-#	BuildIsisScriptList 7 16 20
-#	BuildIsisScriptList 8 21 25
+#	BuildIsisScriptList 7 16 18
+#	BuildIsisScriptList 8 19 20
+
       else
 	BuildIsisScriptList 1 1  $processEnd
       fi
@@ -168,7 +181,7 @@ function Gammas()
 
 #Veritas set1/ksaom/kasall
 #Whipple set1/kasaom/kasall starts at 84 GeV
-    let processEnd=35
+    let processEnd=36
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
@@ -200,7 +213,7 @@ function Gammas()
 	    BuildIsisScriptList 5 14 19
 	    BuildIsisScriptList 6 20 25
 	    BuildIsisScriptList 7 26 30
-	    BuildIsisScriptList 8 31 35
+	    BuildIsisScriptList 8 31 36
           else
 	    BuildIsisScriptList 1 1  $processEnd
           fi

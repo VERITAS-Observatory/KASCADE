@@ -9,14 +9,28 @@ PrintEnergySteps()
   //int fNumSteps=9;
   int fNumSteps=9;
   
-  double fAlpha=-2.45;
+
+  //Gamma Ray spectrum index
+  //double fAlpha=-2.45;
+
+  //Proton spectrum Index
+  //double fAlpha=-2.77;
+
+  //Helium spectrum Index
+  double fAlpha=-2.64;
+
+
+
   double fIAlpha=fAlpha+1.0;
   double fStepLogE=(log(.100)-log(.02))/fNumSteps;
   double fLogEBase= log(.02);    
   int fNumE=100;
   double fEOld=.018;
-  double fNumShowersAt100=100;
-  double fNumMin=4;
+  //double fNumShowersAt100=100;   //gammas
+  //double fNumShowersAt100=80;     // protons
+  double fNumShowersAt100=35;     //helium
+ 
+ //double fNumMin=4;
 
   double fE[100];
   double fELow[100];
@@ -26,6 +40,7 @@ PrintEnergySteps()
   double fNumShowers[100];
 
   std::cout<<"Number of steps from 20 GeV to 100 GeV: "<<fNumSteps<<std::endl;
+  std::cout<<"Spectral Index: "<<fAlpha<<std::endl;
 
   for(int i=0;i<fNumE;i++)
     {
