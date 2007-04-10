@@ -17,8 +17,8 @@ enum KSCameraTypes                         {VERITAS499=0,WHIPPLE490=1};
 const double gFocalLengthM[2]            = {        12.0,         7.3};
 const double gFacetDiameterM[2]          = {        0.61,       0.602};
 const double gMirrorRadiusSquared[2]     = {        36.0,    24.98733};
-const double gSpotSizeNorthSouthDeg[2]   = {       0.025,        0.06};
-const double gSpotSizeEastWestDeg[2]     = {       0.025,        0.06};
+const double gSpotSizeNorthSouthDeg[2]   = {      0.0385,        0.06};
+const double gSpotSizeEastWestDeg[2]     = {      0.0385,        0.06};
 //const double gSpotSizeNorthSouthDeg[2]   = {       0.06,        0.06};
 //const double gSpotSizeEastWestDeg[2]     = {       0.06,        0.06};
 
