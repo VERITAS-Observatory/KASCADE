@@ -36,17 +36,17 @@ function RemoveOldFiles()
   fi
 
   if [ "$kssc" = "ksaomVBF" ] || [ "$kssc" = "ksaomVBFRoot" ]; then
-    echo Removing $parspec*GeV*.vbf files
+    echo Removing $parspec'GeV*.vbf' files
     cd $datadir
-    find . | grep $parspec |grep .vbf | xargs -n 1 rm -v 
+    find . | grep $parspec'GeV' |grep .vbf | xargs -n 1 rm -v 
     cd $lcl
     pwd
   fi
 
   if [ "$kssc" = "ksarraytriggerVBF" ]; then
-    echo Removing $parspec$Option3*GeV*.vbf files
+    echo Removing $parspec$Option3'GeV*.vbf' files
     cd $datadir
-    find . | grep $parspec$Option3 |grep .vbf | xargs  -n 1 rm -v 
+    find . | grep $parspec$Option3'GeV' |grep .vbf | xargs  -n 1 rm -v 
     cd $lcl
     pwd
     maxMem=75MB
