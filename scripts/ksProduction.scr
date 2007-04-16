@@ -118,16 +118,22 @@ function Helium4()
 {
     echo Helium4: $parspec
     WALLTIME=50:00:00
-    if [ "$kssc" != "ksMissingVBF" ]; then
-	RemoveOldFiles
-    fi
+ #   if [ "$kssc" != "ksMissingVBF" ]; then
+#	RemoveOldFiles
+#    fi
 
 #Veritas$ whipple set1/ksaom/kasall
     let processEnd=36
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
-          end=([1]=491  366  273  204  152  114  85   63   47   35  27    20  15  11    9     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+
+#Follow on
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
+        start=([1]=492  363  274  205  153  115  86   64   48   36  28    21  16  12    1     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1)              end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+
 #set 1
 #    let processEnd=20
 #    enableGEN=([1]=ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON )
@@ -138,14 +144,25 @@ function Helium4()
     if [ $host = 'isis' ]; then
       if [ "$kssc" != "ksMissingVBF" ]; then
 #set 1
-	BuildIsisScriptList 1 6  8
-	BuildIsisScriptList 2 9  11
-	BuildIsisScriptList 3 12 15
-	BuildIsisScriptList 4 16 19
-	BuildIsisScriptList 5 20 23
-	BuildIsisScriptList 6 24 27
-	BuildIsisScriptList 7 28 31
-	BuildIsisScriptList 8 32 36
+#	BuildIsisScriptList 1 6  8
+#	BuildIsisScriptList 2 9  11
+#	BuildIsisScriptList 3 12 15
+#	BuildIsisScriptList 4 16 19
+#	BuildIsisScriptList 5 20 23
+#	BuildIsisScriptList 6 24 27
+#	BuildIsisScriptList 7 28 31
+#	BuildIsisScriptList 8 32 36
+
+#Don't forget about RemoveOldFiles!
+
+	BuildIsisScriptList 1 6  7
+	BuildIsisScriptList 2 8  8
+	BuildIsisScriptList 3 9  9
+	BuildIsisScriptList 4 10 10
+	BuildIsisScriptList 5 11 11
+	BuildIsisScriptList 6 12 12
+	BuildIsisScriptList 7 13 13
+	BuildIsisScriptList 8 14 14
 
 
 #	BuildIsisScriptList 1 1  2
