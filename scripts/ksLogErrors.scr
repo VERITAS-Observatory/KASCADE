@@ -4,3 +4,4 @@
 grep ail ks*.log | grep -v ***S | grep -v ***P
 grep err ks*.log | grep -v ***S | grep -v ***P
 grep Err ks*.log | grep -v ***S | grep -v ***P
+grep Warn ks*.log
