@@ -7,18 +7,17 @@ PrintEnergySteps()
   //double fStepLogE=.18;
   //double fLogEBase=log(.100)-13*fStepLogE;    //Start at .1 TEV and backup 
   //int fNumSteps=9;
-  int fNumSteps=9;
+  //int fNumSteps=9;
+  int fNumSteps=18;
   
 
-  //Gamma Ray spectrum index
-  //double fAlpha=-2.45;
+   double fAlpha=-2.45; //Gamma Ray spectrum index
+  //double fAlpha=-2.77; //Proton spectrum Index
+  //double fAlpha=-2.64;  //Helium spectrum Index
 
-  //Proton spectrum Index
-  //double fAlpha=-2.77;
-
-  //Helium spectrum Index
-  double fAlpha=-2.64;
-
+  double fNumShowersAt100=100;   //gammas
+  //double fNumShowersAt100=80;     // protons
+  //double fNumShowersAt100=35;     //helium
 
 
   double fIAlpha=fAlpha+1.0;
@@ -26,9 +25,6 @@ PrintEnergySteps()
   double fLogEBase= log(.02);    
   int fNumE=100;
   double fEOld=.018;
-  //double fNumShowersAt100=100;   //gammas
-  //double fNumShowersAt100=80;     // protons
-  double fNumShowersAt100=35;     //helium
  
  //double fNumMin=4;
 

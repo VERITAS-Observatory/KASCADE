@@ -154,10 +154,19 @@ function Gammas()
 #Veritas set1/ksaom/kasall
 #Whipple set1/kasaom/kasall starts at 84 GeV
     let processEnd=36
-    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
-       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
-        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
-          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  8   6   5   4    3    3    2    2    1    1    1    1    1    1    1    1    1)
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100   119.6 143   171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10450)
+        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+          end=([1]=1032 796  615  474  366  283  218  168  130  100   78    60    46  36    28    22    17   13  10  8   6   5   4    3    3    2    2    1    1    1    1    1    1    1    1    1)
+
+#VeritasSet2
+#Don't forget about RemoveOldFiles!
+#    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON )
+#       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11430)
+#        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1)
+#          end=([1]=907  700  540  417  322  248  192  148  114  88    68    53    41  32    25    19    15   12  9   7   6   4   4    3    2    2    2    1    1    1    1    1    1    1    1    1)
+
+
 
     if [ $host = 'isis' ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
@@ -178,14 +187,15 @@ function Gammas()
 
 	if [ ${jobSpec:0:1} = "V" ] ; then
           if [ "$kssc" != "ksMissingVBF" ]; then
-	    BuildIsisScriptList 1 1 2
-	    BuildIsisScriptList 2 3 4
-	    BuildIsisScriptList 3 5 8
-	    BuildIsisScriptList 4 9 13
-	    BuildIsisScriptList 5 14 19
-	    BuildIsisScriptList 6 20 25
-	    BuildIsisScriptList 7 26 30
-	    BuildIsisScriptList 8 31 36
+	   #For ksaomVBF ~40 min
+	    BuildIsisScriptList 1 1  2
+	    BuildIsisScriptList 2 3  4
+	    BuildIsisScriptList 3 5  6
+	    BuildIsisScriptList 4 7  8
+	    BuildIsisScriptList 5 9  10
+	    BuildIsisScriptList 6 11 13
+	    BuildIsisScriptList 7 14 18
+	    BuildIsisScriptList 8 19 36
 
 #Don't forget about RemoveOldFiles!
           else
