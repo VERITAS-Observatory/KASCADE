@@ -8,32 +8,33 @@ PrintEnergySteps()
   //double fLogEBase=log(.100)-13*fStepLogE;    //Start at .1 TEV and backup 
   //int fNumSteps=9;
   //int fNumSteps=9;
-  int fNumSteps=18;
+  //int fNumSteps=18;
+  int fNumSteps=36;
   
 
-   double fAlpha=-2.45; //Gamma Ray spectrum index
+  double fAlpha=-2.45; //Gamma Ray spectrum index
   //double fAlpha=-2.77; //Proton spectrum Index
   //double fAlpha=-2.64;  //Helium spectrum Index
 
   double fNumShowersAt100=100;   //gammas
   //double fNumShowersAt100=80;     // protons
-  //double fNumShowersAt100=35;     //helium
+  //double fNumShowersAt100=37;     //helium
 
 
   double fIAlpha=fAlpha+1.0;
   double fStepLogE=(log(.100)-log(.02))/fNumSteps;
   double fLogEBase= log(.02);    
-  int fNumE=100;
+  int fNumE=150;
   double fEOld=.018;
  
  //double fNumMin=4;
 
-  double fE[100];
-  double fELow[100];
-  double fEHigh[100];
-  double fFlux[100];
-  double fFrac[100];
-  double fNumShowers[100];
+  double fE[150];
+  double fELow[150];
+  double fEHigh[150];
+  double fFlux[150];
+  double fFrac[150];
+  double fNumShowers[150];
 
   std::cout<<"Number of steps from 20 GeV to 100 GeV: "<<fNumSteps<<std::endl;
   std::cout<<"Spectral Index: "<<fAlpha<<std::endl;
