@@ -33,7 +33,7 @@ function MakeLookUp()
 Dir=$1
 LTName=GlennsLT
 Pre=NewVGammaRay
-Post=Deg50mvV123-M2S3
+Post=Deg50mv123-M2S3
 lcl="$PWD"
 
 Zen='1'
