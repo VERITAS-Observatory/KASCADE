@@ -8,8 +8,8 @@ PrintEnergySteps()
   //double fLogEBase=log(.100)-13*fStepLogE;    //Start at .1 TEV and backup 
   //int fNumSteps=9;
   //int fNumSteps=9;
-  //int fNumSteps=18;
-  int fNumSteps=36;
+  int fNumSteps=18;
+  //int fNumSteps=36;
   
 
   double fAlpha=-2.45; //Gamma Ray spectrum index
@@ -24,17 +24,17 @@ PrintEnergySteps()
   double fIAlpha=fAlpha+1.0;
   double fStepLogE=(log(.100)-log(.02))/fNumSteps;
   double fLogEBase= log(.02);    
-  int fNumE=150;
+  int fNumE=85;
   double fEOld=.018;
  
- //double fNumMin=4;
+  double fNumMin=5;
 
-  double fE[150];
-  double fELow[150];
-  double fEHigh[150];
-  double fFlux[150];
-  double fFrac[150];
-  double fNumShowers[150];
+  double fE[200];
+  double fELow[200];
+  double fEHigh[200];
+  double fFlux[200];
+  double fFrac[200];
+  double fNumShowers[200];
 
   std::cout<<"Number of steps from 20 GeV to 100 GeV: "<<fNumSteps<<std::endl;
   std::cout<<"Spectral Index: "<<fAlpha<<std::endl;
@@ -58,14 +58,14 @@ PrintEnergySteps()
     {
       fNumShowers[i]=fNumShowersAt100*fFlux[i]/fFlux[fNumSteps];
       fNumShowers[i]=ceil(fNumShowers[i]);
-      //if(fNumShowers[i]<fNumMin)
-      //	{
-      //	  fNumShowers[i]=fNumMin;
-      //	}
+      if(fNumShowers[i]<fNumMin)
+      	{
+      	  fNumShowers[i]=fNumMin;
+      	}
  
-      std::cout<<std::setw(5)<<i<<": "<<std::setw(7)<<std::setprecision(4)
-	       <<fE[i]<<" "<<std::setw(7)<<std::setprecision(4)<<fELow[i]
-	       <<" "<<std::setw(7)<<std::setprecision(4)<<fEHigh[i]<<" "
+      std::cout<<std::setw(5)<<i<<": "<<std::setw(7)<<std::setprecision(6)
+	       <<fE[i]<<" "<<std::setw(7)<<std::setprecision(6)<<fELow[i]
+	       <<" "<<std::setw(7)<<std::setprecision(6)<<fEHigh[i]<<" "
 	       <<std::setw(7)<<std::setprecision(4)<<fNumShowers[i]<<" "
 	       <<std::setw(7)<<std::setprecision(4)<<fFrac[i]<<std::endl;
       fNum+=(int)fNumShowers[i];
