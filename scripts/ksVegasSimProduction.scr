@@ -4,19 +4,15 @@
 #$1 VBF file to process.
 #$2 Bad pixel file name.
 
-#First we see if the simLaser file exists, if not we make it
+#Make simLaser file (even if it already exists, this is very fast)
 
-if [ ! -e "simLaser.root" ]; then
-     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser \
-        -AIF_DataSource=CompiledOnly \
-        -AIFC_OverrideArray=VC499    \
-	-G_SimulationMode=1 dummyFileName \
+$VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser -AIF_DataSource=CompiledOnly \
+        -AIFC_OverrideArray=VC499 -G_SimulationMode=1 dummyFileName \
         simLaser.root
-fi
 
 #Now process the file:
 VBFFileName=$1
-RootFileName=${VBFFileName%".vbf"}'.root'
+RootFileName=${VBFFileName%".vbf"}'S3.root'
 
 #echo RootFileName: $RootFileName
 
@@ -25,11 +21,21 @@ if [ -e $BadPixelFile ]; then
     BadPixelOption='-BCI_BadChannelList='$BadPixelFile
 fi
 
-$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 $VBFFileName $RootFileName
+$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 -RHM_ObservingMode=drift $VBFFileName $RootFileName
 
 $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption $VBFFileName $RootFileName simLaser.root
 
 $VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
 
-$VEGASBASE/bin/vaStage4 -stage4TableFile=$VEGASBASE/showerReconstruction/vegas_lookuptables/lookuptables_EcleanedNcutted.root $RootFileName
+NcutRootFileName=${VBFFileName%".vbf"}'TrueNCut.root'
+EcutRootFileName=${VBFFileName%".vbf"}'TrueECut.root'
+
+cp -v $RootFileName $NcutRootFileName
+cp -v $RootFileName $EcutRootFileName
+
+
+$VEGASBASE/bin/vaStage4 -stage4TableFile=/simulations/veritas/GlennsLTTrueNcut.root $NcutRootFileName
+
+$VEGASBASE/bin/vaStage4 -stage4TableFile=/simulations/veritas/GlennsLTTrueEcut.root 	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  $EcutRootFileName
+
 
