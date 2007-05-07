@@ -104,6 +104,15 @@ int main(int argc, char** argv)
       std::string progname = *argv;
       VAOptions command_line(argc,argv);
 
+      bool fRunNumberSpecified=false;
+      uword32 fRunNumber=0;
+      if(command_line.findWithValue("RunNumber",fRunNumber,
+			   "Run Number to be used in output file. Defaults to "
+			   "RunNumber used in first input file.")
+	 == VAOptions::FS_FOUND)
+	{
+	  fRunNumberSpecified=true;
+	}
       bool fWeightBySpectrum=false;
       if(command_line.find("EnableSpectrumWeighting",
 			   "Indicates that while appending events from files "
@@ -451,7 +460,6 @@ int main(int argc, char** argv)
       // Loop over files in the list
       // ****************************************************************
       int fArrayEventNum=1;   //VBF events start at 1, 0 is for header
-      uword32 fRunNumber=0;
       std::vector< bool> fConfigMask;
       int fNumPedEvents=0;
       int fNumNormalEvents=0;
@@ -560,9 +568,17 @@ int main(int argc, char** argv)
 		{
 		  if(fOutputVBF)
 		    {
-		      fRunNumber = pfReader->getRunNumber();
-		      std::cout<<"ksSumFile: RunNumber: "<<fRunNumber
-			       <<std::endl;
+
+		      uword32 fNumOfRun = pfReader->getRunNumber();
+		      std::cout<<"ksSumFile: RunNumber from first Input file: "
+			       <<fNumOfRun<<std::endl;
+		      if(!fRunNumberSpecified)
+			{
+			  fRunNumber=fNumOfRun;
+			}
+		      std::cout<<"ksSumFile: RunNumber for Output file:"
+			       <<fRunNumber<<std::endl;
+
 		      fConfigMask= pfReader->getConfigMask();
 		      pfWriter = new VBankFileWriter(fOutputVBFFileName,
 						     fRunNumber,
