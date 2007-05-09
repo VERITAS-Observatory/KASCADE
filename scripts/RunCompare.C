@@ -8,7 +8,7 @@ TH1F**      pfMeanScaledWidth;
 TH1F**      pfMeanScaledLength;
 TProfile**  pfEnergyBias;
 TH1F**      pfAomega;
-TH1F**      pfTheta2;
+TProfile**  pfTheta2Bias;
 
 
 
@@ -16,6 +16,7 @@ TH1F**      pfTheta2;
 TCanvas* fC1;
 std::string pfRunNames[5];
 std::string pfTels[5];
+bool fHaveSimBranch;
 
 void CompareRuns(std::string* RunNames, int NumRuns, std::string* Tels);
 void CompareRunsPlot(std::string RunName, std::string Tel,int i);
@@ -50,15 +51,16 @@ void ShowerCompare(std::string Run1Name, std::string Run2Name=" ",
       fNumRuns++;
     }
 
-  pfMeanScaledWidth=new TH1F**[4];
-  pfMeanScaledLength=new TH1F**[4];
-  pfEnergyBias=new TProfile*[4];
-  pfAomega=new TH1F**[4];
-  pfTheta2=new TH1F**[4];
+  pfMeanScaledWidth  = new TH1F*[4];
+  pfMeanScaledLength = new TH1F*[4];
+  pfEnergyBias       = new TProfile*[4];
+  pfTheta2Bias       = new TProfile*[4];
+  pfAomega           = new TH1F*[4];
 
 
   gStyle->SetOptStat(kFALSE);
   fC1 = new TCanvas("fC1","Hillas Params ");
+
 
   for(int i=0;i<fNumRuns;i++)
     {
@@ -76,7 +78,7 @@ void ShowerCompare(std::string Run1Name, std::string Run2Name=" ",
   fC1->cd(3);
   PlotProfiles(pfEnergyBias,fNumRuns);
   fC1->cd(4);
-  ScaleAndPlot(pfTheta2,fNumRuns,false);
+  PlotProfiles(pfTheta2Bias,fNumRuns);
   //  fC1->cd(5);
   //  ScaleAndPlot(pfAomega,fNumRuns,false);
   return;
@@ -93,8 +95,16 @@ void  FillShowerPlots(std::string RunName, int fRun)
     }
   VAShowerData* pfShower =new VAShowerData;
   R1->SetBranchAddress("S",&pfShower);
-  VAKascadeSimulationData* pfSim = new VAKascadeSimulationData;
-  R1->SetBranchAddress("Sim",&pfSim);
+  if(R1->GetBranch("Sim")==NULL)
+    {
+      fHaveSimBranch=false;
+    }
+  else
+    {
+      fHaveSimBranch=true;
+      VAKascadeSimulationData* pfSim = new VAKascadeSimulationData;
+      R1->SetBranchAddress("Sim",&pfSim);
+    }
   Color_t fColor;
   if(fRun==0)
     {
@@ -129,7 +139,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
   //Mean Scaled Width plots
   std::string title = "Mean Scaled Width";
   std::string fMSWPlot = "S.fMSW >> pfMSW";
-  TH1F* pfMSW = new TH1F("pfMSW",title.c_str(),100,.01,1.5);
+  TH1F* pfMSW = new TH1F("pfMSW",title.c_str(),100,.4,3.0);
   pfMSW->SetXTitle("MSW(deg)");
   pfMSW->SetYTitle("#events");
   R1->Draw(fMSWPlot.c_str(),cuts.c_str());
@@ -141,7 +151,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
   //Mean Scaled Length plots
   title = "Mean Scaled Length";
   std::string fMSLPlot = "S.fMSL >> pfMSL";
-  TH1F* pfMSL = new TH1F("pfMSL",title.c_str(),100,.01,1.5);
+  TH1F* pfMSL = new TH1F("pfMSL",title.c_str(),100,.4,3.0);
   pfMSL->SetXTitle("MSL(deg)");
   pfMSL->SetYTitle("#events");
   R1->Draw(fMSLPlot.c_str(),cuts.c_str());
@@ -149,45 +159,83 @@ void  FillShowerPlots(std::string RunName, int fRun)
   pfMSL->SetLineColor(fColor); 
   pfMeanScaledLength[fRun] = pfMSL;
 
-   //Energy bias
-  title = "Energy Bias";
-  TProfile* pfEBias = new TProfile("pfEBias",title.c_str(),fNumLog10EBins,
-				   fLog10EMin,fLog10EMax,-1.0,2.0);
-  pfEBias->SetXTitle("Log10(ETrue(TeV))");
-  pfEBias->SetYTitle("<(Log10(ETrue)-Log10(EEst))/Log10(ETrue))>");
 
-  // Start loop for filling
-  int fNumEntries=(int)R1->GetEntries();
-  for(int i=0;i<fNumEntries;i++)
+  // ********************************************************************
+  // Need to check for Sim branch before we do this.
+  // ********************************************************************
+  if(fHaveSimBranch)
     {
-      R1->GetEntry(i);  //Loads "S" data into pfShower. and "Sim" into pfSim
+      //Energy bias
+      title = "Energy Bias";
+      TProfile* pfEBias = new TProfile("pfEBias",title.c_str(),fNumLog10EBins,
+				       fLog10EMin,fLog10EMax,-1.0,2.0);
+      pfEBias->SetXTitle("Log10(ETrue(TeV))");
+      pfEBias->SetYTitle("<Log10(EReconsturcted/ETrue)>");
       
-      if(pfShower->fIsEnergy==1 && pfShower->fTheta2<.1)
+      // Start loop for filling
+      int fNumEntries=(int)R1->GetEntries();
+      for(int i=0;i<fNumEntries;i++)
 	{
-	  double fLog10ETrue=log10(pfSim->fEnergyGeV/1000.); //in TeV
-	  double fLog10ERcn=log10(pfShower->fEnergy/1000.);
-	  double fDiffLog10E=(fLog10ETrue-fLog10ERcn)/fLog10ETrue;
-	  //if(abs(fDiffLog10E)<1.0)
-	  // {
+	  R1->GetEntry(i);//Loads "S" data into pfShower. and "Sim" into pfSim
+	  
+	  if(pfShower->fIsEnergy==1)
+	    // && pfShower->fTheta2<.1)
+	    {
+	      double fLog10ETrue=log10(pfSim->fEnergyGeV/1000.); //in TeV
+	      double fLog10ERcn=log10(pfShower->fEnergy/1000.);
+	      //double fDiffLog10E=(fLog10ETrue-fLog10ERcn)/fLog10ETrue;
+	      double fDiffLog10E=(fLog10ERcn-fLog10ETrue);
 	      pfEBias->Fill(fLog10ETrue,fDiffLog10E,1.0);
-	      // }
+	    }
 	}
+      pfEBias->SetDirectory(0);
+      pfEBias->SetLineColor(fColor); 
+      pfEnergyBias[fRun] = pfEBias;
+
+
+      //Theta2 bias
+      title = "Theta Squared Bias";
+      TProfile* pfT2Bias = new TProfile("pfT2Bias",title.c_str(),
+					fNumLog10EBins,fLog10EMin,fLog10EMax,
+					-.5,.45);
+      pfT2Bias->SetXTitle("Log10(ETrue(TeV))");
+      pfT2Bias->SetYTitle("<Theta2>");
+
+      // Start loop for filling
+      for(int i=0;i<fNumEntries;i++)
+	{
+	  R1->GetEntry(i);//Loads "S" data into pfShower. and "Sim" into pfSim
+      
+	  if(pfShower->fIsDirection==1)
+	    {
+	      double fLog10ETrue=log10(pfSim->fEnergyGeV/1000.); //in TeV
+	      pfT2Bias->Fill(fLog10ETrue,pfShower->fTheta2,1.0);
+	    }
+	}
+      pfT2Bias->SetDirectory(0);
+      pfT2Bias->SetLineColor(fColor); 
+      pfTheta2Bias[fRun] = pfT2Bias;
     }
-  pfEBias->SetDirectory(0);
-  pfEBias->SetLineColor(fColor); 
-  pfEnergyBias[fRun] = pfEBias;
+  else
+    {
+      pfEnergyBias[fRun] = NULL;
+      pfTheta2Bias[fRun] = NULL;
+    }
+     
 
   //Theta2
-  cuts="S.fIsDirection==1";
-  title = "Theta**2";
-  std::string fT2Plot = "S.fTheta2 >> pfT2";
-  TH1F* pfT2 = new TH1F("pfT2",title.c_str(),100,.01,1.5);
-  pfT2->SetXTitle("Theta**2(deg**2)");
-  pfT2->SetYTitle("#events");
-  R1->Draw(fT2Plot.c_str(),cuts.c_str());
-  pfT2->SetDirectory(0);
-  pfT2->SetLineColor(fColor); 
-  pfTheta2[fRun] = pfT2;
+  //cuts="S.fIsDirection==1 && S.fTheta>0";
+  //title = "Theta**2";
+  //std::string fT2Plot = "S.fTheta2:log10(Sim.fEnergyGeV/1000) >> pfT2";
+  //TH2F* pfT2 = (TH2F*)new TH2F("pfT2","log10(ERcn/ETrue) vs log10(ETrue(TeV))",
+  //			       fNumLog10EBins,fLog10EMin,fLog10EMax24,
+  //			       ,50,0.0,.45)
+  //pfT2->SetXTitle("log10(ETrue(TeV))";
+  //pfT2->SetYTitle("log10(EReconstructed/ETrue)");
+  //R1->Draw(fT2Plot.c_str(),cuts.c_str());
+  //pfT2->SetDirectory(0);
+  //pfT2->SetLineColor(fColor); 
+  //pfTheta2[fRun] = pfT2;
   return;
 }
 
@@ -416,26 +464,39 @@ void ScaleAndPlot(TH1F** pfDataHist, int fNumRuns,  bool fNormalizePeak)
  
 void PlotProfiles(TProfile** pfDataHist, int fNumRuns)
 {
-  pfDataHist[0]->Draw();
-  if(fNumRuns>1)
+  int fFirstHist;
+  for(fFirstHist=0;fFirstHist<fNumRuns;fFirstHist++)
     {
-      for(int i=0;i<fNumRuns;i++)
+      if(pfDataHist[fFirstHist]!=NULL)
 	{
-	  pfDataHist[i]->Draw("same");
+	  pfDataHist[fFirstHist]->Draw();
+	  break;
+	}
+    }
+  if(fNumRuns>fFirstHist+1)
+    {
+      for(int j=fFirstHist+1;j<fNumRuns;j++)
+	{
+	  if(pfDataHist[j]!=NULL)
+	    {
+	      pfDataHist[j]->Draw("same");
+	    }
 	}
     }
   // ******************************************************************
   // Add in legand
   // ******************************************************************
-  //TLegend* pfLegend=new TLegend(0.33,.7 ,0.89,0.89);
-  // 
-  //for(int i=0;i<fNumRuns;i++)
-  //  {
-  //    std::string fLable=pfRunNames[i] + ":" + pfTels[i];
-  //    pfLegend->AddEntry(pfDataHist[i],fLable.c_str(),"l");
-
-  //    }
-  //pfLegend->Draw();
+  TLegend* pfLegend=new TLegend(0.33,.7 ,0.89,0.89);
+   
+  for(int i=0;i<fNumRuns;i++)
+    {
+      if(pfDataHist[i]!=NULL)
+	{
+	  std::string fLable=pfRunNames[i] + ":" + pfTels[i];
+	  pfLegend->AddEntry(pfDataHist[i],fLable.c_str(),"l");
+	}
+    }
+  pfLegend->Draw();
   return;
 }
  
