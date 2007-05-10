@@ -16,6 +16,8 @@
 
 #include "KSSegmentDataClasses.h"
 
+//JOHN WRIGHT
+#include "KSCommon.h"
 
 #include "stdint.h"
 #include <cmath>
@@ -30,6 +32,11 @@ private:
   static double            sDefaultGeVEnergyPrimary;
   static double            sDefaultDlInitial;
   static double            sDefaultDmInitial;
+
+  //JOHN WRIGHT
+  static double            sDefaultAzInitialDeg;
+  static double            sDefaultZenithInitialDeg;
+
   static double            sDefaultEnergyThresholdMeV;
   static double            sDefaultMaxCoulombScatSegmentLength;
   static double            sDefaultInjectionDepth;

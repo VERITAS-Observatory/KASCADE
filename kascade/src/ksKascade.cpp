@@ -120,7 +120,7 @@ int main(int argc, char** argv)
       // ----------------------------------------------------------------------
       bool UseGrISUPilotFile=false;
       std::string GrISUPilotFileName;
-      KSGrISUPilotFile* pfGrISUPilotFile;
+      KSGrISUPilotFile* pfGrISUPilotFile=NULL;
       int fNumberOfShowers=1;      //Defualt do 1 shower only
       if(command_line.findWithValue("GrISUPilotFileName",GrISUPilotFileName,
 		 "Use a GrISU Pilot file to specifiy config options. This "
@@ -374,6 +374,15 @@ int main(int argc, char** argv)
 	{
 	  config_file.loadConfigFile(load_filename);
 	}
+
+
+      // --------------------------------------------------------------------
+      // Load up the segment header now that the config stuff is loaded
+      // --------------------------------------------------------------------
+
+      pfSegmentHead= new KSSegmentHeadData;
+      pfDataIn=new KSKascadeDataIn(pfSegmentHead);
+
     // ------------------------------------------------------------------------
     // Save the configuration file if we have been asked to
     // ------------------------------------------------------------------------
@@ -440,12 +449,6 @@ int main(int argc, char** argv)
 		}
 	    }
 	}
- // --------------------------------------------------------------------
-    // Load up the segment header now that the config stuff is loaded
-    // --------------------------------------------------------------------
-
-      pfSegmentHead= new KSSegmentHeadData;
-      pfDataIn=new KSKascadeDataIn(pfSegmentHead);
  
     // ------------------------------------------------------------------------
     // Create the ouput seg file and write the seg header and print it.

@@ -22,6 +22,10 @@ int               KSKascadeDataIn::sDefaultType = 1;  //Gamma
 double            KSKascadeDataIn::sDefaultGeVEnergyPrimary=1000.0; //1 Tev
 double            KSKascadeDataIn::sDefaultDlInitial=1.e-15; 
 double            KSKascadeDataIn::sDefaultDmInitial=0.017452212;
+
+double            KSKascadeDataIn::sDefaultAzInitialDeg=-1.0;
+double            KSKascadeDataIn::sDefaultZenithInitialDeg=-1.0;
+
 double            KSKascadeDataIn::sDefaultEnergyThresholdMeV=10.; //MeV
 double            KSKascadeDataIn::sDefaultMaxCoulombScatSegmentLength=0.02;
                                                                      //gm/cm**2
@@ -44,8 +48,27 @@ KSKascadeDataIn::KSKascadeDataIn(KSSegmentHeadData* SegmentHead)
   pfSegmentHead=SegmentHead;
   pfSegmentHead->fType=sDefaultType;
   pfSegmentHead->fGeVEnergyPrimary=sDefaultGeVEnergyPrimary;
+
+  //If Azimuth and Zenith angle have been set from default override 0dl and dm
+  if( sDefaultAzInitialDeg >= 0.0 && sDefaultZenithInitialDeg >= 0.0 )
+  {
+    sDefaultDlInitial = -sin(sDefaultZenithInitialDeg * gDeg2Rad) * 
+                                       sin(sDefaultAzInitialDeg * gDeg2Rad);
+    sDefaultDmInitial = sin(sDefaultZenithInitialDeg * gDeg2Rad) * 
+                                       cos(sDefaultAzInitialDeg * gDeg2Rad);
+    if(fabs(sDefaultDlInitial)<1.e-15)
+      {
+	sDefaultDlInitial=1.e-15;
+      }
+    if(fabs(sDefaultDmInitial)<1.e-15)
+      {
+	sDefaultDmInitial=1.e-15;
+      }
+  }
+
   pfSegmentHead->fDlInitial=sDefaultDlInitial;
   pfSegmentHead->fDmInitial=sDefaultDmInitial;
+
   pfSegmentHead->fEnergyThresholdMeV=sDefaultEnergyThresholdMeV;
   pfSegmentHead->fMaxCoulombScatSegmentLength = 
                                            sDefaultMaxCoulombScatSegmentLength;
@@ -111,6 +134,10 @@ VAConfigurationData KSKascadeDataIn::getConfig() const
   config.fName = std::string("KSKascadeData");
   config.setValue("PrimaryType",pfSegmentHead->fType);
   config.setValue("PrimaryEnergyGeV",pfSegmentHead->fGeVEnergyPrimary);
+
+  config.setValue("AzInitialDeg",sDefaultAzInitialDeg);
+  config.setValue("ZenithInitialDeg",sDefaultZenithInitialDeg);
+
   config.setValue("dlInitial",pfSegmentHead->fDlInitial);
   config.setValue("dmInitial",pfSegmentHead->fDmInitial);
   config.setValue("ThresholdEnergyMeV",
@@ -149,6 +176,18 @@ void KSKascadeDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "dmInitial", sDefaultDmInitial,
 		    "KSKascadeDataIn",
 		    "Primary Inital y direction cosign (y + south, z +down");
+
+  doVAConfiguration(file, command_line,
+                  "AzInitialDeg", sDefaultAzInitialDeg,
+                  "KSKascadeDataIn",
+                  "Primary Initial azimuth angle (0 degrees North). "
+                  "Overrides dlInitial and dmInitial");
+  doVAConfiguration(file, command_line,
+                  "ZenithInitialDeg", sDefaultZenithInitialDeg,
+                  "KSKascadeDataIn",
+                  "Primary Initial zenith angle (0 degrees up). "
+                  "Overrides dlInitial and dmInitial");
+
   doVAConfiguration(file, command_line, 
 		    "EnergyThresholdMeV", 
 		    sDefaultEnergyThresholdMeV,
