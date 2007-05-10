@@ -171,21 +171,25 @@ void KSKascadeDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
   doVAConfiguration(file, command_line, 
 		    "dlInitial", sDefaultDlInitial,
 		    "KSKascadeDataIn",
-		    "Primary Inital x direction cosign (x+ east)");
+		    "Primary Inital x direction cosign (x+ east)"
+		    "This is the direction the Primary is GOING TO. ");
   doVAConfiguration(file, command_line, 
 		    "dmInitial", sDefaultDmInitial,
 		    "KSKascadeDataIn",
-		    "Primary Inital y direction cosign (y + south, z +down");
+		    "Primary Inital y direction cosign (y + south, z +down"
+                    "This is the direction the Primary is GOING TO. ");
 
   doVAConfiguration(file, command_line,
                   "AzInitialDeg", sDefaultAzInitialDeg,
                   "KSKascadeDataIn",
                   "Primary Initial azimuth angle (0 degrees North). "
-                  "Overrides dlInitial and dmInitial");
+                  "This is the direction the Primary is COMING FROM. "
+		  "Overrides dlInitial and dmInitial");
   doVAConfiguration(file, command_line,
                   "ZenithInitialDeg", sDefaultZenithInitialDeg,
                   "KSKascadeDataIn",
                   "Primary Initial zenith angle (0 degrees up). "
+                  "This is the direction the Primary is COMING FROM. "
                   "Overrides dlInitial and dmInitial");
 
   doVAConfiguration(file, command_line, 
