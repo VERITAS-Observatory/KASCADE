@@ -497,18 +497,26 @@ void KSArrayEvent::SaveEvent()
 				pfWriteKSimData);  
     
 
-      int fNX=pfWriteKSimData->fNx;
-      int fNY=pfWriteKSimData->fNy;
       double fXM;
       double fYM;
-      GetXYFromNXNY(fNX,fNY,fXM,fYM);
-      fXM=-fXM-fBestArrayX;        //X (+ east)distance from telescope to core
-      fYM=-fYM-fBestArrayY;        // Y + south
-      // Convert to coords. need position of telescope
-      int fTelID=pfTelsInArray[fFirstTrigTelIndex]->fTelID;
-      fXM=fXM+pfTelsInArray[0]->fXPositionsM[fTelID];  //+ east
-      fYM=fYM+pfTelsInArray[0]->fYPositionsM[fTelID];  //+ south
 
+      // Get distance from this telescope to core
+      int fNX=pfWriteKSimData->fNx;
+      int fNY=pfWriteKSimData->fNy;
+      GetXYFromNXNY(fNX,fNY,fXM,fYM);
+      fXM=-fXM;
+      fYM=-fYM;
+
+      //fXM = pfWriteSimData->fCoreEastM;
+      //fYM = pfWriteSimData->fCoreSouthM;
+ 
+      // Convert to position relative to 0,0 of array
+      // Need position of telescope and adjust for our shift of origin
+      int fTelID=pfTelsInArray[fFirstTrigTelIndex]->fTelID;
+      fXM=fXM + pfTelsInArray[0]->fXPositionsM[fTelID] - fBestArrayX; //+ east
+      fYM=fYM + pfTelsInArray[0]->fYPositionsM[fTelID] - fBestArrayY; //+ south
+
+      //Refill this new position.
       pfWriteSimData->fCoreEastM  = fXM;
       pfWriteSimData->fCoreSouthM = fYM;
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);
