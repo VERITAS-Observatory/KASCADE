@@ -500,21 +500,22 @@ void KSArrayEvent::SaveEvent()
       double fXM;
       double fYM;
 
-      // Get distance from this telescope to core
-      int fNX=pfWriteKSimData->fNx;
-      int fNY=pfWriteKSimData->fNy;
-      GetXYFromNXNY(fNX,fNY,fXM,fYM);
-      fXM=-fXM;
-      fYM=-fYM;
-
-      //fXM = pfWriteSimData->fCoreEastM;
-      //fYM = pfWriteSimData->fCoreSouthM;
- 
-      // Convert to position relative to 0,0 of array
-      // Need position of telescope and adjust for our shift of origin
+      // **************************************************************
+      // Find position of shower core relative to position relative to 0,0 of 
+      // array. fCoreEastM and fCoreSouthM from original single tel SimData 
+      // is relative to telescope 0, 
+      // Includes shower offset.
+      // ***************************************************************
+      fXM = pfWriteSimData->fCoreEastM  - pfTelsInArray[0]->fXPositionsM[0];
+      fYM = pfWriteSimData->fCoreSouthM - pfTelsInArray[0]->fYPositionsM[0];
+      // Need position of telescope 
       int fTelID=pfTelsInArray[fFirstTrigTelIndex]->fTelID;
-      fXM=fXM + pfTelsInArray[0]->fXPositionsM[fTelID] - fBestArrayX; //+ east
-      fYM=fYM + pfTelsInArray[0]->fYPositionsM[fTelID] - fBestArrayY; //+ south
+      fXM=fXM + pfTelsInArray[0]->fXPositionsM[fTelID]; //+ east
+      fYM=fYM + pfTelsInArray[0]->fYPositionsM[fTelID]; //+ south
+
+      // Now correct for our shifting of the array.
+      fXM=fXM - fBestArrayX;
+      fYM=fYM - fBestArrayY;
 
       //Refill this new position.
       pfWriteSimData->fCoreEastM  = fXM;
