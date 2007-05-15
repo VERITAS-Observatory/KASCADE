@@ -35,11 +35,26 @@ fi
 
 cd $dataDirBase
 
+if [ ! -d "workingDir" ]; then
+       mkdir -p workingDir
+fi
+cd workingDir
+
+#use combo of process id ($$)and number of nanosec(date +%N) since last 
+#second tick to get unique value. (least count is micro sec at best)
+let dirID=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+while [ -d "$dirID" ]; do
+  let dirID=$(date +10#%N)+$$
+done
+
+#create working directory.
+mkdir  $dirID
+cd $dirID
 
 
 if [ ${Spec:1:1} = "G" ]  ; then
 
-    find ./gammas -name $Spec$3'GeV*.vbf'  >GList
+    find $dataDirBase/gammas -name $Spec$3'GeV*.vbf'  >GList
     gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 
 fi
@@ -51,8 +66,8 @@ if [ ${Spec:1:2} = "CR" ] ; then
 				#with P. see pg 97 Bash book.
    He4spec=$TelSpec'He4_'${Spec#*CR} #Replace CR with He4_
 
-   find ./protons -name $Pspec$3'GeV*.vbf'  >CRList
-   find ./he4 -name $He4spec$3'GeV*.vbf'    >>CRList
+   find $dataDirBase/protons -name $Pspec$3'GeV*.vbf'  >CRList
+   find $dataDirBase/he4 -name $He4spec$3'GeV*.vbf'    >>CRList
    gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
@@ -73,7 +88,11 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 #                                   -OutputVBFFileName=$Spec$3.vbf ShowerList 
 
 #This is normal version 
-       $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting  \
-	                           -RunNumber=$2 \
-                                   -OutputVBFFileName=$Spec$3.vbf ShowerList 
+     $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting  \
+	                         -RunNumber=$2 \
+                       	         -OutputVBFFileName=$dataDirBase/$Spec$3.vbf \
+                                  ShowerList 
 
+#Cleanup
+cd ..
+rm -rf $dirID
