@@ -77,6 +77,7 @@ class KSArrayEvent
   double fBestArrayX;
   double fBestArrayY;
 
+  unsigned short fCMask;
 
   VATime fEventTime;
   int fOutEventIndex;

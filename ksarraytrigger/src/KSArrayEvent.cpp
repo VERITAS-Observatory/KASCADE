@@ -30,7 +30,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // they may not have the same triggers. We thus make no assumptions about
   // correlations of eventIndex between input files.
   // ****************************************************************
-  // Note that at this level we don't care if these are root or vbf files
+  // For VBF files build the configMask.
   // ****************************************************************
   // Try each telescope
   
@@ -38,6 +38,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
                                      //inputs give no events.
                                      //Possible this tel has no events
   KSTelescope* pfT1 = new KSTelescope(E_T1,pfDataIn);
+  std::string fConfigMask;
   if(pfT1->fFileExists)
     {
       if(pfFirstTelFile==NULL)
@@ -47,6 +48,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       if(pfT1->fNumEvents>0)
 	{
 	  pfTelsInArray.push_back(pfT1);
+	  fConfigMask="0,";
 	}
     }
 
@@ -60,6 +62,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       if(pfT2->fNumEvents>0)
 	{
 	  pfTelsInArray.push_back(pfT2);
+	  fConfigMask+="1,";
 	}
     }
 
@@ -73,6 +76,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       if(pfT3->fNumEvents>0)
 	{
 	  pfTelsInArray.push_back(pfT3);
+	  fConfigMask+="2,";
 	}
     }
 
@@ -86,9 +90,14 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       if(pfT4->fNumEvents>0)
 	{
 	  pfTelsInArray.push_back(pfT4);
+	  fConfigMask+="3,";
 	}
     }
-
+  // ************************************************************************
+  // Build the VBF ConfigMask. Common to all VBF events
+  // For 123-M2 it would be 007
+  // ************************************************************************
+  fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
 
   VATime fFirstValidEventTime("2006-08-23 22:00:00 UTC"); //Default if we can't
                                                           //find a time.
@@ -524,6 +533,7 @@ void KSArrayEvent::SaveEvent()
 
       // *************************************************
       // Now the ArrayEvents
+      // *************************************************
       // First fix times and event number in array Trigger
       // *********************************************
       VArrayEvent* pfAEOut  = new VArrayEvent();
@@ -535,6 +545,10 @@ void KSArrayEvent::SaveEvent()
 
       // ****************************************************************
       //Resize things. Array trigger will contains fNumTrigTels telescopes
+      // fNumTelsWithData is the number of telescopes included in the 
+      // subarray. So fNumTrigTels will vary event to event. Example for
+      // a 123-M2 trigger condition fNumTelsWithData will always be 3 and 
+      // fNumTrigTels will be 2 or 3 changine event by event.
       // ****************************************************************
       pfAT->resizeSubarrayTelescopes(fNumTelsWithData);
       pfAT->resizeTriggerTelescopes(fNumTrigTel);
@@ -543,13 +557,18 @@ void KSArrayEvent::SaveEvent()
       // have to set the telescope ID's that this record corresponds to.
       // in this case, the record number and telescope ID happen to
       // be the same
-      // Fill up the subarrytels vector
+      // *********************************************************************
+      // Fill up the subarrytels vector: Goes over the subarray configuratrion
+      // For 123-M2 this would be over T1 and T2 and T3. This, except for fALT 
+      // and fAz, is identical event to event.
+      // ********************************************************************
+      VEventType fEvType;
+      fEvType.trigger=VEventType::L2_TRIGGER;
+      pfAT->setEventType(fEvType);
+
       for(int i=0;i<fNumTelsWithData;i++)
 	{
 	  int fTelID=pfTelsInArray[i]->fTelID;
-	  VEventType fEvType;
-	  fEvType.trigger=VEventType::L2_TRIGGER;
-
 	  pfAT->setSpecificEventType(i,fEvType);
 	  pfAT->setSubarrayTelescopeId(i,fTelID);
 	  pfAT->setShowerDelay(i,0);
@@ -558,28 +577,35 @@ void KSArrayEvent::SaveEvent()
 	  pfAT->setAzimuth(i,fAz);
 	  pfAT->setTDCTime(i,0);
 	}
-
-      std::string fConfigMask;
+      // *******************************************************************
+      // Set the config Mask. This also is constant event to event
+      // For 123-M2 it will be 007
+      // Determine here and set the triggerMask. This is a VDatum value and is
+      // set in all AT and Event objects.
+      // *******************************************************************
+      std::string fTriggerMask;
       for(int i=0;i<fNumTrigTel;i++)
 	{
 	  int fTrigTelIndex=fTriggerEvents[i].fTelIndex;
 	  int fTelID=pfTelsInArray[fTrigTelIndex]->fTelID;
 	  pfAT->setTriggerTelescopeId(i,fTelID);
 
-	  if(fTelID==E_T1)fConfigMask+="0";
-	  else if(fTelID==E_T2)fConfigMask+="1";
-	  else if(fTelID==E_T3)fConfigMask+="2";
-	  else if(fTelID==E_T4)fConfigMask+="3";
-	  fConfigMask+=",";
+	  if(fTelID==E_T1)fTriggerMask+="0";
+	  else if(fTelID==E_T2)fTriggerMask+="1";
+	  else if(fTelID==E_T3)fTriggerMask+="2";
+	  else if(fTelID==E_T4)fTriggerMask+="3";
+	  fTriggerMask+=",";
   	}
       // Original AT from first triggered tel already has: node number=255,
       // run number(but may want to do this explictly later)
-      //.  flags=0;
 
-      unsigned short fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
+      unsigned short fTMask=toDAQMask(parseConfigMask(fTriggerMask.c_str()) ); 
+      pfAT->setTriggerMask(fTMask);
       pfAT->setConfigMask(fCMask);
 
+      // *********************************************************************
       // set the event number
+      // ********************************************************************* 
       pfAT->setEventNumber(fOutEventIndex);
       pfAT->setRunNumber(fRunNumber);
       uint16_t fGPSWords[5];
@@ -611,7 +637,7 @@ void KSArrayEvent::SaveEvent()
  	  VEvent* pfEvent=pfAEIn->getEvent(0);
 	  pfEvent->setEventNumber(fOutEventIndex);
 	  pfEvent->setNodeNumber(fTelID);
-	  pfAT->setTriggerTelescopeId(i,fTelID);
+	  pfEvent->setTriggerMask(fTMask);
 	  
 	  pfEvent->getGPSTime()[0]=fGPSWords[0];
 	  pfEvent->getGPSTime()[1]=fGPSWords[1];
@@ -620,6 +646,9 @@ void KSArrayEvent::SaveEvent()
 	  pfEvent->getGPSTime()[4]=fGPSWords[4];
 			      
 	  pfEvent->setGPSYear(fGPSYear);
+
+	  pfEvent->setEventType(fEvType);
+
 	  // add the event to the array event!
 	  VEvent* pfWriteEvent= pfEvent->copyEvent();
 	  pfAEOut->addEvent(pfWriteEvent);
@@ -860,14 +889,17 @@ void KSArrayEvent::SavePedestalEvent()
       // have to set the telescope ID's that this record corresponds to.
       // in this case, the record number and telescope ID happen to
       // be the same
-      std::string fConfigMask;
+
+      VEventType fEvType;
+      fEvType.trigger=VEventType::PED_TRIGGER;
+      pfAT->setEventType(fEvType);
+
+      std::string fTriggerMask;
       for(int i=0;i<fNumTelsWithData;i++)
 	{
 	  int fTelID=pfTelsInArray[i]->fTelID;
 	  pfAT->setSubarrayTelescopeId(i,fTelID);
 	  pfAT->setTriggerTelescopeId(i,fTelID);
-	  VEventType fEvType;
-	  fEvType.trigger=VEventType::PED_TRIGGER;
 	  pfAT->setSpecificEventType(i,fEvType);
 	  pfAT->setShowerDelay(i,0);
 	  pfAT->setCompDelay(i,0);
@@ -876,11 +908,11 @@ void KSArrayEvent::SavePedestalEvent()
 	  pfAT->setTDCTime(i,0);
 
 
-	  if(fTelID==E_T1)fConfigMask+="0";
-	  else if(fTelID==E_T2)fConfigMask+="1";
-	  else if(fTelID==E_T3)fConfigMask+="2";
-	  else if(fTelID==E_T4)fConfigMask+="3";
-	  fConfigMask+=",";
+	  if(fTelID==E_T1)fTriggerMask+="0";
+	  else if(fTelID==E_T2)fTriggerMask+="1";
+	  else if(fTelID==E_T3)fTriggerMask+="2";
+	  else if(fTelID==E_T4)fTriggerMask+="3";
+	  fTriggerMask+=",";
 	}
       // Original AT from first triggered tel already has: node number=255,
       // run number(but may want to do this explictly later)
@@ -889,7 +921,8 @@ void KSArrayEvent::SavePedestalEvent()
       // set the event number
       pfAT->setEventNumber(fOutEventIndex);
 
-      unsigned short fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
+      unsigned short fTMask=toDAQMask(parseConfigMask(fTriggerMask.c_str()) ); 
+      pfAT->setTriggerMask(fTMask);
       pfAT->setConfigMask(fCMask);
 
 
@@ -920,9 +953,8 @@ void KSArrayEvent::SavePedestalEvent()
  	  VEvent* pfEvent=pfAEIn->getEvent(0);  //Only one telescope in input 
 	                                        //file, its a 0;
 	  pfEvent->setEventNumber(fOutEventIndex);
-
 	  pfEvent->setNodeNumber(fTelID);
-	  pfAT->setTriggerTelescopeId(i,fTelID);
+	  pfEvent->setTriggerMask(fTMask);
 
 	  pfEvent->getGPSTime()[0]=fGPSWords[0];
 	  pfEvent->getGPSTime()[1]=fGPSWords[1];
@@ -931,6 +963,9 @@ void KSArrayEvent::SavePedestalEvent()
 	  pfEvent->getGPSTime()[4]=fGPSWords[4];
 			      
 	  pfEvent->setGPSYear(fGPSYear);
+
+	  pfEvent->setEventType(fEvType);
+
 	  // add the event to the array event!
 	  VEvent* pfWriteEvent=pfEvent->copyEvent();
 	  pfAEOut->addEvent(pfWriteEvent);
