@@ -453,8 +453,6 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		  
 		  double fXGround=pfSimulation->fCoreEastM;
 		  double fYGround=-pfSimulation->fCoreSouthM;
-		  double fDiff=pfKSimulation->fDifferentialRatePerEventHz;
-		  std::cout<<fDiff<<std::endl;
 		  //Note sign change
 		  
 		  // *****************************************************
