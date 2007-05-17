@@ -118,7 +118,7 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
       pfCSim=new VAKascadeSimulationData;
       pfCTree->Branch(gSimulatedEventsBranchName.c_str(),
 		      "VAKascadeSimulationData",&pfCSim,16000,0);
-      std::cout<<"Created Cumulative Simulation Branch:   "
+      std::cout<<"Created Cumulative KASCADE Simulation Branch:   "
 	       <<gSimulatedEventsBranchName.c_str()<<std::endl;
     }
 
@@ -453,6 +453,8 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 		  
 		  double fXGround=pfSimulation->fCoreEastM;
 		  double fYGround=-pfSimulation->fCoreSouthM;
+		  double fDiff=pfKSimulation->fDifferentialRatePerEventHz;
+		  std::cout<<fDiff<<std::endl;
 		  //Note sign change
 		  
 		  // *****************************************************
@@ -518,7 +520,8 @@ int BuildCumulativeTree(char* fFileNameIn, char* fFileNameOut)
 	  if(fIndex>=0)
 	    {
 	      pfSimTree->GetEntry(fIndex);
-	      *pfCSim=*pfSimulation;
+	      *pfCSim=*pfKSimulation;
+	      double fDiff=pfKSimulation->fDifferentialRatePerEventHz;
 	    }
 	  else
 	    {
