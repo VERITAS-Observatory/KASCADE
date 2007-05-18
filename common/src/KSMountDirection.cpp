@@ -17,17 +17,6 @@
 #include "KSMountDirection.h"
 
 extern "C" float pran(float* fXDummy);
-extern "C" void  GetAzElevFromVec(double* pfX, double& fAzimuth, 
-				  double& fElevation);
-extern "C" void  GetVecFromXY( double fX, double fY, double fAzSrc, 
-			       double fElSrc, double* fM);
-extern "C" void  GetXYFromVec(double fAzSrc, double fElSrc,double* fM, 
-			      double& fX, double& fY);
-
-void W10mGetRaDecFromVec(double* X, double& ra, double& dec,double fLatitude);
-void W10mGetVecFromRaDec(double ra, double dec, double* X,double fLatitude);
-
-
 
 KSMountDirection::KSMountDirection(KSTeHeadData* pTeHead, 
 				   double GammaStepSizeRad)
@@ -37,7 +26,11 @@ KSMountDirection::KSMountDirection(KSTeHeadData* pTeHead,
   fMultipleMountDirections = pfTeHead->fMultipleMountDirections;
   fNumDirections           = pfTeHead->fNumDirections;
   fStepSizeRad             = GammaStepSizeRad;
-  fCameraType              = pfTeHead->fCameraType; 
+  fCameraType              = pfTeHead->fCameraType;
+  // Set up conversion utility class. We won't usde for RA/Dec calculations 
+  // so the the EastLongitude and Latitude values we give are arbitrary.
+  // So just use Base camp
+  pfConvert = new VAAzElRADecXY(-1.93649,0.552828);
 }
 
 KSMountDirection::~KSMountDirection()
@@ -51,17 +44,17 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // Set up for the multiple mount directions stuff
 // ************************************************************************
 //The following comes from the config files ie. from pfDataIn:
+//
 //fMultipleMountDirections:Flag that indicates we will be looking for 
 //                        triggers for each event multiple times with 
 //                        the mount pointed in different directions, 
 //                        usually this is false for gammas and true for
-//                        everything else (but see below for drifting 
-//                        gammas and Gammas2D)
+//                        everything else (but see below for Gammas2D)
 //fMaximumThetaRad:   Nominally maximum distance from the inital Mount
 //                   direction that we will go
-//fStepSizeRad:Used only by drifting gammas and Gammas2D as the size of 
-//                   steps we will take.
+//fStepSizeRad:Used only by Gammas2D as the size of steps we will take.
 //fNumDirections:Number of directions we will use for each event.
+//
 // ****************************************************************************
 // Build all the direction arrays for use by W10m_FullAperation and W10m_tilt
 // We produce a set of mount directions and we produce the X and Y focal plane
@@ -81,30 +74,9 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
 // For hadrons (multipleDirections) we randomly pick the new direrctions 
 // (fNumDirections of them) from a circle of radius fMaximumThetaRad.
 // ****************************************************************************
-//  For Gammas2D  we go  in steps in X and Y out to radius MaxThetaDeg
-//  This is a special mode for the ML Tracking anaylsis
-// ****************************************************************************
-//	Modified:
-// Previous notes:
-//  Use only iphi=1 and iphi=itheta for drifting_gammas. Hadrons same as 
-//  before. 
-//  Gamma_drift step_size is .4 min along +/- ra (iphi=1,itheta=iphi). Added a
-//  number of routines to do all this. Some c++ ones in Veritas.cpp. 
-//  Problems with our old scheme of itheta/iphi. Seen in 2d x,y plots.  We can
-//  see effects of phi steps (5 fold symmetries). Replace (for hadrons only, 
-//  leave gammas and drift scan as is) with choosing random directions. Chose 
-//  directios randomly within direction circle. 
-//  For a driftscan make up an array of unit vectors pointing in the RA, 
-//  (constant) DEC directions the scan will go through. Steps are in
-//  driftscan_step_size(nominally .4 min) per itheta.For compatability with 
-//  hadron processing we are using gphi_side=2 but will only fill iphi=1 and 
-//  iphi=itheta. (+ and - steps in RA but constant DEC). To do this easily we 
-//  are going find the RA and DEC that the original M vector points to, say on 
-//  Jan 0 2000. This uses the elev,az of the mount. To get new offset mount 
-//  vectors we get new a new ra value which steps of drift_step (nominally 
-//  .4 min) in both + and - ra directions for gtheta_max steps in each 
-//  direction. Get Ra and Dec for MJD for jan 0 2000 (arbitrary date. and this 
-//  mount direction)
+//  For Gammas2D  we go  in steps in Y out to radius MaxThetaDeg
+//  This is a special mode for the ML Tracking anaylsis and inital Wobble 
+//  source generation
 // **************************************************************************
 // INit original directions
 // *************************************************************************
@@ -122,24 +94,23 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
   fMntV[0]=fMount[0];    //X same
   fMntV[1]=-fMount[1];   //Y changes sign
   fMntV[2]=-fMount[2];   //Z changes sign
-  GetAzElevFromVec(fMntV,fAzMount,fElevMount);
+  pfConvert->DlDmDnToAzEl(fMntV[0],fMntV[1],fMntV[2],fAzMount,fElevMount);
 
 
   // *******************************************************************
-  // Gammas2D. Grid in X and Y in steps of  fStepSizeDeg out to max
-  // sqrt(X**2+Y**2)<= fMaxThetaDeg.
-  // Used vectors fot temp sotorage unitl we know how many we have, then 
-  // transfer over.
+  // Gammas2D. Array in  Y in steps of  fStepSizeDeg out to fMaxThetaDeg.
   // *******************************************************************
   if(fGammas2D)
     {
       // For the Maximum Likelihood Gamma source Point Spread Function(PSF) 
-      // calculation we set up directions along the X axis. Starting at 0 in 
-      // field of view and stepping 
-      // fStepSizeRad(converted back to deg) in positive steps in X out to 
+      // calculation we set up directions along the Y axis. This is also used 
+      // for the simulation of South Wobble offsets for vegas.
+      // Starting at 0 in field of view and stepping 
+      // fStepSizeRad (converted back to deg) in positive steps in Y out to 
       // fMaximumThetaRad (again back in deg). That is we only do
-      // the positive Axis in X. We casn then make a grid over all field of 
-      // view by rotations.
+      // the positive Axis in Y. 
+      // For ML signal histo generation we can then make a grid over all 
+      // field of view by rotations.
       // ********************************************************************
       // Values for fMaximumThetaRad and fStepSizeRad derived from original
       // deg from config file: MaximumThetaDeg, GammaStepSizeDeg
@@ -147,30 +118,30 @@ void KSMountDirection::createMountDirections(double fXAreaWidthM,
       
       fMaxThetaDeg=pfTeHead->fMaximumThetaRad/gDeg2Rad;
       fStepSizeDeg=fStepSizeRad/gDeg2Rad;
-      fNumXSteps=(int)(fMaxThetaDeg/fStepSizeDeg + fStepSizeDeg/2.) + 1;
+      fNumYSteps=(int)(fMaxThetaDeg/fStepSizeDeg + fStepSizeDeg/2.) + 1;
       fMultipleMountDirections=true;
       fAomega=fXAreaWidthM*fYAreaWidthM;
       std::cout<<"KSMountDirection:fAomega: "<<fAomega<<" m**2"<<std::endl;
 
-      std::vector< double > pfX;
-      pfX.clear();
-      double fX;
+      std::vector< double > pfY;
+      pfY.clear();
+      double fX=0.0;
       double fY=0.0;
-      for(int i=0;i<fNumXSteps;i++)
+      for(int i=0;i<fNumYSteps;i++)
 	{
-	  fX=i*fStepSizeDeg;
-	  pfX.push_back(fX);
+	  fY=i*fStepSizeDeg;
+	  pfY.push_back(fY);
 	}
 
-      fNumDirections=(int) pfX.size();
+      fNumDirections=(int) pfY.size();
       allocateDirectionArrays(fNumDirections);
 
       double fM[3];
       for(int i=0;i<fNumDirections;i++)
 	{
-	  fX=pfX.at(i);
-	  fY=0.0;
-	  GetVecFromXY( fX, fY, fAzMount, fElevMount, fM);
+	  fX=0.0;
+	  fY=pfY.at(i);
+	  pfConvert->XYToDlDmDn(fX,fY,fAzMount,fElevMount,fM[0],fM[1],fM[2]);
 
 	  // ************************************************************
 	  // fM came back in VEGAS coord system. Convert to KASCADE system
@@ -495,82 +466,4 @@ void KSMountDirection::loadDirectionArrays(int fIthPhi, double fSTheta,
 
   return;
 }
-// ************************************************************************
-
-
-void W10mGetRaDecFromVec(double* X, double& fRA, double& fDec, 
-			                                   double fLatitude)
-  // ************************************************************************
-  //   Get the Ra and Dec of a vector X at sideraltime=12:00(chosen arbitray 
-  //   time)
-  // ************************************************************************
-{
-  double elevation=M_PI/2-(acos(fabs(X[2])));
-  double az=0.0;
-  if(X[1]==0 && X[0]==0)
-    {      //At zenith
-      az=0.0;
-    }
-  else if(X[1]==0 && X[0]>0)    //along + x axis  (270 deg)
-    {
-      az=3*M_PI/2;
-    }
-  else if(X[1]==0 && X[0]<0)    //along - x axis (90 deg)
-    {
-      az=M_PI/2;
-    }
-  else if(X[1]>0 && X[0]<=0.0)     //Quadrant 1 (0 to 90 deg)
-    {
-      az=-atan(X[0]/X[1]);
-    }
-  else if(X[1]<0 && X[0]<=0.0)     //Quadrant 2 (90 to 180 deg)
-    {
-      az=M_PI/2+atan(X[0]/X[1]);
-    }
-  else if(X[1]<0 && X[0]>=.0)      //Quadrant 3 (180 to 270 deg)
-    {
-      az=M_PI-atan(X[0]/X[1]);
-    }
-  else if(X[1]>0 && X[0]>0.0)       //Quadrant 4 (270 to 360 deg)
-    {
-      az=2*M_PI-atan(X[0]/X[1]);
-    }
-
-  //Determine ra and dec from az,elev  
-  double hourangle;
-
-  //Convert az and elevation to hourangle and dec    
-  slaDh2e(az, elevation, fLatitude, &hourangle, &fDec); 
- 
-  //Convert hour angle back to ra
-  fRA=((M_PI/2)-hourangle); //Assumes sideraltime is 6:00 
-  fRA= slaDranrm(fRA);  
-  return;
-}
-
-void W10mGetVecFromRaDec(double fRA, double fDec, double* X, double fLatitude)
-// **************************************************************************
-//   Using an  Ra and Dec and a sideral time of 12:00 get position vector 
-// **************************************************************************
-{
-  double elevation, azimuth;
-  double hourangle = (M_PI/2) - fRA; //sidereal time is 6:00
-
-  slaDe2h(hourangle,fDec,fLatitude,&azimuth,&elevation);
-
-  X[2] = -fabs(sin(elevation));
-  double length=sqrt(1-X[2]*X[2]);
-  if(length==0)
-    {
-      X[0]=0;
-      X[1]=0;
-    }
-  else
-    {
-      X[0]= -sin(azimuth)*length;
-      X[1]= cos(azimuth)*length;
-    }
-  return;
-}
-
 // ************************************************************************
