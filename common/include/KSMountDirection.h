@@ -15,6 +15,7 @@
 #define KSMOUNTDIRECTION_H
 #include "KSTeDataClasses.h"
 #include "VASlalib.h" 
+#include "VAAzElRADecXY.h"
 
 
 #include <iostream>
@@ -71,6 +72,8 @@ class KSMountDirection
   void allocateDirectionArrays(int fNumDir);
   void loadDirectionArrays(int fIthPhi, double fSTheta,
 					   double fSPhi,double* fDir);
+
+  VAAzElRADecXY* pfConvert;
   float fXDummy;
   int fNumXSteps;
   int fNumYSteps;
