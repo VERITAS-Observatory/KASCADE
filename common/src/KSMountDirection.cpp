@@ -30,7 +30,7 @@ KSMountDirection::KSMountDirection(KSTeHeadData* pTeHead,
   // Set up conversion utility class. We won't usde for RA/Dec calculations 
   // so the the EastLongitude and Latitude values we give are arbitrary.
   // So just use Base camp
-  pfConvert = new VAAzElRADecXY(-1.93649,0.552828);
+  pfConvert = new KSAzElRADecXY(-1.93649,0.552828);
 }
 
 KSMountDirection::~KSMountDirection()
