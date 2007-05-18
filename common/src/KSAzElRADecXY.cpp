@@ -289,8 +289,8 @@ void KSAzElRADecXY::XYToDlDmDn( double fX, double fY, double fAzSrc,
 // ********************************************************************
 
 
-void DlDmDnToAzEl( double Dl, double Dm, double Dn, double& fAz, 
-		     double& fEl)
+void KSAzElRADecXY::DlDmDnToAzEl( double Dl, double Dm, double Dn, 
+				  double& fAz, double& fEl)
 // **************************************************************************
 //   Get the Az and Elevation(radians) of a vector X 
 // **************************************************************************
