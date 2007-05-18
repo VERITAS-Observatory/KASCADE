@@ -95,4 +95,4 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 
 #Cleanup
 cd ..
-rm -rf $dirID
+rm -vrf $dirID
