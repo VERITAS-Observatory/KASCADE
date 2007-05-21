@@ -41,6 +41,8 @@ double      KSTriggerDataIn::sDefaultLightConeConcentration=1.0;
 double      KSTriggerDataIn::sDefaultMountDl=-1.e-15;                
 double      KSTriggerDataIn::sDefaultMountDm=-0.017452212;                
 double      KSTriggerDataIn::sDefaultMountDn=-.9998477;                
+double      KSTriggerDataIn::sDefaultMountAzDeg=-1.0;    
+double      KSTriggerDataIn::sDefaultMountZenithDeg=-1.0;
 double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;      
 // **************************************************************************
 
@@ -195,6 +197,34 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
     }
   pfTeHead->fTriggerMultiplicity       = sDefaultTriggerMultiplicity; 
   pfTeHead->fLightConeConcentration    = sDefaultLightConeConcentration;
+
+  // ***********************************************************************
+  //set mount dl, dm, dn from az and zenith if these have been set
+  // Signs determined by diirection shower is coming FROM (up into the sky)
+  // Remember:KASCADE convention:  Z + down, x + east y + south.
+  // **********************************************************************
+  if( sDefaultMountAzDeg >= 0.0 && sDefaultMountZenithDeg >= 0.0 )
+  {
+    sDefaultMountDl = sin(sDefaultMountZenithDeg * gDeg2Rad) * 
+                                sin(sDefaultMountAzDeg * gDeg2Rad);
+    sDefaultMountDm = -sin(sDefaultMountZenithDeg * gDeg2Rad) * 
+                                cos(sDefaultMountAzDeg * gDeg2Rad);
+    sDefaultMountDn = -cos(sDefaultMountZenithDeg * gDeg2Rad);
+
+    if( fabs(sDefaultMountDl) < 1.e-15)
+    {
+      sDefaultMountDl = 1.e-15;
+    }
+    if( fabs(sDefaultMountDm) < 1.e-15)
+    {
+      sDefaultMountDm = 1.e-15;
+    }
+    if( fabs(sDefaultMountDn) < 1.e-15)
+    {
+      sDefaultMountDn = 1.e-15;
+    }
+  }
+
   pfTeHead->fMountDl                   = sDefaultMountDl;               
   pfTeHead->fMountDm                   = sDefaultMountDm;               
   pfTeHead->fMountDn                   = sDefaultMountDn;               
@@ -234,6 +264,8 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.setValue("PatternTriggerLevel",pfTeHead->fPatternTriggerLevel);
   config.setValue("GammaStepSizeDeg",sDefaultGammaStepSizeDeg);
   config.setValue("LightConeConcentration",pfTeHead->fLightConeConcentration);
+  config.setValue("MountAzDeg",sDefaultMountAzDeg);       
+  config.setValue("MountZenithDeg",sDefaultMountZenithDeg);
   config.setValue("MountDl",pfTeHead->fMountDl);
   config.setValue("MountDm",pfTeHead->fMountDm);
   config.setValue("MountDn",pfTeHead->fMountDn);
@@ -362,6 +394,16 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "Fraction of light that hits light cone that the light "
 		    "cone will then reflect onto the active PMT photo-cathode "
 		    "to create photo-electrons.");
+  doVAConfiguration(file, command_line,               
+                  "MountAzDeg",sDefaultMountAzDeg,
+                  "KSTriggerDataIn",
+                  "Azimuth angle of the mount (0 degrees North). "
+                  "Overrides dl, dm, and dn if specified.");
+  doVAConfiguration(file, command_line,
+                  "MountZenithDeg", sDefaultMountZenithDeg,
+                  "KSTriggerDataIn",
+                  "Zenith angle of the mount (0 degrees is Zenith). "
+                  "Overrides dl, dm, and dn if specified.");
   doVAConfiguration(file, command_line, 
 		    "MountDirectionXDl",sDefaultMountDl,
 		    "KSTriggerDataIn",

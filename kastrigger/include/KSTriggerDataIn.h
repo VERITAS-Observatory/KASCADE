@@ -43,6 +43,8 @@ private:
   static int         sDefaultPatternTriggerLevel;
   static int         sDefaultTriggerMultiplicity; 
   static double      sDefaultLightConeConcentration; 
+  static double      sDefaultMountAzDeg;    
+  static double      sDefaultMountZenithDeg;
   static double      sDefaultMountDl;                
   static double      sDefaultMountDm;                
   static double      sDefaultMountDn;                
