@@ -113,6 +113,17 @@ int main(int argc, char** argv)
 	{
 	  fRunNumberSpecified=true;
 	}
+
+      bool fDirectionIndexSpecified=false;
+      int fDirectionIndex=0;
+      if(command_line.findWithValue("DirectionIndex",fDirectionIndex,
+			   "Select events for output with this DirectionIndex "
+			   "only.")
+	 == VAOptions::FS_FOUND)
+	{
+	  fDirectionIndexSpecified=true;
+	}
+
       bool fWeightBySpectrum=false;
       if(command_line.find("EnableSpectrumWeighting",
 			   "Indicates that while appending events from files "
@@ -824,6 +835,20 @@ int main(int argc, char** argv)
 			      //  this section
 			      pfKSimData->fRunNumber=fRunNumber;
 			      pfKSimData->fEventNumber=fArrayEventNum;
+
+			      // *********************************************
+			      // Se if we are only to keep events with a 
+			      // certain Direction Index
+			      // *********************************************
+			      if(fDirectionIndexSpecified)
+				{
+				  if(fDirectionIndex != 
+				                  pfKSimData->fDirectionIndex)
+				    {
+				      continue;  //go to next entry
+				    }
+				}
+
 			      // *******************************************
 			      // At this point we can determine the event rate
 			      // this event can contribute. We first convert
