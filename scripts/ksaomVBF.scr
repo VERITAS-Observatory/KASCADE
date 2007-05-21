@@ -57,7 +57,16 @@ echo Working Directory is $wrkdir
 #Make links to config files
 jobSpec=$2
 TelSpec=${jobSpec:0:1}                  #gets W from WG20DegN0.5Deg50mv
-ThresholdSpec=$TelSpec${jobSpec##*Deg}  #gets V70mv VG20DegN0.5Deg70mv
+
+ThresholdSpec=${jobSpec##*Deg2D}  #gets 50mv VG20Deg2D50mv
+if [ "$ThreholdSpec" = "$jobSpec" ]; then
+    ThresholdSpec=${jobSpec##*Deg} #No Deg2D: gets 70mv from VG20DegN0.5Deg70mv
+fi
+
+ThresholdSpec=$TelSpec$ThresholdSpec   #Gives final threshold spec of V50mv
+
+
+
 ksAomegaConfig=ksAomega$ThresholdSpec'.config'
 ln -s $inpDir/$ksAomegaConfig $ksAomegaConfig
 
