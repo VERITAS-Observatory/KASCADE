@@ -98,7 +98,12 @@ Shwr=$5'/'$2'GeV'$1
 
 #Setup input base name
 
-SpecIn=${jobSpec%Deg*}'Deg'  #Gets VG20DegS0.3Deg from  VG20DegS0.3Deg50mv
+SpecIn=${jobSpec%Deg2D*}  #Gets VG20 from  VG20Deg2D50mv
+if [ "$SpecIn" = "$jobSpec" ]; then
+    SpecIn=${jobSpec%Deg*}'Deg'  #Gets VG20DegS0.3Deg from  VG20DegS0.3Deg50mv
+else
+    SpecIn=$SpecIn'Deg2D' #Gets VG20Deg2D from  VG20Deg2D50mv
+fi
 
 ShwrIn=$5'/'$SpecIn'GeV'$1
 
