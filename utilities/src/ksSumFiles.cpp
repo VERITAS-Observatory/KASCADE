@@ -845,6 +845,8 @@ int main(int argc, char** argv)
 				  if(fDirectionIndex != 
 				                  pfKSimData->fDirectionIndex)
 				    {
+				      delete pfWritePacket;
+				      delete pfPacket;
 				      continue;  //go to next entry
 				    }
 				}
