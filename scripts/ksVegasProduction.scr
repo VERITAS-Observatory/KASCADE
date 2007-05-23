@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #This runs first 4 vegas stages on normal file  files;
-#$1 VBF file to process.
-#$2 Laser file
+#$1 VBF file to process. (Ex. /VData/33619.cvbf)
+#$2 Laser file           (Ex. /VData/33616.cvbf)
 
 
 #Now process the file:
