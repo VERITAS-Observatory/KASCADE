@@ -31,7 +31,7 @@ cp -v $RootFileName $NcutRootFileName
 
 EcutRootFile=${VBFFileName%".cvbf"}'TrueECut.root'
 EcutRootFileName=${EcutRootFile##*/}
-cp -v $RootFileName $EcutRootFileName
+mv -v $RootFileName $EcutRootFileName
 
 
 #LookUpTableDir=/simulations/veritas
