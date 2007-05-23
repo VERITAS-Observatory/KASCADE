@@ -31,7 +31,7 @@ NcutRootFileName=${VBFFileName%".vbf"}'TrueNCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'TrueECut.root'
 
 cp -v $RootFileName $NcutRootFileName
-cp -v $RootFileName $EcutRootFileName
+mv -v $RootFileName $EcutRootFileName
 
 #LookUpTableDir=/simulations/veritas
 LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
