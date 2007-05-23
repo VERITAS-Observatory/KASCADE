@@ -26,11 +26,11 @@ $VEGASBASE/bin/vaStage2  $VBFFileName $RootFileName $LSRRootFileName
 $VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
 
 NcutRootFile=${VBFFileName%".cvbf"}'TrueNCut.root'
-NcutRootFileName==${NcutRootFile##*/}
+NcutRootFileName=${NcutRootFile##*/}
 cp -v $RootFileName $NcutRootFileName
 
 EcutRootFile=${VBFFileName%".cvbf"}'TrueECut.root'
-EcutRootFileName==${EcutRootFile##*/}
+EcutRootFileName=${EcutRootFile##*/}
 cp -v $RootFileName $EcutRootFileName
 
 
