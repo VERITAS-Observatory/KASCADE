@@ -460,7 +460,8 @@ int main(int argc, char** argv)
       pfAEIn=pfBasePacket->getArrayEvent();
       if(!pfAEIn->hasTrigger())
 	{
-	  std::cout<<"ksMergeFiles - Problem reading ArrayTrigger first		   <<std::endl;
+	  std::cout<<"ksMergeFiles - Problem reading ArrayTrigger first "
+		   <<std::endl;
 	  exit(1);
 	}
       
