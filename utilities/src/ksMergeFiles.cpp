@@ -161,20 +161,6 @@ int main(int argc, char** argv)
 
 
  
-      std::string fBaseFileName;
-      if(!command_line.findWithValue("BaseFileName",fBaseFileName,
-				     "Input file name for Base file. "
-				     "Ouput file consists of events randomized"
-				     "  from this file with specified rate and"
-				     " with pedestal events from this file on "
-				     "each second mark. Required!")
-	 == VAOptions::FS_FOUND)
-	{
-	  std::cout<<"ksMergeFiles - BaseFileName Option is required"
-		   <<std::endl;
-	  usage(progname, command_line);
-	  exit(EXIT_FAILURE);
-	}
 
       std::string fSourceFileName;
       bool fSourceFileSpecified=false;
@@ -198,6 +184,21 @@ int main(int argc, char** argv)
 	 == VAOptions::FS_FOUND)
 	{
 	  fRandomSeedFileName="ksMergeFiles.ran";
+	}
+      
+      std::string fBaseFileName;
+      if(!command_line.findWithValue("BaseFileName",fBaseFileName,
+				     "Input file name for Base file. "
+				     "Ouput file consists of events randomized"
+				     "  from this file with specified rate and"
+				     " with pedestal events from this file on "
+				     "each second mark. Required!")
+	 == VAOptions::FS_FOUND)
+	{
+	  std::cout<<"ksMergeFiles - BaseFileName Option is required"
+		   <<std::endl;
+	  usage(progname, command_line);
+	  exit(EXIT_FAILURE);
 	}
 
       // -------------------------------------------------------------------
