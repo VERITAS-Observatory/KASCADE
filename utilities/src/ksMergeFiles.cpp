@@ -1,13 +1,16 @@
 //-*-mode:c++; mode:font-lock;-*-
 /** 
- * \class ksSumFiles * \brief This code Merges 2 VBF files (usually a CR and a Gamma file).
- *  files into a single file. The first file is assumed to be the base (CR)
- *  file. Events are chosen Randomly from this file (To mix energies) at a
- *  specified Base rate. Events are chosen from the second file at a seperate 
- *  rate. Pedestals come from the first file at 1 per second.
+ * \class ksSumFiles * \brief This code Merges 2 VBF files and/or converts the
+ * ouput file to a tracking frile froma drift scan. The input files are a 
+ * BaseFile (usually a CR file) and an optional SourceFile (usually a  
+ *  Gamma-ray  file).  Events are 
+ *  chosen Randomly from the BaseFile file (To mix energies) at a
+ *  specified BaseFileRate. Events are chosen from the Source file (if 
+ *  specified) at a seperate rate. Pedestals come from the first file at 1 
+ *  per second.
  *  Possible to choose a specific fDirection from the second file.
- *  Events in the output file have approprite fArrayEventNum fEventNum and 
- *  fTime
+ *  Events in the output file have approprite fArrayEventNum fEventNum, fTime,
+ *  fPrimaryAz, fObservationRA, fPrimaryDeg and fObservationDec
  *
  * Original Author: Glenn H. Sembroski 
  * $Author$
@@ -53,6 +56,11 @@
 #include "VAOptions.h"
 #include "VSOptions.hpp"
 #include "VATime.h"
+#include "VAAzElRADecXY.h"
+#include "VAArrayInfo.h"
+#include "VAArrayInfoFactoryLite.h"
+
+#include "KSCommon.h"
 
 // declare that we're using the VConfigMaskUtil namespace, which gives us
 // easy access to parseConfigMask().
@@ -73,7 +81,8 @@ void SetNextEventTime(VATime& fEventTime, double fEventRateHz);
 void SetNextPedEventTime(VATime& fEventTime);
 void CopyEventToMergedFile(VBankFileReader* pfReader, int fPacketIndex, 
 			   VBankFileWriter* pfWriter, int fArrayEventNum, 
-			   int fRunNumber, VATime& fEventTime);
+			   int fRunNumber, VATime& fEventTime,double fObsRA,
+			   double fObsDec, double fPriRA,double fPriDec);
 
 void usage(const std::string& progname,
 	   const VAOptions& command_line)
@@ -87,7 +96,8 @@ void usage(const std::string& progname,
 }
 
 const uint8_t kGPSYear=6;
-
+VAAzElRADecXY*  pfConvert;
+bool fTrackingMode=false;
 
 int main(int argc, char** argv)
 { 
@@ -102,61 +112,85 @@ int main(int argc, char** argv)
       std::string progname = *argv;
       VAOptions command_line(argc,argv);
 
-      double fCosmicRayRateHz=100.0;
-      command_line.findWithValue("CosmicRayRateHz",fCosmicRayRateHz,
-			   "Rate in Hz at which events from the Cosmic Ray "
-			   "file will be put into the ouput file. Default is "
+      double fBaseFileRateHz=100.0;
+      command_line.findWithValue("BaseFileRateHz",fBaseFileRateHz,
+			   "Rate in Hz at which events from the Base "
+			   "file will be put into the output file. Default is "
 			   "100.0 Hz");
-      double fGammaRayRateHz=25.0/60.0;
-      double fGammaRayRateMin=25.0;
-      if(command_line.findWithValue("GammaRayRatePerMinute",fGammaRayRateMin,
-			   "Rate per Minute at which events from the Gamma "
-			   "Ray file will be put into the ouput file. "
-			   "Default is 25/min")
+ 
+      double fSourceFileRateHz=25.0/60.0;
+      double fSourceFileRateMin=25.0;
+      if(command_line.findWithValue("SourceFileRatePerMinute",
+				    fSourceFileRateMin,
+				    "Rate per Minute at which events from the "
+				    "Source file will be put into the output "
+				    "file. Default is 25/min")
 	 == VAOptions::FS_FOUND)
 	{
-	  fGammaRayRateHz=fGammaRayRateMin/60.;
+	  fSourceFileRateHz=fSourceFileRateMin/60.;
+	}
+      
+
+      if(command_line.find("TrackingMode",
+			   "Enables simulation of a tracking run. Telescope "
+			   "Ra/Dec is frozen, Primary and Observation Az/El "
+			   "track telescope direction.Default is Drift scan "
+			   "mode")
+	 == VAOptions::FS_FOUND)
+	{
+	  std::cout<<"ksMergeFiles - Output file is a Tracking file"
+		   <<std::endl;
+	  fTrackingMode=true;
+	}
+      else
+	{
+	  std::cout<<"ksMergeFiles - Output file is a Drift Scan file"
+		   <<std::endl;
+	  fTrackingMode=false;
 	}
 
-      int fGammaDirection=-1;
-      command_line.findWithValue("GammaRaySourceDirectionIndex",
-				 fGammaDirection,
+	
+
+      int  fSourceDirectionIndex=-1;
+      command_line.findWithValue("SourceDirectionIndex",
+				 fSourceDirectionIndex,
 				 "Index of Sim.fDirection source direction to "
-				 "use when including Gamma Ray Events. "
+				 "use when including events from "
+				 "the Source File. "
 				 "Default is no selction on fDirection index");
 
 
  
-      std::string fCosmicRayFileName;
-      if(!command_line.findWithValue("CosmicRayFileName",fCosmicRayFileName,
-				     "Input file name for Cosmic ray file. "
+      std::string fBaseFileName;
+      if(!command_line.findWithValue("BaseFileName",fBaseFileName,
+				     "Input file name for Base file. "
 				     "Ouput file consists of events randomized"
 				     "  from this file with specified rate and"
 				     " with pedestal events from this file on "
 				     "each second mark. Required!")
 	 == VAOptions::FS_FOUND)
 	{
-	  std::cout<<"ksMergeFiles - CosmicRayFileName Options is required"
+	  std::cout<<"ksMergeFiles - BaseFileName Option is required"
 		   <<std::endl;
 	  exit(1);
 	}
 
 
       argv++;
-      std::string fGammaRayFileName;
-      bool fGammaRayFileSpecified=false;
-      if(command_line.findWithValue("GammaRayFileName",fGammaRayFileName,
+      std::string fSourceFileName;
+      bool fSourceFileSpecified=false;
+      if(command_line.findWithValue("SourceFileName",fSourceFileName,
 				    "If this options specified events are "
 				    "randomly chosen from this file and "
 				    "added to the output file at the "
 				    "specified rate. If the "
-				    "-GammaRaySourceDirectionIndex option is "
+				    "-SourceDirectionIndex option is "
 				    "given than only events with that "
 				    "VKascadeSimulationData::fDirection are "
 				    "used. Optional.")
 	 == VAOptions::FS_FOUND)
 	{
-	  fGammaRayFileSpecified=true;
+	  fSourceFileSpecified=true;
 	}
 
       std::string fRandomSeedFileName;
@@ -192,12 +226,12 @@ int main(int argc, char** argv)
 
       std::string fMergedFileName=*argv;
 
-      std::cout<<"ksMergeFiles - Input Cosmic Ray File: "<<fCosmicRayFileName
+      std::cout<<"ksMergeFiles - Input Base File: "<<fBaseFileName
 	       <<std::endl;
-      if(fGammaRayFileSpecified)
+      if(fSourceFileSpecified)
 	{
-	  std::cout<<"ksMergeFiles - Input Gamma Ray File:  "
-		   <<fGammaRayFileName<<std::endl;
+	  std::cout<<"ksMergeFiles - Input Source File:  "
+		   <<fSourceFileName<<std::endl;
 	}
       std::cout<<"ksMergeFiles - Output Merged File:     "<<fMergedFileName
 	       <<std::endl;
@@ -209,110 +243,126 @@ int main(int argc, char** argv)
       ranstart(&printseeds,(char*)fRandomSeedFileName.c_str(),
 	       (int)fRandomSeedFileName.length());
 
+      // *****************************************************************
+      // Set up convert object. Need Longitude and Latitude
+      // Load the default VERITAS arrayInfo at fTime.
+      // *****************************************************************
+      VATime fTime("2006-08-23 22:00:00 UTC");
+      VAArrayInfo* pfArrayInfo=
+	VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
+      double fEastLongitude=pfArrayInfo->longitude();
+      double fLatitude=pfArrayInfo->latitude();
+
+      pfConvert=new VAAzElRADecXY(fEastLongitude,fLatitude);
+
+
       // ******************************************************************
       // Now we are ready to start. Begin by opening the input files;
       // We will then make 3 int vectors based on packet numbers: The first 
-      // is of all the packets in the Cosmic Ray file that are not pedestal
+      // is of all the packets in the Base file that are not pedestal
       // events. The second is of the pedestal events packet numbers in the
-      // cosmic ray file. The third is of the gamma ray event packet numbers
-      // that are not pedestal; events and which match the direction index 
+      // Base file. The third is of the Source event packet numbers
+      // that are not pedestal events and which match the direction index 
       // criteria.
       // ******************************************************************
-      VBankFileReader* pfCRReader = NULL;
-      VBankFileReader* pfGRReader = NULL;
+      VBankFileReader* pfBaseReader = NULL;
+      VBankFileReader* pfSourceReader = NULL;
       VBankFileWriter* pfWriter=NULL;
 
-      VPacket*       pfCRPacket   = NULL;      
-      VPacket*       pfGRPacket   = NULL;      
+      VPacket*       pfBasePacket   = NULL;      
+      VPacket*       pfSourcePacket   = NULL;      
  
-       pfCRReader = new VBankFileReader(fCosmicRayFileName);
+       pfBaseReader = new VBankFileReader(fBaseFileName);
 
-      int fNumCRPackets = pfCRReader->numPackets();
+      int fNumBasePackets = pfBaseReader->numPackets();
 
       // ******************************************************************
-      // Create and fill CR events packet numbers vector.
+      // Create and fill Base events packet numbers vector.
       // ******************************************************************
-      std::vector< int > pfCREventPackets;
-      pfCREventPackets.clear();
-      std::vector< int > pfCRPedEventPackets;
-      pfCRPedEventPackets.clear();
+      std::vector< int > pfBaseEventPackets;
+      pfBaseEventPackets.clear();
+      std::vector< int > pfBasePedEventPackets;
+      pfBasePedEventPackets.clear();
 
       VArrayEvent*   pfAEIn     = NULL;
       VArrayTrigger* pfAT       = NULL;
 
-      for(int i=1;i<=fNumCRPackets;i++) //Packet 0 for header  packets
+      for(int i=1;i<=fNumBasePackets;i++) //Packet 0 for header  packets
 	{
-	  if(!pfCRReader->hasPacket(i))
+	  if(!pfBaseReader->hasPacket(i))
 	    {
 	      std::cout<<"ksMergeFiles - Missing packet. File: "
-		       <<fCosmicRayFileName<<" at packet#: "<<i
+		       <<fBaseFileName<<" at packet#: "<<i
 		       <<std::endl;
 	      continue;
 	    }
-	  pfCRPacket=pfCRReader->readPacket(i); 
+	  pfBasePacket=pfBaseReader->readPacket(i); 
 
-	  if (!pfCRPacket->hasArrayEvent())
+	  if (!pfBasePacket->hasArrayEvent())
 	    {
 	      std::cout<<"ksMergeFiles - Missing ArrayEvent in File:"
-		       <<fCosmicRayFileName<<" at packet#: "<<i<<std::endl;
-	      delete pfCRPacket;
+		       <<fBaseFileName<<" at packet#: "<<i<<std::endl;
+	      delete pfBasePacket;
 	      continue;
 	    } 
-	  pfAEIn=pfCRPacket->getArrayEvent();
+	  pfAEIn=pfBasePacket->getArrayEvent();
 	  pfAT = pfAEIn->getTrigger();
 	  if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
 	    {
-	      pfCRPedEventPackets.push_back(i);
+	      pfBasePedEventPackets.push_back(i);
 	    }
 	  else if(pfAT->getEventType().trigger==VEventType::L2_TRIGGER)
-	    {	      pfCREventPackets.push_back(i);
+	    {	      pfBaseEventPackets.push_back(i);
 	    }
 	  else
 	    {
 	      std::cout<<"ksMergeFiles - Unacceptable event type "
-		       <<pfAT->getEventType().trigger<<" from CosmiRay file "
-		       <<fCosmicRayFileName<<" at packet#: "<<i<<std::endl;
-	      delete pfCRPacket;
+		       <<pfAT->getEventType().trigger<<" from Base file "
+		       <<fBaseFileName<<" at packet#: "<<i<<std::endl;
+	      delete pfBasePacket;
 	      continue;
 	    }
-	 delete pfCRPacket; 	      
+	 delete pfBasePacket; 	      
 	}
 
-      int fNumCREventPackets=pfCREventPackets.size();
-      int fNumCRPedEventPackets=pfCRPedEventPackets.size();
-      std::cout<<"ksMergeFiles - Number of Events Cosmic Ray File: "
-	       <<fNumCREventPackets<<std::endl;
-      std::cout<<"ksMergeFiles - Number of Pedestal Events Cosmic Ray File: "
-	       <<fNumCRPedEventPackets<<std::endl;
+      int fNumBaseEventPackets=pfBaseEventPackets.size();
+      int fNumBasePedEventPackets=pfBasePedEventPackets.size();
+      std::cout<<"ksMergeFiles - Number of Events Base File: "
+	       <<fNumBaseEventPackets<<std::endl;
+      std::cout<<"ksMergeFiles - Number of Pedestal Events Base File: "
+	       <<fNumBasePedEventPackets<<std::endl;
+
+      double fRunLengthSec=fNumBaseEventPackets/fBaseFileRateHz;
 
       // ********************************************************************
-      // Now do the same for the Gamma Rays
+      // Now do the same for the Source file
       // ********************************************************************
-      std::vector< int > pfGREventPackets;
-      if(fGammaRayFileSpecified)
+      std::vector< int > pfSourceEventPackets;
+      double fSourceRunLengthSec;
+      if(fSourceFileSpecified)
 	{
-	  pfGRReader = new VBankFileReader(fGammaRayFileName);
-	  int fNumGRPackets = pfGRReader->numPackets();
+	  pfSourceReader = new VBankFileReader(fSourceFileName);
+	  int fNumSourcePackets = pfSourceReader->numPackets();
 
-	  pfGREventPackets.clear();
+	  pfSourceEventPackets.clear();
 
-	  for(int i=1;i<=fNumGRPackets;i++) //Packet 0 for header  packets
+	  for(int i=1;i<=fNumSourcePackets;i++) //Packet 0 for header  packets
 	    {
-	      if(!pfGRReader->hasPacket(i))
+	      if(!pfSourceReader->hasPacket(i))
 		{
 		  std::cout<<"ksMergeFiles - Missing packet. File: "
-			   <<fGammaRayFileName<<" at packet#: "<<i
+			   <<fSourceFileName<<" at packet#: "<<i
 			   <<std::endl;
 		  continue;
 		}
 
-	      pfGRPacket=pfGRReader->readPacket(i); 
+	      pfSourcePacket=pfSourceReader->readPacket(i); 
 	      
-	      if (!pfGRPacket->hasArrayEvent())
+	      if (!pfSourcePacket->hasArrayEvent())
 		{
 		  std::cout<<"ksMergeFiles - Missing ArrayEvent in File:"
-			   <<fGammaRayFileName<<" at packet#: "<<i<<std::endl;
-		  delete pfGRPacket;
+			   <<fSourceFileName<<" at packet#: "<<i<<std::endl;
+		  delete pfSourcePacket;
 		  continue;
 		} 
 
@@ -320,49 +370,55 @@ int main(int argc, char** argv)
 	      // NOte: NO DIRECTION SELECTION AS OF YET. Here is where it will
 	      // go
 	      // ************************************************************
-	      pfAEIn=pfGRPacket->getArrayEvent();
+	      pfAEIn=pfSourcePacket->getArrayEvent();
 	      pfAT = pfAEIn->getTrigger();
 	      if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
 		{
-		  delete pfGRPacket;
+		  delete pfSourcePacket;
 		  continue;  //ignore ped events
 		}
 	      else if(pfAT->getEventType().trigger==VEventType::L2_TRIGGER)
 		{
-		  pfGREventPackets.push_back(i);
+		  pfSourceEventPackets.push_back(i);
 		}
 	      else
 		{
 		  std::cout<<"ksMergeFiles - Unacceptable event type "
 			   <<pfAT->getEventType().trigger
-			   <<" from CosmiRay file "<<fGammaRayFileName
+			   <<" from CosmiRay file "<<fSourceFileName
 			   <<" at packet#: "<<i<<std::endl;
-		  delete pfGRPacket;
+		  delete pfSourcePacket;
 		  continue;
 		}
-	      delete pfGRPacket;
+	      delete pfSourcePacket;
 	      
 	    }
 
-	  int fNumGREventPackets=pfGREventPackets.size();
-	  std::cout<<"ksMergeFiles - Number of Events Gamma Ray File: "
-		   <<fNumGREventPackets<<std::endl;
+	  int fNumSourceEventPackets=pfSourceEventPackets.size();
+	  std::cout<<"ksMergeFiles - Number of Events Source File: "
+		   <<fNumSourceEventPackets<<std::endl;
+	  fSourceRunLengthSec=fNumSourceEventPackets/fSourceFileRateHz;
+	  if(fSourceRunLengthSec<fRunLengthSec)
+	    {
+	      fRunLengthSec=fSourceRunLengthSec;
+	    }
 	}
-      
+      std::cout<<"ksMergeFiles - Expected Merged Run Length: "
+	       <<fRunLengthSec/60.<<" min."<<std::endl;
 
       // ******************************************************************
-      // Initalize the ouput file: Copy over Gamma ray bank 0. We had the 
-      // choice of the headers from the Gamma ray file or the CR file. For no 
-      // good reason use the Gammar ray simulation headers.
-      // Get the starteof run event time run number etc from first CR event.
+      // Initalize the ouput file: Copy over Source bank 0 (if available). We 
+      // had the choice of the headers from the Source file or the Base file. 
+      // For no good reason use the Source simulation headers.
+      // Get the start-of-run event time, run number etc from first Base event.
       // ******************************************************************
       int fArrayEventNum=1;   //VBF events start at 1, 0 is for header
       std::vector< bool> fConfigMask;
 
-      uword32 fRunNumber = pfCRReader->getRunNumber();
+      uword32 fRunNumber = pfBaseReader->getRunNumber();
       std::cout<<"ksMergeFile: RunNumber: "<<fRunNumber<<std::endl;
 
-      fConfigMask= pfCRReader->getConfigMask();
+      fConfigMask= pfBaseReader->getConfigMask();
       pfWriter = new VBankFileWriter(fMergedFileName, fRunNumber, fConfigMask);
       if(pfWriter==NULL)
 	{
@@ -375,166 +431,210 @@ int main(int argc, char** argv)
       // copy over the first packet, this is the header 
       // packet, no events in it
       // ******************************************************
-      if(fGammaRayFileSpecified)
+      if(fSourceFileSpecified)
 	{
-	  pfGRPacket=pfGRReader->readPacket(0);
-	  pfWriter->writePacket(0, pfGRPacket);
-	  delete pfGRPacket;
+	  pfSourcePacket=pfSourceReader->readPacket(0);
+	  pfWriter->writePacket(0, pfSourcePacket);
+	  delete pfSourcePacket;
 	}		      
       else
 	{
-	  pfCRPacket=pfCRReader->readPacket(0);
-	  pfWriter->writePacket(0, pfCRPacket);
-	  delete pfCRPacket;
+	  pfBasePacket=pfBaseReader->readPacket(0);
+	  pfWriter->writePacket(0, pfBasePacket);
+	  delete pfBasePacket;
 	}
 
       // ******************************************************
       // Now we need a first event time to use. Use first 
-      // event time in the first event in the CR file
+      // event time in the first event in the Base file
       // ******************************************************
       VATime fEventTime;
       uint8_t fGPSYear=kGPSYear;
 
-      if(!pfCRReader->hasPacket(1))
+      if(!pfBaseReader->hasPacket(1))
 	{
 	  std::cout<<"ksMergeFiles - Missing packet #1. File: "
-		   <<fCosmicRayFileName<<std::endl;
+		   <<fBaseFileName<<std::endl;
 	  exit(1);
 	}
 
-      pfCRPacket=pfCRReader->readPacket(1);
-      pfAEIn=pfCRPacket->getArrayEvent();
-      if(pfAEIn->hasTrigger())
-	{
-	  pfAT = pfAEIn->getTrigger();
-	  fEventTime.setFromVBF(fGPSYear,pfAT->getGPSTimeNumElements(),
-				pfAT->getGPSTime());
-	}
-      else
+      pfBasePacket=pfBaseReader->readPacket(1);
+      pfAEIn=pfBasePacket->getArrayEvent();
+      if(!pfAEIn->hasTrigger())
 	{
 	  std::cout<<"ksMergeFiles - Problem reading ArrayTrigger first event"
 		   <<std::endl;
 	  exit(1);
 	}
+      
+      pfAT = pfAEIn->getTrigger();
+      fEventTime.setFromVBF(fGPSYear,pfAT->getGPSTimeNumElements(),
+				pfAT->getGPSTime());
       std::cout<<"ksMergeFiles - Merged File RunStart Time: "<< fEventTime
 	       <<std::endl;
-      delete pfCRPacket;
+      delete pfBasePacket;
 
       std::cout<<"ksMergeFiles:Merging Files.....Takes even longer"
 	       <<std::endl;
 
       // ****************************************************************
       // Randomly select event times for the first event of each type:
-      // CR, CR ped Gamma Ray. Use rexp delta T distribution
+      // Base, Base Ped or Source. Use rexp delta T distribution
       // ****************************************************************
-      VATime fCREventTime=fEventTime;
-      VATime fCRPedEventTime=fEventTime;;
-      VATime fGREventTime=fEventTime;;
+      VATime fBaseEventTime=fEventTime;
+      VATime fBasePedEventTime=fEventTime;;
+      VATime fSourceEventTime=fEventTime;;
 
-      SetNextEventTime(fCREventTime,fCosmicRayRateHz);
-      SetNextPedEventTime(fCRPedEventTime);
-      if(fGammaRayFileSpecified)
+      SetNextEventTime(fBaseEventTime,fBaseFileRateHz);
+      SetNextPedEventTime(fBasePedEventTime);
+      if(fSourceFileSpecified)
 	{
-	  SetNextEventTime(fGREventTime,fGammaRayRateHz);
+	  SetNextEventTime(fSourceEventTime,fSourceFileRateHz);
 	}
 
-      int fNumCREvents=0;
-      int fNumCRPedEvents=0;
-      int fNumGREvents=0;
+      int fNumBaseEvents=0;
+      int fNumBasePedEvents=0;
+      int fNumSourceEvents=0;
 
+      // *********************************************************************
+      // For tracking runs we need to know what the Ra/Dec will be
+      // *********************************************************************
+      double fObsRA=-1;
+      double fObsDec=-1;
+      double fPriRA=-1;
+      double fPriDec=-1;
+     
+
+      if(fTrackingMode)
+	{
+	  VSimulationData *pfSimData =pfBasePacket->get< VSimulationData >
+	                                       (VGetSimulationDataBankName());
+	  double fObservationElev=
+	    (double)( (90.0-pfSimData->fObservationZenithDeg)/gRad2Deg); 
+	  double fObservationAz=
+	    (double)(pfSimData->fObservationAzimuthDeg/gRad2Deg);
+	  pfConvert->AzEl2RADec2000(fObservationAz,fObservationElev,fEventTime,
+				  fObsRA,fObsDec);
+	  //Move this Az/El to the ~ middle of the run.
+	  fObsRA=fObsRA - (fRunLengthSec/(60.*60.*24.))*M_PI;
+	  
+	  std::cout<<"ksMergeFiles - Tracking Direction "
+		   <<pfConvert->RAToString(fObsRA)
+		   <<"   "<<pfConvert->DecToString(fObsDec)<<std::endl;
+	  double fPrimaryElev=
+	    (double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
+	  double fPrimaryAz=
+	    (double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+	  pfConvert->AzEl2RADec2000(fPrimaryAz,fPrimaryElev,fEventTime,
+				  fPriRA,fPriDec);
+	  // ************************************************************
+	  //Move this Az/El to the ~ middle of the run(note implied div by 2).
+	  // ************************************************************
+	  fPriRA=fPriRA - (fRunLengthSec/(60.*60.*24.))*M_PI;
+	  
+	  std::cout<<"ksMergeFiles - Source Direction RA: "
+		   <<pfConvert->RAToString(fPriRA)<<" Dec: "
+		   <<pfConvert->DecToString(fPriDec)<<std::endl;
+	}
+      
       float fXDummy;
 
-     // ********************************************************************
+      // ********************************************************************
       // MAIN LOOP
       // ********************************************************************
-      // Our loop will be over existance of CR events that haven't been 
+      // Our loop will be over existance of Base  events that haven't been 
       // written out. 
       // *********************************************************************
       
       std::vector< int >::iterator fPos;
       VATime fLastTime;
-      while(pfCREventPackets.size()>0)
+      while(pfBaseEventPackets.size()>0)
 	{
 	  // ***************************************************************
-	  // Find which type of event to write. Is a GR event next?
+	  // Find which type of event to write. Is a Source event next?
 	  // ***************************************************************
-	  if(fGammaRayFileSpecified && fGREventTime<fCRPedEventTime && 
-		  fGREventTime<fCREventTime)
+	  if(fSourceFileSpecified && fSourceEventTime<fBasePedEventTime && 
+		  fSourceEventTime<fBaseEventTime)
 	    {
-	      if(pfGREventPackets.size()== 0 )
+	      if(pfSourceEventPackets.size()== 0 )
 		{
-		  std::cout<<"ksMergeFiles - Out of Gamma Ray events"
+		  std::cout<<"ksMergeFiles - Ran out of Source events"
 			   <<std::endl;
 		  break;
 		}
-	      int fIndex=(int)(pfGREventPackets.size()*pran(&fXDummy));
-	      if(fIndex==(int)pfGREventPackets.size())
+	      int fIndex=(int)(pfSourceEventPackets.size()*pran(&fXDummy));
+	      if(fIndex==(int)pfSourceEventPackets.size())
 		{
-		  fIndex=pfGREventPackets.size()-1;
+		  fIndex=pfSourceEventPackets.size()-1;
 		}
-	      int fPacketIndex=pfGREventPackets.at(fIndex);
-	      fPos=find(pfGREventPackets.begin(),pfGREventPackets.end(),
+	      int fPacketIndex=pfSourceEventPackets.at(fIndex);
+	      fPos=find(pfSourceEventPackets.begin(),
+			pfSourceEventPackets.end(),
 			fPacketIndex);
-	      pfGREventPackets.erase(fPos);
+	      pfSourceEventPackets.erase(fPos);
 	      
-	      CopyEventToMergedFile(pfGRReader,fPacketIndex,pfWriter,
-				    fRunNumber,fArrayEventNum,fGREventTime);
+	      CopyEventToMergedFile(pfSourceReader,fPacketIndex,pfWriter,
+				    fRunNumber,fArrayEventNum,fSourceEventTime,
+				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
-	      fLastTime=fGREventTime;
-	      SetNextEventTime(fGREventTime,fGammaRayRateHz);	      
-	      fNumGREvents++;
+	      fLastTime=fSourceEventTime;
+	      SetNextEventTime(fSourceEventTime,fSourceFileRateHz);	      
+	      fNumSourceEvents++;
 	    }
-	  else if(fCREventTime<fCRPedEventTime)
+	  else if(fBaseEventTime<fBasePedEventTime)
 	    {
 	      // *************************************************
 	      // Randomly pick from our vector a position in the vector and use
 	      // that packet number.
 	      // ******************************************************
-	      int fIndex=(int)(pfCREventPackets.size()*pran(&fXDummy));
-	      if(fIndex==(int)pfCREventPackets.size())
+	      int fIndex=(int)(pfBaseEventPackets.size()*pran(&fXDummy));
+	      if(fIndex==(int)pfBaseEventPackets.size())
 		{
-		  fIndex=pfCREventPackets.size()-1;
+		  fIndex=pfBaseEventPackets.size()-1;
 		}
-	      int fPacketIndex=pfCREventPackets.at(fIndex);
+	      int fPacketIndex=pfBaseEventPackets.at(fIndex);
 	      
 	      // *********************************************************
 	      // Now the trick. The reason we are using vectors. Remove the 
 	      // fIndex element from the vector.
-	      // pfCREventPackets.begin()[fIndex] is an iterator pointing to
+	      // pfBaseEventPackets.begin()[fIndex] is an iterator pointing to
 	      // the fIndex entry.
 	      // *********************************************************
-	      fPos=find(pfCREventPackets.begin(),pfCREventPackets.end(),
+	      fPos=find(pfBaseEventPackets.begin(),pfBaseEventPackets.end(),
 		       fPacketIndex);
-	      pfCREventPackets.erase(fPos);
+	      pfBaseEventPackets.erase(fPos);
 	      
 	      // *********************************************************
 
-	      CopyEventToMergedFile(pfCRReader,fPacketIndex,pfWriter,
-				    fRunNumber,fArrayEventNum,fCREventTime);
+	      CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
+				    fRunNumber,fArrayEventNum,fBaseEventTime,
+				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
-	      fLastTime=fCREventTime;
-	      SetNextEventTime(fCREventTime,fCosmicRayRateHz);	      
-	      fNumCREvents++;
+	      fLastTime=fBaseEventTime;
+	      SetNextEventTime(fBaseEventTime,fBaseFileRateHz);	      
+	      fNumBaseEvents++;
 	    }
-	  else if(pfCRPedEventPackets.size() > 0)
+	  else if(pfBasePedEventPackets.size() > 0)
 	    {
 	      // ***********************************************************
 	      // Just take the ped events as they come
 	      // ***********************************************************
-	      int fPacketIndex=pfCRPedEventPackets.at(0);
-	      fPos=pfCRPedEventPackets.begin();
-	      pfCRPedEventPackets.erase(fPos);
+	      int fPacketIndex=pfBasePedEventPackets.at(0);
+	      fPos=pfBasePedEventPackets.begin();
+	      pfBasePedEventPackets.erase(fPos);
 
-	      CopyEventToMergedFile(pfCRReader,fPacketIndex,pfWriter,
-				    fRunNumber,fArrayEventNum,fCRPedEventTime);
+	      CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
+				    fRunNumber,fArrayEventNum,
+				    fBasePedEventTime,
+				    fObsRA,fObsDec,fPriRA,fPriDec);
 
-	      fLastTime=fCRPedEventTime;
-	      SetNextPedEventTime(fCRPedEventTime);	      
-	      fNumCRPedEvents++;
+	      fLastTime=fBasePedEventTime;
+	      SetNextPedEventTime(fBasePedEventTime);	      
+	      fNumBasePedEvents++;
 	    }
 	  else
 	    {
-	      std::cout<<"ksMergeFiles - Out of Pedestal events"
+	      std::cout<<"ksMergeFiles - Out of Base Pedestal events"
 		       <<std::endl;
               break;
 	    }
@@ -550,12 +650,12 @@ int main(int argc, char** argv)
 	  
       std::cout<<"ksMergeFiles - Output summary file closed with "
 	       <<fArrayEventNum-1<<" events"<<std::endl;
-      std::cout<<"ksMergeFiles - Number of Coismic Ray Events written:"
-	       <<fNumCREvents<<std::endl;
-      std::cout<<"ksMergeFiles - Number of Pedestal Events written:"
-	       <<fNumCRPedEvents<<std::endl;
-      std::cout<<"ksMergeFiles - Number of Gamma Ray Events written:"
-	       <<fNumGREvents<<std::endl;
+      std::cout<<"ksMergeFiles - Number of Base Events written:"
+	       <<fNumBaseEvents<<std::endl;
+      std::cout<<"ksMergeFiles - Number of Base Pedestal Events written:"
+	       <<fNumBasePedEvents<<std::endl;
+      std::cout<<"ksMergeFiles - Number of Source Events written:"
+	       <<fNumSourceEvents<<std::endl;
 
       std::cout<<"ksMergeFiles - End of Run at: "<<fLastTime<<std::endl;
       std::cout<<"ksMergeFiles - Normal end"<<std::endl;
@@ -583,7 +683,8 @@ int main(int argc, char** argv)
 
 void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex, 
 			    VBankFileWriter* pfWriter, int fArrayEventNum, 
-			    int fRunNumber, VATime& fEventTime)
+			    int fRunNumber, VATime& fEventTime,double fObsRA,
+			    double fObsDec, double fPriRA, double fPriDec)
 // ***********************************************************************
 // Copy a packet form th intput reader to the Merged ouput file. Be sure to 
 // update all times run numbers and event numbers.
@@ -593,8 +694,18 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   VPacket* pfPacket=pfReader->readPacket(fPacketIndex); 
 			  
   // *************************************************
-  // Update event numbers here and maybe times
+  // Update event numbers here and maybe times an maybe AzEl of obs and pri
   // *************************************************
+  double fObsAz=0;
+  double fObsEl=0;
+  double fPriAz=0;
+  double fPriEl=0;
+  if(fTrackingMode)
+    {
+      pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsDec);
+      pfConvert->RADec2000ToAzEl(fPriRA,fPriDec,fEventTime,fPriAz,fPriDec);
+    }
+
 			  
   // *************************************************
   // Fix up simulation data bank in this packet
@@ -613,6 +724,13 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       //  we didn't have to dothis section
       pfSimData->fRunNumber=fRunNumber;
       pfSimData->fEventNumber=fArrayEventNum;
+      if(fTrackingMode)
+	{
+	  pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
+	  pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
+	  pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
+	  pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
+	}
       VSimulationData* pfWriteSimData = pfSimData->copySimData();
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
       // **********************************************
@@ -630,7 +748,8 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
 
 
       VKascadeSimulationData* pfWriteKSimData=pfKSimData->copyKascadeSimData();
-      pfWritePacket->put(VGetKascadeSimulationDataBankName(), pfWriteKSimData);  
+      pfWritePacket->put(VGetKascadeSimulationDataBankName(), 
+			 pfWriteKSimData);  
     }
   // **********************************************
   // Now the ArrayEvents First fix times and event number in array Trigger
@@ -671,6 +790,15 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
 			  
   pfAT->setGPSYear(fGPSYear);
 			  
+  // ***********************************************************************
+  // Reset directions if we are tracking
+  // ***********************************************************************
+  if(fTrackingMode)
+    {
+      pfAT->setAltitude(0, (float)(90.0-(fObsEl*gRad2Deg)) );
+      pfAT->setAzimuth(0,(float)(fObsAz*gRad2Deg));
+    }
+
 
   // ***********************************************************************
   // now put array trigger back into the array event
