@@ -175,8 +175,6 @@ int main(int argc, char** argv)
 	  exit(1);
 	}
 
-
-      argv++;
       std::string fSourceFileName;
       bool fSourceFileSpecified=false;
       if(command_line.findWithValue("SourceFileName",fSourceFileName,
@@ -462,8 +460,7 @@ int main(int argc, char** argv)
       pfAEIn=pfBasePacket->getArrayEvent();
       if(!pfAEIn->hasTrigger())
 	{
-	  std::cout<<"ksMergeFiles - Problem reading ArrayTrigger first event"
-		   <<std::endl;
+	  std::cout<<"ksMergeFiles - Problem reading ArrayTrigger first		   <<std::endl;
 	  exit(1);
 	}
       
