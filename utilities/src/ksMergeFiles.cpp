@@ -172,7 +172,8 @@ int main(int argc, char** argv)
 	{
 	  std::cout<<"ksMergeFiles - BaseFileName Option is required"
 		   <<std::endl;
-	  exit(1);
+	  usage(progname, command_line);
+	  exit(EXIT_FAILURE);
 	}
 
       std::string fSourceFileName;
@@ -422,7 +423,7 @@ int main(int argc, char** argv)
 	{
 	  std::cout<<"ksMergeFiles--Output VBF file failed to "
 	    "open"<<std::endl;
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}	      
 		      
       // ******************************************************
@@ -453,7 +454,7 @@ int main(int argc, char** argv)
 	{
 	  std::cout<<"ksMergeFiles - Missing packet #1. File: "
 		   <<fBaseFileName<<std::endl;
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
 
       pfBasePacket=pfBaseReader->readPacket(1);
@@ -462,7 +463,7 @@ int main(int argc, char** argv)
 	{
 	  std::cout<<"ksMergeFiles - Problem reading ArrayTrigger first "
 		   <<std::endl;
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	}
       
       pfAT = pfAEIn->getTrigger();
