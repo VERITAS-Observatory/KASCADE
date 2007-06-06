@@ -286,6 +286,9 @@ int main(int argc, char** argv)
 
       VArrayEvent*   pfAEIn     = NULL;
       VArrayTrigger* pfAT       = NULL;
+      std::cout<<"ksMergeFiles - Creating Base File Event Packet Event "
+	"number vector"<<std::endl;
+      std::cout<<"ksMergeFiles - Takes a couple of minuets"<<std::endl;
 
       for(int i=1;i<=fNumBasePackets;i++) //Packet 0 for header  packets
 	{
@@ -346,6 +349,9 @@ int main(int argc, char** argv)
 
 	  pfSourceEventPackets.clear();
 
+	  std::cout<<"ksMergeFiles - Creating Source File Event Packet Event "
+	    "number vector"<<std::endl;
+	  std::cout<<"ksMergeFiles - Takes a few more minuets"<<std::endl;
 	  for(int i=1;i<=fNumSourcePackets;i++) //Packet 0 for header  packets
 	    {
 	      if(!pfSourceReader->hasPacket(i))
@@ -548,6 +554,7 @@ int main(int argc, char** argv)
       
       std::vector< int >::iterator fPos;
       VATime fLastTime;
+      std::cout<<"ksMergeFiles - Creating Output file"<<std::endl;
       while(pfBaseEventPackets.size()>0)
 	{
 	  // ***************************************************************
@@ -612,6 +619,15 @@ int main(int argc, char** argv)
 	      
 	      fLastTime=fBaseEventTime;
 	      SetNextEventTime(fBaseEventTime,fBaseFileRateHz);	      
+	      if(fNumBaseEvents%10000==0)
+		{
+		  double fPercentDone=(float)(fNumBaseEvents)*100.0/
+		                                      (float)fNumBasePackets;
+		  std::cout<<"ksMergeFiles -Event#: "<<fNumBaseEvents<<"("
+			   <<fPercentDone<<"%)"<<std::endl;
+
+		}
+
 	      fNumBaseEvents++;
 	    }
 	  else if(pfBasePedEventPackets.size() > 0)
