@@ -74,13 +74,12 @@ extern "C" void ranstart(int* printseedflag, char* random_seed_file_name,
 extern "C" void ranend(int* printseedflag, char* random_seed_file_name, 
 		       int length);
 extern "C" float pran(float* dummy);
-
 extern "C" double Rexp(double fScaleFactor);
 
 void SetNextEventTime(VATime& fEventTime, double fEventRateHz);
 void SetNextPedEventTime(VATime& fEventTime);
 void CopyEventToMergedFile(VBankFileReader* pfReader, int fPacketIndex, 
-			   VBankFileWriter* pfWriter, int fArrayEventNum, 
+			   VBankFileWriter* pfWriter, int& fArrayEventNum, 
 			   int fRunNumber, VATime& fEventTime,double fObsRA,
 			   double fObsDec, double fPriRA,double fPriDec);
 
@@ -98,7 +97,12 @@ void usage(const std::string& progname,
 const uint8_t kGPSYear=6;
 VAAzElRADecXY*  pfConvert;
 bool fTrackingMode=false;
-
+double fObsAz=0;
+double fObsEl=0;
+double fPriAz=0;
+double fPriEl=0;
+double fLatitude=0;
+double fEastLongitude=0;
 int main(int argc, char** argv)
 { 
   try
@@ -250,8 +254,8 @@ int main(int argc, char** argv)
       VATime fTime("2006-08-23 22:00:00 UTC");
       VAArrayInfo* pfArrayInfo=
 	VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
-      double fEastLongitude=pfArrayInfo->longitude();
-      double fLatitude=pfArrayInfo->latitude();
+      fEastLongitude=pfArrayInfo->longitude();
+      fLatitude=pfArrayInfo->latitude();
 
       pfConvert=new VAAzElRADecXY(fEastLongitude,fLatitude);
 
@@ -289,9 +293,17 @@ int main(int argc, char** argv)
       std::cout<<"ksMergeFiles - Creating Base File Event Packet Event "
 	"number vector"<<std::endl;
       std::cout<<"ksMergeFiles - Takes a couple of minuets"<<std::endl;
-
-      for(int i=1;i<=fNumBasePackets;i++) //Packet 0 for header  packets
+      std::cout<<"ksMergeFiles - Events:(#=10000):";
+      std::cout.flush();
+      for(int i=1;i<fNumBasePackets;i++) //Packet 0 for header  packets
 	{
+	  if(i%10000==0)
+	    {
+	      std::cout<<"#";
+	      std::cout.flush();
+	    }
+
+
 	  if(!pfBaseReader->hasPacket(i))
 	    {
 	      std::cout<<"ksMergeFiles - Missing packet. File: "
@@ -327,6 +339,7 @@ int main(int argc, char** argv)
 	    }
 	 delete pfBasePacket; 	      
 	}
+      std::cout<<std::endl;
 
       int fNumBaseEventPackets=pfBaseEventPackets.size();
       int fNumBasePedEventPackets=pfBasePedEventPackets.size();
@@ -478,29 +491,6 @@ int main(int argc, char** argv)
 				pfAT->getGPSTime());
       std::cout<<"ksMergeFiles - Merged File RunStart Time: "<< fEventTime
 	       <<std::endl;
-      delete pfBasePacket;
-
-      std::cout<<"ksMergeFiles:Merging Files.....Takes even longer"
-	       <<std::endl;
-
-      // ****************************************************************
-      // Randomly select event times for the first event of each type:
-      // Base, Base Ped or Source. Use rexp delta T distribution
-      // ****************************************************************
-      VATime fBaseEventTime=fEventTime;
-      VATime fBasePedEventTime=fEventTime;;
-      VATime fSourceEventTime=fEventTime;;
-
-      SetNextEventTime(fBaseEventTime,fBaseFileRateHz);
-      SetNextPedEventTime(fBasePedEventTime);
-      if(fSourceFileSpecified)
-	{
-	  SetNextEventTime(fSourceEventTime,fSourceFileRateHz);
-	}
-
-      int fNumBaseEvents=0;
-      int fNumBasePedEvents=0;
-      int fNumSourceEvents=0;
 
       // *********************************************************************
       // For tracking runs we need to know what the Ra/Dec will be
@@ -510,7 +500,6 @@ int main(int argc, char** argv)
       double fPriRA=-1;
       double fPriDec=-1;
      
-
       if(fTrackingMode)
 	{
 	  VSimulationData *pfSimData =pfBasePacket->get< VSimulationData >
@@ -522,11 +511,13 @@ int main(int argc, char** argv)
 	  pfConvert->AzEl2RADec2000(fObservationAz,fObservationElev,fEventTime,
 				  fObsRA,fObsDec);
 	  //Move this Az/El to the ~ middle of the run.
-	  fObsRA=fObsRA - (fRunLengthSec/(60.*60.*24.))*M_PI;
-	  
-	  std::cout<<"ksMergeFiles - Tracking Direction "
-		   <<pfConvert->RAToString(fObsRA)
-		   <<"   "<<pfConvert->DecToString(fObsDec)<<std::endl;
+	  double fRAShift=(fRunLengthSec/(60.*60.*24.))*M_PI;
+	  fObsRA=fObsRA + fRAShift;
+
+	  std::cout<<"ksMergeFiles - Tracking Direction RA: "
+		   <<pfConvert->RAToString(fObsRA);
+	  std::cout<<"ksMergeFiles - Tracking Direction Dec: "
+		   <<pfConvert->DecToString(fObsDec);
 	  double fPrimaryElev=
 	    (double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
 	  double fPrimaryAz=
@@ -536,13 +527,44 @@ int main(int argc, char** argv)
 	  // ************************************************************
 	  //Move this Az/El to the ~ middle of the run(note implied div by 2).
 	  // ************************************************************
-	  fPriRA=fPriRA - (fRunLengthSec/(60.*60.*24.))*M_PI;
+	  fPriRA=fPriRA + fRAShift;
 	  
 	  std::cout<<"ksMergeFiles - Source Direction RA: "
-		   <<pfConvert->RAToString(fPriRA)<<" Dec: "
+		   <<pfConvert->RAToString(fPriRA);
+	  std::cout<<"ksMergeFiles - Source Direction Dec: "
 		   <<pfConvert->DecToString(fPriDec)<<std::endl;
 	}
-      
+  
+      delete pfBasePacket;
+
+
+
+
+
+      std::cout<<"ksMergeFiles:Merging Files.....Takes even longer"
+	       <<std::endl;
+
+
+      // ****************************************************************
+      // Randomly select event times for the first event of each type:
+      // Base, Base Ped or Source. Use rexp delta T distribution
+      // ****************************************************************
+      VATime fBaseEventTime=fEventTime;
+      VATime fBasePedEventTime=fEventTime;;
+      VATime fSourceEventTime=fEventTime;;
+
+      //SetNextEventTime(fBaseEventTime,fBaseFileRateHz);
+      SetNextPedEventTime(fBasePedEventTime);
+      if(fSourceFileSpecified)
+	{
+	  SetNextEventTime(fSourceEventTime,fSourceFileRateHz);
+	}
+
+      int fNumBaseEvents=0;
+      int fNumBasePedEvents=0;
+      int fNumSourceEvents=0;
+
+    
       float fXDummy;
 
       // ********************************************************************
@@ -575,13 +597,20 @@ int main(int argc, char** argv)
 		  fIndex=pfSourceEventPackets.size()-1;
 		}
 	      int fPacketIndex=pfSourceEventPackets.at(fIndex);
-	      fPos=find(pfSourceEventPackets.begin(),
-			pfSourceEventPackets.end(),
-			fPacketIndex);
+	      fPos=std::find(pfSourceEventPackets.begin(),
+			     pfSourceEventPackets.end(),
+			     fPacketIndex);
+	      if(fPos==pfSourceEventPackets.end())
+		{
+		  std::cout<<"ksMergeFiles - Failed to build interator for "
+		    "position "<<fPacketIndex<<" in Source file"<<std::endl;
+		  exit(EXIT_FAILURE);
+		}
+
 	      pfSourceEventPackets.erase(fPos);
 	      
 	      CopyEventToMergedFile(pfSourceReader,fPacketIndex,pfWriter,
-				    fRunNumber,fArrayEventNum,fSourceEventTime,
+				    fArrayEventNum,fRunNumber,fSourceEventTime,
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
 	      fLastTime=fSourceEventTime;
@@ -609,12 +638,18 @@ int main(int argc, char** argv)
 	      // *********************************************************
 	      fPos=find(pfBaseEventPackets.begin(),pfBaseEventPackets.end(),
 		       fPacketIndex);
+	      if(fPos==pfBaseEventPackets.end())
+		{
+		  std::cout<<"ksMergeFiles - Failed to build interator for "
+		    "position "<<fPacketIndex<<" in Base file"<<std::endl;
+		  exit(EXIT_FAILURE);
+		}
 	      pfBaseEventPackets.erase(fPos);
 	      
 	      // *********************************************************
 
 	      CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
-				    fRunNumber,fArrayEventNum,fBaseEventTime,
+				    fArrayEventNum,fRunNumber,fBaseEventTime,
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
 	      fLastTime=fBaseEventTime;
@@ -623,7 +658,7 @@ int main(int argc, char** argv)
 		{
 		  double fPercentDone=(float)(fNumBaseEvents)*100.0/
 		                                      (float)fNumBasePackets;
-		  std::cout<<"ksMergeFiles -Event#: "<<fNumBaseEvents<<"("
+		  std::cout<<"ksMergeFiles - Event#: "<<fNumBaseEvents<<"("
 			   <<fPercentDone<<"%)"<<std::endl;
 
 		}
@@ -637,10 +672,17 @@ int main(int argc, char** argv)
 	      // ***********************************************************
 	      int fPacketIndex=pfBasePedEventPackets.at(0);
 	      fPos=pfBasePedEventPackets.begin();
+	      if(fPos==pfBaseEventPackets.end())
+		{
+		  std::cout<<"ksMergeFiles - Failed to get pos for Pedestal "
+		    "events"<<std::endl;
+		  break;
+		}
+
 	      pfBasePedEventPackets.erase(fPos);
 
 	      CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
-				    fRunNumber,fArrayEventNum,
+				    fArrayEventNum,fRunNumber,
 				    fBasePedEventTime,
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 
@@ -674,6 +716,10 @@ int main(int argc, char** argv)
 	       <<fNumSourceEvents<<std::endl;
 
       std::cout<<"ksMergeFiles - End of Run at: "<<fLastTime<<std::endl;
+      std::cout<<"ksMergeFiles - End Observation Az: "<<fObsAz*gRad2Deg
+	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
+      std::cout<<"ksMergeFiles - End Primary Az: "<<fPriAz*gRad2Deg
+	       <<" Prmary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
       std::cout<<"ksMergeFiles - Normal end"<<std::endl;
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
@@ -698,7 +744,7 @@ int main(int argc, char** argv)
 // **************************************************************************
 
 void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex, 
-			    VBankFileWriter* pfWriter, int fArrayEventNum, 
+			    VBankFileWriter* pfWriter, int& fArrayEventNum, 
 			    int fRunNumber, VATime& fEventTime,double fObsRA,
 			    double fObsDec, double fPriRA, double fPriDec)
 // ***********************************************************************
@@ -712,17 +758,15 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // *************************************************
   // Update event numbers here and maybe times an maybe AzEl of obs and pri
   // *************************************************
-  double fObsAz=0;
-  double fObsEl=0;
-  double fPriAz=0;
-  double fPriEl=0;
+  fObsAz=0;
+  fObsEl=0;
+  fPriAz=0;
+  fPriEl=0;
   if(fTrackingMode)
     {
-      pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsDec);
-      pfConvert->RADec2000ToAzEl(fPriRA,fPriDec,fEventTime,fPriAz,fPriDec);
+      pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsEl);
+      pfConvert->RADec2000ToAzEl(fPriRA,fPriDec,fEventTime,fPriAz,fPriEl);
     }
-
-			  
   // *************************************************
   // Fix up simulation data bank in this packet
   // *************************************************
@@ -855,6 +899,18 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   pfWriter->writePacket(fArrayEventNum,pfWritePacket);
   delete pfWritePacket;
   delete pfPacket;
+  if(fArrayEventNum==1)
+    {
+      std::cout<<"ksMergeFiles - Start Observation Az: "<<fObsAz*gRad2Deg
+	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
+      std::cout<<"ksMergeFiles - Start Primary Az: "<<fPriAz*gRad2Deg
+	       <<" Primary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
+      double fDerotangle = atan2(-1.0*cos(fLatitude)*sin(fObsAz),
+				 (cos(fObsEl)*sin(fLatitude) - 
+			      sin(fObsEl)*cos(fObsAz)));
+      std::cout<<"ksMergeFiles - Max Image rotation(deg): "
+	       <<180.+fDerotangle*gRad2Deg<<std::endl;
+    }
 
   fArrayEventNum++;
   return;
