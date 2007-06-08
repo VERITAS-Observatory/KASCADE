@@ -327,14 +327,12 @@ int main(int argc, char** argv)
 	  pfAEIn=pfBasePacket->getArrayEvent();
 	  pfAT = pfAEIn->getTrigger();
 
-	  // *****************************************************************
-	  // For tracking runs we need to know what the Ra/Dec will be
-	  // *****************************************************************
 	  if(i==1)
 	    {
 	      fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
 	      fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
-
+              fPriEl=fObsEl;
+	      fPriAz=fObsAz;
 	    }
 
 	  if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
@@ -407,6 +405,11 @@ int main(int argc, char** argv)
 		    (double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
 		  fPriAz=
 		    (double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+		  fObsEl=
+		    (double)( (90.0-pfSimData->fObservationZenithDeg)/
+			                                           gRad2Deg); 
+		  fObsAz=
+		    (double)(pfSimData->fObservationAzimuthDeg/gRad2Deg);
 		}
 
 	      if (!pfSourcePacket->hasArrayEvent())
@@ -528,11 +531,6 @@ int main(int argc, char** argv)
       // *************************************************************
       pfConvert->AzEl2RADec2000(fObsAz,fObsEl,fEventTime,
 				fObsRA,fObsDec);
-      if(!fSourceFileSpecified)
-	{
-	  fPriAz=fObsAz;
-	  fPriEl=fObsEl;
-	}
       pfConvert->AzEl2RADec2000(fPriAz,fPriEl,fEventTime,
 				fPriRA,fPriDec);
       if(fTrackingMode)
