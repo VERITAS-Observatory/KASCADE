@@ -435,7 +435,7 @@ int main(int argc, char** argv)
       std::vector< bool> fConfigMask;
 
       uword32 fRunNumber = pfBaseReader->getRunNumber();
-      std::cout<<"ksMergeFile: RunNumber: "<<fRunNumber<<std::endl;
+      std::cout<<"ksMergeFile - RunNumber: "<<fRunNumber<<std::endl;
 
       fConfigMask= pfBaseReader->getConfigMask();
       pfWriter = new VBankFileWriter(fMergedFileName, fRunNumber, fConfigMask);
@@ -500,48 +500,44 @@ int main(int argc, char** argv)
       double fPriRA=-1;
       double fPriDec=-1;
      
+      VSimulationData *pfSimData =pfBasePacket->get< VSimulationData >
+	(VGetSimulationDataBankName());
+      double fObservationElev=
+	(double)( (90.0-pfSimData->fObservationZenithDeg)/gRad2Deg); 
+      double fObservationAz=
+	(double)(pfSimData->fObservationAzimuthDeg/gRad2Deg);
+      pfConvert->AzEl2RADec2000(fObservationAz,fObservationElev,fEventTime,
+				fObsRA,fObsDec);
+      double fPrimaryElev=
+	(double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
+      double fPrimaryAz=
+	(double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+      pfConvert->AzEl2RADec2000(fPrimaryAz,fPrimaryElev,fEventTime,
+				fPriRA,fPriDec);
       if(fTrackingMode)
 	{
-	  VSimulationData *pfSimData =pfBasePacket->get< VSimulationData >
-	                                       (VGetSimulationDataBankName());
-	  double fObservationElev=
-	    (double)( (90.0-pfSimData->fObservationZenithDeg)/gRad2Deg); 
-	  double fObservationAz=
-	    (double)(pfSimData->fObservationAzimuthDeg/gRad2Deg);
-	  pfConvert->AzEl2RADec2000(fObservationAz,fObservationElev,fEventTime,
-				  fObsRA,fObsDec);
 	  //Move this Az/El to the ~ middle of the run.
 	  double fRAShift=(fRunLengthSec/(60.*60.*24.))*M_PI;
 	  fObsRA=fObsRA + fRAShift;
-
-	  std::cout<<"ksMergeFiles - Tracking Direction RA: "
-		   <<pfConvert->RAToString(fObsRA);
-	  std::cout<<"ksMergeFiles - Tracking Direction Dec: "
-		   <<pfConvert->DecToString(fObsDec);
-	  double fPrimaryElev=
-	    (double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
-	  double fPrimaryAz=
-	    (double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
-	  pfConvert->AzEl2RADec2000(fPrimaryAz,fPrimaryElev,fEventTime,
-				  fPriRA,fPriDec);
+	  
 	  // ************************************************************
 	  //Move this Az/El to the ~ middle of the run(note implied div by 2).
 	  // ************************************************************
 	  fPriRA=fPriRA + fRAShift;
 	  
-	  std::cout<<"ksMergeFiles - Source Direction RA: "
-		   <<pfConvert->RAToString(fPriRA);
-	  std::cout<<"ksMergeFiles - Source Direction Dec: "
-		   <<pfConvert->DecToString(fPriDec)<<std::endl;
 	}
-  
+      std::cout<<"ksMergeFiles - Tracking Direction RA: "
+	       <<pfConvert->RAToString(fObsRA);
+      std::cout<<"ksMergeFiles - Tracking Direction Dec: "
+	       <<pfConvert->DecToString(fObsDec);
+      std::cout<<"ksMergeFiles - Source Direction RA: "
+	       <<pfConvert->RAToString(fPriRA);
+      std::cout<<"ksMergeFiles - Source Direction Dec: "
+	       <<pfConvert->DecToString(fPriDec)<<std::endl;
+      
       delete pfBasePacket;
 
-
-
-
-
-      std::cout<<"ksMergeFiles:Merging Files.....Takes even longer"
+      std::cout<<"ksMergeFiles - Merging Files.....Takes even longer"
 	       <<std::endl;
 
 
@@ -767,6 +763,7 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsEl);
       pfConvert->RADec2000ToAzEl(fPriRA,fPriDec,fEventTime,fPriAz,fPriEl);
     }
+      
   // *************************************************
   // Fix up simulation data bank in this packet
   // *************************************************
@@ -855,10 +852,20 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // ***********************************************************************
   if(fTrackingMode)
     {
-      pfAT->setAltitude(0, (float)(90.0-(fObsEl*gRad2Deg)) );
-      pfAT->setAzimuth(0,(float)(fObsAz*gRad2Deg));
+      float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
+      float fZenith=(float)(fObsAz*gRad2Deg);
+      int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
+      for(int i=0;i<fNumSubArrayTels;i++)
+	{
+	  pfAT->setAltitude(i, fAltitude);
+	  pfAT->setAzimuth(i,fZenith);
+	}
     }
-
+  else
+    {
+      fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
+      fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
+    }
 
   // ***********************************************************************
   // now put array trigger back into the array event
