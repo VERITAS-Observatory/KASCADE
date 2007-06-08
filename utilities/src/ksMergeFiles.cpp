@@ -5,7 +5,7 @@
  * BaseFile (usually a CR file) and an optional SourceFile (usually a  
  *  Gamma-ray  file).  Events are 
  *  chosen Randomly from the BaseFile file (To mix energies) at a
- *  specified BaseFileRate. Events are chosen from the Source file (if 
+ *  specified BaseRate. Events are chosen from the Source file (if 
  *  specified) at a seperate rate. Pedestals come from the first file at 1 
  *  per second.
  *  Possible to choose a specific fDirection from the second file.
@@ -116,22 +116,22 @@ int main(int argc, char** argv)
       std::string progname = *argv;
       VAOptions command_line(argc,argv);
 
-      double fBaseFileRateHz=100.0;
-      command_line.findWithValue("BaseFileRateHz",fBaseFileRateHz,
+      double fBaseRateHz=100.0;
+      command_line.findWithValue("BaseRateHz",fBaseRateHz,
 			   "Rate in Hz at which events from the Base "
 			   "file will be put into the output file. Default is "
 			   "100.0 Hz");
  
-      double fSourceFileRateHz=25.0/60.0;
-      double fSourceFileRateMin=25.0;
-      if(command_line.findWithValue("SourceFileRatePerMinute",
-				    fSourceFileRateMin,
+      double fSourceRateHz=25.0/60.0;
+      double fSourceRateMin=25.0;
+      if(command_line.findWithValue("SourceRatePerMinute",
+				    fSourceRateMin,
 				    "Rate per Minute at which events from the "
 				    "Source file will be put into the output "
 				    "file. Default is 25/min")
 	 == VAOptions::FS_FOUND)
 	{
-	  fSourceFileRateHz=fSourceFileRateMin/60.;
+	  fSourceRateHz=fSourceRateMin/60.;
 	}
       
 
@@ -166,9 +166,9 @@ int main(int argc, char** argv)
 
  
 
-      std::string fSourceFileName;
+      std::string fSourceFile;
       bool fSourceFileSpecified=false;
-      if(command_line.findWithValue("SourceFileName",fSourceFileName,
+      if(command_line.findWithValue("SourceFile",fSourceFile,
 				    "If this options specified events are "
 				    "randomly chosen from this file and "
 				    "added to the output file at the "
@@ -190,8 +190,8 @@ int main(int argc, char** argv)
 	  fRandomSeedFileName="ksMergeFiles.ran";
 	}
       
-      std::string fBaseFileName;
-      if(!command_line.findWithValue("BaseFileName",fBaseFileName,
+      std::string fBaseFile;
+      if(!command_line.findWithValue("BaseFile",fBaseFile,
 				     "Input file name for Base file. "
 				     "Ouput file consists of events randomized"
 				     "  from this file with specified rate and"
@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 				     "each second mark. Required!")
 	 == VAOptions::FS_FOUND)
 	{
-	  std::cout<<"ksMergeFiles - BaseFileName Option is required"
+	  std::cout<<"ksMergeFiles - BaseFile Option is required"
 		   <<std::endl;
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
@@ -230,12 +230,12 @@ int main(int argc, char** argv)
 
       std::string fMergedFileName=*argv;
 
-      std::cout<<"ksMergeFiles - Input Base File: "<<fBaseFileName
+      std::cout<<"ksMergeFiles - Input Base File: "<<fBaseFile
 	       <<std::endl;
       if(fSourceFileSpecified)
 	{
 	  std::cout<<"ksMergeFiles - Input Source File:  "
-		   <<fSourceFileName<<std::endl;
+		   <<fSourceFile<<std::endl;
 	}
       std::cout<<"ksMergeFiles - Output Merged File:     "<<fMergedFileName
 	       <<std::endl;
@@ -276,7 +276,7 @@ int main(int argc, char** argv)
       VPacket*       pfBasePacket   = NULL;      
       VPacket*       pfSourcePacket   = NULL;      
  
-       pfBaseReader = new VBankFileReader(fBaseFileName);
+       pfBaseReader = new VBankFileReader(fBaseFile);
 
       int fNumBasePackets = pfBaseReader->numPackets();
 
@@ -307,7 +307,7 @@ int main(int argc, char** argv)
 	  if(!pfBaseReader->hasPacket(i))
 	    {
 	      std::cout<<"ksMergeFiles - Missing packet. File: "
-		       <<fBaseFileName<<" at packet#: "<<i
+		       <<fBaseFile<<" at packet#: "<<i
 		       <<std::endl;
 	      continue;
 	    }
@@ -316,7 +316,7 @@ int main(int argc, char** argv)
 	  if (!pfBasePacket->hasArrayEvent())
 	    {
 	      std::cout<<"ksMergeFiles - Missing ArrayEvent in File:"
-		       <<fBaseFileName<<" at packet#: "<<i<<std::endl;
+		       <<fBaseFile<<" at packet#: "<<i<<std::endl;
 	      delete pfBasePacket;
 	      continue;
 	    } 
@@ -333,7 +333,7 @@ int main(int argc, char** argv)
 	    {
 	      std::cout<<"ksMergeFiles - Unacceptable event type "
 		       <<pfAT->getEventType().trigger<<" from Base file "
-		       <<fBaseFileName<<" at packet#: "<<i<<std::endl;
+		       <<fBaseFile<<" at packet#: "<<i<<std::endl;
 	      delete pfBasePacket;
 	      continue;
 	    }
@@ -348,7 +348,7 @@ int main(int argc, char** argv)
       std::cout<<"ksMergeFiles - Number of Pedestal Events Base File: "
 	       <<fNumBasePedEventPackets<<std::endl;
 
-      double fRunLengthSec=fNumBaseEventPackets/fBaseFileRateHz;
+      double fRunLengthSec=fNumBaseEventPackets/fBaseRateHz;
 
       // ********************************************************************
       // Now do the same for the Source file
@@ -357,7 +357,7 @@ int main(int argc, char** argv)
       double fSourceRunLengthSec;
       if(fSourceFileSpecified)
 	{
-	  pfSourceReader = new VBankFileReader(fSourceFileName);
+	  pfSourceReader = new VBankFileReader(fSourceFile);
 	  int fNumSourcePackets = pfSourceReader->numPackets();
 
 	  pfSourceEventPackets.clear();
@@ -370,7 +370,7 @@ int main(int argc, char** argv)
 	      if(!pfSourceReader->hasPacket(i))
 		{
 		  std::cout<<"ksMergeFiles - Missing packet. File: "
-			   <<fSourceFileName<<" at packet#: "<<i
+			   <<fSourceFile<<" at packet#: "<<i
 			   <<std::endl;
 		  continue;
 		}
@@ -380,7 +380,7 @@ int main(int argc, char** argv)
 	      if (!pfSourcePacket->hasArrayEvent())
 		{
 		  std::cout<<"ksMergeFiles - Missing ArrayEvent in File:"
-			   <<fSourceFileName<<" at packet#: "<<i<<std::endl;
+			   <<fSourceFile<<" at packet#: "<<i<<std::endl;
 		  delete pfSourcePacket;
 		  continue;
 		} 
@@ -404,7 +404,7 @@ int main(int argc, char** argv)
 		{
 		  std::cout<<"ksMergeFiles - Unacceptable event type "
 			   <<pfAT->getEventType().trigger
-			   <<" from CosmiRay file "<<fSourceFileName
+			   <<" from CosmiRay file "<<fSourceFile
 			   <<" at packet#: "<<i<<std::endl;
 		  delete pfSourcePacket;
 		  continue;
@@ -416,7 +416,7 @@ int main(int argc, char** argv)
 	  int fNumSourceEventPackets=pfSourceEventPackets.size();
 	  std::cout<<"ksMergeFiles - Number of Events Source File: "
 		   <<fNumSourceEventPackets<<std::endl;
-	  fSourceRunLengthSec=fNumSourceEventPackets/fSourceFileRateHz;
+	  fSourceRunLengthSec=fNumSourceEventPackets/fSourceRateHz;
 	  if(fSourceRunLengthSec<fRunLengthSec)
 	    {
 	      fRunLengthSec=fSourceRunLengthSec;
@@ -473,7 +473,7 @@ int main(int argc, char** argv)
       if(!pfBaseReader->hasPacket(1))
 	{
 	  std::cout<<"ksMergeFiles - Missing packet #1. File: "
-		   <<fBaseFileName<<std::endl;
+		   <<fBaseFile<<std::endl;
 	  exit(EXIT_FAILURE);
 	}
 
@@ -553,11 +553,11 @@ int main(int argc, char** argv)
       VATime fBasePedEventTime=fEventTime;;
       VATime fSourceEventTime=fEventTime;;
 
-      //SetNextEventTime(fBaseEventTime,fBaseFileRateHz);
+      //SetNextEventTime(fBaseEventTime,fBaseRateHz);
       SetNextPedEventTime(fBasePedEventTime);
       if(fSourceFileSpecified)
 	{
-	  SetNextEventTime(fSourceEventTime,fSourceFileRateHz);
+	  SetNextEventTime(fSourceEventTime,fSourceRateHz);
 	}
 
       int fNumBaseEvents=0;
@@ -614,7 +614,7 @@ int main(int argc, char** argv)
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
 	      fLastTime=fSourceEventTime;
-	      SetNextEventTime(fSourceEventTime,fSourceFileRateHz);	      
+	      SetNextEventTime(fSourceEventTime,fSourceRateHz);	      
 	      fNumSourceEvents++;
 	    }
 	  else if(fBaseEventTime<fBasePedEventTime)
@@ -653,7 +653,7 @@ int main(int argc, char** argv)
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
 	      fLastTime=fBaseEventTime;
-	      SetNextEventTime(fBaseEventTime,fBaseFileRateHz);	      
+	      SetNextEventTime(fBaseEventTime,fBaseRateHz);	      
 	      if(fNumBaseEvents%10000==0)
 		{
 		  double fPercentDone=(float)(fNumBaseEvents)*100.0/
