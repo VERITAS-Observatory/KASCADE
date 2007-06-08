@@ -353,7 +353,7 @@ int main(int argc, char** argv)
       VArrayTrigger* pfAT       = NULL;
       std::cout<<"ksMergeFiles - Creating Base File Event Packet Event "
 	"number vector"<<std::endl;
-      std::cout<<"ksMergeFiles - Takes a couple of minuets"<<std::endl;
+      std::cout<<"ksMergeFiles - Takes a couple of minutes"<<std::endl;
       std::cout<<"ksMergeFiles - Events:(#=10000):";
       std::cout.flush();
       for(int i=1;i<fNumBasePackets;i++) //Packet 0 for header  packets
@@ -447,7 +447,7 @@ int main(int argc, char** argv)
 
 	  std::cout<<"ksMergeFiles - Creating Source File Event Packet Event "
 	    "number vector"<<std::endl;
-	  std::cout<<"ksMergeFiles - Takes a few more minuets"<<std::endl;
+	  std::cout<<"ksMergeFiles - Takes a few more minutes"<<std::endl;
 	  for(int i=1;i<=fNumSourcePackets;i++) //Packet 0 for header  packets
 	    {
 	      if(!pfSourceReader->hasPacket(i))
@@ -944,18 +944,15 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // ***********************************************************************
   // Reset directions if we are tracking
   // ***********************************************************************
-  if(fTrackingMode)
+  float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
+  float fZenith=(float)(fObsAz*gRad2Deg);
+  int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
+  for(int i=0;i<fNumSubArrayTels;i++)
     {
-      float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
-      float fZenith=(float)(fObsAz*gRad2Deg);
-      int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
-      for(int i=0;i<fNumSubArrayTels;i++)
-	{
-	  pfAT->setAltitude(i, fAltitude);
-	  pfAT->setAzimuth(i,fZenith);
-	}
+      pfAT->setAltitude(i,fAltitude);
+      pfAT->setAzimuth(i,fZenith);
     }
-
+ 
   // ***********************************************************************
   // now put array trigger back into the array event
   // ************************************************************************
@@ -966,7 +963,6 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // Now fix telescope events
   // *************************************************
   int fNumTriggeredTels =(int) pfAEIn->getNumEvents();
-
   VEvent* pfEvent = NULL;
   for(int i=0;i<fNumTriggeredTels;i++)
     {
@@ -1001,11 +997,14 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
 	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
       std::cout<<"ksMergeFiles - Start Primary Az: "<<fPriAz*gRad2Deg
 	       <<" Primary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
-      double fDerotangle = atan2(-1.0*cos(fLatitude)*sin(fObsAz),
-				 (cos(fObsEl)*sin(fLatitude) - 
-			      sin(fObsEl)*cos(fObsAz)));
-      std::cout<<"ksMergeFiles - Max Image rotation(deg): "
-	       <<180.+fDerotangle*gRad2Deg<<std::endl;
+      if(fTrackingMode)
+	{
+	  double fDerotangle = atan2(-1.0*cos(fLatitude)*sin(fObsAz),
+				     (cos(fObsEl)*sin(fLatitude) - 
+				      sin(fObsEl)*cos(fObsAz)));
+	  std::cout<<"ksMergeFiles - Max Image rotation(deg): "
+		   <<180.+fDerotangle*gRad2Deg<<std::endl;
+	}
     }
 
   fArrayEventNum++;
