@@ -97,10 +97,14 @@ void usage(const std::string& progname,
 const uint8_t kGPSYear=6;
 VAAzElRADecXY*  pfConvert;
 bool fTrackingMode=false;
-double fObsAz=0;
-double fObsEl=0;
-double fPriAz=0;
-double fPriEl=0;
+double fObsAz;
+double fObsEl;
+double fPriAz;
+double fPriEl;
+double fObsRA;
+double fObsDec;
+double fPriRA;
+double fPriDec;
 double fLatitude=0;
 double fEastLongitude=0;
 int main(int argc, char** argv)
@@ -322,6 +326,17 @@ int main(int argc, char** argv)
 	    } 
 	  pfAEIn=pfBasePacket->getArrayEvent();
 	  pfAT = pfAEIn->getTrigger();
+
+	  // *****************************************************************
+	  // For tracking runs we need to know what the Ra/Dec will be
+	  // *****************************************************************
+	  if(i==1)
+	    {
+	      fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
+	      fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
+
+	    }
+
 	  if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
 	    {
 	      pfBasePedEventPackets.push_back(i);
@@ -374,9 +389,26 @@ int main(int argc, char** argv)
 			   <<std::endl;
 		  continue;
 		}
-
 	      pfSourcePacket=pfSourceReader->readPacket(i); 
 	      
+	      if(i==1)
+		{
+		  if (!pfSourcePacket->
+			            has(VGetSimulationDataBankName())  )
+		    {
+		      std::cout<<"ksMergeFiles - Missing SimulationData in "
+			"File: "<<fSourceFile<<" at packet#: "<<i<<std::endl;
+		      exit(EXIT_FAILURE);
+		    } 
+		  VSimulationData *pfSimData 
+		    =pfSourcePacket->get< VSimulationData >
+		                               (VGetSimulationDataBankName());
+		  fPriEl=
+		    (double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
+		  fPriAz=
+		    (double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+		}
+
 	      if (!pfSourcePacket->hasArrayEvent())
 		{
 		  std::cout<<"ksMergeFiles - Missing ArrayEvent in File:"
@@ -435,7 +467,7 @@ int main(int argc, char** argv)
       std::vector< bool> fConfigMask;
 
       uword32 fRunNumber = pfBaseReader->getRunNumber();
-      std::cout<<"ksMergeFile - RunNumber: "<<fRunNumber<<std::endl;
+      std::cout<<"ksMergeFiles - RunNumber: "<<fRunNumber<<std::endl;
 
       fConfigMask= pfBaseReader->getConfigMask();
       pfWriter = new VBankFileWriter(fMergedFileName, fRunNumber, fConfigMask);
@@ -491,40 +523,28 @@ int main(int argc, char** argv)
 				pfAT->getGPSTime());
       std::cout<<"ksMergeFiles - Merged File RunStart Time: "<< fEventTime
 	       <<std::endl;
-
-      // *********************************************************************
+      // *************************************************************
       // For tracking runs we need to know what the Ra/Dec will be
-      // *********************************************************************
-      double fObsRA=-1;
-      double fObsDec=-1;
-      double fPriRA=-1;
-      double fPriDec=-1;
-     
-      VSimulationData *pfSimData =pfBasePacket->get< VSimulationData >
-	(VGetSimulationDataBankName());
-      double fObservationElev=
-	(double)( (90.0-pfSimData->fObservationZenithDeg)/gRad2Deg); 
-      double fObservationAz=
-	(double)(pfSimData->fObservationAzimuthDeg/gRad2Deg);
-      pfConvert->AzEl2RADec2000(fObservationAz,fObservationElev,fEventTime,
+      // *************************************************************
+      pfConvert->AzEl2RADec2000(fObsAz,fObsEl,fEventTime,
 				fObsRA,fObsDec);
-      double fPrimaryElev=
-	(double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
-      double fPrimaryAz=
-	(double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
-      pfConvert->AzEl2RADec2000(fPrimaryAz,fPrimaryElev,fEventTime,
+      if(!fSourceFileSpecified)
+	{
+	  fPriAz=fObsAz;
+	  fPriEl=fObsEl;
+	}
+      pfConvert->AzEl2RADec2000(fPriAz,fPriEl,fEventTime,
 				fPriRA,fPriDec);
       if(fTrackingMode)
 	{
 	  //Move this Az/El to the ~ middle of the run.
 	  double fRAShift=(fRunLengthSec/(60.*60.*24.))*M_PI;
 	  fObsRA=fObsRA + fRAShift;
-	  
+
 	  // ************************************************************
 	  //Move this Az/El to the ~ middle of the run(note implied div by 2).
 	  // ************************************************************
 	  fPriRA=fPriRA + fRAShift;
-	  
 	}
       std::cout<<"ksMergeFiles - Tracking Direction RA: "
 	       <<pfConvert->RAToString(fObsRA);
@@ -754,10 +774,6 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // *************************************************
   // Update event numbers here and maybe times an maybe AzEl of obs and pri
   // *************************************************
-  fObsAz=0;
-  fObsEl=0;
-  fPriAz=0;
-  fPriEl=0;
   if(fTrackingMode)
     {
       pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsEl);
@@ -860,11 +876,6 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
 	  pfAT->setAltitude(i, fAltitude);
 	  pfAT->setAzimuth(i,fZenith);
 	}
-    }
-  else
-    {
-      fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
-      fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
     }
 
   // ***********************************************************************
