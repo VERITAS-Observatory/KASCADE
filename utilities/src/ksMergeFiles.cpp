@@ -52,6 +52,8 @@
 // include the simulation data structure
 #include <VBF/VSimulationData.h>
 
+#include "VASlalib.h"
+#include "VASlamac.h"
 #include "VAException.h"
 #include "VAOptions.h"
 #include "VSOptions.hpp"
@@ -162,12 +164,13 @@ int main(int argc, char** argv)
 	  fTrackingMode=false;
 	}
 
-      if(command_line.findWithValue("ObservationAzDeg",fObsAz,
+      if(command_line.findWithValue("ObsAzDeg",fObsAz,
 				    "Set Observation Azimuth (deg) at center "
 				    "of run")
 	 == VAOptions::FS_FOUND)
 	{
-	  fObsAz=fObsAz/gRad2Deg;
+	  fObsAz = fObsAz/gRad2Deg;
+	  fObsAz = slaDranrm(fObsAz);
 	  fObsAzSpecified=true;
 	}
       else
@@ -176,12 +179,13 @@ int main(int argc, char** argv)
 	}
 
 
-     if(command_line.findWithValue("ObservationElevDeg",fObsEl,
+     if(command_line.findWithValue("ObsElevDeg",fObsEl,
 				   "Set Observation Elevation(deg) at "
 				   "center of run")
 	 == VAOptions::FS_FOUND)
 	{
 	  fObsEl=fObsEl/gRad2Deg;
+	  fObsEl = slaDranrm(fObsEl);
 	  fObsElSpecified=true;
 	}
       else
@@ -189,7 +193,7 @@ int main(int argc, char** argv)
 	  fObsElSpecified=false;
 	}
 
-      if(command_line.findWithValue("SourceAzDeg",fPriAz,
+      if(command_line.findWithValue("SrcAzDeg",fPriAz,
 				    "Set Source Azimuth (Deg) at center of "
 				    "run")
 	 == VAOptions::FS_FOUND)
@@ -202,7 +206,7 @@ int main(int argc, char** argv)
 	  fPriAzSpecified=false;
 	}
 
-     if(command_line.findWithValue("SourceElevDeg",fPriEl,
+     if(command_line.findWithValue("SrcElevDeg",fPriEl,
 				   "Set Source Elevation (deg) at center of "
 				   "run")
 	 == VAOptions::FS_FOUND)
@@ -216,7 +220,7 @@ int main(int argc, char** argv)
 	}
 
       int  fSourceDirectionIndex=-1;
-      command_line.findWithValue("SourceDirectionIndex",
+      command_line.findWithValue("SrcDirectionIndex",
 				 fSourceDirectionIndex,
 				 "Index of Sim.fDirection source direction to "
 				 "use when including events from "
@@ -389,10 +393,12 @@ int main(int argc, char** argv)
 	      if(!fObsElSpecified)
 		{
 		  fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
+		  fObsEl = slaDranrm(fObsEl);
 		}
 	      if(!fObsAzSpecified)
 		{
 		  fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
+		  fObsAz = slaDranrm(fObsAz);
 		}
 	      if(!fPriElSpecified)
 		{
@@ -448,8 +454,15 @@ int main(int argc, char** argv)
 	  std::cout<<"ksMergeFiles - Creating Source File Event Packet Event "
 	    "number vector"<<std::endl;
 	  std::cout<<"ksMergeFiles - Takes a few more minutes"<<std::endl;
+	  std::cout<<"ksMergeFiles - Events:(#=10000):";
+	  std::cout.flush();
 	  for(int i=1;i<=fNumSourcePackets;i++) //Packet 0 for header  packets
 	    {
+	      if(i%10000==0)
+		{
+		  std::cout<<"#";
+		  std::cout.flush();
+		}
 	      if(!pfSourceReader->hasPacket(i))
 		{
 		  std::cout<<"ksMergeFiles - Missing packet. File: "
@@ -475,20 +488,24 @@ int main(int argc, char** argv)
 		    {
 		      fPriEl=(double)( (90.0-pfSimData->fPrimaryZenithDeg)/
 				                                    gRad2Deg); 
+		      fPriEl = slaDranrm(fPriEl);
 		    }
 		  if(!fPriAzSpecified)
 		    {
 		      fPriAz=(double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+		      fPriAz = slaDranrm(fPriAz);
 		    }
 		  if(!fObsElSpecified)
 		    {
 		      fObsEl=(double)( (90.0-pfSimData->fObservationZenithDeg)/
 			                                           gRad2Deg); 
+		      fObsEl = slaDranrm(fObsEl);
 		    }
 		  if(!fObsAzSpecified)
 		    {
 		      fObsAz=(double)(pfSimData->fObservationAzimuthDeg/
 				                                     gRad2Deg);
+		      fObsAz = slaDranrm(fObsAz);
 		    }
 		}
 
@@ -527,6 +544,7 @@ int main(int argc, char** argv)
 	      delete pfSourcePacket;
 	      
 	    }
+	  std::cout<<std::endl;
 
 	  int fNumSourceEventPackets=pfSourceEventPackets.size();
 	  std::cout<<"ksMergeFiles - Number of Events Source File: "
@@ -618,11 +636,12 @@ int main(int argc, char** argv)
 	  //Move this Az/El to the ~ middle of the run.
 	  double fRAShift=(fRunLengthSec/(60.*60.*24.))*M_PI;
 	  fObsRA=fObsRA + fRAShift;
-
+	  fObsRA = slaDranrm(fObsRA);
 	  // ************************************************************
 	  //Move this Az/El to the ~ middle of the run(note implied div by 2).
 	  // ************************************************************
 	  fPriRA=fPriRA + fRAShift;
+	  fPriRA = slaDranrm(fPriRA);
 	}
       std::cout<<"ksMergeFiles - Tracking Direction RA: "
 	       <<pfConvert->RAToString(fObsRA);
