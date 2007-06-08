@@ -97,6 +97,11 @@ void usage(const std::string& progname,
 const uint8_t kGPSYear=6;
 VAAzElRADecXY*  pfConvert;
 bool fTrackingMode=false;
+bool fObsAzSpecified;
+bool fObsElSpecified;
+bool fPriAzSpecified;
+bool fPriElSpecified;
+
 double fObsAz;
 double fObsEl;
 double fPriAz;
@@ -157,7 +162,58 @@ int main(int argc, char** argv)
 	  fTrackingMode=false;
 	}
 
-	
+      if(command_line.findWithValue("ObservationAzDeg",fObsAz,
+				    "Set Observation Azimuth (deg) at center "
+				    "of run")
+	 == VAOptions::FS_FOUND)
+	{
+	  fObsAz=fObsAz/gRad2Deg;
+	  fObsAzSpecified=true;
+	}
+      else
+	{
+	  fObsAzSpecified=false;
+	}
+
+
+     if(command_line.findWithValue("ObservationElevDeg",fObsEl,
+				   "Set Observation Elevation(deg) at "
+				   "center of run")
+	 == VAOptions::FS_FOUND)
+	{
+	  fObsEl=fObsEl/gRad2Deg;
+	  fObsElSpecified=true;
+	}
+      else
+	{
+	  fObsElSpecified=false;
+	}
+
+      if(command_line.findWithValue("SourceAzDeg",fPriAz,
+				    "Set Source Azimuth (Deg) at center of "
+				    "run")
+	 == VAOptions::FS_FOUND)
+	{
+	  fPriAz=fPriAz/gRad2Deg;
+	  fPriAzSpecified=true;
+	}
+      else
+	{
+	  fPriAzSpecified=false;
+	}
+
+     if(command_line.findWithValue("SourceElevDeg",fPriEl,
+				   "Set Source Elevation (deg) at center of "
+				   "run")
+	 == VAOptions::FS_FOUND)
+	{
+	  fPriEl=fPriEl/gRad2Deg;
+	  fPriElSpecified=true;
+	}
+      else
+	{
+	  fPriElSpecified=false;
+	}
 
       int  fSourceDirectionIndex=-1;
       command_line.findWithValue("SourceDirectionIndex",
@@ -208,6 +264,7 @@ int main(int argc, char** argv)
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
+
 
       // -------------------------------------------------------------------
       // All the command line options that the program is able to  handle 
@@ -329,11 +386,24 @@ int main(int argc, char** argv)
 
 	  if(i==1)
 	    {
-	      fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
-	      fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
-              fPriEl=fObsEl;
-	      fPriAz=fObsAz;
+	      if(!fObsElSpecified)
+		{
+		  fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
+		}
+	      if(!fObsAzSpecified)
+		{
+		  fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
+		}
+	      if(!fPriElSpecified)
+		{
+		  fPriEl=fObsEl;
+		}
+	      if(!fPriAzSpecified)
+		{
+		  fPriAz=fObsAz;
+		}
 	    }
+
 
 	  if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
 	    {
@@ -401,15 +471,25 @@ int main(int argc, char** argv)
 		  VSimulationData *pfSimData 
 		    =pfSourcePacket->get< VSimulationData >
 		                               (VGetSimulationDataBankName());
-		  fPriEl=
-		    (double)( (90.0-pfSimData->fPrimaryZenithDeg)/gRad2Deg); 
-		  fPriAz=
-		    (double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
-		  fObsEl=
-		    (double)( (90.0-pfSimData->fObservationZenithDeg)/
+		  if(!fPriElSpecified)
+		    {
+		      fPriEl=(double)( (90.0-pfSimData->fPrimaryZenithDeg)/
+				                                    gRad2Deg); 
+		    }
+		  if(!fPriAzSpecified)
+		    {
+		      fPriAz=(double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+		    }
+		  if(!fObsElSpecified)
+		    {
+		      fObsEl=(double)( (90.0-pfSimData->fObservationZenithDeg)/
 			                                           gRad2Deg); 
-		  fObsAz=
-		    (double)(pfSimData->fObservationAzimuthDeg/gRad2Deg);
+		    }
+		  if(!fObsAzSpecified)
+		    {
+		      fObsAz=(double)(pfSimData->fObservationAzimuthDeg/
+				                                     gRad2Deg);
+		    }
 		}
 
 	      if (!pfSourcePacket->hasArrayEvent())
