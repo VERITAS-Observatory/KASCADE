@@ -21,14 +21,14 @@ if [ -e $BadPixelFile ]; then
     BadPixelOption='-BCI_BadChannelList='$BadPixelFile
 fi
 
-$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 -RHM_ObservingMode=drift $VBFFileName $RootFileName
+$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 -RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller $VBFFileName $RootFileName
 
 $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption $VBFFileName $RootFileName simLaser.root
 
 $VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
 
-NcutRootFileName=${VBFFileName%".vbf"}'TrueNCut.root'
-EcutRootFileName=${VBFFileName%".vbf"}'TrueECut.root'
+NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
+EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 
 cp -v $RootFileName $NcutRootFileName
 mv -v $RootFileName $EcutRootFileName
@@ -38,6 +38,6 @@ LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
 
 $VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root $NcutRootFileName
 
-$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  $EcutRootFileName
+$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root -SizeLower=400 -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  $EcutRootFileName
 
 
