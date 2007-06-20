@@ -231,8 +231,8 @@ CleanFiles=OFF
 	    BuildIsisScriptList 4 7  9
 	    BuildIsisScriptList 5 10 12
 	    BuildIsisScriptList 6 13 16
-	    BuildIsisScriptList 7 17 26
-	    BuildIsisScriptList 8 27 42
+	    BuildIsisScriptList 7 17 30
+	    BuildIsisScriptList 8 31 42
 
 	   #For ksall ~9 hrs.
 #           CleanFiles=ON
