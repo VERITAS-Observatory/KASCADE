@@ -67,8 +67,6 @@ void ShowerCompare(std::string Run1Name, std::string Run2Name=" ",
       FillShowerPlots(pfRunNames[i],i);
     }
 
-  std::cout<<"At1"<<std::endl;
-
   fC1->Clear();
   fC1->Divide(2,2);
   fC1->cd(1);
@@ -311,9 +309,9 @@ void CompareRuns(std::string fTel, std::string Run1Name,
   pfR1Size=new TH1F*[4];
   pfR1Max3=new TH1F*[4];
 
-
   gStyle->SetOptStat(kFALSE);
   CompareRuns(pfRunNames,fNumRuns,pfTels);
+
   return;
 }
 
@@ -322,7 +320,7 @@ void CompareRuns(std::string* pfRunNames, int fNumRuns, std::string* pfTels)
   fC1 = new TCanvas("fC1","Hillas Params ");
   for(int i=0;i<fNumRuns;i++)
     {
-      CompareRunsPlot(pfRunNames[i],pfTels[i],i);
+     CompareRunsPlot(pfRunNames[i],pfTels[i],i);
     }
 
   fC1->Clear();
