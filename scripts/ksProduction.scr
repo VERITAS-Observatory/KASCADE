@@ -226,13 +226,13 @@ CleanFiles=OFF
 	   #For ksaomVBF ~1:20 
 #           CleanFiles=ON
 	    BuildIsisScriptList 1 1  2
-	    BuildIsisScriptList 2 3  4
-	    BuildIsisScriptList 3 5  6
-	    BuildIsisScriptList 4 7  9
-	    BuildIsisScriptList 5 10 12
-	    BuildIsisScriptList 6 13 16
-	    BuildIsisScriptList 7 17 30
-	    BuildIsisScriptList 8 31 42
+	    BuildIsisScriptList 2 3  5
+	    BuildIsisScriptList 3 6  9
+	    BuildIsisScriptList 4 10 13
+	    BuildIsisScriptList 5 14 18
+	    BuildIsisScriptList 6 19 25
+	    BuildIsisScriptList 7 26 33
+	    BuildIsisScriptList 8 34 42
 
 	   #For ksall ~9 hrs.
 #           CleanFiles=ON

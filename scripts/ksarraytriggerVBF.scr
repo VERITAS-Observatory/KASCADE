@@ -106,28 +106,28 @@ while test $i -le $4
 
     if [ ${ArrayConfig:0:1} = '1' ]; then
       VBFFileT1=$ShwBase'.d'$i'.T1.vbf'       #local
-      cp -v $VBFFile $VBFFileT1 
+      ln -s $VBFFile $VBFFileT1
       ShowerNameOptions=$ShowerNameOptions' -T1ShowerFileName='
       ShowerNameOptions=$ShowerNameOptions$VBFFileT1
     fi
 
     if [ ${ArrayConfig:1:1} = '2' ]; then
       VBFFileT2=$ShwBase'.d'$i'.T2.vbf'       #local
-      cp -v $VBFFile $VBFFileT2 
+      ln -s $VBFFile $VBFFileT2
       ShowerNameOptions=$ShowerNameOptions' -T2ShowerFileName='
       ShowerNameOptions=$ShowerNameOptions$VBFFileT2
     fi
 
     if [ ${ArrayConfig:2:1} = '3' ]; then
       VBFFileT3=$ShwBase'.d'$i'.T3.vbf'       #local
-      cp -v $VBFFile $VBFFileT3 
+      ln -s $VBFFile $VBFFileT3
       ShowerNameOptions=$ShowerNameOptions' -T3ShowerFileName='
       ShowerNameOptions=$ShowerNameOptions$VBFFileT3
     fi
 
     if [ ${ArrayConfig:3:1} = '4' ]; then
       VBFFileT4=$ShwBase'.d'$i'.T4.vbf'       #local
-      cp -v $VBFFile $VBFFileT4 
+      ln -s $VBFFile $VBFFileT4
       ShowerNameOptions=$ShowerNameOptions' -T4ShowerFileName='
       ShowerNameOptions=$ShowerNameOptions$VBFFileT4
     fi
