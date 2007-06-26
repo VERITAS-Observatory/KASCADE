@@ -68,13 +68,14 @@ function Protons()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   4   3   2   2    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   4   3   2   2    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #VeritasSet2
 #Don't forget about RemoveOldFiles!
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
 #       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11431 13669 16346 19546 23374 27951 33424)
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   4   3   3   2   2    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
 
 
@@ -131,13 +132,14 @@ function Helium4()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+#          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    4   3   2   2   2   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #VeritasSet2
 #Don't forget about RemoveOldFiles!
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
 #       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11431 13669 16346 19546 23374 27951 33424)
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=448  334  249  186  139  104  78   58   43   32    24    18    14  10    8     6     5    4   3   2   2   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=448  334  249  186  139  104  78   58   43   32    24    18    14  10    8     6     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
 #CleanFiles=ON
 CleanFiles=OFF
@@ -201,7 +203,7 @@ function Gammas()
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
 #       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11430 13669 16346 19546 23374 27951 33424)
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=907  700  540  417  322  248  192  148  114  88    68    53    41  32    25    19    15   12  9   7   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     3     2     2     2     1     1)
+#          end=([1]=907  700  540  417  322  248  192  148  114  88    68    53    41  32    25    19    15   12  9   7   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
 CleanFiles=OFF
     if [ $host = 'isis' ]; then
@@ -226,13 +228,13 @@ CleanFiles=OFF
 	   #For ksaomVBF ~1:20 
 #           CleanFiles=ON
 	    BuildIsisScriptList 1 1  2
-	    BuildIsisScriptList 2 3  5
-	    BuildIsisScriptList 3 6  9
-	    BuildIsisScriptList 4 10 13
-	    BuildIsisScriptList 5 14 18
-	    BuildIsisScriptList 6 19 25
-	    BuildIsisScriptList 7 26 33
-	    BuildIsisScriptList 8 34 42
+	    BuildIsisScriptList 2 3  6
+	    BuildIsisScriptList 3 7  11
+	    BuildIsisScriptList 4 12 16
+	    BuildIsisScriptList 5 17 22
+	    BuildIsisScriptList 6 22 28
+	    BuildIsisScriptList 7 29 35
+	    BuildIsisScriptList 8 36 42
 
 	   #For ksall ~9 hrs.
 #           CleanFiles=ON
@@ -450,7 +452,7 @@ fi
 if [ ${jobSpec:1:1} = "G" ]; then
     parspec=$1
     datadir="$dataDirBase/gammas"
-    let processStart=11
+    let processStart=1
     Gammas
     let pspecset=1;
 fi
