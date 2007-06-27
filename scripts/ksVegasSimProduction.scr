@@ -33,8 +33,12 @@ EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 cp -v $RootFileName $NcutRootFileName
 mv -v $RootFileName $EcutRootFileName
 
-#LookUpTableDir=/simulations/veritas
-LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
+host=$(hostname)
+if [ $host = 'isis' ] ; then
+    LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
+else
+    LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
+fi
 
 $VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root $NcutRootFileName
 
