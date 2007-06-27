@@ -12,25 +12,27 @@ $VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser -AIF_DataSource=CompiledOnly \
 
 #Now process the file:
 VBFFileName=$1
-RootFileName=${VBFFileName%".vbf"}'S3.root'
+RootFileName=${VBFFileName%".vbf"}'.root'
 
-#echo RootFileName: $RootFileName
-
-BadPixelFile=$2
-if [ -e $BadPixelFile ]; then
-    BadPixelOption='-BCI_BadChannelList='$BadPixelFile
-fi
+#BadPixelFile=$2
+#if [ -e $BadPixelFile ]; then
+#    BadPixelOption='-BCI_BadChannelList='$BadPixelFile
+#fi
 
 $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 -RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller $VBFFileName $RootFileName
 
 $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption $VBFFileName $RootFileName simLaser.root
 
-$VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
+ResultsFileName=${VBFFileName%".vbf"}'R.root'
 
-NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
+$VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName -EnableProgressDisplay $RootFileName
+
+rm $RootFileName
+
+#NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 
-cp -v $RootFileName $NcutRootFileName
+#cp -v $RootFileName $NcutRootFileName
 mv -v $RootFileName $EcutRootFileName
 
 host=$(hostname)
@@ -40,8 +42,13 @@ else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
 fi
 
-$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root $NcutRootFileName
+#$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root $NcutRootFileName
 
-$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root -SizeLower=400 -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  $EcutRootFileName
+#CutTelescopeOption='-CutTelescope=4,1'
+
+$VEGASBASE/bin/vaStage4 \
+  -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root \
+  -SizeLower=400 -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
+  $CutTelescopeOption $EcutRootFileName
 
 
