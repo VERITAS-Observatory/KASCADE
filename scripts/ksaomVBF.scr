@@ -59,7 +59,7 @@ jobSpec=$2
 TelSpec=${jobSpec:0:1}                  #gets W from WG20DegN0.5Deg50mv
 
 ThresholdSpec=${jobSpec##*Deg2D}  #gets 50mv VG20Deg2D50mv
-if [ "$ThreholdSpec" = "$jobSpec" ]; then
+if [ "$ThresholdSpec" = "$jobSpec" ]; then
     ThresholdSpec=${jobSpec##*Deg} #No Deg2D: gets 70mv from VG20DegN0.5Deg70mv
 fi
 
