@@ -122,6 +122,13 @@ int main(int argc, char** argv)
 	 == VAOptions::FS_FOUND)
 	{
 	  fDirectionIndexSpecified=true;
+	  std::cout<<"ksSumFiles: Direction Index of "<< fDirectionIndex
+		   <<" has been specified"<<std::endl; 
+	}
+      else
+	{
+	  std::cout<<"ksSumFiles: No Direction Index Specified"<<std::endl;
+	  std::cout<<"ksSumFiles: No Direction Cuts will be made"<<std::endl;
 	}
 
       bool fWeightBySpectrum=false;
