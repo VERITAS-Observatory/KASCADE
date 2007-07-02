@@ -25,7 +25,10 @@ $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption $VBFFileName $RootF
 
 ResultsFileName=${VBFFileName%".vbf"}'R.root'
 
-$VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName -EnableProgressDisplay $RootFileName
+#MakeTrackFromDriftOption='-MakeTrackFromDriftSim '
+
+
+$VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName $MakeTrackFromDriftOption -EnableProgressDisplay $RootFileName
 
 rm $RootFileName
 
