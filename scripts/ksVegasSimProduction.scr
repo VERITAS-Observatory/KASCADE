@@ -32,8 +32,8 @@ rm $RootFileName
 #NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 
-#cp -v $RootFileName $NcutRootFileName
-mv -v $RootFileName $EcutRootFileName
+#cp -v $ResultsFileName $NcutRootFileName
+mv -v $ResultsFileName $EcutRootFileName
 
 host=$(hostname)
 if [ $host = 'isis' ] ; then
