@@ -47,7 +47,7 @@ fi
 
 #$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root $NcutRootFileName
 
-#CutTelescopeOption='-CutTelescope=4,1'
+#CutTelescopeOption='-CutTelescope=4/1'
 
 $VEGASBASE/bin/vaStage4 \
   -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root \
