@@ -7,15 +7,19 @@
 
 #Now process the file:
 VBFFileName=$1
-RootFile=${VBFFileName%".cvbf"}'S3.root'
+RootFile=${VBFFileName%".cvbf"}'.root'
 RootFileName=${RootFile##*/}
+
+ResultsFile=${VBFFileName%".vbf"}'R.root'
+ResultsFileName=${ResultsFile##*/}
+
 
 VBFLSRFileName=$2
 LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
 LSRRootFileName=${LSRRootFile##*/}
 
-echo RootFileName: $RootFileName
-echo LSRRootFileName: $LSRRootFileName
+#echo RootFileName: $RootFileName
+#echo LSRRootFileName: $LSRRootFileName
 
 $VEGASBASE/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName $LSRRootFileName
 
@@ -23,23 +27,41 @@ $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $VBFFileName $RootFileName
 
 $VEGASBASE/bin/vaStage2  $VBFFileName $RootFileName $LSRRootFileName
 
-$VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
+#$VEGASBASE/bin/vaStage3 -EnableProgressDisplay $RootFileName
 
-NcutRootFile=${VBFFileName%".cvbf"}'TrueNCut.root'
-NcutRootFileName=${NcutRootFile##*/}
-cp -v $RootFileName $NcutRootFileName
+$VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName -EnableProgressDisplay \
+  $RootFileName
 
-EcutRootFile=${VBFFileName%".cvbf"}'TrueECut.root'
+rm $RootFileName
+
+#NcutRootFile=${VBFFileName%".cvbf"}'NCut.root'
+#NcutRootFileName=${NcutRootFile##*/}
+#cp -v $RootFileName $NcutRootFileName
+
+EcutRootFile=${VBFFileName%".cvbf"}'ECut.root'
 EcutRootFileName=${EcutRootFile##*/}
-mv -v $RootFileName $EcutRootFileName
+
+mv -v $ResultsFileName $EcutRootFileName
 
 
-#LookUpTableDir=/simulations/veritas
-LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
+host=$(hostname)
+if [ $host = 'isis' ] ; then
+    LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
+else
+    LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
+fi
 
-$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root $NcutRootFileName
+#$VEGASBASE/bin/vaStage4 \
+#  -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root \
+#   $NcutRootFileName
 
-$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  $EcutRootFileName
+#CutTelescopeOption='-CutTelescope=4/1'
 
+$VEGASBASE/bin/vaStage4 \
+ -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted.root \
+ -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5 \
+ -SizeLower=400 \
+  $CutTelescopeOption $EcutRootFileName
 
+$VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$EcutRootFileName
 
