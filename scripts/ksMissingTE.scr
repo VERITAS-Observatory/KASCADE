@@ -1,0 +1,31 @@
+#!/bin/bash
+#This Looks for missing te files.:
+#$0 ./ksMissingTE.scr
+#$1 primary Energy in gev (integer only)
+#$2 Shower type specification string (To be included in config file names and 
+#                                     in shower namesLike VP20Deg70mv
+#$3 Lowest flie id
+#$4 Highest file id.
+#$5 data disk directory.(Where output Te are, cannot be blank!!!)
+echo "**********************************************************************"
+echo Missing files for $1' GeV:'
+
+#echo $0 $1 $2 $3 $4 $5 
+
+DataDir=$5
+cd $DataDir
+
+ShwrBase=$2'GeV'$1'te.d'
+#Setup to loop over showers
+i="$3"
+while test $i -le $4
+  do
+    File=$ShwrBase$i
+    if [ ! -e $File ]; then
+       echo "     "$File
+    fi
+    i=$((i+1))			#do next shower
+done
+
+
+ 
