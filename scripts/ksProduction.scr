@@ -17,6 +17,7 @@
 #               ksaomVBFRoot:makes .vbf and .root files(depreciated)
 #               ksarraytriggerVBF:makes .vbf multi trigger files.
 #               ksMissingVBF:Looks for missing VBF files.
+#               ksMissingTE:Looks for missing TE files.
 #$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
 #          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 #$3 Array Multiplicity and Trigger multiplicity for ksarraytriggerVBF only. 
@@ -80,7 +81,7 @@ function Protons()
 
 
     if [ $host = 'isis' ]; then
-      if [ "$kssc" != "ksMissingVBF" ]; then
+      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 #CleanFiles=ON
 CleanFiles=OFF
@@ -112,7 +113,8 @@ CleanFiles=OFF
 	SubmitAmdahlPBSJobs        #amdahl
 
     fi
-    if [ "$kssc" != "ksMissingVBF" ] && [ "$CleanFiles" == "ON" ]; then
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ] \
+	&& [ "$CleanFiles" == "ON" ]; then
 	RemoveOldFiles
     fi
 }
@@ -145,7 +147,7 @@ function Helium4()
 CleanFiles=OFF
 
     if [ $host = 'isis' ]; then
-      if [ "$kssc" != "ksMissingVBF" ]; then
+      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 #set 1 kasaomVBF ~5 hr.
 	BuildIsisScriptList 1 6  12
 	BuildIsisScriptList 2 13 17
@@ -173,7 +175,8 @@ CleanFiles=OFF
 	SubmitAmdahlPBSJobs        #amdahl
     fi
 
-    if [ "$kssc" != "ksMissingVBF" ] && [ "$CleanFiles" == "ON" ]; then
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ] && \
+	[ "$CleanFiles" == "ON" ]; then
 	RemoveOldFiles
     fi
 }
@@ -208,7 +211,7 @@ function Gammas()
 CleanFiles=OFF
     if [ $host = 'isis' ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ]; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildIsisScriptList 1 11 12
 	    BuildIsisScriptList 2 13 14
 	    BuildIsisScriptList 3 15 16
@@ -224,7 +227,7 @@ CleanFiles=OFF
 
 
 	if [ ${jobSpec:0:1} = "V" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ]; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #           CleanFiles=ON
 	    BuildIsisScriptList 1 1  2
@@ -271,7 +274,8 @@ CleanFiles=OFF
 	SubmitAmdahlPBSJobs        #amdahl
     fi
 
-    if [ "$kssc" != "ksMissingVBF" ] && [ "$CleanFiles" == "ON" ]; then
+    if [ "$kssc" != "ksMissingVBF" ] &&  [ "$kssc" != "ksMissingTE" ] \
+	&& [ "$CleanFiles" == "ON" ]; then
 	RemoveOldFiles
     fi
 }
@@ -326,7 +330,7 @@ function BuildIsisScriptList()
  while test $i -le $processEnd
  do
 
-    if [ "$kssc" != "ksMissingVBF" ]; then
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
     else
 	logFile=' '
@@ -358,7 +362,7 @@ ksScript=$sdr/$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksarraytriggerVBF: Makes array  .vbf files
 
 let lastJob=8
-if [ "$kssc" = "ksMissingVBF" ]; then
+if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
     let lastJob=1
 fi
 
@@ -471,7 +475,7 @@ if [ $host = 'isis' ] ; then
     do
 	    #define job script name
 	JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
-	if [ "$kssc" != "ksMissingVBF" ]; then
+	if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
 	    #Initialze the script files
 	    chmod 777 $JobScript
