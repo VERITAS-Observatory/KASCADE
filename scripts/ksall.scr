@@ -38,7 +38,7 @@ while [ -d "$dirID" ]; do
 done
 
 cd workingScratch          #This may be a link from the home dir (amdahl)
-                           # or an actual sub dir of the running dir (isis)
+                       # or an actual sub dir of the running dir (isis)
 
 #create working directory.
 mkdir $dirID

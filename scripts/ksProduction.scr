@@ -368,6 +368,10 @@ fi
 
 if [ $host = 'isis' ] ; then
     dataDirBase=/simulations
+    if [ ! -d "workingScratch" ]; then
+       mkdir -p workingScratch
+    fi    
+
     let jobNum=1
  
     while test $jobNum -le $lastJob
@@ -382,6 +386,9 @@ if [ $host = 'isis' ] ; then
 else
 
     dataDirBase=/project/veritas/sembrosk
+    if [ ! -d "workingScratch" ]; then
+       mkdir -p workingScratch
+    fi    
 fi
 
 

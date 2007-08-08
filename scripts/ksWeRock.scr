@@ -39,8 +39,8 @@ fi
 
 cd $dataDirBase
 
-if [ ! -d "workingDir" ]; then
-       mkdir -p workingDir
+if [ ! -d "workingScratch" ]; then
+       mkdir -p workingScratch
 fi
 cd workingDir
 
