@@ -201,7 +201,7 @@ int main(int argc, char** argv)
 	  
 	  VSimulationData *pfSimData =pfInputPacket->get< VSimulationData >
 	    (VGetSimulationDataBankName());
-	  double fZenith=pfSimData->fObservationZenithDeg*M_PI/180.;
+	  double fZenith=pfSimData->fPrimaryZenithDeg*M_PI/180.;
 	  
 	  if (!pfInputPacket->has(VGetKascadeSimulationDataBankName())  )
 	    {
