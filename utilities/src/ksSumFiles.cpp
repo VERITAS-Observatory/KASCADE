@@ -873,19 +873,20 @@ int main(int argc, char** argv)
 			      // number of events by fWeight we need to 
 			      // correct for this by dividing by fWeight
 			      // *********************************************
+			      // Correct the fSAomega Area by the 
+			      // cos(source zenith angle)
 			      if(fWeightBySpectrum)
 				{
-				   pfKSimData->fIntegralRatePerEventHz =
-				       fMaxWeight*fWeight*pfKSimData->fAomega;
-				   //pfKSimData->fIntegralRatePerEventHz=
-				   //  pfKSimData->fIntegralRatePerEventHz/
-				   //                                  fWeight;
-				   pfKSimData->fDifferentialRatePerEventHz =
-				       fDiffRateHzPerM2*pfKSimData->fAomega/
-				                                     fWeight;
-				   pfKSimData->fAomega=
-				     pfKSimData->fAomega/(fNumShowersAtEnergy*
-				     fWeight);
+				  double fAomega=pfKSimData->fAomega;
+				  double fZenithRad=
+				    pfSimData->fPrimaryZenithDeg*M_PI/180.;
+				  fAomega=fAomega*cos(fZenithRad);
+				  pfKSimData->fIntegralRatePerEventHz =
+				    fMaxWeight*fWeight*fAomega;
+				  pfKSimData->fDifferentialRatePerEventHz =
+				    fDiffRateHzPerM2*fAomega/fWeight;
+				  pfKSimData->fAomega=
+				    fAomega/(fNumShowersAtEnergy*fWeight);
 				}
 			      VKascadeSimulationData* pfWriteKSimData = 
 				pfKSimData->copyKascadeSimData();
@@ -1023,19 +1024,22 @@ int main(int argc, char** argv)
 			  // event can contribute. The division by the 
 			  // number of showers is built into the weight.
 			  // *********************************************
+			  // *********************************************
+			  // Correct the fSAomega Area by the 
+			  // cos(source zenith angle)
 			  if(fWeightBySpectrum)
 			    {
+			      double fAomega=pfKInSimEvent->fAomega;
+			      double fZenithRad=
+				pfKInSimEvent->fPrimaryZenithDeg*M_PI/180.;
+			      fAomega=fAomega*cos(fZenithRad);
 			      pfKInSimEvent->fIntegralRatePerEventHz =
-				    fMaxWeight*fWeight*pfKInSimEvent->fAomega/
-				                                     fWeight;
+				fMaxWeight*fWeight*fAomega;
 			      pfKInSimEvent->fDifferentialRatePerEventHz =
-				fDiffRateHzPerM2*pfKInSimEvent->fAomega/
-				                                     fWeight;
+				fDiffRateHzPerM2*fAomega/fWeight;
 			      pfKInSimEvent->fAomega=
-				pfKInSimEvent->fAomega/(fNumShowersAtEnergy*
-							fWeight);
+				fAomega/(fNumShowersAtEnergy*fWeight);
 			    }
-
 			  *pfSumSimEvent=*pfKInSimEvent;
 
 			  pfSumFile->writeSimulationData();
