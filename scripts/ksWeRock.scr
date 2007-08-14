@@ -41,6 +41,7 @@ cd $dataDirBase
 
 if [ ! -d "workingScratch" ]; then
        mkdir -p workingScratch
+       chmod 777 workingScratch
 fi
 cd workingScratch
 
