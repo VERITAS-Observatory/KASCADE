@@ -340,7 +340,7 @@ bool KSArrayEvent::FindTrigger()
 	  int fTelNx=fNx+pfTelsInArray[i]->GetNXOffset(fNy);
 	  int fTelNy=fNy+pfTelsInArray[i]->GetNYOffset(fNx);
 
-	  int64_t fKey=pfTelsInArray[fBaseIndex]->
+	  int64_t fKey=(int64_t)pfTelsInArray[fBaseIndex]->
 	                                   makeGridDirKey(fTelNx,fTelNy,fDir);
 	  
 	  // **********************************************************
@@ -624,16 +624,15 @@ void KSArrayEvent::SaveEvent()
       // **************************************************
       // Now copy over and fix telescope events.
       // *************************************************
-      VPacket** pfTelReadPacket = new VPacket*[fNumTrigTel]; 
       for(int i=0;i<fNumTrigTel;i++)
 	{
 	  int fTrigTelIndex=fTriggerEvents[i].fTelIndex;
 	  int fTrigTelEventIndex=fTriggerEvents[i].fEventIndex;
 	  int fTelID=pfTelsInArray[fTrigTelIndex]->fTelID;
 	  // set the event number
-	  pfTelReadPacket[i]=pfTelsInArray[fTrigTelIndex]->
+	  VPacket* pfTelReadPacket = pfTelsInArray[fTrigTelIndex]->
 	                                   readPacket(fTrigTelEventIndex);
-	  VArrayEvent* pfAEIn=pfTelReadPacket[i]->getArrayEvent();
+	  VArrayEvent* pfAEIn=pfTelReadPacket->getArrayEvent();
  	  VEvent* pfEvent=pfAEIn->getEvent(0);
 	  pfEvent->setEventNumber(fOutEventIndex);
 	  pfEvent->setNodeNumber(fTelID);
@@ -652,6 +651,7 @@ void KSArrayEvent::SaveEvent()
 	  // add the event to the array event!
 	  VEvent* pfWriteEvent= pfEvent->copyEvent();
 	  pfAEOut->addEvent(pfWriteEvent);
+	  delete pfTelReadPacket;
 	}
       // now put array trigger back into the array event
       VArrayTrigger* pfWriteAT = pfAT->copyAT();
@@ -680,7 +680,6 @@ void KSArrayEvent::SaveEvent()
       //std::cout<<"Event Packet at: "<<fOutEventIndex<<std::endl;
       pfWriter->writePacket(fOutEventIndex,pfWritePacket);
       delete pfWritePacket;
-      delete []pfTelReadPacket;
       delete pfReadPacket;
     }
   return;
@@ -942,14 +941,13 @@ void KSArrayEvent::SavePedestalEvent()
       // **************************************************
       // Now copy over and fix telescope events.
       // *************************************************
-      VPacket** pfTelReadPacket = new VPacket*[fNumTelsWithData]; 
       for(int i=0;i<fNumTelsWithData;i++)
 	{
 	  int fTelID=pfTelsInArray[i]->fTelID;
 	  // set the event number
-	  pfTelReadPacket[i]=pfTelsInArray[i]->
+	  VPacket* pfTelReadPacket=pfTelsInArray[i]->
 	                                   readPacket(fPedIndex);
-	  VArrayEvent* pfAEIn=pfTelReadPacket[i]->getArrayEvent();
+	  VArrayEvent* pfAEIn=pfTelReadPacket->getArrayEvent();
  	  VEvent* pfEvent=pfAEIn->getEvent(0);  //Only one telescope in input 
 	                                        //file, its a 0;
 	  pfEvent->setEventNumber(fOutEventIndex);
@@ -969,6 +967,7 @@ void KSArrayEvent::SavePedestalEvent()
 	  // add the event to the array event!
 	  VEvent* pfWriteEvent=pfEvent->copyEvent();
 	  pfAEOut->addEvent(pfWriteEvent);
+	  delete pfTelReadPacket;
 	}
 
       // now put array trigger back into the array event
@@ -997,7 +996,6 @@ void KSArrayEvent::SavePedestalEvent()
       fOutEventIndex++;
       delete pfReadPacket;
       delete pfWritePacket;
-      delete []pfTelReadPacket;
     }
   fPedEventCount++;
   return;
