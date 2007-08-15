@@ -392,6 +392,7 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
       pfOutFile->write((char*)pfWriteBuffer, fLength);
       fTeWritten=false;
       fFoundError=false;
+      delete []pfWriteBuffer;
     }
   return;
 }
@@ -685,38 +686,41 @@ bool KSTeFile::ReadTePixelData(std::vector<KSPixel>& fPixel)
 	  std::cout<<"KSTeFile--Failed to read Te Pixel Data."
 		   <<std::endl;
 	  fFoundError=true;
+	  delete []pfReadBuffer;
 	  return false;
 	}
-     fTeRead=false;
-     //Now unpack the data
-     //Zero TimePe data
-     int fNumPixels=fPixel.size();
-     for(int i=0;i<fNumPixels;i++)
-       {
-	 fPixel.at(i).fTimePe.clear();
-       }
-
-     int fPixelIndex=-1;
-     for(int i=0;i<fNumWords;i++)
-       {
-	 if(pfReadBuffer[i]<0)
-	   {
-	     fPixelIndex = (-(int)pfReadBuffer[i])-1; //Back to Pixel index
-	   }
-	 else if(fPixelIndex<0)
-	   {
-	     std::cout<<"KSTeFile--Error Decoding Compressed TePixelData "
-	       "Record"<<std::endl;
-	     fFoundError=true;
-	     return false;
-	   }
-	 else
-	   {
-	     fPixel.at(fPixelIndex).fTimePe.push_back(pfReadBuffer[i]+fBaseTime);
-	   }
-       }
-     fFoundError=false;
-     return true;
+      fTeRead=false;
+      //Now unpack the data
+      //Zero TimePe data
+      int fNumPixels=fPixel.size();
+      for(int i=0;i<fNumPixels;i++)
+	{
+	  fPixel.at(i).fTimePe.clear();
+	}
+      
+      int fPixelIndex=-1;
+      for(int i=0;i<fNumWords;i++)
+	{
+	  if(pfReadBuffer[i]<0)
+	    {
+	      fPixelIndex = (-(int)pfReadBuffer[i])-1; //Back to Pixel index
+	    }
+	  else if(fPixelIndex<0)
+	    {
+	      std::cout<<"KSTeFile--Error Decoding Compressed TePixelData "
+		"Record"<<std::endl;
+	      fFoundError=true;
+	      return false;
+	    }
+	  else
+	    {
+	      fPixel.at(fPixelIndex).fTimePe.push_back(pfReadBuffer[i]+
+						       fBaseTime);
+	    }
+	}
+      fFoundError=false;
+      delete []pfReadBuffer;
+      return true;
     }
 }
 // ***************************************************************************
