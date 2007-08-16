@@ -1,6 +1,6 @@
 //-*-mode:c++; mode:font-lock;-*-
 /** 
- * \class ksSumFiles * \brief This code copies on vbdfiel to another making
+ * \class ksSumFiles * \brief This code copies on vbgf file to another making
  *  various changes on the way. Original change was the addition of the 
  * cos(zenith angle) to Sim.fAomega
  *
@@ -172,6 +172,7 @@ int main(int argc, char** argv)
       pfWriter->writePacket(0, pfInputPacket);
       delete pfInputPacket;
       int fNumOutputPackets=1;
+      std::cout<<"ksCopyFile - (#=10000):";
       for(int i=1;i<fNumInputPackets;i++) //Packet 0 for header  packets
       	{
       	  if(i%10000==0)
@@ -226,7 +227,8 @@ int main(int argc, char** argv)
 	  
 	  delete pfInputPacket;
 	}
-      
+      std::cout<<std::endl;
+
 
       // *****************************************************************
       // Were all done. close up the files and stuff;
