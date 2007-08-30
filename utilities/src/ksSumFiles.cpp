@@ -478,9 +478,9 @@ int main(int argc, char** argv)
       // Open input list file
       // -----------------------------------------------------------------
       
-      //std::ifstream fListIn;
-      fListIn.open(ListFileName.c_str());
-      if(!fListIn)
+      std::ifstream fListIn2;
+      fListIn2.open(ListFileName.c_str());
+      if(!fListIn2)
 	{
 	  std::cout<<"ksSumFiles:Failed to open Input List file: "
 <<ListFileName
@@ -497,7 +497,7 @@ int main(int argc, char** argv)
       int fNumNormalEvents=0;
       int fCountOut=0;
       uint8_t  fGPSYear=6;
-      while(getline(fListIn,fInputFile))
+      while(getline(fListIn2,fInputFile))
 	{
 
 	  int fType=0;
