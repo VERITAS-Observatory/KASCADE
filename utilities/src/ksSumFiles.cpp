@@ -245,201 +245,214 @@ int main(int argc, char** argv)
 
 
       // ********************************************************************
-      // Do we need weights, that is do we make spectrum cuts?
+      // In order to calculate the fAomega and other simulkar things we need 
+      // the number of showers. Thus we need to make a first pass wither we 
+      // are weighting by a spectrum or not.
       // ********************************************************************
 
       KSEventWeights* pfWeights=NULL;
       float fXDummy=0;
       double fMaxWeight=0;
-      if(fWeightBySpectrum)
-	{
-	  std::cout<<"ksSumFiles:Determining Spectrum weights"
-	    ".....Takes a while"<<std::endl;
-	  // -----------------------------------------------------------------
-	  // Open input list file
-	  // -----------------------------------------------------------------
+
+      // if(fWeightBySpectrum)
+      //	{
+      std::cout<<"ksSumFiles:Determining Spectrum weights and Number of "
+	"showers.....Takes a while"<<std::endl;
+      // -----------------------------------------------------------------
+      // Open input list file
+      // -----------------------------------------------------------------
 	  
-	  std::ifstream fListIn;
-	  fListIn.open(ListFileName.c_str());
-	  if(!fListIn)
+      std::ifstream fListIn;
+      fListIn.open(ListFileName.c_str());
+      if(!fListIn)
+	{
+	  std::cout<<"Failed to open Input List file: "<<ListFileName
+		   <<std::endl;
+	  return 0;
+	}
+
+      // ****************************************************************
+      // To determine fAomega, weights etc we need to get 3 things:
+      // 1:Particle type: gamma, protons he4 etc. We allow only 1 particle
+      //   type in all the files in the List.
+      // 2:Shower energies. Assume these are ksAomega files with 
+      //   VASimulationHeader records. Also assume that we have a number 
+      //   of files at each energy.
+      // 3:Number of showers at each energy.
+      // *****************************************************************
+
+      std::map<int, fShwrMap_t > fTypes;   //Map of a map
+      std::map<int, fShwrMap_t >::iterator fTypesPos;
+      fShwrMap_t::iterator fShowerDataPos;
+      
+      //Ready to read in showers. Note this list dones not have the .vbf or
+      //.root extentions in it.
+      
+      std::string fInputFile;
+      while(getline(fListIn,fInputFile))
+	{
+	  int fType=0;
+	  //int fEnergyGeV=0;
+	  float fEnergyGeV=0;
+	  if(fOutputVBF)
 	    {
-	      std::cout<<"Failed to open Input List file: "<<ListFileName
-		       <<std::endl;
-	      return 0;
-	    }
-
- 	  // ****************************************************************
-          // To determine spectrum weights we need to get 3 things:
-	  // 1:Particle type: gamma, protons he4 etc. We allow only 1 particle
-	  //   type in all the files in the List.
-	  // 2:Shower energies. Assume these are ksAomega files with 
-	  //   VASimulationHeader records. Also assume that we have a number 
-	  //   of files at each energy.
-	  // 3:Number of showers at each energy.
-	  // *****************************************************************
-
-	   std::map<int, fShwrMap_t > fTypes;   //Map of a map
-	   std::map<int, fShwrMap_t >::iterator fTypesPos;
-	   fShwrMap_t::iterator fShowerDataPos;
-
-	  //Ready to read in showers. Note this list dones not have the .vbf or
-	   //.root extentions in it.
-
-	  std::string fInputFile;
-	  while(getline(fListIn,fInputFile))
-	    {
-	      int fType=0;
-	      //int fEnergyGeV=0;
-	      float fEnergyGeV=0;
-	      if(fOutputVBF)
+	      // *********************************************************
+	      // Open a VBF file (if options indicate it exists)from list
+	      // create a reader for the bank file.this will open the file 
+	      // in a read-only fashion and will memory-map the index, 
+	      // allowing you random access.
+	      // **********************************************************
+	      std::string fVBFFileName=fInputFile + ".vbf";
+	      //std::cout<<"Get weights file:"<<fVBFFileName<<std::endl;
+	      VBankFileReader reader(fVBFFileName);
+	      
+	      // **************************************  *****************
+	      // read header packet.  note that we have to dispose of this 
+	      // packet when we're done with it.  note furthermore that 
+	      // this function never returns NULL.  if there is an error,
+	      // it just throws an exception.
+	      // **********************************************************
+	      VPacket* packet;
+	      if(reader.hasPacket(0))
 		{
-		  // *********************************************************
-		  // Open a VBF file (if options indicate it exists)from list
-		  // create a reader for the bank file.this will open the file 
-		  // in a read-only fashion and will memory-map the index, 
-		  // allowing you random access.
-		  // **********************************************************
-		  std::string fVBFFileName=fInputFile + ".vbf";
-		  //std::cout<<"Get weights file:"<<fVBFFileName<<std::endl;
-		  VBankFileReader reader(fVBFFileName);
-
-		  // **************************************  *****************
-		  // read header packet.  note that we have to dispose of this 
-		  // packet when we're done with it.  note furthermore that 
-		  // this function never returns NULL.  if there is an error,
-		  // it just throws an exception.
-		  // **********************************************************
-		  VPacket* packet;
-		  if(reader.hasPacket(0))
-		    {
-		      packet=reader.readPacket(0);  //0=Location of header
-		    }
-		  else
-		    {
-		      std::cout<<"ksSumFiles: No header packet with index 0 "
-			"found in file: "<<fVBFFileName<<std::endl;
-		      exit(1);
-		    }
-		  // ********************************************************* 
-		  // Check this packet has a VKascadeSimulationHeader in it
-		  // ********************************************************* 
-		  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
-		    {
-		      std::cout<<"ksSumFiles: No KascadeSimulationHeader bank "
-			"in file: "<<fVBFFileName<<std::endl;
-		      exit(1);
-		    }
-		  // ********************************************************
-		  // now get the KascadeSimulationHeader bank.  this will 
-		  // never return NULL. If the packet doesn't contain an 
-		  // KascadeSimulationHeader, this function throws an 
-		  // exception.
-		  // ********************************************************
-		  VKascadeSimulationHeader *pfKVBFSimHead =
-		    packet->get< VKascadeSimulationHeader >
-		    (VGetKascadeSimulationHeaderBankName());
-		  if(pfKVBFSimHead==NULL)
-		    {
-		      std::cout<<"ksSumFiles: File "<<fVBFFileName
-			       <<"has no VASimulationHeader record"<<std::endl;
-		      exit(1);
-		    }
-		  // ********************************************************
-		  //Now get stuff from the header
-		  // ********************************************************
-		  //Primary type first
-		  fType = pfKVBFSimHead->fCORSIKAParticleID;
-		  // Now get energy
-		  //fEnergyGeV = (int)pfKVBFSimHead->fEnergyGeV;
-		  fEnergyGeV = (float)pfKVBFSimHead->fEnergyGeV;
-		  delete packet;
+		  packet=reader.readPacket(0);  //0=Location of header
 		}
 	      else
-		{                     //Must be only a root file specified
-		  // Open file from list
-		  VAVDF fFileIn;
-		  std::string fRootFileName=fInputFile + ".root";
-		  fFileIn.OpenForStage3(fRootFileName);
-		  VASimulationHeader* pfRootSimHead=
-		                             fFileIn.getSimulationHeaderPtr();
-		  VAKascadeSimulationHead *pfKRootSimHead;
-		  if(pfRootSimHead->fSimulationPackage==
-		                              VASimulationHeader::E_KASCADE)
-		  {
-		    pfKRootSimHead = 
-		      dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
-		    if(pfKRootSimHead==NULL)
-		      {
-			std::cout<<"ksSumFiles: File "<<fRootFileName
-				 <<"has no VASimulationHeader record"
-				 <<std::endl;
-			exit(1);
-		      }
-		  }
-		  else
+		{
+		  std::cout<<"ksSumFiles: No header packet with index 0 "
+		    "found in file: "<<fVBFFileName<<std::endl;
+		  exit(1);
+		}
+	      // ********************************************************* 
+	      // Check this packet has a VKascadeSimulationHeader in it
+	      // ********************************************************* 
+	      if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
+		{
+		  std::cout<<"ksSumFiles: No KascadeSimulationHeader bank "
+		    "in file: "<<fVBFFileName<<std::endl;
+		  exit(1);
+		}
+	      // ********************************************************
+	      // now get the KascadeSimulationHeader bank.  this will 
+	      // never return NULL. If the packet doesn't contain an 
+	      // KascadeSimulationHeader, this function throws an 
+	      // exception.
+	      // ********************************************************
+	      VKascadeSimulationHeader *pfKVBFSimHead =
+		packet->get< VKascadeSimulationHeader >
+		(VGetKascadeSimulationHeaderBankName());
+	      if(pfKVBFSimHead==NULL)
+		{
+		  std::cout<<"ksSumFiles: File "<<fVBFFileName
+			   <<"has no VASimulationHeader record"<<std::endl;
+		  exit(1);
+		}
+	      // ********************************************************
+	      //Now get stuff from the header
+	      // ********************************************************
+	      //Primary type first
+	      fType = pfKVBFSimHead->fCORSIKAParticleID;
+	      // Now get energy
+	      //fEnergyGeV = (int)pfKVBFSimHead->fEnergyGeV;
+	      fEnergyGeV = (float)pfKVBFSimHead->fEnergyGeV;
+	      delete packet;
+	    }
+	  else
+	    {                     //Must be only a root file specified
+	      // Open file from list
+	      VAVDF fFileIn;
+	      std::string fRootFileName=fInputFile + ".root";
+	      fFileIn.OpenForStage3(fRootFileName);
+	      VASimulationHeader* pfRootSimHead=
+		fFileIn.getSimulationHeaderPtr();
+	      VAKascadeSimulationHead *pfKRootSimHead;
+	      if(pfRootSimHead->fSimulationPackage==
+		 VASimulationHeader::E_KASCADE)
+		{
+		  pfKRootSimHead = 
+		    dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
+		  if(pfKRootSimHead==NULL)
 		    {
-		      std::cout<<"ksSumFiles: Wrong simulation package "
-		  	"found.fSimulationPackage: "
-		  	       << pfRootSimHead->fSimulationPackage<<std::endl;
+		      std::cout<<"ksSumFiles: File "<<fRootFileName
+			       <<"has no VASimulationHeader record"
+			       <<std::endl;
 		      exit(1);
 		    }
-		  //Now get stuff from the header
-		  //Primary type first
-		  fType = pfKRootSimHead->fCORSIKAParticleID;
-		  // Now get energy
-		  //fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
-		  fEnergyGeV=(float)pfKRootSimHead->fEnergyGeV;
-		  fFileIn.Close();
 		}
-		  
-	      // **********************************************************
-	      // Enter this stuff in the map. This is pretty tricky, we use
-	      // iterators to avoid copying maps. Much faster that way
-	      // **********************************************************
-	      fTypesPos=fTypes.find(fType);
-	      if(fTypesPos==fTypes.end())  //If fType doesn't exist as a key
-		{                           //create it. See pg 206 C_++ std 
-		                            //book for [] operator
-		  fTypes[fType];
-		  fTypesPos=fTypes.find(fType);
-		}
-	      fShowerDataPos=fTypesPos->second.find(fEnergyGeV);
-	      if(fShowerDataPos==fTypesPos->second.end())
+	      else
 		{
-		  fTypesPos->second[fEnergyGeV];
-		  fShowerDataPos=fTypesPos->second.find(fEnergyGeV);
+		  std::cout<<"ksSumFiles: Wrong simulation package "
+		    "found.fSimulationPackage: "
+			   << pfRootSimHead->fSimulationPackage<<std::endl;
+		  exit(1);
 		}
-	      int fNumShwr=fShowerDataPos->second;
-	      fShowerDataPos->second=fNumShwr+1;
-	    }  //End of while
-	  //done going through the list. 
-	  fListIn.close();
-	  // ***************************************************************
-	  // At this point our maps in fTypes have keys which are the different
-	  // energies of all the showers in the List. The values for each of 
-	  // the keys is the number of showers at each energy. These entries 
-	  // are ordered in out type maps  in increasing energies (I hope)
-	  // ***************************************************************
-	  // Now get the weights. 
-	  //From CORSIKA manual Table 4 (pg 80 in current manual)
-	  //
-	  //gamma        1
-	  //e+           2
-	  //e-           3
-	  //muon+        5
-	  //muon-        6
-	  //neutron      13
-	  //proton       14
-	  //anti-proton  15
-	  //ION(Z,A)     A x 100 + Z
-	  //He(2,4)      402
-	  //Fe(26,56)    5626
-	  pfWeights = new KSEventWeights(fTypes);
-	  //pfWeights->calculateWeights();
-	  pfWeights->calculateLogWeights();
-	  pfWeights->Print();
+	      //Now get stuff from the header
+	      //Primary type first
+	      fType = pfKRootSimHead->fCORSIKAParticleID;
+	      // Now get energy
+	      //fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
+	      fEnergyGeV=(float)pfKRootSimHead->fEnergyGeV;
+	      fFileIn.Close();
+	    }
+	  
+	  // **********************************************************
+	  // Enter this stuff in the map. This is pretty tricky, we use
+	  // iterators to avoid copying maps. Much faster that way
+	  // **********************************************************
+	  fTypesPos=fTypes.find(fType);
+	  if(fTypesPos==fTypes.end())  //If fType doesn't exist as a key
+	    {                           //create it. See pg 206 C_++ std 
+	      //book for [] operator
+	      fTypes[fType];
+	      fTypesPos=fTypes.find(fType);
+	    }
+	  fShowerDataPos=fTypesPos->second.find(fEnergyGeV);
+	  if(fShowerDataPos==fTypesPos->second.end())
+	    {
+	      fTypesPos->second[fEnergyGeV];
+	      fShowerDataPos=fTypesPos->second.find(fEnergyGeV);
+	    }
+	  int fNumShwr=fShowerDataPos->second;
+	  fShowerDataPos->second=fNumShwr+1;
+	}  //End of while
+      //done going through the list. 
+      fListIn.close();
+      // ***************************************************************
+      // At this point our maps in fTypes have keys which are the different
+      // energies of all the showers in the List. The values for each of 
+      // the keys is the number of showers at each energy. These entries 
+      // are ordered in out type maps  in increasing energies (I hope)
+      // ***************************************************************
+      // Now get the weights. 
+      //From CORSIKA manual Table 4 (pg 80 in current manual)
+      //
+      //gamma        1
+      //e+           2
+      //e-           3
+      //muon+        5
+      //muon-        6
+      //neutron      13
+      //proton       14
+      //anti-proton  15
+      //ION(Z,A)     A x 100 + Z
+      //He(2,4)      402
+      //Fe(26,56)    5626
+      pfWeights = new KSEventWeights(fTypes);
+      //pfWeights->calculateWeights();
+      pfWeights->calculateLogWeights();
+      pfWeights->Print();
+      if(!fWeightBySpectrum)
+	{
+	  std::cout<<"ksSumFiles: Since -EnableSpectrumWeighting was not "
+	    "specfied, all weights will be set to 1.0"<<std::endl;
+	  fMaxWeight=1.0;
+	}
+      else
+	{
+
 	  fMaxWeight=pfWeights->getMaximumWeight();
-	} //end of weight calculation
+	}
+      //    } //end of weight calculation
 
 
       // ******************************************************************
@@ -452,7 +465,7 @@ int main(int argc, char** argv)
       VACalibratedArrayEvent* pfSumCalEvent=NULL;
       VAKascadeSimulationData* pfSumSimEvent=NULL;
 
-      std::string fInputFile;
+      //std::string fInputFile;
       bool fFirstFile=true;
       int fNumTels=1;
       VATime fFirstValidEventTime;
@@ -465,11 +478,12 @@ int main(int argc, char** argv)
       // Open input list file
       // -----------------------------------------------------------------
       
-      std::ifstream fListIn;
+      //std::ifstream fListIn;
       fListIn.open(ListFileName.c_str());
       if(!fListIn)
 	{
-	  std::cout<<"Failed to open Input List file: "<<ListFileName
+	  std::cout<<"ksSumFiles:Failed to open Input List file: "
+<<ListFileName
 		   <<std::endl;
 	  return 0;
 	}
@@ -747,17 +761,22 @@ int main(int argc, char** argv)
 		  std::cout<<"ksSumFiles:Starting Summing Pass"
 			   <<std::endl;
 		}  //End First File
-	      float fWeight=1.0;
-	      double fDiffRateHzPerM2=0;
-	      int fNumShowersAtEnergy=1;
+	      float fWeight;
 	      if(fWeightBySpectrum)
 		{
 		  fWeight=pfWeights->getWeight(fType,fEnergyGeV);
-		  fDiffRateHzPerM2 = pfWeights->
-                         getWeightedDifferentialRateHzPerM2(fType,fEnergyGeV); 
-		  fNumShowersAtEnergy=
-		                   pfWeights->getNumShowers(fType,fEnergyGeV);
 		}
+	      else
+		{
+		  fWeight=1.0;    //default we (if we aren't weighting)
+		}
+	      
+	      double fDiffRateHzPerM2 = pfWeights->
+		getWeightedDifferentialRateHzPerM2(fType,fEnergyGeV); 
+	      int fNumShowersAtEnergy=
+		pfWeights->getNumShowers(fType,fEnergyGeV);
+
+
 	      for(int index=0;index<fNumArrayEvents;index++)//VBF Events start
 		// at 1, Root at 0
 		{
@@ -814,7 +833,7 @@ int main(int argc, char** argv)
 			      // represents. Special use by vaStgae4 for 
 			      // lookupTable generation
 			      // ********************************************
-			      if(fDistributeEnergy)
+			      if(fDistributeEnergy && fWeightBySpectrum)
 				{
 				  pfSimData->fEnergyGeV= pfWeights->
 				     getDistributedEnergy(fType, fEnergyGeV);
@@ -875,19 +894,22 @@ int main(int argc, char** argv)
 			      // *********************************************
 			      // Correct the fSAomega Area by the 
 			      // cos(source zenith angle)
-			      if(fWeightBySpectrum)
-				{
-				  double fAomega=pfKSimData->fAomega;
-				  double fZenithRad=
-				    pfSimData->fPrimaryZenithDeg*M_PI/180.;
-				  fAomega=fAomega*cos(fZenithRad);
-				  pfKSimData->fIntegralRatePerEventHz =
-				    fMaxWeight*fWeight*fAomega;
-				  pfKSimData->fDifferentialRatePerEventHz =
-				    fDiffRateHzPerM2*fAomega/fWeight;
-				  pfKSimData->fAomega=
-				    fAomega/(fNumShowersAtEnergy*fWeight);
-				}
+			      //if(fWeightBySpectrum)
+			      //	{
+
+			      double fAomega=pfKSimData->fAomega;
+			      double fZenithRad=
+				pfSimData->fPrimaryZenithDeg*M_PI/180.;
+			      fAomega=fAomega*cos(fZenithRad);
+			      pfKSimData->fIntegralRatePerEventHz =
+				fMaxWeight*fWeight*fAomega;
+			      pfKSimData->fDifferentialRatePerEventHz =
+				fDiffRateHzPerM2*fAomega/fWeight;
+			      pfKSimData->fAomega=
+				fAomega/(fNumShowersAtEnergy*fWeight);
+
+			      //}
+
 			      VKascadeSimulationData* pfWriteKSimData = 
 				pfKSimData->copyKascadeSimData();
 			      pfWritePacket->
@@ -1027,19 +1049,19 @@ int main(int argc, char** argv)
 			  // *********************************************
 			  // Correct the fSAomega Area by the 
 			  // cos(source zenith angle)
-			  if(fWeightBySpectrum)
-			    {
-			      double fAomega=pfKInSimEvent->fAomega;
-			      double fZenithRad=
-				pfKInSimEvent->fPrimaryZenithDeg*M_PI/180.;
-			      fAomega=fAomega*cos(fZenithRad);
-			      pfKInSimEvent->fIntegralRatePerEventHz =
-				fMaxWeight*fWeight*fAomega;
-			      pfKInSimEvent->fDifferentialRatePerEventHz =
-				fDiffRateHzPerM2*fAomega/fWeight;
-			      pfKInSimEvent->fAomega=
-				fAomega/(fNumShowersAtEnergy*fWeight);
-			    }
+			  // if(fWeightBySpectrum)
+			  // {
+			  double fAomega=pfKInSimEvent->fAomega;
+			  double fZenithRad=
+			    pfKInSimEvent->fPrimaryZenithDeg*M_PI/180.;
+			  fAomega=fAomega*cos(fZenithRad);
+			  pfKInSimEvent->fIntegralRatePerEventHz =
+			    fMaxWeight*fWeight*fAomega;
+			  pfKInSimEvent->fDifferentialRatePerEventHz =
+			    fDiffRateHzPerM2*fAomega/fWeight;
+			  pfKInSimEvent->fAomega=
+			    fAomega/(fNumShowersAtEnergy*fWeight);
+			      // }
 			  *pfSumSimEvent=*pfKInSimEvent;
 
 			  pfSumFile->writeSimulationData();
