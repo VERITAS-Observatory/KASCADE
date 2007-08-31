@@ -7,7 +7,7 @@
 #Make simLaser file (even if it already exists, this is very fast)
 
 $VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser -AIF_DataSource=CompiledOnly \
-        -AIFC_OverrideArray=VC499 -G_SimulationMode=1 dummyFileName \
+        -AIFC_OverrideArray=VC499_BASE -G_SimulationMode=1 dummyFileName \
         simLaser.root
 
 #Now process the file:
