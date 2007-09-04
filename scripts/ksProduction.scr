@@ -3,13 +3,17 @@
 #This is the conversion (from kas01.scr) to use at Purdue and Depauw
 #Glenn Sembroski 16/05/05
 #$0 ./kas02.scr
-#$1 For ksall:
+
+#$1 For ksall and ksallVBF:
 #     Telescope-Type-direction specification code. like: WP1Deg,WHe4_1Deg,
 #     WG1Deg,VG1DegN0.5Deg.  Giveing a Type code of 'WCR1Deg will cause both 
 #     WP1Deg  and WHe4_1Deg to be  run
 #   For ksaomVBF and ksarraytriggerVBF:
 #     append the threshold specifier: VG1Deg50mv, VG1DegN0.5Deg70mv, 
 #     WCR20DegS0.3Deg50mv.
+#   For ksallVBF: 
+#     Like VG20Deg2D50mv1234M2
+
 #$2 has which script to run: 
 #               ksall:make showers throuth te files
 #               ksaom:makes .root files(depreciated)
@@ -18,6 +22,8 @@
 #               ksarraytriggerVBF:makes .vbf multi trigger files.
 #               ksMissingVBF:Looks for missing VBF files.
 #               ksMissingTE:Looks for missing TE files.
+#               ksallVBF: All Singing all dancing: ksKascade to ksArrayTrigger
+
 #$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
 #          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
 #$3 Array Multiplicity and Trigger multiplicity for ksarraytriggerVBF only. 
@@ -199,6 +205,8 @@ function Gammas()
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
           end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  8   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+
+
 #          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  8   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     3     2     2     2     1     1)
 
 #VeritasSet2
@@ -360,7 +368,8 @@ ksScript=$sdr/$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksaom: Makes .root  files from te files(depreciated)
                           #ksaomVBF: Makes .vbf files from te files
                           #ksarraytriggerVBF: Makes array  .vbf files
-
+                          #ksallVBF:Does everything from ksKascade to 
+                          #         ksArrayTrigger
 let lastJob=8
 if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
     let lastJob=1
