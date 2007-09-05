@@ -201,10 +201,10 @@ function Gammas()
 #Veritas set1/ksaom/kasall
 #Whipple set1/kasaom/kasall starts at 84 GeV
     let processEnd=42
-    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
-       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
-        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    10)
+    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON    ON    ON )
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     6     1     6)
+          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    5     10    5     10)
 
 
 #          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  8   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     3     2     2     2     1     1)
@@ -238,39 +238,39 @@ CleanFiles=OFF
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #           CleanFiles=ON
-	    BuildIsisScriptList 1 1  3
-	    BuildIsisScriptList 2 4  7
-	    BuildIsisScriptList 3 8  12
-	    BuildIsisScriptList 4 13 20
-	    BuildIsisScriptList 5 21 29
-	    BuildIsisScriptList 6 30 35
-	    BuildIsisScriptList 7 36 39
-	    BuildIsisScriptList 8 40 42
+#             For ksallVBF: set 1 about 24 hours <=10 TeV
+	    BuildIsisScriptList 1 1  4
+	    BuildIsisScriptList 2 5  9
+	    BuildIsisScriptList 3 10 15
+	    BuildIsisScriptList 4 16 24
+	    BuildIsisScriptList 5 25 32
+	    BuildIsisScriptList 6 33 34
+	    BuildIsisScriptList 7 35 35
+	    BuildIsisScriptList 8 36 36
 
-	   #For ksall ~9 hrs.
-#           CleanFiles=ON
-#           BuildIsisScriptList 1 1  5
-#	    BuildIsisScriptList 2 6  10
-#	    BuildIsisScriptList 3 11 18
-#	    BuildIsisScriptList 4 19 26
-#	    BuildIsisScriptList 5 27 30
-#	    BuildIsisScriptList 6 31 32
-#	    BuildIsisScriptList 7 33 33
-#	    BuildIsisScriptList 8 34 34
+# High >10 TeV 48 hrs?
+#	    BuildIsisScriptList 1 37  37
+#	    BuildIsisScriptList 2 38  38
+#	    BuildIsisScriptList 3 39  39
+#	    BuildIsisScriptList 4 40  40
+#	    BuildIsisScriptList 5 41  41
+#	    BuildIsisScriptList 6 42  42
+#	    BuildIsisScriptList 7 43  43
+#	    BuildIsisScriptList 8 44  44
 
-	    #For High ksall ~ 5hrs each set:After 36 only 3 at once:Disk space
-            #                               Each file requires~60 Gbytes temp.
-#           CleanFiles=ON
-#           BuildIsisScriptList 1 35 35
-#	    BuildIsisScriptList 2 36 36
+#Generic High usually
+#	    BuildIsisScriptList 1 1 1
+#	    BuildIsisScriptList 2 2 2
+#	    BuildIsisScriptList 3 3 3
+#	    BuildIsisScriptList 4 4 4
+#	    BuildIsisScriptList 5 5 5
+#	    BuildIsisScriptList 6 6 6
+#	    BuildIsisScriptList 7 7 7
+#	    BuildIsisScriptList 8 8 8
 
-#	    BuildIsisScriptList 3 37 37
-#	    BuildIsisScriptList 4 38 38
-#	    BuildIsisScriptList 5 39 39
 
-#	    BuildIsisScriptList 6 40 40
-#	    BuildIsisScriptList 7 41 41
-#	    BuildIsisScriptList 8 42 42
+
+
 
 #Don't forget about RemoveOldFiles!
           else
