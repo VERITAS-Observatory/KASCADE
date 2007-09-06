@@ -39,9 +39,9 @@ EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 mv -v $ResultsFileName $EcutRootFileName
 
 
-Wobble=${VBFFileName%%"Wbl*"}Wbl
+Wobble=${VBFFileName%%Wbl*}Wbl
 Wobble=${Wobble#*Deg}
-if [ ${Wobble:0:1 = "0" ]; then
+if [ ${Wobble:0:1} = "0" ]; then
     Wobble='0.'$Wobble
 fi
 echo Wobble: $Wobble
