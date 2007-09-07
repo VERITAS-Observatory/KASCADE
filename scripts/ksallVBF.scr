@@ -75,9 +75,9 @@ else
     exit
 fi
 
-ThresholdSpec=${ThresholdSpec:0:4}         #Gets 50mv from 50mv1234M2
+ThreshSpec=${ThresholdSpec:0:4}         #Gets 50mv from 50mv1234M2
 
-ThresholdSpec=$TelSpec$ThresholdSpec   #Gives final threshold spec of V50mv
+ThresholdSpec=$TelSpec$ThreshSpec   #Gives final threshold spec of V50mv
 
 
 #############################################################################
@@ -149,12 +149,11 @@ if [ ! -d "$5" ]; then
        mkdir -p $5
 fi
 ########################################################################
-#Set up base name of showers. 
+#Set up base name of shower files. 
 #Note it includes data path
-ShwrBase=$TriggerSpec'GeV'$1
-Shwr=$5'/'$ShwrBase
-ShwrTe=$Shwr'te.d'
-MultShwr=$5'/'$TriggerSpec$TriggerMult'GeV'$1
+ShwrTe=$5'/'$TriggerSpec$ThreshSpec'GeV'$1'te.d'
+SingleShwr=$5'/'$TriggerSpec$ThreshSpec'GeV'$1
+MultShwr=$5'/'$TriggerSpec$ThreshSpec$TriggerMult'GeV'$1
 
 #Define Multiplicity option
 MultOption="-ArrayTriggerMultiplicity="$ArrayMult
@@ -196,7 +195,7 @@ while test $i -le $4
 
 #ksTrigger
     tefile=$ShwrTe$i                  #We keep this one
-    MDirFile=$Shwr'MDir.d'$i          #and We keep this one
+    MDirFile=$SingleShwr'MDir.d'$i          #and We keep this one
     if [ -e "$tefile" ]; then
 	rm $tefile
     fi
@@ -212,8 +211,8 @@ while test $i -le $4
      rm $pesfile
 
 #ksAomega
-    rootFile=$Shwr'.d'$i'.root'
-    VBFFile=$Shwr'.d'$i'.vbf'
+    rootFile=$SingleShwr'.d'$i'.root'
+    VBFFile=$SingleShwr'.d'$i'.vbf'
 
     $src/ksAomega -config=$ksAomegaConfig -RandomSeedFileName=ksAomega.ran \
                   -VBFOutputFileName=$VBFFile  $tefile
