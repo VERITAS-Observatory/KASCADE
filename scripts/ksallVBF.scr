@@ -151,7 +151,7 @@ fi
 ########################################################################
 #Set up base name of shower files. 
 #Note it includes data path
-ShwrTe=$5'/'$TriggerSpec$ThreshSpec'GeV'$1'te.d'
+ShwrTe=$5'/'$TriggerSpec'GeV'$1'te.d'
 SingleShwr=$5'/'$TriggerSpec$ThreshSpec'GeV'$1
 MultShwr=$5'/'$TriggerSpec$ThreshSpec$TriggerMult'GeV'$1
 
