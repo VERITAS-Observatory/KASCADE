@@ -212,11 +212,16 @@ int main(int argc, char** argv)
 
   thetime=time(NULL);
   std::cout<<"ksPeSortMerge: Input Read Finished."<<ctime(&thetime)<<std::endl;
+  std::cout<<"ksPesortMerge: Number of PEs read in: "
+	   <<(long)pfPeFile->getNumPes()<<std::endl;
+  std::cout<<"ksPeSortMerge: Deleting Input PE file (to save space):"
+	   <<PeFileName<<std::endl;
+  
+  pfPeFile->Delete();
+
   std::cout<<"ksPeSortMerge: Merging, Checking, and Writing out sorted file."
 	   <<std::endl;
 
-  std::cout<<"ksPesortMerge: Number of PEs read in: "
-	   <<(long)pfPeFile->getNumPes()<<std::endl;
   std::cout<<"ksPesortMerge: Number of Temporary Sort files of maximum size "
 	   <<kSortMax<<" created: "<<pfTempFileNames.size()<<std::endl;
 
