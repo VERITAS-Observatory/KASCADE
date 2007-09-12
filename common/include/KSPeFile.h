@@ -31,6 +31,7 @@ class KSPeFile
   bool Create(std::string PeFileName);
   bool Open(std::string PeFileName);
   void Close();
+  void Delete();
 
   void WriteSegmentHead(KSSegmentHeadData* segHead);
   void WritePeHead(KSPeHeadData* peHead);
@@ -46,6 +47,7 @@ class KSPeFile
  private:
   //std::ifstream* pfInFile;
   //std::ofstream* pfOutFile;
+  std::string fInFileName;
   int pfInFile;
   int pfOutFile;
   bool fSegmentHeadWritten;

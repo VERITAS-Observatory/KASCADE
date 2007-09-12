@@ -34,6 +34,7 @@ KSPeFile::KSPeFile()
   fFoundEOF=false;
   fFoundError=false;
   fNumPe=0;
+  fInFileName=" ";
 }
 
 KSPeFile::~KSPeFile()
@@ -110,6 +111,9 @@ bool KSPeFile::Open(std::string PeFileName)
       //throw an exception here
     }
 
+ 
+  fInFileName=PeFileName;
+
   //  pfInFile=new std::ifstream(PeFileName.c_str(), 
   //			     std::ios::in | std::ios::binary);
 
@@ -162,6 +166,30 @@ void KSPeFile::Close()
   return;
 }
 // ***************************************************************************
+
+
+void KSPeFile::Delete()
+// ***************************************************************************
+//  Delete the input file useing lower level  c type system call "unlink"
+// ***************************************************************************
+{
+  if(pfInFile!=-1)
+    {
+      int fResult=unlink(fInFileName.c_str());  //Low level c file delete 
+                                                //command. 
+      if(fResult!=0)
+	{
+	  std::cout<<"KSPeFile: Failed to delete "<<fInFileName<<std::endl;
+	  close(pfInFile);
+	}
+      pfInFile=-1;
+    }
+  fSegmentHeadRead=false;
+  fPeHeadRead=false;
+  return;
+}
+
+// **************************************************************************
 
 void KSPeFile::WriteSegmentHead(KSSegmentHeadData* segHead)
 // ***************************************************************************
