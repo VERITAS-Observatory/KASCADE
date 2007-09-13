@@ -10,7 +10,7 @@
  * $Tag$
  *
  **/
-
+#include <stdio.h>
 #include "KSPeFile.h"
 #include "KSSegmentFile.h"
 
@@ -175,7 +175,8 @@ void KSPeFile::Delete()
 {
   if(pfInFile!=-1)
     {
-      int fResult=unlink(fInFileName.c_str());  //Low level c file delete 
+      Close();                                  //Tidy up.
+      int fResult=remove(fInFileName.c_str());  //Low level c file delete 
                                                 //command. 
       if(fResult!=0)
 	{
