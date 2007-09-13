@@ -190,7 +190,7 @@ while test $i -le $4
     fi
 
     $src/ksPeSortMerge $pefile $pesfile
-    rm $pefile		#Delete pe file
+    #rm $pefile		#Delete pe file
     rm Temp*            #delete temp sort files.
 
 #ksTrigger
