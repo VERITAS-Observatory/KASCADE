@@ -1,9 +1,9 @@
 #This is a short utility script to create a combined summary vbf file from 
 #many individual shower vbf files. 
 
-##################################################
-# THIS IS THE NORMAL SPECTRUM WEIGHTED VERSION
-##################################################
+######################################
+# THIS IS THE LT  VERSION
+######################################
 
 #$1 particle ID (VG20DegS0.5Deg50mv) Required
 #$2 Run Number  (95001, 90020)       Required 
@@ -108,19 +108,25 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
 
+#This is special DistubtedWeights version:DEPRECIATED
+#       $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
+#	                            -RunNumber=$2 \
+#                                   -DistributeEnergy \
+#                                   -OutputVBFFileName=$Spec$ArConfig.vbf ShowerList 
+
 #This is normal version 
-     $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting  \
+#     $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting  \
+#	                   -RunNumber=$2 \
+#                       	   -OutputVBFFileName=$dataDirBase/$Spec$ArConfig.vbf \
+#			   $DirIndexOption \
+#                           ShowerList 
+
+#This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
+     $KASCADEBASE/bin/ksSumFiles  \
 	                   -RunNumber=$2 \
                        	   -OutputVBFFileName=$dataDirBase/$Spec$ArConfig.vbf \
 			   $DirIndexOption \
                            ShowerList 
-
-#This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
-#     $KASCADEBASE/bin/ksSumFiles  \
-#	                   -RunNumber=$2 \
-#                      	   -OutputVBFFileName=$dataDirBase/$Spec$ArConfig.vbf \
-#			   $DirIndexOption \
-#                           ShowerList 
 
 #Cleanup
 cd ..
