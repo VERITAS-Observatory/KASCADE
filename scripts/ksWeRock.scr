@@ -28,7 +28,11 @@ host=$(hostname)
 dataDirBase=/project/veritas/sembrosk
 
 if [ $host = 'isis' ] ; then
-    dataDirBase=/simulations
+    lcl="$PWD"
+    if [ ${lcl:1:4} = "disk" ]; then
+       Disk=${lcl:0:6}
+    fi
+    dataDirBase=$Disk/simulations
 fi
 
 if [ $host = 'io.physics.purdue.edu' ] ; then
