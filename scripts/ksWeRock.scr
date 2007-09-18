@@ -33,20 +33,23 @@ if [ $host = 'isis' ] ; then
        Disk=${lcl:0:6}
     fi
     dataDirBase=$Disk/simulations
+    dstDir=/simulations
 fi
 
 if [ $host = 'io.physics.purdue.edu' ] ; then
-    dataDirBase=/project/io2/simulations
+    Disk=${lcl:0:12}
+    dataDirBase=$Disk/simulations  
+    dstDir=$Disk/simulations
 fi
-
-
 
 if [ ${Spec:0:1} = "V" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
+	dstDir=$dstDir'/veritas'
 fi
 
 if [ ${Spec:0:1} = "W" ] ; then
 	dataDirBase=$dataDirBase'/whipple'
+	dstDir=$dstDir'/whipple'
 fi
 
 cd $dataDirBase
@@ -115,14 +118,14 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 #This is normal version 
      $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting  \
 	                   -RunNumber=$2 \
-                       	   -OutputVBFFileName=$dataDirBase/$Spec$ArConfig.vbf \
+                       	   -OutputVBFFileName=$dstDir/$Spec$ArConfig.vbf \
 			   $DirIndexOption \
                            ShowerList 
 
 #This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
 #     $KASCADEBASE/bin/ksSumFiles  \
 #	                   -RunNumber=$2 \
-#                      	   -OutputVBFFileName=$dataDirBase/$Spec$ArConfig.vbf \
+#                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig.vbf \
 #			   $DirIndexOption \
 #                           ShowerList 
 
