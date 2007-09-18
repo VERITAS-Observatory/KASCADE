@@ -37,6 +37,7 @@ if [ $host = 'isis' ] ; then
 fi
 
 if [ $host = 'io.physics.purdue.edu' ] ; then
+    lcl="$PWD"
     Disk=${lcl:0:12}
     dataDirBase=$Disk/simulations  
     dstDir=$Disk/simulations
