@@ -25,7 +25,8 @@ host=$(hostname)
 
 #Assume default is we are on amdahl
 
-dataDirBase=/project/veritas/sembrosk
+dataDirBase=/project/veritas/sembrosk/simulations
+dstDir=/project/veritas/sembrosk/simulations
 
 if [ $host = 'isis' ] ; then
     lcl="$PWD"
