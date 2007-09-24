@@ -39,7 +39,7 @@ fi
 
 if [ $host = 'io.physics.purdue.edu' ] ; then
     lcl="$PWD"
-    Disk=${lcl:0:12}
+    Disk=${lcl:0:20}
     dataDirBase=$Disk/simulations  
     dstDir=$Disk/simulations
 fi
