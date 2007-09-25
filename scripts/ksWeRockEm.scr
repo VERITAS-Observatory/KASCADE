@@ -98,13 +98,22 @@ fi
 
 if [ ${Spec:1:2} = "CR" ] ; then
 
-   TelSpec=${Spec:0:1}
-   Pspec=$TelSpec'P'${Spec#*CR} #gets 20DegN0.3Deg50mv from WCR20DegN0.3Deg50mv
-				#with P. see pg 97 Bash book.
-   He4spec=$TelSpec'He4_'${Spec#*CR} #Replace CR with He4_
+   if [ ${Spec:3:1} = "A" ] || [ ${Spec:3:1} = "B" ] || [ ${Spec:3:1} = "C" ]; then
+	TypeSpc=${Spec:3:1}
+   fi
 
-   find $dataDirBase/$ZenithAngleDir/protons -name $Pspec$ArConfig'GeV*.vbf'  >CRList
-   find $dataDirBase/$ZenithAngleDir/he4 -name $He4spec$ArConfig'GeV*.vbf'    >>CRList
+   TelSpec=${Spec:0:1}
+   Pspec=$TelSpec'P'${Spec#*CR$TypeSpc} #gets 20DegN0.3Deg50mv from 
+                                       #WCR20DegN0.3Deg50mv
+				       #with P. see pg 97 Bash book.
+   PDirSpec=$TelSpec'P'${Spec#*CR}
+
+   He4spec=$TelSpec'He4_'${Spec#*CR$TypeSpc} #Replace CR with He4_
+   He4DirSpec=$TelSpec'He4_'${Spec#*CR}
+
+   find $dataDirBase/protons/$PDirSpec$ArConfig/ -name $Pspec$ArConfig'GeV*.vbf'  >CRList
+
+   find $dataDirBase/he4/$He4DirSpec$ArConfig/ -name $He4spec$ArConfig'GeV*.vbf'    >>CRList
    gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
