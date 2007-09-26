@@ -895,10 +895,10 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       //  we didn't have to dothis section
       pfSimData->fRunNumber=fRunNumber;
       pfSimData->fEventNumber=fArrayEventNum;
+      pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
+      pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
       if(fTrackingMode)
 	{
-	  pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
-	  pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
 	  pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
 	  pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
 	}
