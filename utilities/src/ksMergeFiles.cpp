@@ -897,11 +897,9 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       pfSimData->fEventNumber=fArrayEventNum;
       pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
       pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
-      if(fTrackingMode)
-	{
-	  pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
-	  pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
-	}
+      pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
+      pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
+
       VSimulationData* pfWriteSimData = pfSimData->copySimData();
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
       // **********************************************
