@@ -1,7 +1,7 @@
 //-*-mode:c++; mode:font-lock;-*-
 /** 
  * \class ksSumFiles * \brief This code Merges 2 VBF files and/or converts the
- * ouput file to a tracking frile froma drift scan. The input files are a 
+ * output file to a tracking frile from drift scan. The input files are a 
  * BaseFile (usually a CR file) and an optional SourceFile (usually a  
  *  Gamma-ray  file).  Events are 
  *  chosen Randomly from the BaseFile file (To mix energies) at a
@@ -388,14 +388,14 @@ int main(int argc, char** argv)
 	  pfAEIn=pfBasePacket->getArrayEvent();
 	  pfAT = pfAEIn->getTrigger();
 
-	  if(i==1)
+	  if(i==1 && !fSourceFileSpecified)
 	    {
 	      if(!fObsElSpecified)
 		{
 		  fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
 		  fObsEl = slaDranrm(fObsEl);
 		}
-	      if(!fObsAzSpecified)
+	      if(!fObsAzSpecified )
 		{
 		  fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
 		  fObsAz = slaDranrm(fObsAz);
@@ -416,7 +416,8 @@ int main(int argc, char** argv)
 	      pfBasePedEventPackets.push_back(i);
 	    }
 	  else if(pfAT->getEventType().trigger==VEventType::L2_TRIGGER)
-	    {	      pfBaseEventPackets.push_back(i);
+	    {
+	      pfBaseEventPackets.push_back(i);
 	    }
 	  else
 	    {
@@ -531,6 +532,7 @@ int main(int argc, char** argv)
 	      else if(pfAT->getEventType().trigger==VEventType::L2_TRIGGER)
 		{
 		  pfSourceEventPackets.push_back(i);
+		  delete pfSourcePacket;
 		}
 	      else
 		{
@@ -541,7 +543,6 @@ int main(int argc, char** argv)
 		  delete pfSourcePacket;
 		  continue;
 		}
-	      delete pfSourcePacket;
 	      
 	    }
 	  std::cout<<std::endl;
@@ -642,15 +643,15 @@ int main(int argc, char** argv)
 	  // ************************************************************
 	  fPriRA=fPriRA + fRAShift;
 	  fPriRA = slaDranrm(fPriRA);
+	  std::cout<<"ksMergeFiles - Tracking Direction RA: "
+		   <<pfConvert->RAToString(fObsRA);
+	  std::cout<<"ksMergeFiles - Tracking Direction Dec: "
+		   <<pfConvert->DecToString(fObsDec);
+	  std::cout<<"ksMergeFiles - Source Direction RA: "
+		   <<pfConvert->RAToString(fPriRA);
+	  std::cout<<"ksMergeFiles - Source Direction Dec: "
+		   <<pfConvert->DecToString(fPriDec)<<std::endl;
 	}
-      std::cout<<"ksMergeFiles - Tracking Direction RA: "
-	       <<pfConvert->RAToString(fObsRA);
-      std::cout<<"ksMergeFiles - Tracking Direction Dec: "
-	       <<pfConvert->DecToString(fObsDec);
-      std::cout<<"ksMergeFiles - Source Direction RA: "
-	       <<pfConvert->RAToString(fPriRA);
-      std::cout<<"ksMergeFiles - Source Direction Dec: "
-	       <<pfConvert->DecToString(fPriDec)<<std::endl;
       
       delete pfBasePacket;
 
@@ -962,16 +963,20 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
 			  
   // ***********************************************************************
   // Reset directions if we are tracking
+  // If a source file was specified this is the Az/elev of the first source
+  // event.  Otherwise this is the az/elev of the first base event.
   // ***********************************************************************
-  float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
-  float fZenith=(float)(fObsAz*gRad2Deg);
-  int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
-  for(int i=0;i<fNumSubArrayTels;i++)
+   if(fTrackingMode)
     {
-      pfAT->setAltitude(i,fAltitude);
-      pfAT->setAzimuth(i,fZenith);
+      float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
+      float fZenith=(float)(fObsAz*gRad2Deg);
+      int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
+      for(int i=0;i<fNumSubArrayTels;i++)
+	{
+	  pfAT->setAltitude(i,fAltitude);
+	  pfAT->setAzimuth(i,fZenith);
+	}
     }
- 
   // ***********************************************************************
   // now put array trigger back into the array event
   // ************************************************************************
