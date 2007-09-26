@@ -392,7 +392,7 @@ int main(int argc, char** argv)
 	    {
 	      if(!fObsElSpecified)
 		{
-		  fObsEl=(90.0 - pfAT->getAltitude(0))/gRad2Deg;
+		  fObsEl=pfAT->getAltitude(0)/gRad2Deg;
 		  fObsEl = slaDranrm(fObsEl);
 		}
 	      if(!fObsAzSpecified )
@@ -966,16 +966,13 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // If a source file was specified this is the Az/elev of the first source
   // event.  Otherwise this is the az/elev of the first base event.
   // ***********************************************************************
-   if(fTrackingMode)
+  float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
+  float fZenith=(float)(fObsAz*gRad2Deg);
+  int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
+  for(int i=0;i<fNumSubArrayTels;i++)
     {
-      float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
-      float fZenith=(float)(fObsAz*gRad2Deg);
-      int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
-      for(int i=0;i<fNumSubArrayTels;i++)
-	{
-	  pfAT->setAltitude(i,fAltitude);
-	  pfAT->setAzimuth(i,fZenith);
-	}
+      pfAT->setAltitude(i,fAltitude);
+      pfAT->setAzimuth(i,fZenith);
     }
   // ***********************************************************************
   // now put array trigger back into the array event
