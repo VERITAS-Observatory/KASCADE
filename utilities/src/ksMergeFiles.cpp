@@ -128,11 +128,15 @@ int main(int argc, char** argv)
       VAOptions command_line(argc,argv);
 
       double fBaseRateHz=100.0;
-      command_line.findWithValue("BaseRateHz",fBaseRateHz,
-			   "Rate in Hz at which events from the Base "
-			   "file will be put into the output file. Default is "
-			   "100.0 Hz");
- 
+      if(command_line.findWithValue("BaseRateHz",fBaseRateHz,
+				    "Rate in Hz at which events from the Base "
+				    "file will be put into the output file. "
+				    "Default is 100.0 Hz")	
+	 == VAOptions::FS_FOUND)
+	{
+	  std::cout<<"ksMergeFiles - BaseRate Hz:"<< fBaseRateHz<<std::endl;
+	}	
+      
       double fSourceRateHz=25.0/60.0;
       double fSourceRateMin=25.0;
       if(command_line.findWithValue("SourceRatePerMinute",
@@ -143,6 +147,8 @@ int main(int argc, char** argv)
 	 == VAOptions::FS_FOUND)
 	{
 	  fSourceRateHz=fSourceRateMin/60.;
+	  std::cout<<"ksMergeFiles - SourceRate Per Minute: "
+		   << fSourceRateMin<<std::endl;
 	}
  
       int fMaxNumOutputEvents;
