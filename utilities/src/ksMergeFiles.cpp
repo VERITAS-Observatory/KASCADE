@@ -144,7 +144,21 @@ int main(int argc, char** argv)
 	{
 	  fSourceRateHz=fSourceRateMin/60.;
 	}
+ 
+      int fMaxNumOutputEvents;
+      bool fMaxNumOutputEventsSpecified=false;
       
+      if(command_line.findWithValue("MaxNumberOutputEvents",
+				    fMaxNumOutputEvents,
+				    "Maximum number of events from Base file "
+				    "written to output file. Default is to "
+				    "write out all Base file events.")
+	 == VAOptions::FS_FOUND)
+	{
+	  fMaxNumOutputEventsSpecified=true;
+	  std::cout<<"ksMergeFiles - Output file limited to "
+		   << fMaxNumOutputEvents<<" events."<<std::endl;
+	}      
 
       if(command_line.find("TrackingMode",
 			   "Enables simulation of a tracking run. Telescope "
@@ -776,6 +790,11 @@ int main(int argc, char** argv)
 			   <<fPercentDone<<"%)"<<std::endl;
 
 		}
+	      if(fMaxNumOutputEventsSpecified && 
+		  fNumBaseEvents>=fMaxNumOutputEvents)
+		{
+		  break;
+		}
 
 	      fNumBaseEvents++;
 	    }
@@ -897,9 +916,14 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       pfSimData->fEventNumber=fArrayEventNum;
       pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
       pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
-      pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
-      pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
-
+      
+      //std::cout<<"Sim Az,Zenith: "<<  pfSimData->fObservationAzimuthDeg<<" "
+      //	       <<pfSimData->fObservationZenithDeg<<std::endl;
+      if(fTrackingMode)
+	{
+	  pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
+	  pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
+	}
       VSimulationData* pfWriteSimData = pfSimData->copySimData();
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
       // **********************************************
@@ -964,13 +988,13 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // If a source file was specified this is the Az/elev of the first source
   // event.  Otherwise this is the az/elev of the first base event.
   // ***********************************************************************
-  float fAltitude=(float)(90.0-(fObsEl*gRad2Deg));
-  float fZenith=(float)(fObsAz*gRad2Deg);
+  float fAltitude =(float)(fObsEl*gRad2Deg);
+  float fAzimuth  =(float)(fObsAz*gRad2Deg);
   int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
   for(int i=0;i<fNumSubArrayTels;i++)
     {
       pfAT->setAltitude(i,fAltitude);
-      pfAT->setAzimuth(i,fZenith);
+      pfAT->setAzimuth(i,fAzimuth);
     }
   // ***********************************************************************
   // now put array trigger back into the array event
