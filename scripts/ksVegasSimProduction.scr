@@ -1,43 +1,67 @@
 #!/bin/bash
 
-#This runs first 4 vegas stages on Kascade sim files;
+#This runs first 5 vegas stages on Kascade sim files;
 #$1 VBF file to process.
-#$2 Bad pixel file name.
+#$2 Bad pixel file name(optional).
 
 #Make simLaser file (even if it already exists, this is very fast)
 
-$VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser -AIF_DataSource=CompiledOnly \
+Stage1Laser=enable
+Stage1Data=enable
+Stage2=enable
+Stage3=enable
+Stage4N=enable
+Stage4E=enable
+Stage5N=enable
+Stage5E=enable
+
+if [ -n "$Stage1Laser" ]; then
+
+    echo Stage1Laser:$Stage1Laser
+    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser \
+        -AIF_DataSource=CompiledOnly \
         -AIFC_OverrideArray=VC499_BASE -G_SimulationMode=1 dummyFileName \
         simLaser.root
+fi
+
+
 
 #Now process the file:
 VBFFileName=$1
 RootFileName=${VBFFileName%".vbf"}'.root'
 
 #BadPixelFile=$2
-#if [ -e $BadPixelFile ]; then
+#if [ -e $BadPixelFile" ]; then
 #    BadPixelOption='-BCI_BadChannelList='$BadPixelFile
 #fi
 
-$VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 -RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller $VBFFileName $RootFileName
+if [ -n "$Stage1Data" ]; then
+    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
+	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
+	$VBFFileName $RootFileName
+fi
 
-$VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption $VBFFileName $RootFileName simLaser.root
+
+if [ -n "$Stage2" ]; then
+    $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
+	$VBFFileName $RootFileName simLaser.root
+fi
+
 
 ResultsFileName=${VBFFileName%".vbf"}'R.root'
 
-#MakeTrackFromDriftOption='-MakeTrackFromDriftSim '
+MakeTrackFromDriftOption='-MakeTrackFromDriftSim '
 
 
-$VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName $MakeTrackFromDriftOption -EnableProgressDisplay $RootFileName
+if [ -n "$Stage3" ]; then
+    $VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName \
+	$MakeTrackFromDriftOption -EnableProgressDisplay $RootFileName
+fi
 
 rm $RootFileName
 
-#NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
+NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
-
-#cp -v $ResultsFileName $NcutRootFileName
-mv -v $ResultsFileName $EcutRootFileName
-
 
 Wobble=${VBFFileName%%Wbl*}Wbl
 Wobble=${Wobble#*Deg}
@@ -54,22 +78,33 @@ else
 fi
 
 
-host=$(hostname)
-if [ $host = 'isis' ] ; then
-    LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
-else
-    LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
+if [ -n "$Stage4N" ]; then
+    cp -v $ResultsFileName $NcutRootFileName
+    $VEGASBASE/bin/vaStage4 \
+	-SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted.root/ \
+	$NcutRootFileName
 fi
 
-#$VEGASBASE/bin/vaStage4 -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedNcutted_$Wobble.root $NcutRootFileName
+CutTelescopeOption='-CutTelescope=4/1'
 
-#CutTelescopeOption='-CutTelescope=4/1'
+if [ -n "$Stage4E" ]; then
+    cp -v $ResultsFileName $EcutRootFileName
+    $VEGASBASE/bin/vaStage4 \
+	-SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted_$Wobble'.root' \
+	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
+	-SizeLower=400 \
+	$CutTelescopeOption $EcutRootFileName
+fi
 
-$VEGASBASE/bin/vaStage4 \
-  -SRS_LookupTableFileName=$LookUpTableDir/lookuptables_EcleanedEcutted_$Wobble.root \
-  -DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
-  -SizeLower=400 \
-   $CutTelescopeOption $EcutRootFileName
+CutsFileSpecification='-cuts=spectrumCuts'
 
-$VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$EcutRootFileName
+if [ -n "$Stage5N" ]; then
+    $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$NcutRootFileName \
+	$CutsFileSpecification
+fi
+
+if [ -n "$Stage5E" ]; then
+    $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$EcutRootFileName \
+	$CutsFileSpecification
+fi
 
