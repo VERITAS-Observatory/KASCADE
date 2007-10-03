@@ -96,14 +96,17 @@ if [ -n "$Stage4E" ]; then
 	$CutTelescopeOption $EcutRootFileName
 fi
 
+CutsOption='-cuts=spectrumCuts'
+
+
 if [ -n "$Stage5N" ]; then
     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$NcutRootFileName \
-	-cuts=spectrumCuts
+	$CutsOption
 fi
 
 if [ -n "$Stage5E" ]; then
     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$EcutRootFileName \
-	-cuts=spectrumCuts
+	$CutsOption
 fi
 
 
