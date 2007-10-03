@@ -62,7 +62,7 @@ NcutRootFileName=${NcutRootFile##*/}
 EcutRootFile=${VBFFileName%".cvbf"}'ECut.root'
 EcutRootFileName=${EcutRootFile##*/}
 
-Wobble=$2
+Wobble=$3
 if [ -z "$Wobble" ]; then
     Wobble='0.0Wbl'
 fi
