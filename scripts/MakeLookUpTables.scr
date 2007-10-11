@@ -1,9 +1,12 @@
 #!/bin/bash
 # assumes that all directorys $1/LT$Zen are temporary.
-#Assums that the directory this is run from (lcl) has the files:
-# $Pre$Zen$post.root  (Example: NewVGammaRay20Deg50mv123-M2S3.root )
-#$1 dir
-# So to run looks like: "./MakeLookUpTables.scr /simulations/veritas"
+#Assums that the directory this is run from (lcl) has the stage4 ouput root 
+# files:
+# $Pre$Zen$post.root  (Example: NewVGammaRay20Deg50mv123-M2TrueEECut.root )
+
+# So to run looks like: "./MakeLookUpTables.scr "
+
+
 function MakeLookUp()
 {
 	
@@ -20,23 +23,28 @@ function MakeLookUp()
 
     cd $lcl
 
-    $VEGASBASE/showerReconstruction/bin/produce_lookuptables $Dir/LT$Zen/ \
-    $LTName'Ncut.root'
+    $VEGASBASE/showerReconstruction/bin/produce_lookuptables -DrawHist=0 \
+	-stage4isBatch=1 $Dir/LT$Zen/ $LTName'Ncut.root'
 
     $VEGASBASE/showerReconstruction/bin/produce_lookuptables \
+	-DrawHist=0 -stage4isBatch=1 \
 	-save_cuts GlensStdECuts.cuts \
-	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=6  \
+	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
 	$Dir/LT$Zen/  $LTName'Ecut.root'
 }
 
 
-Dir=$1
-LTName=GlennsLT
-Pre=NewVGammaRay
-Post=Deg50mv123-M2S3
+Dir="$PWD"
+LTName=GlennLT_0.0Wbl
+Pre=VeritasGammaRayLT
+Post=Deg0Wbl50mv1234M2R
+#Post=DegS1.0Wbl50mv1234M2R
 lcl="$PWD"
 
 Zen='1'
+MakeLookUp
+
+Zen='10'
 MakeLookUp
 
 Zen='20'
@@ -49,5 +57,11 @@ Zen='40'
 MakeLookUp
 
 Zen='50'
+MakeLookUp
+
+Zen='60'
+MakeLookUp
+
+Zen='70'
 MakeLookUp
 

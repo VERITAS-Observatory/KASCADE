@@ -72,6 +72,7 @@ echo Wobble: $Wobble
 
 NTable=lookuptables_EcleanedNcutted.root
 ETable=lookuptables_EcleanedEcutted_$Wobble'.root'
+#ETable=lookuptables_EcleanedEcutted.root
 
 host=$(hostname)
 if [ $host = 'isis' ] ; then
@@ -80,11 +81,16 @@ else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
 fi
 
+#LookUpTableDir=/simulations/veritas
+#NTable=GlennLTNcut.root
+#ETable=GlennLTEcut.root
+
+echo $LookUpTableDir/$NTable
 
 if [ -n "$Stage4N" ]; then
     cp -v $ResultsFileName $NcutRootFileName
     $VEGASBASE/bin/vaStage4 \
-	-SRS_LookupTableFileName=$LookUpTableDir/$NTable
+	-SRS_LookupTableFileName=$LookUpTableDir/$NTable \
 	$NcutRootFileName
 fi
 
