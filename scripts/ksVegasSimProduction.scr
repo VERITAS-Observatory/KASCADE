@@ -9,7 +9,6 @@
 Stage1Laser=enable
 Stage1Data=enable
 Stage2=enable
-Stage3=enable
 Stage4N=enable
 Stage4E=enable
 Stage5N=enable
@@ -24,16 +23,10 @@ if [ -n "$Stage1Laser" ]; then
         simLaser.root
 fi
 
-
-
 #Now process the file:
 VBFFileName=$1
 RootFileName=${VBFFileName%".vbf"}'.root'
 
-#BadPixelFile=$2
-#if [ -e $BadPixelFile" ]; then
-#    BadPixelOption='-BCI_BadChannelList='$BadPixelFile
-#fi
 
 if [ -n "$Stage1Data" ]; then
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
@@ -41,24 +34,12 @@ if [ -n "$Stage1Data" ]; then
 	$VBFFileName $RootFileName
 fi
 
+MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
 
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
-	$VBFFileName $RootFileName simLaser.root
+	$MakeTrackFromDriftOption $VBFFileName $RootFileName simLaser.root
 fi
-
-
-ResultsFileName=${VBFFileName%".vbf"}'R.root'
-
-MakeTrackFromDriftOption='-MakeTrackFromDriftSim '
-
-
-if [ -n "$Stage3" ]; then
-    $VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName \
-	$MakeTrackFromDriftOption -EnableProgressDisplay $RootFileName
-fi
-
-rm $RootFileName
 
 NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
@@ -72,7 +53,6 @@ echo Wobble: $Wobble
 
 NTable=lookuptables_EcleanedNcutted.root
 ETable=lookuptables_EcleanedEcutted_$Wobble'.root'
-#ETable=lookuptables_EcleanedEcutted.root
 
 host=$(hostname)
 if [ $host = 'isis' ] ; then
@@ -81,28 +61,28 @@ else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
 fi
 
-#LookUpTableDir=/simulations/veritas
-#NTable=GlennLTNcut.root
-#ETable=GlennLTEcut.root
-
-echo $LookUpTableDir/$NTable
-
-if [ -n "$Stage4N" ]; then
-    cp -v $ResultsFileName $NcutRootFileName
-    $VEGASBASE/bin/vaStage4 \
-	-SRS_LookupTableFileName=$LookUpTableDir/$NTable \
-	$NcutRootFileName
-fi
 
 CutTelescopeOption='-CutTelescope=4/1'
 
+
+
+if [ -n "$Stage4N" ]; then
+    cp -v $RootFileName $NcutRootFileName
+    echo NT: $LookUpTableDir/$NTable
+    $VEGASBASE/bin/vaStage4 \
+	-SRS_LookupTableFileName=$LookUpTableDir/$NTable \
+        $NcutRootFileName
+fi
+
+
 if [ -n "$Stage4E" ]; then
-    cp -v $ResultsFileName $EcutRootFileName
+    cp -v $RootFileName $EcutRootFileName
+    echo ET: $LookUpTableDir/$ETable
     $VEGASBASE/bin/vaStage4 \
 	-SRS_LookupTableFileName=$LookUpTableDir/$ETable \
 	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
 	-SizeLower=400 \
-	$CutTelescopeOption $EcutRootFileName
+	$CutTelescopeOption \ $EcutRootFileName
 fi
 
 CutsFileSpecification='-cuts=spectrumCuts'
