@@ -1,13 +1,12 @@
 #!/bin/bash
 
-#This runs first 4 vegas stages on normal file  files;
+#This runs first 5 vegas stages on normal file  files;
 #$1 VBF file to process. (Ex. /VData/33619.cvbf)
 #$2 Laser file           (Ex. /VData/33616.cvbf)
 #$3 Wbl designation      (Ex. 0Wbl(default), S0.25Wbl)
 Stage1Laser=enable
 Stage1Data=enable
 Stage2=enable
-Stage3=enable
 Stage4N=enable
 Stage4E=enable
 Stage5N=enable
@@ -15,13 +14,6 @@ Stage5E=enable
 
 
 #Now process the file:
-VBFFileName=$1
-RootFile=${VBFFileName%".cvbf"}'.root'
-RootFileName=${RootFile##*/}
-
-#echo RootFileName: $RootFileName
-
-
 
 if [ -n "$Stage1Laser" ]; then
 
@@ -34,7 +26,8 @@ if [ -n "$Stage1Laser" ]; then
                                                               $LSRRootFileName
 fi
 
-
+VBFFileName=$1
+RootFile=${VBFFileName%".cvbf"}'.root'
 
 if [ -n "$Stage1Data" ]; then
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $VBFFileName $RootFileName
@@ -45,16 +38,6 @@ if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  $VBFFileName $RootFileName $LSRRootFileName
 fi
 
-ResultsFile=${VBFFileName%".vbf"}'R.root'
-ResultsFileName=${ResultsFile##*/}
-
-if [ -n "$Stage3" ]; then
-    $VEGASBASE/bin/vaStage3 -ResultsFile=$ResultsFileName \
-	-EnableProgressDisplay \
-	$RootFileName
-fi
-
-rm $RootFileName
 
 NcutRootFile=${VBFFileName%".cvbf"}'NCut.root'
 NcutRootFileName=${NcutRootFile##*/}
@@ -66,6 +49,8 @@ Wobble=$3
 if [ -z "$Wobble" ]; then
     Wobble='0.0Wbl'
 fi
+echo Wobble: $Wobble
+
 
 NTable=lookuptables_EcleanedNcutted.root
 ETable=lookuptables_EcleanedEcutted_$Wobble'.root'
@@ -78,7 +63,8 @@ else
 fi
 
 if [ -n "$Stage4N" ]; then
-    cp -v $ResultsFileName $NcutRootFileName
+    cp -v $RootFileName $NcutRootFileName
+    echo NT: $LookUpTableDir/$NTable
     $VEGASBASE/bin/vaStage4 \
          -SRS_LookupTableFileName=$LookUpTableDir/$NTable \
          $NcutRootFileName
@@ -88,7 +74,8 @@ fi
 CutTelescopeOption='-CutTelescope=4/1'
 
 if [ -n "$Stage4E" ]; then
-    cp -v $ResultsFileName $EcutRootFileName
+    cp -v $RootFileName $EcutRootFileName
+    echo ET: $LookUpTableDir/$ETable
     $VEGASBASE/bin/vaStage4 \
 	-SRS_LookupTableFileName=$LookUpTableDir/$ETable \
 	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
@@ -96,17 +83,17 @@ if [ -n "$Stage4E" ]; then
 	$CutTelescopeOption $EcutRootFileName
 fi
 
-CutsOption='-cuts=spectrumCuts'
+CutsFileSpecification='-cuts=spectrumCuts'
 
 
 if [ -n "$Stage5N" ]; then
     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$NcutRootFileName \
-	$CutsOption
+	$CutsFileSpecification
 fi
 
 if [ -n "$Stage5E" ]; then
     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$EcutRootFileName \
-	$CutsOption
+	$CutsFileSpecification
 fi
 
 
