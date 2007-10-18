@@ -2,8 +2,8 @@
 
 #This runs first 5 vegas stages on Kascade sim files;
 #$1 VBF file to process.
-#$2 Bad pixel file name(optional).
-
+#$2 Wobble (optional, mostly for Cosmicv ray files, else Wobble is derived
+#           from file name) Ex: 0Wbl or S0.5Wbl
 #Make simLaser file (even if it already exists, this is very fast)
 
 Stage1Laser=enable
@@ -44,11 +44,17 @@ fi
 NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 
-Wobble=${VBFFileName%%Wbl*}Wbl
-Wobble=${Wobble#*Deg}
+Wobble=$2
+if [ -z "$Wobble" ]; then
+    Wobble=${VBFFileName%%Wbl*}Wbl
+    Wobble=${Wobble#*Deg}
+else
+    Wobble=0Wbl
+fi
 if [ ${Wobble:0:1} = "0" ]; then
     Wobble='0.'$Wobble
 fi
+
 echo Wobble: $Wobble
 
 NTable=lookuptables_EcleanedNcutted.root
