@@ -2,8 +2,8 @@
 
 #This runs first 5 vegas stages on Kascade sim files;
 #$1 VBF file to process.
-#$2 Wobble (optional, mostly for Cosmicv ray files, else Wobble is derived
-#           from file name) Ex: 0Wbl or S0.5Wbl
+#$2 Bad pixel file name(optional).
+
 #Make simLaser file (even if it already exists, this is very fast)
 
 Stage1Laser=enable
@@ -35,26 +35,23 @@ if [ -n "$Stage1Data" ]; then
 fi
 
 MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
+#AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1'
 
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
-	$MakeTrackFromDriftOption $VBFFileName $RootFileName simLaser.root
+	$MakeTrackFromDriftOption  $AddCalibratedEvents $VBFFileName \
+        $RootFileName simLaser.root
 fi
 
 NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
+#EcutRootFileName=${VBFFileName%".vbf"}'ECut12.root'
 
-Wobble=$2
-if [ -z "$Wobble" ]; then
-    Wobble=${VBFFileName%%Wbl*}Wbl
-    Wobble=${Wobble#*Deg}
-else
-    Wobble=0Wbl
-fi
+Wobble=${VBFFileName%%Wbl*}Wbl
+Wobble=${Wobble#*Deg}
 if [ ${Wobble:0:1} = "0" ]; then
     Wobble='0.'$Wobble
 fi
-
 echo Wobble: $Wobble
 
 NTable=lookuptables_EcleanedNcutted.root
@@ -67,10 +64,9 @@ else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
 fi
 
-
-CutTelescopeOption='-CutTelescope=4/1'
-
-
+#LookUpTableDir=/simulations/veritas/PurdueLT
+#ETable=PurdueLTQCuts12_$Wobble'Ecut.root'
+#CutTelescopeOption='-CutTelescope=3/1,4/1'
 
 if [ -n "$Stage4N" ]; then
     cp -v $RootFileName $NcutRootFileName
@@ -88,7 +84,7 @@ if [ -n "$Stage4E" ]; then
 	-SRS_LookupTableFileName=$LookUpTableDir/$ETable \
 	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
 	-SizeLower=400 \
-	$CutTelescopeOption \ $EcutRootFileName
+	$CutTelescopeOption  $EcutRootFileName
 fi
 
 CutsFileSpecification='-cuts=spectrumCuts'
