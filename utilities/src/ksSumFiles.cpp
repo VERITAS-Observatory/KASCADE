@@ -69,6 +69,12 @@ using namespace VConfigMaskUtil;
 const double kEventRateHZ=250.0;  //Allows for ~20*e6 event in a day(limit of
                                   //Qstats time etc).
 
+const double kMinimumDeadTimeSec=325*1.e-6; //Minimum event time seperating.
+
+const uint64_t kThirtyTwobits=0x10000; //Hexadecimal for number of counts in 
+                                       //32 bits 
+
+
 extern "C" void ranstart(int* printseedflag, char* random_seed_file_name, 
 			 int length);
 extern "C" void ranend(int* printseedflag, char* random_seed_file_name, 
@@ -472,6 +478,7 @@ int main(int argc, char** argv)
       VATime fLastValidEventTime;
       VATime fEventTime;
       double fMeanTimeBetweenEventsSec=1./kEventRateHZ;
+      uint64_t fElapsedDeadTime10MHz=0;
       std::cout<<"ksSumFiles:Merging Files.....Takes even longer"
 	       <<std::endl;
       // -----------------------------------------------------------------
@@ -649,6 +656,7 @@ int main(int argc, char** argv)
 			  fEventTime.setFromVBF(fGPSYear,
 						pfAT->getGPSTimeNumElements(),
 						pfAT->getGPSTime());
+			  fFirstValidEventTime=fEventTime;
 			}
 		      else
 			{
@@ -955,7 +963,21 @@ int main(int argc, char** argv)
 			    {
 			      fNumNormalEvents++;
 			    }
-			  
+			  // *************************************************
+			  // Set up the live and dead time scalers.
+			  // Remeber scaleras are 32 and wrap around. Thats 
+			  // why we do mod (% symbol) 32 bits.
+			  // *************************************************
+                          uint64_t fElapsedTimeNs =
+			                       fFirstValidEventTime-fEventTime;
+			  uint64_t fElapsedTime10MHz=fElapsedTimeNs/100;
+			  uint32_t fElapsedTime10MHzScaler=
+			                      fElapsedTime10MHz%kThirtyTwobits;
+                          uint32_t fElapsedDeadTime10MhzScaler =
+			                  fElapsedDeadTime10MHz%kThirtyTwobits;
+			  pfAT->setTenMhzClock(0,fElapsedTime10MHzScaler);
+			  pfAT->setTenMhzClock(1,fElapsedDeadTime10MhzScaler);
+
 			  // now put array trigger back into the array event
 			  VArrayTrigger* pfWriteAT=pfAT->copyAT();
 			  pfAEOut->setTrigger(pfWriteAT);
@@ -1069,9 +1091,11 @@ int main(int argc, char** argv)
 
 		      fLastValidEventTime=fEventTime;
 		      double fEventTimeMJD=fEventTime.getMJDDbl();
-		      double fTimeGapDay=
-			Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
-		      
+		      double fTimeGapDay= (kMinimumDeadTimeSec+
+			      Rexp(fMeanTimeBetweenEventsSec))/(60.*60.*24.);
+		      fElapsedDeadTime10MHz+=
+			                 (uint64_t)(kMinimumDeadTimeSec*1.e7);
+
 		      fEventTimeMJD+=fTimeGapDay;
 		      fEventTime.setFromMJDDbl(fEventTimeMJD);
 		      fArrayEventNum++;
