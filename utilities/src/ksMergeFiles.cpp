@@ -78,7 +78,8 @@ extern "C" void ranend(int* printseedflag, char* random_seed_file_name,
 extern "C" float pran(float* dummy);
 extern "C" double Rexp(double fScaleFactor);
 
-void SetNextEventTime(VATime& fEventTime, double fEventRateHz);
+void SetNextEventTime(VATime& fEventTime, double fEventRateHz, 
+		                              uint64_t fElapsedDeadTime10MHz);
 void SetNextPedEventTime(VATime& fEventTime);
 void CopyEventToMergedFile(VBankFileReader* pfReader, int fPacketIndex, 
 			   VBankFileWriter* pfWriter, int& fArrayEventNum, 
@@ -114,6 +115,12 @@ double fPriRA;
 double fPriDec;
 double fLatitude=0;
 double fEastLongitude=0;
+VATime fFirstValidEventTime;
+uint64_t fElapsedDeadTime10MHz=0;
+const double kMinimumDeadTimeSec=325*1.e-6; //Minimum event time seperating.
+
+const uint64_t kThirtyTwobits=0x10000; //Hexadecimal for number of counts in 
+                                       //32 bits 
 int main(int argc, char** argv)
 { 
   try
@@ -624,7 +631,7 @@ int main(int argc, char** argv)
       // ******************************************************
       VATime fEventTime;
       uint8_t fGPSYear=kGPSYear;
-
+      
       if(!pfBaseReader->hasPacket(1))
 	{
 	  std::cout<<"ksMergeFiles - Missing packet #1. File: "
@@ -646,6 +653,7 @@ int main(int argc, char** argv)
 				pfAT->getGPSTime());
       std::cout<<"ksMergeFiles - Merged File RunStart Time: "<< fEventTime
 	       <<std::endl;
+      fFirstValidEventTime=fEventTime;
       // *************************************************************
       // For tracking runs we need to know what the Ra/Dec will be
       // *************************************************************
@@ -692,7 +700,8 @@ int main(int argc, char** argv)
       SetNextPedEventTime(fBasePedEventTime);
       if(fSourceFileSpecified)
 	{
-	  SetNextEventTime(fSourceEventTime,fSourceRateHz);
+	  SetNextEventTime(fSourceEventTime,fSourceRateHz, 
+		      fElapsedDeadTime10MHz);
 	}
 
       int fNumBaseEvents=0;
@@ -749,7 +758,8 @@ int main(int argc, char** argv)
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
 	      fLastTime=fSourceEventTime;
-	      SetNextEventTime(fSourceEventTime,fSourceRateHz);	      
+	      SetNextEventTime(fSourceEventTime,fSourceRateHz, 
+		      fElapsedDeadTime10MHz);	      
 	      fNumSourceEvents++;
 	    }
 	  else if(fBaseEventTime<fBasePedEventTime)
@@ -788,7 +798,8 @@ int main(int argc, char** argv)
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 	      
 	      fLastTime=fBaseEventTime;
-	      SetNextEventTime(fBaseEventTime,fBaseRateHz);	      
+	      SetNextEventTime(fBaseEventTime,fBaseRateHz, 
+		      fElapsedDeadTime10MHz);	      
 	      if(fNumBaseEvents%10000==0)
 		{
 		  double fPercentDone=(float)(fNumBaseEvents)*100.0/
@@ -827,7 +838,7 @@ int main(int argc, char** argv)
 				    fObsRA,fObsDec,fPriRA,fPriDec);
 
 	      fLastTime=fBasePedEventTime;
-	      SetNextPedEventTime(fBasePedEventTime);	      
+	      SetNextPedEventTime(fBasePedEventTime);
 	      fNumBasePedEvents++;
 	    }
 	  else
@@ -1003,6 +1014,19 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       pfAT->setAltitude(i,fAltitude);
       pfAT->setAzimuth(i,fAzimuth);
     }
+  
+  // *************************************************
+  // Set up the live and dead time scalers.
+  // Remeber scaleras are 32 and wrap around. Thats 
+  // why we do mod (% symbol) 32 bits.
+  // *************************************************
+  uint64_t fElapsedTimeNs =fFirstValidEventTime-fEventTime;
+  uint64_t fElapsedTime10MHz=fElapsedTimeNs/100;
+  uint32_t fElapsedTime10MHzScaler=fElapsedTime10MHz%kThirtyTwobits;
+  uint32_t fElapsedDeadTime10MhzScaler = fElapsedDeadTime10MHz%kThirtyTwobits;
+  pfAT->setTenMhzClock(0,fElapsedTime10MHzScaler);
+  pfAT->setTenMhzClock(1,fElapsedDeadTime10MhzScaler);
+
   // ***********************************************************************
   // now put array trigger back into the array event
   // ************************************************************************
@@ -1062,7 +1086,8 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
 }
 // **************************************************************************
 
-void SetNextEventTime(VATime& fEventTime, double fEventRateHz)
+void SetNextEventTime(VATime& fEventTime, double fEventRateHz, 
+		      uint64_t fElapsedDeadTime10MHz)
 // **********************************************************************
 // Find time of next event following expanetial distribution of time gaps 
 // between events.
@@ -1070,7 +1095,9 @@ void SetNextEventTime(VATime& fEventTime, double fEventRateHz)
 {
   double fMeanTimeBetweenEventsSec=1.0/fEventRateHz;
   double fEventTimeMJD=fEventTime.getMJDDbl();
-  double fTimeGapDay=Rexp(fMeanTimeBetweenEventsSec)/(60.*60.*24.);
+  double fTimeGapDay= 
+    (kMinimumDeadTimeSec+Rexp(fMeanTimeBetweenEventsSec))/(60.*60.*24.);
+  fElapsedDeadTime10MHz+=(uint64_t)(kMinimumDeadTimeSec*1.e7);
   fEventTimeMJD+=fTimeGapDay;
   fEventTime.setFromMJDDbl(fEventTimeMJD);
   return;
@@ -1078,16 +1105,16 @@ void SetNextEventTime(VATime& fEventTime, double fEventRateHz)
 // *************************************************************************
 
 void SetNextPedEventTime(VATime& fEventTime)
- {
-   int fPedSeconds=fEventTime.getSec()+1;
-   uint32_t fYear,fMonth,fDay,H,M,S,NS;
-   fEventTime.getCalendarDate(fYear,fMonth,fDay);
-   fEventTime.getTime(H,M,S,NS);
-   NS=0;   //On the tick!
-   fEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,H,M,
-						 fPedSeconds,NS);
-   return;
- }
+{
+  int fPedSeconds=fEventTime.getSec()+1;
+  uint32_t fYear,fMonth,fDay,H,M,S,NS;
+  fEventTime.getCalendarDate(fYear,fMonth,fDay);
+  fEventTime.getTime(H,M,S,NS);
+  NS=0;   //On the tick!
+  fEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,H,M,
+					fPedSeconds,NS);
+  return;
+}
  // *********************************************************************
 
  
