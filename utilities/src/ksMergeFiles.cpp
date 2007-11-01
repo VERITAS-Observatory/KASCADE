@@ -336,7 +336,8 @@ int main(int argc, char** argv)
       // Set up convert object. Need Longitude and Latitude
       // Load the default VERITAS arrayInfo at fTime.
       // *****************************************************************
-      VATime fTime("2006-08-23 22:00:00 UTC");
+      //VATime fTime("2006-08-23 22:00:00 UTC");
+      VATime fTime(gDefaultStartOfRunTime.c_str());
       VAArrayInfo* pfArrayInfo=
 	VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
       fEastLongitude=pfArrayInfo->longitude();

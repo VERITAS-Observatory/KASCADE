@@ -84,4 +84,6 @@ const int    gFADCLowGainDelayNS    =  20;
 const double gFADCHiLoGainRatio     = 6.0;
 const double gTrigMultiplicityWidthNS = 10.0;  // WHIPPLE490 CFD Pulse width
 const int    gAbsNXAbsNYMax         =16000;    //Ranges of nx,ny
+
+const std::string gDefaultStartOfRunTime="2007-09-11 00:02:00 UTC";
 #endif

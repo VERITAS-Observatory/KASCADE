@@ -99,8 +99,9 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // ************************************************************************
   fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
 
-  VATime fFirstValidEventTime("2006-08-23 22:00:00 UTC"); //Default if we can't
-                                                          //find a time.
+  //VATime fFirstValidEventTime("2006-08-23 22:00:00 UTC"); 
+  VATime fFirstValidEventTime(gDefaultStartOfRunTime.c_str());
+                                            //Default if we can't find a time.
   if(pfFirstTelFile!=NULL)
     {
       fFirstValidEventTime = pfFirstTelFile->getFirstValidEventTime();

@@ -690,7 +690,8 @@ void  KSVBFFile::loadArrayConfiguration()
 // if desired.
 // **************************************************************************
   //This will load the default VERITAS arrayInfo at fTime.
-  VATime fTime("2006-08-23 22:00:00 UTC");
+  //VATime fTime("2006-08-23 22:00:00 UTC");
+  VATime fTime(gDefaultStartOfRunTime.c_str());
   VAArrayInfo* pfArrayInfo=
     VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
   // ***********************************************************************

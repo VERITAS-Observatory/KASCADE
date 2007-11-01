@@ -43,7 +43,7 @@
 
 
 const double kDefaultPedestal             = 20;
-const std::string kFirstValidEventTimeStr ="2005-11-28 02:00:00.000000000 GPS";
+//const std::string kFirstValidEventTimeStr ="2005-11-28 02:00:00.000000000 GPS";
 const double kDefaultEventRatePerSec      = 100.0; 
 
 

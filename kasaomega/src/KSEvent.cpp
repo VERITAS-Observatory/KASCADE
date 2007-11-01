@@ -300,7 +300,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	  std::cout<<std::endl;
 	}
     }
-  fFirstValidEventTime.setFromString(kFirstValidEventTimeStr.c_str());
+  //fFirstValidEventTime.setFromString(kFirstValidEventTimeStr.c_str());
+  fFirstValidEventTime.setFromString(gDefaultStartOfRunTime.c_str());
   fEventTime=fFirstValidEventTime;
 
   // ************************************************************************
