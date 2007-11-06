@@ -58,7 +58,7 @@
 #include "VAOptions.h"
 #include "VSOptions.hpp"
 #include "VATime.h"
-#include "VAAzElRADecXY.h"
+//#include "VAAzElRADecXY.h"
 #include "VAArrayInfo.h"
 #include "VAArrayInfoFactoryLite.h"
 
@@ -81,10 +81,13 @@ extern "C" double Rexp(double fScaleFactor);
 void SetNextEventTime(VATime& fEventTime, double fEventRateHz, 
 		                              uint64_t fElapsedDeadTime10MHz);
 void SetNextPedEventTime(VATime& fEventTime);
+//void CopyEventToMergedFile(VBankFileReader* pfReader, int fPacketIndex, 
+//			   VBankFileWriter* pfWriter, int& fArrayEventNum, 
+//			   int fRunNumber, VATime& fEventTime,double fObsRA,
+//			   double fObsDec, double fPriRA,double fPriDec);
 void CopyEventToMergedFile(VBankFileReader* pfReader, int fPacketIndex, 
 			   VBankFileWriter* pfWriter, int& fArrayEventNum, 
-			   int fRunNumber, VATime& fEventTime,double fObsRA,
-			   double fObsDec, double fPriRA,double fPriDec);
+			   int fRunNumber, VATime& fEventTime);
 
 void usage(const std::string& progname,
 	   const VAOptions& command_line)
@@ -98,23 +101,24 @@ void usage(const std::string& progname,
 }
 
 const uint8_t kGPSYear=6;
-VAAzElRADecXY*  pfConvert;
-bool fTrackingMode=false;
-bool fObsAzSpecified;
-bool fObsElSpecified;
-bool fPriAzSpecified;
-bool fPriElSpecified;
+//VAAzElRADecXY*  pfConvert;
+//bool fTrackingMode=false;
+//bool fObsAzSpecified;
+//bool fObsElSpecified;
+//bool fPriAzSpecified;
+//bool fPriElSpecified;
 
-double fObsAz;
-double fObsEl;
-double fPriAz;
-double fPriEl;
-double fObsRA;
-double fObsDec;
-double fPriRA;
-double fPriDec;
-double fLatitude=0;
-double fEastLongitude=0;
+//double fObsAz;
+//double fObsEl;
+//double fPriAz;
+//double fPriEl;
+//double fObsRA;
+//double fObsDec;
+//double fPriRA;
+//double fPriDec;
+//double fLatitude=0;
+//double fEastLongitude=0;
+
 VATime fFirstValidEventTime;
 uint64_t fElapsedDeadTime10MHz=0;
 const double kMinimumDeadTimeSec=325*1.e-6; //Minimum event time seperating.
@@ -173,89 +177,71 @@ int main(int argc, char** argv)
 		   << fMaxNumOutputEvents<<" events."<<std::endl;
 	}      
 
-      if(command_line.find("TrackingMode",
-			   "Enables simulation of a tracking run. Telescope "
-			   "Ra/Dec is frozen, Primary and Observation Az/El "
-			   "track telescope direction.Default is Drift scan "
-			   "mode")
-	 == VAOptions::FS_FOUND)
-	{
-	  std::cout<<"ksMergeFiles - Output file is a Tracking file"
-		   <<std::endl;
-	  fTrackingMode=true;
-	}
-      else
-	{
-	  std::cout<<"ksMergeFiles - Output file is a Drift Scan file"
-		   <<std::endl;
-	  fTrackingMode=false;
-	}
-
-      if(command_line.findWithValue("ObsAzDeg",fObsAz,
-				    "Set Observation Azimuth (deg) at center "
-				    "of run")
-	 == VAOptions::FS_FOUND)
-	{
-	  fObsAz = fObsAz/gRad2Deg;
-	  fObsAz = slaDranrm(fObsAz);
-	  fObsAzSpecified=true;
-	}
-      else
-	{
-	  fObsAzSpecified=false;
-	}
-
-
-     if(command_line.findWithValue("ObsElevDeg",fObsEl,
-				   "Set Observation Elevation(deg) at "
-				   "center of run")
-	 == VAOptions::FS_FOUND)
-	{
-	  fObsEl=fObsEl/gRad2Deg;
-	  fObsEl = slaDranrm(fObsEl);
-	  fObsElSpecified=true;
-	}
-      else
-	{
-	  fObsElSpecified=false;
-	}
-
-      if(command_line.findWithValue("SrcAzDeg",fPriAz,
-				    "Set Source Azimuth (Deg) at center of "
-				    "run")
-	 == VAOptions::FS_FOUND)
-	{
-	  fPriAz=fPriAz/gRad2Deg;
-	  fPriAzSpecified=true;
-	}
-      else
-	{
-	  fPriAzSpecified=false;
-	}
-
-     if(command_line.findWithValue("SrcElevDeg",fPriEl,
-				   "Set Source Elevation (deg) at center of "
-				   "run")
-	 == VAOptions::FS_FOUND)
-	{
-	  fPriEl=fPriEl/gRad2Deg;
-	  fPriElSpecified=true;
-	}
-      else
-	{
-	  fPriElSpecified=false;
-	}
+      // *******************************************************************
+      //      if(command_line.findWithValue("ObsAzDeg",fObsAz,
+      //		      	    "Set Observation Azimuth (deg) at center "
+      //				    "of run")
+      //	 == VAOptions::FS_FOUND)
+      //	{
+      //	  fObsAz = fObsAz/gRad2Deg;
+      //	  fObsAz = slaDranrm(fObsAz);
+      //	  fObsAzSpecified=true;
+      //	}
+      //else
+      //	{
+      //	  fObsAzSpecified=false;
+      //	}
+      //
+      //
+      //if(command_line.findWithValue("ObsElevDeg",fObsEl,
+      //				   "Set Observation Elevation(deg) at "
+      //				   "center of run")
+      //	 == VAOptions::FS_FOUND)
+      //	{
+      //	  fObsEl=fObsEl/gRad2Deg;
+      //	  fObsEl = slaDranrm(fObsEl);
+      //	  fObsElSpecified=true;
+      //	}
+      //else
+      //	{
+      //	  fObsElSpecified=false;
+      //	}
+      //
+      //if(command_line.findWithValue("SrcAzDeg",fPriAz,
+      //			       "Set Source Azimuth (Deg) at center of "
+      //				    "run")
+      //	 == VAOptions::FS_FOUND)
+      //	{
+      //	  fPriAz=fPriAz/gRad2Deg;
+      //	  fPriAzSpecified=true;
+      //	}
+      //else
+      //	{
+      //	  fPriAzSpecified=false;
+      //	}
+      //
+      //if(command_line.findWithValue("SrcElevDeg",fPriEl,
+      //			     "Set Source Elevation (deg) at center of "
+      //				   "run")
+      //	 == VAOptions::FS_FOUND)
+      //	{
+      //	  fPriEl=fPriEl/gRad2Deg;
+      //	  fPriElSpecified=true;
+      //	}
+      //else
+      //	{
+      //	  fPriElSpecified=false;
+      //	}
+      //
+      // *****************************************************************
 
       int  fSourceDirectionIndex=-1;
       command_line.findWithValue("SrcDirectionIndex",
-				 fSourceDirectionIndex,
-				 "Index of Sim.fDirection source direction to "
-				 "use when including events from "
-				 "the Source File. "
+      				 fSourceDirectionIndex,
+      				 "Index of Sim.fDirection source direction to "
+      				 "use when including events from "
+      				 "the Source File. "
 				 "Default is no selction on fDirection index");
-
-
- 
 
       std::string fSourceFile;
       bool fSourceFileSpecified=false;
@@ -344,13 +330,13 @@ int main(int argc, char** argv)
       // Load the default VERITAS arrayInfo at fTime.
       // *****************************************************************
       //VATime fTime("2006-08-23 22:00:00 UTC");
-      VATime fTime(gDefaultStartOfRunTime.c_str());
-      VAArrayInfo* pfArrayInfo=
-	VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
-      fEastLongitude=pfArrayInfo->longitude();
-      fLatitude=pfArrayInfo->latitude();
+      //VATime fTime(gDefaultStartOfRunTime.c_str());
+      //VAArrayInfo* pfArrayInfo=
+      //	VAArrayInfoFactoryLite::instance()->getArrayInfo(fTime); 
+      //fEastLongitude=pfArrayInfo->longitude();
+      //fLatitude=pfArrayInfo->latitude();
 
-      pfConvert=new VAAzElRADecXY(fEastLongitude,fLatitude);
+      //pfConvert=new VAAzElRADecXY(fEastLongitude,fLatitude);
 
 
       // ******************************************************************
@@ -416,28 +402,29 @@ int main(int argc, char** argv)
 	  pfAEIn=pfBasePacket->getArrayEvent();
 	  pfAT = pfAEIn->getTrigger();
 
-	  if(i==1 && !fSourceFileSpecified)
-	    {
-	      if(!fObsElSpecified)
-		{
-		  fObsEl=pfAT->getAltitude(0)/gRad2Deg;
-		  fObsEl = slaDranrm(fObsEl);
-		}
-	      if(!fObsAzSpecified )
-		{
-		  fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
-		  fObsAz = slaDranrm(fObsAz);
-		}
-	      if(!fPriElSpecified)
-		{
-		  fPriEl=fObsEl;
-		}
-	      if(!fPriAzSpecified)
-		{
-		  fPriAz=fObsAz;
-		}
-	    }
-
+	  // ********************************************************
+	  //  if(i==1 && !fSourceFileSpecified)
+	  // {
+	  //   if(!fObsElSpecified)
+	  //	{
+	  //	  fObsEl=pfAT->getAltitude(0)/gRad2Deg;
+	  //	  fObsEl = slaDranrm(fObsEl);
+	  //	}
+	  //   if(!fObsAzSpecified )
+	  //	{
+	  //	  fObsAz=pfAT->getAzimuth(0)/gRad2Deg;
+	  //	  fObsAz = slaDranrm(fObsAz);
+	  //	}
+	  //   if(!fPriElSpecified)
+	  //	{
+	  //	  fPriEl=fObsEl;
+	  //	}
+	  //   if(!fPriAzSpecified)
+	  //	{
+	  //	  fPriAz=fObsAz;
+	  //	}
+	  // }
+	  // ***************************************************************
 
 	  if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
 	    {
@@ -501,42 +488,42 @@ int main(int argc, char** argv)
 		}
 	      pfSourcePacket=pfSourceReader->readPacket(i); 
 	      
-	      if(i==1)
-		{
-		  if (!pfSourcePacket->
-			            has(VGetSimulationDataBankName())  )
-		    {
-		      std::cout<<"ksMergeFiles - Missing SimulationData in "
-			"File: "<<fSourceFile<<" at packet#: "<<i<<std::endl;
-		      exit(EXIT_FAILURE);
-		    } 
-		  VSimulationData *pfSimData 
-		    =pfSourcePacket->get< VSimulationData >
-		                               (VGetSimulationDataBankName());
-		  if(!fPriElSpecified)
-		    {
-		      fPriEl=(double)( (90.0-pfSimData->fPrimaryZenithDeg)/
-				                                    gRad2Deg); 
-		      fPriEl = slaDranrm(fPriEl);
-		    }
-		  if(!fPriAzSpecified)
-		    {
-		      fPriAz=(double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
-		      fPriAz = slaDranrm(fPriAz);
-		    }
-		  if(!fObsElSpecified)
-		    {
-		      fObsEl=(double)( (90.0-pfSimData->fObservationZenithDeg)/
-			                                           gRad2Deg); 
-		      fObsEl = slaDranrm(fObsEl);
-		    }
-		  if(!fObsAzSpecified)
-		    {
-		      fObsAz=(double)(pfSimData->fObservationAzimuthDeg/
-				                                     gRad2Deg);
-		      fObsAz = slaDranrm(fObsAz);
-		    }
-		}
+	      //if(i==1)
+	      //	{
+	      //	  if (!pfSourcePacket->
+	      //            has(VGetSimulationDataBankName())  )
+	      //	    {
+	      //     std::cout<<"ksMergeFiles - Missing SimulationData in "
+	      //	"File: "<<fSourceFile<<" at packet#: "<<i<<std::endl;
+	      //	      exit(EXIT_FAILURE);
+	      //	    } 
+	      //	  VSimulationData *pfSimData 
+	      //	    =pfSourcePacket->get< VSimulationData >
+	      //                               (VGetSimulationDataBankName());
+	      //if(!fPriElSpecified)
+	      // {
+	      //   fPriEl=(double)( (90.0-pfSimData->fPrimaryZenithDeg)/
+	      //		                                    gRad2Deg); 
+	      //   fPriEl = slaDranrm(fPriEl);
+	      // }
+	      //if(!fPriAzSpecified)
+		  //  {
+		  //   fPriAz=(double)(pfSimData->fPrimaryAzimuthDeg/gRad2Deg);
+		  //    fPriAz = slaDranrm(fPriAz);
+		  //  }
+		  //if(!fObsElSpecified)
+		  // {
+		  //  fObsEl=(double)( (90.0-pfSimData->fObservationZenithDeg)/
+		  //	                                           gRad2Deg); 
+		  //   fObsEl = slaDranrm(fObsEl);
+		  //  }
+		  //if(!fObsAzSpecified)
+		  //  {
+		  //    fObsAz=(double)(pfSimData->fObservationAzimuthDeg/
+		  //		                                     gRad2Deg);
+		  //    fObsAz = slaDranrm(fObsAz);
+		  //  }
+	      //}
 
 	      if (!pfSourcePacket->hasArrayEvent())
 		{
@@ -657,30 +644,30 @@ int main(int argc, char** argv)
       // *************************************************************
       // For tracking runs we need to know what the Ra/Dec will be
       // *************************************************************
-      pfConvert->AzEl2RADec2000(fObsAz,fObsEl,fEventTime,
-				fObsRA,fObsDec);
-      pfConvert->AzEl2RADec2000(fPriAz,fPriEl,fEventTime,
-				fPriRA,fPriDec);
-      if(fTrackingMode)
-	{
-	  //Move this Az/El to the ~ middle of the run.
-	  double fRAShift=(fRunLengthSec/(60.*60.*24.))*M_PI;
-	  fObsRA=fObsRA + fRAShift;
-	  fObsRA = slaDranrm(fObsRA);
-	  // ************************************************************
-	  //Move this Az/El to the ~ middle of the run(note implied div by 2).
-	  // ************************************************************
-	  fPriRA=fPriRA + fRAShift;
-	  fPriRA = slaDranrm(fPriRA);
-	  std::cout<<"ksMergeFiles - Tracking Direction RA: "
-		   <<pfConvert->RAToString(fObsRA);
-	  std::cout<<"ksMergeFiles - Tracking Direction Dec: "
-		   <<pfConvert->DecToString(fObsDec);
-	  std::cout<<"ksMergeFiles - Source Direction RA: "
-		   <<pfConvert->RAToString(fPriRA);
-	  std::cout<<"ksMergeFiles - Source Direction Dec: "
-		   <<pfConvert->DecToString(fPriDec)<<std::endl;
-	}
+      //pfConvert->AzEl2RADec2000(fObsAz,fObsEl,fEventTime,
+      //				fObsRA,fObsDec);
+      //pfConvert->AzEl2RADec2000(fPriAz,fPriEl,fEventTime,
+      //				fPriRA,fPriDec);
+      //if(fTrackingMode)
+      //	{
+      //	  //Move this Az/El to the ~ middle of the run.
+      //	  double fRAShift=(fRunLengthSec/(60.*60.*24.))*M_PI;
+      //	  fObsRA=fObsRA + fRAShift;
+      //	  fObsRA = slaDranrm(fObsRA);
+      //  // ************************************************************
+      //  //Move this Az/El to the ~ middle of the run(note implied div by 2).
+      //  // ************************************************************
+      //	  fPriRA=fPriRA + fRAShift;
+      //	  fPriRA = slaDranrm(fPriRA);
+      //	  std::cout<<"ksMergeFiles - Tracking Direction RA: "
+      //		   <<pfConvert->RAToString(fObsRA);
+      //	  std::cout<<"ksMergeFiles - Tracking Direction Dec: "
+      //		   <<pfConvert->DecToString(fObsDec);
+      //	  std::cout<<"ksMergeFiles - Source Direction RA: "
+      //		   <<pfConvert->RAToString(fPriRA);
+      //	  std::cout<<"ksMergeFiles - Source Direction Dec: "
+      //		   <<pfConvert->DecToString(fPriDec)<<std::endl;
+      //	}
       
       delete pfBasePacket;
 
@@ -753,9 +740,12 @@ int main(int argc, char** argv)
 
 	      pfSourceEventPackets.erase(fPos);
 	      
+	      //CopyEventToMergedFile(pfSourceReader,fPacketIndex,pfWriter,
+	      //		    fArrayEventNum,fRunNumber,fSourceEventTime,
+	      //			    fObsRA,fObsDec,fPriRA,fPriDec);
 	      CopyEventToMergedFile(pfSourceReader,fPacketIndex,pfWriter,
-				    fArrayEventNum,fRunNumber,fSourceEventTime,
-				    fObsRA,fObsDec,fPriRA,fPriDec);
+				    fArrayEventNum,fRunNumber,
+				    fSourceEventTime);
 	      
 	      fLastTime=fSourceEventTime;
 	      SetNextEventTime(fSourceEventTime,fSourceRateHz, 
@@ -792,10 +782,11 @@ int main(int argc, char** argv)
 	      pfBaseEventPackets.erase(fPos);
 	      
 	      // *********************************************************
-
+	      //CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
+	      //		    fArrayEventNum,fRunNumber,fBaseEventTime,
+	      //		    fObsRA,fObsDec,fPriRA,fPriDec);
 	      CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
-				    fArrayEventNum,fRunNumber,fBaseEventTime,
-				    fObsRA,fObsDec,fPriRA,fPriDec);
+				    fArrayEventNum,fRunNumber,fBaseEventTime);
 	      
 	      fLastTime=fBaseEventTime;
 	      SetNextEventTime(fBaseEventTime,fBaseRateHz, 
@@ -832,10 +823,14 @@ int main(int argc, char** argv)
 
 	      pfBasePedEventPackets.erase(fPos);
 
+	      //CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
+	      //			    fArrayEventNum,fRunNumber,
+	      //			    fBasePedEventTime,
+	      //			    fObsRA,fObsDec,fPriRA,fPriDec);
+
 	      CopyEventToMergedFile(pfBaseReader,fPacketIndex,pfWriter,
 				    fArrayEventNum,fRunNumber,
-				    fBasePedEventTime,
-				    fObsRA,fObsDec,fPriRA,fPriDec);
+				    fBasePedEventTime);
 
 	      fLastTime=fBasePedEventTime;
 	      SetNextPedEventTime(fBasePedEventTime);
@@ -867,10 +862,10 @@ int main(int argc, char** argv)
 	       <<fNumSourceEvents<<std::endl;
 
       std::cout<<"ksMergeFiles - End of Run at: "<<fLastTime<<std::endl;
-      std::cout<<"ksMergeFiles - End Observation Az: "<<fObsAz*gRad2Deg
-	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
-      std::cout<<"ksMergeFiles - End Primary Az: "<<fPriAz*gRad2Deg
-	       <<" Prmary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
+      //      std::cout<<"ksMergeFiles - End Observation Az: "<<fObsAz*gRad2Deg
+      //	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
+      //std::cout<<"ksMergeFiles - End Primary Az: "<<fPriAz*gRad2Deg
+      //	       <<" Prmary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
       std::cout<<"ksMergeFiles - Normal end"<<std::endl;
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
@@ -894,10 +889,13 @@ int main(int argc, char** argv)
 }
 // **************************************************************************
 
+//void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex, 
+//			    VBankFileWriter* pfWriter, int& fArrayEventNum, 
+//			    int fRunNumber, VATime& fEventTime,double fObsRA,
+//			    double fObsDec, double fPriRA, double fPriDec)
 void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex, 
 			    VBankFileWriter* pfWriter, int& fArrayEventNum, 
-			    int fRunNumber, VATime& fEventTime,double fObsRA,
-			    double fObsDec, double fPriRA, double fPriDec)
+			    int fRunNumber, VATime& fEventTime)
 // ***********************************************************************
 // Copy a packet form th intput reader to the Merged ouput file. Be sure to 
 // update all times run numbers and event numbers.
@@ -909,11 +907,11 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // *************************************************
   // Update event numbers here and maybe times an maybe AzEl of obs and pri
   // *************************************************
-  if(fTrackingMode)
-    {
-      pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsEl);
-      pfConvert->RADec2000ToAzEl(fPriRA,fPriDec,fEventTime,fPriAz,fPriEl);
-    }
+  //  if(fTrackingMode)
+  // {
+  //   pfConvert->RADec2000ToAzEl(fObsRA,fObsDec,fEventTime,fObsAz,fObsEl);
+  //   pfConvert->RADec2000ToAzEl(fPriRA,fPriDec,fEventTime,fPriAz,fPriEl);
+  //  }
       
   // *************************************************
   // Fix up simulation data bank in this packet
@@ -932,16 +930,16 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
       //  we didn't have to dothis section
       pfSimData->fRunNumber=fRunNumber;
       pfSimData->fEventNumber=fArrayEventNum;
-      pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
-      pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
+      //  pfSimData->fObservationZenithDeg=90.0-(fObsEl*gRad2Deg);
+      //pfSimData->fObservationAzimuthDeg=fObsAz*gRad2Deg;
       
       //std::cout<<"Sim Az,Zenith: "<<  pfSimData->fObservationAzimuthDeg<<" "
       //	       <<pfSimData->fObservationZenithDeg<<std::endl;
-      if(fTrackingMode)
-	{
-	  pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
-	  pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
-	}
+      //if(fTrackingMode)
+      //	{
+      //  pfSimData->fPrimaryZenithDeg=90.-(fPriEl*gRad2Deg);
+      //	  pfSimData->fPrimaryAzimuthDeg=fPriAz*gRad2Deg;
+      //	}
       VSimulationData* pfWriteSimData = pfSimData->copySimData();
       pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
       // **********************************************
@@ -1006,14 +1004,14 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   // If a source file was specified this is the Az/elev of the first source
   // event.  Otherwise this is the az/elev of the first base event.
   // ***********************************************************************
-  float fAltitude =(float)(fObsEl*gRad2Deg);
-  float fAzimuth  =(float)(fObsAz*gRad2Deg);
-  int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
-  for(int i=0;i<fNumSubArrayTels;i++)
-    {
-      pfAT->setAltitude(i,fAltitude);
-      pfAT->setAzimuth(i,fAzimuth);
-    }
+  //float fAltitude =(float)(fObsEl*gRad2Deg);
+  //float fAzimuth  =(float)(fObsAz*gRad2Deg);
+  //int fNumSubArrayTels=pfAT->getNumSubarrayTelescopes();
+  //for(int i=0;i<fNumSubArrayTels;i++)
+  //  {
+  //    pfAT->setAltitude(i,fAltitude);
+  //    pfAT->setAzimuth(i,fAzimuth);
+  //  }
   
   // *************************************************
   // Set up the live and dead time scalers.
@@ -1065,21 +1063,21 @@ void  CopyEventToMergedFile(VBankFileReader* pfReader,int fPacketIndex,
   pfWriter->writePacket(fArrayEventNum,pfWritePacket);
   delete pfWritePacket;
   delete pfPacket;
-  if(fArrayEventNum==1)
-    {
-      std::cout<<"ksMergeFiles - Start Observation Az: "<<fObsAz*gRad2Deg
-	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
-      std::cout<<"ksMergeFiles - Start Primary Az: "<<fPriAz*gRad2Deg
-	       <<" Primary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
-      if(fTrackingMode)
-	{
-	  double fDerotangle = atan2(-1.0*cos(fLatitude)*sin(fObsAz),
-				     (cos(fObsEl)*sin(fLatitude) - 
-				      sin(fObsEl)*cos(fObsAz)));
-	  std::cout<<"ksMergeFiles - Max Image rotation(deg): "
-		   <<180.+fDerotangle*gRad2Deg<<std::endl;
-	}
-    }
+  //if(fArrayEventNum==1)
+  // {
+  //   std::cout<<"ksMergeFiles - Start Observation Az: "<<fObsAz*gRad2Deg
+  //	       <<" Observation Zenith: "<<(90.-fObsEl*gRad2Deg)<<std::endl;
+  //   std::cout<<"ksMergeFiles - Start Primary Az: "<<fPriAz*gRad2Deg
+  //	       <<" Primary Zenith: "<<(90.-fPriEl*gRad2Deg)<<std::endl;
+  //   if(fTrackingMode)
+  //	{
+  //	  double fDerotangle = atan2(-1.0*cos(fLatitude)*sin(fObsAz),
+  //				     (cos(fObsEl)*sin(fLatitude) - 
+  //				      sin(fObsEl)*cos(fObsAz)));
+  //	  std::cout<<"ksMergeFiles - Max Image rotation(deg): "
+  //		   <<180.+fDerotangle*gRad2Deg<<std::endl;
+  //	}
+  // }
 
   fArrayEventNum++;
   return;
