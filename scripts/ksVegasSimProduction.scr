@@ -34,13 +34,16 @@ if [ -n "$Stage1Data" ]; then
 	$VBFFileName $RootFileName
 fi
 
-MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
+#MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
 #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1'
+EnableMuonDataOption='-WriteMuonData=1'
+EnableImageTimingOption='WriteImageTimingData=0'
 
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
-	$MakeTrackFromDriftOption  $AddCalibratedEvents $VBFFileName \
-        $RootFileName simLaser.root
+	$MakeTrackFromDriftOption  $AddCalibratedEvents \
+        $EnableMuonDataOption $EnableImageTimingOption  \
+        $VBFFileName $RootFileName simLaser.root
 fi
 
 NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
