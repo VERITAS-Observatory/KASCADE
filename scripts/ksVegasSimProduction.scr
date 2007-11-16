@@ -36,8 +36,8 @@ fi
 
 #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
 #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1'
-EnableMuonDataOption='-WriteMuonData=1'
-EnableImageTimingOption='WriteImageTimingData=0'
+EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' 
+EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
 
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
