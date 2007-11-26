@@ -402,7 +402,7 @@ int main(int argc, char** argv)
       pfPeFile->WritePeHead(pfPeHead);
       pfPeHead->PrintPeHead();
 
-      pfPe=new KSPeData;
+      pfPe=new KSPeData();
 
     // ------------------------------------------------------------------------
     // Make the light for the shower
