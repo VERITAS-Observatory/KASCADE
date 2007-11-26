@@ -285,7 +285,7 @@ int main(int argc, char** argv)
     //Open the input Pe file and read in the seg and pe headers
     // ------------------------------------------------------------------------
       std::cout<<"ksTrigger: Input Sorted Pe File: "<<PesFileName<<std::endl;
-      KSSegmentHeadData* pfSegmentHead=new KSSegmentHeadData;
+      KSSegmentHeadData* pfSegmentHead=new KSSegmentHeadData();
       KSPeHeadData* pfPeHead=new KSPeHeadData();
   
       KSPeFile* pfPesFile=new KSPeFile();
