@@ -4,30 +4,31 @@
 #$1 VBF file to process. (Ex. /VData/33619.cvbf)
 #$2 Laser file           (Ex. /VData/33616.cvbf)
 #$3 Wbl designation      (Ex. 0Wbl(default), S0.25Wbl)
+
 Stage1Laser=enable
 Stage1Data=enable
 Stage2=enable
-Stage4N=enable
-Stage4E=enable
-Stage5N=enable
-Stage5E=enable
+#Stage4N=enable
+#Stage4E=enable
+#Stage5N=enable
+#Stage5E=enable
 
 
 #Now process the file:
+VBFLSRFileName=$2
+LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
+LSRRootFileName=${LSRRootFile##*/}
 
 if [ -n "$Stage1Laser" ]; then
 
-    VBFLSRFileName=$2
-    LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
-    LSRRootFileName=${LSRRootFile##*/}
-    #echo LSRRootFileName: $LSRRootFileName
 
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
                                                               $LSRRootFileName
 fi
 
 VBFFileName=$1
-RootFileName=${VBFFileName%".cvbf"}'.root'
+RootFile=${VBFFileName%".cvbf"}'.root'
+RootFileName=${RootFile##*/}
 
 if [ -n "$Stage1Data" ]; then
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $VBFFileName $RootFileName
@@ -37,8 +38,12 @@ fi
 EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' 
 EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
 
+echo $VBFFileName
+echo $RootFileName
+echo $LSRRootFileName
+
 if [ -n "$Stage2" ]; then
-    $VEGASBASE/bin/vaStage2  $VBFFileName $RootFileName $LSRRootFileName
+    $VEGASBASE/bin/vaStage2  $EnableMuonDataOption $EnableImageTimingOption $VBFFileName $RootFileName $LSRRootFileName
 fi
 
 
