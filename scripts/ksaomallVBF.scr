@@ -8,10 +8,10 @@
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 
-KascadeEnable=enable
-LightEnable=enable
-PeSortMergeEnable=enable
-TriggerEnable=enable
+#KascadeEnable=enable
+#LightEnable=enable
+#PeSortMergeEnable=enable
+#TriggerEnable=enable
 AomegaEneable=enable
 ArrayTriggerEnable=enable
 
