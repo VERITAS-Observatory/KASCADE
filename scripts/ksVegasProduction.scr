@@ -27,12 +27,15 @@ if [ -n "$Stage1Laser" ]; then
 fi
 
 VBFFileName=$1
-RootFile=${VBFFileName%".cvbf"}'.root'
+RootFileName=${VBFFileName%".cvbf"}'.root'
 
 if [ -n "$Stage1Data" ]; then
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $VBFFileName $RootFileName
 fi
-
+#MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
+#AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1'
+EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' 
+EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
 
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  $VBFFileName $RootFileName $LSRRootFileName
