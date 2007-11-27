@@ -37,8 +37,29 @@ while [ -d "$dirID" ]; do
   let dirID=$(date +10#%N)+$$
 done
 
-cd workingScratch          #This may be a link from the home dir (amdahl)
-                       # or an actual sub dir of the running dir (isis)
+#All auxillary files are in wrkdir.
+#All temp data kept in $wrkdir. 
+#Final results go into $5;
+#Make sure directory exists, if not create it.
+if [ -z "$5" ]; then
+    echo "ksall:Data Directory must be specified"
+    exit
+fi
+
+if [ ! -d "$5" ]; then
+       mkdir -p $5
+fi
+
+if [ $host != 'isis' ]; then
+	cd $5
+fi
+
+if [ ! -d "workingScratch" ]; then
+       mkdir -p workingScratch
+       chmod 777 workingScratch
+fi
+cd workingScratch          #This is a  sub dir of the data dir (PBS)
+                           #or sub dir of working dir. (isis)
 
 #create working directory.
 mkdir $dirID
@@ -103,18 +124,7 @@ ln -s $inpDir/$ksArrayTriggerConfig $ksArrayTriggerConfig
 ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
 ln -s $inpDir/extinction_uv.dat extinction_uv.dat
 
-#All auxillary files are in wrkdir.
-#All temp data kept in $wrkdir. 
-#Final results go into $5;
-#Make sure directory exists, if not create it.
-if [ -z "$5" ]; then
-    echo "ksall:Data Directory must be specified"
-    exit
-fi
 
-if [ ! -d "$5" ]; then
-       mkdir -p $5
-fi
 
 #Setup unique random seed files into working dir.
 cp -v $inpDir/ksKascade.ran ksKascade.ran  #Copy in a file to overwrite
@@ -139,15 +149,6 @@ cp -v $inpDir/ksArrayTrigger.ran ksArrayTrigger.ran
 let seed=$(date +10#%N)+$$
 $src/randomCreateRanluxSeed -s $seed -o ksArrayTrigger.ran
 
-#######################################################################
-#Make sure directory exists, if not create it.
-if [ -z "$5" ]; then
-    echo "ksall:Data Directory must be specified"
-    exit
-fi
-if [ ! -d "$5" ]; then
-       mkdir -p $5
-fi
 ########################################################################
 #Set up base name of shower files. 
 #Note it includes data path
@@ -190,7 +191,6 @@ while test $i -le $4
     fi
 
     $src/ksPeSortMerge $pefile $pesfile
-    #rm $pefile		#Delete pe file
     rm Temp*            #delete temp sort files.
 
 #ksTrigger
