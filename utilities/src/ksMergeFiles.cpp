@@ -472,7 +472,7 @@ int main(int argc, char** argv)
 	  std::cout<<"ksMergeFiles - Takes a few more minutes"<<std::endl;
 	  std::cout<<"ksMergeFiles - Events:(#=10000):";
 	  std::cout.flush();
-	  for(int i=1;i<=fNumSourcePackets;i++) //Packet 0 for header  packets
+	  for(int i=1;i<fNumSourcePackets;i++) //Packet 0 for header  packets
 	    {
 	      if(i%10000==0)
 		{
