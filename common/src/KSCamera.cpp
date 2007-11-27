@@ -24,36 +24,37 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
 		   bool fUsePatternTrigger, double DigCntsPePE,
 		   double NoiseRateSigma)
 {
+  fCameraType=CameraType;
   fDigCntsPerPEHiGain=DigCntsPePE;
   fNoiseRateSigma=NoiseRateSigma;
-  InitCamera(CameraType,pTeHead,fUsePatternTrigger);
+  InitCamera(pTeHead,fUsePatternTrigger);
 }
 // ************************************************************************
 
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		   bool fUsePatternTrigger, double DigCntsPePE)
 {
+  fCameraType=CameraType;
   fNoiseRateSigma=0.0;
   fDigCntsPerPEHiGain=DigCntsPePE;
-  InitCamera(CameraType,pTeHead,fUsePatternTrigger);
+  InitCamera(pTeHead,fUsePatternTrigger);
 }
 // ************************************************************************
 
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		                                      bool fUsePatternTrigger)
 {
+  fCameraType=CameraType;
   fNoiseRateSigma=0.0;
   fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
-  InitCamera(CameraType,pTeHead,fUsePatternTrigger);
+  InitCamera(pTeHead,fUsePatternTrigger);
 }
 // ************************************************************************
 
-void KSCamera::InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-		     bool fUsePatternTrigger)
+void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
 {
   pfTeHead=pTeHead;
 
-  fCameraType=CameraType;
   fLatitude=gLatitude[fCameraType];
   fEastLongitude=gEastLongitude[fCameraType];
 

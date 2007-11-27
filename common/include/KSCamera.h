@@ -44,8 +44,7 @@ class KSCamera
 	   bool fUsePatternTrigger, double fDigCntPerPEHiGain,
 	   double fNoiseRateSigma);
  private:
-  void InitCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-	                  bool fUsePatternTrigger);
+  void InitCamera(KSTeHeadData* pTeHead,bool fUsePatternTrigger);
  public:
   virtual ~KSCamera();
 
