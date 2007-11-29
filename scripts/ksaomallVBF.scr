@@ -12,7 +12,7 @@
 #LightEnable=enable
 #PeSortMergeEnable=enable
 #TriggerEnable=enable
-AomegaEneable=enable
+AomegaEnable=enable
 ArrayTriggerEnable=enable
 
 
