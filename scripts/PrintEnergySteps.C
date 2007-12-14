@@ -1,34 +1,39 @@
-//Short root macro to print out energies for ewual spacing in log(E)
+//Short root macro to print out energies for equal spacing in log(E)
 
 #include <iomanip>
 
 PrintEnergySteps()
 {
-  //double fStepLogE=.18;
-  //double fLogEBase=log(.100)-13*fStepLogE;    //Start at .1 TEV and backup 
-  //int fNumSteps=9;
-  //int fNumSteps=9;
-  int fNumSteps=18;
-  //int fNumSteps=36;
-  
 
-  double fAlpha=-2.45; //Gamma Ray spectrum index
-  //double fAlpha=-2.77; //Proton spectrum Index
+  //double fNumMin=10;   //Gammas
+  //double fNumShowersAt100=100;   //gammas
+  //double fAlpha=-2.45; //Gamma Ray spectrum index
+
+  double fNumMin=5;   //Cosmic rays
+  double fNumShowersAt100=80;     // protons
+  double fAlpha=-2.77; //Proton spectrum Index
+
+  //double fNumMin=5;   //Cosmic rays
+  //double fNumShowersAt100=37;     //helium
   //double fAlpha=-2.64;  //Helium spectrum Index
 
-  double fNumShowersAt100=100;   //gammas
-  //double fNumShowersAt100=80;     // protons
-  //double fNumShowersAt100=37;     //helium
+  //int fNumSteps=9;
+  //double fBaseE=.020;    //TeV base energy
+  //int fNumEntries=42;
+  //int fNStart=0;
+
+  int fNumSteps=10;
+  double fBaseE=.010;    //TeV base energy
+  int fNumEntries=36;
+  int fNStart=3;
 
 
   double fIAlpha=fAlpha+1.0;
-  double fStepLogE=(log(.100)-log(.02))/fNumSteps;
-  double fLogEBase= log(.02);    
+  double fStepLogE=(log(.100)-log(fBaseE))/fNumSteps;
+  double fLogEBase= log(fBaseE);    
   int fNumE=85;
   double fEOld=.018;
  
-  double fNumMin=5;
-
   double fE[200];
   double fELow[200];
   double fEHigh[200];
@@ -36,7 +41,7 @@ PrintEnergySteps()
   double fFrac[200];
   double fNumShowers[200];
 
-  std::cout<<"Number of steps from 20 GeV to 100 GeV: "<<fNumSteps<<std::endl;
+  std::cout<<"Number of steps from "<<fBaseE*1000<<" GeV to 100 GeV: "<<fNumSteps<<std::endl;
   std::cout<<"Spectral Index: "<<fAlpha<<std::endl;
 
   for(int i=0;i<fNumE;i++)
@@ -71,6 +76,42 @@ PrintEnergySteps()
       fNum+=(int)fNumShowers[i];
     }
   std::cout<<"Total Number of Showers: "<<fNum<<std::endl;
-  return;
+ 
+ 
+
+  std::cout<<"energy=([1]=";
+  for(int i=fNStart;i<fNumEntries;i++)
+    {
+      double fEnergy=fE[i]*1000;
+      if(fEnergy<200)
+      	{
+      	  std::cout<<fEnergy<<" ";
+      	}
+      else
+	{
+	  int fEInt=(int)(fEnergy);
+	  std::cout<<fEInt<<" ";
+	}
+    }
+  std::cout<<")"<<std::endl;
+
+  std::cout<<"start=([1]=";
+  for(int i=fNStart;i<fNumEntries;i++)
+    {
+      std::cout<<1<<" ";
+    }
+  std::cout<<")"<<std::endl;
+
+  std::cout<<"end=([1]=";
+  for(int i=fNStart;i<fNumEntries;i++)
+    {
+      std::cout<<fNumShowers[i]<<" ";
+    }
+  std::cout<<")"<<std::endl;
+
+
+
+
+ return;
 }
 

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#This is the conversion (from kas01.scr) to use at Purdue and Depauw
-#Glenn Sembroski 16/05/05
 #$0 ./kas02.scr
 
 #$1 For ksall and ksallVBF:
@@ -76,7 +74,8 @@ function Protons()
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
           end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
-#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   4   3   2   2    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+
+
 #VeritasSet2
 #Don't forget about RemoveOldFiles!
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -116,7 +115,10 @@ CleanFiles=OFF
 	BuildIsisScriptList 1  1  $processEnd
       fi
     else
-	SubmitAmdahlPBSJobs        #amdahl
+#	SubmitAmdahlPBSScripts 1 42
+	SubmitAmdahlPBSScripts 1 1
+
+#	SubmitAmdahlPBSJobs        #amdahl
 
     fi
     if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ] \
@@ -177,8 +179,12 @@ CleanFiles=OFF
       else
 	BuildIsisScriptList 1 1  $processEnd
       fi
+
     else
-	SubmitAmdahlPBSJobs        #amdahl
+
+        SubmitAmdahlPBSScripts 1 42 
+#	SubmitAmdahlPBSJobs        #amdahl
+
     fi
 
     if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ] && \
@@ -203,11 +209,8 @@ function Gammas()
     let processEnd=42
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON    ON    ON )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
-        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     6     1     6)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     6     1     6) 
           end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    5     10    5     10)
-
-
-#          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  8   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     3     2     2     2     1     1)
 
 #VeritasSet2
 #Don't forget about RemoveOldFiles!
@@ -267,11 +270,6 @@ CleanFiles=OFF
 #	    BuildIsisScriptList 6 6 6
 #	    BuildIsisScriptList 7 7 7
 #	    BuildIsisScriptList 8 8 8
-
-
-
-
-
 #Don't forget about RemoveOldFiles!
           else
 	    BuildIsisScriptList 1 1  $processEnd
@@ -279,7 +277,10 @@ CleanFiles=OFF
 	fi
     else
 
-	SubmitAmdahlPBSJobs        #amdahl
+#     SubmitAmdahlPBSScripts 1 42 
+     SubmitAmdahlPBSScripts 1 1 
+
+#	SubmitAmdahlPBSJobs        #amdahl
     fi
 
     if [ "$kssc" != "ksMissingVBF" ] &&  [ "$kssc" != "ksMissingTE" ] \
@@ -310,12 +311,50 @@ function SubmitAmdahlPBSJobs()
       echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
       echo "#"PBS -l mem=$maxMem                                    >>$pbsFile
       echo "#"PBS -l walltime=$WALLTIME                             >>$pbsFile
-      echo "#"PBS -l nodes=1                                        >>$pbsFile
+      echo "#"PBS -l nodes=1:athlon:gigabit                         >>$pbsFile
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$pbsFile
       echo ${end[$i]} $datadir $Option3                   \\   >>$pbsFile
       echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
       qsub $pbsFile
     fi
+
+    i=$((i+1))			#do next process
+    done
+}
+
+function SubmitAmdahlPBSScripts()
+#**********************************************************************
+# Cause pbs jobs to be submitted.
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+
+
+ let processStart=$1
+ let processEnd=$2
+ let i=$processStart
+ while test $i -le $processEnd
+ do
+    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
+#    if [ "${enableGEN[$i]}" == "ON" ]; then 
+
+      pbsFile=$lcl/ks_$i$jobSpec.pbs
+
+      echo "#"PBS -N 'pbs_'$sub'_'$i                                 >$pbsFile
+      echo "#"PBS -e 'pbs_'$sub'_'$i'.err'                          >>$pbsFile
+      echo "#"PBS -o 'pbs_'$sub'_'$i'.log'                          >>$pbsFile
+      echo "#"PBS -m ae                                             >>$pbsFile
+      echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
+      echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
+      echo "#"PBS -l mem=$maxMem                                    >>$pbsFile
+      echo "#"PBS -l walltime=$WALLTIME                             >>$pbsFile
+      echo "#"PBS -l nodes=1                                        >>$pbsFile
+      echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\        >>$pbsFile
+      echo ${end[$i]} $datadir $Option3                   \\        >>$pbsFile
+      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
+      qsub $pbsFile
+#    fi
 
     i=$((i+1))			#do next process
     done
@@ -394,7 +433,7 @@ if [ $host = 'isis' ] ; then
 #amdahl
 else
 
-    dataDirBase=/project/veritas/sembrosk
+    dataDirBase=/project/veritas/sembrosk/simulations
     if [ ! -d "workingScratch" ]; then
        mkdir -p workingScratch
     fi    
@@ -405,13 +444,13 @@ Option3=$3
 user=$USER
 
 #Specify queues
-#queues=([1]=workq workq workq workq workq workq workq astro astro astro astro  astro astro astro astro astro astro astro astro workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq)
+#queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
 
-#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro )
+queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro )
 
-queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro)
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro )
 
-#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro)
+#queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro )
 
 
 #Fuctions specify which nodes are to be used ("on" or "off")
@@ -477,6 +516,7 @@ if [ ${jobSpec:1:1} = "G" ]; then
     let pspecset=1;
 fi
 
+echo datadir $datadir
 
 if [ $pspecset -ne 1 ]; then
     echo No such Particle spec: $1

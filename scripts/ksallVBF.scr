@@ -12,7 +12,7 @@ KascadeEnable=enable
 LightEnable=enable
 PeSortMergeEnable=enable
 TriggerEnable=enable
-AomegaEnable=enable
+AomegaEnable=enable                   #These next 2 operate on te files only
 ArrayTriggerEnable=enable
 
 
