@@ -155,7 +155,7 @@ void KSCamera::generateCameraPixels()
   // *************************************************************************
   KSPixel fPixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
                                                      //pixel to start with
-  
+  fPixel.clear();
   fPixel.resize(fNumPixels,fPixelElem);   //  Allocate pixels
 
   // *******************************************************************
@@ -516,7 +516,7 @@ void KSCamera::InitPixelImageData()
       fPixel.at(i).fDiscPulseHeight=0;
       fPixel.at(i).fDiscTrigger=false;        //This pixels fires
       fPixel.at(i).fTimePe.clear();
-      fPixel.at(i).fCFDTriggerTimeNS=gOverflowTime;
+      fPixel.at(i).fCFDTriggerTimeNS.clear();
     }
   return;
 }
@@ -536,14 +536,10 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   // in them: Add noise also. Then see if they trigger CFD's (and when)
   // ***********************************************************************
   findWaveFormLimits(fWaveFormStart,fWaveFormLength);
-
-  int fCFDTriggers=0;
-  // bool fPrintWaveForm=false;
-  //std::cout<<nx<<" "<<ny<<std::endl;
-  //if(nx==0 and ny==0)
-  //  {
-  //    fPrintWaveForm=true;
-  //  }
+ 
+  int numCFDTriggers=0;
+  int numCFDNoiseTriggers=0;
+  int numCFDRealTriggers=0;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
       // **************************************************************
@@ -564,35 +560,45 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
 	  fPixel.at(i).RemovePedestalFromWaveForm(
-					fPixel.at(i).fWaveFormNightSkyPedestal);
-	  //if(fPrintWaveForm)fPixel.at(i).PrintWaveForm(nx,ny,2,0.0);
-
-	  if(fPixel.at(i).fDisc>0)
-	    {
-	      bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
+				      fPixel.at(i).fWaveFormNightSkyPedestal);
+	  // ********************************************************
+	  // Always check to see if this waveform triggered even if,
+	  // due to the efficiency cut in BuildPeWaveForm, it didn't have any 
+	  // reall pes in it.We might trigger on noise alone.
+	  // ***************************************************************
+	  bool CFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
 					   fLastTimeOffsetNS,
 					   fLastCFDCrossingNS,nx,ny);
-	      if(fCFDTrig)
+
+	  if(CFDTrig)
+	    {
+	      if(fPixel.at(i).fDisc>0)  //Check that we had a real pe in the 
+		                        //mix
 		{
-		  fCFDTriggers++;
+		  numCFDTriggers++;
 		}
+	      else
+		{
+		  numCFDNoiseTriggers++; //Nope!Pure noise trigger(after 
+		}                       //efficiency cut)
 	    }
 	}
     }
-  if(fCFDTriggers==0)
+  if(numCFDTriggers==0)
     {
-      return fCFDTriggers;
+      return numCFDTriggers;
     }
-  
   // ********************************************************************
   // We have al least one pixel containing at least one real pe that fired
   // Now generate wave forms from sky shine for Trigger Pixels that don't
-  // have any real pes in them and see if they trigger.
+  // have any real pes in them(before efficiency cut) and see if they trigger.
   // ******************************************************************** 
+  numCFDRealTriggers=numCFDTriggers;
+  numCFDTriggers+=numCFDNoiseTriggers;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
       // **************************************************************
-      // This check of fBadPixel leaves the fCFDTriggerTimeNS=gOverflowTimeNS
+      // This check of fBadPixel leaves the fCFDTriggerTimeNS.size()=0
       // For bad pixels (set in BuildImage by call to InitPixelImageData)
       // ***********************************************************
       if(fPixel.at(i).fTimePe.size()==0 && !fPixel.at(i).fBadPixel)
@@ -610,16 +616,23 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
 				      fPixel.at(i).fWaveFormNightSkyPedestal);
 
 
-	  bool fCFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
+	  bool CFDTrig=pfCFD->isFired(fPixel.at(i),fStartTimeOffsetNS,
 				       fLastTimeOffsetNS,
 				       fLastCFDCrossingNS,nx,ny);
-	  if(fCFDTrig)
+	  if(CFDTrig)
 	    {
-	      fCFDTriggers++;
+	      numCFDNoiseTriggers++;
+	      numCFDTriggers++;
 	    }
 	}
     }
-  return fCFDTriggers;
+  //debug
+  //if(numCFDRealTriggers>0)
+  //	{
+  //	  std::cout<<numCFDTriggers<<" "<<numCFDRealTriggers<<" "
+  //		   <<numCFDNoiseTriggers<<std::endl;
+  //	}
+  return numCFDTriggers;
 }
 // ************************************************************************
        
@@ -650,7 +663,7 @@ void KSCamera::buildNonTriggerWaveForms()
 
 	  // Remove the night sky pedestal. PMTs Capacitivly coupled
 	  fPixel.at(i).RemovePedestalFromWaveForm(
-					fPixel.at(i).fWaveFormNightSkyPedestal);
+				     fPixel.at(i).fWaveFormNightSkyPedestal);
 	}
     } 
   return;
@@ -665,7 +678,8 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 // This look like it works for pe times <0 which happens for non-zenith 
 // showers.
 {
-  double fPixelMinTimeNS=gOverflowTime;
+  bool minMaxInitalized=false;
+  double fPixelMinTimeNS=0;  //This init just avoids a warning.
   double fPixelMaxTimeNS=0;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
@@ -675,24 +689,30 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	  for(int j=0;j<fNumPes;j++)
 	    {
 	      double fPeTime=fPixel.at(i).fTimePe.at(j);
-	      if(fPeTime<fPixelMinTimeNS)
+	      if(!minMaxInitalized)
 		{
 		  fPixelMinTimeNS=fPeTime;
-		}
-	      if(fPeTime>fPixelMaxTimeNS)
-		{
 		  fPixelMaxTimeNS=fPeTime;
+		  minMaxInitalized=true;
+		}  
+	      else
+		{
+		  if(fPeTime<fPixelMinTimeNS)
+		    {
+		      fPixelMinTimeNS=fPeTime;
+		    }
+		  if(fPeTime>fPixelMaxTimeNS)
+		    {
+		      fPixelMaxTimeNS=fPeTime;
+		    }
 		}
 	    }
 	}
     }
-  fWaveFormStartNS=fPixelMinTimeNS + gCFDDelayNS[fCameraType]
-                                   + gCFDTriggerDelayNS[fCameraType]  
-                                   - gFADCWindowOffsetNS[fCameraType]
-                                   - gFADCTOffsetNS[fCameraType];
+
+  fWaveFormStartNS=fPixelMinTimeNS - gFADCWindowOffsetNS[fCameraType]
+                                   - gFADCTOffsetNS[fCameraType]-1.0;
  
-  //- gPSTPulseWidthNS[fCameraType]
-  //      + gCFDDelayNS[fCameraType];
 
   double fWaveFormEndNS = fPixelMaxTimeNS 
     + fPixel.at(0).fSinglePeSizeNS
@@ -700,20 +720,20 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
     + gCFDTriggerDelayNS[fCameraType]  
     - gFADCWindowOffsetNS[fCameraType]
     - gFADCTOffsetNS[fCameraType]
+    + gPSTStrobeDelayNS
     + gFADCBinSizeNS*gFADCNumSamples[fCameraType]+1;
 
-  //   + gPSTPulseWidthNS[fCameraType]
- //                                 - gFADCDelayNS;
   fWaveFormLength = fWaveFormEndNS-fWaveFormStartNS;
 
-  // *************************************************************************
+
+  // *********************************************************************
   // Now find the first and last time we should look at for the signal 
   // reaching threshold
   // ************************************************************************ 
   fStartTimeOffsetNS = gFADCWindowOffsetNS[fCameraType]
                      + gFADCTOffsetNS[fCameraType]
                      - gCFDDelayNS[fCameraType]
-                     - gCFDTriggerDelayNS[fCameraType];
+                     - gCFDTriggerDelayNS[fCameraType]+1.0;
                               // Start searching for CFD trigger at beginning
                               //  of fWaveForm offset a bit to make room for
                               // us being offset by the FADC trace;
@@ -724,7 +744,7 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   // *************************************************************************
   // Now last time to check for a CFD zero crossing
   // *****************************************************************
-  fLastCFDCrossingNS=(int)(fLastTimeOffsetNS+ gCFDDelayNS[fCameraType]);
+  fLastCFDCrossingNS=(fLastTimeOffsetNS+ gCFDDelayNS[fCameraType]);
 
   return;
 }

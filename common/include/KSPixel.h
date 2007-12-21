@@ -83,7 +83,7 @@ class KSPixel
   double fPedDC;
   double fChargeVarDC;  //Veritas:units of FADC DC
 
-  double fCFDTriggerTimeNS;
+  std::vector< double> fCFDTriggerTimeNS;
 
 
   double fRelativeGain;

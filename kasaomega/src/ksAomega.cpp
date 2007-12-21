@@ -379,8 +379,7 @@ int main(int argc, char** argv)
     // Save the random number generator seeds.
     // ------------------------------------------------------------------------
       ranend(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
-	       rslength);
-
+	     rslength);
 
       thetime=time(NULL);
       std::cout<<"ksAomega: NORMAL END------"<<ctime(&thetime)

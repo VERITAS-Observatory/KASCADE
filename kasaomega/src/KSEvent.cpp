@@ -596,6 +596,8 @@ bool KSEvent::ProcessImage()
   bool fGoodEvent=false;
   if(fCFDTriggers>0)
     {
+      //std::cout<<"nx,ny,dir: "<<pfTe->fNx<<" "<<pfTe->fNy<<" "
+      //	       <<pfTe->fDirectionIndex;
       fGoodEvent=pfCamera->isWaveFormTriggered();//Finds 
                                            //triggered trigger
                                            // pixels and the times they do it.
@@ -607,9 +609,10 @@ bool KSEvent::ProcessImage()
 	  // fTriggerTimeNS is time we reached enough overlap to trigger PST
 	  fFADCStartGateTimeNS=fTriggerTimeNS-gFADCTOffsetNS[fCameraType];
 	  pfCamera->buildNonTriggerWaveForms();
-
+	  //std::cout<<"*";
 
 	}
+      //std::cout<<std::endl;
     }
   return fGoodEvent;
 }  

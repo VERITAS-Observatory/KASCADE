@@ -63,6 +63,9 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 {
   fFADCTrace.clear();
   fFADCTrace.resize(fNumSamplesTrace,0);
+  //std::cout<<"fNumSamplesTrace,size: "<<fNumSamplesTrace<<" "
+  //	   <<fFADCTrace.size()<<std::endl;
+
 
   int fWaveFormBinsPerFADCSample=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
   int fNumWaveFormBins1NS=(int)(1./gWaveFormBinSizeNS);

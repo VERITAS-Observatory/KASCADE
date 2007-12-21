@@ -67,6 +67,7 @@ void KSArrayVDFFile::FillRunHeader(int& runNumber)
   pfRunHeader->pfRunDetails->fFirstEventTime=fStartTime;
   pfRunHeader->pfRunDetails->fRunNum=fRunNumber;
   pfRunHeader->pfRunDetails->fTels=fNumTels;
+  pfRunHeader->pfRunDetails->fExpectedTels.clear();
   pfRunHeader->pfRunDetails->fExpectedTels.resize(4,false);
   for (int i=0;i<fNumTels;i++)
     {

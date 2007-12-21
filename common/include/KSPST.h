@@ -19,13 +19,12 @@
 #include <algorithm>   //for std::sort.
 #include <string>
 #include <fstream>      //for input binary pst pattern file
+#include <set>
 
 #include "KSCommon.h"
 #include "KSCameraGrid.h"
 
 
-const double kStrobeDelay      = 6.0; //Strobe delay after mult trigger in PST 
-                                     //to latch pattern address
 const int kNumPatchesPerModule=  5;
 const int kNumPixelsPerPatch  = 19;
                               //{VERITAS499,WHIPPLE490}
@@ -68,6 +67,7 @@ const int k331D[13] = { 1, 0, 0, 0, 0,-1,-1,-1,-1,+1,+1,+1,+1};
 class KSPixelTimes
 {
  public:
+  virtual ~KSPixelTimes();
   double fTime;
   int fIndex;
   inline bool operator < (const KSPixelTimes& o) const;//This for use with sort
@@ -107,23 +107,35 @@ class KSPST
  public:
   KSPST(KSCameraTypes CameraType, int TriggerMultiplicity);
   virtual ~KSPST();
-  bool isTriggered(std::vector<double>& pfTimeTrigger, double& fImageTriggerTime); 
-  double SlideWindow(std::vector<KSPixelTimes>& pfPatchTimes,
-		    double fWindowWidth, int fMultiplicity);
+ 
+  bool isTriggered(std::vector< std::vector < double > >& CFDTrggerTimes, 
+		   double& fImageTriggerTime); 
+  void buildSummedCFD(std::vector< std::vector < double > >& CFDTrggerTimes, 
+		      double CFDpulseWidthNS);
+  double findSummedCFDTriggerTime(double& startTimeNS, int Multiplicity); 
+
   std::vector<bool> fL2TriggerPixels;
   std::vector<bool> fL2TriggerPixelsForPatch;
+
+  double fSummedCFDWaveFormStartNS;
+
+  std::vector< int >* pfCFDTriggerChannels;
+
 
  private:
   KSCameraTypes fCameraType;
   int fNumPixelsCamera;
+  int fNumPixelsTrigger;
   int fTriggerMultiplicity;
 
   int fNumPatches;
   std::vector< KSPixelTimes> pfPatchTriggerTimes;
+
   int* pfPatchTriggerPattern;
   std::vector< std::vector<int>   > pfPixelsInPatch;
-  std::vector< std::vector<KSPixelTimes> > pfPixelsInPatchTimes;
+  //std::vector< std::vector<KSPixelTimes> > pfPixelsInPatchTimes;
   std::bitset<19> fMemoryAddressBits;
+  std::set<int> fCFDList;
   short* pfPSTPatterns;
   int* pfU;
   int* pfV;
@@ -132,7 +144,15 @@ class KSPST
   int* pfC;
   int* pfD;
 
- 
+  std::vector< std::vector< int > > fSummedCFDWaveForm;
+  double fSummedCFDWaveFormEndNS;
+  std::vector< std::vector <double> > fPatchCFDTriggerTimes;
+  std::vector<double> fNullDoubleVector;
+
+  std::set<int>* getSummedCFDSet(double time);
+  std::set<int> fCFDSet;
+  unsigned long getPatchPattern(int fPatchIndex,
+				             std::set<int>* pStrobeTimeCFDs);
   void FillPSTPatterns();
   void FillPixelsInPatch();
   int nearestInt(double fX);

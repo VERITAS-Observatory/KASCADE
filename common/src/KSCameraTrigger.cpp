@@ -37,8 +37,9 @@ KSCameraTrigger::KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
   pfPixelTriggerTime.resize(fNumPixelsTrigger);//For use with sort,Slide
   if(fUsePatternTrigger)
     {
-      pfTimeTrigger.clear();
-      pfTimeTrigger.resize(fNumPixelsTrigger);
+      std::vector<double> nullDoubleVector;
+      fCFDTriggerTimes.clear();
+      fCFDTriggerTimes.resize(fNumPixelsTrigger,nullDoubleVector);
       fPatternTriggerLevel=pfTeHead->fPatternTriggerLevel;
       pfPST= new KSPST(fCameraType,fPatternTriggerLevel);
     }
@@ -110,7 +111,7 @@ bool KSCameraTrigger::isFastTriggered()
 		} 
 	    }
 	  
-	  double fDNoise=(float)fDiscNoise;
+	  double fDNoise=fDiscNoise;
 	  int fDN=NFluct(fDNoise);
 	  //std::cout<<fDiscNoise<<" "<<fDN<<std::endl;
 	  fDiscPes=fDiscPes+fDN;  //Add in sky noise
@@ -204,7 +205,6 @@ bool KSCameraTrigger::isFastTriggered()
       // *********************************************************************
       fPeHits=checkThreshold();  //Recheck now that we have possible noise 
                                  //triggers
-
       if(fPeHits>=fTriggerMultiplicity)
 	{
 	  fMultiplicityTrigger=true;
@@ -220,23 +220,24 @@ bool KSCameraTrigger::isFastTriggered()
 	  // set up for pst trigger test.
 	  for(int i=0;i<fNumPixelsTrigger;i++)
 	    {
-	      if(pfPixel->at(i).fDiscTrigger)
+	      fCFDTriggerTimes.at(i).clear();
+	      if(pfPixel->at(i).fDiscTrigger)   //fDiscTrigger is a bool
 		{
-		  pfTimeTrigger.at(i)=100.;// Put all trigger times at 100. ns.
+		  fCFDTriggerTimes.at(i).push_back(100.); 
 		}
-	      else
-		{
-		  pfTimeTrigger.at(i)=gOverflowTime; //Time overflow value
-		}
+	      //	      else
+	      //	{
+	      //	  fCFDTriggerTimes.at(i).push_back(gOverflowTime); 
+	      //	}
 	    }
 
-	  fPSTTrigger=pfPST->isTriggered(pfTimeTrigger,fPSTTriggerTimeNS);
+	  fPSTTrigger=pfPST->isTriggered(fCFDTriggerTimes,fPSTTriggerTimeNS);
 	}
     }
 
-      // *******************************************************************
-      // Determine if we have an event trigger 
-      // *******************************************************************
+  // *******************************************************************
+  // Determine if we have an event trigger 
+  // *******************************************************************
   bool fImageTrigger=fPSTTrigger && fMultiplicityTrigger;
   return fImageTrigger;
 }
@@ -252,43 +253,49 @@ bool KSCameraTrigger::isWaveFormTriggered()
   // Note; WHIPPLE490 Does a overall Multiplicity coincidence for timing
   // reasons
   // *******************************************************************
- // **********************************************************************
+  // **********************************************************************
   // Load up a trigger time array structure and test for Triggers
-  //
+  // Allow for mutiple hits on each channel. Use methods availabe in the KSPST
+  // class
+  // ***********************************************************************
+  // For now only one hit is being looked for in each channel.
+  // this will change almost imeadiatly
+  // **************************************************
+  for(int i=0;i<fNumPixelsTrigger;i++)
+    {
+      fCFDTriggerTimes.at(i).clear();
+      if(pfPixel->at(i).fCFDTriggerTimeNS.size()>0)
+	{
+	  //std::cout<<" "<<i;
+	  fCFDTriggerTimes.at(i)=pfPixel->at(i).fCFDTriggerTimeNS; 
+	}
+    }
   if(fCameraType==WHIPPLE490)
     {
-      for(int i=0;i<fNumPixelsTrigger;i++)
-	{
-	  pfPixelTriggerTime.at(i).fTime=pfPixel->at(i).fCFDTriggerTimeNS; 
-	  pfPixelTriggerTime.at(i).fIndex=i; 
-	}
-      // ****************************************************************
-      // Order pixel times. Since we defined < operator for KSPixelTimes
-      // this will for by fTime and bring the fIndex along. Tricky!
-      // ****************************************************************
-      std::sort(pfPixelTriggerTime.begin(),pfPixelTriggerTime.end());
-					
-      // ****************************************************************
-      // Look for multiplicity trigger. Slide window returns with 100001. 
-      // if no trigger
-      // ****************************************************************
-      fMultiplicityTriggerTime =pfPST->SlideWindow(pfPixelTriggerTime,
-                              gTrigMultiplicityWidthNS,fTriggerMultiplicity);
+      // ************************************************************
+      // Build the CFD summed pulse wave (in a funny way)
+      // ************************************************************
+      pfPST->buildSummedCFD(fCFDTriggerTimes,
+				    gTrigMultiplicityWidthNS);
+      
+      // ************************************************************
+      // Find the first time that has required multiplcity. May be 
+      // overflow time
+      // ************************************************************
+      pfPST->pfCFDTriggerChannels=NULL;  //Flag to not check for ignorable 
+                                         //patterns.
+      fMultiplicityTriggerTime = pfPST->findSummedCFDTriggerTime(
+					     pfPST->fSummedCFDWaveFormStartNS,
+					     fTriggerMultiplicity);
       if(fMultiplicityTriggerTime>=gOverflowTime)
 	{
 	  return false;
 	}
     }
-  // (summed cfd pulses over multiplicity) for timing reasons.
-  // we may want to add that at some time   
+  // ***********************************************************************
+  // For both Veritas and whipple , check the pst.
   // **********************************************************************
-  // Load up a trigger time array and test for Triggers
-  //
-  for(int i=0;i<fNumPixelsTrigger;i++)
-    {
-      pfTimeTrigger.at(i)=pfPixel->at(i).fCFDTriggerTimeNS; 
-    }
-   bool fPSTTrigger=pfPST->isTriggered(pfTimeTrigger,fPSTTriggerTimeNS);
+   bool fPSTTrigger=pfPST->isTriggered(fCFDTriggerTimes,fPSTTriggerTimeNS);
 
   return fPSTTrigger;
 } 

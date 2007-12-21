@@ -85,6 +85,7 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  pfVDFSimTree = (TTree*)pfVDFEventFile->getSimulationEventTreePtr();
 	  pfVDFKSimData = pfVDFEventFile->getKascadeSimulationDataPtr();
 	  pfVDFCalEvent= pfVDFEventFile->getCalibratedArrayEventPtr();
+	  pfArrayEventsUsed.clear();
 	  pfArrayEventsUsed.resize(fNumEvents,false);
 	}
       else if(pfDataIn->fDataType==VBFFILE)
@@ -136,6 +137,7 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 					  pfAT->getGPSTimeNumElements(),
 					  pfAT->getGPSTime());
 	  delete pfPacket;
+	  pfArrayEventsUsed.clear();
 	  pfArrayEventsUsed.resize(fNumEvents+1,false); //index starts at 1
 	}
       // ****************************************************************

@@ -230,7 +230,7 @@ double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
   int fNumWaveFormBins=fNumSamplesTrace*fNumWaveFormBinsPerFADCBin;
 
   //Loop over progressive starting place of pe pulse.
-  for(int j=0;j<fNumWaveFormBinsPerFADCBin;j++)
+  for(int j=0;j<fNumWaveFormBinsPerFADCBin;j++)  //like 8: 4bins/ns @ 2 ns
     {
       //Make a WaveForm of 1000 single pes offset in time by j bins;
       std::vector<double> fPulse;

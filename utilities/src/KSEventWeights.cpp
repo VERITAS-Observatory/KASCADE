@@ -139,7 +139,8 @@ void KSEventWeights::calculateWeights()
 	  // *****************************************************************
 	  fEnergiesGeV.clear(); 
 	  fNumShowers.clear();
- 	  fWeightsVector.resize(fNumEnergies,0.0);
+ 	  fWeightsVector.clear();
+	  fWeightsVector.resize(fNumEnergies,0.0);
 	  fFluxVector.resize(fNumEnergies);
 	  fELowVector.resize(fNumEnergies);
 	  fEHighVector.resize(fNumEnergies);
@@ -366,7 +367,8 @@ void KSEventWeights::calculateLogWeights()
 	  // *****************************************************************
 	  fEnergiesGeV.clear(); 
 	  fNumShowers.clear();
- 	  fWeightsVector.resize(fNumEnergies,0.0);
+ 	  fWeightsVector.clear();
+	  fWeightsVector.resize(fNumEnergies,0.0);
 	  fFluxVector.resize(fNumEnergies);
 	  fELowVector.resize(fNumEnergies);
 	  fEHighVector.resize(fNumEnergies);

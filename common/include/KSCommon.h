@@ -39,17 +39,27 @@ const int    gFADCNumSamples[2]          = {          24,          10};
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
 
-const double gFADCTOffsetNS[2]           = {        10.0,         9.0};
+//Amount to back up from the image trigger time to get the whole pulse for 
+//charge integeration. 
+const double gFADCTOffsetNS[2]           = {        10.0,          9.0};
+
+//Start pulse at sample 5(back up 4 more bins)
 const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
+
 const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
 
 //const double gFADCTOffsetNS[2]           = {        9.0,         9.0};
 //const double gFADCWindowOffsetNS[2]      = {        9.0,         8.0};
 
-const double gCFDDelayNS[2]              = {         1.5,         4.0};
-const double gCFDTriggerDelayNS[2]       = {         2.5,         0.0};
-const double gCFDOffsetPE[2]             = {         0.1,         0.0};
+//                                        
+const double gCFDFraction[2]             = {         0.4,        0.33};
+const double gCFDDelayNS[2]              = {         2.5,         4.0};
+const double gCFDTriggerDelayNS[2]       = {         1.5,         0.0};
+const double gCFDOffsetPE[2]             = {         1.0,         0.0};
 const double gPSTPulseWidthNS[2]         = {        10.0,        10.0}; 
+//Strobe delay after mult trigger in PST to latch pattern address
+const double gPSTStrobeDelayNS           = 6.0;
+
                                      //Whipple ECL Pulses to PST's from CFD's 
                                      // measured by GHS in 09/01
 const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};

@@ -12,22 +12,31 @@
  
 #include "KSPixel.h"
 #include "KSCommon.h"
-//                                            (WHIPPLE490,VERITAS499)
-const double kCFDGain[2]                    = {       3.0,      1.51};
- 
+#include <vector>
+#include <fstream>
+#include <iostream>
 
 class KSCFD
 {
  private:
   KSCameraTypes fCameraType;
   int fNumCFDDelayBins;
-  double fCFDGain;
+  double fCFDFraction;
   double fCFDOffsetPE;
   int fCFDTriggerDelayBins;
+  int fLastThresholdCheckBin;
+  int fLastCFDCrossingCheckBin;
 
-  std::vector<double> fMainPulse;
+  std::vector<double> fCFDPulse;
   std::vector<double> fNegativePulse;
 
+  bool aboveThresholdAboveOffset(KSPixel& fPixel,
+					 int& offsetCrossingBin);
+  bool findAboveThreshold(KSPixel& fPixel, int& thresholdCrossingBin);
+
+  void makeInternalCFDWaveForm(KSPixel& fPixel, bool printWaveForms);
+  bool findNextOffsetCrossing(int& thresholdCrossingBin);
+  std::ofstream fMyFile;
  public:
   KSCFD(KSCameraTypes CameraType);
   ~KSCFD();

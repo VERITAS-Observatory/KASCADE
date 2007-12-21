@@ -13,6 +13,7 @@
 #Ex ./ksWeRock.scr VG20Deg50mv  95020 123-M2 
 #Ex ./ksWeRock.scr VG20Deg2D50mv 95021 123-M2 4
 #Ex ./ksWeRock.scr VG1Deg50mv 95002 8
+#Ex../ksWeRock.scr VCRA10Deg50mv 96010 1234M2
 
 
 inpDir=$KASCADEBASE'/inputs'

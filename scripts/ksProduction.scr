@@ -66,7 +66,7 @@ function Protons()
 #**********************************************************************
 {
     echo Protons: $parspec
-    WALLTIME=50:00:00
+    WALLTIME=75:00:00
 
 #Veritas$ whipple set1/ksaom/kasall
     let processEnd=42
@@ -202,7 +202,7 @@ function Gammas()
 {
     echo Gammas: $parspec
     let processEnd=26
-    WALLTIME=50:00:00
+    WALLTIME=75:00:00
 
 #Veritas set1/ksaom/kasall
 #Whipple set1/kasaom/kasall starts at 84 GeV

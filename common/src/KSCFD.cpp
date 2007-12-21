@@ -1,8 +1,7 @@
 /**
  * \class KSCFD
  * \ingroup common
- * \brief File of methods for KSCFD.
- * Original Author: Glenn H. Sembroski
+ * \brief File of methods for KSCFD. * Original Author: Glenn H. Sembroski
  * $Author$
  * $Date$
  * $Revision$
@@ -10,19 +9,17 @@
  *
  **/
 
-#include <iostream>
-#include "KSCFD.h"
 
+#include "KSCFD.h"
 
 KSCFD::KSCFD(KSCameraTypes CameraType)
 {
   fCameraType=CameraType;
-  fNumCFDDelayBins              = (int)(gCFDDelayNS[fCameraType]/
-					gWaveFormBinSizeNS);
-  fCFDGain                      = kCFDGain[fCameraType];
-  fCFDOffsetPE                  = gCFDOffsetPE[fCameraType];
-  fCFDTriggerDelayBins =
-                    (int)(gCFDTriggerDelayNS[fCameraType]/gWaveFormBinSizeNS);
+  fNumCFDDelayBins     = (int)(gCFDDelayNS[fCameraType]/gWaveFormBinSizeNS);
+  fCFDFraction             = gCFDFraction[fCameraType];
+  fCFDOffsetPE         = gCFDOffsetPE[fCameraType];
+  fCFDTriggerDelayBins = (int)(gCFDTriggerDelayNS[fCameraType]/
+			                                   gWaveFormBinSizeNS);
 }
 // ************************************************************************
 
@@ -45,54 +42,51 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
 // same code
 // ***************************************************************************
 // Model CFD on waveform. Sets in fPixel.fCFDTriggerTimeNS (in NS) time of 
-// trigger (see below) or to fOverflowTime time if no trigger found.
+// trigger(s) (see below) (Whipple:or to fOverflowTime time if no trigger 
+// found.
 // ************************************************************************
 // ---------------------------------------------------------------------------
 // The purpose of the CFD (Constant Fraction Discriminator) is to find the time
 // an acceptably high enough pulse (one that goes above fThreshold) reaches a 
 // certain fraction of its maximum height. That fraction is set by the 
 // fCFDGain. (Trigger fraction is 1/fCFDGain).
-// The VERITAS CFD discriminator has the added requirment that the pulse must 
-// stay above fThreshold for a minimum time of fMinTimeAboveThresholdNS. 
 // ---------------------------------------------------------------------------
 // How CFD's work: Internal to the CFD the input waveform is mainpulated by 
-// 1: Delaying(by fCFDDelay), negating , and amplifying (by fCFDGain) the 
-//    input pulse.
-// 2:This is then added back to the original pulse to  from  the internal
-//   CFD pulse (called MainPulse below).
-// 3:The original input pulse is then searched for going above threshold
-// 4:Once it is found to be above threshold the positive to negative
-//   tranisition across the fCFDOffsetPe level is looked for in the internal 
-//   CFD pulse (MainPulse, see above) (WHIPPLE CFD's use fCFDOffsetPe=0)
-// 5:The time of that transition is the CFD triggerTime.
+// 1:Negating , and attenuating  (by fCFDGain) the input pulse.
+// 2:This is then added back to the the delayed original pulse to form  the 
+//   internal CFD pulse (called CFDPulse below).
+// 3:This internal CFD pulse is searched for offset level crossings. 
+// 4:Requirement then is that original pulse is above threshold at the same 
+//   time as the internal pulse is above the offset.
+
+// 5:The time that this happens is the CFD triggerTime.
 // 6:VERITAS CFD's have the  added requirment that the original pulse must
 //   still be above threshold gCFDTriggerDelayNS after 0 crossing time.
 
 // ---------------------------------------------------------------------------
 // fCFDDelay is determined normaly by the expected rise time of the pulse.
 // ---------------------------------------------------------------------------
-
+//  Check the complete wave form for triggers. ie we can have multiple 
+//  triggers. This is especially important when the threshold is near the 
+//  night sky pedvar.
+// **************************************************************************
 {
-  bool fPrintWaveForms=false;
-  if(nx==0 && ny==0)
-    {
-      fPrintWaveForms=true;
-    }
- 
+  bool printWaveForms=false; 
+  bool triggerFound=false;
   int fNumWaveFormBins=fPixel.fNumWaveFormBins;
 
+  fPixel.fCFDTriggerTimeNS.clear();           //Default is no triggers
+ 
 
-  fPixel.fCFDTriggerTimeNS=gOverflowTime;             //Default is no trigger
-  int fThresholdIndex;                       //Find if we go over threshold.
-                                             //Get Bin to start searching at.
   int fStartThresholdCheckBin=(int)(fStartTimeOffsetNS/gWaveFormBinSizeNS);
   if(fStartThresholdCheckBin>fNumWaveFormBins-1)
     {                
-      return false;    // no trigger
+      return triggerFound;    // no trigger
     }
-  int fLastThresholdCheckBin=(int)(fLastTimeOffsetNS/gWaveFormBinSizeNS);
 
-  int fLastCFDCrossingCheckBin= (int)(fLastCFDCrossingNS/gWaveFormBinSizeNS);
+  fLastThresholdCheckBin=(int)(fLastTimeOffsetNS/gWaveFormBinSizeNS);
+  fLastCFDCrossingCheckBin= (int)(fLastCFDCrossingNS/gWaveFormBinSizeNS);
+
   // *********************************************************************
   // Note: Since we have to look for a transision of the summed original
   //       waveform and the delayed negated amplified waveform we don't need 
@@ -103,149 +97,106 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
       fStartThresholdCheckBin=fNumCFDDelayBins;  
     }                                
   
-
-  // ************************************************************************
-  //Now look for when we cross the threshold
-  // So where do we stop looking? At the very end of any possible real pulse+ 
-  // the PST Gate  width.
-  // ************************************************************************
-  for(fThresholdIndex=fStartThresholdCheckBin; 
-      fThresholdIndex<=fLastThresholdCheckBin;
-      fThresholdIndex++)
+  // *************************************************************************
+  // To improve performance, first check that we have at least one bin in the
+  // waveform above threshold.
+  // *************************************************************************
+  int thresholdCrossingBin=fStartThresholdCheckBin; 
+  bool aboveThreshold=findAboveThreshold(fPixel,thresholdCrossingBin);
+  if(!aboveThreshold)
     {
-      if(fPixel.fWaveForm.at(fThresholdIndex)>=fPixel.fThreshold)
+      return triggerFound;
+    }
+
+  // ******************************************************
+  // We search for all  offset crossings
+  // Note we use thresholdCrossing to init where we start looking
+  // ************************************************************************
+  int offsetCrossingBin=thresholdCrossingBin;
+
+  makeInternalCFDWaveForm(fPixel,printWaveForms);
+
+  // *********************************************************
+  // Now that the CFDPulse is constructed we can make a loop that
+  // checks for the positive threshold crossing followed by the positive to 
+  // negative transition through the offset level. If at that time the normal
+  // wave form is above threshold and if CFDTriggerD4elay it still is above
+  // threshold we have a CFD trigger.
+  while(1)
+    {
+      // ******************************************************************
+      //Check for negative to pos crossing of positive offset level in 
+      //CFDWaveform
+      // *******************************************************************
+      bool offsetCrossingFound=findNextOffsetCrossing(offsetCrossingBin);
+      if(!offsetCrossingFound)
 	{
-	  // *********************************************************
-	  // Ok we are over threshold. Form CFD internal pulse and look
-	  // for 0 (or CFDoffset crossing. any time to end of window.
-	  // We should probably be more careful here for how long we look
-	  // *********************************************************
-          fNegativePulse.clear();
-	  fNegativePulse.resize(fNumWaveFormBins,0);
+	  return triggerFound;
+	}
+      // *******************************************************************
+      // We have an offset crossing. 
+      // *******************************************************************
+      // WHIPPLE490
+      // **************************
+      if(fCameraType==WHIPPLE490) 
+	{
+	  // *************************************************************
+	  // We may need to get better at when we check for the threshold 
+	  // for Whipple
+	  // *************************************************************
+	  if(fPixel.fWaveForm.at(offsetCrossingBin+fCFDTriggerDelayBins)
+	     >=fPixel.fThreshold) 
+	    {
+	      triggerFound=true;
+	      double triggerTimeNS = offsetCrossingBin*gWaveFormBinSizeNS +
+		fPixel.fWaveFormStartNS;
+	      fPixel.fCFDTriggerTimeNS.push_back(triggerTimeNS);
+	      offsetCrossingBin=offsetCrossingBin-fCFDTriggerDelayBins+
+		int(gPSTPulseWidthNS[fCameraType]/gWaveFormBinSizeNS);
+	      
+	    }
+	}
+      // *************************
+      // VERITAS499
+      // *************************
+      else if(fCameraType==VERITAS499)
+	{         
+	  // ***********************************************************
+	  //Do we trigger? The internal pulse must be above offset and the
+	  //original must be above threshold gCFDTriggerDelay (1.5 ns) later
+	  // ************************************************************
+
+	  bool aboveAbove=aboveThresholdAboveOffset(fPixel,offsetCrossingBin);
 	  
-               // Amplify and negate waveform(this is what CFD's do)
-	  for(int i=0;i<fNumWaveFormBins;i++)
+	  if(!aboveAbove)
 	    {
-	      fNegativePulse.at(i)=(-fPixel.fWaveForm.at(i)*fCFDGain);
-	    }
-	  //if(fPrintWaveForms)
-	  // {
-	  //   double fThresholdTime=gWaveFormBinSizeNS*fThresholdIndex+
-	  //	fPixel.fWaveFormStartNS;
-	  //   double fNegStartTime=fPixel.fWaveFormStartNS+
-	  //	                         fNumCFDDelayBins*gWaveFormBinSizeNS;
-	  //   PrintWaveForm(fPixel.fID,nx,ny,3,fThresholdTime, 
-	  //		      fNegativePulse,fNegStartTime);
-	  // }
-	  // **************************************************************
-	  //Add delayed, Negated and amplified fPulse to original
-	  //Note; Main pulse needs only to be as long as fWaveForm since we
-	  //      even though the delayed pulse extends after end of fWaveForm
-	  //      we can't use it there. 
-	  // ***************************************************************
-          fMainPulse.clear();
-	  fMainPulse.resize(fNumWaveFormBins,0);
-	  for(int i=fNumCFDDelayBins;i<fNumWaveFormBins;i++)
-	    {
-	      int j=i-fNumCFDDelayBins;
-	      fMainPulse.at(i)=fPixel.fWaveForm.at(i)+fNegativePulse.at(j);
-	    }
-
-	  // *****************************************************************
-	  // Now that the MainPulse is constructed we can check to find the 
-	  // positive to neg transition through the offset level (0 for 
-	  // WHIPPLE490) level of fMainPulse. We have to make sure first that 
-	  // if we start in a fired state, we need to look for the neg to pos 
-	  // transition through the offset level
-	  // *****************************************************************
-	  //Start looking for offset crossing:AFTER THRESHOLD REACHED!.
-	  // *****************************************************************
-	  // Stop looking so that we have enough room to make a FADC trace.
-	  // Its probably possible to shorten this a bit more but this will 
-	  // work
-	  // *****************************************************************
-
-	  bool fCFDFired=false;  //Flag that cfd has fired and has not yet
-                                 //reset(gone positive)
-	  if(fMainPulse.at(fThresholdIndex)<fCFDOffsetPE)
-	                                               //See if we start fired.
-	    {
-	      fCFDFired=true; //set flag.
-            }
-
-	  // **************************************************************
-	  // Now we look for the crossing which is a trigger.
-	  // **************************************************************
-	  // *****************************************************************
-	  // Stop looking so that we have enough room to make a FADC trace.
-	  // Its probably possible to shorten this a bit more but this will 
-	  // work
-	  // *****************************************************************
-	  for(int j=fThresholdIndex+1;j<fLastCFDCrossingCheckBin;j++)
-	    {
-	      if(fCFDFired)
+	      if(offsetCrossingBin>fLastThresholdCheckBin)
 		{
-		  if(fMainPulse.at(j)>fCFDOffsetPE)
-		                                 //neg->positive crossing.reset
-		    fCFDFired=false;
+		  return triggerFound;
 		}
-	      else if(fMainPulse.at(j)<=fCFDOffsetPE)//pos->neg crossing. 
-		{ 
-		  fCFDFired=true;
-		  // **************************
-		  // WHIPPLE490
-		  // **************************
-		  if(fCameraType==WHIPPLE490)  //No other requirements for 
-		    {                          //whipple
-		      fPixel.fCFDTriggerTimeNS =
-			j*gWaveFormBinSizeNS +fPixel.fWaveFormStartNS;
-		      //if(fPrintWaveForms)
-		      //	{
-		      //	  PrintWaveForm(fPixel.fID,nx,ny,4,
-		      //	fPixel.fCFDTriggerTimeNS,fMainPulse,
-		      //			fPixel.fWaveFormStartNS);
-		      //	}
-		      return true;
-		    } 
-		  // *************************
-		  // VERITAS499
-		  // *************************
-		  else if(fCameraType==VERITAS499)
-		    {                      //Do we trigger. Check disc
-		      if(fPixel.fWaveForm.at(j+fCFDTriggerDelayBins)
-			 >=fPixel.fThreshold) 
-			{           //WE TRIGGER! Determine when and return
-			  //j+fCFDTriggerDelayBins is trigger 
-			  //bin in fWaveForm. 
-			  fPixel.fCFDTriggerTimeNS =
-			    (j+fCFDTriggerDelayBins)*gWaveFormBinSizeNS +
-			    fPixel.fWaveFormStartNS;
-			  //if(fPrintWaveForms)
-			  // {
-			  //   PrintWaveForm(fPixel.fID,nx,ny,4,
-			  //		    fPixel.fCFDTriggerTimeNS,
-			  //		    fMainPulse,
-			  //		    fPixel.fWaveFormStartNS);
-			  // }
-			  return true;
-			}
-		    }
+	      else
+		{
+		  offsetCrossingBin=offsetCrossingBin+fNumCFDDelayBins+1;
 		}
 	    }
-	  //if(fPrintWaveForms)
-	  // {
-	  //   PrintWaveForm(fPixel.fID,nx,ny,4,0.0,fMainPulse,
-	  //		    fPixel.fWaveFormStartNS);
-	  // }
-	  // ***********************************************************
-	  // Note that we don't find a trigger we don't keep trying to see if 
-	  // reach threshold again. Someday add that.
-	  // ***********************************************************
-	  return false;
+	  else
+	    {
+	      // *********************************************************
+	      //WE TRIGGER! Determine when and save the time
+	      //j+fCFDTriggerDelayBins is trigger bin in fWaveForm. 
+	      triggerFound=true;
+	      double triggerTimeNS =(offsetCrossingBin+
+				     fCFDTriggerDelayBins)*gWaveFormBinSizeNS +
+		                     fPixel.fWaveFormStartNS;
+	      fPixel.fCFDTriggerTimeNS.push_back( triggerTimeNS);
+	      offsetCrossingBin=offsetCrossingBin-fCFDTriggerDelayBins+
+		int(gPSTPulseWidthNS[fCameraType]/gWaveFormBinSizeNS);
+	    }
 	}
     }
-  return false;
+ return triggerFound;
 }
+
 // *************************************************************************
 
 void KSCFD::PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
@@ -255,14 +206,178 @@ void KSCFD::PrintWaveForm(int pixelID, int nx, int ny, int seqNum,
 // Dump wave form to ouput in form easy to plot with root. Used for debugging.
 // **************************************************************************
 {
+
   int fNumBins=waveForm.size();
   for(int i=0;i<fNumBins;i++)
     {
       double fBinTime=waveFormStartNS+i*gWaveFormBinSizeNS;
-      std::cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<pixelID<<" "<<fBinTime<<" "
+      fMyFile<<nx<<" "<<ny<<" "<<seqNum<<" "<<pixelID<<" "<<fBinTime<<" "
 	       <<waveForm.at(i)<<" "<<time<<std::endl;
     }
   return;
 }
 // ***************************************************************************
 
+void KSCFD::makeInternalCFDWaveForm(KSPixel& fPixel,bool printWaveForms)
+// *********************************************************************
+// How CFD's work: WE are going to followe"Techniques for Nuclear and Particle
+// physics Experiments", W.R Leo, PG 319. This is the way veritas and lecroy 
+// CFDs work with an extra check needed for the veritas CFD's.
+// WE ASSUME PULSES ARE POSITIVE GOING. THIS IS THE OPPOSITE OF REALITY.
+// BUT WE ARE SMART GUYS AND CAN HANDLE A SIGN CHANGE NOW AND THEN!!!!!!!
+// Internal to the CFD the input waveform is mainpulated by 
+// 1: input signal is split into  waveforms.
+// 2: First one is delayed by fCFDDelay
+// 3: Second one is negated, and attenuated by fCFDFraction 
+// 4: Then pulses are summed (called fCFDPulse below). 
+// ***********************************************************************
+{
+
+  int fNumWaveFormBins=fPixel.fNumWaveFormBins;
+  fNegativePulse.clear();
+  fNegativePulse.resize(fNumWaveFormBins,0.0);
+
+    // Attenuate and negate waveform(this is what CFD's do)
+  for(int i=0;i<fNumWaveFormBins;i++)
+    {
+      fNegativePulse.at(i)=(-fPixel.fWaveForm.at(i)*fCFDFraction);
+    }
+
+  // **************************************************************
+  //Add delayed pulse to  Negated and attenuated Pulse 
+  //Note; CFDPulse needs only to be as long as fWaveForm since we
+  //      even though the delayed pulse extends after end of fWaveForm
+  //      we can't use it there. 
+  // ***************************************************************
+  fCFDPulse.clear();
+  //std::cout<<"fNumWaveFormBins: "<<fNumWaveFormBins<<std::endl;
+
+  fCFDPulse.resize(fNumWaveFormBins,0.0);
+
+  //Note that first fNumCFDDelayBins-1 bins are 0 in fCFDPulse.
+
+  for(int i=fNumCFDDelayBins;i<fNumWaveFormBins;i++)
+    {
+      int j=i-fNumCFDDelayBins; //Pick up earlier value of oirginal pulse
+                                //Thus its delayed. This is correct!!!!!
+      fCFDPulse.at(i)=fNegativePulse.at(i)+fPixel.fWaveForm.at(j);
+
+    }
+  if(printWaveForms)
+    {
+      fMyFile.open("CFDwaveforms.dat", std::ios::out);
+      fMyFile<<"/I:y/I:seq/I:pix/I:t/F:p/F:time/F:"<<std::endl;
+      double fThresholdTime=fPixel.fWaveFormStartNS;
+      PrintWaveForm(fPixel.fID,0,0,1,fThresholdTime, 
+		    fPixel.fWaveForm,fPixel.fWaveFormStartNS);
+      PrintWaveForm(fPixel.fID,0,0,2,fThresholdTime, 
+		    fNegativePulse,fPixel.fWaveFormStartNS);
+      PrintWaveForm(fPixel.fID,0,0,3,fThresholdTime, 
+		    fCFDPulse,fPixel.fWaveFormStartNS);
+      fMyFile.close();
+    }
+  return;
+}
+// *************************************************************************
+
+bool KSCFD::findAboveThreshold(KSPixel& fPixel, int& thresholdCrossingBin)
+// ****************************************************************
+// Scan through the pixel wave form starting at threshold Crossing bin 
+// until we find a point above threshold.
+// *******************************************************************
+{
+  bool aboveThresholdFound=false;
+  // ********************************************************************
+  // find when we go above threshold
+  // ***********************************************************************
+  for(int i=thresholdCrossingBin;i<=fLastThresholdCheckBin;i++)
+    {
+      if (fPixel.fWaveForm.at(i)>=fPixel.fThreshold)
+	{
+	  aboveThresholdFound=true;
+	  thresholdCrossingBin=i;
+	  return aboveThresholdFound;
+	}
+    }
+  return false;
+}
+// **************************************************************************
+
+bool KSCFD::findNextOffsetCrossing(int& thresholdCrossingBin)
+// **************************************************************************
+// Find when we make a positive corssing of the offset threshold in the CFD 
+// pulse
+// **************************************************************************
+// Make sure we start below the offset.
+// **************************************************************************
+// We need to start looking -fNumCFDDelayBins before the threshold trigger 
+// time. This is because we delayed the main pulse by that much so the
+// threshold time is not where we should start but ealier.
+// *************************************************************************
+{
+  bool belowOffset=false;
+  int offsetCrossingBin;
+  int firstCFDCrossingCheckBin=thresholdCrossingBin-fNumCFDDelayBins;
+  if(firstCFDCrossingCheckBin<0)
+    {
+      firstCFDCrossingCheckBin=0;
+    }
+
+  for(int i=firstCFDCrossingCheckBin;i<fLastCFDCrossingCheckBin;i++)
+    {
+      if(fCFDPulse.at(i)<fCFDOffsetPE)
+	{
+	  belowOffset=true;
+	  offsetCrossingBin=i;
+	  break;
+	}
+    }
+  if(!belowOffset)
+    {
+      return false;
+    }
+  // ************************************************************************
+  // Now find when we go above the offset
+  // ************************************************************************
+  for(int i=offsetCrossingBin;i<fLastCFDCrossingCheckBin;i++)
+    {
+      if(fCFDPulse.at(i)>fCFDOffsetPE)
+	{
+	  thresholdCrossingBin=i;
+	  return true;
+	}
+    }
+  return false;
+}
+// ***************************************************************************
+
+bool KSCFD::aboveThresholdAboveOffset(KSPixel& fPixel,
+					   int& offsetCrossingBin)
+// ****************************************************************
+// Scan through the pixel wave and the CFDwave to find next time that the
+// CFDWave is above offset and gCFDTriggerDelay later the original pulse is
+// above threshold. Quit if we go below offset or reach the end of 
+// the wave.
+// *******************************************************************
+{
+  // *****************************************************************
+  // Find first bin where we are above offset and gfCFDTriggerDelay later we 
+  // are above threshol
+  // *****************************************************************
+  for(int i=offsetCrossingBin;i<=fLastThresholdCheckBin;i++)
+    {
+      if (fCFDPulse.at(i)<fCFDOffsetPE) //Quit if we go below offset
+	{
+	  offsetCrossingBin=i;
+	  return false;
+	}
+      else if (fPixel.fWaveForm.at(i+fCFDTriggerDelayBins)>=fPixel.fThreshold)
+	{
+	  offsetCrossingBin=i;
+	  return true;
+	}
+    }
+  offsetCrossingBin=fLastThresholdCheckBin+1;
+  return false;
+}
+// *************************************************************************
