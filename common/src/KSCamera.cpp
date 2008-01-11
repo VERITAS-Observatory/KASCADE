@@ -70,9 +70,9 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
   fMetersPerDeg             = 1./(atan(1./fFocalLengthM)*gRad2Deg);
 
   //Jitter of normal is 1/2 focal plane jitter. Convert to radians also.
-  fJitterWidthNorthSouthRad =(gSpotSizeNorthSouthDeg[fCameraType]/2.)* 
+  fJitterWidthNorthSouthRad =(gPSFNorthSouthDeg[fCameraType]/2.)* 
     gDeg2Rad;
-  fJitterWidthEastWestRad   = (gSpotSizeEastWestDeg[fCameraType]/2.)* 
+  fJitterWidthEastWestRad   = (gPSFEastWestDeg[fCameraType]/2.)* 
     gDeg2Rad;
 
 
