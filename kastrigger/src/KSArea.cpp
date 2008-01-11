@@ -56,7 +56,10 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   //  Initalize the camera (Lots and Lots of work done in this constructor)
   // ----------------------------------------------------------------------
   pfCamera=new KSCamera(fCameraType, pfDataIn->pfTeHead, 
-			                        pfDataIn->fUsePatternTrigger);
+			pfDataIn->fUsePatternTrigger, 0.0,
+			gFADCDigCntsPerPEHiGain[fCameraType],
+			pfDataIn->fPSFNorthSouthDeg, 
+			pfDataIn->fPSFEastWestDeg);
   pfCamera->Print();
 
   // ************************************************************************
