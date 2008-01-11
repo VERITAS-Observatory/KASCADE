@@ -1,5 +1,5 @@
 
-void HillasPlots(int fTelId,char* fFileName)
+void HillasPlots(char* fFileName,int fTelId=0)
 {
   TFile fHillasFile(fFileName," Input Hillas File");
   std::string fBasicCuts;
@@ -7,10 +7,19 @@ void HillasPlots(int fTelId,char* fFileName)
     {
       fBasicCuts="H.fTelId==0";
     }
-  else
+  else if(fTelId==1)
     {
       fBasicCuts="H.fTelId==1";
     }
+  else if(fTelId==2)
+    {
+      fBasicCuts="H.fTelId==2";
+    }
+  else if(fTelId==3)
+    {
+      fBasicCuts="H.fTelId==3";
+    }
+
 
   fBasicCuts=fBasicCuts+" && H.fGoodImage && H.fPixelsInImage>2 && "
     "H.fTriggerCode==1";
@@ -197,22 +206,3 @@ void HillasPlots(int fTelId,char* fFileName)
   return;
 }
 
-//Makes 3 Canvas' of Hillas plots
-void HillasPlotsT1(char* fFileName)
-{
-  HillasPlots(0,fFileName);
-  return;
-}
-// *****************************
-
-void HillasPlotsT2(char* fFileName)
-{
-  HillasPlots(1,fFileName);
-  return;
-}
-// *******************************
-
-void HillasPlots(char* fFileName)
-{
-  HillasPlots(0,fFileName);
-}
