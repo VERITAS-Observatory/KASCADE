@@ -35,14 +35,14 @@ class KSCamera
 // *******************************************************
 {
  public:
-  KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
-	                                             bool fUsePatternTrigger);
-  KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
-	                  bool fUsePatternTrigger, double fDigCntPerPEHiGain);
+  //  KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
+  //	                                             bool fUsePatternTrigger);
+  //  KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
+  //	                  bool fUsePatternTrigger, double fDigCntPerPEHiGain);
 
   KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
 	   bool fUsePatternTrigger, double fDigCntPerPEHiGain,
-	   double fNoiseRateSigma);
+	   double fNoiseRateSigma, double PSFNSDeg=-1.0, double PSFEWDeg=-1.0);
  private:
   void InitCamera(KSTeHeadData* pTeHead,bool fUsePatternTrigger);
  public:

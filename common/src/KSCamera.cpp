@@ -22,33 +22,60 @@ extern "C" double Gauss();
 
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		   bool fUsePatternTrigger, double DigCntsPePE,
-		   double NoiseRateSigma)
+		   double NoiseRateSigma, double PSFNSDeg, double PSFEWDeg)
+// ************************************************************************
+// Used by KSEvent and KSArea
+// ************************************************************************{
 {
   fCameraType=CameraType;
   fDigCntsPerPEHiGain=DigCntsPePE;
   fNoiseRateSigma=NoiseRateSigma;
   InitCamera(pTeHead,fUsePatternTrigger);
+
+
+  //Jitter of normal is 1/2 focal plane jitter. Convert to radians also.
+  if(PSFNSDeg<0.0)
+    {
+      fJitterWidthNorthSouthRad =(gPSFNorthSouthDeg[fCameraType]/2.)*gDeg2Rad;
+    }
+  else
+    {
+      fJitterWidthNorthSouthRad =(PSFNSDeg/2.)*gDeg2Rad;
+    }
+
+  if(PSFEWDeg<0.0)
+    {
+      fJitterWidthEastWestRad   = (gPSFEastWestDeg[fCameraType]/2.)*gDeg2Rad;
+    }
+  else
+    {
+      fJitterWidthEastWestRad   = (PSFEWDeg/2.)* gDeg2Rad;
+    }
+
 }
 // ************************************************************************
 
-KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-		   bool fUsePatternTrigger, double DigCntsPePE)
-{
-  fCameraType=CameraType;
-  fNoiseRateSigma=0.0;
-  fDigCntsPerPEHiGain=DigCntsPePE;
-  InitCamera(pTeHead,fUsePatternTrigger);
-}
+//KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
+//		   bool fUsePatternTrigger, double DigCntsPePE)
+//{
+//  fCameraType=CameraType;
+//  fNoiseRateSigma=0.0;
+//  fDigCntsPerPEHiGain=DigCntsPePE;
+//  InitCamera(pTeHead,fUsePatternTrigger);
+//}
 // ************************************************************************
 
-KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-		                                      bool fUsePatternTrigger)
-{
-  fCameraType=CameraType;
-  fNoiseRateSigma=0.0;
-  fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
-  InitCamera(pTeHead,fUsePatternTrigger);
-}
+//KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
+//		                                      bool fUsePatternTrigger)
+// *************************************************************************
+// Used by KSArea
+// *************************************************************************
+//{
+//  fCameraType=CameraType;
+//  fNoiseRateSigma=0.0;
+//  fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
+//  InitCamera(pTeHead,fUsePatternTrigger);
+//}
 // ************************************************************************
 
 void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
@@ -69,11 +96,6 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
   fMirrorRadiusSquared      = gMirrorRadiusSquared[fCameraType];
   fMetersPerDeg             = 1./(atan(1./fFocalLengthM)*gRad2Deg);
 
-  //Jitter of normal is 1/2 focal plane jitter. Convert to radians also.
-  fJitterWidthNorthSouthRad =(gPSFNorthSouthDeg[fCameraType]/2.)* 
-    gDeg2Rad;
-  fJitterWidthEastWestRad   = (gPSFEastWestDeg[fCameraType]/2.)* 
-    gDeg2Rad;
 
 
   generateCameraPixels();

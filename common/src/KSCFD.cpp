@@ -316,7 +316,7 @@ bool KSCFD::findNextOffsetCrossing(int& thresholdCrossingBin)
 // *************************************************************************
 {
   bool belowOffset=false;
-  int offsetCrossingBin;
+  int offsetCrossingBin=0;
   int firstCFDCrossingCheckBin=thresholdCrossingBin-fNumCFDDelayBins;
   if(firstCFDCrossingCheckBin<0)
     {
