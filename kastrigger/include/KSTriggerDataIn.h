@@ -50,6 +50,8 @@ private:
   static double      sDefaultMountDn;                
   static double      sDefaultMountElevationDeg;      
   static double      sDefaultGammaStepSizeDeg;
+  static double      sDefaultPSFNorthSouthDeg;
+  static double      sDefaultPSFEastWestDeg;
 public:
   KSTriggerDataIn(KSTeHeadData* pfTeHead);
   virtual ~KSTriggerDataIn();
@@ -65,6 +67,8 @@ public:
   double fMountElevationDeg;        //Mount elevation in deg -> 
                                     // fUseElevationForDlDmDn
   double fGammaStepSizeRad;         // 2d Gamma step size
+  double fPSFNorthSouthDeg;    // Spotsize paramter(scales to measured 
+  double fPSFEastWestDeg;      // real spot size)
   bool fLoadMountDirectionsFromFile;
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;
