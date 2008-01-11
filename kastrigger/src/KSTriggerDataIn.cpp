@@ -43,7 +43,9 @@ double      KSTriggerDataIn::sDefaultMountDm=-0.017452212;
 double      KSTriggerDataIn::sDefaultMountDn=-.9998477;                
 double      KSTriggerDataIn::sDefaultMountAzDeg=-1.0;    
 double      KSTriggerDataIn::sDefaultMountZenithDeg=-1.0;
-double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;      
+double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;  
+double      KSTriggerDataIn::sDefaultPSFNorthSouthDeg=-1.0;
+double      KSTriggerDataIn::sDefaultPSFEastWestDeg=-1.0;
 // **************************************************************************
 
 
@@ -231,6 +233,24 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
   fMountElevationDeg         = sDefaultMountElevationDeg;     
   fMountDirectionFileName=sDefaultMountDirectionsFileName;  
   fRandomSeedFileName=sDefaultRandomSeedFileName;  //A ksTriggerDataIn variable
+  
+  if(sDefaultPSFNorthSouthDeg<0)
+    {
+      fPSFNorthSouthDeg = gPSFNorthSouthDeg[pfTeHead->fCameraType];
+    }
+  else
+    {
+      fPSFNorthSouthDeg = sDefaultPSFNorthSouthDeg;
+    }
+
+  if(sDefaultPSFEastWestDeg<0)
+    {
+      fPSFEastWestDeg   = gPSFEastWestDeg[pfTeHead->fCameraType];
+    }
+  else
+    {
+      fPSFEastWestDeg   = sDefaultPSFEastWestDeg;
+    }
 }
 // **************************************************************************
 
@@ -272,6 +292,9 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.setValue("MountElevationDeg",fMountElevationDeg);
   config.setValue("MountDirectionsFileName",fMountDirectionFileName);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
+  config.setValue("PSFNorthSouthDeg",fPSFNorthSouthDeg);
+  config.setValue("PSFEastWestDeg",fPSFNorthSouthDeg);
+
   return config;
 }
 
@@ -431,6 +454,20 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSTriggerDataIn",
 		    "File Name for Random Seed File.");
+  doVAConfiguration(file, command_line, 
+		    "PSFNorthSouthDeg",sDefaultPSFNorthSouthDeg,
+		    "KSTriggerDataIn",
+		    "Size of PSF for the telescope in the North/South "
+		    "direction in Degrees. This is not the actual value but "
+		    "is scaled to it. Default is value given in KSCommon.h "
+		    "for gPSFEastWestDeg[fCamera].");
+  doVAConfiguration(file, command_line, 
+		    "PSFEastWestDeg",sDefaultPSFEastWestDeg,
+		    "KSTriggerDataIn",
+		    "Size of PSF for the telescope in the East/West "
+		    "direction in Degrees. This is not the actual value but "
+		    "is scaled to it. Default is value given in KSCommon.h "
+		    "for gPSFEastWestDeg[fCamera].");
 }
 // **************************************************************************
  
