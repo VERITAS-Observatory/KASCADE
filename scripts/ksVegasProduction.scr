@@ -43,7 +43,7 @@ echo $RootFileName
 echo $LSRRootFileName
 
 if [ -n "$Stage2" ]; then
-    $VEGASBASE/bin/vaStage2  $EnableMuonDataOption $EnableImageTimingOption $VBFFileName $RootFileName $LSRRootFileName
+    $VEGASBASE/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption $EnableImageTimingOption $VBFFileName $RootFileName $LSRRootFileName
 fi
 
 
@@ -64,8 +64,8 @@ NTable=lookuptables_EcleanedNcutted.root
 ETable=lookuptables_EcleanedEcutted_$Wobble'.root'
 
 host=$(hostname)
-if [ $host = 'isis' ] ; then
-    LookUpTableDir=/usr/local/vegas/showerReconstruction/vegas_lookuptables
+if [ $host = 'isis.depauw.edu' ] ; then
+    LookUpTableDir=/veritas/local/vegas/showerReconstruction/vegas_lookuptables
 else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
 fi
