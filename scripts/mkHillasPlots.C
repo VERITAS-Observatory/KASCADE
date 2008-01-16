@@ -46,11 +46,14 @@ void HillasPlots(char* fFileName,int fTelId=0)
 	 
 
    
-  bool fDoC1=true;
-  bool fDoC2=true;
+  //bool fDoC1=true;
+  //bool fDoC2=true;
+  bool fDoC1=false;
+  bool fDoC2=false;
   bool fDoC3=true;
   bool fDoC4=true;
-  bool fDoC5=true;
+  //bool fDoC5=true;
+  bool fDoC5=false;
   std::string fCuts;
   if(fDoC1)
     {
