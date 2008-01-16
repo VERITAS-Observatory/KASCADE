@@ -732,9 +732,10 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
 	}
     }
 
-  fWaveFormStartNS=fPixelMinTimeNS - gFADCWindowOffsetNS[fCameraType]
-                                   - gFADCTOffsetNS[fCameraType]-1.0;
- 
+  fWaveFormStartNS=fPixelMinTimeNS -gFADCWindowOffsetNS[fCameraType]
+                                   -gFADCTOffsetNS[fCameraType]
+                                   -gCFDDelayNS[fCameraType]
+                                   -gCFDTriggerDelayNS[fCameraType]-1.0;
 
   double fWaveFormEndNS = fPixelMaxTimeNS 
     + fPixel.at(0).fSinglePeSizeNS
@@ -752,12 +753,12 @@ void KSCamera::findWaveFormLimits(double& fWaveFormStartNS,
   // Now find the first and last time we should look at for the signal 
   // reaching threshold
   // ************************************************************************ 
-  fStartTimeOffsetNS = gFADCWindowOffsetNS[fCameraType]
-                     + gFADCTOffsetNS[fCameraType]
-                     - gCFDDelayNS[fCameraType]
-                     - gCFDTriggerDelayNS[fCameraType]+1.0;
-                              // Start searching for CFD trigger at beginning
-                              //  of fWaveForm offset a bit to make room for
+  fStartTimeOffsetNS = fPixelMinTimeNS-fWaveFormStartNS
+                                   -gCFDDelayNS[fCameraType]
+                                   -gCFDTriggerDelayNS[fCameraType]+1.0;
+                              // Start searching for CFD trigger a little early
+                              // at beginning
+                              // of fWaveForm, offset a bit to make room for
                               // us being offset by the FADC trace;
   fLastTimeOffsetNS  = fPixelMaxTimeNS + fPixel.at(0).fSinglePeSizeNS
                                        - fWaveFormStartNS; 
