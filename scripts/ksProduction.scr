@@ -49,7 +49,7 @@ function Protons()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ $host = '$ISIS' ]; then
+    if [ $host = $ISIS ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 #ksaomVBF ~12hr.
 	BuildIsisScriptList 1 1 2
@@ -105,7 +105,7 @@ function Helium4()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=448  334  249  186  139  104  78   58   43   32    24    18    14  10    8     6     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ $host = '$ISIS' ]; then
+    if [ $host = $ISIS ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 #set 1 kasaomVBF ~5 hr.
@@ -159,7 +159,7 @@ function Gammas()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=907  700  540  417  322  248  192  148  114  88    68    53    41  32    25    19    15   12  9   7   6   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ $host = '$ISIS' ]; then
+    if [ $host = $ISIS ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildIsisScriptList 1 11 12
@@ -292,7 +292,7 @@ if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
 fi
 
 ISIS=isis.depauw.edu
-if [ $host = '$ISIS' ] ; then
+if [ $host = $ISIS ] ; then
     dataDirBase=/simulations
     if [ ! -d "workingScratch" ]; then
        mkdir -p workingScratch
@@ -398,7 +398,7 @@ if [ $pspecset -ne 1 ]; then
     exit
 fi
 
-if [ $host = '$ISIS' ] ; then
+if [ $host = $ISIS ] ; then
    
     let jobNum=1
     while test $jobNum -le $lastJob
