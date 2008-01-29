@@ -390,27 +390,25 @@ c     photons(7,i):Wavelength of photon in nm.Added 25/10/93 G.H.S. V:1:0:2.0
          totalmade=totalmade+nmade !collect for debugging purposes
          do ij=1,nmade
             if(VeritasMount)then
-               if(.not.NorthSouthGrid)then !Array areas are long in east-west
-                                           !direction Alternate rows offset
-                                !Special triangular array specification.
-                                !ex: x,y=(0,0) center of        NX,NY=(0,0)
-                                !    x,y=(xseg/2,yseg)center of NX,NY=(0,1)
-                                !    x,y=(0,2*yseg)center of    NX,NY=(0,2)
+               if(SquareGrid)then   !A rectangular grid
                   n=(photons(2,ij)/yseg)+.5+100000.
-                  ny=n-100000   !The '100000' here is to get the round down to
-                                !work right. Negative numbers round up!
-                  yg=photons(2,ij)-ny*yseg !Form 'Local' coordinates.
-                  if(mod(ny,2).eq.0)then !ny even. NX determined as in old way.
-                     n=(photons(1,ij)/xseg)+.5+100000.
-                     nx=n-100000
-                     xg=photons(1,ij)-nx*xseg
-                  else          !NY odd. Shift NX center to right 1/2 of xseg.
-                     n=(photons(1,ij)/xseg)+100000.
-                     nx=n-100000
-                     xg=photons(1,ij)-(nx+.5)*xseg
-                  endif
-               else             !Array areas are long in North-South
-                                !direction.Alternate coulums offset
+                  ny=n-100000 
+                  yg=photons(2,ij)-ny*yseg
+                  n=(photons(1,ij)/xseg)+.5+100000.
+                  nx=n-100000 !x,y=(0,0) is in area 0,0 as is x,y=(-.5,-.5)
+                  xg=photons(1,ij)-nx*xseg
+
+                  !print*,'photons(2,ij): ',photons(2,ij)
+                  !print*,'yseg: ',yseg
+                  !print*,'ny: ',ny
+                  !print*,'yg: ',yg
+                  !print*,'photons(1,ij): ',photons(1,ij)
+                  !print*,'xseg: ',xseg
+                  !print*,'nx: ',nx
+                  !print*,'xg: ',xg
+                 
+               elseif(NorthSouthGrid)then  !Array areas are long in North-South
+                                           !direction.Alternate coulums offset
                   n=(photons(1,ij)/xseg)+.5+100000.
                   nx=n-100000 
                   xg=photons(1,ij)-nx*xseg
@@ -429,8 +427,27 @@ c     photons(7,i):Wavelength of photon in nm.Added 25/10/93 G.H.S. V:1:0:2.0
                      ny=n-100000
                      yg=photons(2,ij)-(ny+.5)*yseg
                   endif
+               else            !Array areas are long in east-west
+                               !direction Alternate rows offset
+                                !Special triangular array specification.
+                                !ex: x,y=(0,0) center of        NX,NY=(0,0)
+                                !    x,y=(xseg/2,yseg)center of NX,NY=(0,1)
+                                !    x,y=(0,2*yseg)center of    NX,NY=(0,2)
+                  n=(photons(2,ij)/yseg)+.5+100000.
+                  ny=n-100000   !The '100000' here is to get the round down to
+                                !work right. Negative numbers round up!
+                  yg=photons(2,ij)-ny*yseg !Form 'Local' coordinates.
+                  if(mod(ny,2).eq.0)then !ny even. NX determined as in old way.
+                     n=(photons(1,ij)/xseg)+.5+100000.
+                     nx=n-100000
+                     xg=photons(1,ij)-nx*xseg
+                  else          !NY odd. Shift NX center to right 1/2 of xseg.
+                     n=(photons(1,ij)/xseg)+100000.
+                     nx=n-100000
+                     xg=photons(1,ij)-(nx+.5)*xseg
+                  endif
                endif
-            else
+            elseif(WhippleMount)then
                n=(photons(2,ij)/yseg)+.5+100000.
                ny=n-100000 
                yg=photons(2,ij)-ny*yseg

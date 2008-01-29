@@ -33,6 +33,10 @@
 #include "KSPeFile.h"
 #include "KSSegmentDataClasses.h"
 #include "KSPeDataClasses.h"
+#include "KSAzElRADecXY.h"
+#include "KSCommon.h"
+
+
 
 #ifdef KSGRISU
      #include "KSGrISUPilotFiles.h"
@@ -68,6 +72,10 @@ extern "C" void kspewrite(int* nx, int* ny, float* time, float* dl,
 			  float* dm, int* id, float* x, float* y, int* type,
 			  float* lambda, float* emalt);
 extern "C" void ksreadwavelengthtable(char* fTableName, float* fTable);
+
+void findXSegYSeg(double az,double el, double radius, double& xSeg, 
+		  double& ySeg);
+
 
 KSLightDataIn*     pfDataIn;
 
@@ -332,12 +340,6 @@ int main(int argc, char** argv)
     // ------------------------------------------------------------------------
     //  Set up grid size. 
     // ------------------------------------------------------------------------
-    // All this: abs(sin(abs(acos(dl))-5.*pi/180 stuff is to elongate the 
-    // area in the direction of tilt of the mount. A litttle extra
-    // tilt(5 deg) is added to prevent possible multiple use of a photons
-    // (one might hits a telescope  on its edge in one grid rectangle and 
-    // could continue on to hit the opposite edge of the telescope in an 
-    // adjacent rectangle. This prevents that(out to 5 deg photons).
     // ------------------------------------------------------------------------
     // Make Whipple or VERITAS triangular array the same size
     // For a EastWest grid: A TRiangular array is achieved by having: 
@@ -347,35 +349,110 @@ int main(int argc, char** argv)
     // ------------------------------------------------------------------------
       if(pfPeHead->fWhippleMount || pfPeHead->fVeritasMount)
 	{
-	  if(pfPeHead->fNorthSouthGrid)
-	    {
-	      pfPeHead->fXAreaWidthM=12.0;       //NS grid 
-	      pfPeHead->fYAreaWidthM=sqrt(4./3.)*pfPeHead->fXAreaWidthM; 
-	    }
-	  else
-	    {
-	      pfPeHead->fYAreaWidthM=12.0;       //EW grid
-	      pfPeHead->fXAreaWidthM=sqrt(4./3.)*pfPeHead->fYAreaWidthM;
-	    }
-	}
-      else 
-	{                           
 	  pfPeHead->fXAreaWidthM=12.0;       //SQUARE grid
 	  pfPeHead->fYAreaWidthM=12.0;
 	}
-      // *****************************************************************
-      //THIS IS A HACK!!!
-      // Modify for inclination angle. Mirror shadow gets bigger. This may be 
-      // an over correction until I can get the exact geometry worked out.
-      //Note: this is also not right because this is primary direction not 
-      // mount direction.
-      // ******************************************************************
-      pfPeHead->fXAreaWidthM=
-	               fabs(pfPeHead->fXAreaWidthM/pfSegmentHead->fDnInitial);
-      pfPeHead->fYAreaWidthM=
-                       fabs(pfPeHead->fYAreaWidthM/pfSegmentHead->fDnInitial);
-  
 
+      // *****************************************************************
+      // Modify for inclination angle. Mirror shadow gets bigger. 
+      //Note: This is also not right because this is primary direction not 
+      //      mount direction. The error is maximum at 70 deg where we come
+      //      up short by ~.4 m if mount is actually at 72 deg. So add ./5 m to
+      //      make YSeg and Xseg, but don't add this to Yseg if the inclination
+      //      <1.5deg. For <1.5 deg inclination we want to keep T1-T4 
+      //      seperation as close as possible to acutal seperation of 35.01 
+      //      meters. 3*12m/cos(thetaX)~ 36 m  is the best we can do.
+      // ******************************************************************
+      KSAzElRADecXY convertCoords(-1.93649,0.552828);//Base camp but not needed
+      double azCC;
+      double elCC;
+      double dnCC=-(-pfSegmentHead->fDnInitial);  //Kascade to vegas convention
+      double dmCC=-(-pfSegmentHead->fDmInitial);  //AND particle dir to mount 
+      double dlCC=(-pfSegmentHead->fDlInitial);   //dir conversion.
+      convertCoords.DlDmDnToAzEl(dlCC, dmCC, dnCC, azCC, elCC);
+
+      double az=azCC/gDeg2Rad;   //convert to deg.
+      double el=elCC/gDeg2Rad;
+      std::cout<<"ksLight: Primary coming from: azimuth: "<<az
+	       <<"deg. Elevation: "<<el<<"deg."<<std::endl;
+      // *****************************************************************
+      // Make room for 2 deg wobble except when we want t1-t4 to stay
+      // at 36 m
+      // *****************************************************************
+      double xSeg;
+      double ySeg;
+      if(az<1.5 ||fabs(az-360.0)<1.5 || fabs(az-180)<1.5) //NorthSouth
+	{
+	  if( (90.0-el)<1.5 )    //zenith.keep yseg=12.0 (t1-t4)
+	    {
+	      pfPeHead->fXAreaWidthM=pfPeHead->fXAreaWidthM+.5; 
+	    }
+	  else
+	    {
+	      findXSegYSeg(az,el,(pfPeHead->fXAreaWidthM+.5)/2.0,xSeg,ySeg);
+	      pfPeHead->fXAreaWidthM=xSeg; 
+	      pfPeHead->fYAreaWidthM=ySeg;
+	    }
+	}
+      else if(fabs(az-90.0)< 1.5 || fabs(az-270.0)< 1.5) //EastWest
+	{
+	  // ***********************************************************
+	  // I'm not adding the .5 m here to Yseg since I rally want for e-w 
+	  // inclination to keep T1-T4 distance as close  as possible to the 
+	  // actuall which is 35 m. This means we loose a bit if we wobble  
+	  // north or south but I think this is more improtant.
+	  // ************************************************************
+	  findXSegYSeg(az,el,(pfPeHead->fXAreaWidthM+.5)/2.0,xSeg,ySeg);
+	  pfPeHead->fXAreaWidthM=xSeg;
+	}
+      else      //Arbitrary direction. add .5 m for wobbble room both 
+	        //direcitons
+	{
+	  double xSeg;
+	  double ySeg;
+	  findXSegYSeg(az,el,(pfPeHead->fXAreaWidthM+.5)/2.0,xSeg,ySeg);
+
+	  pfPeHead->fXAreaWidthM=xSeg;
+	  pfPeHead->fYAreaWidthM=ySeg;
+	}
+      // *******************************************************************
+      // For the triangular grid we need to have the yseg/xseg ratio be
+      // sqrt(4/3) for NorthSouth and  invers of that for eastWest
+      // We ignore T1-T4 stuff here. Only used with Square grid.
+      // *******************************************************************
+ 
+      if(pfPeHead->fTriangularGrid) //Triangular grid
+	{
+	  if(pfPeHead->fNorthSouthGrid)
+	    {
+	      //NS grid 
+	      double newYSeg=sqrt(4./3.)*pfPeHead->fXAreaWidthM; 
+	      if(newYSeg>pfPeHead->fYAreaWidthM)
+		{
+		  pfPeHead->fYAreaWidthM=newYSeg;
+		}
+	      else
+		{
+		  double newXSeg=pfPeHead->fYAreaWidthM/sqrt(4./3.);
+		  pfPeHead->fXAreaWidthM=newXSeg;
+		}
+	    }
+	  else
+	    {
+	      //EW grid
+	      double newXSeg=sqrt(4./3.)*pfPeHead->fYAreaWidthM; 
+	      if(newXSeg>pfPeHead->fXAreaWidthM)
+		{
+		  pfPeHead->fXAreaWidthM=newXSeg;
+		}
+	      else
+		{
+		  double newYSeg=pfPeHead->fXAreaWidthM/sqrt(4./3.);
+		  pfPeHead->fYAreaWidthM=newYSeg;
+		}
+	    }
+	}
+ 
     // ------------------------------------------------------------------------
     // Generate a random X_OFFSET and a Y_OFFSET for this shower if requested.
     // Note: These offsets by arbitray convention will be 'ADDED' to things.
@@ -541,3 +618,53 @@ void ksreadwavelengthtable(char* fTableName, float* fTable)
   return;
 }
 
+// ***************************************************************************
+void findXSegYSeg(double az,double el, double radius, double& xSeg, 
+		  double& ySeg)
+// *************************************************************************
+// For a mirror with radius(meters) pointing at az,el(deg) 
+// (az=0: Y+, az=90: X+)
+// Find grid square (meters) that will fit the elliptical shadow of the mirror
+// *************************************************************************
+// Written by:
+//  Ben Zitzer
+//  Physics Dept.
+//  Purdue Univ
+// West Lafayette, In 47907
+// zitzer@purdue.edu
+// Jan 29, 2008
+// ***************************************************************************
+{
+  // **************************************************************
+  // Check parametrers
+  // **************************************************************
+  while (az>=360)
+    {
+      az=az-360.0;
+    }
+  if(el>90)          //set limits on elevation
+    {
+      el=90.0;
+    }
+  if(el<=0.0)
+    {
+      el=1.0;
+    }
+
+  double zn=90.0-el;
+  double azRad=az*gDeg2Rad;
+  double znRad=zn*gDeg2Rad;
+  
+  double a=cos(azRad)*cos(azRad) + sin(azRad)*sin(azRad)*cos(znRad)*cos(znRad);
+  double b=2*cos(azRad)*sin(azRad)*sin(znRad)*sin(znRad);
+  double c=sin(azRad)*sin(azRad)+cos(azRad)*cos(azRad)*(cos(znRad)*cos(znRad));
+  
+  ySeg=2*radius*sqrt(1.0/(c-b*b/(4.0*a)));
+  xSeg=2*radius*sqrt(1.0/(a-b*b/(4.0*c)));
+
+  //std::cout<<"radiusSqr; "<<radiusSqr<<std::endl;
+  //std::cout<<"a,b,c: "<<a<<" "<<b<<" "<<c<<std::endl;
+  //std::cout<<"Xseg: "<<xseg<<" Yseg: "<<yseg<<std::endl;
+  return;
+}
+// **************************************************************************

@@ -71,10 +71,27 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
   if(sDefaultGridType=="TRIANGULAR")
     {
       pfPeHead->fTriangularGrid=true;
+      if(sDefaultGridOrientation=="NORTHSOUTH")
+	{
+	  pfPeHead->fNorthSouthGrid=true;
+	}
+      else if(sDefaultGridOrientation=="EASTWEST")
+	{
+	  pfPeHead->fNorthSouthGrid=false;
+	}
+      else
+	{
+	  std::cout<<"Illegal option for GridOrientation: "
+		   <<sDefaultGridOrientation
+		   <<" Assuming GridType=NORTHSOUTH"<<std::endl;
+	  pfPeHead->fNorthSouthGrid=true;
+	}
+      
     }
   else if(sDefaultGridType=="SQUARE")
     {
       pfPeHead->fSquareGrid=true;
+      pfPeHead->fNorthSouthGrid=false;
     }
   else
     {
@@ -82,24 +99,6 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
 	       <<" Assuming GridType=TRIANGULAR"<<std::endl;
       pfPeHead->fTriangularGrid=true;
     }
-
-
-  if(sDefaultGridOrientation=="NORTHSOUTH")
-    {
-      pfPeHead->fNorthSouthGrid=true;
-    }
-  else if(sDefaultGridOrientation=="EASTWEST")
-    {
-      pfPeHead->fNorthSouthGrid=false;
-    }
-  else
-    {
-      std::cout<<"Illegal option for GridOrientation: "
-	       <<sDefaultGridOrientation
-	       <<" Assuming GridType=NORTHSOUTH"<<std::endl;
-      pfPeHead->fNorthSouthGrid=true;
-    }
-
 
 
   if(sDefaultCoreOffsetMode=="RANDOM")
