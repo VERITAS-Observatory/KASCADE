@@ -58,11 +58,23 @@ KSVBFFile::KSVBFFile(KSCameraTypes CameraType, double DigitalCountsPerPE,
 
   fXSeg=pfPeHead->fXAreaWidthM;
   fYSeg=pfPeHead->fYAreaWidthM;
-  fNSFlag=0;
-  if(pfPeHead->fNorthSouthGrid)
+
+  if(pfPeHead->fSquareGrid)
     {
-      fNSFlag=1;
+      fNSFlag=SQUAREGRID;
     }
+  else
+    {
+      if(pfPeHead->fNorthSouthGrid)
+	{
+	  fNSFlag=NORTHSOUTHGRID;
+	}
+      else
+	{
+	  fNSFlag=EASTWESTGRID;
+	}
+    } 
+
   fXOffset=pfPeHead->fXCoreOffsetM;
   fYOffset=pfPeHead->fYCoreOffsetM;
   

@@ -941,66 +941,82 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
 
 double  KSEvent::findTelescopeXM()
 // *********************************************************************
-// convert from triangular array indicess.
+// convert from square or triangular array indicess.
 // This supposedly works for both NS and EW arrays. We always want to round 
 // more negative.)
 //Kascade x + east, y + south
 // ********************************************************************
 {  
-  if(pfPeHead->fNorthSouthGrid)
+  if(pfPeHead->fSquareGrid)
     {
       double fX=pfPeHead->fXAreaWidthM*pfTe->fNx - pfPeHead->fXCoreOffsetM;
       return fX;
     }
   else
     {
-      // **************************************************************
-      // Check to see if we are on odd or even row
-      // **************************************************************
-      if(pfTe->fNy%2==0) 
-	{                   //Ny even
+      if(pfPeHead->fNorthSouthGrid)
+	{
 	  double fX=pfPeHead->fXAreaWidthM*pfTe->fNx - pfPeHead->fXCoreOffsetM;
 	  return fX;
 	}
       else
 	{
-	  double fX=pfPeHead->fXAreaWidthM*(pfTe->fNx+.5) - 
-	                                            pfPeHead->fXCoreOffsetM;
-	  return fX;
-
+	  // **************************************************************
+	  // Check to see if we are on odd or even row
+	  // **************************************************************
+	  if(pfTe->fNy%2==0) 
+	    {                   //Ny even
+	      double fX=pfPeHead->fXAreaWidthM*pfTe->fNx-
+		pfPeHead->fXCoreOffsetM;
+	      return fX;
+	    }
+	  else
+	    {
+	    double fX=pfPeHead->fXAreaWidthM*(pfTe->fNx+.5) - 
+	      pfPeHead->fXCoreOffsetM;
+	    return fX;
+	    
+	    }
 	}
     }
 }
-
 double  KSEvent::findTelescopeYM()
 // *********************************************************************
-// convert from triangular array indicess.
+// convert from square or triangular array indicess.
 // This supposedly works for both NS and EW arrays. We alwyas want to round 
 // more negative.)
 // ********************************************************************
 {  
-  if(!pfPeHead->fNorthSouthGrid)
+  if(pfPeHead->fSquareGrid)
     {
       double fY=pfPeHead->fYAreaWidthM*pfTe->fNy - pfPeHead->fYCoreOffsetM;
       return fY;
     }
   else
     {
-      // **************************************************************
-      // Check to see if we are on odd or even column
-      // **************************************************************
-      if(pfTe->fNx%2==0) 
-	{                   //Nx even
+      if(!pfPeHead->fNorthSouthGrid)
+	{
 	  double fY=pfPeHead->fYAreaWidthM*pfTe->fNy - pfPeHead->fYCoreOffsetM;
 	  return fY;
 	}
       else
 	{
-	  double fY=pfPeHead->fYAreaWidthM*(pfTe->fNy+.5) - 
-	                                            pfPeHead->fYCoreOffsetM;
-	  return fY;
-
+	  // **************************************************************
+	  // Check to see if we are on odd or even column
+	  // **************************************************************
+	  if(pfTe->fNx%2==0) 
+	    {                   //Nx even
+	      double fY=pfPeHead->fYAreaWidthM*pfTe->fNy-
+		                                    pfPeHead->fYCoreOffsetM;
+	      return fY;
+	    }
+	  else
+	    {
+	      double fY=pfPeHead->fYAreaWidthM*(pfTe->fNy+.5) - 
+		pfPeHead->fYCoreOffsetM;
+	      return fY;
+	    }
 	}
-    }
+    } 
 }
 // *************************************************************************
