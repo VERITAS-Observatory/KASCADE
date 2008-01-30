@@ -95,8 +95,9 @@ class KSArrayEvent
 		     std::vector<int>& pfNYOdd,std::vector<int>& pfNXEven,
 		     std::vector<int>& pfNXEven);
   void GetXYFromNXNY(int fNx, int fNy,double& fX, double& fY);
-  
   void SetTelescopeOffsetFromBaseTel(int fBaseTelIndex, int fTelIndex);
+  void PrintRelativeTelescopePositions();
+  void LoadInputSimHeaderWithTelescopePositions();
 
  public:
   bool FindTrigger();
