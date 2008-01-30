@@ -120,17 +120,24 @@ class KSTelescope
   int fPedListIndex;
  
   VATelID fTelID;
+  int fNXOffset;
   int fNXOffsetEven;
-  int fNYOffsetEven;
   int fNXOffsetOdd;
+
+  int fNYOffset;
+  int fNYOffsetEven;
   int fNYOffsetOdd;
+
   int fRunNumber;
   std::vector< float>fXPositionsM;
   std::vector< float>fYPositionsM;
   std::vector< float>fZPositionsM;
   float fXAreaWidthM;
   float fYAreaWidthM;
+
+  bool  fSquareGrid;
   bool  fNorthSouthGrid;
+  bool  fEastWestGrid;
   int fBaseTelIndex;
 };
 // ***************************************************************************
