@@ -74,13 +74,29 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  fZPositionsM.resize(fNumTelPositions);
 	  for(int i=0;i<fNumTelPositions;i++)
 	    {
-	      fXPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocEastM;
-	      fYPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocSouthM; 
-	      fZPositionsM[i]=pfKVDFSimHead->fArray[i].fRelTelLocUpM;
+	      fXPositionsM.at(i)=pfKVDFSimHead->fArray.at(i).fRelTelLocEastM;
+	      fYPositionsM.at(i)=pfKVDFSimHead->fArray.at(i).fRelTelLocSouthM; 
+	      fZPositionsM.at(i)=pfKVDFSimHead->fArray.at(i).fRelTelLocUpM;
 	    }
 	  fXAreaWidthM=pfKVDFSimHead->fXAreaWidthM;
 	  fYAreaWidthM=pfKVDFSimHead->fYAreaWidthM;
-	  fNorthSouthGrid=pfKVDFSimHead->fNorthSouthGrid;
+
+	  fSquareGrid=false;
+	  fNorthSouthGrid=false;
+	  fEastWestGrid=false;
+	  if(pfKVDFSimHead->fNorthSouthGrid==SQUAREGRID)
+	    {
+	      fSquareGrid=true;
+	    }
+	  if(pfKVDFSimHead->fNorthSouthGrid==EASTWESTGRID) 
+	    {
+	      fEastWestGrid=true;
+	    }
+	  if(pfKVDFSimHead->fNorthSouthGrid==NORTHSOUTHGRID)
+	    {
+	      fNorthSouthGrid=true;
+	    } 
+	      
 
 	  pfVDFSimTree = (TTree*)pfVDFEventFile->getSimulationEventTreePtr();
 	  pfVDFKSimData = pfVDFEventFile->getKascadeSimulationDataPtr();
@@ -116,13 +132,29 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  fZPositionsM.resize(fNumTelPositions);
 	  for(int i=0;i<fNumTelPositions;i++)
 	    {
-	      fXPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocEastM;
-	      fYPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocSouthM; 
-	      fZPositionsM[i]=pfVBFSimHead->fArray[i].fRelTelLocUpM;
+	      fXPositionsM.at(i)=pfVBFSimHead->fArray.at(i).fRelTelLocEastM;
+	      fYPositionsM.at(i)=pfVBFSimHead->fArray.at(i).fRelTelLocSouthM; 
+	      fZPositionsM.at(i)=pfVBFSimHead->fArray.at(i).fRelTelLocUpM;
 	    }
 	  fXAreaWidthM=pfKVBFSimHead->fXAreaWidthM;
 	  fYAreaWidthM=pfKVBFSimHead->fYAreaWidthM;
-	  fNorthSouthGrid=pfKVBFSimHead->fNorthSouthGrid;
+
+	  fSquareGrid=false;
+	  fNorthSouthGrid=false;
+	  fEastWestGrid=false;
+	  if(pfKVBFSimHead->fGrid==SQUAREGRID)
+	    {
+	      fSquareGrid=true;
+	    }
+	  if(pfKVBFSimHead->fGrid==EASTWESTGRID) 
+	    {
+	      fEastWestGrid=true;
+	    }
+	  if(pfKVBFSimHead->fGrid==NORTHSOUTHGRID)
+	    {
+	      fNorthSouthGrid=true;
+	    } 
+
 	  fNumEvents = pfVBFEventFile->numPackets()-1; //
 	  if(fNumEvents==0)
 	    {
@@ -198,13 +230,13 @@ void KSTelescope::makeGridDirMap()
 	{
 	  int64_t fKey=makeGridDirKey(fNx,fNy,fDir);
 	  fGridDirMap[fKey]=i;
-	  pfArrayEventsUsed[i]=false;
+	  pfArrayEventsUsed.at(i)=false;
 	  //std::cout<<"i,nx,ny,dir,key: "<<i<<" "<<fNx<<" "<<fNy<<" "<<fDir
 	  //	   <<" "<<fKey<<std::endl;
 	}
       else
 	{
-	  pfArrayEventsUsed[i]=true;   //Disable (for now) non normal events 
+	  pfArrayEventsUsed.at(i)=true;   //Disable (for now) non normal events 
 	                             //(pedestal events  mostly)
 	}
       if(fPedestalEvent)
@@ -352,65 +384,6 @@ int  KSTelescope::getIndexForGridDirKey(int64_t fKey)
 }
 // *************************************************************************
 
-//Obsolete
-//void KSTelescope::DetermineOffsets(int fBaseTel)
-// ************************************************************************
-// Determine nx,ny offsets relative to TelID=fBaseTel for this telescope.
-// May be different for odd and even, so make both
-// Ignore Z for now.  Introduces correction later that may be of interest
-//  Note KASCADE convention +x axis is east, +y axis is south
-//  Note VEGAS convention +x axis is east, +y axis is north
-// ************************************************************************
-//{
-//  // ************************************************************************
-//  // Only North-South Triangular grid is valid
-//  //
-//  if(!fNorthSouthGrid)
-//    {
-//      std::cout<<"ksArrayTrigger: Only North-South triangular grid are valid "
-//	"presently"<<std::endl;
-//      exit(1);
-//    }
-//  float fBaseX=fXPositionsM[fBaseTel];   //X +east
-//  float fBaseY=fYPositionsM[fBaseTel];   //Y +south
-//  //float fBaseZ=fZPositionsM[fBaseTel];
-//
-//  float fXRelativeM=fXPositionsM[fTelID]-fBaseX;
-//  float fYRelativeM=fYPositionsM[fTelID]-fBaseY;
-//  //float fZRelativeM=fZPositionsM[fTelID]-fBaseZ;
-//
-//  //For any fNX on N-S grid: no changes
-//  fNXOffsetEven= (int)(fabs(fXRelativeM)/fXAreaWidthM+.5);
-//  if(fXRelativeM<0)
-//    {
-//      fNXOffsetEven=-fNXOffsetEven;
-//    }
-//  fNXOffsetOdd=fNXOffsetEven;
- // // **************************************************************
-//  // For NX  Odd even NY are different
-//  // **************************************************************
-//  // NX even on N-S grid: Ny has no shift 
-//  if(fNXOffsetEven%2==0)                  // % is the C++ mod operator
-//    {
-//      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM+.5);
-//      if(fYRelativeM<0)
-//	{
-//	  fNYOffsetEven=-fNYOffsetEven;
-// 	}
-//      fNYOffsetOdd=fNYOffsetEven;      //If fNX origin is even or odd no shift
-//     }
-//  else
-//    {                                // NY Odd on N-S grid:
-//      fNYOffsetEven= (int)(fabs(fYRelativeM)/fYAreaWidthM);
-//      if(fYRelativeM<0)
-//	{
-//	  fNYOffsetEven=-fNYOffsetEven-1;
-//	}
-//      fNYOffsetOdd=fNYOffsetEven+1; //If Nx origen odd we shift.
-//    }
-//  return;
-//}
-// **************************************************************************
 
 int KSTelescope::GetNXOffset(int fNY)
 // **************************************************************************
@@ -418,13 +391,20 @@ int KSTelescope::GetNXOffset(int fNY)
 // odd or even of fNY
 // **************************************************************************
 {
-  if(fNY%2==0)
+  if(fSquareGrid)
     {
-      return fNXOffsetEven;
+       return fNXOffset;
     }
   else
     {
-      return fNXOffsetOdd;
+      if(fNY%2==0)
+	{
+	  return fNXOffsetEven;
+	}
+      else
+	{
+	  return fNXOffsetOdd;
+	}
     }
 }
 // **************************************************************************
@@ -435,14 +415,21 @@ int KSTelescope::GetNYOffset(int fNX)
 // odd or even of fNX
 // **************************************************************************
 {
-  if(fNX%2==0)
+   if(fSquareGrid)
     {
-      return fNYOffsetEven;
+       return fNYOffset;
     }
-  else
-    {
-      return fNYOffsetOdd;
-    }
+   else
+     {
+       if(fNX%2==0)
+	 {
+	   return fNYOffsetEven;
+	 }
+       else
+	 {
+	   return fNYOffsetOdd;
+	 }
+     }
 }
 // **************************************************************************
 
