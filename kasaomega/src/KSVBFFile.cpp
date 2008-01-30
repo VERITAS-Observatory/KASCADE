@@ -601,9 +601,10 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 
   // ********************************************************************
   // Make core relative to center of array.
+  // NO! keep it relative to this single telescope!!!!!!GHS:30/01/08
   // ********************************************************************
-  fCoreEastM  = fCoreEastM  + fArray.at(fTelID).fRelTelLocEastM;
-  fCoreSouthM = fCoreSouthM + fArray.at(fTelID).fRelTelLocSouthM;
+  //fCoreEastM  = fCoreEastM  + fArray.at(fTelID).fRelTelLocEastM;
+  //fCoreSouthM = fCoreSouthM + fArray.at(fTelID).fRelTelLocSouthM;
   // ********************************************************************
   VSimulationData *pfSimdata=
         new VSimulationData(fCORSIKAType,fEnergyGeV, 
