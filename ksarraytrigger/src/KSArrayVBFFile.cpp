@@ -35,7 +35,7 @@ void KSArrayVBFFile::CreateVBFFile(std::string fOutputVBFFileName,
 				   uint fRunNumber)
 // ***********************************************************************
 // Create the Array VBF file
-// *cd ../inc**********************************************************************
+// ***********************************************************************
 {
   //uint fRunNumber=pfArray[0]->getRunNumber();
   std::string fConfigMask;
