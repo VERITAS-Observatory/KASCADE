@@ -35,16 +35,16 @@ void KSArrayVBFFile::CreateVBFFile(std::string fOutputVBFFileName,
 				   uint fRunNumber)
 // ***********************************************************************
 // Create the Array VBF file
-// ***********************************************************************
+// *cd ../inc**********************************************************************
 {
   //uint fRunNumber=pfArray[0]->getRunNumber();
   std::string fConfigMask;
   for(int i=0;i<fNumTels;i++)  //brute force
     {
-      if(pfArray[i]->fTelID==E_T1)fConfigMask+="0";
-      else if(pfArray[i]->fTelID==E_T2)fConfigMask+="1";
-      else if(pfArray[i]->fTelID==E_T3)fConfigMask+="2";
-      else if(pfArray[i]->fTelID==E_T4)fConfigMask+="3";
+      if(pfArray.at(i)->fTelID==E_T1)fConfigMask+="0";
+      else if(pfArray.at(i)->fTelID==E_T2)fConfigMask+="1";
+      else if(pfArray.at(i)->fTelID==E_T3)fConfigMask+="2";
+      else if(pfArray.at(i)->fTelID==E_T4)fConfigMask+="3";
       fConfigMask+=",";
     }
   std::cout<<"fConfigMask: "<<fConfigMask<<std::endl;
@@ -69,11 +69,16 @@ void KSArrayVBFFile::CreateVBFFile(std::string fOutputVBFFileName,
     }	      
   return;
 }
+// *************************************************************************
+
+
+
+
 void KSArrayVBFFile::CopyOutHeaderPacket()
 // **********************************************************************
 // Copy over header packet (0) to ouput file
 {
-  pfWriter->writePacket(0, pfArray[0]->getHeaderPacketPtr());
+  pfWriter->writePacket(0, pfArray.at(0)->getHeaderPacketPtr());
   return;
 }
 // ***********************************************************************
