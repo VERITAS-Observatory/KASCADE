@@ -142,15 +142,15 @@ KSTelescope::KSTelescope(VATelID TelID, KSArrayTriggerDataIn* pDataIn)
 	  fSquareGrid=false;
 	  fNorthSouthGrid=false;
 	  fEastWestGrid=false;
-	  if(pfKVBFSimHead->fGrid==SQUAREGRID)
+	  if(pfKVBFSimHead->fNorthSouthGrid==SQUAREGRID)
 	    {
 	      fSquareGrid=true;
 	    }
-	  if(pfKVBFSimHead->fGrid==EASTWESTGRID) 
+	  if(pfKVBFSimHead->fNorthSouthGrid==EASTWESTGRID) 
 	    {
 	      fEastWestGrid=true;
 	    }
-	  if(pfKVBFSimHead->fGrid==NORTHSOUTHGRID)
+	  if(pfKVBFSimHead->fNorthSouthGrid==NORTHSOUTHGRID)
 	    {
 	      fNorthSouthGrid=true;
 	    } 
