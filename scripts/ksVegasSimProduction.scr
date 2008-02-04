@@ -50,18 +50,33 @@ NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
 #EcutRootFileName=${VBFFileName%".vbf"}'ECut12.root'
 
-Wobble=${VBFFileName%%Wbl*}Wbl
-Wobble=${Wobble#*Deg}
-if [ ${Wobble:0:1} = "0" ]; then
-    Wobble='0.'$Wobble
+Wobble=${VBFFileName%%Wbl*} #gets VeritasGammaRay20DegS0.5 from
+                                 #VeritasGammaRay20DegS0.5Wbl50mv1234M2.vbf
+
+if test $Wobble != $VBFFileName  #See if we actually has a Wbl string in the 
+then                                 #file name
+    Wobble=$Wobble'Wbl'          #restore the Wbl to the end.
+    Wobble=${Wobble#*Deg}        #gets S0.5Wbl from  
+                                 #VeritasGammaRay20DegS0.5Wbl
+    if test ${Wobble:0:1} = "0"
+    then
+	Wobble='0.'$Wobble       #converts 0Wbl to 0.0Wbl
+    fi
+else
+    Wobble='0.0Wbl'              #No Wbl in file name. This is default
 fi
+Wobble='_'$Wobble                # converts S0.5Wbl to _S0.5Wbl
+
 echo Wobble: $Wobble
 
 NTable=lookuptables_EcleanedNcutted.root
-ETable=lookuptables_EcleanedEcutted_$Wobble'.root'
+ETable='lookuptables_EcleanedEcutted'$Wobble'.root'
 
 host=$(hostname)
-if [ $host = 'isis.depauw.edu' ] ; then
+ISIS=isis.depauw.edu
+
+if test $host = $ISIS 
+then
     LookUpTableDir=/veritas/local/vegas/showerReconstruction/vegas_lookuptables
 else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
