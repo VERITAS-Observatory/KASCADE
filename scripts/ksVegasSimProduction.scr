@@ -14,6 +14,28 @@ Stage4E=enable
 Stage5N=enable
 Stage5E=enable
 
+
+##############################################################################
+#Configurable options:
+ #Stage2:
+  #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1' #Depreciated (don't use)
+  #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
+                                                       #pedvars with vaDisplay
+  EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
+                                                       #muon-ring-fitting tree 
+  EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
+
+ #Stage4E         
+  #CutTelescopeOption='-CutTelescope=3/1,4/1'  #To force removal of particular
+                                  #telescopes when calculating shower paramters
+ #Stage5(N & E)
+  CutsFileSpecification='-cuts=spectrumCuts'  #File specfication for testing 
+            #events in the combined tree for setting cut flag in combined tree 
+            #(all events are still included in the tree)
+
+#############################################################################
+
+
 if [ -n "$Stage1Laser" ]; then
 
     echo Stage1Laser:$Stage1Laser
@@ -48,7 +70,6 @@ fi
 
 NcutRootFileName=${VBFFileName%".vbf"}'NCut.root'
 EcutRootFileName=${VBFFileName%".vbf"}'ECut.root'
-#EcutRootFileName=${VBFFileName%".vbf"}'ECut12.root'
 
 Wobble=${VBFFileName%%Wbl*} #gets VeritasGammaRay20DegS0.5 from
                                  #VeritasGammaRay20DegS0.5Wbl50mv1234M2.vbf
@@ -82,10 +103,6 @@ else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
 fi
 
-#LookUpTableDir=/simulations/veritas/PurdueLT
-#ETable=PurdueLTQCuts12_$Wobble'Ecut.root'
-#CutTelescopeOption='-CutTelescope=3/1,4/1'
-
 if [ -n "$Stage4N" ]; then
     cp -v $RootFileName $NcutRootFileName
     echo NT: $LookUpTableDir/$NTable
@@ -93,7 +110,6 @@ if [ -n "$Stage4N" ]; then
 	-SRS_LookupTableFileName=$LookUpTableDir/$NTable \
         $NcutRootFileName
 fi
-
 
 if [ -n "$Stage4E" ]; then
     cp -v $RootFileName $EcutRootFileName
