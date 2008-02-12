@@ -318,13 +318,23 @@ lcl="$PWD"
 host=$(hostname)
 #script directory
 sdr=$KASCADEBASE"/scripts"
-kssc=$2
-ksScript=$sdr/$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
+ksscpt=$2
+            #Allow for local coppies of the script is oat is designated.
+kssc=${ksscpt##*/}
+if test "$kssc" = "$ksscpt"
+then
+  ksScript=$sdr'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksaom: Makes .root  files from te files(depreciated)
                           #ksaomVBF: Makes .vbf files from te files
                           #ksarraytriggerVBF: Makes array  .vbf files
                           #ksallVBF:Does everything from ksKascade to 
                           #         ksArrayTrigger
+else
+    ksScript=$ksscpt'.scr'
+fi
+echo ksScript: $ksScript
+echo kssc: $kssc
+
 let lastJob=8
 if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
     let lastJob=1
