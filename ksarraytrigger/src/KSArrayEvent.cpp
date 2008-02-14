@@ -33,21 +33,18 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // For VBF files build the configMask.
   // ****************************************************************
   // Try each telescope
-  
-  KSTelescope* pfFirstTelFile=NULL;  //Used for building ouput file when 
-                                     //inputs give no events.
-                                     //Possible this tel has no events
+  pfTelsInArray.clear();
+  pfTelsWithData.clear();
+
+
   KSTelescope* pfT1 = new KSTelescope(E_T1,pfDataIn);
   std::string fConfigMask;
   if(pfT1->fFileExists)
     {
-      if(pfFirstTelFile==NULL)
-	{
-	  pfFirstTelFile=pfT1;
-	}
+      pfTelsInArray.push_back(pfT1);
       if(pfT1->fNumEvents>0)
 	{
-	  pfTelsInArray.push_back(pfT1);
+	  pfTelsWithData.push_back(pfT1);
 	  fConfigMask="0,";
 	}
     }
@@ -55,13 +52,10 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   KSTelescope* pfT2 = new KSTelescope(E_T2,pfDataIn);
   if(pfT2->fFileExists)
     {
-      if(pfFirstTelFile==NULL)
-	{
-	  pfFirstTelFile=pfT2;
-	}
+      pfTelsInArray.push_back(pfT2);
       if(pfT2->fNumEvents>0)
 	{
-	  pfTelsInArray.push_back(pfT2);
+	  pfTelsWithData.push_back(pfT2);
 	  fConfigMask+="1,";
 	}
     }
@@ -69,13 +63,10 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   KSTelescope* pfT3 = new KSTelescope(E_T3,pfDataIn);
   if(pfT3->fFileExists)
     {
-      if(pfFirstTelFile==NULL)
-	{
-	  pfFirstTelFile=pfT3;
-	}
+      pfTelsInArray.push_back(pfT2);
       if(pfT3->fNumEvents>0)
 	{
-	  pfTelsInArray.push_back(pfT3);
+	  pfTelsWithData.push_back(pfT3);
 	  fConfigMask+="2,";
 	}
     }
@@ -83,13 +74,10 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   KSTelescope* pfT4 = new KSTelescope(E_T4,pfDataIn);
   if(pfT4->fFileExists)
     {
-      if(pfFirstTelFile==NULL)
-	{
-	  pfFirstTelFile=pfT4;
-	}
+      pfTelsInArray.push_back(pfT4);
       if(pfT4->fNumEvents>0)
 	{
-	  pfTelsInArray.push_back(pfT4);
+	  pfTelsWithData.push_back(pfT4);
 	  fConfigMask+="3,";
 	}
     }
@@ -102,9 +90,15 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   //VATime fFirstValidEventTime("2006-08-23 22:00:00 UTC"); 
   VATime fFirstValidEventTime(gDefaultStartOfRunTime.c_str());
                                             //Default if we can't find a time.
-  if(pfFirstTelFile!=NULL)
+  fNumTelsWithData=pfTelsWithData.size();
+  fNumTelsInArray=pfTelsInArray.size();
+  if(fNumTelsInArray>0)
     {
-      fFirstValidEventTime = pfFirstTelFile->getFirstValidEventTime();
+      if(fNumTelsWithData>0)
+	{
+	  fFirstValidEventTime = 
+	                   pfTelsWithData.at(0)->getFirstValidEventTime();
+	}
     }
   else
     {
@@ -120,12 +114,6 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // but we do need to create an 'empty' output file so that we can 'count' 
   // the shower in our weighting scheme.
   // *****************************************************************
-  fNumTelsWithData=pfTelsInArray.size();
-  if(fNumTelsWithData==0)
-    {
-      pfTelsInArray.push_back(pfFirstTelFile);// Just so we can get stuff to 
-                                              // create empty output file
-    } 
 
   // **************************************************************************
   // Open the output file. 
@@ -138,7 +126,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
       // Create and write the Run Header,ArrayInfo,
       // QStatsData. PixelsStatusData RelGainData and SimulationHeader
       // ******************************************************************  
-      pfVDFOut= new KSArrayVDFFile(pfTelsInArray,fFirstValidEventTime);
+      pfVDFOut= new KSArrayVDFFile(pfTelsWithData,fFirstValidEventTime);
       pfVDFOut->CreateVDFFile(fOutputFileName);
       pfVDFOut->FillRunHeader(fRunNumber);  //Write this at end of run when 
                                             // we add EndRunTime
@@ -173,7 +161,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   PrintRelativeTelescopePositions();
 
 
-  fBaseTelIndex=0; //Index to base telescope in pfTelsInArray for search.
+  fBaseTelIndex=0; //Index to base telescope in pfTelsWithData for search.
   for(int i=1;i<fNumTelsWithData;i++)
     {
       //This sets each telescope Nx,ny offsets from the base tel
@@ -189,7 +177,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	" to make multiplicty requirements"<<std::endl;
       if(fDataType==ROOTFILE)
 	{
-	  for(int i=0;i<fNumTelsWithData;i++)
+	  for(int i=0;i<fNumTelsInArray;i++)
 	    {
 	      pfTelsInArray.at(i)->pfVDFEventFile->Close();
 	    }
@@ -222,7 +210,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   // **********************************************************************
   for(int i=0;i<fNumTelsWithData;i++)
     {
-      pfTelsInArray.at(i)->makeGridDirMap();
+      pfTelsWithData.at(i)->makeGridDirMap();
     }
   
   
@@ -270,12 +258,12 @@ bool KSArrayEvent::FindTrigger()
       // ********************************************************************
       if(
 	 (fDataType==ROOTFILE&&
-	  fBaseIndex==pfTelsInArray.at(fBaseTelIndex)->fNumEvents-1) ||
+	  fBaseIndex==pfTelsWithData.at(fBaseTelIndex)->fNumEvents-1) ||
 	 (fDataType==VBFFILE&&
-	  fBaseIndex==pfTelsInArray.at(fBaseTelIndex)->fNumEvents)    )
+	  fBaseIndex==pfTelsWithData.at(fBaseTelIndex)->fNumEvents)    )
 	{
 	  std::cout<<"fBaseIndex,fNumEvents :"<<fBaseIndex<<" "
-		   <<pfTelsInArray.at(fBaseTelIndex)->fNumEvents<<std::endl;
+		   <<pfTelsWithData.at(fBaseTelIndex)->fNumEvents<<std::endl;
 	  // *********************************************************
 	  // We have finished looking for array triggers were this
 	  // telscope (fBaseTelIndex) is in the trigger. If our required
@@ -319,7 +307,7 @@ bool KSArrayEvent::FindTrigger()
       // Test that the next event in this telescope has not been 
       // used yet
       // *****************************************************************
-      if(pfTelsInArray.at(fBaseTelIndex)->pfArrayEventsUsed.at(fBaseIndex))
+      if(pfTelsWithData.at(fBaseTelIndex)->pfArrayEventsUsed.at(fBaseIndex))
 	{
 	  continue;  //go to next event
 	}
@@ -328,7 +316,7 @@ bool KSArrayEvent::FindTrigger()
       // Try using this event this telescope as a base event
       // ****************************************************************
       // Flag that we are using it (and so we don't try to use it again)
-      pfTelsInArray.at(fBaseTelIndex)->pfArrayEventsUsed.at(fBaseIndex)=true;
+      pfTelsWithData.at(fBaseTelIndex)->pfArrayEventsUsed.at(fBaseIndex)=true;
       
       // Now test the other telescopes to see if they triggered.
       // Find nx,ny,fdir this telescope this index.
@@ -338,7 +326,7 @@ bool KSArrayEvent::FindTrigger()
       bool fTrigEvt;
       bool fPedEvt;
       
-      pfTelsInArray.at(fBaseTelIndex)->
+      pfTelsWithData.at(fBaseTelIndex)->
       	getGridDirForIndex(fBaseIndex, fNx, fNy, fDir, fTrigEvt, fPedEvt);
       fTriggerEvents.clear();
       TrigEvent fTEvent;
@@ -352,17 +340,17 @@ bool KSArrayEvent::FindTrigger()
 	  // Find the GridDir Key for the next telescope relative to this 
 	  // telescope this event.
 	  // ***********************************************************
-	  int fTelNx=fNx+pfTelsInArray.at(i)->GetNXOffset(fNy);
-	  int fTelNy=fNy+pfTelsInArray.at(i)->GetNYOffset(fNx);
+	  int fTelNx=fNx+pfTelsWithData.at(i)->GetNXOffset(fNy);
+	  int fTelNy=fNy+pfTelsWithData.at(i)->GetNYOffset(fNx);
 
-	  int64_t fKey=(int64_t)pfTelsInArray.at(0)->
+	  int64_t fKey=(int64_t)pfTelsWithData.at(0)->
 	                                   makeGridDirKey(fTelNx,fTelNy,fDir);
 	  
 	  // **********************************************************
 	  // See if this telescope has a nomal event with this GridKey
 	  // This checks the map which has no ped events in it.
 	  // **********************************************************
-	  int fEventIndex=pfTelsInArray.at(i)->getIndexForGridDirKey(fKey);
+	  int fEventIndex=pfTelsWithData.at(i)->getIndexForGridDirKey(fKey);
 	  // Returns -1 if event doesn't exist.
 	  //std::cout<<"fBaseIndex,fNx,fNy,fDir,fTelNx,fTelNy,fEventIndex: "
 	  //	   <<fBaseIndex<<" "<<fNx<<" "<<fNy<<" "<<fDir<<" "<<fTelNx
@@ -374,7 +362,7 @@ bool KSArrayEvent::FindTrigger()
 	      fTEvent.fTelIndex=i;
 	      fTriggerEvents.push_back(fTEvent);
 	      // Flag that we are using it
-	      pfTelsInArray.at(i)->pfArrayEventsUsed.at(fEventIndex)=true;
+	      pfTelsWithData.at(i)->pfArrayEventsUsed.at(fEventIndex)=true;
 	    }
 	}
       // ************************************************************
@@ -447,15 +435,15 @@ void KSArrayEvent::SaveEvent()
 	{
 	  int fTrigTelIndex=fTriggerEvents.at(i).fTelIndex;
 	  int fTrigTelEventIndex=fTriggerEvents.at(i).fEventIndex;
-	  int fTelID=pfTelsInArray.at(fTrigTelIndex)->fTelID;
+	  int fTelID=pfTelsWithData.at(fTrigTelIndex)->fTelID;
 	  pfCalEvent->fPresentTels.at(fTelID)=true;
 	  
 	  // ****************************************************************
 	  //Fill the Calibrated Telescope event
 	  // ****************************************************************
-	  VACalibratedArrayEvent* pfInCalEvent = pfTelsInArray.at(fTrigTelIndex)->
+	  VACalibratedArrayEvent* pfInCalEvent = pfTelsWithData.at(fTrigTelIndex)->
 	    pfVDFEventFile->getCalibratedArrayEventPtr();
-	  pfTelsInArray.at(fTrigTelIndex)->pfVDFEventFile->
+	  pfTelsWithData.at(fTrigTelIndex)->pfVDFEventFile->
 	                                  loadInArrayEvent(fTrigTelEventIndex);
 	  if(pfInCalEvent==NULL)
 	    {
@@ -468,7 +456,7 @@ void KSArrayEvent::SaveEvent()
 	  pfCalEvent->fTelEvents.at(i).fTelTime=fEventTime;
 	  pfCalEvent->fTelEvents.at(i).fPointingData=pfInCalEvent->
 	                                          fTelEvents.at(0).fPointingData;
-	  pfCalEvent->fTelEvents.at(i).fTelID=pfTelsInArray.at(fTrigTelIndex)->
+	  pfCalEvent->fTelEvents.at(i).fTelID=pfTelsWithData.at(fTrigTelIndex)->
 	                                                               fTelID;
 	  pfCalEvent->fTelEvents.at(i).fChanData=
 	                                 pfInCalEvent->fTelEvents.at(0).fChanData;
@@ -478,10 +466,10 @@ void KSArrayEvent::SaveEvent()
       // ************************************************
       // Now sim data: Just copy over the one from the first triggered tel.
       // ************************************************
-      pfTelsInArray.at(fFirstTrigTelIndex)->pfVDFEventFile->
+      pfTelsWithData.at(fFirstTrigTelIndex)->pfVDFEventFile->
 	                          readSimulationData(fFirstTrigTelEventIndex); 
      VAKascadeSimulationData*  pfKInSimEvent=
-             pfTelsInArray.at(fFirstTrigTelIndex)->getKascadeSimulationDataPtr();
+             pfTelsWithData.at(fFirstTrigTelIndex)->getKascadeSimulationDataPtr();
       *pfVDFKSimEvent=*pfKInSimEvent;
       pfVDFOut->writeSimulationData();
     }
@@ -491,7 +479,7 @@ void KSArrayEvent::SaveEvent()
       // *********************************************************************
       // First fill in simulation packets. Use first triggered telescope
       // *********************************************************************
-      VPacket* pfReadPacket=pfTelsInArray.at(fFirstTrigTelIndex)->
+      VPacket* pfReadPacket=pfTelsWithData.at(fFirstTrigTelIndex)->
 	                                   readPacket(fFirstTrigTelEventIndex);
       // *************************************************
       // Update event numbers here and maybe times
@@ -543,7 +531,7 @@ void KSArrayEvent::SaveEvent()
       //bool fTrigEvt;
       //bool fPedEvt;
       //
-      //pfTelsInArray.at(fFirstTrigTelIndex)->
+      //pfTelsWithData.at(fFirstTrigTelIndex)->
       //getGridDirForIndex(fFirstTrigTelEventIndex, fNx, fNy, fDir, fTrigEvt,
       //		   fPedEvt);
      
@@ -554,9 +542,9 @@ void KSArrayEvent::SaveEvent()
       fYM = pfSimData->fCoreSouthM;
 
       // Need position of telescope 
-      int telID=pfTelsInArray.at(fFirstTrigTelIndex)->fTelID;
+      int telID=pfTelsWithData.at(fFirstTrigTelIndex)->fTelID;
       VSimulationHeader* pVBFSimHeader=  
-	                        pfTelsInArray.at(0)->getSimulationHeaderPtr();
+	                        pfTelsWithData.at(0)->getSimulationHeaderPtr();
       fXM=fXM + pVBFSimHeader->fArray.at(telID).fRelTelLocEastM; //+ east
       fYM=fYM + pVBFSimHeader->fArray.at(telID).fRelTelLocSouthM;// + south
 
@@ -579,12 +567,12 @@ void KSArrayEvent::SaveEvent()
 
       // ****************************************************************
       //Resize things. Array trigger will contains fNumTrigTels telescopes
-      // fNumTelsWithData is the number of telescopes included in the 
+      // fNumTelsInArray is the number of telescopes included in the 
       // subarray. So fNumTrigTels will vary event to event. Example for
-      // a 123-M2 trigger condition fNumTelsWithData will always be 3 and 
+      // a 123-M2 trigger condition fNumTelsInArray will always be 3 and 
       // fNumTrigTels will be 2 or 3 changine event by event.
       // ****************************************************************
-      pfAT->resizeSubarrayTelescopes(fNumTelsWithData);
+      pfAT->resizeSubarrayTelescopes(fNumTelsInArray);
       pfAT->resizeTriggerTelescopes(fNumTrigTel);
       
       // ********************************************************************
@@ -600,7 +588,7 @@ void KSArrayEvent::SaveEvent()
       fEvType.trigger=VEventType::L2_TRIGGER;
       pfAT->setEventType(fEvType);
 
-      for(int i=0;i<fNumTelsWithData;i++)
+      for(int i=0;i<fNumTelsInArray;i++)
 	{
 	  int fTelID=pfTelsInArray.at(i)->fTelID;
 	  pfAT->setSpecificEventType(i,fEvType);
@@ -621,7 +609,7 @@ void KSArrayEvent::SaveEvent()
       for(int i=0;i<fNumTrigTel;i++)
 	{
 	  int fTrigTelIndex=fTriggerEvents.at(i).fTelIndex;
-	  int fTelID=pfTelsInArray.at(fTrigTelIndex)->fTelID;
+	  int fTelID=pfTelsWithData.at(fTrigTelIndex)->fTelID;
 	  pfAT->setTriggerTelescopeId(i,fTelID);
 
 	  if(fTelID==E_T1)fTriggerMask+="0";
@@ -662,9 +650,9 @@ void KSArrayEvent::SaveEvent()
 	{
 	  int fTrigTelIndex=fTriggerEvents.at(i).fTelIndex;
 	  int fTrigTelEventIndex=fTriggerEvents.at(i).fEventIndex;
-	  int fTelID=pfTelsInArray.at(fTrigTelIndex)->fTelID;
+	  int fTelID=pfTelsWithData.at(fTrigTelIndex)->fTelID;
 	  // set the event number
-	  VPacket* pfTelReadPacket = pfTelsInArray.at(fTrigTelIndex)->
+	  VPacket* pfTelReadPacket = pfTelsWithData.at(fTrigTelIndex)->
 	                                   readPacket(fTrigTelEventIndex);
 	  VArrayEvent* pfAEIn=pfTelReadPacket->getArrayEvent();
  	  VEvent* pfEvent=pfAEIn->getEvent(0);
@@ -733,7 +721,7 @@ void KSArrayEvent::Close()
       // ****************************************************************
       // First that we have written at least one pedestal event
       // ****************************************************************
-      int fPedListIndex= pfTelsInArray.at(0)->fPedListIndex;
+      int fPedListIndex= pfTelsWithData.at(0)->fPedListIndex;
       if(fPedListIndex==0)
 	{
 	  // **************************************************************
@@ -754,7 +742,7 @@ void KSArrayEvent::Close()
     {
       for(int i=0;i<fNumTelsWithData;i++)
 	{
-	  pfTelsInArray.at(i)->pfVDFEventFile->Close();
+	  pfTelsWithData.at(i)->pfVDFEventFile->Close();
 	}
       VAVDF* pfOut=pfVDFOut->getVDFFilePtr();
       VARunHeader* pfVDFRunHeader=pfOut->getRunHeaderPtr();
@@ -806,15 +794,15 @@ void KSArrayEvent::SavePedestalEvent()
   VATime fPedestalEventTime;
   fPedestalEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
 						H,M,S,NS);
-  int fPedListIndex=pfTelsInArray.at(0)->fPedListIndex;
-  if(fPedListIndex>=(int)pfTelsInArray.at(0)->pfPedIndexList.size()-1)
+  int fPedListIndex=pfTelsWithData.at(0)->fPedListIndex;
+  if(fPedListIndex>=(int)pfTelsWithData.at(0)->pfPedIndexList.size()-1)
     {
       return;          //No more ped events to use.
     }
-  pfTelsInArray.at(0)->fPedListIndex++;
-  fPedListIndex=pfTelsInArray.at(0)->fPedListIndex;
+  pfTelsWithData.at(0)->fPedListIndex++;
+  fPedListIndex=pfTelsWithData.at(0)->fPedListIndex;
 
-  int fPedIndex= pfTelsInArray.at(0)->pfPedIndexList.at(fPedListIndex); 
+  int fPedIndex= pfTelsWithData.at(0)->pfPedIndexList.at(fPedListIndex); 
 
   if(fDataType==ROOTFILE)
     {
@@ -829,15 +817,15 @@ void KSArrayEvent::SavePedestalEvent()
       
       for(int i=0;i<fNumTelsWithData;i++)
 	{
-	  int fTelID=pfTelsInArray.at(i)->fTelID;
+	  int fTelID=pfTelsWithData.at(i)->fTelID;
 	  pfCalEvent->fPresentTels.at(i)=true;
 	  
 	  // ****************************************************************
 	  //Fill the Calibrated Telescope event
 	  // ****************************************************************
-	  VACalibratedArrayEvent* pfInCalEvent = pfTelsInArray.at(i)->
+	  VACalibratedArrayEvent* pfInCalEvent = pfTelsWithData.at(i)->
 	    pfVDFEventFile->getCalibratedArrayEventPtr();
-	  pfTelsInArray.at(i)->pfVDFEventFile->
+	  pfTelsWithData.at(i)->pfVDFEventFile->
 	                      loadInArrayEvent(fPedIndex);
 	  if(pfInCalEvent==NULL)
 	    {
@@ -859,9 +847,9 @@ void KSArrayEvent::SavePedestalEvent()
       // ************************************************
       // Now sim data: Just copy it over from first telescope
       // ************************************************
-      pfTelsInArray.at(0)->pfVDFEventFile->readSimulationData(fPedIndex); 
+      pfTelsWithData.at(0)->pfVDFEventFile->readSimulationData(fPedIndex); 
       VAKascadeSimulationData*  pfKInSimEvent=
-             pfTelsInArray.at(0)->getKascadeSimulationDataPtr();
+             pfTelsWithData.at(0)->getKascadeSimulationDataPtr();
       *pfVDFKSimEvent=*pfKInSimEvent;
       pfVDFOut->writeSimulationData();
       fOutEventIndex++;
@@ -874,7 +862,7 @@ void KSArrayEvent::SavePedestalEvent()
       // First fill in simulation packets. Use first telescope's
       // *********************************************************************
 
-      VPacket* pfReadPacket=pfTelsInArray.at(0)->
+      VPacket* pfReadPacket=pfTelsWithData.at(0)->
 	                                   readPacket(fPedIndex);
       // *************************************************
       // Update event numbers here and maybe times
@@ -930,7 +918,7 @@ void KSArrayEvent::SavePedestalEvent()
       std::string fTriggerMask;
       for(int i=0;i<fNumTelsWithData;i++)
 	{
-	  int fTelID=pfTelsInArray.at(i)->fTelID;
+	  int fTelID=pfTelsWithData.at(i)->fTelID;
 	  pfAT->setSubarrayTelescopeId(i,fTelID);
 	  pfAT->setTriggerTelescopeId(i,fTelID);
 	  pfAT->setSpecificEventType(i,fEvType);
@@ -977,9 +965,9 @@ void KSArrayEvent::SavePedestalEvent()
       // *************************************************
       for(int i=0;i<fNumTelsWithData;i++)
 	{
-	  int fTelID=pfTelsInArray.at(i)->fTelID;
+	  int fTelID=pfTelsWithData.at(i)->fTelID;
 	  // set the event number
-	  VPacket* pfTelReadPacket=pfTelsInArray.at(i)->
+	  VPacket* pfTelReadPacket=pfTelsWithData.at(i)->
 	                                   readPacket(fPedIndex);
 	  VArrayEvent* pfAEIn=pfTelReadPacket->getArrayEvent();
  	  VEvent* pfEvent=pfAEIn->getEvent(0);  //Only one telescope in input 
@@ -1253,7 +1241,8 @@ double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
     }
 
   // **********************************************************************
-  // Now determine error of these. Only look at teles in present config
+  // Now determine error of these. Only look at all tels so that we get the
+  // same result for all showers.
   // **********************************************************************
   // First find CM of present confiugurations
   // **********************************************************************
@@ -1261,13 +1250,13 @@ double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
   double fCMX=0;
   double fCMY=0;
   int fCount=0;
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      fCMX+=pfTelsInArray.at(0)->fXPositionsM.at(i);
-      fCMY+=pfTelsInArray.at(0)->fYPositionsM.at(i);
+       fCMX+=pfTelsInArray.at(0)->fXPositionsM.at(j);
+      fCMY+=pfTelsInArray.at(0)->fYPositionsM.at(j);
       fCount++;
     }
+  //This shold be 0,0
   fCMX=fCMX/fCount;
   fCMY=fCMY/fCount;
 
@@ -1275,12 +1264,11 @@ double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
   double fSet1CMX=0;
   double fSet1CMY=0;
   fCount=0;
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
       double fXFromNX;
       double fYFromNY;
-      int i=pfTelsInArray.at(j)->fTelID;
-      GetXYFromNXNY(pfNXSet1.at(i), pfNYSet1.at(i), fXFromNX, fYFromNY);
+      GetXYFromNXNY(pfNXSet1.at(j), pfNYSet1.at(j), fXFromNX, fYFromNY);
       fSet1CMX+=fXFromNX;
       fSet1CMY+=fYFromNY;
       fCount++;
@@ -1296,12 +1284,11 @@ double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
   if(pfTelsInArray.at(0)->fNorthSouthGrid)
     {
       fCount=0;
-      for(int j=0;j<(int)pfTelsInArray.size();j++)
+      for(int j=0;j<4;j++)
 	{
 	  double fXFromNX;
 	  double fYFromNY;
-	  int i=pfTelsInArray.at(j)->fTelID;
-	  GetXYFromNXNY(pfNXSet2.at(i), pfNYSet2.at(i), fXFromNX, fYFromNY);
+	  GetXYFromNXNY(pfNXSet2.at(j), pfNYSet2.at(j), fXFromNX, fYFromNY);
 	  fSet2CMX+=fXFromNX;
 	  fSet2CMY+=fYFromNY;
 	  fCount++;
@@ -1317,14 +1304,13 @@ double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
   // ***********************************************************************
   double fSumError2=0;
   fCount=0;
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      double fXM=pfTelsInArray.at(0)->fXPositionsM.at(i);
-      double fYM=pfTelsInArray.at(0)->fYPositionsM.at(i);
+      double fXM=pfTelsInArray.at(0)->fXPositionsM.at(j);
+      double fYM=pfTelsInArray.at(0)->fYPositionsM.at(j);
       double fXFromNX;
       double fYFromNY;
-      GetXYFromNXNY(pfNXSet1.at(i), pfNYSet1.at(i), fXFromNX, fYFromNY);
+      GetXYFromNXNY(pfNXSet1.at(j), pfNYSet1.at(j), fXFromNX, fYFromNY);
 
       double xDifference=((fXM-fCMX)-(fXFromNX-fSet1CMX));
       double yDifference=((fYM-fCMY)-(fYFromNY-fSet2CMY));
@@ -1337,9 +1323,9 @@ double KSArrayEvent::GetTelsNxNy(double fArrayX,double fArrayY,
       // *******************************************************************
       if(pfTelsInArray.at(0)->fNorthSouthGrid)
 	{
-	  fXM=pfTelsInArray.at(0)->fXPositionsM.at(i);
-	  fYM=pfTelsInArray.at(0)->fYPositionsM.at(i)-fCMY;
-	  GetXYFromNXNY(pfNXSet2.at(i), pfNYSet2.at(i),fXFromNX, fYFromNY);
+	  fXM=pfTelsInArray.at(0)->fXPositionsM.at(j);
+	  fYM=pfTelsInArray.at(0)->fYPositionsM.at(j)-fCMY;
+	  GetXYFromNXNY(pfNXSet2.at(j), pfNYSet2.at(j),fXFromNX, fYFromNY);
 	  double xDifference=((fXM-fCMX)-(fXFromNX-fSet2CMX));
 	  double yDifference=((fYM-fCMY)-(fYFromNY-fSet2CMY));
 	  fSumError2+=sqrt((xDifference*xDifference)+
@@ -1391,16 +1377,16 @@ void KSArrayEvent::SetTelescopeOffsetFromBaseTel(int fBaseTelIndex,
  // fTelId from  the Base Telescope
  // **************************************************************************
 {   
-  int fBaseID=pfTelsInArray.at(fBaseTelIndex)->fTelID;
+  int fBaseID=pfTelsWithData.at(fBaseTelIndex)->fTelID;
   int fBaseSet1NX=pfTelNXSet1.at(fBaseID);
 
-  int fTelID=pfTelsInArray.at(fTelIndex)->fTelID;
+  int fTelID=pfTelsWithData.at(fTelIndex)->fTelID;
 
-  pfTelsInArray.at(fTelIndex)->fNXOffset= pfTelNXSet1.at(fTelID)-fBaseSet1NX;
-  pfTelsInArray.at(fTelIndex)->fNXOffsetEven= 
-                                      pfTelsInArray.at(fTelIndex)->fNXOffset;
-  pfTelsInArray.at(fTelIndex)->fNXOffsetOdd= 
-                                      pfTelsInArray.at(fTelIndex)->fNXOffset;
+  pfTelsWithData.at(fTelIndex)->fNXOffset= pfTelNXSet1.at(fTelID)-fBaseSet1NX;
+  pfTelsWithData.at(fTelIndex)->fNXOffsetEven= 
+                                      pfTelsWithData.at(fTelIndex)->fNXOffset;
+  pfTelsWithData.at(fTelIndex)->fNXOffsetOdd= 
+                                      pfTelsWithData.at(fTelIndex)->fNXOffset;
 
   // ************************************************************************
   // Check Odd and Evenness on the base telescope position
@@ -1409,12 +1395,12 @@ void KSArrayEvent::SetTelescopeOffsetFromBaseTel(int fBaseTelIndex,
   int fNYOffsetOdd  = 0;
   if(pfTelsInArray.at(0)->fSquareGrid)
     {
-      pfTelsInArray.at(fTelIndex)->fNYOffset= 
+      pfTelsWithData.at(fTelIndex)->fNYOffset= 
 	                     pfTelNYSet1.at(fTelID)-pfTelNYSet1.at(fBaseID);
-      pfTelsInArray.at(fTelIndex)->fNYOffsetEven=
-	                             pfTelsInArray.at(fTelIndex)->fNYOffset;
-      pfTelsInArray.at(fTelIndex)->fNYOffsetOdd=
-                                     pfTelsInArray.at(fTelIndex)->fNYOffset;
+      pfTelsWithData.at(fTelIndex)->fNYOffsetEven=
+	                             pfTelsWithData.at(fTelIndex)->fNYOffset;
+      pfTelsWithData.at(fTelIndex)->fNYOffsetOdd=
+                                     pfTelsWithData.at(fTelIndex)->fNYOffset;
     }
   else 
     {
@@ -1436,8 +1422,8 @@ void KSArrayEvent::SetTelescopeOffsetFromBaseTel(int fBaseTelIndex,
 	      fNYOffsetOdd= pfTelNYSet1.at(fTelID)-pfTelNYSet1.at(fBaseID);
 	      fNYOffsetEven= pfTelNYSet2.at(fTelID)-pfTelNYSet2.at(fBaseID);
 	    }
-	  pfTelsInArray.at(fTelIndex)->fNYOffsetEven=fNYOffsetEven;
-	  pfTelsInArray.at(fTelIndex)->fNYOffsetOdd=fNYOffsetOdd;
+	  pfTelsWithData.at(fTelIndex)->fNYOffsetEven=fNYOffsetEven;
+	  pfTelsWithData.at(fTelIndex)->fNYOffsetOdd=fNYOffsetOdd;
 	}
     }
   return;
@@ -1455,65 +1441,59 @@ void KSArrayEvent::PrintRelativeTelescopePositions()
 
   double fXMA=0;
   double fYMA=0;
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      fXMA=fXMA+pfTelsInArray.at(0)->fXPositionsM.at(i);
-      fYMA=fYMA+pfTelsInArray.at(0)->fYPositionsM.at(i);
+      fXMA=fXMA+pfTelsInArray.at(0)->fXPositionsM.at(j);
+      fYMA=fYMA+pfTelsInArray.at(0)->fYPositionsM.at(j);
     }
-  fXMA=fXMA/(int)pfTelsInArray.size();
-  fYMA=fYMA/(int)pfTelsInArray.size();
+  fXMA=fXMA/4;
+  fYMA=fYMA/4;
   std::cout<<"Actual ArrayCenter: X,Y: "<<fXMA<<","<<fYMA<<std::endl;
 
   double fXFromNX;
   double fYFromNY;
   double fXM1=0;
   double fYM1=0;
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      GetXYFromNXNY(pfTelNXSet1.at(i), pfTelNYSet1.at(i), fXFromNX, fYFromNY);
+      GetXYFromNXNY(pfTelNXSet1.at(j), pfTelNYSet1.at(j), fXFromNX, fYFromNY);
       fXM1=fXM1+fXFromNX;
       fYM1=fYM1+fYFromNY;
     }
-  fXM1=fXM1/(int)pfTelsInArray.size();
-  fYM1=fYM1/(int)pfTelsInArray.size();
+  fXM1=fXM1/4;
+  fYM1=fYM1/4;
   std::cout<<"Set1 ArrayCenter: X,Y: "<<fXM1<<","<<fYM1<<std::endl;
 
   double fXM2=0;
   double fYM2=0;
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      GetXYFromNXNY(pfTelNXSet2.at(i), pfTelNYSet2.at(i), fXFromNX, fYFromNY);
+      GetXYFromNXNY(pfTelNXSet2.at(j), pfTelNYSet2.at(j), fXFromNX, fYFromNY);
       fXM2=fXM2+fXFromNX;
       fYM2=fYM2+fYFromNY;
     }
-  fXM2=fXM2/(int)pfTelsInArray.size();
-  fYM2=fYM2/(int)pfTelsInArray.size();
+  fXM2=fXM2/4;
+  fYM2=fYM2/4;
   std::cout<<"Set2 ArrayCenter: X,Y: "<<fXM2<<","<<fYM2<<std::endl;
 
   std::cout<<"Telescope posistions:"<<std::endl;
   std::cout<<"Tel:Actual:SimHeader:EvenSet:OddSet"<<std::endl;
   VSimulationHeader* pVBFSimHeader=  
 	                        pfTelsInArray.at(0)->getSimulationHeaderPtr();
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      double fXM=pfTelsInArray.at(0)->fXPositionsM.at(i)-fXMA;
-      double fYM=pfTelsInArray.at(0)->fYPositionsM.at(i)-fYMA;
-      std::cout<<i<<": "<<fXM<<" "<<fYM;
+      double fXM=pfTelsInArray.at(0)->fXPositionsM.at(j)-fXMA;
+      double fYM=pfTelsInArray.at(0)->fYPositionsM.at(j)-fYMA;
+      std::cout<<j<<": "<<fXM<<" "<<fYM;
 
-      double fXS=pVBFSimHeader->fArray.at(i).fRelTelLocEastM;
-      double fYS=pVBFSimHeader->fArray.at(i).fRelTelLocSouthM;
-      std::cout<<i<<": "<<fXS<<" "<<fYS;
+      double fXS=pVBFSimHeader->fArray.at(j).fRelTelLocEastM;
+      double fYS=pVBFSimHeader->fArray.at(j).fRelTelLocSouthM;
+      std::cout<<j<<": "<<fXS<<" "<<fYS;
 
-      GetXYFromNXNY(pfTelNXSet1.at(i), pfTelNYSet1.at(i), fXFromNX, fYFromNY);
+      GetXYFromNXNY(pfTelNXSet1.at(j), pfTelNYSet1.at(j), fXFromNX, fYFromNY);
       std::cout<<" :   "<<fXFromNX-fXM1<<" "<<fYFromNY-fYM1;
 
-      //      fXM=pfTelsInArray.at(0)->fXPositionsM.at(i)+(fArrayX+fXSeg);
-      //fYM=pfTelsInArray.at(0)->fYPositionsM.at(i)+fArrayY;
-      GetXYFromNXNY(pfTelNXSet2.at(i), pfTelNYSet2.at(i),fXFromNX, fYFromNY);
+      GetXYFromNXNY(pfTelNXSet2.at(j), pfTelNYSet2.at(j),fXFromNX, fYFromNY);
       std::cout<<" :   "<<fXFromNX-fXM2<<" "<<fYFromNY-fYM2
 	       <<std::endl;
     }
@@ -1539,16 +1519,15 @@ void KSArrayEvent::LoadInputSimHeaderWithTelescopePositions()
   // ****************************************************
   // First find CM.
   // ****************************************************
-  for(int j=0;j<(int)pfTelsInArray.size();j++)
+  for(int j=0;j<4;j++)
     {
-      int i=pfTelsInArray.at(j)->fTelID;
-      GetXYFromNXNY(pfTelNXSet1.at(i), pfTelNYSet1.at(i), fXFromNX, 
+      GetXYFromNXNY(pfTelNXSet1.at(j), pfTelNYSet1.at(j), fXFromNX, 
 		    fYFromNY);
       fXM1=fXM1+fXFromNX;
       fYM1=fYM1+fYFromNY;
     }
-  fXM1=fXM1/(int)pfTelsInArray.size();
-  fYM1=fYM1/(int)pfTelsInArray.size();
+  fXM1=fXM1/4;
+  fYM1=fYM1/4;
 
   // ******************************************************
   // Now fill each tlescopes simulation header
