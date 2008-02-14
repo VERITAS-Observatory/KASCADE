@@ -23,13 +23,13 @@ let SpecEnd=$(expr length $Spec)
 SpecEnd=$((SpecEnd-1))
 
 host=$(hostname)
-
+ISIS=isis.depauw.edu
 #Assume default is we are on amdahl
 
 dataDirBase=/project/veritas/sembrosk/simulations
 dstDir=/project/veritas/sembrosk/simulations
 
-if [ $host = 'isis' ] ; then
+if [ $host = $ISIS ] ; then
     lcl="$PWD"
     if [ ${lcl:1:4} = "disk" ]; then
        Disk=${lcl:0:6}
