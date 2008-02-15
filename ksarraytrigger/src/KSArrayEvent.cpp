@@ -63,7 +63,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   KSTelescope* pfT3 = new KSTelescope(E_T3,pfDataIn);
   if(pfT3->fFileExists)
     {
-      pfTelsInArray.push_back(pfT2);
+      pfTelsInArray.push_back(pfT3);
       if(pfT3->fNumEvents>0)
 	{
 	  pfTelsWithData.push_back(pfT3);
