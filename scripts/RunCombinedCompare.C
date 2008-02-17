@@ -23,7 +23,9 @@ bool fHaveSimBranch;
 //Stings for Combined tree.
 std::string fCTreeName="SelectedEvents/CombinedEventsTree";
 std::string fHBranch="Tel";
-std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
+//std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
+//std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
+std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
 std::string fPlotOption=" ";
 
 //Strings for Cumulative tree.

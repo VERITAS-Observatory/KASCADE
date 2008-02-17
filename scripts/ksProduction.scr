@@ -35,13 +35,14 @@ function Protons()
     WALLTIME=75:00:00
 #Veritas$ whipple set1/ksaom/kasall
     let processEnd=42
+############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
-#          end=([1]=1382 1007 734  535  390  284  207  151  110  1  59    43  31  23    17    12    9    7   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+
 #10%
-          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -61,12 +62,12 @@ function Protons()
 #	BuildIsisScriptList 7 21 31
 #	BuildIsisScriptList 8 32 34
 
-	BuildIsisScriptList 1 1 8
-	BuildIsisScriptList 2 9 21
-	BuildIsisScriptList 3 22 29
-	BuildIsisScriptList 4 30 32
-	BuildIsisScriptList 5 33 33
-	BuildIsisScriptList 6 34 34
+	BuildIsisScriptList 1 1 10
+	BuildIsisScriptList 2 11 20
+	BuildIsisScriptList 3 21 25
+	BuildIsisScriptList 4 26 32
+	BuildIsisScriptList 5 33 37
+	BuildIsisScriptList 6 38 42
 
 #For High ksall ~ 5hrs
 #           BuildIsisScriptList 1 35 35
@@ -82,8 +83,7 @@ function Protons()
 	BuildIsisScriptList 1  1  $processEnd
       fi
     else
-#	SubmitAmdahlPBSScripts 1 42
-	SubmitAmdahlPBSScripts 1 1
+	SubmitAmdahlPBSScripts 1 42
     fi
 }
 #**********************************************************************
@@ -99,17 +99,14 @@ function Helium4()
 
 #Veritas$ whipple set1/ksaom/kasall
     let processEnd=42
+############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
-
-#          end=([1]=519  387  289  215  161  120  90   67   50   1  28    21  16  12    9     7     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
 #10%
-          end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
-
-
+#          end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -130,12 +127,12 @@ function Helium4()
 #	BuildIsisScriptList 7 33 33
 #	BuildIsisScriptList 8 34 34
 
-	BuildIsisScriptList 1 6  21
-	BuildIsisScriptList 2 22 28
-	BuildIsisScriptList 3 29 30
-	BuildIsisScriptList 4 31 32
-	BuildIsisScriptList 5 33 33
-	BuildIsisScriptList 6 34 34
+	BuildIsisScriptList 1 6  20
+	BuildIsisScriptList 2 21 30
+	BuildIsisScriptList 3 31 36
+	BuildIsisScriptList 4 37 39
+	BuildIsisScriptList 5 40 41
+	BuildIsisScriptList 6 42 42
 
 #For High ksall ~ 5hrs
 #           BuildIsisScriptList 1 35 35
@@ -171,9 +168,7 @@ function Gammas()
 ############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON    ON    ON )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
-#        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     6     1     6) 
-#          end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    5     10    5     10)
-        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    10   1    1    1    9    1    1     1     1     1     1     1     6     1     6) 
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     6     1     6) 
           end=([1]=1032 796  615  474  366  283  218  168  130  100 78    60  46  36    28    22    17   13  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    5     10    5     10)
 
 #VeritasSet2
@@ -201,32 +196,16 @@ function Gammas()
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #             For ksallVBF: set 1 about 24 hours <=10 TeV
-#	    BuildIsisScriptList 1 1  4
-#	    BuildIsisScriptList 2 5  9
-#	    BuildIsisScriptList 3 10 15
-#	    BuildIsisScriptList 4 16 24
-#	    BuildIsisScriptList 5 25 32
-#	    BuildIsisScriptList 6 33 34
-#	    BuildIsisScriptList 7 35 35
-#	    BuildIsisScriptList 8 36 36
+	    BuildIsisScriptList 1 1  4
+	    BuildIsisScriptList 2 5  9
+	    BuildIsisScriptList 3 10 15
+	    BuildIsisScriptList 4 16 24
+	    BuildIsisScriptList 5 25 32
+	    BuildIsisScriptList 6 33 34
+	    BuildIsisScriptList 7 35 35
+	    BuildIsisScriptList 8 36 36
 
 # High >10 TeV 48 hrs?
-#	    BuildIsisScriptList 1 30  30
-#	    BuildIsisScriptList 2 31  31
-#	    BuildIsisScriptList 3 32  32
-#	    BuildIsisScriptList 4 34  34
-#	    BuildIsisScriptList 5 37  37
-#	    BuildIsisScriptList 6 38  38
-#	    BuildIsisScriptList 7 39  39
-#	    BuildIsisScriptList 8 40  40
-
-	    BuildIsisScriptList 1 41  41
-	    BuildIsisScriptList 2 42  42
-#	    BuildIsisScriptList 3 43  43
-#	    BuildIsisScriptList 4 44  44
-
-
-
 #	    BuildIsisScriptList 1 37  37
 #	    BuildIsisScriptList 2 38  38
 #	    BuildIsisScriptList 3 39  39
@@ -242,8 +221,7 @@ function Gammas()
 	fi
     else
 
-#     SubmitAmdahlPBSScripts 1 42 
-     SubmitAmdahlPBSScripts 1 1 
+     SubmitAmdahlPBSScripts 1 42 
     fi
 }
 

@@ -1,3 +1,4 @@
+
 #This is a short utility script to create a combined summary vbf file from 
 #many individual shower vbf files. 
 
@@ -24,6 +25,8 @@ SpecEnd=$((SpecEnd-1))
 
 host=$(hostname)
 ISIS=isis.depauw.edu
+IO=io.physics.purdue.edu
+
 #Assume default is we are on amdahl
 
 dataDirBase=/project/veritas/sembrosk/simulations
@@ -38,7 +41,7 @@ if [ $host = $ISIS ] ; then
     dstDir=/simulations
 fi
 
-if [ $host = 'io.physics.purdue.edu' ] ; then
+if [ $host = $IO ] ; then
     lcl="$PWD"
     Disk=${lcl:0:12}
     dataDirBase=$Disk/simulations  
