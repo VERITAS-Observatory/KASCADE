@@ -111,13 +111,16 @@ if [ -n "$Stage4N" ]; then
         $NcutRootFileName
 fi
 
+
+#Note the 0/ in the stage 4 Quality cuts means apply to all tels.
+
 if [ -n "$Stage4E" ]; then
     cp -v $RootFileName $EcutRootFileName
     echo ET: $LookUpTableDir/$ETable
     $VEGASBASE/bin/vaStage4 \
 	-SRS_LookupTableFileName=$LookUpTableDir/$ETable \
-	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
-	-SizeLower=400 \
+	-DistanceLower=0/0.05 -DistanceUpper=0/1.3 -NTubesMin=0/5  \
+	-SizeLower=0/400 \
 	$CutTelescopeOption  $EcutRootFileName
 fi
 
