@@ -9,9 +9,9 @@
 Stage1Laser=enable
 Stage1Data=enable
 Stage2=enable
-Stage4N=enable
+#Stage4N=enable
 Stage4E=enable
-Stage5N=enable
+#Stage5N=enable
 Stage5E=enable
 
 
