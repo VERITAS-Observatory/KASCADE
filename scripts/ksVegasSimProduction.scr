@@ -79,10 +79,6 @@ then                                 #file name
     Wobble=$Wobble'Wbl'          #restore the Wbl to the end.
     Wobble=${Wobble#*Deg}        #gets S0.5Wbl from  
                                  #VeritasGammaRay20DegS0.5Wbl
-    if test ${Wobble:0:1} = "0"
-    then
-	Wobble='0.'$Wobble       #converts 0Wbl to 0.0Wbl
-    fi
 else
     Wobble='0.0Wbl'              #No Wbl in file name. This is default
 fi
