@@ -22,7 +22,8 @@ extern "C" double Gauss();
 
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		   bool fUsePatternTrigger, double DigCntsPePE,
-		   double NoiseRateSigma, double PSFNSDeg, double PSFEWDeg)
+		   double NoiseRateSigma, int numPixelsInTrigger,
+		   double PSFNSDeg, double PSFEWDeg)
 // ************************************************************************
 // Used by KSEvent and KSArea
 // ************************************************************************{
@@ -30,6 +31,7 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
   fCameraType=CameraType;
   fDigCntsPerPEHiGain=DigCntsPePE;
   fNoiseRateSigma=NoiseRateSigma;
+  fNumPixelsTrigger =numPixelsInTrigger;
   InitCamera(pTeHead,fUsePatternTrigger);
 
 
@@ -53,29 +55,6 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
     }
 
 }
-// ************************************************************************
-
-//KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-//		   bool fUsePatternTrigger, double DigCntsPePE)
-//{
-//  fCameraType=CameraType;
-//  fNoiseRateSigma=0.0;
-//  fDigCntsPerPEHiGain=DigCntsPePE;
-//  InitCamera(pTeHead,fUsePatternTrigger);
-//}
-// ************************************************************************
-
-//KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-//		                                      bool fUsePatternTrigger)
-// *************************************************************************
-// Used by KSArea
-// *************************************************************************
-//{
-//  fCameraType=CameraType;
-//  fNoiseRateSigma=0.0;
-//  fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
-//  InitCamera(pTeHead,fUsePatternTrigger);
-//}
 // ************************************************************************
 
 void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
@@ -102,7 +81,8 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
 
   loadPixelCharacteristics();    // Loads Efficiency,Threshold,SkyDiscNoise
 
-  pfCameraTrigger = new KSCameraTrigger(pfTeHead,fUsePatternTrigger,&fPixel); 
+  pfCameraTrigger = new KSCameraTrigger(pfTeHead,fUsePatternTrigger,&fPixel,
+					fNumPixelsTrigger); 
                                                            //sets up pst.
   pfCFD = new KSCFD(fCameraType);
 
@@ -171,7 +151,8 @@ void KSCamera::generateCameraPixels()
   //	Load up camera
   //	set  pmt number
   fNumPixels=gNumPixelsCamera[fCameraType];
-  fNumPixelsTrigger =gNumTriggerPixels[fCameraType];
+  //fNumPixelsTrigger =gNumTriggerPixels[fCameraType];Replaced at input to 
+  //constroctor this class
   // *************************************************************************
   // 	Get PMT locations and radii from WhippleCams.h
   // *************************************************************************
@@ -355,27 +336,32 @@ void KSCamera::loadNoiseRatesAndPeds()
     {
       fNum=379;  // do inner same size pixels seperatly for wwWHIPPLE490 camera
     }
+  // ************************************************************************
+
+  //for(int i=0;i<fNum;i++)
+  //  {
+  //    if(!fPixel.at(i).fBadPixel)
+  //	{
+  //	  fNumGoodPixels++;
+  //	  fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
+  //	  fNoiseSum+=fPixel.at(i).fPedVarRel;
+  //	}
+  // }
+  //double fMeanNoise=fNoiseSum/fNumGoodPixels;
   for(int i=0;i<fNum;i++)
     {
       if(!fPixel.at(i).fBadPixel)
 	{
-	  fNumGoodPixels++;
-	  fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
-	  fNoiseSum+=fPixel.at(i).fPedVarRel;
-	}
-    }
-  double fMeanNoise=fNoiseSum/fNumGoodPixels;
-  for(int i=0;i<fNum;i++)
-    {
-      if(!fPixel.at(i).fBadPixel)
-	{
-	  fPixel.at(i).fNoiseRatePerNS=
-	       fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
+	  fPixel.at(i).fNoiseRatePerNS=fPixel.at(i).fNoiseRatePerNS*
+	                   fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
+	    //fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
 	}
       else
 	{
 	  fPixel.at(i).fNoiseRatePerNS=0.0;
 	}
+      std::cout<<"KSCamera - i,fNoiseRatePerNS: "<<i<<" "
+	       <<fPixel.at(i).fNoiseRatePerNS<<std::endl;
     }
 
   // ***********************************************************************
@@ -385,22 +371,23 @@ void KSCamera::loadNoiseRatesAndPeds()
     {
       fNumGoodPixels=0;
       fNoiseSum=0;
+      //for(int i=379;i<fNumPixels;i++)
+      //	{
+      //	  if(!fPixel.at(i).fBadPixel)
+      //	    {
+      //	      fNumGoodPixels++;
+      //	      fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
+      //	      fNoiseSum+=fPixel.at(i).fPedVarRel;
+      //	    }
+      //	}
+      //fMeanNoise=fNoiseSum/fNumGoodPixels;
       for(int i=379;i<fNumPixels;i++)
 	{
 	  if(!fPixel.at(i).fBadPixel)
 	    {
-	      fNumGoodPixels++;
-	      fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
-	      fNoiseSum+=fPixel.at(i).fPedVarRel;
-	    }
-	}
-      fMeanNoise=fNoiseSum/fNumGoodPixels;
-      for(int i=379;i<fNumPixels;i++)
-	{
-	  if(!fPixel.at(i).fBadPixel)
-	    {
-	      fPixel.at(i).fNoiseRatePerNS=
-		   fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
+	      fPixel.at(i).fNoiseRatePerNS=fPixel.at(i).fNoiseRatePerNS*
+		              fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
+	    //fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
 	    }
 	  else
 	    {

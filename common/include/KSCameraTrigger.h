@@ -31,7 +31,7 @@ class KSCameraTrigger
 {
  public:
   KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
-		  std::vector<KSPixel>* Pixel);
+		  std::vector<KSPixel>* Pixel, int numPixelsInTrigger);
   virtual ~KSCameraTrigger();
 
   bool isFastTriggered();

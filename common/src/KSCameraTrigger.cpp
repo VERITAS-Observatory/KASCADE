@@ -24,7 +24,8 @@ extern "C" double Gauss();
 // ********************************************************************
 
 KSCameraTrigger::KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
-				 std::vector<KSPixel>* pPixel)
+				 std::vector<KSPixel>* pPixel, 
+				 int numPixelsInTrigger)
 {
   pfTeHead=pTeHead;
   fUsePatternTrigger=UsePatternTrigger;
@@ -32,7 +33,9 @@ KSCameraTrigger::KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
 
   fCameraType=pfTeHead->fCameraType;
   fTriggerMultiplicity=pfTeHead->fTriggerMultiplicity;
-  fNumPixelsTrigger=gNumTriggerPixels[fCameraType];
+ 
+  fNumPixelsTrigger=numPixelsInTrigger;
+
 
   pfPixelTriggerTime.resize(fNumPixelsTrigger);//For use with sort,Slide
   if(fUsePatternTrigger)
