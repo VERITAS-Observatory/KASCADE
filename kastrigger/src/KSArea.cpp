@@ -55,9 +55,12 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   // ------------------------------------------------------------------------
   //  Initalize the camera (Lots and Lots of work done in this constructor)
   // ----------------------------------------------------------------------
+  
+  int numPixelsInTrigger=gNumTriggerPixels[fCameraType];
   pfCamera=new KSCamera(fCameraType, pfDataIn->pfTeHead, 
 			pfDataIn->fUsePatternTrigger, 0.0,
 			gFADCDigCntsPerPEHiGain[fCameraType],
+			numPixelsInTrigger,
 			pfDataIn->fPSFNorthSouthDeg, 
 			pfDataIn->fPSFEastWestDeg);
   pfCamera->Print();
@@ -76,7 +79,8 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
       if(pfMountDirFile->fail())
 	{
 	  std::cout<<"KSASrea--Failed to Open an pre-existing input Mount "
-	    "Direction file "<<std::endl;
+	    "Direction file: "<<pfDataIn->fMountDirectionFileName.c_str()
+		   <<std::endl;
 	  exit(1);
 	}
       pfMountDir->readMountDirections(pfMountDirFile);
@@ -107,6 +111,9 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
 	}
       pfMountDir->writeMountDirections(pfMountDirFile); 
       pfMountDirFile->close();
+      std::cout<<"KSArea--Mount Directions written to file: "
+	       << pfDataIn->fMountDirectionFileName.c_str()<<std::endl;
+
     }
 
 
