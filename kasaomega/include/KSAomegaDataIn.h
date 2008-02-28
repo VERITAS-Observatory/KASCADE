@@ -39,7 +39,8 @@ private:
   static std::string sDefaultTelescope;
 
   static int         sDefaultNewPatternTriggerLevel;
-  static int         sDefaultNewTriggerMultiplicity; 
+  static int         sDefaultNewTriggerMultiplicity;   
+  static int         sDefaultNewNumPixelsInTrigger; 
   static double      sDefaultNewADCGateWidthNS;
   static double      sDefaultNewDiscriminatorThresholdPes;
   static double      sDefaultNewNoiseRate;	
@@ -63,6 +64,7 @@ public:
 
   int         fNewPatternTriggerLevel;
   int         fNewTriggerMultiplicity; 
+  int         fNewNumPixelsInTrigger; 
   double      fNewADCGateWidthNS;
   double      fNewDiscriminatorThresholdPes;
   double      fNewNoiseRate;	

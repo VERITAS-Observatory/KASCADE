@@ -59,8 +59,19 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   double fNoiseRateSigma              =pfDataIn->fNoiseRateSigma;
   //pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
   //			                              fFADCDigCntsPerPEHiGain);
+
+  int numPixelsInTrigger              =pfDataIn->fNewNumPixelsInTrigger;
+  if(numPixelsInTrigger==-1)   //Default to standard L2(PST) configuration
+    {
+      numPixelsInTrigger=gNumTriggerPixels[fCameraType];
+    } 
+
+
   pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
-			fFADCDigCntsPerPEHiGain,fNoiseRateSigma);
+			fFADCDigCntsPerPEHiGain,fNoiseRateSigma,
+			numPixelsInTrigger);
+  std::cout<<"ksAomega-- Ignore jitter values below"<<std::endl;
+  
   pfCamera->Print();
 
   // ************************************************************************
@@ -86,10 +97,6 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	                                //this point.Used to model night sky.
 	  pfCamera->fPixel.at(i).fBadPixel=false;      //Set all pixels ON.
 	}
-      
-
-      
-
     }
   else
     {
@@ -253,6 +260,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
       uint16_t winSize=(uint16_t)gFADCWinSize[fCameraType];
       int fNumBadPixels=0;
+      double meanPedVar=0;
       for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
 	{
 	  double gain=1;
@@ -269,6 +277,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 			       winSize)/gain;
 	    }
 	  pfCamera->fPixel.at(chan).fPedVarRel=pedvar; 
+	  meanPedVar+=pedvar;      //collect sum to find mean later
 
 	  bool fPixelSuppressed=false;
 	  bool fChannelIsPMT=true;
@@ -295,6 +304,21 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	      pfCamera->fPixel.at(chan).fBadPixel=false;
 	    }
 	}
+      // **************************************************************
+      // We have stored the gain adj pedvars. Find the relative pedvars
+      // We do this since we don't know yet what is about good and bad pmts.
+      // **************************************************************
+      meanPedVar=meanPedVar/fNumPixels;
+      std::cout<<"KAEvent - meanPedVar:"<<meanPedVar<<std::endl;
+
+      for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
+	{
+	  pfCamera->fPixel.at(chan).fPedVarRel=
+	                     pfCamera->fPixel.at(chan).fPedVarRel/meanPedVar;
+	  std::cout<<"KAEvent - i:PedVarRel:"<<chan<<" "
+		   <<pfCamera->fPixel.at(chan).fPedVarRel<<std::endl;
+	}
+
       if(fNumBadPixels>0)
 	{
 	  std::cout<<std::endl;

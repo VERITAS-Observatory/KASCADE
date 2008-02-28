@@ -29,6 +29,7 @@ std::string KSAomegaDataIn::sDefaultTelescope="T1";
 
 int         KSAomegaDataIn::sDefaultNewPatternTriggerLevel=3;
 int         KSAomegaDataIn::sDefaultNewTriggerMultiplicity=3; 
+int         KSAomegaDataIn::sDefaultNewNumPixelsInTrigger=-1; //Flag if not set
 double      KSAomegaDataIn::sDefaultNewADCGateWidthNS=20.0;
 double      KSAomegaDataIn::sDefaultNewDiscriminatorThresholdPes=10.0;
 double      KSAomegaDataIn::sDefaultNewNoiseRate=12.5;	
@@ -157,6 +158,7 @@ KSAomegaDataIn::KSAomegaDataIn()
 	       <<fNewPatternTriggerLevel<<std::endl;
     } 
 
+  fNewNumPixelsInTrigger=sDefaultNewNumPixelsInTrigger;
   fNewADCGateWidthNS            = sDefaultNewADCGateWidthNS;
   fNewDiscriminatorThresholdPes = sDefaultNewDiscriminatorThresholdPes;
   fNewNoiseRate                 = sDefaultNewNoiseRate;
@@ -213,6 +215,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("Telescope",sDefaultTelescope);
   config.setValue("PatternTriggerLevel",fNewPatternTriggerLevel);
   config.setValue("TriggerMultiplicity",fNewTriggerMultiplicity);
+  config.setValue("NumPixelsInPSTTrigger",fNewNumPixelsInTrigger);
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
   config.setValue("LightConeConcentration",fNewLightConeConcentration);
   config.setValue("OutputRunNumber",fRunNumber);
@@ -347,6 +350,13 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSAomegaDataIn",
 		    "Require this multiplicity value for a trigger. "); 
   doVAConfiguration(file, command_line, 
+		    "NumberPixelsInPSTTrigger",sDefaultNewNumPixelsInTrigger,
+		    "KSAomegaDataIn",
+		    "Number of pixels to include in PST search for triggers. "
+		    "This is mainly for special low-energy trigger mode. "
+		    "Default is normal for this telescope type: "
+		    "VERITAS499:463, Whipple490:331"); 
+  doVAConfiguration(file, command_line, 
 		    "ADCGateWidthNS",sDefaultNewADCGateWidthNS,
 		    "KSAomegaDataIn",
 		    "Specifies an length of the ADC gate for charge "
@@ -367,7 +377,6 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 // ***********************************************************************
  
 void KSAomegaDataIn::Print()
-
 // ************************************************************************
 // Print out all the parameters for this run
 {
@@ -392,7 +401,13 @@ void KSAomegaDataIn::Print()
   std::cout<<"       New PatternTriggerLevel: "<<fNewPatternTriggerLevel
 	   <<std::endl;
   std::cout<<"       New TriggerMultiplicity: "<<fNewTriggerMultiplicity
-	   <<std::endl; 
+	   <<std::endl;
+  if(fNewNumPixelsInTrigger>0)
+    {
+  std::cout<<" New Num Pixels In PST Trigger: "<<fNewNumPixelsInTrigger
+	   <<std::endl;
+    }
+     
   std::cout<<"            New ADCGateWidthNS: "<<fNewADCGateWidthNS
 	   <<std::endl;
   std::cout<<"             Output Run Number: "<<fRunNumber<<std::endl;
