@@ -13,18 +13,36 @@ Stage2=enable
 #Stage5N=enable
 #Stage5E=enable
 
+##############################################################################
+#Configurable options:
+ #Stage2:
+  #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
+                                                       #pedvars with vaDisplay
+  EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
+                                                       #muon-ring-fitting tree 
+  EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
+
+ #Stage4E         
+  #CutTelescopeOption='-CutTelescope=3/1,4/1'  #To force removal of particular
+                                  #telescopes when calculating shower paramters
+ #Stage5(N & E)
+  CutsFileSpecification='-cuts=spectrumCuts'  #File specfication for testing 
+            #events in the combined tree for setting cut flag in combined tree 
+            #(all events are still included in the tree)
+
+#############################################################################
+
 
 #Now process the file:
+
 VBFLSRFileName=$2
 LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
 LSRRootFileName=${LSRRootFile##*/}
-
 if [ -n "$Stage1Laser" ]; then
-
-
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
                                                               $LSRRootFileName
 fi
+
 
 VBFFileName=$1
 RootFile=${VBFFileName%".cvbf"}'.root'
@@ -33,10 +51,6 @@ RootFileName=${RootFile##*/}
 if [ -n "$Stage1Data" ]; then
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $VBFFileName $RootFileName
 fi
-#MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1'
-#AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1'
-EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' 
-EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
 
 echo $VBFFileName
 echo $RootFileName
@@ -64,7 +78,9 @@ NTable=lookuptables_EcleanedNcutted.root
 ETable=lookuptables_EcleanedEcutted_$Wobble'.root'
 
 host=$(hostname)
-if [ $host = 'isis.depauw.edu' ] ; then
+ISIS=isis.depauw.edu
+
+if [ $host = $ISIS ] ; then
     LookUpTableDir=/veritas/local/vegas/showerReconstruction/vegas_lookuptables
 else
     LookUpTableDir=/home/sembrosk/vegas/showerReconstruction/vegas_lookuptables
@@ -78,20 +94,17 @@ if [ -n "$Stage4N" ]; then
          $NcutRootFileName
 fi
 
-
-CutTelescopeOption='-CutTelescope=4/1'
+#Note the 0/ in the stage 4 Quality cuts means apply to all tels.
 
 if [ -n "$Stage4E" ]; then
     cp -v $RootFileName $EcutRootFileName
     echo ET: $LookUpTableDir/$ETable
     $VEGASBASE/bin/vaStage4 \
 	-SRS_LookupTableFileName=$LookUpTableDir/$ETable \
-	-DistanceLower=0.05 -DistanceUpper=1.3 -NTubesMin=5  \
-	-SizeLower=400 \
+	-DistanceLower=0/0.05 -DistanceUpper=0/1.3 -NTubesMin=0/5  \
+	-SizeLower=0/400 \
 	$CutTelescopeOption $EcutRootFileName
 fi
-
-CutsFileSpecification='-cuts=spectrumCuts'
 
 
 if [ -n "$Stage5N" ]; then
