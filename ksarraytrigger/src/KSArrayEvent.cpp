@@ -22,6 +22,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   pfDataIn=pDataIn;
   fDataType=pfDataIn->fDataType;
   fRunNumber=pfDataIn->fRunNumber;
+  fNoMorePedEvents=false;
 
   // ****************************************************************
   // Open the input files, check we have enough telescopes for multiplicity
@@ -786,6 +787,10 @@ void KSArrayEvent::SavePedestalEvent()
 // Write a pedestal event to the output file
 // **********************************************************************
 {
+  if(fNoMorePedEvents)
+    {
+      return;
+    }
   //Get time onf the event (on the tick)
   uint32_t fYear,fMonth,fDay,H,M,S,NS;
   fEventTime.getCalendarDate(fYear,fMonth,fDay);
@@ -794,18 +799,28 @@ void KSArrayEvent::SavePedestalEvent()
   VATime fPedestalEventTime;
   fPedestalEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
 						H,M,S,NS);
+  // *******************************************************************
+  // We have to make sure we have a pedestal event avaiable from each 
+  // telescope's list of ped events.
+  // *******************************************************************
+  pfTelsWithData.at(0)->fPedListIndex++;  //Bump to the next one to use.
   int fPedListIndex=pfTelsWithData.at(0)->fPedListIndex;
-  if(fPedListIndex>=(int)pfTelsWithData.at(0)->pfPedIndexList.size()-1)
+  for(int i=0;i<fNumTelsWithData;i++)
     {
-      return;          //No more ped events to use.
+      if(fPedListIndex>=(int)pfTelsWithData.at(i)->pfPedIndexList.size()-1)
+	{
+	  std::cout<<"ksArrayTrigger: No More Pedestal events avaiable from T"
+		   <<i+1<<" at SavePedestalEvent request: "<<fPedListIndex
+		   <<std::endl;
+          fNoMorePedEvents=true;
+	  return;          //No more ped events to use.
+	}
     }
-  pfTelsWithData.at(0)->fPedListIndex++;
-  fPedListIndex=pfTelsWithData.at(0)->fPedListIndex;
-
-  int fPedIndex= pfTelsWithData.at(0)->pfPedIndexList.at(fPedListIndex); 
 
   if(fDataType==ROOTFILE)
     {
+      int fPedIndex= pfTelsWithData.at(0)->pfPedIndexList.at(fPedListIndex); 
+
       pfCalEvent->Reset();//pfCalEvent has # telescopes preset.
       pfCalEvent->fTels=fNumTelsWithData;
       pfCalEvent->fArrayEventNum=fOutEventIndex;
@@ -861,9 +876,10 @@ void KSArrayEvent::SavePedestalEvent()
       // *********************************************************************
       // First fill in simulation packets. Use first telescope's
       // *********************************************************************
-
+      int fPedIndex= pfTelsWithData.at(0)->pfPedIndexList.at(fPedListIndex); 
       VPacket* pfReadPacket=pfTelsWithData.at(0)->
 	                                   readPacket(fPedIndex);
+
       // *************************************************
       // Update event numbers here and maybe times
       // *************************************************
@@ -967,6 +983,9 @@ void KSArrayEvent::SavePedestalEvent()
 	{
 	  int fTelID=pfTelsWithData.at(i)->fTelID;
 	  // set the event number
+	  int fPedIndex= 
+	               pfTelsWithData.at(i)->pfPedIndexList.at(fPedListIndex); 
+
 	  VPacket* pfTelReadPacket=pfTelsWithData.at(i)->
 	                                   readPacket(fPedIndex);
 	  VArrayEvent* pfAEIn=pfTelReadPacket->getArrayEvent();
