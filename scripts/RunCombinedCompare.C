@@ -24,8 +24,8 @@ bool fHaveSimBranch;
 std::string fCTreeName="SelectedEvents/CombinedEventsTree";
 std::string fHBranch="Tel";
 //std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
-//std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
-std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
+std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
+//std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
 std::string fPlotOption=" ";
 
 //Strings for Cumulative tree.
@@ -398,8 +398,10 @@ void CompareRuns(std::string* pfRunNames, int fNumRuns, std::string* pfTels)
 
 void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
 {
-  std::string cuts = fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>2" + " && " + fTrigCut;
-  //std::string cuts = fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>4" + " && " + fTrigCut;
+  //CUTS  
+  std::string cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>2" + " && " + fTrigCut;
+// std::string cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>2" + " && " + fTrigCut + "&& S.fIsEnergy && S.fEnergy<8000";
+  //std::string cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>4" + " && " + fTrigCut;
   std::cout<<"cuts:"<<cuts<<std::endl;
 
 
