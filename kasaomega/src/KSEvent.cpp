@@ -193,7 +193,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // Get the Relative Gain Data
       // *****************************************************************
       VARelGainData* pfRelGain=NULL;
-      if(pfDataIn->fUseRelativeGains)
+      if(pfDataIn->fUseRelativeGains || pfDataIn->fUseRelativePedVars)
 	{
 	  TDirectory* pfRelGainDir = 
 	    (TDirectory*)pfVDFStats->Get(gRelGainDirName.c_str()); 
@@ -252,7 +252,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // default for whipple data and is big enough to cause minimum 
       // statistical problems for VERITAS (I Hope)
       // The base rate of the night sky is determined from 
-      // pfDataIn->fNewNoiseRate but that is done below somewhere.
+      // pfDataIn->fNewNoiseRate but that is done below somewhere(KSCamera).
       // ********************************************************************
       bool ifLO=false;  //Always want high gain. This is appropriate for
                         //Gain corrected Charge,SignalToNoise from VATraceData
@@ -260,24 +260,62 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
       uint16_t winSize=(uint16_t)gFADCWinSize[fCameraType];
       int fNumBadPixels=0;
-      double meanPedVar=0;
+      double meanNightSky=0;
+      int numMeanNightSky=0;
       for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
 	{
 	  double gain=1;
+	  if(pfDataIn->fUseRelativeGains || pfDataIn->fUseRelativePedVars)
+	    {
+	      gain=pfRelGain->getRelGainMean(fTel,chan, ifLO);
+	    }
 	  if(pfDataIn->fUseRelativeGains)
 	    {
-	     gain=pfRelGain->getRelGainMean(fTel,chan, ifLO);
+	      pfCamera->fPixel.at(chan).fRelativeGain=gain;
 	    }
-	  pfCamera->fPixel.at(chan).fRelativeGain=gain;
 
-	  double pedvar=1;
+	  // ************************************************************
+	  //What we want here is to determine realtive night sky values
+	  // We will store sqrt of that into gain adjusted relPedVars
+	  // We can ignore dc/pe value here since it cancels out.
+	  // ************************************************************
+	  //Coef here is typicaly 5*5*14
+          double pedvarNightSkyCoef= gRealDataSinglePeDC[fCameraType]*
+	                             gRealDataSinglePeDC[fCameraType]*
+	                             gFADCWinSize[fCameraType]*
+                                     gFADCBinSizeNS;	 
+	  double pedvar=1; //Default if not using relative pedvars.
+	  double nightSkyRate=pedvar*pedvar/pedvarNightSkyCoef;
 	  if(pfDataIn->fUseRelativePedVars)
 	    {
-	      pedvar= pfPeds->getTraceVar(fFirstValidEventTime,fTel,chan,
-			       winSize)/gain;
+	      pedvar=0;
+	      if(gain>0.5 && gain<2.0)
+		{
+		  // *****************************************************
+		  //Get sqrt of nightsky for this pixel.Be sure to correct 
+		  //for gain.
+		  // ******************************************************
+		  pedvar=pfPeds->getTraceVar(fFirstValidEventTime,fTel,chan,
+					     winSize)/gain;
+	          if(pedvar<1.0 || pedvar>15.0)
+		    {
+		      pedvar=0;
+		    }
+		}
+	      nightSkyRate=(pedvar*pedvar)/pedvarNightSkyCoef;
 	    }
-	  pfCamera->fPixel.at(chan).fPedVarRel=pedvar; 
-	  meanPedVar+=pedvar;      //collect sum to find mean later
+	  //Save night sky rate
+	  pfCamera->fPixel.at(chan).fPedVarRel=nightSkyRate; 
+	  
+	  // *************************************************************
+	  //collect sum to find mean later
+	  // *************************************************************
+	  if(nightSkyRate>0)
+	    {
+	      meanNightSky+=nightSkyRate; 
+              numMeanNightSky++;
+	    }
+	  //std::cout<<chan<<" "<<nightSkyRate<<std::endl;
 
 	  bool fPixelSuppressed=false;
 	  bool fChannelIsPMT=true;
@@ -296,7 +334,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 		  std::cout<<std::endl;
 		  std::cout<<"BadPixels: ";
 		}
-	      std::cout<<" "<<chan;
+	      std::cout<<"Bad Pixel: "<<chan;
 	      fNumBadPixels++;
 	    }
 	  else
@@ -305,20 +343,32 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	}
       // **************************************************************
-      // We have stored the gain adj pedvars. Find the relative pedvars
-      // We do this since we don't know yet what is about good and bad pmts.
+      // We have stored the gain adj nightsky rates assuming rate~pedvar**2
+      // Find the relative nightSkys
+      // Save of relative night sky in PedVarRel
+      // This ignores bad channels(ie pedvars=0). Set them to meanNightSky or
+      // relative nightsky=1
       // **************************************************************
-      meanPedVar=meanPedVar/fNumPixels;
-      std::cout<<"KAEvent - meanPedVar:"<<meanPedVar<<std::endl;
 
+      meanNightSky=meanNightSky/numMeanNightSky;
+      std::cout<<"KAEvent - meanNightSky:"<<meanNightSky<<" pes/ns"<<std::endl;
+      // **************************************************************
+      // KSCamera will multiple relative night sky by requested night sky 
+      // (adjsted for light cones and pixel area)
+      // **************************************************************
       for(uint16_t chan=0;chan<(uint16_t)fNumPixels;chan++)
-	{
-	  pfCamera->fPixel.at(chan).fPedVarRel=
-	                     pfCamera->fPixel.at(chan).fPedVarRel/meanPedVar;
-	  std::cout<<"KAEvent - i:PedVarRel:"<<chan<<" "
-		   <<pfCamera->fPixel.at(chan).fPedVarRel<<std::endl;
+      	{ 
+	  double nightSkyRate=pfCamera->fPixel.at(chan).fPedVarRel;
+	  if( nightSkyRate>0)
+	    {
+	      pfCamera->fPixel.at(chan).fPedVarRel=nightSkyRate/meanNightSky;
+	    }
+	  else
+	    {
+	      pfCamera->fPixel.at(chan).fPedVarRel=1;
+	    }      
 	}
-
+      
       if(fNumBadPixels>0)
 	{
 	  std::cout<<std::endl;
