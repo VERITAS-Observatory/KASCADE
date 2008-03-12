@@ -1311,7 +1311,12 @@ c        CONSISTENCY CHECK!
      1 xm(ispec)
 1234  format(' ***energy,height,x,y,tim,ispec,rk,xm(ispec):',
      1 ' ***',5e14.7,i5,' ***',2e14.7)
-	call kscharstring2cout(trim(coutstring)//char(0))
+	!****************************************************************
+        !Disable this print. Its just a info print anyway and it has some
+        !problem which I can't see the answer to. It repeats 1234 many times.
+        !Maybe its too long.
+        !****************************************************************
+               !call kscharstring2cout(trim(coutstring)//char(0))
                dn=1.       !Round it
         endif
 
