@@ -315,8 +315,9 @@ void KSCamera::generateCameraPixels()
 
 void KSCamera::loadNoiseRatesAndPeds()
 // *************************************************************************
-// Using each pixels fNoiseRatePerNS and the relative pedvars, determine
-// each pixel's adjusted night sky pedestal variences. Do this to model a 
+// Using each pixels fNoiseRatePerNS and the relative nightsky values, 
+// determine
+// each pixel's adjusted night sky values. Do this to model a 
 // particular run. This adjustes the fNoiseRatePerNS. From this is the pedvars 
 // for the pixel night sky Wave form is calculated.
 // Also determine the pedvar for the charge window(we only have one as yet)
@@ -329,39 +330,33 @@ void KSCamera::loadNoiseRatesAndPeds()
   //1:Convert the input variences into noise
   //2:Find noise ratios to mean
   //3:Modifiy each pixels noise by these ratios
-  int fNumGoodPixels=0;
+
   int fNum=fNumPixels;
-  double fNoiseSum=0;
+
   if(fCameraType==WHIPPLE490)
     {
       fNum=379;  // do inner same size pixels seperatly for wwWHIPPLE490 camera
     }
   // ************************************************************************
+  // At this point fPedVarRel holds  the relative night sky rates.
+  // ************************************************************************
+  std::cout<<"ksAomega - NightSkyRate for chan 0: "
+	   <<fPixel.at(0).fNoiseRatePerNS<<"pes/ns"<<std::endl;
 
-  //for(int i=0;i<fNum;i++)
-  //  {
-  //    if(!fPixel.at(i).fBadPixel)
-  //	{
-  //	  fNumGoodPixels++;
-  //	  fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
-  //	  fNoiseSum+=fPixel.at(i).fPedVarRel;
-  //	}
-  // }
-  //double fMeanNoise=fNoiseSum/fNumGoodPixels;
   for(int i=0;i<fNum;i++)
     {
       if(!fPixel.at(i).fBadPixel)
 	{
-	  fPixel.at(i).fNoiseRatePerNS=fPixel.at(i).fNoiseRatePerNS*
-	                   fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
-	    //fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
+	  double newNightSkyRate=fPixel.at(i).fNoiseRatePerNS*
+	                                              fPixel.at(i).fPedVarRel;
+	  // std::cout<<i<<" "<<fPixel.at(i).fNoiseRatePerNS<<" "
+	  //	   <<  newNightSkyRate<<std::endl;
+	  fPixel.at(i).fNoiseRatePerNS=newNightSkyRate;
 	}
       else
 	{
 	  fPixel.at(i).fNoiseRatePerNS=0.0;
 	}
-      std::cout<<"KSCamera - i,fNoiseRatePerNS: "<<i<<" "
-	       <<fPixel.at(i).fNoiseRatePerNS<<std::endl;
     }
 
   // ***********************************************************************
@@ -369,25 +364,12 @@ void KSCamera::loadNoiseRatesAndPeds()
   // ***********************************************************************
   if(fCameraType==WHIPPLE490)
     {
-      fNumGoodPixels=0;
-      fNoiseSum=0;
-      //for(int i=379;i<fNumPixels;i++)
-      //	{
-      //	  if(!fPixel.at(i).fBadPixel)
-      //	    {
-      //	      fNumGoodPixels++;
-      //	      fPixel.at(i).fPedVarRel=fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
-      //	      fNoiseSum+=fPixel.at(i).fPedVarRel;
-      //	    }
-      //	}
-      //fMeanNoise=fNoiseSum/fNumGoodPixels;
       for(int i=379;i<fNumPixels;i++)
 	{
 	  if(!fPixel.at(i).fBadPixel)
 	    {
 	      fPixel.at(i).fNoiseRatePerNS=fPixel.at(i).fNoiseRatePerNS*
-		              fPixel.at(i).fPedVarRel*fPixel.at(i).fPedVarRel;
-	    //fPixel.at(i).fNoiseRatePerNS*fPixel.at(i).fPedVarRel/fMeanNoise;
+		              fPixel.at(i).fPedVarRel;
 	    }
 	  else
 	    {
@@ -398,7 +380,10 @@ void KSCamera::loadNoiseRatesAndPeds()
   // *************************************************************************
   // Now determine from fNoiseRatePerNS each pixels fNightSkyWaveFormPedestal
   // Add the Charge variance for the FADC/ADC Window
-// **************************************************************************
+  // **************************************************************************
+  double meanChargeVar=0;
+  int numChargeVar=0;
+  
   for(int i=0;i<fNumPixels;i++)
     {
       if(!fPixel.at(i).fBadPixel)
@@ -414,12 +399,20 @@ void KSCamera::loadNoiseRatesAndPeds()
 	}
       // Fill in stuff used to make ped traces
       fPedPixels.at(i).fNoiseRatePerNS = fPixel.at(i).fNoiseRatePerNS;
+      //std::cout<<i<<" "<<fPedPixels.at(i).fNoiseRatePerNS<<" "
+      //	       <<fPixel.at(i).fChargeVarDC<<std::endl;
+      meanChargeVar+=fPixel.at(i).fChargeVarDC;
+      numChargeVar++;
+  
+
       fPedPixels.at(i).fWaveFormNightSkyPedestal = 
-	                                   fPixel.at(i).fWaveFormNightSkyPedestal;
+	                              fPixel.at(i).fWaveFormNightSkyPedestal;
       fPedPixels.at(i).fChargeVarPE    = fPixel.at(i).fChargeVarPE;
       fPedPixels.at(i).fChargeVarDC    = fPixel.at(i).fChargeVarDC;
       fPedPixels.at(i).fPedDC          = fPixel.at(i).fPedDC;
     } 
+  meanChargeVar=meanChargeVar/numChargeVar;
+  std::cout<<"Mean ChargeVar(pedVar): "<< meanChargeVar<<std::endl;
   return;
 }
 // *************************************************************************
