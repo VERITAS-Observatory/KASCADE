@@ -36,7 +36,7 @@ const int    gNightSkyWaveFormNS[2]      = {        1000,        3000};
 const int    gFADCNumSamples[2]          = {          24,          10};
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
-
+const double gRealDataSinglePeDC[2]      = {        5.00,        10.0};
 //Amount to back up from the image trigger time to get the whole pulse for 
 //charge integeration. 
 const double gFADCTOffsetNS[2]           = {        10.0,          9.0};
