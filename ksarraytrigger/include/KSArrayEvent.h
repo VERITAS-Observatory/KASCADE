@@ -54,6 +54,7 @@ class KSArrayEvent
   virtual ~KSArrayEvent();
 
  private:
+  bool fNoMorePedEvents;
   int fRunNumber;
   KSArrayTriggerDataIn* pfDataIn;
   KSArrayTriggerDataType fDataType;
