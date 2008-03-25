@@ -903,14 +903,13 @@ int main(int argc, char** argv)
 			      // Correct the fSAomega Area by the 
 			      // cos(source zenith angle)
 			      //if(fWeightBySpectrum)
-			      //	{
-
+			      //	
 			      double fAomega=pfKSimData->fAomega;
 			      double fZenithRad=
 				pfSimData->fPrimaryZenithDeg*M_PI/180.;
 			      fAomega=fAomega*cos(fZenithRad);
 			      pfKSimData->fIntegralRatePerEventHz =
-				fMaxWeight*fWeight*fAomega;
+                                                          fMaxWeight*fAomega;
 			      pfKSimData->fDifferentialRatePerEventHz =
 				fDiffRateHzPerM2*fAomega/fWeight;
 			      pfKSimData->fAomega=
@@ -1078,7 +1077,7 @@ int main(int argc, char** argv)
 			    pfKInSimEvent->fPrimaryZenithDeg*M_PI/180.;
 			  fAomega=fAomega*cos(fZenithRad);
 			  pfKInSimEvent->fIntegralRatePerEventHz =
-			    fMaxWeight*fWeight*fAomega;
+			                                 fMaxWeight*fAomega;
 			  pfKInSimEvent->fDifferentialRatePerEventHz =
 			    fDiffRateHzPerM2*fAomega/fWeight;
 			  pfKInSimEvent->fAomega=
