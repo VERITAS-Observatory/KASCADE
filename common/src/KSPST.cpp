@@ -21,14 +21,15 @@ KSPixelTimes::~KSPixelTimes()
 
 
 // In the constructor is where most of the work gets done.
-KSPST::KSPST(KSCameraTypes CameraType, int TriggerMultiplicity)
+KSPST::KSPST(KSCameraTypes CameraType, int TriggerMultiplicity,
+	     int NumPixelsTrigger)
 {
   fCameraType           = CameraType;
   fTriggerMultiplicity  = TriggerMultiplicity;
 
   fNumPatches=kNumPatches[fCameraType];
   fNumPixelsCamera=gNumPixelsCamera[fCameraType];
-  fNumPixelsTrigger=gNumTriggerPixels[fCameraType];
+  fNumPixelsTrigger= NumPixelsTrigger;
   pfPatchTriggerTimes.resize(fNumPatches);       //times patches trigger
   pfPatchTriggerPattern = new int[fNumPatches];  //patttern that caused trig
 
@@ -120,14 +121,19 @@ bool KSPST::isTriggered(std::vector< std::vector < double > >& CFDTriggerTimes,
 	  //       Missing patch pixels flaged as -1
 	  // *************************************************************
 	  int fPixelIndex=pfPixelsInPatch.at(i).at(j);  //Get a pixel index 
-	  if(fPixelIndex>=0 && CFDTriggerTimes.at(fPixelIndex).size()>0)
+	  if(fPixelIndex<fNumPixelsTrigger)   //This is a check for diminished
+                                              // pixel trigger range
 	    {
-	      fPatchCFDTriggerTimes.at(j)=CFDTriggerTimes.at(fPixelIndex);
-	      gotNumTimes++;
-	    }
-	  else
-	    {
-	      fPatchCFDTriggerTimes.at(j).clear();
+	      
+	      if(fPixelIndex>=0 && CFDTriggerTimes.at(fPixelIndex).size()>0)
+		{
+		  fPatchCFDTriggerTimes.at(j)=CFDTriggerTimes.at(fPixelIndex);
+		  gotNumTimes++;
+		}
+	      else
+		{
+		  fPatchCFDTriggerTimes.at(j).clear();
+		}
 	    }
 	}
       // *******************************************************************
@@ -645,10 +651,14 @@ unsigned long KSPST::getPatchPattern(int fPatchIndex,
   for(int j=0;j<kNumPixelsPerPatch;j++)
     {				// test pixel is on at strobe time.
       int fPixelIndex=pfPixelsInPatch.at(fPatchIndex).at(j);
-      if(pStrobeTimeCFDs->find(fPixelIndex)!=pStrobeTimeCFDs->end())
+      if(fPixelIndex<fNumPixelsTrigger) //This is a check for diminished
+                                              // pixel trigger range
 	{
-	  fMemoryAddressBits.set(j);
-	}	    
+	  if(pStrobeTimeCFDs->find(fPixelIndex)!=pStrobeTimeCFDs->end())
+	    {
+	      fMemoryAddressBits.set(j);
+	    }	    
+	}
     }
   unsigned long fMemoryAddress=fMemoryAddressBits.to_ulong();
   return fMemoryAddress;

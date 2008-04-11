@@ -44,7 +44,7 @@ KSCameraTrigger::KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
       fCFDTriggerTimes.clear();
       fCFDTriggerTimes.resize(fNumPixelsTrigger,nullDoubleVector);
       fPatternTriggerLevel=pfTeHead->fPatternTriggerLevel;
-      pfPST= new KSPST(fCameraType,fPatternTriggerLevel);
+      pfPST= new KSPST(fCameraType,fPatternTriggerLevel,fNumPixelsTrigger);
     }
 }
 // ********************************************************************
