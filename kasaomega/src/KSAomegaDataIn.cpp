@@ -215,7 +215,7 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("Telescope",sDefaultTelescope);
   config.setValue("PatternTriggerLevel",fNewPatternTriggerLevel);
   config.setValue("TriggerMultiplicity",fNewTriggerMultiplicity);
-  config.setValue("NumPixelsInPSTTrigger",fNewNumPixelsInTrigger);
+  config.setValue("NumPSTTrigPixels",fNewNumPixelsInTrigger);
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
   config.setValue("LightConeConcentration",fNewLightConeConcentration);
   config.setValue("OutputRunNumber",fRunNumber);
@@ -350,7 +350,7 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSAomegaDataIn",
 		    "Require this multiplicity value for a trigger. "); 
   doVAConfiguration(file, command_line, 
-		    "NumberPixelsInPSTTrigger",sDefaultNewNumPixelsInTrigger,
+		    "NumPSTTrigPixels",sDefaultNewNumPixelsInTrigger,
 		    "KSAomegaDataIn",
 		    "Number of pixels to include in PST search for triggers. "
 		    "This is mainly for special low-energy trigger mode. "
