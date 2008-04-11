@@ -105,7 +105,8 @@ class KSPST
 // *******************************************************
 {
  public:
-  KSPST(KSCameraTypes CameraType, int TriggerMultiplicity);
+  KSPST(KSCameraTypes CameraType, int TriggerMultiplicity, 
+	int NumPixelsInTrigger);
   virtual ~KSPST();
  
   bool isTriggered(std::vector< std::vector < double > >& CFDTrggerTimes, 
