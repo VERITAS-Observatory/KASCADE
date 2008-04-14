@@ -151,6 +151,16 @@ int main(int argc, char** argv)
 	  fWeightBySpectrum=true;
 	}
 
+      bool requireT1T4=false;
+      if(command_line.find("RequireT1T4",
+			   "Indicates that we are requireing telescopes T1 "
+			   "and T4 to have triggered for retained events. "
+			   "This is for the Low Energy trigger simulation.")
+	 == VAOptions::FS_FOUND)
+	{
+	  requireT1T4=true;
+	}
+
       bool fDistributeEnergy=false;
       if(command_line.find("DistributeEnergy",
 			   "Indicates that while appending events from files "
@@ -163,9 +173,10 @@ int main(int argc, char** argv)
 	  fDistributeEnergy=true;
 	}
 
+      
       std::string fRandomSeedFileName;
       if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
-				    "Ranlux seed file")
+				     "Ranlux seed file")
 	 == VAOptions::FS_FOUND)
 	{
 	  fRandomSeedFileName="ksSumFiles.ran";
@@ -938,6 +949,35 @@ int main(int argc, char** argv)
 			    } 
 			  pfAEIn=pfPacket->getArrayEvent();
 			  pfAT = pfAEIn->getTrigger();
+			  // *************************************************
+			  // Special test for Low energy trigger. Must have t1 
+			  // and T4 trigger.
+			  // ************************************************
+                          if(requireT1T4)
+			    {
+			      bool haveT1=false;
+			      bool haveT4=false;
+			      int numTrigTels=pfAT->getNumTriggerTelescopes();
+			      for (unsigned i=0;i<(unsigned)numTrigTels;i++)
+				{
+				  int IDTel=pfAT->getTriggerTelescopeId(i);
+				  if (IDTel==0)
+				    {
+				      haveT1=true;
+				    }
+				  else if(IDTel==3)
+				    {
+				      haveT4=true;
+				    }
+				}
+			      if(!haveT1 || !haveT4)  //Must have T1 and T4
+				{
+				  delete pfWritePacket;
+				  delete pfPacket;
+				  continue;  //go to next entry
+				}
+			    }
+
 			  // set the Run Number and event number
 			  pfAT->setRunNumber(fRunNumber);
 			  pfAT->setEventNumber(fArrayEventNum);
