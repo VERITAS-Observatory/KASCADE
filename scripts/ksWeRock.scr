@@ -16,12 +16,18 @@
 #Ex ./ksWeRock.scr VG1Deg50mv 95002 8
 #Ex../ksWeRock.scr VCRA10Deg50mv 96010 1234M2
 
+CleanupEnable=enable
+DebugPrintEnable=enable
 
 inpDir=$KASCADEBASE'/inputs'
 
 Spec=$1
 let SpecEnd=$(expr length $Spec)
 SpecEnd=$((SpecEnd-1))
+if [ -n "$DebugPrintEnable" ]; then
+  echo Spec: $Spec
+fi
+
 
 host=$(hostname)
 ISIS=isis.depauw.edu
@@ -76,6 +82,10 @@ done
 #create working directory.
 mkdir  $dirID
 cd $dirID
+if [ -n "$DebugPrintEnable" ]; then
+  echo Working dir: $PWD
+fi
+
 
 AC=$3                      #Check to see if $3 is an array configuration
 
@@ -91,10 +101,14 @@ else
 fi	
 
 
+	
 
 
 if [ ${Spec:1:1} = "G" ]  ; then
     ZenithAngleDir=$Spec$ArConfig   #comment this out if using base directory.
+    if [ -n "$DebugPrintEnable" ]; then
+        echo ZenithAngleDir: $dataDirBase/gammas/$ZenithAngleDir
+    fi
     find $dataDirBase/gammas/$ZenithAngleDir -name $Spec$ArConfig'GeV*.vbf'  >GList
     gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 
@@ -145,5 +159,8 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 #                           ShowerList 
 
 #Cleanup
-cd ..
-rm -vrf $dirID
+##Cleanup:
+if [ -n "$CleanupEnable" ]; then
+   cd ..
+   rm -vrf $dirID
+fi
