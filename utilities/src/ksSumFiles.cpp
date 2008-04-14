@@ -137,6 +137,16 @@ int main(int argc, char** argv)
 	  std::cout<<"ksSumFiles: No Direction Cuts will be made"<<std::endl;
 	}
 
+      bool requireT1T4=false;
+      if(command_line.find("RequireT1T4",
+			   "Indicates that we are requireing telescopes T1 "
+			   "and T4 to have triggered for retained events. "
+			   "This is for the Low Energy trigger simulation.")
+	 == VAOptions::FS_FOUND)
+	{
+	  requireT1T4=true;
+	}
+
       bool fWeightBySpectrum=false;
       if(command_line.find("EnableSpectrumWeighting",
 			   "Indicates that while appending events from files "
@@ -149,16 +159,6 @@ int main(int argc, char** argv)
 	 == VAOptions::FS_FOUND)
 	{
 	  fWeightBySpectrum=true;
-	}
-
-      bool requireT1T4=false;
-      if(command_line.find("RequireT1T4",
-			   "Indicates that we are requireing telescopes T1 "
-			   "and T4 to have triggered for retained events. "
-			   "This is for the Low Energy trigger simulation.")
-	 == VAOptions::FS_FOUND)
-	{
-	  requireT1T4=true;
 	}
 
       bool fDistributeEnergy=false;
