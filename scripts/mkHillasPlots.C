@@ -173,7 +173,8 @@ void HillasPlots(char* fFileName,int fTelId=0)
 	  fC5->cd(1);
 	  pfSimTree->Draw("Sim.fEnergyGeV",fCuts.c_str(),"P");
 	  
-	  fCuts="(Sim.fEnergyGeV<2000.0)*Sim.fDifferentialRatePerEventHz";
+	  //fCuts="(Sim.fEnergyGeV<2000.0)*Sim.fDifferentialRatePerEventHz";
+	  fCuts="(Sim.fEnergyGeV<8000.0)*Sim.fDifferentialRatePerEventHz";
 	  fC5->cd(2);
 	  pfSimTree->Draw("log(Sim.fEnergyGeV)",fCuts.c_str(),"P");
 	  htemp->Fit("gaus");

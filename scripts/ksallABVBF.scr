@@ -10,8 +10,6 @@
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 
-#
-
 #KascadeEnable=enable
 #LightEnable=enable
 #PeSortMergeEnable=enable
@@ -19,6 +17,7 @@
 AomegaEnable=enable                   #These next 2 operate on te files only
 ArrayTriggerEnable=enable
 
+RemoveSingleVBF=enable
 CleanupEnable=enable
 DebugPrintEnable=enable
 
@@ -469,13 +468,41 @@ while test $i -le $4
        rm -v $VBFFileT4
       fi
     fi
+
+    #Remove single tel VBF files. (mostly for isis where space is tight)
+    if [ -n "$RemoveSingleVBF" ]; then
+      echo Removing Singel Tel VBF files
+      if test $dcount = 0
+      then
+	if [ -e "$VBFFile" ]; then
+	    rm -v $VBFFile
+	fi
+      else
+#        if test [ -e "$SingleShwr${DetectArraySpec:0:1}'.d'$i'.vbf'" ];
+#	then
+		rm -v $SingleShwr${DetectArraySpec:0:1}'.d'$i'.vbf'
+#	fi
+#        if test [ -e $SingleShwr${DetectArraySpec:1:1}'.d'$i'.vbf' ];
+#	then
+		rm -v $SingleShwr${DetectArraySpec:1:1}'.d'$i'.vbf'
+#	fi
+#        if test [ -e $SingleShwr${DetectArraySpec:2:1}'.d'$i'.vbf' ];
+#	then
+		rm -v $SingleShwr${DetectArraySpec:2:1}'.d'$i'.vbf'
+#	fi
+#        if test [ -e $SingleShwr${DetectArraySpec:3:1}'.d'$i'.vbf' ];
+#	then
+		rm -v $SingleShwr${DetectArraySpec:3:1}'.d'$i'.vbf'
+#	fi
+     fi
+   fi
+
   fi
   i=$((i+1))			#do next shower
 done
 
 
-
-#Cleanup
+##Cleanup:
 if [ -n "$CleanupEnable" ]; then
   cd $wrkdir
   rm -vf *
