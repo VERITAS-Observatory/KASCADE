@@ -18,20 +18,25 @@ include ../Makefile.common
 
 
 LIBTARGET = $(LIBDIR)/libkastrigger.a
-EXETARGET = ksTrigger.cpp
+EXETARGET1 = ksTrigger.cpp
+EXETARGET2 = makePSF.cpp
 
-F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
-CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
+F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET1)))
+CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET1)| grep -v $(EXETARGET2) ))
 F90USESOURCES := $(notdir $(shell ls $(INCDIR)/*.f90))
 
 
 #INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h ))
 #echo INCLUDES: $(INCLUDES)
 
-EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
-EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
+EXEOBJECT1 = $(addprefix $(TMPDIR)/, $(EXETARGET1:.cpp=.o)) 
 
-all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET)
+EXEOBJECT2 = $(addprefix $(TMPDIR)/, $(EXETARGET2:.cpp=.o)) 
+
+EXE1 = $(addprefix $(BINDIR)/, $(EXETARGET1:.cpp=)) 
+EXE2 = $(addprefix $(BINDIR)/, $(EXETARGET2:.cpp=)) 
+
+all: $(LIBTARGET) $(EXEOBJECT1) $(EXETARGET1) $(EXEOBJECT2) $(EXETARGET2)
 
 
 F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
@@ -43,7 +48,12 @@ $(LIBTARGET): $(F90USEOBJECTS)  $(F90OBJECTS) $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(EXETARGET): $(LIBTARGET) 
+$(EXETARGET1): $(LIBTARGET) 
+	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(OPTPRF)
+
+$(EXETARGET2): $(LIBTARGET) 
 	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
 	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(OPTPRF)
@@ -55,7 +65,10 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $< $(OPTPRF) 
 
-$(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+$(addprefix $(TMPDIR)/, $(EXETARGET1:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $< $(OPTPRF) 
+
+$(addprefix $(TMPDIR)/, $(EXETARGET2:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $< $(OPTPRF) 
 
 $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
@@ -66,7 +79,8 @@ $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
 .PHONY: install
 
 install:
-	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
+	$(INSTALLCMD) $(EXE1) $(TOPDIR)/bin 	
+	$(INSTALLCMD) $(EXE2) $(TOPDIR)/bin 
 
 
 .PHONY: clean
@@ -76,6 +90,6 @@ clean:
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) \
-		$(EXEOBJECT) \
-		$(EXE)
+		$(EXEOBJECT1)	$(EXEOBJECT2) \
+		$(EXE1) $(EXE2)
 

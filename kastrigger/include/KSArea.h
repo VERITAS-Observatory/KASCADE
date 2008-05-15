@@ -28,6 +28,8 @@
 #include "KSCommon.h"
 #include "KSMountDirection.h"
 
+#include "KSTiltAndTrace.h"
+
 
 #define WHIPLONG          1.935190
 #define WHIPLAT           0.552978
@@ -56,6 +58,9 @@ class KSArea
   KSTeData         fTe;
 
   KSTriggerDataIn* pfDataIn;
+  KSTiltAndTrace* pfTiltAndTrace;
+  int icount;
+
   int    fPhiSteps;
   int    fThetaSteps;
   int    fNumDirections;
