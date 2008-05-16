@@ -35,7 +35,6 @@ class KSTiltAndTrace
   double fJitterWidthNSRad;
   double fMetersPerDeg;
 
-  double fPe[3];  //Position of photon in mirror plane system (Meters)
   double fDir[3]; //Direction of photon in mirror plane system
   
   double fFacet[3]; //Position of facet origen in mirror plane system (m)
@@ -84,6 +83,7 @@ public:
   double fPeTime;      //Photon time when it impacts camera (focal) plane.
   double fPeTimeTilt;  //Photon time when it goes through mirror plane
 
+  double fPe[3];  //Position of photon in mirror plane system (Meters)
   double fW[3];   //Position of photon in camera plane (Deg)
 
 };

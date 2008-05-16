@@ -229,7 +229,8 @@ int main(int argc, char** argv)
       // set up the output file. Add a header for root TTree process ease
       // ********************************************************************
       std::ofstream out(outputFileName.c_str());
-      out<<"WX/F:WY/F:Time/F"<<std::endl;
+      out<<"WX/F:WY/F:Time/F:TimeMir/F:XGnd/F:YGnd/F:XMir/F:YMir/F"
+	 <<std::endl;
    
       // ********************************************************************
       // Set up constant parameters for KSTiltAndTrac 
@@ -396,8 +397,11 @@ int main(int argc, char** argv)
 	  int dump=fTiltAndTrace.Tilt();	  
 	  if(dump==0)
 	    {
-	      out<< fTiltAndTrace.fW[0]<<" "<<fTiltAndTrace.fW[1]
-		       <<" "<< fTiltAndTrace.fPeTime<<std::endl;
+	      out<<     fTiltAndTrace.fW[0]  <<" "<<fTiltAndTrace.fW[1]
+		 <<" "<<fTiltAndTrace.fPeTime<<" "<<fTiltAndTrace.fPeTimeTilt
+		 <<" "<<fTiltAndTrace.fXg    <<" "<<fTiltAndTrace.fYg
+		 <<" "<<fTiltAndTrace.fPe[0] <<" "<<fTiltAndTrace.fPe[1]
+		 <<std::endl;
 	      countGood++;
 	    }
 	}
