@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cmath>
 
 const double kCLightMpS=2.99792e+8;
 const double kCLightMpNS= kCLightMpS/1.e9;
