@@ -606,13 +606,27 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   //fCoreEastM  = fCoreEastM  + fArray.at(fTelID).fRelTelLocEastM;
   //fCoreSouthM = fCoreSouthM + fArray.at(fTelID).fRelTelLocSouthM;
   // ********************************************************************
+  //New fRef* variabvles added by Steve Fegan 03/01/08 We default them
+  //This thus requires New VBF to compile correctly.
+  float fRefZenithDeg=fPrimaryZenithDeg;
+  float fRefAzimuthDeg=fPrimaryAzimuthDeg;
+  float fRefPositionAngleDeg=0;
+
   VSimulationData *pfSimdata=
         new VSimulationData(fCORSIKAType,fEnergyGeV, 
 			    fObservationZenithDeg,
 			    fObservationAzimuthDeg, fPrimaryZenithDeg,
-			    fPrimaryAzimuthDeg, fCoreEastM,
+			    fPrimaryAzimuthDeg,  fRefZenithDeg, fRefAzimuthDeg,
+			    fRefPositionAngleDeg, fCoreEastM,
 			    fCoreSouthM, fCoreElevationMASL);
-  //,fGrISUTrigger);
+
+  //  VSimulationData *pfSimdata=
+  //     new VSimulationData(fCORSIKAType,fEnergyGeV, 
+  //			    fObservationZenithDeg,
+  //			    fObservationAzimuthDeg, fPrimaryZenithDeg,
+  //			    fPrimaryAzimuthDeg, fCoreEastM,
+  //			    fCoreSouthM, fCoreElevationMASL);
+  
 
   float fIntergralRatePerEventHz=0;
   float fDifferentialRatePerEventHz=0;
