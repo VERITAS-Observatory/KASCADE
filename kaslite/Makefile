@@ -70,8 +70,8 @@ install:
 clean:
 	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
-#		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
 		$(EXEOBJECT) \
 		$(EXE)
 
+#		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
