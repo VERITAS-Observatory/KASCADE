@@ -164,4 +164,4 @@ LDFLAGS = $(ARCHLDFLAGS) $(HDF5LDFLAGS) $(CCLIB) -lU77
 
 
 INSTALLCMD = install -m 755 
-
+RM = rm -f
