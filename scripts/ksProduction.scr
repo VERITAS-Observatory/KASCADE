@@ -82,7 +82,25 @@ function Protons()
       else
 	BuildIsisScriptList 1  1  $processEnd
       fi
-    else
+    fi
+
+#VeritasA
+    if [ $host = $VERITASA ]; then
+      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	BuildVeritasAScriptList 1 1 10
+	BuildVeritasAScriptList 2 11 20
+	BuildVeritasAScriptList 3 21 25
+	BuildVeritasAScriptList 4 26 32
+	BuildVeritasAScriptList 5 33 37
+	BuildVeritasAScriptList 6 38 42
+
+      else
+	BuildVeritasScriptList 1  1  $processEnd
+      fi
+    fi
+
+#AMDAHL
+    if [ $host = $AMDAHL ]; then
 	SubmitAmdahlPBSScripts 1 42
     fi
 }
@@ -147,8 +165,24 @@ function Helium4()
       else
 	BuildIsisScriptList 1 1  $processEnd
       fi
+    fi
 
-    else
+#VeritasA
+    if [ $host = $VERITASA ]; then
+      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+
+	BuildVeritasAScriptList 1 6  20
+	BuildVeritasAScriptList 2 21 30
+	BuildVeritasAScriptList 3 31 36
+	BuildVertiasAScriptList 4 37 39
+	BuildVeritasAScriptList 5 40 41
+	BuildVeritasAScriptList 6 42 42
+      else
+	BuildVeritasAScriptList 1 1  $processEnd
+      fi
+    fi
+
+    if [ $host = $AMDAHL ]; then
         SubmitAmdahlPBSScripts 1 42 
     fi
 }
@@ -219,8 +253,43 @@ function Gammas()
 	    BuildIsisScriptList 1 1  $processEnd
           fi
 	fi
-    else
+    fi
 
+#VeritasA
+    if [ $host = $VERITASA ]; then
+	if [ ${jobSpec:0:1} = "W" ] ; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	    BuildVeritasAScriptList 1 11 12
+	    BuildVeritasAScriptList 2 13 14
+	    BuildVeritasAScriptList 3 15 16
+	    BuildVeritasAScriptList 4 17 18
+	    BuildVeritasAScriptList 5 19 20
+	    BuildVeritasAScriptList 6 21 23
+	    BuildVeritasAScriptList 7 24 26
+	    BuildVeritasAScriptList 8 27 28
+          else
+	    BuildVeritasAScriptList 1 1  $processEnd
+          fi
+	fi
+	if [ ${jobSpec:0:1} = "V" ] ; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	    BuildVeritasAScriptList 1 1  4
+	    BuildVeritasAScriptList 2 5  9
+	    BuildVeritasAScriptList 3 10 15
+	    BuildVeritasAScriptList 4 16 24
+	    BuildVeritasAScriptList 5 25 32
+	    BuildVeritasAScriptList 6 33 34
+	    BuildVeritasAScriptList 7 35 35
+	    BuildVeritasAScriptList 8 36 36
+
+          else
+	    BuildVeritasAScriptList 1 1  $processEnd
+          fi
+	fi
+    fi
+
+#AMDAHL
+    if [ $host = $AMDAHL ]; then
      SubmitAmdahlPBSScripts 1 42 
     fi
 }
@@ -287,6 +356,38 @@ function BuildIsisScriptList()
  done
 }
 
+
+function BuildVeritasAScriptList()
+#**********************************************************************
+# Causes sub-script list to be created and run
+#**********************************************************************
+{
+ pr=$parspec
+ jobScript=$lcl'/js'$1'_'$jobSpec'.scr'
+ let processStart=$2
+ let processEnd=$3
+ let i=$processStart
+
+ while test $i -le $processEnd
+ do
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
+    else
+	logFile=' '
+    fi
+    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]}
+ 
+    if [ "${enableGEN[$i]}" == "ON" ]; then 
+      echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
+      echo ${end[$i]} $datadir $Option3                   \\   >>$jobScript
+      echo $logFile                                            >>$jobScript
+      jobUsed[$1]=YES
+
+    fi
+    i=$((i+1))			#do next process
+ done
+}
+
 # ************************************************************************
 
 #*************************************************************
@@ -294,6 +395,8 @@ function BuildIsisScriptList()
 #*************************************************************
 lcl="$PWD"
 host=$(hostname)
+
+
 #script directory
 sdr=$KASCADEBASE"/scripts"
 ksscpt=$2
@@ -318,7 +421,10 @@ if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
     let lastJob=1
 fi
 
+AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
+VERITASA=analysis
+
 if [ $host = $ISIS ] ; then
     if test ${lcl:1:4} = "disk"
     then
@@ -340,9 +446,35 @@ if [ $host = $ISIS ] ; then
 	echo echo Starting $JobScript >$JobScript
     jobNum=$((jobNum+1))
     done
-#amdahl
-else
+fi
 
+if [ $host = $VERITASA ] ; then
+    dataDirBase=/usr/local/data/sembrosk/simulations
+    if [ ! -d "workingScratch" ]; then
+       mkdir -p workingScratch
+    fi    
+
+    #Initialze all the possible script files
+    let jobNum=1
+    while test $jobNum -le $lastJob
+    do
+	    #define job script name
+	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
+        echo "#"!/bin/bash                                >$JobScript
+        echo "#$" '-S /bin/bash'                         >>$JobScript
+        echo "#$" '-N js'$jobNum'_'$1                    >>$JobScript
+        echo "#$" '-l '\"'arch=lx24-amd64'\"             >>$JobScript
+        echo "#$" '-wd /usr/local/data/sembrosk/veritas' >>$JobScript
+	echo source /etc/bashrc                          >>$JobScript
+        echo source /etc/profile                         >>$JobScript
+        echo source /home/sembrosk/.bashrc               >>$JobScript
+	echo echo Starting $JobScript                    >>$JobScript
+	jobsUsed[$jobNum]=NO
+
+        jobNum=$((jobNum+1))
+    done
+fi
+if [ $host = $AMDAHL ] ; then
     dataDirBase=/project/veritas/sembrosk/simulations
     if [ ! -d "workingScratch" ]; then
        mkdir -p workingScratch
@@ -431,7 +563,8 @@ if [ $pspecset -ne 1 ]; then
     exit
 fi
 
-if [ $host = $ISIS ] ; then
+#ISIS
+if [ $host = $ISIS ]; then
    
     let jobNum=1
     while test $jobNum -le $lastJob
@@ -451,6 +584,37 @@ if [ $host = $ISIS ] ; then
     jobNum=$((jobNum+1))
     done
 fi
+
+#VeritasA
+if [ $host = $VERITASA ]; then
+   
+    let jobNum=1
+    while test $jobNum -le $lastJob
+    do
+	if [ "${jobUsed[$jobNum]}" == "YES" ]; then
+                #define job script name
+	  JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
+	  if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
+	    #Initialze the script files
+	    chmod 777 $JobScript
+	
+	    qsub $JobScript  >$JobScriptLog &
+	  else
+	    #Run the script files
+	    chmod 777 $JobScript
+	    qsub $JobScript 
+	  fi
+       fi
+    jobNum=$((jobNum+1))
+    done
+fi
+
+#Nothing for AMDAHL
+
+
+
+
 
 ###########################################################################
 #Arguments for ksScript
