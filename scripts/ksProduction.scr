@@ -18,11 +18,6 @@
 #               ksMissingVBF:Looks for missing VBF files.
 #               ksMissingTE:Looks for missing TE files.
 #               ksallVBF: All Singing all dancing: ksKascade to ksArrayTrigger
-#$3 StatusRunFileSpecification: Optional: for ksaom only: to model a real run
-#          like: /project/veritas/sembrosk/whipple/crab_00-01/gt016235.root
-#$3 Array Multiplicity and Trigger multiplicity for ksarraytriggerVBF only. 
-#                             Like 12--M2(default)  or 12-4M3 or 123-M2.
-
 #*****************************************************************
 #Functions to define thigs for various particle specs
 
@@ -273,14 +268,14 @@ function Gammas()
 	fi
 	if [ ${jobSpec:0:1} = "V" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    BuildVeritasAScriptList 1 1  4
-	    BuildVeritasAScriptList 2 5  9
-	    BuildVeritasAScriptList 3 10 15
-	    BuildVeritasAScriptList 4 16 24
-	    BuildVeritasAScriptList 5 25 32
-	    BuildVeritasAScriptList 6 33 34
-	    BuildVeritasAScriptList 7 35 35
-	    BuildVeritasAScriptList 8 36 36
+	    BuildVeritasAScriptList 1 1  9 
+	    BuildVeritasAScriptList 2 10 19
+	    BuildVeritasAScriptList 3 20 30
+	    BuildVeritasAScriptList 4 31 36
+	    BuildVeritasAScriptList 5 37 38
+	    BuildVeritasAScriptList 6 39 39
+	    BuildVeritasAScriptList 7 40 40
+	    BuildVeritasAScriptList 8 41 42
 
           else
 	    BuildVeritasAScriptList 1 1  $processEnd
@@ -290,7 +285,9 @@ function Gammas()
 
 #AMDAHL
     if [ $host = $AMDAHL ]; then
-     SubmitAmdahlPBSScripts 1 42 
+#     SubmitAmdahlPBSScripts 35 42 
+     SubmitAmdahlPBSScripts 23 34 
+#     SubmitAmdahlPBSScripts 1  22 
     fi
 }
 
@@ -321,7 +318,7 @@ function SubmitAmdahlPBSScripts()
       echo "#"PBS -l walltime=$WALLTIME                             >>$pbsFile
       echo "#"PBS -l nodes=1                                        >>$pbsFile
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\        >>$pbsFile
-      echo ${end[$i]} $datadir $Option3                   \\        >>$pbsFile
+      echo ${end[$i]} $datadir $workingDir                \\        >>$pbsFile
       echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
       qsub $pbsFile
       i=$((i+1))			#do next process
@@ -349,7 +346,7 @@ function BuildIsisScriptList()
     echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]}
     if [ "${enableGEN[$i]}" == "ON" ]; then 
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
-      echo ${end[$i]} $datadir $Option3                   \\   >>$jobScript
+      echo ${end[$i]} $datadir $workingDir                \\   >>$jobScript
       echo $logFile                                            >>$jobScript
     fi
     i=$((i+1))			#do next process
@@ -379,7 +376,7 @@ function BuildVeritasAScriptList()
  
     if [ "${enableGEN[$i]}" == "ON" ]; then 
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
-      echo ${end[$i]} $datadir $Option3                   \\   >>$jobScript
+      echo ${end[$i]} $datadir $workingDir                \\   >>$jobScript
       echo $logFile                                            >>$jobScript
       jobUsed[$1]=YES
 
@@ -433,9 +430,7 @@ if [ $host = $ISIS ] ; then
        dataDirBase=/simulations
     fi
 
-    if [ ! -d "workingScratch" ]; then
-       mkdir -p workingScratch
-    fi    
+    workingDir=$lcl
 
     let jobNum=1
     while test $jobNum -le $lastJob
@@ -450,25 +445,24 @@ fi
 
 if [ $host = $VERITASA ] ; then
     dataDirBase=/usr/local/data/sembrosk/simulations
-    if [ ! -d "workingScratch" ]; then
-       mkdir -p workingScratch
-    fi    
-
+    workingDir=/tmp/sembrosk/
+    nID=([1]=0 3 4 0 1 1 2 2 3 4 5 5 )
     #Initialze all the possible script files
     let jobNum=1
     while test $jobNum -le $lastJob
     do
 	    #define job script name
 	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
-        echo "#"!/bin/bash                                >$JobScript
-        echo "#$" '-S /bin/bash'                         >>$JobScript
-        echo "#$" '-N js'$jobNum'_'$1                    >>$JobScript
-        echo "#$" '-l '\"'arch=lx24-amd64'\"             >>$JobScript
-        echo "#$" '-wd /usr/local/data/sembrosk/veritas' >>$JobScript
-	echo source /etc/bashrc                          >>$JobScript
-        echo source /etc/profile                         >>$JobScript
-        echo source /home/sembrosk/.bashrc               >>$JobScript
-	echo echo Starting $JobScript                    >>$JobScript
+        echo "#"!/bin/bash                                  >$JobScript
+        echo "#$" '-S /bin/bash'                           >>$JobScript
+        echo "#$" '-N js'$jobNum'_'$1                      >>$JobScript
+        echo "#$" '-l '\"'arch=lx24-amd64'\"               >>$JobScript
+        echo "#$" '-l '\"'hostname=node0'${nID[$jobNum]}\" >>$JobScript
+        echo "#$" '-wd /usr/local/data/sembrosk/veritas'   >>$JobScript
+	echo source /etc/bashrc                            >>$JobScript
+        echo source /etc/profile                           >>$JobScript
+        echo source /home/sembrosk/.bashrc                 >>$JobScript
+	echo echo Starting $JobScript                      >>$JobScript
 	jobsUsed[$jobNum]=NO
 
         jobNum=$((jobNum+1))
@@ -476,18 +470,15 @@ if [ $host = $VERITASA ] ; then
 fi
 if [ $host = $AMDAHL ] ; then
     dataDirBase=/project/veritas/sembrosk/simulations
-    if [ ! -d "workingScratch" ]; then
-       mkdir -p workingScratch
-    fi    
+    workingDir=$lcl
 fi
 
-Option3=$3 
 user=$USER
 
 #Specify queues
-#queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
+queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
 
-queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro )
+#queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro )
 
 #queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro )
 
@@ -587,7 +578,7 @@ fi
 
 #VeritasA
 if [ $host = $VERITASA ]; then
-   
+
     let jobNum=1
     while test $jobNum -le $lastJob
     do
@@ -603,7 +594,8 @@ if [ $host = $VERITASA ]; then
 	  else
 	    #Run the script files
 	    chmod 777 $JobScript
-	    qsub $JobScript 
+	    qsub $JobScript
+ 
 	  fi
        fi
     jobNum=$((jobNum+1))
@@ -611,6 +603,7 @@ if [ $host = $VERITASA ]; then
 fi
 
 #Nothing for AMDAHL
+
 
 
 
@@ -624,5 +617,4 @@ fi
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te/root  files go, cannot be blank!!!)
-#$6 PixelStatus Run Fule Name(used by ksAomega only)(can be blank)
 #############################################################################
