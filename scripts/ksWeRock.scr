@@ -30,6 +30,8 @@ fi
 
 
 host=$(hostname)
+echo hostname: $host
+
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 IO=io.physics.purdue.edu
