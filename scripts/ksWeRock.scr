@@ -30,13 +30,17 @@ fi
 
 
 host=$(hostname)
+AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 IO=io.physics.purdue.edu
+VERITASA=analysis
+NODE02=node02.cluster
 
-#Assume default is we are on amdahl
 
-dataDirBase=/project/veritas/sembrosk/simulations
-dstDir=/project/veritas/sembrosk/simulations
+if [ $host = $AMDAHL ] ; then
+    dataDirBase=/project/veritas/sembrosk/simulations
+    dstDir=/project/veritas/sembrosk/simulations
+fi
 
 if [ $host = $ISIS ] ; then
     lcl="$PWD"
@@ -52,6 +56,11 @@ if [ $host = $IO ] ; then
     Disk=${lcl:0:12}
     dataDirBase=$Disk/simulations  
     dstDir=$Disk/simulations
+fi
+
+if [ $host = $VERITASA ] ||  [ $host = $NODE02 ] ; then
+    dataDirBase=/usr/local/data/sembrosk/simulations  
+    dstDir=/usr/local/data/sembrosk/simulations
 fi
 
 if [ ${Spec:0:1} = "V" ] ; then
