@@ -1,0 +1,59 @@
+#$1 20Deg2D350
+#$2 A
+#$3 B
+#$4 C
+#$5 D
+
+if test -z $1
+then
+  echo Usage: ./GTeMakeLinks.scr  20Deg2D350 A B C D
+  exit
+fi
+
+GSrcDir=VG$1
+
+GSFNEW1=$2
+GSFNEW2=$3
+GSFNEW3=$4
+GSFNEW4=$5
+
+#Gammas
+cd ./gammas
+ls './'$GSrcDir | grep 'te.d'   > List
+
+SourceDir=$PWD'/'$GSrcDir
+{
+while read File
+do
+  Fend=${File##*'.d'}
+  FStart=${File%%'.d'*}
+  FileSrc=$SourceDir'/'$File
+
+  if test -n $GSFNEW1
+  then
+	NewFile1=$FStart$GSFNEW1'.d'$Fend
+        ln -vs $FileSrc $NewFile1
+  fi
+  if test -n $GSFNEW2
+  then
+	NewFile2=$FStart$GSFNEW2'.d'$Fend
+        ln -vs $FileSrc $NewFile2
+  fi
+  if test -n $GSFNEW3
+  then
+	NewFile3=$FStart$GSFNEW3'.d'$Fend
+        ln -vs $FileSrc $NewFile3
+  fi
+  if test -n $GSFNEW4
+  then
+	NewFile4=$FStart$GSFNEW4'.d'$Fend
+        ln -vs $FileSrc $NewFile4
+  fi
+
+#echo Old: $FileSrc New1: $NewFile1 New2: $NewFile2
+#echo Old: $FileSrc New3: $NewFile3 New4: $NewFile4
+done
+} <List
+
+
+cd ..

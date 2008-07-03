@@ -1,0 +1,75 @@
+
+#$1: Zenith angle Ex: 20
+
+lcl=$PWD
+echo Argument1: $1
+
+if  [ -z "$1" ]
+then
+ echo Fatal-Please supply arguments Ex: ./GProcessAll 40
+ exit
+fi
+
+let i=0
+#let i=2
+let end=4
+while test $i -le $end
+ do
+    direction=$i
+    cd /veritas/local/veritas
+    ./ksWeRock.scr VG$1'Deg2D50mv' 98020 1234M2 $direction
+
+    cd $lcl
+    if test $direction = '0'
+    then
+       wbl=0.0Wbl
+    fi
+    if test $direction = '1'
+    then
+       wbl=S0.25Wbl
+    fi
+    if test $direction = '2'
+    then
+      wbl=S0.5Wbl 
+    fi
+    if test $direction = '3'
+    then
+       wbl=S0.75Wbl
+    fi
+    if test $direction = '4'
+    then
+       wbl=S1.0Wbl
+    fi
+    if test $direction = '5'
+    then
+       wbl=S1.25Wbl
+    fi
+    if test $direction = '6'
+    then
+       wbl=S1.5Wbl
+    fi
+    if test $direction = '7'
+    then
+       wbl=S1.75Wbl
+    fi
+    if test $direction = '8'
+    then
+       wbl=S2.0Wbl
+    fi
+
+    VBFFile=GammaRay$1'Deg2D'$wbl'50mv1234M2.vbf'
+    VBFFilebz2=GammaRay$1'Deg2D'$wbl'50mv1234M2.vbf.bz2'
+    ROOTFile=GammaRay$1'Deg2D'$wbl'50mv1234M2.root'
+
+    mv  -v VG$1Deg2D50mv1234M2.vbf $VBFFile
+
+    ./ksVegasSimProduction.scr $VBFFile
+
+    bzip2 -vk $VBFFile
+
+    bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/" gamma1.astro.ucla.edu
+
+    bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/" gamma1.astro.ucla.edu 
+
+   i=$((i+1))			#do next directoion
+done

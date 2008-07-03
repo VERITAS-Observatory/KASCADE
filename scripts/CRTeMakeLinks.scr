@@ -1,0 +1,97 @@
+#$1 20Deg350
+#$2 A
+#$3 B
+#$4 C
+#$5 D
+
+if test -z $1
+then
+  echo Usage: ./CRTeMakeLinks.scr  20Deg400 A B C D
+  exit
+fi
+
+PSrcDir=VP$1
+HSrcDir=VHe4_$1
+
+CRNEW1=$2
+CRNEW2=$3
+CRNEW3=$4
+CRNEW4=$5
+
+#Protons
+cd ./protons
+ls './'$PSrcDir | grep 'te.d'   > List
+
+SourceDir=$PWD'/'$PSrcDir
+{
+while read File
+do
+  Fend=${File##*'.d'}
+  FStart=${File%%'.d'*}
+  FileSrc=$SourceDir'/'$File
+
+  if test -n $CRNEW1
+  then
+	NewFile1=$FStart$CRNEW1'.d'$Fend
+        ln -vs $FileSrc $NewFile1
+  fi
+  if test -n $CRNEW2
+  then
+	NewFile2=$FStart$CRNEW2'.d'$Fend
+        ln -vs $FileSrc $NewFile2
+  fi
+  if test -n $CRNEW3
+  then
+	NewFile3=$FStart$CRNEW3'.d'$Fend
+        ln -vs $FileSrc $NewFile3
+  fi
+  if test -n $CRNEW4
+  then
+	NewFile4=$FStart$CRNEW4'.d'$Fend
+        ln -vs $FileSrc $NewFile4
+  fi
+done
+} <List
+cd ..
+
+
+#Helium
+cd ./he4
+ls './'$HSrcDir | grep 'te.d'   > List
+
+SourceDir=$PWD'/'$HSrcDir
+{
+while read File
+do
+  Fend=${File##*'.d'}
+  FStart=${File%%'.d'*}
+  FileSrc=$SourceDir'/'$File
+
+  if test -n $CRNEW1
+  then
+	NewFile1=$FStart$CRNEW1'.d'$Fend
+        ln -vs $FileSrc $NewFile1
+  fi
+  if test -n $CRNEW2
+  then
+	NewFile2=$FStart$CRNEW2'.d'$Fend
+        ln -vs $FileSrc $NewFile2
+  fi
+  if test -n $CRNEW3
+  then
+	NewFile3=$FStart$CRNEW3'.d'$Fend
+        ln -vs $FileSrc $NewFile3
+  fi
+  if test -n $CRNEW4
+  then
+	NewFile4=$FStart$CRNEW4'.d'$Fend
+        ln -vs $FileSrc $NewFile4
+  fi
+
+#echo Old: $FileSrc New1: $NewFile1 New2: $NewFile2
+#echo Old: $FileSrc New3: $NewFile3 New4: $NewFile4
+done
+} <List
+
+
+cd ..

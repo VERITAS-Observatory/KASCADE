@@ -1,0 +1,59 @@
+
+echo Argument1: $1
+echo Argument2: $2
+
+
+if test -z $1 ;
+then
+ echo Fatal-Please supply all arguments Ex: ./Process 20Deg50mv RRSR 
+ exit
+fi
+
+
+cd /simulations/veritas
+
+if test -e ./protons/VP$1'1234M2' ;
+then
+  echo Fatal-VP$1'1234M2 exists. You may want to rename it.'
+  cd /simulations/veritas
+  exit
+fi
+
+if test -e ./he4/VHe4_$1'1234M2' ;
+then
+  echo Fatal-VHe4_$1'1234M2 exists. You may want to rename it.'
+  cd /simulations/veritas
+  exit
+fi
+
+cd /simulations/veritas/protons
+
+mkdir VP$1'1234M2'
+ls | grep 1234M2 | grep vbf|xargs -n1 mv -v --target=VP$1'1234M2'
+
+mkdir VP$1$2
+ls | grep vbf |xargs -n1 mv -v --target=VP$1$2
+
+
+cd /simulations/veritas/he4
+
+mkdir VHe4_$1'1234M2'
+ls | grep 1234M2 | grep vbf|xargs -n1 mv -v --target=VHe4_$1'1234M2'
+
+mkdir VHe4_$1$2
+ls | grep vbf |xargs -n1 mv -v --target=VHe4_$1$2
+
+cd /veritas/local/veritas
+./ksWeRock.scr VCR$1 98020 1234M2
+
+cd /simulations/veritas
+mv  VCR$1'1234M2.vbf' CosmicRay$1'1234M2'$2'.vbf'
+./ksVegasSimProduction.scr CosmicRay$1'1234M2'$2'.vbf'
+
+
+cd /simulations/veritas/protons
+mv VP$1'1234M2' VP$1'1234M2'$2
+
+cd /simulations/veritas/he4
+mv VHe4_$1'1234M2' VHe4_$1'1234M2'$2
+
