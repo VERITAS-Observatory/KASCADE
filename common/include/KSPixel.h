@@ -21,7 +21,7 @@
 #include "KSFADC.h"
 #include "KSCommon.h"
 
-
+#include <TRandom3.h>
 
 
 class KSPixel
@@ -49,7 +49,9 @@ class KSPixel
   void addPe(double fPeTime,bool fAfterPulse);
   float fXDummy;
   KSCameraTypes fCameraType;
-  
+  TRandom3* pRandom;
+
+ 
  public:
   KSSinglePe* pfSinglePe;
   KSFADC fFADC;

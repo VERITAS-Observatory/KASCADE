@@ -13,17 +13,16 @@
 #include <iostream>
 #include "KSSinglePe.h"
 
-extern "C" float pran(float* fXDummy);
-extern "C" double Gauss();
-
 KSSinglePe::KSSinglePe()
 {
+  pRandom=new TRandom3(0);
   setRiseFallTimes(kBaseRiseTimeNS,kBaseFallTimeNS);
 }
 // ************************************************************************
 
 KSSinglePe::KSSinglePe(double singlePulseRiseNS,double singlePulseFallNS)
 {
+  pRandom=new TRandom3(0);
   setRiseFallTimes(singlePulseRiseNS,singlePulseFallNS);
 }
 // ************************************************************************
@@ -169,12 +168,12 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
   double fHeight;
   if(fAfterPulse)
     {
-      float y=pran(&fXDummy);
+      double y=pRandom->Rndm();
       if(y<fAfterPulseFrac)
 	{
 	  while(1)
 	    {
-	      double fG=Gauss();
+	      double fG=pRandom->Gaus();
 	      //std::cout<<fG<<std::endl;
 	      fHeight=fG*fAfterPulseSigma +fAfterPulseMean;
 	      if(fHeight>=0)
@@ -195,7 +194,7 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
   // *******************************************************************
   while(1)
     {
-      double fG=Gauss();
+      double fG=pRandom->Gaus();
       //std::cout<<fG<<std::endl;
       fHeight=fG*kSinglePePulseHeightSigma + fSinglePeGaussMean;
       if(fHeight>0)

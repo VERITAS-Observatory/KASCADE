@@ -14,6 +14,8 @@
 #include "KSFADC.h"
 #include <vector>
 
+#include <TRandom3.h>
+
 
 //const double kSinglePePulseHeightSigma=.275;
 const double kSinglePePulseHeightSigma=.45;
@@ -42,7 +44,8 @@ class KSSinglePe
   double fSinglePulseFallTimeNS;
   double fLengthNS;       //ns
   double fArea;   
-  float fXDummy;
+  //float fXDummy;
+  TRandom3* pRandom;
  
  public:
   KSSinglePe();

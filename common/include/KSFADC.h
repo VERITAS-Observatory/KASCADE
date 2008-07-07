@@ -13,12 +13,14 @@
 
 #include <iostream>
 #include <vector>
+
+#include <TRandom3.h>
  
 class KSFADC
 {
  private:
   KSCameraTypes fCameraType;
-
+  TRandom3* pRandom;
  public:
   KSFADC();
   ~KSFADC();

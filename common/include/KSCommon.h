@@ -31,8 +31,10 @@ const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
 const double gPixelActiveCathRadiusMM[2] = {       12.00,         5.0};
 
 const double gPedestal[2]                = {        14.5,         2.0};
-//const int    gNightSkyWaveFormNS[2]      = {         700,        1000};
 const int    gNightSkyWaveFormNS[2]      = {        1000,        3000};
+const double gElectronicNoiseSigmaPe[2]  = {         .28,         0.0};
+//const double gElectFADCNoiseSigmaDC[2]   = {         .49,         0.0};
+const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 const int    gFADCNumSamples[2]          = {          24,          10};
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};

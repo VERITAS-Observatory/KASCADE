@@ -51,7 +51,7 @@ $(LIBTARGET): $(F90USEOBJECTS)  $(F90OBJECTS) $(CPPOBJECTS)
 $(EXETARGET1): $(LIBTARGET) 
 	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
-	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(OPTPRF)
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS)  $(ROOTLIBS) $(OPTPRF)
 
 $(EXETARGET2): $(LIBTARGET) 
 	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \

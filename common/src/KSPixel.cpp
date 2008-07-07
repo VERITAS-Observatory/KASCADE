@@ -17,11 +17,12 @@
 #include <iostream>
 #include <iomanip>
 
-extern "C" float pran(float* fXDummy);
+
 extern "C" double Rexp(double fRate);
 
 KSPixel::KSPixel()
 {
+  pRandom=new TRandom3(0);
   InitPixel();
 }
 KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain)
@@ -29,6 +30,7 @@ KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain)
   fCameraType=CameraType;
   fFADC.SetCameraType(CameraType);
   fFADC.SetDigCntsPerPEGains(DigCntsPerPEHiGain);
+  pRandom=new TRandom3(0);
   InitPixel();
 }
 
@@ -87,7 +89,7 @@ void KSPixel::BuildPeWaveForm()
     {
       for(int i=0;i<fNumPes;i++)
 	{
-	  if(pran(&fXDummy)<fEfficiency)
+	  if(pRandom->Rndm()<fEfficiency)
 	    {
 	      fDisc++;
 	      double fPeTime=fTimePe.at(i)-fWaveFormStartNS;
@@ -120,6 +122,8 @@ int KSPixel::AddNoiseToWaveForm(bool fAfterPulse)
       fNoiseTimeNS+=Rexp(fMeanTimeGapNS);
       icount++;
     }
+  
+
   //std::cout<<"Num noise pe's:"<<icount<<std::endl;
   return icount;
 }
@@ -413,7 +417,7 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 	      bool fAfterPulse=false;
 	      for(int j=0;j<fNumPes[n];j++)
 		{
-		  double fPeTimeNS=pran(&fXDummy)*fTimeSpreadNS[k];
+		  double fPeTimeNS=pRandom->Rndm()*fTimeSpreadNS[k];
 		  addPe(fPeTimeNS,fAfterPulse);   //This uses pulse height dist
 		}
 	      //Find max of this wave form and print it out.

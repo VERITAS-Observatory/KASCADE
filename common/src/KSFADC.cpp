@@ -14,8 +14,7 @@
 
 KSFADC::KSFADC()
 {
-  //Nothing to do here
-
+  pRandom=new TRandom3(0);
 }
 // ************************************************************************
 
@@ -84,8 +83,10 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	}
       // **********************************************************
       // This is where we add the constant ped.
+      // Add uncorelated electronic noise
       // **********************************************************
-      fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPEHiGain)+fFADCTracePed;  
+      fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPEHiGain)+fFADCTracePed +
+	                 pRandom->Gaus()*gElectFADCNoiseSigmaDC[fCameraType];
       if(fSum<0)
 	{
 	  fSum=0;                 //Event though we added a pedestal
@@ -93,7 +94,6 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
                                   //set it to 0, as it would be in the 
                                   //electronics.
 	}
-                           //Amplify to digital counts Hi Gain
       fFADCTrace.at(i)=(int)fSum;  
 
 // *****************************************************************
@@ -105,7 +105,7 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 // *****************************************************************
       if(fEnableHiLoGainProcessing)
 	{                
-	  if((int)fFADCTrace.at(i)>gFADCHiLoGainThreshold)   //Look for high/low
+	  if(fFADCTrace.at(i)>gFADCHiLoGainThreshold)   //Look for high/low
 	    {
 	      fFADCLowGain=true;  //set Low gain flag.
 	      break;   //Go repeat pulse but at lower gain after a delay.
@@ -131,8 +131,10 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	  // **********************************************************
 	  // This is where we add the constant ped, and mmplify to digital 
 	  //counts Lo Gain
+	  // Add uncorelated electronic noise
 	  // **********************************************************
-	  fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPELoGain)+fFADCTracePed;
+	  fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPELoGain)+fFADCTracePed +
+			pRandom->Gaus()*gElectFADCNoiseSigmaDC[fCameraType];  
 	  if(fSum<0)
 	    {
 	      fSum=0;             //Event though we added a pedestal
@@ -140,13 +142,16 @@ void KSFADC::makeFADCTrace(std::vector<double>& fWaveForm,
 	                          //set it to 0, as it would be in the 
                                   //electronics.
 	    }
-	  fFADCTrace.at(i)=(int)fSum;  
-	  if((int)fFADCTrace.at(i)>gFADCHiLoGainThreshold) //Look for high/low
+	  fFADCTrace.at(i)=(int)fSum;
+
+	  if(fFADCTrace.at(i)>gFADCHiLoGainThreshold) //Look for high/low
 	    {
 	      fFADCTrace.at(i)=gFADCHiLoGainThreshold;       //Saturated
 	    }
 	}
     }
+
+  // ***********************************************************************
   return;
 }
 // ***************************************************************************

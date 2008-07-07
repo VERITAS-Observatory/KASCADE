@@ -383,7 +383,8 @@ void KSCamera::loadNoiseRatesAndPeds()
   // **************************************************************************
   double meanChargeVar=0;
   int numChargeVar=0;
-  
+
+  //std::cout<<"Chan/I:Noise/F:RelPedVar/F:PedVar/F"<<std::endl;
   for(int i=0;i<fNumPixels;i++)
     {
       if(!fPixel.at(i).fBadPixel)
@@ -400,6 +401,7 @@ void KSCamera::loadNoiseRatesAndPeds()
       // Fill in stuff used to make ped traces
       fPedPixels.at(i).fNoiseRatePerNS = fPixel.at(i).fNoiseRatePerNS;
       //std::cout<<i<<" "<<fPedPixels.at(i).fNoiseRatePerNS<<" "
+      //	       <<fPixel.at(i).fPedVarRel<<" "
       //	       <<fPixel.at(i).fChargeVarDC<<std::endl;
       meanChargeVar+=fPixel.at(i).fChargeVarDC;
       numChargeVar++;
