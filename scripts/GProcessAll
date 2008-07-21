@@ -4,19 +4,54 @@
 lcl=$PWD
 echo Argument1: $1
 
+Base=CrabA
+
+
 if  [ -z "$1" ]
 then
  echo Fatal-Please supply arguments Ex: ./GProcessAll 40
  exit
 fi
 
+if test -e ./gammas/VG$1'1234M2' ;
+then
+  echo Fatal-VG$1'1234M2 exists. You may want to rename it.'
+  exit
+fi
+cd 
+cd $lcl/gammas
+
+mkdir VG$1'1234M2'
+ls | grep 1234M2 | grep vbf|grep $1 |xargs -n1 mv -v --target=VG$1'1234M2'
+
+mkdir VG$1$2
+ls | grep vbf |grep $1 | xargs -n1 mv -v --target=VG$1$Base
+
+host=$(hostname)
+AMDAHL=amdahl.physics.purdue.edu
+ISIS=isis.depauw.edu
+VERITASA=analysis
+
+
+
 let i=0
 #let i=2
-let end=4
+#let end=4
+let end=8
 while test $i -le $end
  do
     direction=$i
-    cd /veritas/local/veritas
+    if [ $host = $ISIS ] ; then
+         cd /veritas/local/veritas
+    fi
+    if [ $host = $VERITASA ] ; then
+         cd /usr/local/data/sembrosk/veritas
+    fi
+    if [ $host = $AMDAHL ] ; then
+         cd /project/veritas/sembrosk/veritas
+    fi
+
+
     ./ksWeRock.scr VG$1'Deg2D50mv' 98020 1234M2 $direction
 
     cd $lcl
@@ -57,9 +92,9 @@ while test $i -le $end
        wbl=S2.0Wbl
     fi
 
-    VBFFile=GammaRay$1'Deg2D'$wbl'50mv1234M2.vbf'
-    VBFFilebz2=GammaRay$1'Deg2D'$wbl'50mv1234M2.vbf.bz2'
-    ROOTFile=GammaRay$1'Deg2D'$wbl'50mv1234M2.root'
+    VBFFile=$Base'GammaRay'$1'Deg2D'$wbl'50mv1234M2.vbf'
+    VBFFilebz2=$Base'GammaRay'$1'Deg2D'$wbl'50mv1234M2.vbf.bz2'
+    ROOTFile=$Base'GammaRay'$1'Deg2D'$wbl'50mv1234M2.root'
 
     mv  -v VG$1Deg2D50mv1234M2.vbf $VBFFile
 
@@ -73,3 +108,6 @@ while test $i -le $end
 
    i=$((i+1))			#do next directoion
 done
+
+cd $lcl/gammas 
+mv VG$1'1234M2' VG$1'1234M2'$Base
