@@ -1,30 +1,46 @@
 
 #$1: Zenith angle Ex: 20
-
+#$2: start direction Index. defualt is 0. 
+#   If $2 not null files coppied gamma/...1234M2
 lcl=$PWD
 echo Argument1: $1
+echo Argument2: $2
+
 
 Base=CrabA
-
+echo BaseName: $Base
 
 if  [ -z "$1" ]
 then
- echo Fatal-Please supply arguments Ex: ./GProcessAll 40
+ echo Fatal-Please supply arguments Ex: ./GProcessAll 40 
+ echo or ./GProcessAll 20_180 5
  exit
 fi
 
-if test -e ./gammas/VG$1'1234M2' ;
-then
-  echo Fatal-VG$1'1234M2 exists. You may want to rename it.'
-  exit
-fi
-cd 
 cd $lcl/gammas
 
-mkdir VG$1'1234M2'
+if  [ -z "$2" ] ; 
+then
+
+  if test -e ./gammas/VG$1'1234M2' ;
+  then
+       echo Fatal-VG$1'1234M2 exists. You may want to rename it.'
+       exit
+  fi
+
+  let i=0;
+else
+
+  let i=$2
+fi
+
+echo i start: $i
+
+mkdir -p VG$1'1234M2'
+mkdir -p VG$1$Base
+
 ls | grep 1234M2 | grep vbf|grep $1 |xargs -n1 mv -v --target=VG$1'1234M2'
 
-mkdir VG$1$2
 ls | grep vbf |grep $1 | xargs -n1 mv -v --target=VG$1$Base
 
 host=$(hostname)
@@ -32,9 +48,10 @@ AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 VERITASA=analysis
 
+echo host: $host
 
 
-let i=0
+#let i=0
 #let i=2
 #let end=4
 let end=8
