@@ -9,6 +9,7 @@ echo Argument2: $2
 
 Base=CrabA
 echo BaseName: $Base
+UCLASubDir=CrabJuly20_2008/
 
 if  [ -z "$1" ]
 then
@@ -119,9 +120,9 @@ while test $i -le $end
 
     bzip2 -vk $VBFFile
 
-    bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/" gamma1.astro.ucla.edu
+    bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu
 
-    bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/" gamma1.astro.ucla.edu 
+    bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu 
 
    i=$((i+1))			#do next directoion
 done
