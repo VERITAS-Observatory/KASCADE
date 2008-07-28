@@ -23,9 +23,9 @@ cd $lcl/gammas
 if  [ -z "$2" ] ; 
 then
 
-  if test -e ./gammas/VG$1'1234M2' ;
+  if test -e ./gammas/VG$1'Deg2D50mv1234M2' ;
   then
-       echo Fatal-VG$1'1234M2 exists. You may want to rename it.'
+       echo Fatal-VG$1'Deg2D50mv1234M2 exists. You may want to rename it.'
        exit
   fi
 
@@ -37,12 +37,12 @@ fi
 
 echo i start: $i
 
-mkdir -p VG$1'1234M2'
-mkdir -p VG$1$Base
+mkdir -p VG$1'Deg2D50mv1234M2'
+mkdir -p VG$1'Deg2D50mv'$Base
 
-ls | grep 1234M2 | grep vbf|grep $1 |xargs -n1 mv -v --target=VG$1'1234M2'
+ls | grep 1234M2 | grep vbf|grep $1 |xargs -n1 mv -v --target=VG$1'Deg2D50mv1234M2'
 
-ls | grep vbf |grep $1 | xargs -n1 mv -v --target=VG$1$Base
+ls | grep vbf |grep $1 | xargs -n1 mv -v --target=VG$1'Deg2D50mv'$Base
 
 host=$(hostname)
 AMDAHL=amdahl.physics.purdue.edu
@@ -128,4 +128,4 @@ while test $i -le $end
 done
 
 cd $lcl/gammas 
-mv VG$1'1234M2' VG$1'1234M2'$Base
+mv VG$1'Deg2D50mv1234M2' VG$1'Deg2D50mv1234M2'$Base
