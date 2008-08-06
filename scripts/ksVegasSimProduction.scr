@@ -6,9 +6,9 @@
 
 #Make simLaser file (even if it already exists, this is very fast)
 
-Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Laser=enable
+#Stage1Data=enable
+#Stage2=enable
 #Stage4N=enable
 Stage4N_2=enable
 #Stage4E=enable
@@ -31,10 +31,15 @@ Stage5N=enable
   #CutTelescopeOption='-CutTelescope=3/1,4/1'  #To force removal of particular
                                   #telescopes when calculating shower paramters
  #Stage5(N & E)
-  CutsFileSpecification='-cuts=spectrumCuts'  #File specfication for testing 
-            #events in the combined tree for setting cut flag in combined tree 
+ #CutsFileSpecification='-cuts=spectrumCuts'  #File specfication for testing 
+            #for events to be used in spectrum analysis in the combined tree 
+            #for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
-
+  CutsFileSpecification='-cuts=SkyMapCuts'  #File specfication for testing 
+            #for events to be used in SkyMap analysis(real and backgorund)
+            # in the combined tree for setting CutMask flag in combined tree 
+            #(all events are still included in the tree)
+            #Has no theta2 cut
 #############################################################################
 
 
