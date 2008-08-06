@@ -22,7 +22,7 @@
 #include <iostream>
 #include <cmath>
 using namespace std;
-//#include "exception.h"
+#include "exception.h"
 
 // ***********************************************************************
 //Some local constants
