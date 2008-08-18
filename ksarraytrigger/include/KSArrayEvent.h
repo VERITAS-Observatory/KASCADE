@@ -17,6 +17,9 @@
 #include <vector>
 #include <string>
 #include <bitset>
+#include <iostream>
+#include <fstream>
+
 
 #include "KSArrayTriggerDataIn.h"
 #include "KSCommon.h"
@@ -103,7 +106,8 @@ class KSArrayEvent
   void SetTelescopeOffsetFromBaseTel(int fBaseTelIndex, int fTelIndex);
   void PrintRelativeTelescopePositions();
   void LoadInputSimHeaderWithTelescopePositions();
-
+  void LoadTelescopePositionsFromList(std::string fTelescopePositionListFile,
+				    std::vector<KSTelescope*>& pfTelsInArray);
  public:
   bool FindTrigger();
   void SaveEvent();

@@ -82,6 +82,17 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	  fConfigMask+="3,";
 	}
     }
+
+  // ***********************************************************************
+  // If a file with an external set of telescope array positons has been
+  // specified, replace the telescope positons with the new ones
+  // ***********************************************************************
+  if(pfDataIn->fTelescopePositionListFile!=" ")
+    {
+      LoadTelescopePositionsFromList(pfDataIn->fTelescopePositionListFile,
+				     pfTelsInArray);
+    }
+
   // ************************************************************************
   // Build the VBF ConfigMask. Common to all VBF events
   // For 123-M2 it would be 007
@@ -1563,6 +1574,57 @@ void KSArrayEvent::LoadInputSimHeaderWithTelescopePositions()
 	  pVBFSimHeader->fArray.at(i).fRelTelLocEastM=fXFromNX;
 	  pVBFSimHeader->fArray.at(i).fRelTelLocSouthM=fYFromNY;
 	  pVBFSimHeader->fArray.at(i).fRelTelLocUpM=0.0;
+	}
+    }
+  return;
+}
+// ***************************************************************************
+void KSArrayEvent::LoadTelescopePositionsFromList(
+				  std::string fTelescopePositionListFile,
+				  std::vector<KSTelescope*>& pfTelsInArray)
+// ************************************************************************
+{
+  ifstream in(pfDataIn->fTelescopePositionListFile.c_str());
+  if(!in)
+    {
+      std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - Can't "
+	"open the specified Telescope Array positions file: "
+	       <<pfDataIn->fTelescopePositionListFile<<std::endl;
+      std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - File "
+	"may not exist"<<std::endl;
+      exit(EXIT_FAILURE);
+    }
+  // ********************************************************************
+  // Read in the positions
+  // ********************************************************************
+  // For values in a VAArrayInfo positionEW:East is positive,
+  //  positionNS: North is positive, positionUD: Up is positive
+  // ********************************************************************
+  for(int iTel=0;iTel<4;iTel++)  // In list file: East is positive
+    {                            // North is positive
+      double XEast;
+      double YNorth;
+      double ZUp;
+      in>>XEast>>YNorth>>ZUp;
+      if(in.eof())
+	{
+	  std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - "
+	    "Did not find the positions of 4 telescopes "
+	    "specified in "
+		   <<pfDataIn->fTelescopePositionListFile.c_str()
+		   <<std::endl;
+	  std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - "
+	    "This is required"<<std::endl;
+	  exit(EXIT_FAILURE);
+	}
+      // ****************************************************************
+      // We load all telescopes with all telescope positons
+      // *****************************************************************
+      for(int i=0;i<(int)pfTelsInArray.size();i++)
+	{
+	  pfTelsInArray.at(i)->fXPositionsM.at(iTel)=XEast;
+	  pfTelsInArray.at(i)->fYPositionsM.at(iTel)=-YNorth;
+	  pfTelsInArray.at(i)->fZPositionsM.at(iTel)=ZUp;
 	}
     }
   return;

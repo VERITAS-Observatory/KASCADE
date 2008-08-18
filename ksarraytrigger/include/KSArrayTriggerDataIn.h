@@ -37,6 +37,7 @@ private:
   static std::string sDefaultT3FileName;
   static std::string sDefaultT4FileName;
 
+  static std::string sDefaultTelescopePositionListFile;
   static std::string sDefaultRandomSeedFileName;
 
   static int         sDefaultArrayTriggerMultiplicity; 
@@ -56,6 +57,7 @@ public:
   double      fTelescopeEventGateWidthNS;
   double      fArrayCoincidenceGateWidthNS;
   int         fRunNumber;
+  std::string fTelescopePositionListFile;
     
   KSArrayTriggerDataType fDataType;
 

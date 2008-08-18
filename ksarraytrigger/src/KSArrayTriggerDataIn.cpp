@@ -23,6 +23,7 @@ std::string KSArrayTriggerDataIn::sDefaultT2FileName=" ";//empty;;
 std::string KSArrayTriggerDataIn::sDefaultT3FileName=" ";//empty;;
 std::string KSArrayTriggerDataIn::sDefaultT4FileName=" ";//empty;;
 std::string KSArrayTriggerDataIn::sDefaultRandomSeedFileName=" ";//empty;;
+std::string KSArrayTriggerDataIn::sDefaultTelescopePositionListFile=" ";
 
 int         KSArrayTriggerDataIn::sDefaultArrayTriggerMultiplicity=2; 
 double      KSArrayTriggerDataIn::sDefaultTelescopeEventGateWidthNS=20;
@@ -58,6 +59,8 @@ KSArrayTriggerDataIn::KSArrayTriggerDataIn()
   fFileName[E_T2]=sDefaultT2FileName;
   fFileName[E_T3]=sDefaultT3FileName;
   fFileName[E_T4]=sDefaultT4FileName;
+
+  fTelescopePositionListFile = sDefaultTelescopePositionListFile;
 
   fRandomSeedFileName       = sDefaultRandomSeedFileName;
   if(fRandomSeedFileName==" ")
@@ -96,6 +99,7 @@ VAConfigurationData KSArrayTriggerDataIn::getConfig() const
   config.setValue("ArrayTriggerMultiplicity",fArrayTriggerMultiplicity);
   config.setValue("TelescopeEventGateWidthNS",fTelescopeEventGateWidthNS);
   config.setValue("ArrayCoincidenceGateWidthNS",fArrayCoincidenceGateWidthNS);
+  config.setValue("TelescopeArrayPositions",fTelescopePositionListFile);
   config.setValue("T1ShowerFileName",fFileName[E_T1]);
   config.setValue("T2ShowerFileName",fFileName[E_T2]);
   config.setValue("T3ShowerFileName",fFileName[E_T3]);
@@ -120,6 +124,26 @@ void KSArrayTriggerDataIn::configure(VAConfigInfo& file,
 		    "KSArrayTriggerDataIn",
 		    "Specifies a Multiplicity level for an Array Event. Range "
 		    "is 1 to 4");
+  doVAConfiguration(file, command_line, 
+		    "TelescopeArrayPositions",
+		    sDefaultTelescopePositionListFile,
+		    "KSArrayTriggerDataIn",
+		    "File Name for relative positions of the telescopes in "
+		    "the array in meters. Each line in this file gives the X,"
+		    "Y and Z coordinates in meters of a telescope (in the "
+		    "order: first line:T1, second line:T2, third line:T3 and "
+		    "forth line: T4) in the array. +Y is North, +X is "
+		    "and +Z is up (Presently the Z value is ignored and set "
+		    "to 0 in this program)_. The X,Y,Z values on each line "
+		    "are separated by spaces (not commas). Once these values "
+		    "are given this program will find the best \"fit\" of "
+		    "these relative locations to the array grid (see the "
+		    "-GridType option in ksLight). The \"fitted\" telescope "
+		    "locations are usually within 5 meters or less of the "
+		    "locations specified.  If this options is not specified "
+		    "then the telescope positions are the ones set in "
+		    "ksAomega which it retrieves from VAArrayInfoLite using "
+		    "a date of 2007-09-11 00:02:00 UTC.");  
   doVAConfiguration(file, command_line, 
 		    "T1ShowerFileName",sDefaultT1FileName,
 		    "KSArrayTriggerDataIn",
