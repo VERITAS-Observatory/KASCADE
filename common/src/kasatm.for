@@ -9,6 +9,17 @@
 
 !*****************************************************************************
 
+        subroutine printAtmVersion
+! ***************************************************************************
+! Print the version of the stmosphere model we are using
+! ****************************************************************************
+        IMPLICIT none
+        print*,'Using Palfrys implementation of US Standard Atmosphere 68'
+        return
+        end
+
+
+
         subroutine setatm
 !*****************************************************************************
 !       Palfrey formulation.
@@ -28,7 +39,6 @@ c                   April 1 1989
 c       Modified.
 
         IMPLICIT NONE
-
 
         common/densit/asea,bsea,a2atm,b2atm,a3atm,b3atm,csea,c2atm,
      1 c3atm,c11atm,c22atm,gms1,gms2,initatm

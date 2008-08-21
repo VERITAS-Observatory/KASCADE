@@ -466,6 +466,8 @@ c ****************************************************************************
 c ****************************************************************************
 c  All altitude variables start with 'h' and are in meters.
 c ****************************************************************************
+	call printAtmVersion
+
 	segment_head.zobs   = gms(hobs)
 	height = yds(segment_head.depth) 
 				    !inital altitude in meters above sea_level
