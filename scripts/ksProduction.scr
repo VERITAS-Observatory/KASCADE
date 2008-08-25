@@ -397,6 +397,10 @@ host=$(hostname)
 #script directory
 sdr=$KASCADEBASE"/scripts"
 ksscpt=$2
+
+#Check to see if the user specified wthe script wiht the .scr extention
+ksscpt=${ksscpt%.scr}
+
             #Assume local copy of script
 kssc=${ksscpt##*/}
 if test "$kssc" = "$ksscpt"
@@ -404,7 +408,7 @@ then
   #ksScript=$sdr'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
   ksScript=$lcl'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksaom: Makes .root  files from te files(depreciated)
-                          #ksaomVBF: Makes .vbf files from te files
+                           #ksaomVBF: Makes .vbf files from te files
                           #ksarraytriggerVBF: Makes array  .vbf files
                           #ksallVBF:Does everything from ksKascade to 
                           #         ksArrayTrigger
