@@ -14,9 +14,9 @@ echo Missing files for $1' GeV:'
 
 #echo $0 $1 $2 $3 $4 $5 $6
 
-DataDir=$5
+DataDir=$5'/'$2
 cd $DataDir
-
+echo DataDir:$DataDir 
 FileNameBase=$2'GeV'$1'.d'
 
 #Setup to loop over showers

@@ -285,9 +285,9 @@ function Gammas()
 
 #AMDAHL
     if [ $host = $AMDAHL ]; then
-#     SubmitAmdahlPBSScripts 35 42 
-     SubmitAmdahlPBSScripts 23 34 
-#     SubmitAmdahlPBSScripts 1  22 
+     SubmitAmdahlPBSScripts 35 42 
+	SubmitAmdahlPBSScripts 23 34 
+	SubmitAmdahlPBSScripts 1  22 
     fi
 }
 
@@ -397,11 +397,12 @@ host=$(hostname)
 #script directory
 sdr=$KASCADEBASE"/scripts"
 ksscpt=$2
-            #Allow for local coppies of the script is oat is designated.
+            #Assume local copy of script
 kssc=${ksscpt##*/}
 if test "$kssc" = "$ksscpt"
 then
-  ksScript=$sdr'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
+  #ksScript=$sdr'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
+  ksScript=$lcl'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksaom: Makes .root  files from te files(depreciated)
                           #ksaomVBF: Makes .vbf files from te files
                           #ksarraytriggerVBF: Makes array  .vbf files
