@@ -6,19 +6,17 @@
 #$3 Wbl designation      (Ex. 0Wbl(default), S0.25Wbl)
 
 #Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Data=enable
+#Stage2=enable
 
 #Stage4N=enable
-Stage4N_2=enable
+#Stage4N_2=enable
 
 #Stage4E=enable
-#Stage4E_2=enable
+Stage4E_2=enable
 
-Stage5N=enable
-#Stage5E=enable
-
-
+#Stage5N=enable
+Stage5E=enable
 
 ##############################################################################
 #Configurable options:
@@ -32,12 +30,16 @@ Stage5N=enable
  #Stage4E         
   #CutTelescopeOption='-CutTelescope=3/1,4/1'  #To force removal of particular
                                   #telescopes when calculating shower paramters
- #Stage5(N & E)
+  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+
+  QualityCuts='-cuts=ltCuts'
+
+#Stage5(N & E)
  #CutsFileSpecification='-cuts=spectrumCuts'  #File specfication for testing 
             #for events to be used in spectrum analysis in the combined tree 
             #for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
-  CutsFileSpecification='-cuts=SkyMapCuts'  #File specfication for testing 
+  ShowerCuts='-cuts=SkyMapCuts'  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
@@ -131,8 +133,12 @@ if [ -n "$Stage4N_2" ] ||  [ -n "$Stage4E_2" ]; then
       LookUpTableDir=/home/sembrosk/vegas/showerReconstruction2/tables/KASCADE
     fi
 
-    NTable=table1.root
-    ETable=table1.root
+#    NTable=table1.root
+#    ETable=table1.root
+
+    NTable=CrabA180LookupTable.root
+    ETable=CrabA180LookupTable.root
+
 
     if [ -n "$Stage4N_2" ]; then
 	cp -v $RootFileName $NcutRootFileName
@@ -145,20 +151,20 @@ if [ -n "$Stage4N_2" ] ||  [ -n "$Stage4E_2" ]; then
 	cp -v $RootFileName $EcutRootFileName
 	echo ET: $LookUpTableDir/$ETable
 	$VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$ETable \
-	    -DistanceLower=0/0.05 -DistanceUpper=0/1.3 -NTubesMin=0/5  \
-	    -SizeLower=0/400   \
-	    $CutTelescopeOption  $EcutRootFileName
+	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
+            -save_config=vaStage4.2.config  \
+	    $EcutRootFileName
     fi
 fi
 
 if [ -n "$Stage5N" ]; then
     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$NcutRootFileName \
-	$CutsFileSpecification
+	$ShowerCuts
 fi
 
 if [ -n "$Stage5E" ]; then
     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$EcutRootFileName \
-	$CutsFileSpecification
+	$ShowerCuts
 fi
 
 
