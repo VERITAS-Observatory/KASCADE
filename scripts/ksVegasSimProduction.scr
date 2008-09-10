@@ -33,7 +33,7 @@ Stage5E=enable
   
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
-  QualityCuts='-cuts=ltCuts'
+  QualityCuts='-cuts=LookupTableCuts'
 
  #Stage5(N & E)
  #CutsFileSpecification='-cuts=spectrumCuts'  #File specfication for testing 
