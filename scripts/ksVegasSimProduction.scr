@@ -29,17 +29,22 @@ Stage5=enable
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
 
-  FileBase="ECut.root"  #Extention to put on the end of the stages 4-5 ouput 
+  FileBase="ZCutWeakCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
+  
+   
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  QualityCuts='-cuts=ZLookupTableCuts'
+  Table=CrabAZLookupTable.root  #Lookup table name
 
-  QualityCuts='-cuts=LookupTableCuts'
 
 #Stage5
-  ShowerCuts='-cuts=SkyMapCuts'  #File specfication for testing 
+   ShowerCuts='-cuts=Stg6weakcuts.config'  #Be sure no theta sq cut here.
+
+    #ShowerCuts='-cuts=SkyMapCuts'  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
@@ -97,7 +102,7 @@ if [ -n "$Stage4_2" ]; then
 	$CutRootFileName
 fi
 
-if [ -n "$Stage5E" ]; then
+if [ -n "$Stage5" ]; then
      $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$CutRootFileName \
 	$ShowerCuts
 fi
