@@ -1,6 +1,6 @@
 
 ## ===================================================
-## Configuration File - Mon Aug 25 16:12:43 2008
+## Configuration File - Fri Sep 19 10:39:39 2008
 ## ===================================================
 
 CutTelescope                          # 
@@ -16,13 +16,13 @@ AlphaLower 0/0
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # T1 events at <=12 degrees, T4 events at <=15 degrees and 
 # all others at <=10 degrees do -AlphaUpper=1/12,4/15,0/10 
-AlphaUpper 
+AlphaUpper 0/90
 
 # VAHillasData lower fWidth bound [degrees]. Default value 
 # is 0. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all telescopes at >=0 degrees do -WidthLower=0/0.0 
-WidthLower 
+WidthLower 0/0
 
 # VAHillasData upper fWidth bound [degrees]. Default value 
 # is 10. Telescopes are identified such that 0==all 
@@ -36,7 +36,7 @@ WidthUpper
 # is 0. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all telescopes at >=0 degrees do -LengthLower=0/0.0 
-LengthLower 
+LengthLower 0/0
 
 # VAHillasData upper fLength bound [degrees]. Default value 
 # is 10. Telescopes are identified such that 0==all 
@@ -44,14 +44,14 @@ LengthLower
 # T1 events at <=0.24 degrees, T4 events at <=0.3 degrees 
 # and all others at <=0.2 degrees do 
 # -LengthUpper-=1/0.24,4/0.3,0/0.2 
-LengthUpper 
+LengthUpper 0/10
 
 # VAHillasData lower fDist (distance) bound [degrees]. 
 # Default value is 0. Telescopes are identified such that 
 # 0==all telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example 
 # to cut all telescopes at >=0 degrees do 
 # -DistanceLower=0/0.0 
-DistanceLower 
+DistanceLower 0/0.0
 
 # VAHillasData upper fDist (distance) bound [degrees]. 
 # Default value is 10. Telescopes are identified such that 
@@ -59,7 +59,6 @@ DistanceLower
 # to cut T1 events at <=1.5 degrees, T4 events at <=1.5 
 # degrees and all others at <=1.3 degrees do 
 # -DistanceUpper=1/1.5,4/1.5,0/1.3 
-#DistanceUpper 0/1.43 
 DistanceUpper 0/1.53
 
 # VAHillasData lower fLengthOverSize bound [degrees/digital 
@@ -67,7 +66,7 @@ DistanceUpper 0/1.53
 # such that 0==all telescopes, 1==T1, 2==T2, 3==T3, 4==T4. 
 # For example to cut all telescopes at >=0 degrees/dc do 
 # -LoSLower=0/0.0 
-LoSLower 
+LoSLower 0/0.0
 
 # VAHillasData upper fLengthOverSize bound [degrees/dc]. 
 # Default value is 10. Telescopes are identified such that 
@@ -75,7 +74,7 @@ LoSLower
 # to cut T1 events at <=0.003, T4 events at <=0.003 degrees 
 # and all others at <=0.005 degrees do 
 # -LoSUpper=1/0.003,4/0.003,0/0.005 
-LoSUpper 
+LoSUpper 0/10.0
 
 # VAHillasData lower fSize bound [digital counts]. Default 
 # value is 0. Telescopes are identified such that 0==all 
@@ -88,59 +87,59 @@ SizeLower 0/410
 # value is 1e+09. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events at 100,000 dc do -SizeLower=0/100000 
-SizeUpper 
+SizeUpper 0/748500
 
 # VAHillasData lower fMax1 bound [digital counts]. Default 
 # value is 0. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # T1 events at <=50dc, T4 events at <=50dc and all others at 
 # <=60dc do -Max1Lower=1/50,4/50,0/60 
-Max1Lower 
+Max1Lower 0/0
 
 # VAHillasData upper fMax1 bound [digital counts]. Default 
 # value is 1e+09. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events at >=1000 dc do -Max1Upper=0/1000 
-Max1Upper 
+Max1Upper 0/15000
 
 # VAHillasData lower fMax2 bound [digital counts]. Default 
 # value is 0. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # T1 events at <=50dc, T4 events at <=50dc and all others at 
 # <=60dc do -Max2Lower=1/50,4/50,0/60 
-Max2Lower 
+Max2Lower 0/0
 
 # VAHillasData upper fMax2 bound [digital counts]. Default 
 # value is 1e+09. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events at >=1000 dc do -Max2Upper=0/1000 
-Max2Upper 
+Max2Upper 0/15000
 
 # VAHillasData lower fMax3 bound [digital counts]. Default 
 # value is 0. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # T1 events at <=50dc, T4 events at <=50dc and all others at 
 # <=60dc do -Max3Lower=1/50,4/50,0/60 
-Max3Lower 
+Max3Lower 0/0
 
 # VAHillasData upper fMax3 bound [digital counts]. Default 
 # value is 1e+09. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events at >=1000 dc do -Max3Upper=0/1000 
-Max3Upper 
+Max3Upper 0/15000
 
 # VAHillasData lower fMax4 bound [digital counts]. Default 
 # value is 0. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # T1 events at <=50dc, T4 events at <=50dc and all others at 
 # <=60dc do -Max4Lower=1/50,4/50,0/60 
-Max4Lower 
+Max4Lower 0/0
 
 # VAHillasData upper fMax4 bound [digital counts]. Default 
 # value is 1e+09. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events at >=1000 dc do -Max4Upper=0/1000 
-Max4Upper 
+Max4Upper 0/15000
 
 # Minimum number of tubes in image. VAHillasData lower 
 # fPixelsInImage (Ntubes) bound. Default value is 0. 
@@ -154,7 +153,7 @@ NTubesMin 0/3
 # Telescopes are identified such that 0==all telescopes, 
 # 1==T1, 2==T2, 3==T3, 4==T4. For example to cut all events 
 # with >=50 pixels do -NTubesMin=0/50 
-NTubesMax 
+NTubesMax 0/2000
 
 # Cut based on whether L2 triggered. VAHillasData 
 # fL2Triggered (true/false) condition. Default does not 
@@ -162,7 +161,7 @@ NTubesMax
 # false. Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events with no L2 trigger do -L2Triggered=0/true 
-L2Triggered 
+L2Triggered 0/false
 
 # Minimum fraction of charge in outer ring of camera. 
 # VAHillasData lower fLoss bound. Default value is -1. 
@@ -170,7 +169,7 @@ L2Triggered
 # 1==T1, 2==T2, 3==T3, 4==T4. For example to cut all events 
 # with <0.2 fraction of total charge in outer pixels do 
 # -LossLower=0/0.2 
-LossLower 
+LossLower 0/-1.
 
 # Maximum fraction of charge in outer ring of camera. 
 # VAHillasData upper fLoss bound. Default value is 2. 
@@ -178,4 +177,4 @@ LossLower
 # 1==T1, 2==T2, 3==T3, 4==T4. For example to cut all events 
 # with >0.2 fraction of total charge in outer pixels do 
 # -LossLower=0/0.2 
-LossUpper 
+LossUpper 0/2.
