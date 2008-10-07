@@ -1627,5 +1627,11 @@ void KSArrayEvent::LoadTelescopePositionsFromList(
 	  pfTelsInArray.at(i)->fZPositionsM.at(iTel)=ZUp;
 	}
     }
+
+  std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - Array "
+    "Telescope Positions loaded from file: "
+	   <<pfDataIn->fTelescopePositionListFile<<std::endl;
+
+
   return;
 }
