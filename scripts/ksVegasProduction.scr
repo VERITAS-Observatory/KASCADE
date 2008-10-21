@@ -13,7 +13,11 @@ Stage5=enable
 
 ##############################################################################
 #Configurable options:
+ #Stage1:
+  #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
+
  #Stage2:
+  #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
   #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
                                                        #pedvars with vaDisplay
   EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
@@ -24,15 +28,17 @@ Stage5=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
-  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
-#  SeperationAngleCutOption='-GC_SeparationCut=16'
-
-  QualityCuts='-cuts=LookupTableStdCuts'
-
-  FileBase="StdCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="StdCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
+
+  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  #SeperationAngleCutOption='-GC_SeparationCut=16'
+  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
+
+
+  QualityCuts='-cuts=LookupTableStdCuts'
   Table=LookupTableStdCuts.root  #Lookup table name
 
 
@@ -62,7 +68,8 @@ RootFile=${VBFFileName%".cvbf"}'.root'
 RootFileName=${RootFile##*/}
 
 if [ -n "$Stage1Data" ]; then
-    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $VBFFileName $RootFileName
+    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
+    $VBFFileName $RootFileName
 fi
 
 echo $VBFFileName
@@ -70,7 +77,9 @@ echo $RootFileName
 echo $LSRRootFileName
 
 if [ -n "$Stage2" ]; then
-    $VEGASBASE/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption $EnableImageTimingOption $VBFFileName $RootFileName $LSRRootFileName
+    $VEGASBASE/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
+    $WindowWidthOption $EnableImageTimingOption $VBFFileName \
+    $RootFileName $LSRRootFileName
 fi
 
 
@@ -92,7 +101,7 @@ if [ -n "$Stage4_2" ]; then
 	echo Table: $LookUpTableDir/$Table
 	$VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
-            $SeperationAngleCutOption \
+            $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 fi
