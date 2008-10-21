@@ -39,9 +39,11 @@ Stage2=enable
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  
-   
+
+  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
+  #SeparationAngleOption='-GC_SeparationCut=16'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+
   QualityCuts='-cuts=ZLookupTableCuts'
   Table=CrabAZLookupTable.root  #Lookup table name
 
