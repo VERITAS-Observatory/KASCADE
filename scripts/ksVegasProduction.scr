@@ -18,25 +18,26 @@ Stage5=enable
                                                        #pedvars with vaDisplay
   EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
-c  EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
+  EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
 
  #Stage4_2         
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+#  SeperationAngleCutOption='-GC_SeparationCut=16'
 
-  QualityCuts='-cuts=LookupTableCuts'
+  QualityCuts='-cuts=LookupTableStdCuts'
 
-  FileBase="ECut.root"  #Extention to put on the end of the stages 4-5 ouput 
+  FileBase="StdCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
-  Table=CrabA180LookupTable.root  #Lookup table name
+  Table=LookupTableStdCuts.root  #Lookup table name
 
 
 #Stage5
-  ShowerCuts='-cuts=SkyMapCuts'  #File specfication for testing 
+  ShowerCuts='-cuts=ShowerCutsStd'  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
@@ -91,7 +92,8 @@ if [ -n "$Stage4_2" ]; then
 	echo Table: $LookUpTableDir/$Table
 	$VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
-            -save_config=vaStage4.2.config  \
+            $SeperationAngleCutOption \
+	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 fi
 
