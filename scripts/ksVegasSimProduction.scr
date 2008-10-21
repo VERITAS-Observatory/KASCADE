@@ -104,9 +104,9 @@ if [ -n "$Stage4_2" ]; then
      cp -v $RootFileName $CutRootFileName
      echo ET: $LookUpTableDir/$ETable
      $VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
-	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
-	-G_SimulationMode=1 -save_config=vaStage4.2.config  \
-	$CutRootFileName
+	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
+	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
+	$SeparationAngleOption $CutRootFileName
 fi
 
 if [ -n "$Stage5" ]; then
