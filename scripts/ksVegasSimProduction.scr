@@ -17,10 +17,10 @@ Stage2=enable
 ##############################################################################
 #Configurable options:
  #Stage1:
- # MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
+ MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
 
  #Stage2:
- # WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
+ WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
 
   #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1' #Depreciated (don't use)
   #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
@@ -29,27 +29,32 @@ Stage2=enable
                                                        #muon-ring-fitting tree 
   EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
 
+  #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
+
+IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1.3,3/1.44,4/1.42'
+
+
 #Stage4_2         
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
 
-  FileBase="ZCutWeakCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
+  FileBase="SSSoftCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
 
-  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
+  WindowSizeOption='-LTM_WindowSizeForNoise=12'
   #SeparationAngleOption='-GC_SeparationCut=16'
-  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
-  QualityCuts='-cuts=ZLookupTableCuts'
-  Table=CrabAZLookupTable.root  #Lookup table name
+  QualityCuts='-cuts=LookupTableSSSoftCuts'
+  Table=LookupTableSSSoftCuts.root  #Lookup table name
 
 
 #Stage5
-   ShowerCuts='-cuts=Stg6weakcuts.config'  #Be sure no theta sq cut here.
+   ShowerCuts='-cuts=ShowerCutsSSSoft'  #Be sure no theta sq cut here.
 
     #ShowerCuts='-cuts=SkyMapCuts'  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
@@ -71,7 +76,8 @@ fi
 
 #Now process the file:
 VBFFileName=$1
-RootFileName=${VBFFileName%".vbf"}'.root'
+#RootFileName=${VBFFileName%".vbf"}'.root'
+RootFileName=${VBFFileName%".vbf"}'SS.root'
 
 
 if [ -n "$Stage1Data" ]; then
@@ -85,7 +91,7 @@ if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
         $EnableMuonDataOption $EnableImageTimingOption  \
-        $VBFFileName $RootFileName simLaser.root
+        $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 
 CutRootFileName=${VBFFileName%".vbf"}$FileBase
@@ -110,7 +116,7 @@ if [ -n "$Stage4_2" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
-     $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$CutRootFileName \
+     $VEGASBASE/bin/vaStage5  -Method=combined -inputFile=$CutRootFileName \
 	$ShowerCuts
 fi
 
