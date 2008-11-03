@@ -16,6 +16,8 @@ Stage5=enable
  #Stage1:
   #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
 
+###############################################################################
+
  #Stage2:
   #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
   #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
@@ -23,27 +25,29 @@ Stage5=enable
   EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
   EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
+#############################################################################
 
  #Stage4_2         
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="StdCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="SSSoftCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  DenyTelescopeOption='-TelCombosToDeny=T1T4'
   #SeperationAngleCutOption='-GC_SeparationCut=16'
-  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
+  WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
-  QualityCuts='-cuts=LookupTableStdCuts'
-  Table=LookupTableStdCuts.root  #Lookup table name
+  QualityCuts='-cuts=QualitySSSoftCuts'
+  Table=LookupTableSSSoftCuts.root  #Lookup table name
 
+##############################################################################
 
 #Stage5
-  ShowerCuts='-cuts=ShowerCutsStd'  #File specfication for testing 
+  ShowerCuts='-cuts=ShowerCutsSSSoft'  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
@@ -72,9 +76,9 @@ if [ -n "$Stage1Data" ]; then
     $VBFFileName $RootFileName
 fi
 
-echo $VBFFileName
-echo $RootFileName
-echo $LSRRootFileName
+echo VBFFileName: $VBFFileName
+echo RootFileName: $RootFileName
+echo LSRRootFileName: $LSRRootFileName
 
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
@@ -85,6 +89,9 @@ fi
 
 CutRootFile=${VBFFileName%".cvbf"}$FileBase
 CutRootFileName=${CutRootFile##*/}
+
+echo CutRootFileName: $CutRootFileName
+
 
 host=$(hostname)
 ISIS=isis.depauw.edu
@@ -97,8 +104,16 @@ if test $host = $ISIS
 fi
 
 if [ -n "$Stage4_2" ]; then
+	echo copy stage2 root file:
 	cp -v $RootFileName $CutRootFileName
 	echo Table: $LookUpTableDir/$Table
+	echo Command: $VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
+            $SeperationAngleCutOption $WindowSizeOption \
+	    -save_config=vaStage4.2.config  \
+	    $CutRootFileName
+
+
 	$VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
@@ -107,7 +122,7 @@ if [ -n "$Stage4_2" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
-    $VEGASBASE/bin/vaStage5  -Method=combined -singleFile=$CutRootFileName \
+    $VEGASBASE/bin/vaStage5  -Method=combined -inputFile=$CutRootFileName \
 	$ShowerCuts
 fi
 
