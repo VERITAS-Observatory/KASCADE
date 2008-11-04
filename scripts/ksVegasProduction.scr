@@ -53,6 +53,9 @@ Stage5=enable
             #(all events are still included in the tree)
             #Has no theta2 cut
 
+  #OutputTreeOptions='-Method=combined'
+  OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+
 #############################################################################
 
 
@@ -122,7 +125,7 @@ if [ -n "$Stage4_2" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
-    $VEGASBASE/bin/vaStage5  -Method=combined -inputFile=$CutRootFileName \
+    $VEGASBASE/bin/vaStage5   $OutputTreeOptions -inputFile=$CutRootFileName \
 	$ShowerCuts
 fi
 
