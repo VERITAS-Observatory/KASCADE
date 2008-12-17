@@ -31,7 +31,7 @@ Stage5=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="SSSoftCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="SSHardCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
@@ -41,22 +41,46 @@ Stage5=enable
   WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
-  QualityCuts='-cuts=QualitySSSoftCuts'
-  Table=LookupTableSSSoftCuts.root  #Lookup table name
+  QualityCuts='-cuts=QualitySSHardCuts'
+  Table=LookupTableSSCuts.root  #Lookup table name
 
 ##############################################################################
 
 #Stage5
-  ShowerCuts='-cuts=ShowerCutsSSSoft'  #File specfication for testing 
+ ShowerCutsBaseFile=ShowerCutsSS	  
+  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
             #Has no theta2 cut
 
-  #OutputTreeOptions='-Method=combined'
-  OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+ShowerCutsOption='-cuts=ShowerCutsFile'
+SpecialCutsFile=SSSpecialCutsFile
+
+
+#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
+OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+
 
 #############################################################################
+
+function makeShowerCutsFile()
+{
+ if [ -e  $ShowerCutsBaseFile ] ; then
+
+   cp $ShowerCutsBaseFile ShowerCutsFile
+   if [ -e $SpecialCutsFile ] ; then
+    {
+      while read RunFile Opt OptValue; do
+        if [ "$RunFile" = "$RootFileName" ] ; then
+	    echo $Opt' '$OptValue >> ShowerCutsFile
+        fi  
+      done
+     } < $SpecialCutsFile
+   fi
+ fi
+}
+
 
 
 #Now process the file:
@@ -125,8 +149,9 @@ if [ -n "$Stage4_2" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
-    $VEGASBASE/bin/vaStage5   $OutputTreeOptions -inputFile=$CutRootFileName \
-	$ShowerCuts
+    makeShowerCutsFile
+    $VEGASBASE/bin/vaStage5 $OutputTreeOptions -inputFile=$CutRootFileName \
+	$ShowerCutsOption
 fi
 
 
