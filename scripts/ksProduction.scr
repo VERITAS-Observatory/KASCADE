@@ -274,7 +274,7 @@ function Gammas()
 
 #AMDAHL
     if [ $host = $AMDAHL ]; then
-        SubmitAmdahlPBSScripts 35 42 
+        SubmitAmdahlPBSScripts 35 44 
 	SubmitAmdahlPBSScripts 23 34 
 	SubmitAmdahlPBSScripts 1  22 
     fi
