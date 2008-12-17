@@ -225,24 +225,13 @@ function Gammas()
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #             For ksallVBF: set 1 about 24 hours <=10 TeV
-	    BuildIsisScriptList 1 1  4
-	    BuildIsisScriptList 2 5  9
-	    BuildIsisScriptList 3 10 15
-	    BuildIsisScriptList 4 16 24
-	    BuildIsisScriptList 5 25 32
-	    BuildIsisScriptList 6 33 34
-	    BuildIsisScriptList 7 35 35
-	    BuildIsisScriptList 8 36 36
+           BuildIsisScriptList 1 1  9
+           BuildIsisScriptList 2 10 24
+           BuildIsisScriptList 3 25 34
+           BuildIsisScriptList 4 35 38
+           BuildIsisScriptList 5 39 41
+           BuildIsisScriptList 6 42 44
 
-# High >10 TeV 48 hrs?
-#	    BuildIsisScriptList 1 37  37
-#	    BuildIsisScriptList 2 38  38
-#	    BuildIsisScriptList 3 39  39
-#	    BuildIsisScriptList 4 40  40
-#	    BuildIsisScriptList 5 41  41
-#	    BuildIsisScriptList 6 42  42
-#	    BuildIsisScriptList 7 43  43
-#	    BuildIsisScriptList 8 44  44
 
           else
 	    BuildIsisScriptList 1 1  $processEnd
@@ -285,7 +274,7 @@ function Gammas()
 
 #AMDAHL
     if [ $host = $AMDAHL ]; then
-     SubmitAmdahlPBSScripts 35 42 
+        SubmitAmdahlPBSScripts 35 42 
 	SubmitAmdahlPBSScripts 23 34 
 	SubmitAmdahlPBSScripts 1  22 
     fi
@@ -481,11 +470,11 @@ fi
 user=$USER
 
 #Specify queues
-queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
+#queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro )
 
-#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro )
+queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro )
 
 #queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro )
 
