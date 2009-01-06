@@ -39,28 +39,54 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
 
-  FileBase="SSSoftCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
+  FileBase="SSSoftCuts"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
 
   WindowSizeOption='-LTM_WindowSizeForNoise=12'
-  #SeparationAngleOption='-GC_SeparationCut=16'
+  #SeparationAngleCutOption='-GC_SeparationCut=16'
   DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   QualityCuts='-cuts=LookupTableSSSoftCuts'
   Table=LookupTableSSSoftCuts.root  #Lookup table name
-
-
 #Stage5
-   ShowerCuts='-cuts=ShowerCutsSSSoft'  #Be sure no theta sq cut here.
-
-    #ShowerCuts='-cuts=SkyMapCuts'  #File specfication for testing 
+ ShowerCutsBaseFile=ShowerCutsSS	  
+  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
             #Has no theta2 cut
+
+ ShowerCutsOption='-cuts=ShowerCutsFile'
+#SpecialCutsFile=SSSpecialCutsFile    #has things like run specific time cuts
+
+
+OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
+                                                         #for makeSignalsModels
+
+#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
+
+OutputFileNameExt="Out"
+#############################################################################
+
+function makeShowerCutsFile()
+{
+ if [ -e  $ShowerCutsBaseFile ] ; then
+
+   cp $ShowerCutsBaseFile ShowerCutsFile
+   if [ -e $SpecialCutsFile ] ; then
+    {
+      while read RunFile Opt OptValue; do
+        if [ "$RunFile" = "$RootFileName" ] ; then
+	    echo $Opt' '$OptValue >> ShowerCutsFile
+        fi  
+      done
+     } < $SpecialCutsFile
+   fi
+ fi
+}
 
 #############################################################################
 
@@ -76,8 +102,8 @@ fi
 
 #Now process the file:
 VBFFileName=$1
-#RootFileName=${VBFFileName%".vbf"}'.root'
-RootFileName=${VBFFileName%".vbf"}'SS.root'
+RootFileName=${VBFFileName%".vbf"}'.root'
+#RootFileName=${VBFFileName%".vbf"}'SS.root'
 
 
 if [ -n "$Stage1Data" ]; then
@@ -94,7 +120,7 @@ if [ -n "$Stage2" ]; then
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 
-CutRootFileName=${VBFFileName%".vbf"}$FileBase
+CutRootFileName=${VBFFileName%".vbf"}$FileBase'.root'
 
 host=$(hostname)
 ISIS=isis.depauw.edu
@@ -112,11 +138,18 @@ if [ -n "$Stage4_2" ]; then
      $VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
-	$SeparationAngleOption $CutRootFileName
+	$SeparationAngleCutOption $CutRootFileName
 fi
 
 if [ -n "$Stage5" ]; then
-     $VEGASBASE/bin/vaStage5  -Method=combined -inputFile=$CutRootFileName \
-	$ShowerCuts
+      makeShowerCutsFile
+      if [ -n "OutputFileNameExt" ]; then
+        OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
+	OutputFileNameOpt='-outputFilename='$OutputFileName
+      fi
+
+      $VEGASBASE/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
+         -inputFile=$CutRootFileName $OutputFileNameOpt
+
 fi
 
