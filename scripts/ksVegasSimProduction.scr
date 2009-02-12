@@ -1,17 +1,17 @@
 #!/bin/bash
 
-#This runs first 5 vegas stages on Kascade sim files;
+#This runs first 5 Vegas stages on Kascade sim files;
 #$1 VBF file to process.
 #$2 Bad pixel file name(optional).
 
 #Make simLaser file (even if it already exists, this is very fast)
 
-Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Laser=enable
+#Stage1Data=enable
+#Stage2=enable
 
-#Stage4_2=enable
-#Stage5=enable
+Stage4_2=enable
+Stage5=enable
 
 
 ##############################################################################
@@ -35,40 +35,58 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
 
 
 #Stage4_2         
-  #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
-                                  #To force removal of particular
-                                  #telescopes when calculating shower paramters
+  #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
+  #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="SSSoftCuts"  #Extention to put on the end of the stages 4-5 ouput 
-                        #files. 
-                        #Differntiates between various cutfile posibilities. 
-                        #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
+  FileBase="StdCutsDenyANY2"  #Extension to put on the end of the stages 4-5 
+                              #output files. Differentiates between various 
+                              #cutfile possibilities. 
+                              #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
+  OutputFileNameExt="S7"   #Additional extension to add to the file name of 
+                           #the separate output file from stage5. If not 
+                           #specified you don't get a separate output file and
+                           #the cut tree (combined or stereo) will go into the
+                           #input file to stage 5 (specified in 
+                           #CutRootFileName).
+                           #Comment out if you don't want a separate output 
+                           #file from stage5
 
+  #WindowSizeOption='-LTM_WindowSizeForNoise=12'         #default is 7
+  #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
+  DenyTelescopeOption='-TelCombosToDeny=ANY2'
 
-  WindowSizeOption='-LTM_WindowSizeForNoise=12'
-  #SeparationAngleCutOption='-GC_SeparationCut=16'
-  DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  QualityCuts='-cuts=QualityStdCuts'
+  Table=LookupTable6.85StdCutsDenyANY2.root  #Lookup table name
 
-  QualityCuts='-cuts=LookupTableSSSoftCuts'
-  Table=LookupTableSSSoftCuts.root  #Lookup table name
 #Stage5
- ShowerCutsBaseFile=ShowerCutsSS	  
-  #File specfication for testing 
-            #for events to be used in SkyMap analysis(real and backgorund)
-            # in the combined tree for setting CutMask flag in combined tree 
-            #(all events are still included in the tree)
-            #Has no theta2 cut
+ ShowerCutsBaseFile=ShowerCutsStd	  
+  #Cuts file specification for testing of good events. Causes setting of 
+  #CutMask flag in combined tree and/or removel of events is so specified (see
+  # OutputTreeOptions below. 
+  # For MLM this hould Have no theta2 cut
 
  ShowerCutsOption='-cuts=ShowerCutsFile'
-#SpecialCutsFile=SSSpecialCutsFile    #has things like run specific time cuts
 
+###############################################
+#The SpecialCutsFile has lines indexed by file names of special run-specific 
+#additional cuts, like time during run cuts, or anything that is needed in 
+#addition to whats in the general cuts file. You can have multiple entries 
+#for the same run.
+#The makeShowerCutsFile function (see below) will copy the file specified in 
+#ShowerCutsBaseFile to the file with the name  'ShowerCutsFile' and then will 
+#append the run specific cut options from the file specified in 
+#SpecialCutsFile. It is the file 'ShowerCutsFile' that will be used in the 
+#-cuts option when stage5 is run. If there are no special run specific cuts 
+#then leave the following line commented out.
+################################################
+#SpecialCutsFile=SSSpecialCutsFile    
 
 OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
                                                          #for makeSignalsModels
 
 #OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
-OutputFileNameExt="Out"
+
 #############################################################################
 
 function makeShowerCutsFile()
@@ -145,7 +163,7 @@ if [ -n "$Stage5" ]; then
       makeShowerCutsFile
       if [ -n "OutputFileNameExt" ]; then
         OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
-	OutputFileNameOpt='-outputFilename='$OutputFileName
+	OutputFileNameOpt='-outputFile='$OutputFileName
       fi
 
       $VEGASBASE/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
