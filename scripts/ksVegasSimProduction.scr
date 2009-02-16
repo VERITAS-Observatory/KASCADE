@@ -38,11 +38,11 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="StdCutsDenyANY2"  #Extension to put on the end of the stages 4-5 
+  FileBase="StdCutsDenyANY2S7"  #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
-  OutputFileNameExt="S7"   #Additional extension to add to the file name of 
+#  OutputFileNameExt="S7"   #Additional extension to add to the file name of 
                            #the separate output file from stage5. If not 
                            #specified you don't get a separate output file and
                            #the cut tree (combined or stereo) will go into the
@@ -50,13 +50,14 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
                            #CutRootFileName).
                            #Comment out if you don't want a separate output 
                            #file from stage5
-
+                           #DO NOT use this option when making files for
+                           #maeSignalModels(it needs the simulation tree)
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'         #default is 7
   #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
   DenyTelescopeOption='-TelCombosToDeny=ANY2'
 
   QualityCuts='-cuts=QualityStdCuts'
-  Table=LookupTable6.85StdCutsDenyANY2.root  #Lookup table name
+  Table=LookupTable9.75StdCutsDenyANY2.root  #Lookup table name
 
 #Stage5
  ShowerCutsBaseFile=ShowerCutsStd	  
@@ -161,12 +162,12 @@ fi
 
 if [ -n "$Stage5" ]; then
       makeShowerCutsFile
-      if [ -n "OutputFileNameExt" ]; then
+      if [ -n "$OutputFileNameExt" ]; then
         OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
 	OutputFileNameOpt='-outputFile='$OutputFileName
       fi
-
-      $VEGASBASE/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
+      
+    $VEGASBASE/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
 
 fi
