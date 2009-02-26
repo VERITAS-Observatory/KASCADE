@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #This runs first 5 Vegas stages on Kascade sim files;
-#$1 VBF file to process.
-#$2 Bad pixel file name(optional).
+#$1 .vbf or .root  file to process.
+#$2 Vegas Base: Used when you want vegas from a different directory than whats 
+#               VEGASBASE is set to in .bashrc (or equivalent)
 
 #Make simLaser file (even if it already exists, this is very fast)
 
@@ -17,10 +18,10 @@ Stage5=enable
 ##############################################################################
 #Configurable options:
  #Stage1:
- MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
+ #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
 
  #Stage2:
- WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
+ #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
 
   #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1' #Depreciated (don't use)
   #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
@@ -38,7 +39,7 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="StdCutsDenyANY2S7"  #Extension to put on the end of the stages 4-5 
+  FileBase="JWCutsDenyANY2S7C6.85.root"  #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
@@ -56,11 +57,17 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
   #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
   DenyTelescopeOption='-TelCombosToDeny=ANY2'
 
-  QualityCuts='-cuts=QualityStdCuts'
-  Table=LookupTable9.75StdCutsDenyANY2.root  #Lookup table name
+  QualityCuts='-cuts=QualityJWCuts'
+
+  #Table=LookupTable9.75StdCutsDenyANY2.root  #Lookup table name
+  Table=LookupTable6.85StdCutsDenyANY2.root
+  #Table=LookupTable4.97StdCutsDenyANY2.root
+  #Table=LookupTableStdCuts.root  #Lookup table name
+
 
 #Stage5
- ShowerCutsBaseFile=ShowerCutsStd	  
+ #ShowerCutsBaseFile=ShowerCutsStd	  
+ ShowerCutsBaseFile=ShowerCutsJW	  
   #Cuts file specification for testing of good events. Causes setting of 
   #CutMask flag in combined tree and/or removel of events is so specified (see
   # OutputTreeOptions below. 
@@ -82,10 +89,11 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
 ################################################
 #SpecialCutsFile=SSSpecialCutsFile    
 
-OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
+#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
+#OutputTreeOptions='-Method=combined'
                                                          #for makeSignalsModels
 
-#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
+OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
 
 #############################################################################
@@ -108,6 +116,12 @@ function makeShowerCutsFile()
 }
 
 #############################################################################
+if [ -n "$2" ]; then
+    VEGASBASEORIG=$VEGASBASE
+    VEGASBASE=$2
+    echo VEGASBASE: $VEGASBASE
+fi
+
 
 
 if [ -n "$Stage1Laser" ]; then
@@ -121,9 +135,15 @@ fi
 
 #Now process the file:
 VBFFileName=$1
-RootFileName=${VBFFileName%".vbf"}'.root'
-#RootFileName=${VBFFileName%".vbf"}'SS.root'
+File=${VBFFileName%".root"}'.root' #allow for .root or .vbf file names on input
+echo File: $File
+echo VBFFileName: $VBFFileName
 
+if [ "$File" = "$VBFFileName" ]; then
+    VBFFileName=${VBFFileName%".root"}'.vbf'
+    echo VBFFileName: $VBFFileName
+fi
+RootFileName=${VBFFileName%".vbf"}'.root'
 
 if [ -n "$Stage1Data" ]; then
     $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
@@ -139,17 +159,19 @@ if [ -n "$Stage2" ]; then
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 
-CutRootFileName=${VBFFileName%".vbf"}$FileBase'.root'
+CutRootFileName=${VBFFileName%".vbf"}$FileBase
 
-host=$(hostname)
-ISIS=isis.depauw.edu
+#host=$(hostname)
+#ISIS=isis.depauw.edu
 
-if test $host = $ISIS 
-then
-   LookUpTableDir=/veritas/local/vegas/showerReconstruction2/tables/KASCADE
-else
-   LookUpTableDir=/home/sembrosk/vegas/showerReconstruction2/tables/KASCADE
-fi
+#if test $host = $ISIS 
+#then
+#   LookUpTableDir=/veritas/local/vegas/showerReconstruction2/tables/KASCADE
+#else
+#   LookUpTableDir=/home/sembrosk/vegas/showerReconstruction2/tables/KASCADE
+#fi
+   LookUpTableDir=$VEGASBASE/showerReconstruction2/tables/KASCADE
+
 
 if [ -n "$Stage4_2" ]; then
      cp -v $RootFileName $CutRootFileName
@@ -169,6 +191,8 @@ if [ -n "$Stage5" ]; then
       
     $VEGASBASE/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
-
 fi
 
+if [ -n "$2" ]; then
+    VEGASBASE=$VEGASBASEORIG
+fi

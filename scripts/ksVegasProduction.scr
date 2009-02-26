@@ -1,8 +1,10 @@
 #!/bin/bash
 
 #This runs first 5 vegas stages on normal file  files;
-#$1 VBF file to process. (Ex. /VData/33619.cvbf)
-#$2 Laser file           (Ex. /VData/33616.cvbf)
+#$1 .cvbf or .root file to process. (Ex. /VData/33619.cvbf)
+#$2 .cvbf Laser file           (Ex. /VData/33616.cvbf)
+#$3 Vegas Base: Used when you want vegas from a different directory than whats 
+#               VEGASBASE is set to in .bashrc (or equivalent)
 
 #Stage1Laser=enable
 #Stage1Data=enable
@@ -31,23 +33,29 @@ Stage5=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="SSHardCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="JWCutsDenyANY2S7C.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #SeperationAngleCutOption='-GC_SeparationCut=16'
-  WindowSizeOption='-LTM_WindowSizeForNoise=12'
+  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
-  QualityCuts='-cuts=QualitySSHardCuts'
-  Table=LookupTableSSCuts.root  #Lookup table name
+  #QualityCuts='-cuts=QualityStdCuts'
+  QualityCuts='-cuts=QualityJWCuts'
+
+  #Table=lt_4tel_noT1T4_2.root                #Corsika table
+  #Table=LookupTable6.85StdCutsDenyANY2.root
+  #Table=LookupTable4.97StdCutsDenyANY2.root
+  Table=LookupTableStdCuts.root  #Lookup table name
 
 ##############################################################################
 
 #Stage5
- ShowerCutsBaseFile=ShowerCutsSS	  
+ #ShowerCutsBaseFile=ShowerCutsStd	  
+ ShowerCutsBaseFile=ShowerCutsJW	  
   #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
@@ -55,11 +63,12 @@ Stage5=enable
             #Has no theta2 cut
 
 ShowerCutsOption='-cuts=ShowerCutsFile'
-SpecialCutsFile=SSSpecialCutsFile
+#SpecialCutsFile=SSSpecialCutsFile
 
 
 #OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+OutputTreeOptions='-Method=combined'
+#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
 
 
 #############################################################################
@@ -85,6 +94,13 @@ function makeShowerCutsFile()
 
 #Now process the file:
 
+if [ -n "$3" ]; then
+    VEGASBASEORIG=$VEGASBASE
+    VEGASBASE=$3
+    echo VEGASBASE: $VEGASBASE
+fi
+
+
 VBFLSRFileName=$2
 LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
 LSRRootFileName=${LSRRootFile##*/}
@@ -95,6 +111,12 @@ fi
 
 
 VBFFileName=$1
+
+File=${VBFFileName%".root"}'.root' #allow .root or .cvbf file names on input
+if [ "$File" = "$VBFFileName" ]; then
+    VBFFileName=${VBFFileName%".root"}'.cvbf'
+fi
+
 RootFile=${VBFFileName%".cvbf"}'.root'
 RootFileName=${RootFile##*/}
 
@@ -120,15 +142,19 @@ CutRootFileName=${CutRootFile##*/}
 echo CutRootFileName: $CutRootFileName
 
 
-host=$(hostname)
-ISIS=isis.depauw.edu
+#host=$(hostname)
+#ISIS=isis.depauw.edu
 
-if test $host = $ISIS 
- then
-    LookUpTableDir=/veritas/local/vegas/showerReconstruction2/tables/KASCADE
- else
-    LookUpTableDir=/home/sembrosk/vegas/showerReconstruction2/tables/KASCADE
-fi
+#if test $host = $ISIS 
+# then
+#    LookUpTableDir=$VEGASBASE'/showerReconstruction2/tables/KASCADE'
+# else
+#    LookUpTableDir=/showerReconstruction2/tables/KASCADE
+#fi
+
+LookUpTableDir=$VEGASBASE'/showerReconstruction2/tables/KASCADE'
+
+
 
 if [ -n "$Stage4_2" ]; then
 	echo copy stage2 root file:
@@ -155,3 +181,6 @@ if [ -n "$Stage5" ]; then
 fi
 
 
+if [ -n "$3" ]; then
+    VEGASBASE=$VEGASBASEORIG
+fi
