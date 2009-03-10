@@ -7,9 +7,9 @@
 
 #Make simLaser file (even if it already exists, this is very fast)
 
-#Stage1Laser=enable
-#Stage1Data=enable
-#Stage2=enable
+Stage1Laser=enable
+Stage1Data=enable
+Stage2=enable
 
 Stage4_2=enable
 Stage5=enable
@@ -30,16 +30,28 @@ Stage5=enable
                                                        #muon-ring-fitting tree 
   EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
 
-  #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
+ #CleanUpMethod='-CleanUpApp=CleanUpStd'
 
-IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1.3,3/1.44,4/1.42'
+ #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
+
+#IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.1,3/1.24,4/1.02'      #4.97
+#PedVarBase='PedVar4.97'
+
+#IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1.29,3/1.44,4/1.19'      #5.8
+#PedVarBase='PedVar5.8'
+
+#IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.4,2/1.55,3/1.73,4/1.43'      #6.85
+#PedVarBase='PedVar6.85'
+
+#IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.0,2/2.21,3/2.48,4/2.05'      #9.75
+#PedVarBase='PedVar9.75'
 
 
 #Stage4_2         
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="JWCutsDenyANY2S7C6.85.root"  #Extension to put on the end of the stages 4-5 
+  FileBase="DenyANY2.root"  #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
@@ -57,17 +69,17 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
   #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
   DenyTelescopeOption='-TelCombosToDeny=ANY2'
 
-  QualityCuts='-cuts=QualityJWCuts'
+  QualityCuts='-cuts=QualityStdCuts'
 
   #Table=LookupTable9.75StdCutsDenyANY2.root  #Lookup table name
-  Table=LookupTable6.85StdCutsDenyANY2.root
-  #Table=LookupTable4.97StdCutsDenyANY2.root
+  #Table=LookupTable6.85StdCutsDenyANY2.root
+  Table=LookupTable4.97StdCutsDenyANY2.root
   #Table=LookupTableStdCuts.root  #Lookup table name
 
 
 #Stage5
- #ShowerCutsBaseFile=ShowerCutsStd	  
- ShowerCutsBaseFile=ShowerCutsJW	  
+ ShowerCutsBaseFile=ShowerCutsStd	  
+ #ShowerCutsBaseFile=ShowerCutsM1	  
   #Cuts file specification for testing of good events. Causes setting of 
   #CutMask flag in combined tree and/or removel of events is so specified (see
   # OutputTreeOptions below. 
@@ -89,11 +101,11 @@ IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1
 ################################################
 #SpecialCutsFile=SSSpecialCutsFile    
 
-#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
+OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
 #OutputTreeOptions='-Method=combined'
                                                          #for makeSignalsModels
 
-OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
+#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
 
 #############################################################################
@@ -155,7 +167,7 @@ fi
 if [ -n "$Stage2" ]; then
     $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
-        $EnableMuonDataOption $EnableImageTimingOption  \
+        $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 

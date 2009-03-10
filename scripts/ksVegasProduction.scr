@@ -33,29 +33,31 @@ Stage5=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="JWCutsDenyANY2S7C.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="StdCutsDenyT1T4CrLT.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  DenyTelescopeOption='-TelCombosToDeny=T1T4'
   #SeperationAngleCutOption='-GC_SeparationCut=16'
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
-  #QualityCuts='-cuts=QualityStdCuts'
-  QualityCuts='-cuts=QualityJWCuts'
+  QualityCuts='-cuts=QualityStdCuts'
+  #QualityCuts='-cuts=QualityJWCuts'
 
   #Table=lt_4tel_noT1T4_2.root                #Corsika table
   #Table=LookupTable6.85StdCutsDenyANY2.root
-  #Table=LookupTable4.97StdCutsDenyANY2.root
-  Table=LookupTableStdCuts.root  #Lookup table name
-
+  #Table=LookupTableStdCuts.root  #Lookup table name
+  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
+  Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
+  #Table=LookupTable4.97StdCutsDenyT1T4.root
 ##############################################################################
 
 #Stage5
- #ShowerCutsBaseFile=ShowerCutsStd	  
- ShowerCutsBaseFile=ShowerCutsJW	  
+ ShowerCutsBaseFile=ShowerCutsStd	  
+ #ShowerCutsBaseFile=ShowerCutsJW	  
   #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
