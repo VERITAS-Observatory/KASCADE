@@ -7,9 +7,9 @@
 
 #Make simLaser file (even if it already exists, this is very fast)
 
-Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Laser=enable
+#Stage1Data=enable
+#Stage2=enable
 
 Stage4_2=enable
 Stage5=enable
@@ -51,7 +51,7 @@ Stage5=enable
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="DenyANY2.root"  #Extension to put on the end of the stages 4-5 
+  FileBase="StdCutsDenyANY2.root"  #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
@@ -101,11 +101,9 @@ Stage5=enable
 ################################################
 #SpecialCutsFile=SSSpecialCutsFile    
 
-OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-#OutputTreeOptions='-Method=combined'
-                                                         #for makeSignalsModels
-
-#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
+#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
+#OutputTreeOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
+OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
 
 #############################################################################
@@ -115,7 +113,7 @@ function makeShowerCutsFile()
  if [ -e  $ShowerCutsBaseFile ] ; then
 
    cp $ShowerCutsBaseFile ShowerCutsFile
-   if [ -e $SpecialCutsFile ] ; then
+   if [ -n "$SpecialCutsFile" ] ; then
     {
       while read RunFile Opt OptValue; do
         if [ "$RunFile" = "$RootFileName" ] ; then
@@ -173,16 +171,7 @@ fi
 
 CutRootFileName=${VBFFileName%".vbf"}$FileBase
 
-#host=$(hostname)
-#ISIS=isis.depauw.edu
-
-#if test $host = $ISIS 
-#then
-#   LookUpTableDir=/veritas/local/vegas/showerReconstruction2/tables/KASCADE
-#else
-#   LookUpTableDir=/home/sembrosk/vegas/showerReconstruction2/tables/KASCADE
-#fi
-   LookUpTableDir=$VEGASBASE/showerReconstruction2/tables/KASCADE
+LookUpTableDir=$VEGASBASE/showerReconstruction2/tables/KASCADE
 
 
 if [ -n "$Stage4_2" ]; then

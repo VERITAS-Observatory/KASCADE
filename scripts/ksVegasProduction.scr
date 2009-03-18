@@ -33,13 +33,13 @@ Stage5=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="StdCutsDenyT1T4CrLT.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="StdCutsDenyANY2.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
-  DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
   #SeperationAngleCutOption='-GC_SeparationCut=16'
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
@@ -47,11 +47,9 @@ Stage5=enable
   QualityCuts='-cuts=QualityStdCuts'
   #QualityCuts='-cuts=QualityJWCuts'
 
-  #Table=lt_4tel_noT1T4_2.root                #Corsika table
-  #Table=LookupTable6.85StdCutsDenyANY2.root
-  #Table=LookupTableStdCuts.root  #Lookup table name
   #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
-  Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
+  #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
+  Table=LookupTable6.85StdCutsDenyANY2.root
   #Table=LookupTable4.97StdCutsDenyT1T4.root
 ##############################################################################
 
@@ -69,8 +67,8 @@ ShowerCutsOption='-cuts=ShowerCutsFile'
 
 
 #OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-OutputTreeOptions='-Method=combined'
-#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+#OutputTreeOptions='-Method=combined'
+OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
 
 
 #############################################################################
@@ -80,7 +78,7 @@ function makeShowerCutsFile()
  if [ -e  $ShowerCutsBaseFile ] ; then
 
    cp $ShowerCutsBaseFile ShowerCutsFile
-   if [ -e $SpecialCutsFile ] ; then
+   if [ -n "$SpecialCutsFile" ] ; then
     {
       while read RunFile Opt OptValue; do
         if [ "$RunFile" = "$RootFileName" ] ; then
@@ -142,17 +140,6 @@ CutRootFile=${VBFFileName%".cvbf"}$FileBase
 CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
-
-
-#host=$(hostname)
-#ISIS=isis.depauw.edu
-
-#if test $host = $ISIS 
-# then
-#    LookUpTableDir=$VEGASBASE'/showerReconstruction2/tables/KASCADE'
-# else
-#    LookUpTableDir=/showerReconstruction2/tables/KASCADE
-#fi
 
 LookUpTableDir=$VEGASBASE'/showerReconstruction2/tables/KASCADE'
 
