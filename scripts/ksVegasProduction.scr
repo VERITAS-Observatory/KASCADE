@@ -97,6 +97,8 @@ function makeShowerCutsFile()
 if [ -n "$3" ]; then
     VEGASBASEORIG=$VEGASBASE
     VEGASBASE=$3
+    export VEGASBASE=$VEGASBASE
+    export VEGAS=$VEGASBASE
     echo VEGASBASE: $VEGASBASE
 fi
 
@@ -172,4 +174,6 @@ fi
 
 if [ -n "$3" ]; then
     VEGASBASE=$VEGASBASEORIG
+    export VEGASBASE=$VEGASBASE
+    export VEGAS=$VEGASBASE
 fi
