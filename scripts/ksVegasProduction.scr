@@ -3,8 +3,8 @@
 #This runs first 5 vegas stages on normal file  files;
 #$1 .cvbf or .root file to process. (Ex. /VData/33619.cvbf)
 #$2 .cvbf Laser file           (Ex. /VData/33616.cvbf)
-#$3 Vegas Base: Used when you want vegas from a different directory than whats 
-#               VEGASBASE is set to in .bashrc (or equivalent)
+#$3 Vegas base dir path: Used when you want vegas from a different directory 
+#            than what VEGAS is set to in .bashrc (or equivalent)
 
 #Stage1Laser=enable
 #Stage1Data=enable
@@ -95,11 +95,10 @@ function makeShowerCutsFile()
 #Now process the file:
 
 if [ -n "$3" ]; then
-    VEGASBASEORIG=$VEGASBASE
-    VEGASBASE=$3
-    export VEGASBASE=$VEGASBASE
-    export VEGAS=$VEGASBASE
-    echo VEGASBASE: $VEGASBASE
+    VEGASORIG=$VEGAS
+    VEGAS=$3
+    export VEGAS=$VEGAS
+    echo VEGAS: $VEGAS
 fi
 
 
@@ -107,7 +106,7 @@ VBFLSRFileName=$2
 LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
 LSRRootFileName=${LSRRootFile##*/}
 if [ -n "$Stage1Laser" ]; then
-    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
                                                               $LSRRootFileName
 fi
 
@@ -123,7 +122,7 @@ RootFile=${VBFFileName%".cvbf"}'.root'
 RootFileName=${RootFile##*/}
 
 if [ -n "$Stage1Data" ]; then
-    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
     $VBFFileName $RootFileName
 fi
 
@@ -132,7 +131,7 @@ echo RootFileName: $RootFileName
 echo LSRRootFileName: $LSRRootFileName
 
 if [ -n "$Stage2" ]; then
-    $VEGASBASE/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
+    $VEGAS/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
     $WindowWidthOption $EnableImageTimingOption $VBFFileName \
     $RootFileName $LSRRootFileName
 fi
@@ -143,7 +142,7 @@ CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
 
-LookUpTableDir=$VEGASBASE'/showerReconstruction2/tables/KASCADE'
+LookUpTableDir=$VEGAS'/showerReconstruction2/tables/KASCADE'
 
 
 
@@ -151,14 +150,14 @@ if [ -n "$Stage4_2" ]; then
 	echo copy stage2 root file:
 	cp -v $RootFileName $CutRootFileName
 	echo Table: $LookUpTableDir/$Table
-	echo Command: $VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+	echo Command: $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 
 
-	$VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
@@ -167,13 +166,12 @@ fi
 
 if [ -n "$Stage5" ]; then
     makeShowerCutsFile
-    $VEGASBASE/bin/vaStage5 $OutputTreeOptions -inputFile=$CutRootFileName \
+    $VEGAS/bin/vaStage5 $OutputTreeOptions -inputFile=$CutRootFileName \
 	$ShowerCutsOption
 fi
 
 
 if [ -n "$3" ]; then
-    VEGASBASE=$VEGASBASEORIG
-    export VEGASBASE=$VEGASBASE
-    export VEGAS=$VEGASBASE
+    VEGAS=$VEGASORIG
+    export VEGAS=$VEGAS
 fi

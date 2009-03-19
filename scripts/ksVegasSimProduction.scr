@@ -2,8 +2,8 @@
 
 #This runs first 5 Vegas stages on Kascade sim files;
 #$1 .vbf or .root  file to process.
-#$2 Vegas Base: Used when you want vegas from a different directory than whats 
-#               VEGASBASE is set to in .bashrc (or equivalent)
+#$2 Vegas bas dir path: Used when you want vegas from a different directory 
+#             than what VEGAS is set to in .bashrc (or equivalent)
 
 #Make simLaser file (even if it already exists, this is very fast)
 
@@ -127,11 +127,10 @@ function makeShowerCutsFile()
 
 #############################################################################
 if [ -n "$2" ]; then
-    VEGASBASEORIG=$VEGASBASE
-    VEGASBASE=$2
-    export VEGASBASE=$VEGASBASE
-    export VEGAS=$VEGASBASE
-    echo VEGASBASE: $VEGASBASE
+    VEGASORIG=$VEGAS
+    VEGAS=$2
+    export VEGAS=$VEGAS
+    echo VEGAS: $VEGAS
 fi
 
 
@@ -139,7 +138,7 @@ fi
 if [ -n "$Stage1Laser" ]; then
 
     echo Stage1Laser:$Stage1Laser
-    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=simLaser \
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=simLaser \
         -AIF_DataSource=CompiledOnly $MaxWindowWidthOption \
         -AIFC_OverrideArray=VC499_BASE -G_SimulationMode=1 dummyFileName \
         simLaser.root
@@ -158,14 +157,14 @@ fi
 RootFileName=${VBFFileName%".vbf"}'.root'
 
 if [ -n "$Stage1Data" ]; then
-    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
 	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
 	$MaxWindowWidthOption $VBFFileName $RootFileName
 fi
 
 
 if [ -n "$Stage2" ]; then
-    $VEGASBASE/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
+    $VEGAS/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
         $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
@@ -173,13 +172,13 @@ fi
 
 CutRootFileName=${VBFFileName%".vbf"}$FileBase
 
-LookUpTableDir=$VEGASBASE/showerReconstruction2/tables/KASCADE
+LookUpTableDir=$VEGAS/showerReconstruction2/tables/KASCADE
 
 
 if [ -n "$Stage4_2" ]; then
      cp -v $RootFileName $CutRootFileName
      echo ET: $LookUpTableDir/$ETable
-     $VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+     $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
 	$SeparationAngleCutOption $CutRootFileName
@@ -192,12 +191,11 @@ if [ -n "$Stage5" ]; then
 	OutputFileNameOpt='-outputFile='$OutputFileName
       fi
       
-    $VEGASBASE/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
+    $VEGAS/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
 fi
 
 if [ -n "$2" ]; then
-    VEGASBASE=$VEGASBASEORIG
-    export VEGASBASE=$VEGASBASE
-    export VEGAS=$VEGASBASE
+    VEGAS=$VEGASORIG
+    export VEGAS=$VEGAS
 fi
