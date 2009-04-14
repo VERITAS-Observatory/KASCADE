@@ -6,17 +6,18 @@
 #$3 Vegas base dir path: Used when you want vegas from a different directory 
 #            than what VEGAS is set to in .bashrc (or equivalent)
 
-#Stage1Laser=enable
-#Stage1Data=enable
-#Stage2=enable
+Stage1Laser=enable
+Stage1Data=enable
+Stage2=enable
 
-Stage4_2=enable
-Stage5=enable
+#Stage4_2=enable
+#Stage5=enable
 
 ##############################################################################
 #Configurable options:
  #Stage1:
   #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
+  PointingCorrectionOption='-G_ReplaceTrackingParameters=TrackingCorr_T1_2007112toNOW,TrackingCorr_T2_2007112toNOW,TrackingCorr_T3_2007112toNOW,TrackingCorr_T4_2007112toNOW'
 
 ###############################################################################
 
@@ -33,13 +34,13 @@ Stage5=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="StdCutsDenyANY2.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="NK_10CutsDenyT1T4CLt.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  DenyTelescopeOption='-TelCombosToDeny=ANY2'
-  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  DenyTelescopeOption='-TelCombosToDeny=T1T4'
   #SeperationAngleCutOption='-GC_SeparationCut=16'
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
@@ -48,14 +49,17 @@ Stage5=enable
   #QualityCuts='-cuts=QualityJWCuts'
 
   #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
-  #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
-  Table=LookupTable6.85StdCutsDenyANY2.root
+  Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
+  #Table=LookupTable6.85StdCutsDenyANY2.root
   #Table=LookupTable4.97StdCutsDenyT1T4.root
+  #Table=LookupTableAllStdCutsDenyANY2Mean.root   #Works for STD and JW and NKCuts
+  #Table=LookupTableAllStdCutsDenyANY2Median.root   #Works for STD and JW and NKCuts
 ##############################################################################
 
 #Stage5
- ShowerCutsBaseFile=ShowerCutsStd	  
- #ShowerCutsBaseFile=ShowerCutsJW	  
+# ShowerCutsBaseFile=ShowerCutsStd	  
+  ShowerCutsBaseFile=ShowerCutsNK_10	  
+#ShowerCutsBaseFile=ShowerCutsJW	  
   #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
@@ -123,7 +127,7 @@ RootFileName=${RootFile##*/}
 
 if [ -n "$Stage1Data" ]; then
     $VEGAS/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
-    $VBFFileName $RootFileName
+    $PointingCorrectionOption $VBFFileName $RootFileName
 fi
 
 echo VBFFileName: $VBFFileName
