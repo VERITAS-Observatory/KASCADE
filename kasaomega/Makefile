@@ -43,7 +43,7 @@ CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))
 
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
-ifdef VEGASBASE
+ifdef VEGAS
     ifdef ROOTSYS
 all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
     else
@@ -76,7 +76,7 @@ $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 
 .PHONY: install
 
-ifdef VEGASBASE
+ifdef VEGAS
     ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
@@ -107,6 +107,6 @@ norootcomment:
 .PHONY: noVEGAScomment
 noVEGAScomment:
 	@echo "******************kasaomega/Makefile**************************"
-	@echo "* VEGASBASE not defined (VEGAS not installed?)"
+	@echo "* VEGAS not defined (VEGAS not installed?)"
 	@echo "* Can't make or install" $(EXE)
 	@echo "**************************************************************"

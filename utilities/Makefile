@@ -32,7 +32,7 @@ CPPSOURCES   = $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET1) | \
 		grep -v $(CPPTARGET4) ))
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
-ifdef VEGASBASE
+ifdef VEGAS
     ifdef ROOTSYS
 all: $(LIBTARGET) $(CPPTARGETOBJECTS) $(CPPEXES)
     else 
@@ -92,7 +92,7 @@ $(addprefix $(BINDIR)/, $(CPPTARGET4:.cpp=)): $(LIBTARGET)
  
 .PHONY: install
 
-ifdef VEGASBASE
+ifdef VEGAS
     ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(CPPEXES) $(TOPDIR)/bin
@@ -130,8 +130,8 @@ norootcomment:
 
 .PHONY: noVEGAScomment
 noVEGAScomment:
-	@echo "******************kasaomega/Makefile**************************"
-	@echo "* VEGASBASE not defined (VEGAS not installed?)"
+	@echo "******************utilities/Makefile**************************"
+	@echo "* VEGAS not defined (VEGAS not installed?)"
 	@echo "* Can't make or install" \
 	$(addprefix $(BINDIR)/, $(CPPTARGET2:.cpp=))
 	@echo "**************************************************************"

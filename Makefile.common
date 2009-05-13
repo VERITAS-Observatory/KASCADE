@@ -1,3 +1,4 @@
+
 # -----------------------------------------------------------------------------
 #
 # KASCADE common makefile definitions
@@ -35,15 +36,15 @@ TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
 TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
 
-#Define VEGASBASE in .bashrc (or wherever)
-#VEGASBASE = /home/sembrosk/vegas
+#Define VEGAS in .bashrc (or wherever)
+#VEGAS = /home/sembrosk/vegas
 
 
 # -----------------------------------------------------------------------------
 #  VEGAS  defines
 # -----------------------------------------------------------------------------
-VEGASCMNINCDIR = -I$(VEGASBASE)/common/include
-VEGASCMNLIBDIR = -L$(VEGASBASE)/common/lib
+VEGASCMNINCDIR = -I$(VEGAS)/common/include
+VEGASCMNLIBDIR = -L$(VEGAS)/common/lib
 VEGAGCMNLIB = -lSP24commonLite
 VEGASLDFLAGS = $(VEGASCMNLIBDIR) $(VEGAGCMNLIB)
 
