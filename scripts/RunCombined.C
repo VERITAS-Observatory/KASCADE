@@ -36,6 +36,9 @@ std::string fNumMinPixels="5";
 std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
 std::string fPlotOption=" ";
 
+bool useCutMask=false;
+//bool useCutMask=true;
+
 //Strings for Cumulative tree.
 //std::string fCTreeName="CTree"
 //std::string fHBranch="HT";
@@ -175,13 +178,25 @@ void  FillShowerPlots(std::string RunName, int fRun)
   std::cout<<"fLog10EMax: "<<fLog10EMax<<std::endl;
   std::cout<<"fNumLog10EBins: "<<fNumLog10EBins<<std::endl;
 
+  std::string cuts;
+  std::string fAOCuts;
+  std::string fAOSCCuts;
+  if(!useCutMask)
+    {
+      //Cut for MSW and MSL
+      cuts = "S.fTheta2_Deg2<.04 && S.fIsDirection==1";
 
-  //Cut for MSW and MSL
-  std::string cuts = "S.fTheta2_Deg2<.04 && S.fIsDirection==1";
-
-  //Cut for Aomega
-  std::string fAOCuts="Sim.fAomega*" +fTrigCut;
-  std::string fAOSCCuts="Sim.fAomega*(" +fTrigCut + "&& S.fMSW>.05 && S.fMSW<1.2 && S.fMSL>0.05 && S.fMSL<1.4 && S.fTheta2_Deg2<.1 )";
+      //Cut for Aomega
+      fAOCuts="Sim.fAomega*" +fTrigCut;
+      fAOSCCuts="Sim.fAomega*(" +fTrigCut + "&& S.fMSW>.05 && S.fMSW<1.2 "
+	"&& S.fMSL>0.05 && S.fMSL<1.4 && S.fTheta2_Deg2<.1 )";
+    }
+  else
+    {
+      cuts = "fCombinedCutMask==0";
+      fAOCuts="Sim.fAomega*(fCombinedCutMask==0)";
+      fAOSCCuts="Sim.fAomega*(fCombinedCutMask==0)";
+    }
 
   //Mean Scaled Width plots
   std::string title = "Mean Scaled Width";
@@ -217,7 +232,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
       TProfile* pfEBias = new TProfile("pfEBias",title.c_str(),fNumLog10EBins,
 				       fLog10EMin,fLog10EMax,-1.0,2.0);
       pfEBias->SetXTitle("Log10(ETrue(TeV))");
-      pfEBias->SetYTitle("<(EReconsturcted-ETrue)/ETrue>");
+      pfEBias->SetYTitle("<Log10(EReconsturcted/ETrue)>");
       
       // Start loop for filling
       int fNumEntries=(int)R1->GetEntries();
@@ -227,16 +242,19 @@ void  FillShowerPlots(std::string RunName, int fRun)
 	                  //and Cutmask
 	  if(pfShower->fIsEnergy==1 )
 	    {
+	      if(useCutMask)
+		{
+		  if(fCombinedCutMask!=0)
+		    {
+		      continue;
+		    }
+		}
 	      //  if(fRun==0 || (fRun!=0 && fCombinedCutMask==0))
 	      //{
 	      double fLog10ETrue=log10(pfSim->fEnergyGeV/1000.); //in TeV
 	      double fLog10ERcn=log10(pfShower->fEnergy_GeV/1000.);
-	      //	      double fDiffLog10E=(fLog10ERcn-fLog10ETrue);
-	      //pfEBias->Fill(fLog10ETrue,fDiffLog10E,1.0);
-	      double energyTrue=pfSim->fEnergyGeV;
-	      double energyRcn=pfShower->fEnergy_GeV;
-	      double fDiffE=(energyRcn - energyTrue)/energyTrue;
-	      pfEBias->Fill(fLog10ETrue,fDiffE,1.0);
+	      double fDiffLog10E=(fLog10ERcn-fLog10ETrue);
+	      pfEBias->Fill(fLog10ETrue,fDiffLog10E,1.0);
 	      //}
 	    }
 	}
@@ -260,6 +278,13 @@ void  FillShowerPlots(std::string RunName, int fRun)
       
 	  if(pfShower->fIsDirection==1)
 	    {
+	      if(useCutMask)
+		{
+		  if(fCombinedCutMask!=0)
+		    {
+		      continue;
+		    }
+		}
 	      double fLog10ETrue=log10(pfSim->fEnergyGeV/1000.); //in TeV
 	      pfT2Bias->Fill(fLog10ETrue,pfShower->fTheta2_Deg2,1.0);
 	    }
@@ -283,7 +308,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
       title = "Effective Area - Spectrum Cuts";
       std::string fAomegaSCPlot = "log10(Sim.fEnergyGeV/1000.) >> pfAOSC";
       TH1F* pfAOSC = new TH1F("pfAOSC",title.c_str(),fNumLog10EBins,fLog10EMin,
-                                                        fLog10EMax);
+                                                                   fLog10EMax);
       pfAOSC->SetXTitle("ln10(Energy(TeV))");
       pfAOSC->SetYTitle("M**2");
       R1->Draw(fAomegaSCPlot.c_str(),fAOSCCuts.c_str(),"E1");
