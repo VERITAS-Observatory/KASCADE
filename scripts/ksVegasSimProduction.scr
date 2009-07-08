@@ -71,10 +71,10 @@ Stage5=enable
 
   QualityCuts='-cuts=QualityStdCuts'
 
-  #Table=LookupTable9.75StdCutsDenyANY2.root  #Lookup table name
-  #Table=LookupTable6.85StdCutsDenyANY2.root
-  Table=LookupTable4.97StdCutsDenyANY2.root
-  #Table=LookupTableStdCuts.root  #Lookup table name
+  Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
+  #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
+  #Table=LookupTableAllStdCutsDenyANY2Mean.root   #Works for STD and JW and NKCuts
+  #Table=LookupTableAllStdCutsDenyANY2Median.root   #Works for STD and JW and NKCuts
 
 
 #Stage5
