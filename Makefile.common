@@ -1,4 +1,3 @@
-
 # -----------------------------------------------------------------------------
 #
 # KASCADE common makefile definitions
@@ -37,8 +36,6 @@ TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
 
 #Define VEGAS in .bashrc (or wherever)
-#VEGAS = /home/sembrosk/vegas
-
 
 # -----------------------------------------------------------------------------
 #  VEGAS  defines
@@ -64,7 +61,7 @@ KASLIBSROOT = -lKascadeCommonRoot
 # VBF
 # -----------------------------------------------------------------------------
 
-VBFBIN := $(VBFBASE)/bin/
+VBFBIN := $(VBFSYS)/bin/
 
 VBFCONFIG = $(VBFBIN)vbfConfig
 VBFCFLAGS   := $(shell $(VBFCONFIG) --cppflags)
