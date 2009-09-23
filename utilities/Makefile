@@ -130,7 +130,7 @@ norootcomment:
 
 .PHONY: noVEGAScomment
 noVEGAScomment:
-	@echo "******************utilities/Makefile**************************"
+	@echo "******************kasaomega/Makefile**************************"
 	@echo "* VEGAS not defined (VEGAS not installed?)"
 	@echo "* Can't make or install" \
 	$(addprefix $(BINDIR)/, $(CPPTARGET2:.cpp=))
