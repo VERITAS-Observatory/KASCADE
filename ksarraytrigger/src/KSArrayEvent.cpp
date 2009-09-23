@@ -37,6 +37,7 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
   pfTelsInArray.clear();
   pfTelsWithData.clear();
 
+  std::cout<<"KSArrayEvent: Open Input Single Tel files"<<std::endl;
 
   KSTelescope* pfT1 = new KSTelescope(E_T1,pfDataIn);
   std::string fConfigMask;
@@ -83,53 +84,58 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	}
     }
 
-  // ***********************************************************************
-  // If a file with an external set of telescope array positons has been
-  // specified, replace the telescope positons with the new ones
-  // ***********************************************************************
-  if(pfDataIn->fTelescopePositionListFile!=" ")
+  fNumTelsWithData=pfTelsWithData.size();
+  fNumTelsInArray=pfTelsInArray.size();
+  if(fNumTelsInArray==0)
     {
-      LoadTelescopePositionsFromList(pfDataIn->fTelescopePositionListFile,
-				     pfTelsInArray);
+      // *********************************
+      //None of the input files exists.
+      // *******************************
+      std::cout<<"ksArrayTrigger: Found no existing input files."
+	       <<std::endl;
+      exit(1);
     }
 
   // ************************************************************************
   // Build the VBF ConfigMask. Common to all VBF events
   // For 123-M2 it would be 007
   // ************************************************************************
+  std::cout<<"KAArrayEvent: Build configMask"<<std::endl;
   fCMask=toDAQMask(parseConfigMask(fConfigMask.c_str()) ); 
 
-  //VATime fFirstValidEventTime("2006-08-23 22:00:00 UTC"); 
+  // ***********************************************************************
+  // If a file with an external set of telescope array positons has been
+  // specified, replace the telescope positons with the new ones and load a
+  // new FirstValidEventTime
+  // ***********************************************************************
   VATime fFirstValidEventTime(gDefaultStartOfRunTime.c_str());
-                                            //Default if we can't find a time.
-  fNumTelsWithData=pfTelsWithData.size();
-  fNumTelsInArray=pfTelsInArray.size();
-  if(fNumTelsInArray>0)
+  if(pfDataIn->fTelescopePositionListFile!=" ")
     {
+      LoadTelescopePositionsFromList(pfDataIn->fTelescopePositionListFile,
+				     pfTelsInArray,fFirstValidEventTime);
+    }
+  else 
+    {
+                                     //Default if we can't find a time.
       if(fNumTelsWithData>0)
 	{
 	  fFirstValidEventTime = 
-	                   pfTelsWithData.at(0)->getFirstValidEventTime();
+	    pfTelsWithData.at(0)->getFirstValidEventTime();
 	}
     }
-  else
-    {
-      // *********************************
-      //None of the input files exists.
-      // *******************************
-      std::cout<<"ksArrayTrigger: Found no existing input files."<<std::endl;
-      exit(1);
-    }
-
+ 
   // *****************************************************************
   // If we do not have telescopes with data we will not loop through things
   // but we do need to create an 'empty' output file so that we can 'count' 
   // the shower in our weighting scheme.
   // *****************************************************************
 
-  // **************************************************************************
+  // ***********************************************************************
   // Open the output file. 
   // *************************************************************************
+  std::cout<<"KAArrayEvent: Open the OutPut file "<<fOutputFileName
+	   <<std::endl;
+
   if(fDataType==ROOTFILE)
     {
       // **************
@@ -1581,7 +1587,8 @@ void KSArrayEvent::LoadInputSimHeaderWithTelescopePositions()
 // ***************************************************************************
 void KSArrayEvent::LoadTelescopePositionsFromList(
 				  std::string fTelescopePositionListFile,
-				  std::vector<KSTelescope*>& pfTelsInArray)
+				  std::vector<KSTelescope*>& pfTelsInArray,
+				  VATime& FirstValidEventTime)
 // ************************************************************************
 {
   ifstream in(pfDataIn->fTelescopePositionListFile.c_str());
@@ -1594,6 +1601,15 @@ void KSArrayEvent::LoadTelescopePositionsFromList(
 	"may not exist"<<std::endl;
       exit(EXIT_FAILURE);
     }
+
+  // ********************************************************************
+  // Read in the time. Use this as first valid event time of simulation run
+  // ********************************************************************
+  std::string eventTime;
+  in>>eventTime;
+  FirstValidEventTime.setFromString(eventTime);
+
+
   // ********************************************************************
   // Read in the positions
   // ********************************************************************
@@ -1631,7 +1647,7 @@ void KSArrayEvent::LoadTelescopePositionsFromList(
   std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - Array "
     "Telescope Positions loaded from file: "
 	   <<pfDataIn->fTelescopePositionListFile<<std::endl;
-
-
+  std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - First Event "
+    "time form file is: "<<FirstValidEventTime<<std::endl;
   return;
 }

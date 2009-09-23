@@ -107,7 +107,8 @@ class KSArrayEvent
   void PrintRelativeTelescopePositions();
   void LoadInputSimHeaderWithTelescopePositions();
   void LoadTelescopePositionsFromList(std::string fTelescopePositionListFile,
-				    std::vector<KSTelescope*>& pfTelsInArray);
+				      std::vector<KSTelescope*>& pfTelsInArray,
+				      VATime& firstValidEventTime);
  public:
   bool FindTrigger();
   void SaveEvent();
