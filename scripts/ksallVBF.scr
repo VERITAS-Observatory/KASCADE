@@ -11,13 +11,6 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-#*************************************************************************
-#This version allows for explicit use of a telescope position configuration
-#file as input to ksArrayTrigger
-#****************************************************************************
-
-
-
 #KascadeEnable=enable
 #LightEnable=enable
 #PeSortMergeEnable=enable
@@ -380,7 +373,7 @@ while test $i -le $4
       fi
 
       $src/ksTrigger  -config=${ksTriggerConfig[$j]} \
-		    $MountDirectionsOption  \
+		    $MountDirectionsOption \
 		    -MountDirectionsFileName=$MDirFile \
                     -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
     fi
@@ -488,18 +481,10 @@ while test $i -le $4
         echo MultOption: $MultOption
         echo  ShowerNameOptions: $ShowerNameOptions 
     fi
-#*************************************************************************
-#  Define arrry position file name
-#
-#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampConfigurationList '  
-#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampAConfigurationList '  
-#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampBConfigurationList '  
-#
-#**************************************************************************
-
+  
     $src/ksArrayTrigger -config=$ksArrayTriggerConfig \
-               -RandomSeedFileName=ksArrayTrigger.ran $ArrayPositionsOptions \
-               $MultOption $ShowerNameOptions $VBFFileMult
+                        -RandomSeedFileName=ksArrayTrigger.ran \
+                         $MultOption $ShowerNameOptions $VBFFileMult
 
     #Remove links.
     if [ -n "$CleanupEnable" ]; then
