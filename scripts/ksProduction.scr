@@ -48,21 +48,21 @@ function Protons()
     if [ $host = $ISIS ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 #ksaomVBF ~12hr.
-#	BuildIsisScriptList 1 1 2
-#	BuildIsisScriptList 2 3 4
-#	BuildIsisScriptList 3 5 6
-#	BuildIsisScriptList 4 7 9
-#	BuildIsisScriptList 5 10 14
-#	BuildIsisScriptList 6 15 20
-#	BuildIsisScriptList 7 21 31
-#	BuildIsisScriptList 8 32 34
+#	BuildIsisScriptList 1 1   9
+#	BuildIsisScriptList 2 10 18 
+#	BuildIsisScriptList 3 19 24
+#	BuildIsisScriptList 4 25 30
+#	BuildIsisScriptList 2 31 31             #for balance
+#	BuildIsisScriptList 5 32 33
+#	BuildIsisScriptList 6 34 36
 
 	BuildIsisScriptList 1 1 10
 	BuildIsisScriptList 2 11 20
 	BuildIsisScriptList 3 21 25
 	BuildIsisScriptList 4 26 32
 	BuildIsisScriptList 5 33 37
-	BuildIsisScriptList 6 38 42
+	BuildIsisScriptList 6 38 41
+	BuildIsisScriptList 1 42 42	        #For balance
 
 #For High ksall ~ 5hrs
 #           BuildIsisScriptList 1 35 35
@@ -79,15 +79,15 @@ function Protons()
       fi
     fi
 
-#VeritasA
-    if [ $host = $VERITASA ]; then
+#Pulsar
+    if [ $host = $PULSAR ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	BuildVeritasAScriptList 1 1 10
-	BuildVeritasAScriptList 2 11 20
-	BuildVeritasAScriptList 3 21 25
-	BuildVeritasAScriptList 4 26 32
-	BuildVeritasAScriptList 5 33 37
-	BuildVeritasAScriptList 6 38 42
+	BuildPulsarScriptList 1 1 10
+	BuildPulsarScriptList 2 11 20
+	BuildPulsarScriptList 3 21 25
+	BuildPulsarScriptList 4 26 32
+	BuildPulsarScriptList 5 33 37
+	BuildPulsarScriptList 6 38 42
 
       else
 	BuildVeritasScriptList 1  1  $processEnd
@@ -119,7 +119,7 @@ function Helium4()
           end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
 #10%
-#          end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
+#         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -131,21 +131,21 @@ function Helium4()
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 #set 1 kasaomVBF ~5 hr.
-#	BuildIsisScriptList 1 6  12
-#	BuildIsisScriptList 2 13 17
-#	BuildIsisScriptList 3 18 24
-#	BuildIsisScriptList 4 25 27
-#	BuildIsisScriptList 5 28 30
-#	BuildIsisScriptList 6 31 32
-#	BuildIsisScriptList 7 33 33
-#	BuildIsisScriptList 8 34 34
+#	BuildIsisScriptList 1 6  25
+#	BuildIsisScriptList 2 26 30
+#	BuildIsisScriptList 3 31 33
+#	BuildIsisScriptList 4 34 34
+#	BuildIsisScriptList 5 35 36
+#	BuildIsisScriptList 6 36 36
+
 
 	BuildIsisScriptList 1 6  20
 	BuildIsisScriptList 2 21 30
 	BuildIsisScriptList 3 31 36
 	BuildIsisScriptList 4 37 39
-	BuildIsisScriptList 5 40 41
-	BuildIsisScriptList 6 42 42
+	BuildIsisScriptList 5 40 40
+    	BuildIsisScriptList 3 41 41     #Balance
+	BuildIsisScriptList 2 42 42     #balance
 
 #For High ksall ~ 5hrs
 #           BuildIsisScriptList 1 35 35
@@ -162,18 +162,18 @@ function Helium4()
       fi
     fi
 
-#VeritasA
-    if [ $host = $VERITASA ]; then
+#Pulsar
+    if [ $host = $PULSAR ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
-	BuildVeritasAScriptList 1 6  20
-	BuildVeritasAScriptList 2 21 30
-	BuildVeritasAScriptList 3 31 36
+	BuildPulsarScriptList 1 6  20
+	BuildPulsarScriptList 2 21 30
+	BuildPulsarScriptList 3 31 36
 	BuildVertiasAScriptList 4 37 39
-	BuildVeritasAScriptList 5 40 41
-	BuildVeritasAScriptList 6 42 42
+	BuildPulsarScriptList 5 40 41
+	BuildPulsarScriptList 6 42 42
       else
-	BuildVeritasAScriptList 1 1  $processEnd
+	BuildPulsarScriptList 1 1  $processEnd
       fi
     fi
 
@@ -225,13 +225,24 @@ function Gammas()
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #             For ksallVBF: set 1 about 24 hours <=10 TeV
-           BuildIsisScriptList 1 1  9
-           BuildIsisScriptList 2 10 24
-           BuildIsisScriptList 3 25 34
-           BuildIsisScriptList 4 35 38
-           BuildIsisScriptList 5 39 41
-           BuildIsisScriptList 6 42 44
+	    BuildIsisScriptList 1 1  4
+	    BuildIsisScriptList 2 5  9
+	    BuildIsisScriptList 3 10 15
+	    BuildIsisScriptList 4 16 24
+	    BuildIsisScriptList 5 25 32
+	    BuildIsisScriptList 6 33 34
+	    BuildIsisScriptList 7 35 35
+	    BuildIsisScriptList 8 36 36
 
+# High >10 TeV 48 hrs?
+#	    BuildIsisScriptList 1 37  37
+#	    BuildIsisScriptList 2 38  38
+#	    BuildIsisScriptList 3 39  39
+#	    BuildIsisScriptList 4 40  40
+#	    BuildIsisScriptList 5 41  41
+#	    BuildIsisScriptList 6 42  42
+#	    BuildIsisScriptList 7 43  43
+#	    BuildIsisScriptList 8 44  44
 
           else
 	    BuildIsisScriptList 1 1  $processEnd
@@ -239,42 +250,42 @@ function Gammas()
 	fi
     fi
 
-#VeritasA
-    if [ $host = $VERITASA ]; then
+#Pulsar
+    if [ $host = $PULSAR ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    BuildVeritasAScriptList 1 11 12
-	    BuildVeritasAScriptList 2 13 14
-	    BuildVeritasAScriptList 3 15 16
-	    BuildVeritasAScriptList 4 17 18
-	    BuildVeritasAScriptList 5 19 20
-	    BuildVeritasAScriptList 6 21 23
-	    BuildVeritasAScriptList 7 24 26
-	    BuildVeritasAScriptList 8 27 28
+	    BuildPulsarScriptList 1 11 12
+	    BuildPulsarScriptList 2 13 14
+	    BuildPulsarScriptList 3 15 16
+	    BuildPulsarScriptList 4 17 18
+	    BuildPulsarScriptList 5 19 20
+	    BuildPulsarScriptList 6 21 23
+	    BuildPulsarScriptList 7 24 26
+	    BuildPulsarScriptList 8 27 28
           else
-	    BuildVeritasAScriptList 1 1  $processEnd
+	    BuildPulsarScriptList 1 1  $processEnd
           fi
 	fi
 	if [ ${jobSpec:0:1} = "V" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    BuildVeritasAScriptList 1 1  9 
-	    BuildVeritasAScriptList 2 10 19
-	    BuildVeritasAScriptList 3 20 30
-	    BuildVeritasAScriptList 4 31 36
-	    BuildVeritasAScriptList 5 37 38
-	    BuildVeritasAScriptList 6 39 39
-	    BuildVeritasAScriptList 7 40 40
-	    BuildVeritasAScriptList 8 41 42
+	    BuildPulsarScriptList 1 1  9 
+	    BuildPulsarScriptList 2 10 19
+	    BuildPulsarScriptList 3 20 30
+	    BuildPulsarScriptList 4 31 36
+	    BuildPulsarScriptList 5 37 38
+	    BuildPulsarScriptList 6 39 39
+	    BuildPulsarScriptList 7 40 40
+	    BuildPulsarScriptList 8 41 42
 
           else
-	    BuildVeritasAScriptList 1 1  $processEnd
+	    BuildPulsarScriptList 1 1  $processEnd
           fi
 	fi
     fi
 
 #AMDAHL
     if [ $host = $AMDAHL ]; then
-        SubmitAmdahlPBSScripts 35 44 
+     SubmitAmdahlPBSScripts 35 42 
 	SubmitAmdahlPBSScripts 23 34 
 	SubmitAmdahlPBSScripts 1  22 
     fi
@@ -343,7 +354,7 @@ function BuildIsisScriptList()
 }
 
 
-function BuildVeritasAScriptList()
+function BuildPulsarScriptList()
 #**********************************************************************
 # Causes sub-script list to be created and run
 #**********************************************************************
@@ -414,7 +425,7 @@ fi
 
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
-VERITASA=analysis
+PULSAR=analysis
 
 if [ $host = $ISIS ] ; then
     if test ${lcl:1:4} = "disk"
@@ -437,10 +448,10 @@ if [ $host = $ISIS ] ; then
     done
 fi
 
-if [ $host = $VERITASA ] ; then
+if [ $host = $PULSAR ] ; then
     dataDirBase=/usr/local/data/sembrosk/simulations
     workingDir=/tmp/sembrosk/
-    nID=([1]=0 3 4 0 1 1 2 2 3 4 5 5 )
+    nID=([1]=4 4 5 5 0 0 0 0 1 3 1 3)
     #Initialze all the possible script files
     let jobNum=1
     while test $jobNum -le $lastJob
@@ -470,11 +481,11 @@ fi
 user=$USER
 
 #Specify queues
-#queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
+queues=([1]=workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq workq  workq workq workq workq)
 
 #queues=([1]=astro workq astro workq astro workq astro workq astro workq astro  workq astro workq astro workq astro workq astro workq astro workq astro workq  astro workq astro workq astro workq astro workq astro workq astro astro workq astro workq astro workq astro workq astro workq astro workq astro workq astro )
 
-queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro )
+#queues=([1]=astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro astro  astro astro astro astro )
 
 #queues=([1]=astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro workq astro astro astro astro workq astro astro workq astro astro workq astro astro  workq astro astro workq astro )
 
@@ -570,8 +581,8 @@ if [ $host = $ISIS ]; then
     done
 fi
 
-#VeritasA
-if [ $host = $VERITASA ]; then
+#Pulsar
+if [ $host = $PULSAR ]; then
 
     let jobNum=1
     while test $jobNum -le $lastJob
