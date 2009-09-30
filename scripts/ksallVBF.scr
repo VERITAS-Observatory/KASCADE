@@ -481,10 +481,17 @@ while test $i -le $4
         echo MultOption: $MultOption
         echo  ShowerNameOptions: $ShowerNameOptions 
     fi
+#########################################################################
+#This is where we can specify an external mount position file
+#########################################################################
+#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampConfigurationList '  
+#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampAConfigurationList '  
+#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampBConfigurationList '  
+##########################################################################
   
     $src/ksArrayTrigger -config=$ksArrayTriggerConfig \
-                        -RandomSeedFileName=ksArrayTrigger.ran \
-                         $MultOption $ShowerNameOptions $VBFFileMult
+               -RandomSeedFileName=ksArrayTrigger.ran $ArrayPositionsOptions \
+               $MultOption $ShowerNameOptions $VBFFileMult
 
     #Remove links.
     if [ -n "$CleanupEnable" ]; then
