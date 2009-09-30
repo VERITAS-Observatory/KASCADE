@@ -23,16 +23,20 @@ bool fHaveSimBranch;
 //Stings for Combined tree.
 std::string fCTreeName="SelectedEvents/CombinedEventsTree";
 std::string fHBranch="Tel";
+std::string fPass2Cut=" ";
 
-bool fSizeCut=true;
-std::string fNumMinPixels="5";
 
-//bool fSizeCut=false;
-//std::string fNumMinPixels="3";
+//bool fSizeCut=true;
+//std::string fNumMinPixels="5";
+
+bool fSizeCut=false;
+std::string fNumMinPixels="3";
 
 //std::string fTrigCut="(Tel1.fIsL2Triggered!=0)";
 //std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
 //std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
+//std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1&&S.fEnergy_GeV<5000)";
+//std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1&&S.fEnergy_GeV<5000)";
 std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
 std::string fPlotOption=" ";
 
@@ -43,6 +47,7 @@ bool useCutMask=false;
 //std::string fCTreeName="CTree"
 //std::string fHBranch="HT";
 //std::string fTrigCut="(HT1.fIsL2Trigger+HT2.fIsL2Trigger+HT3.fIsL2Trigger>1)";
+
 
 
 
@@ -325,6 +330,37 @@ void  FillShowerPlots(std::string RunName, int fRun)
 
    return;
 }
+void CompareCuts(std::string RunName, std::string secondPassCut, 
+		 std::string Tel)
+{
+  
+
+  pfR1Width=new TH1F*[5];
+  pfR1Length=new TH1F*[5];
+  pfR1Size=new TH1F*[5];
+  pfR1Max3=new TH1F*[5];
+  pfR1LOverS=new TH1F*[5];
+  pfR1NPixels=new TH1F*[5];
+
+  gStyle->SetOptStat(kFALSE);
+
+  fC1 = new TCanvas("fC1","Hillas Params ");
+  
+  pfRunNames[0]=RunName;
+  pfRunNames[1]=RunName;
+  pfTels[0]=Tel;
+  pfTels[1]=Tel;
+  int fNumPlots=2;
+
+  fPass2Cut= " && " + secondPassCut;
+  
+  CompareRuns(pfRunNames,fNumPlots,pfTels);
+  return;
+} 
+
+
+
+
 
 void CompareTels(std::string fTels, std::string fRunName,  
 		 std::string fMCRunName=" ")
@@ -445,11 +481,11 @@ void DetermineTriggerRates(std::string RunName, std::string Tel,int fRun)
   std::string M2cuts;
   if(fSizeCut)
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " + fHBranch + Tel+ ".fSize>400 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels;
+      cuts = fHBranch + Tel +".fIsL2Triggered && " + fHBranch + Tel+ ".fSize>400 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels+ " && " + fTrigCut;
     }
   else
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>="+ fNumMinPixels;
+      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>="+ fNumMinPixels + " && " + fTrigCut;
     }
 
   TFile Run (RunName.c_str());
@@ -478,10 +514,11 @@ void DetermineTriggerRates(std::string RunName, std::string Tel,int fRun)
   
   // *******************************************************************
   // Now M2 rates after cuts
-  std::string M2cuts="(Tel1.fSize>400&&Tel1.fPixelsInImage>=5 +"
-    "Tel2.fSize>400&&Tel2.fPixelsInImage>=5 +"
-    "Tel3.fSize>400&&Tel3.fPixelsInImage>=5 +"
-    "Tel4.fSize>400&&Tel4.fPixelsInImage>=5)>1";
+  //  std::string M2cuts="(Tel1.fSize>400&&Tel1.fPixelsInImage>=5 +"
+  // "Tel2.fSize>400&&Tel2.fPixelsInImage>=5 +"
+  // "Tel3.fSize>400&&Tel3.fPixelsInImage>=5 +"
+  // "Tel4.fSize>400&&Tel4.fPixelsInImage>=5)>1";
+  std::string M2cuts= "Sim.fEnergyGeV==Sim.fEnergyGeV";
   if(R1->GetBranch("Sim")==NULL)
     {
 
@@ -501,7 +538,7 @@ void DetermineTriggerRates(std::string RunName, std::string Tel,int fRun)
       std::cout<<fCuts<<std::endl;
       TH1F* pInt = new TH1F("pInt","int rate",100,0,40000);
       R1->Draw("Sim.fEnergyGeV>>pInt",fCuts.c_str());
-      cout<<"Overall Trigger rate(Hz): for T"<<Tel<<": "<<pInt->Integral()
+      cout<<"Overall Trigger rate(Hz): "<<pInt->Integral()
 	  <<endl;
     }
 
@@ -526,7 +563,7 @@ void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
       cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels + " && " + fTrigCut;
     }
 
-  std::cout<<"cuts:"<<cuts<<std::endl;
+
 
 
   TFile Run (RunName.c_str());
@@ -539,6 +576,7 @@ void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
   if(fRun==1)
     {
       fColor=kGreen;
+      cuts = cuts+ fPass2Cut;
     }
   if(fRun==2)
     {
@@ -548,6 +586,7 @@ void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
     {
       fColor=kBlue;
     }
+  std::cout<<"cuts:"<<cuts<<std::endl;
 
   //Width plots
   std::string title = "Width";

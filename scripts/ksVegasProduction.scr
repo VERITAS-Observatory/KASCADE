@@ -1,23 +1,20 @@
 #!/bin/bash
 
 #This runs first 5 vegas stages on normal file  files;
-#$1 .cvbf or .root file to process. (Ex. /VData/33619.cvbf)
-#$2 .cvbf Laser file           (Ex. /VData/33616.cvbf)
-#$3 Vegas base dir path: Used when you want vegas from a different directory 
-#            than what VEGAS is set to in .bashrc (or equivalent)
+#$1 VBF file to process. (Ex. /VData/33619.cvbf)
+#$2 Laser file           (Ex. /VData/33616.cvbf)
 
-Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Laser=enable
+#Stage1Data=enable
+#Stage2=enable
 
-#Stage4_2=enable
-#Stage5=enable
+Stage4_2=enable
+Stage5=enable
 
 ##############################################################################
 #Configurable options:
  #Stage1:
   #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
-  PointingCorrectionOption='-G_ReplaceTrackingParameters=TrackingCorr_T1_2007112toNOW,TrackingCorr_T2_2007112toNOW,TrackingCorr_T3_2007112toNOW,TrackingCorr_T4_2007112toNOW'
 
 ###############################################################################
 
@@ -34,100 +31,49 @@ Stage2=enable
   #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
- FileBase="NK_10CutsDenyT1T4CLt.root"  #Extention to put on the end of the stages 4-5 ouput 
+ FileBase="SSSoftCuts.root"  #Extention to put on the end of the stages 4-5 ouput 
                         #files. 
                         #Differntiates between various cutfile posibilities. 
                         #EX:"NCut.root" or "ZCut.root" or "ZDenyT1T4.root" etc 
 
-  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   DenyTelescopeOption='-TelCombosToDeny=T1T4'
   #SeperationAngleCutOption='-GC_SeparationCut=16'
-  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
+  WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
-  QualityCuts='-cuts=QualityStdCuts'
-  #QualityCuts='-cuts=QualityJWCuts'
+  QualityCuts='-cuts=QualitySSSoftCuts'
+  Table=LookupTableSSSoftCuts.root  #Lookup table name
 
-  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
-  Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
-  #Table=LookupTable6.85StdCutsDenyANY2.root
-  #Table=LookupTable4.97StdCutsDenyT1T4.root
-  #Table=LookupTableAllStdCutsDenyANY2Mean.root   #Works for STD and JW and NKCuts
-  #Table=LookupTableAllStdCutsDenyANY2Median.root   #Works for STD and JW and NKCuts
 ##############################################################################
 
 #Stage5
-# ShowerCutsBaseFile=ShowerCutsStd	  
-  ShowerCutsBaseFile=ShowerCutsNK_10	  
-#ShowerCutsBaseFile=ShowerCutsJW	  
-  #File specfication for testing 
+  ShowerCuts='-cuts=ShowerCutsSSSoft'  #File specfication for testing 
             #for events to be used in SkyMap analysis(real and backgorund)
             # in the combined tree for setting CutMask flag in combined tree 
             #(all events are still included in the tree)
             #Has no theta2 cut
 
-ShowerCutsOption='-cuts=ShowerCutsFile'
-#SpecialCutsFile=SSSpecialCutsFile
-
-
-#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-#OutputTreeOptions='-Method=combined'
-OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
-
-
 #############################################################################
-
-function makeShowerCutsFile()
-{
- if [ -e  $ShowerCutsBaseFile ] ; then
-
-   cp $ShowerCutsBaseFile ShowerCutsFile
-   if [ -n "$SpecialCutsFile" ] ; then
-    {
-      while read RunFile Opt OptValue; do
-        if [ "$RunFile" = "$RootFileName" ] ; then
-	    echo $Opt' '$OptValue >> ShowerCutsFile
-        fi  
-      done
-     } < $SpecialCutsFile
-   fi
- fi
-}
-
 
 
 #Now process the file:
-
-if [ -n "$3" ]; then
-    VEGASORIG=$VEGAS
-    VEGAS=$3
-    export VEGAS=$VEGAS
-    echo VEGAS: $VEGAS
-fi
-
 
 VBFLSRFileName=$2
 LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
 LSRRootFileName=${LSRRootFile##*/}
 if [ -n "$Stage1Laser" ]; then
-    $VEGAS/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
+    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
                                                               $LSRRootFileName
 fi
 
 
 VBFFileName=$1
-
-File=${VBFFileName%".root"}'.root' #allow .root or .cvbf file names on input
-if [ "$File" = "$VBFFileName" ]; then
-    VBFFileName=${VBFFileName%".root"}'.cvbf'
-fi
-
 RootFile=${VBFFileName%".cvbf"}'.root'
 RootFileName=${RootFile##*/}
 
 if [ -n "$Stage1Data" ]; then
-    $VEGAS/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
-    $PointingCorrectionOption $VBFFileName $RootFileName
+    $VEGASBASE/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
+    $VBFFileName $RootFileName
 fi
 
 echo VBFFileName: $VBFFileName
@@ -135,7 +81,7 @@ echo RootFileName: $RootFileName
 echo LSRRootFileName: $LSRRootFileName
 
 if [ -n "$Stage2" ]; then
-    $VEGAS/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
+    $VEGASBASE/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
     $WindowWidthOption $EnableImageTimingOption $VBFFileName \
     $RootFileName $LSRRootFileName
 fi
@@ -146,22 +92,29 @@ CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
 
-LookUpTableDir=$VEGAS'/showerReconstruction2/tables/KASCADE'
 
+host=$(hostname)
+ISIS=isis.depauw.edu
 
+if test $host = $ISIS 
+ then
+    LookUpTableDir=/veritas/local/vegas/showerReconstruction2/tables/KASCADE
+ else
+    LookUpTableDir=/home/sembrosk/vegas/showerReconstruction2/tables/KASCADE
+fi
 
 if [ -n "$Stage4_2" ]; then
 	echo copy stage2 root file:
 	cp -v $RootFileName $CutRootFileName
 	echo Table: $LookUpTableDir/$Table
-	echo Command: $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+	echo Command: $VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 
 
-	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+	$VEGASBASE/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
@@ -169,13 +122,8 @@ if [ -n "$Stage4_2" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
-    makeShowerCutsFile
-    $VEGAS/bin/vaStage5 $OutputTreeOptions -inputFile=$CutRootFileName \
-	$ShowerCutsOption
+    $VEGASBASE/bin/vaStage5  -Method=combined -inputFile=$CutRootFileName \
+	$ShowerCuts
 fi
 
 
-if [ -n "$3" ]; then
-    VEGAS=$VEGASORIG
-    export VEGAS=$VEGAS
-fi
