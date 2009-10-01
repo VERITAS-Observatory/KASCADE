@@ -35,8 +35,13 @@ echo hostname: $host
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 IO=io.physics.purdue.edu
-VERITASA=analysis
+PULSAR=analysis
+NODE00=node00.cluster
+NODE01=node01.cluster
 NODE02=node02.cluster
+NODE03=node03.cluster
+NODE04=node04.cluster
+NODE05=node05.cluster
 
 
 if [ $host = $AMDAHL ] ; then
@@ -60,7 +65,7 @@ if [ $host = $IO ] ; then
     dstDir=$Disk/simulations
 fi
 
-if [ $host = $VERITASA ] ||  [ $host = $NODE02 ] ; then
+if [ $host = $PULSAR ] ||  [ $host = $NODE00 ]  ||  [ $host = $NODE01 ] ||  [ $host = $NODE02 ] ||  [ $host = $NODE03 ] ||  [ $host = $NODE04 ] ||  [ $host = $NODE05 ]; then
     dataDirBase=/usr/local/data/sembrosk/simulations  
     dstDir=/usr/local/data/sembrosk/simulations
 fi

@@ -1,53 +1,59 @@
-
-#$1: Zenith angle Ex: 20
-#$2: start direction Index. defualt is 0. 
-#   If $2 not null files coppied gamma/...1234M2
+#$1 is PSF sub_dir  Ex: V330 or V190
+#$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 20_180Deg
+#$3: Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
+#$4: Sub dir at UCLA to put resulting VBF files. Like Oct1_2009.
+#$5: start direction Index. defualt is 0. 
+#   If $5 not null files coppied gamma/...1234M2
 lcl=$PWD
 echo Argument1: $1
 echo Argument2: $2
+echo Argument3: $3
+echo Argument4: $4
+echo Argument5: $5
 
 
-Base=CrabA
-echo BaseName: $Base
-UCLASubDir=CrabJuly20_2008/
+Base=$3
 
-if  [ -z "$1" ]
+UCLASubDir=$4
+
+if  [ -z "$4" ]
 then
- echo Fatal-Please supply arguments Ex: ./GProcessAll 40 
- echo or ./GProcessAll 20_180 5
+ echo Fatal-Please supply all arguments Ex: ./GProcessAll V190 40_180Deg Noise3_5 Oct1_2009  
+
  exit
 fi
 
 cd $lcl/gammas
 
-if  [ -z "$2" ] ; 
+if  [ -z "$5" ] ; 
 then
-
-  if test -e ./gammas/VG$1'Deg2D50mv1234M2' ;
+  if test -e ./gammas/$1'/VG'$2'2D50mv1234M2' ;
   then
-       echo Fatal-VG$1'Deg2D50mv1234M2 exists. You may want to rename it.'
+       echo 'Fatal-'$1'/VG'$2'2D50mv1234M2 exists. You may want to rename it.'
        exit
   fi
-
   let i=0;
 else
-
-  let i=$2
+  let i=$5
 fi
 
 echo i start: $i
 
-mkdir -p VG$1'Deg2D50mv1234M2'
-mkdir -p VG$1'Deg2D50mv'$Base
+ArrayDir='VG'$2'2D50mv1234M2'
+SingleDir='VG'$2'2D50mv'
 
-ls | grep 1234M2 | grep vbf|grep $1 |xargs -n1 mv -v --target=VG$1'Deg2D50mv1234M2'
+mkdir -pv $ArrayDir
+mkdir -pv $SingleDir
 
-ls | grep vbf |grep $1 | xargs -n1 mv -v --target=VG$1'Deg2D50mv'$Base
+ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target=$ArrayDir
+
+ls | grep vbf |grep $2 | xargs -n1 mv -v --target=$SingleDir
 
 host=$(hostname)
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
-VERITASA=analysis
+PULSAR=analysis
+NODE00=node00.cluster
 
 echo host: $host
 
@@ -62,7 +68,7 @@ while test $i -le $end
     if [ $host = $ISIS ] ; then
          cd /veritas/local/veritas
     fi
-    if [ $host = $VERITASA ] ; then
+    if [ $host = $PULSAR ] || [ $host = $NODE00 ] ; then
          cd /usr/local/data/sembrosk/veritas
     fi
     if [ $host = $AMDAHL ] ; then
@@ -70,7 +76,7 @@ while test $i -le $end
     fi
 
 
-    ./ksWeRock.scr VG$1'Deg2D50mv' 98020 1234M2 $direction
+    ./ksWeRock.scr $SingleDir 98020 1234M2 $direction
 
     cd $lcl
     if test $direction = '0'
@@ -110,22 +116,26 @@ while test $i -le $end
        wbl=S2.0Wbl
     fi
 
-    VBFFile=$Base'GammaRay'$1'Deg2D'$wbl'50mv1234M2.vbf'
-    VBFFilebz2=$Base'GammaRay'$1'Deg2D'$wbl'50mv1234M2.vbf.bz2'
-    ROOTFile=$Base'GammaRay'$1'Deg2D'$wbl'50mv1234M2.root'
+    VBFFile=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.vbf'
+    VBFFilebz2=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.vbf.bz2'
+    ROOTFile=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.root'
 
-    mv  -v VG$1Deg2D50mv1234M2.vbf $VBFFile
+    mv  -v $ArrayDir'.vbf' $VBFFile
 
-    ./ksVegasSimProduction.scr $VBFFile
+   # ./ksVegasSimProduction.scr $VBFFile
 
     bzip2 -vk $VBFFile
 
-    bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu
+    if [ $host != $AMDAHL ] ; then 
+	bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu
 
-    bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu 
+        bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu 
+    fi
 
    i=$((i+1))			#do next directoion
 done
 
-cd $lcl/gammas 
-mv VG$1'Deg2D50mv1234M2' VG$1'Deg2D50mv1234M2'$Base
+cd $lcl'/gammas/'$1
+
+mv ../$ArrayDir  $1'/'$Base'/'$ArrayDir
+mv ../$SingleDir $1'/'$Base'/'$SingleDir
