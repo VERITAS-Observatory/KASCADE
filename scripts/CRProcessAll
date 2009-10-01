@@ -1,0 +1,49 @@
+
+#$1 is PSF sub_dir  Ex: V330 or V190
+#$2 Zn_AZ and threshold specification EX: 20Deg50mv  (if az=0) or 20_180Deg50mv
+#$3 Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
+
+echo PSF Sub_dir: $1
+echo ZN_AzThreshold: $2
+
+if test -z $3 ;
+then
+ echo Fatal-Please supply all arguments Ex: ./Process V190 20Deg50mv Noise3_5
+ exit
+fi
+
+VBFFile=$3'CosmicRay'$2'1234M2.vbf'
+echo Output File Name: $VBFFile
+
+
+cd /simulations/veritas/protons
+
+#mkdir -pv $1'/VP'$2
+mkdir -pv 'VP'$2'1234M2'
+
+ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target='VP'$2'1234M2'
+#ls | grep vbf |grep $2 | xargs -n1 mv -v --target=$1'/VP'$2
+
+cd /simulations/veritas/he4
+#mkdir -pv $1'/VHe4_'$2
+mkdir -pv 'VHe4_'$2'1234M2'
+
+ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target='VHe4_'$2'1234M2'
+#ls | grep vbf |grep $2 | xargs -n1 mv -v --target=$1'/VHe4_'$2
+
+cd /veritas/local/veritas
+./ksWeRock.scr 'VCR'$2 98020 1234M2
+
+cd /simulations/veritas
+mv  'VCR'$2'1234M2.vbf' $VBFFile
+
+cd /simulations/veritas/protons
+mv 'VP'$2'1234M2' './'$1'/'$3'VP'$2'1234M2'
+
+cd /simulations/veritas/he4
+mv 'VHe4_'$2'1234M2' './'$1'/'$3'VHe4_'$2'1234M2'
+
+
+cd /simulations/veritas
+./ksVegasSimProduction.scr $VBFFile
+
