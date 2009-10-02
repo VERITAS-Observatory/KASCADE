@@ -164,7 +164,7 @@ fi
 
 
 if [ -n "$Stage2" ]; then
-    $VEGAS/bin/vaStage2  -G_SimulationMode=1 $BadPixelOption \
+    $VEGAS/bin/vaStage2  -G_SimulationMode=1  \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
         $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
@@ -177,7 +177,7 @@ LookUpTableDir=$VEGAS/showerReconstruction2/tables/KASCADE
 
 if [ -n "$Stage4_2" ]; then
      cp -v $RootFileName $CutRootFileName
-     echo ET: $LookUpTableDir/$ETable
+     echo ET: $LookUpTableDir/$Table
      $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
 	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
