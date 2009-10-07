@@ -123,7 +123,10 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	    pfTelsWithData.at(0)->getFirstValidEventTime();
 	}
     }
- 
+  fGPSYear=(uint8_t)(fFirstValidEventTime.getYear()-2000);
+
+
+
   // *****************************************************************
   // If we do not have telescopes with data we will not loop through things
   // but we do need to create an 'empty' output file so that we can 'count' 
@@ -649,7 +652,7 @@ void KSArrayEvent::SaveEvent()
       pfAT->setEventNumber(fOutEventIndex);
       pfAT->setRunNumber(fRunNumber);
       uint16_t fGPSWords[5];
-      uint8_t  fGPSYear=6;   
+      //uint8_t  fGPSYear=6;   
       fEventTime.getForVBF(fGPSYear,5,fGPSWords);
 			  // SEtGPS Time, I know it looks like a get but its 
 			  //not
@@ -981,7 +984,7 @@ void KSArrayEvent::SavePedestalEvent()
 
 
       uint16_t fGPSWords[5];
-      uint8_t  fGPSYear=6;   
+      //uint8_t  fGPSYear=6;   
       fEventTime.getForVBF(fGPSYear,5,fGPSWords);
 			  // SEtGPS Time, I know it looks like a get but its 
 			  //not

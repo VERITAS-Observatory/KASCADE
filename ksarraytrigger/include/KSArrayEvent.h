@@ -89,6 +89,7 @@ class KSArrayEvent
 
   VATime fEventTime;
   int fOutEventIndex;
+  uint8_t  fGPSYear; 
 
   KSArrayVDFFile* pfVDFOut;
   KSArrayVBFFile* pfVBFOut;
