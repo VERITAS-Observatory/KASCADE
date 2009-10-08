@@ -1608,8 +1608,12 @@ void KSArrayEvent::LoadTelescopePositionsFromList(
   // ********************************************************************
   // Read in the time. Use this as first valid event time of simulation run
   // ********************************************************************
-  std::string eventTime;
-  in>>eventTime;
+  std::string baseDate;
+  std::string baseTime;
+  std::string base;
+
+  in>>baseDate>>baseTime>>base;
+  std::string eventTime=baseDate + " " + baseTime + " " + base;
   FirstValidEventTime.setFromString(eventTime);
 
 
