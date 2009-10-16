@@ -16,7 +16,7 @@
 #Ex ./ksWeRock.scr VG1Deg50mv 95002 8
 #Ex../ksWeRock.scr VCRA10Deg50mv 96010 1234M2
 
-CleanupEnable=enable
+#CleanupEnable=enable
 DebugPrintEnable=enable
 
 inpDir=$KASCADEBASE'/inputs'
@@ -35,13 +35,8 @@ echo hostname: $host
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 IO=io.physics.purdue.edu
-PULSAR=analysis
-NODE00=node00.cluster
-NODE01=node01.cluster
+VERITASA=analysis
 NODE02=node02.cluster
-NODE03=node03.cluster
-NODE04=node04.cluster
-NODE05=node05.cluster
 
 
 if [ $host = $AMDAHL ] ; then
@@ -65,7 +60,7 @@ if [ $host = $IO ] ; then
     dstDir=$Disk/simulations
 fi
 
-if [ $host = $PULSAR ] ||  [ $host = $NODE00 ]  ||  [ $host = $NODE01 ] ||  [ $host = $NODE02 ] ||  [ $host = $NODE03 ] ||  [ $host = $NODE04 ] ||  [ $host = $NODE05 ]; then
+if [ $host = $VERITASA ] ||  [ $host = $NODE02 ] ; then
     dataDirBase=/usr/local/data/sembrosk/simulations  
     dstDir=/usr/local/data/sembrosk/simulations
 fi
@@ -145,7 +140,18 @@ if [ ${Spec:1:2} = "CR" ] ; then
    He4spec=$TelSpec'He4_'${Spec#*CR$TypeSpc} #Replace CR with He4_
    He4DirSpec=$TelSpec'He4_'${Spec#*CR}
 
-   find $dataDirBase/protons/$PDirSpec$ArConfig/ -name $Pspec$ArConfig'GeV*.vbf'  >CRList
+   echo dataDirBase: $dataDirBase 
+   echo PDirSpec:    $PDirSpec
+   echo ArConfig:    $ARConfig
+   echo Pspec:       $Pspec
+   DirP=$dataDirBase/protons/$PDirSpec$ArConfig/   
+   echo DirP:        $DirP	
+   FileP=$Pspec$ArConfig'GeV*.vbf'
+   echo FileP:       $FileP
+
+   find $DirP -name $FileP  >CRList
+
+   #cat CRList
 
    find $dataDirBase/he4/$He4DirSpec$ArConfig/ -name $He4spec$ArConfig'GeV*.vbf'    >>CRList
    gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
@@ -161,8 +167,10 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 			    #last second  + process id.
 
 #This is normal version 
+#EnableDebugPrintOption=-EnableDebugPrint
+
      $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting  \
-	                   -RunNumber=$2 \
+	                   -RunNumber=$2 $EnableDebugPrintOption \
                        	   -OutputVBFFileName=$dstDir/$Spec$ArConfig.vbf \
 			   $DirIndexOption \
                            ShowerList 
