@@ -173,6 +173,15 @@ int main(int argc, char** argv)
 	  fDistributeEnergy=true;
 	}
 
+      bool fDebugPrintEnable=false;
+      if(command_line.find("EnableDebugPrint",
+			   "Enables printing of the name of each run file as "
+			   "it is opened. Used to find bad files.")
+	 == VAOptions::FS_FOUND)
+	{
+	  fDebugPrintEnable=true;
+	}
+
       
       std::string fRandomSeedFileName;
       if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
@@ -501,7 +510,7 @@ int main(int argc, char** argv)
       if(!fListIn2)
 	{
 	  std::cout<<"ksSumFiles:Failed to open Input List file: "
-<<ListFileName
+		   <<ListFileName
 		   <<std::endl;
 	  return 0;
 	}
@@ -545,8 +554,10 @@ int main(int argc, char** argv)
 	      // ************************************************************
 	   
 	      fVBFFileName= fInputFile + ".vbf";
-	      //std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
-	      
+	      if(fDebugPrintEnable)
+		{
+		  std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
+		}
 	      pfReader = new VBankFileReader(fVBFFileName);
 	      fNumVBFArrayEvents = pfReader->numPackets()-1;
 	      fNumArrayEvents=fNumVBFArrayEvents;
@@ -651,7 +662,10 @@ int main(int argc, char** argv)
 		      // Now we need a first event time to use. Use first 
 		      // event time in the first event in the first file
 		      // ******************************************************
-		      //std::cout<<"fVBFFileNmae: "<<fVBFFileName<<std::endl;
+		      if(fDebugPrintEnable)
+			{
+			  std::cout<<"fVBFFileName: "<<fVBFFileName<<std::endl;
+			}
 		      if(!pfReader->hasPacket(1))
 			{
 			  std::cout<<"ksSumFiles: Missing packet #1. File: "
