@@ -33,11 +33,11 @@ bool fSizeCut=false;
 std::string fNumMinPixels="3";
 
 //std::string fTrigCut="(Tel1.fIsL2Triggered!=0)";
-//std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
+std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
 //std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
 //std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1&&S.fEnergy_GeV<5000)";
 //std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1&&S.fEnergy_GeV<5000)";
-std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
+//std::string fTrigCut="(Tel4.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered>1)";
 std::string fPlotOption=" ";
 
 bool useCutMask=false;
@@ -481,7 +481,7 @@ void DetermineTriggerRates(std::string RunName, std::string Tel,int fRun)
   std::string M2cuts;
   if(fSizeCut)
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " + fHBranch + Tel+ ".fSize>400 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels+ " && " + fTrigCut;
+      cuts = fHBranch + Tel +".fIsL2Triggered && " + fHBranch + Tel+ ".fSize>200 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels+ " && " + fTrigCut;
     }
   else
     {
@@ -556,7 +556,7 @@ void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
   std::string cuts;
   if(fSizeCut)
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fSize>400 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels;
+      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fSize>200 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels;
     }
   else
     {
