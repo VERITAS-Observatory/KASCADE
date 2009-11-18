@@ -35,7 +35,13 @@ const int    gNightSkyWaveFormNS[2]      = {        1000,        3000};
 const double gElectronicNoiseSigmaPe[2]  = {         .28,         0.0};
 //const double gElectFADCNoiseSigmaDC[2]   = {         .49,         0.0};
 const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
-const int    gFADCNumSamples[2]          = {          24,          10};
+
+//pre OCT 2009
+//const int    gFADCNumSamples[2]          = {          24,          10};
+
+//Oct 2009:
+const int    gFADCNumSamples[2]          = {          20,          10};
+
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
 const double gRealDataSinglePeDC[2]      = {        5.00,        10.0};
@@ -43,8 +49,11 @@ const double gRealDataSinglePeDC[2]      = {        5.00,        10.0};
 //charge integeration. 
 const double gFADCTOffsetNS[2]           = {        10.0,          9.0};
 
-//Start pulse at sample 5(back up 4 more bins)
-const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
+//Pre Oct 2009 Start pulse at sample 5(back up 4 more bins)2ns/bin
+//const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
+
+//Oct 2009 Start pulse at sample 4(back up 5 more bins)2ns/bin
+const double gFADCWindowOffsetNS[2]      = {        10.0,         8.0};
 
 const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
 
