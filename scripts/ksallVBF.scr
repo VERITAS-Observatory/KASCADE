@@ -487,6 +487,7 @@ while test $i -le $4
 #      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampConfigurationList '  
 #      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampAConfigurationList '  
 #      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampBConfigurationList '  
+      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BaseCampFall2009ConfigurationList'  
 ##########################################################################
   
     $src/ksArrayTrigger -config=$ksArrayTriggerConfig \
