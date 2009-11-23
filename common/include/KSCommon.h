@@ -49,11 +49,14 @@ const double gRealDataSinglePeDC[2]      = {        5.00,        10.0};
 //charge integeration. 
 const double gFADCTOffsetNS[2]           = {        10.0,          9.0};
 
-//Pre Oct 2009 Start pulse at sample 5(back up 4 more bins)2ns/bin
-//const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
+//Oct 2009 Start pulse at sample 4(skip 3 more bins)2ns/bin
+const double gFADCWindowOffsetNS[2]      = {         6.0,         8.0};
 
-//Oct 2009 Start pulse at sample 4(back up 5 more bins)2ns/bin
-const double gFADCWindowOffsetNS[2]      = {        10.0,         8.0};
+//Pre Oct 2009 Start pulse at sample 5(skip  4 more bins)2ns/bin
+//const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
+//Start pulse at sample 6(skip 5 more bins)2ns/bin
+//const double gFADCWindowOffsetNS[2]      = {        10.0,         8.0};
+
 
 const double gFADCChargeOffsetNS[2]      = {        14.0,         0.0};
 
