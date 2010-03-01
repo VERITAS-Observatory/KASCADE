@@ -11,7 +11,7 @@
 #Stage1Data=enable
 #Stage2=enable
 
-Stage4_2=enable
+#Stage4_2=enable
 Stage5=enable
 
 
@@ -51,7 +51,7 @@ Stage5=enable
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="StdCutsDenyANY2.root"  #Extension to put on the end of the stages 4-5 
+  FileBase="StdCutsDenyT1T4.root"  #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
@@ -68,10 +68,14 @@ Stage5=enable
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'         #default is 7
   #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
   DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   QualityCuts='-cuts=QualityStdCuts'
 
-  Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
+  #Table=KLT_AllPedVarStdCutsFall09.root
+  Table=KLT_AllPedVarStdCutsDenyANY2Fall09.root
+  #Table=KLT_AllPedVar0809Noise3_5StdCutsDenyT1T4.root
+  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
   #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
   #Table=LookupTableAllStdCutsDenyANY2Mean.root   #Works for STD and JW and NKCuts
   #Table=LookupTableAllStdCutsDenyANY2Median.root   #Works for STD and JW and NKCuts
@@ -102,8 +106,8 @@ Stage5=enable
 #SpecialCutsFile=SSSpecialCutsFile    
 
 #OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-#OutputTreeOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
-OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
+OutputTreeOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
+#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
 
 #############################################################################
