@@ -398,7 +398,7 @@ c	Save version for header file.
 	   if(ksdebna(i).eq.1)then
 	      debena(i)=.true.
 	   else
-	      debena=.false.
+	      debena(i)=.false.
 	   endif
 	enddo
 
@@ -579,7 +579,7 @@ c                                   of everything.
 	call kscharstring2cout(trim(coutstring)//char(0))
 ! ***************************************************************************
 
-        return;
+        return
 
 	END
 ! ***************************************************************************
@@ -2416,7 +2416,7 @@ c	Put it into the stack
 !SPIN 0 and SPIN 1/2
 !***************************************************************************
 	elseif((ispec.ge.4.and.ispec.le.10.and.ispec.ne.6).or.
-	1 ispec.eq.13.or.ispec>20)then
+	1 ispec.eq.13.or.ispec.gt.20)then
                                      !muons+/-(1/2),pi+/-(0),kaon+/-(0)
                                      !protons(1/2)
                                      !Heavy ions(A=even:spin=0, A=odd:spin 1/2)
@@ -2714,21 +2714,21 @@ c                                   DEPENDENT RK
          a=ia
                          !Correct our formula for elements up to a=56(Fe)
                          !which is as high as NUC_LIB goes.
-         if(ia==18)then	  !Force Oxygen isotope
+         if(ia.eq.18)then	  !Force Oxygen isotope
 	    qz=8
-	 elseif(ia==24)then
+	 elseif(ia.eq.24)then
             qz=12         !Force Magnesium
-         elseif(ia==28)then
+         elseif(ia.eq.28)then
             qz=14         !Force silicon
-         elseif(ia==32)then
+         elseif(ia.eq.32)then
             qz=16         !Force Sulpher
-         elseif(ia==33)then
+         elseif(ia.eq.33)then
             qz=16         !Force Sulpher
-         elseif(ia==35)then
+         elseif(ia.eq.35)then
             qz=17         !Force Chlorine
-         elseif(ia==39)then
+         elseif(ia.eq.39)then
             qz=19         !Force Potassium
-         elseif(ia==40)then
+         elseif(ia.eq.40)then
             qz=18         !Force Argon !Could have been calcium 40.
             if(first_argon)then
 	       write(coutstring,3003)
@@ -2737,7 +2737,7 @@ c                                   DEPENDENT RK
                 call kscharstring2cout(trim(coutstring)//char(0))
                first_argon=.false.
             endif
-         elseif(a==56)then
+         elseif(a.eq.56)then
             qz=26         !Force Iron.
          else
             qz=anint(a/(1.98+0.0155*(a**(2./3.)))) 	!Use nearest integer 
@@ -2745,14 +2745,14 @@ c                                   DEPENDENT RK
          endif
 
 !First determine pairing mass term
-         if(mod(qz,2)==0)then
-            if(mod(ia,2)==0)then
+         if(mod(qz,2).eq.0)then
+            if(mod(ia,2).eq.0)then
                pmass=-ap*a**(-.75)   !even-even nuclei
             else
                pmass=0.              !even-odd nuclei
             endif
          else
-            if(mod(ia,2)==0)then
+            if(mod(ia,2).eq.0)then
                pmass=0.              !Odd-even nuclei
             else
                pmass=ap*a**(-.75)   !Odd-odd  nuclei
@@ -5372,7 +5372,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 
 
 	   IF (JA .eq. 1) THEN   !is the nucleus a nucleon?
-		if(pran(xdummy)<.5)then   !Randomly choose charge
+		if(pran(xdummy).lt.0.5)then   !Randomly choose charge
 			isp=14
 		else 
 			isp=13
@@ -5523,7 +5523,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 				!They will have same directions as primary
 				!fragment. By definition they will have mass
 				! 1 and energy tnucleon.
-			if(pran(xdummy)<.5)then   !Randomly choose charge
+			if(pran(xdummy).lt.0.5)then   !Randomly choose charge
 				isp=14
 			else 
 				isp=13
@@ -5540,7 +5540,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 				      !free nucleons emitted to propagate to 
 				      !their next interaction.They retain 
 				      !direction of original nucleus.
-			if(pran(xdummy)<.5)then   !Randomly choose charge
+			if(pran(xdummy).lt.0.5)then   !Randomly choose charge
 				isp=14
 			else 
 				isp=13
