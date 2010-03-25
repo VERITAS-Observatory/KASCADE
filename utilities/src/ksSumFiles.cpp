@@ -1,7 +1,7 @@
 //-*-mode:c++; mode:font-lock;-*-
 /** 
  * \class ksSumFiles
- * \brief This code Appends all the VBF and/or root (kasAomega output)
+ * \brief This code Appends all the VBF  (kasAomega output)
  *  files into a single file, cutting on spectrum if so desired.
  *  Events in both output files have same fArrayEventNum and fEventNum
  *  Lots of this code from VBF/examples/PrintEvents.cpp
@@ -48,12 +48,11 @@
 
  
 
-#include "VAVDF.h"
-#include "VAKascadeSimulationData.h"
 #include "VAException.h"
 #include "VSOptions.hpp"
 #include "VACommon.h"
 #include "VATime.h"
+#include "VAOptions.h"
 
 #include "KSEventWeights.h"
 
@@ -64,6 +63,7 @@
 // easy access to parseConfigMask().
 // include the configuration mask utilities, which give us parseConfigMask()
 #include <VBF/VConfigMaskUtil.h>
+
 using namespace VConfigMaskUtil;
 
 const double kEventRateHZ=250.0;  //Allows for ~20*e6 event in a day(limit of
@@ -160,6 +160,17 @@ int main(int argc, char** argv)
 	{
 	  fWeightBySpectrum=true;
 	}
+      double fMinimumWeight=0.0;
+      if(command_line.findWithValue("MinimumWeightFraction",fMinimumWeight,
+			   "Set the minimum allowable weight. Value is in "
+                           "fraction, that is: -MinimumWeightFraction=.05 "
+                           "will cause a minimum of 5% of events to be kept. "
+                           "Defualt is to have no minimum (0%).")
+	 == VAOptions::FS_FOUND)
+	{
+	  std::cout<<"Minimum Weight fraction of events to keep set to "
+                   <<fMinimumWeight<<std::endl;
+	}
 
       bool fDistributeEnergy=false;
       if(command_line.find("DistributeEnergy",
@@ -190,29 +201,16 @@ int main(int argc, char** argv)
 	{
 	  fRandomSeedFileName="ksSumFiles.ran";
 	}
+
       std::string fOutputVBFFileName;
-      bool fOutputVBF=false;
+
       if(command_line.findWithValue("OutputVBFFileName",fOutputVBFFileName,
 				    "File name for summary VBF file")
-	 == VAOptions::FS_FOUND)
+	 != VAOptions::FS_FOUND)
 	{
-	  fOutputVBF=true;
-	}
-      else
-	{
-	  std::cout<<"No OutputVBFFileName Option:"<<std::endl;
-	}
-      std::string fOutputRootFileName;
-      bool fOutputRoot=false;
-      if(command_line.findWithValue("OutputRootFileName",fOutputRootFileName,
-				    "File name for summary Root file")
-	 == VAOptions::FS_FOUND)
-	{
-	  fOutputRoot=true;
-	}
-      else
-	{
-	  std::cout<<"No OutputRootFileName Option:"<<std::endl;
+	  std::cout<<"ksSumFiles:OutputVBFFileName option must be specified."
+                   <<std::endl;
+	  exit(1);
 	}
 
        // -------------------------------------------------------------------
@@ -251,24 +249,8 @@ int main(int argc, char** argv)
       std::cout<<"ksSumFiles:Input List File Name: "<<ListFileName
 	       <<std::endl;
 
-      if(!fOutputVBF && !fOutputRoot)
-	{
-	  std::cout<<"ksSumFiles:Either or both OutputVBFFileName or "
-	    "OutputRootFileName options must be specified."<<std::endl;
-	  exit(1);
-	}
-
-      if(fOutputVBF)
-	{
-	  std::cout<<"ksSumFiles:Output VBF File Name: "<<fOutputVBFFileName
+      std::cout<<"ksSumFiles:Output VBF File Name: "<<fOutputVBFFileName
 		   <<std::endl;
-	}
-      if(fOutputRoot)
-	{
-	  std::cout<<"ksSumFiles:Output Root File Name: "<<fOutputRootFileName
-		   <<std::endl;
-	}
-
 
       // ********************************************************************
       // In order to calculate the fAomega and other simulkar things we need 
@@ -320,106 +302,64 @@ int main(int argc, char** argv)
 	  int fType=0;
 	  //int fEnergyGeV=0;
 	  float fEnergyGeV=0;
-	  if(fOutputVBF)
+
+	  // *********************************************************
+	  // Open a VBF file (if options indicate it exists)from list
+	  // create a reader for the bank file.this will open the file 
+	  // in a read-only fashion and will memory-map the index, 
+	  // allowing you random access.
+	  // **********************************************************
+	  std::string fVBFFileName=fInputFile + ".vbf";
+	  //std::cout<<"Get weights file:"<<fVBFFileName<<std::endl;
+	  VBankFileReader reader(fVBFFileName);
+	  
+	  // **************************************  *****************
+	  // read header packet.  note that we have to dispose of this 
+	  // packet when we're done with it.  note furthermore that 
+	  // this function never returns NULL.  if there is an error,
+	  // it just throws an exception.
+	  // **********************************************************
+	  VPacket* packet;
+	  if(reader.hasPacket(0))
 	    {
-	      // *********************************************************
-	      // Open a VBF file (if options indicate it exists)from list
-	      // create a reader for the bank file.this will open the file 
-	      // in a read-only fashion and will memory-map the index, 
-	      // allowing you random access.
-	      // **********************************************************
-	      std::string fVBFFileName=fInputFile + ".vbf";
-	      //std::cout<<"Get weights file:"<<fVBFFileName<<std::endl;
-	      VBankFileReader reader(fVBFFileName);
-	      
-	      // **************************************  *****************
-	      // read header packet.  note that we have to dispose of this 
-	      // packet when we're done with it.  note furthermore that 
-	      // this function never returns NULL.  if there is an error,
-	      // it just throws an exception.
-	      // **********************************************************
-	      VPacket* packet;
-	      if(reader.hasPacket(0))
-		{
-		  packet=reader.readPacket(0);  //0=Location of header
-		}
-	      else
-		{
-		  std::cout<<"ksSumFiles: No header packet with index 0 "
-		    "found in file: "<<fVBFFileName<<std::endl;
-		  exit(1);
-		}
-	      // ********************************************************* 
-	      // Check this packet has a VKascadeSimulationHeader in it
-	      // ********************************************************* 
-	      if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
-		{
-		  std::cout<<"ksSumFiles: No KascadeSimulationHeader bank "
-		    "in file: "<<fVBFFileName<<std::endl;
-		  exit(1);
-		}
-	      // ********************************************************
-	      // now get the KascadeSimulationHeader bank.  this will 
-	      // never return NULL. If the packet doesn't contain an 
-	      // KascadeSimulationHeader, this function throws an 
-	      // exception.
-	      // ********************************************************
-	      VKascadeSimulationHeader *pfKVBFSimHead =
-		packet->get< VKascadeSimulationHeader >
-		(VGetKascadeSimulationHeaderBankName());
-	      if(pfKVBFSimHead==NULL)
-		{
-		  std::cout<<"ksSumFiles: File "<<fVBFFileName
-			   <<"has no VASimulationHeader record"<<std::endl;
-		  exit(1);
-		}
-	      // ********************************************************
-	      //Now get stuff from the header
-	      // ********************************************************
-	      //Primary type first
-	      fType = pfKVBFSimHead->fCORSIKAParticleID;
-	      // Now get energy
-	      //fEnergyGeV = (int)pfKVBFSimHead->fEnergyGeV;
-	      fEnergyGeV = (float)pfKVBFSimHead->fEnergyGeV;
-	      delete packet;
+	      packet=reader.readPacket(0);  //0=Location of header
 	    }
 	  else
-	    {                     //Must be only a root file specified
-	      // Open file from list
-	      VAVDF fFileIn;
-	      std::string fRootFileName=fInputFile + ".root";
-	      fFileIn.OpenForStage3(fRootFileName);
-	      VASimulationHeader* pfRootSimHead=
-		fFileIn.getSimulationHeaderPtr();
-	      VAKascadeSimulationHead *pfKRootSimHead;
-	      if(pfRootSimHead->fSimulationPackage==
-		 VASimulationHeader::E_KASCADE)
-		{
-		  pfKRootSimHead = 
-		    dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
-		  if(pfKRootSimHead==NULL)
-		    {
-		      std::cout<<"ksSumFiles: File "<<fRootFileName
-			       <<"has no VASimulationHeader record"
-			       <<std::endl;
-		      exit(1);
-		    }
-		}
-	      else
-		{
-		  std::cout<<"ksSumFiles: Wrong simulation package "
-		    "found.fSimulationPackage: "
-			   << pfRootSimHead->fSimulationPackage<<std::endl;
-		  exit(1);
-		}
-	      //Now get stuff from the header
-	      //Primary type first
-	      fType = pfKRootSimHead->fCORSIKAParticleID;
-	      // Now get energy
-	      //fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
-	      fEnergyGeV=(float)pfKRootSimHead->fEnergyGeV;
-	      fFileIn.Close();
+	    {
+	      std::cout<<"ksSumFiles: No header packet with index 0 "
+		"found in file: "<<fVBFFileName<<std::endl;
+	      exit(1);
 	    }
+	  // ********************************************************* 
+	  // Check this packet has a VKascadeSimulationHeader in it
+	  // ********************************************************* 
+	  if (!packet->has(VGetKascadeSimulationHeaderBankName())  )
+	    {
+	      std::cout<<"ksSumFiles: No KascadeSimulationHeader bank "
+		"in file: "<<fVBFFileName<<std::endl;
+	      exit(1);
+	    }
+	  // ********************************************************
+	  // now get the KascadeSimulationHeader bank.  this will 
+	  // never return NULL. If the packet doesn't contain an 
+	  // KascadeSimulationHeader, this function throws an 
+	  // exception.
+	  // ********************************************************
+	  VKascadeSimulationHeader *pfKVBFSimHead =
+	    packet->get< VKascadeSimulationHeader >
+	                             (VGetKascadeSimulationHeaderBankName());
+	  if(pfKVBFSimHead==NULL)
+	    {
+	      std::cout<<"ksSumFiles: File "<<fVBFFileName
+		       <<"has no VASimulationHeader record"<<std::endl;
+	      exit(1);
+	    }
+	  // ********************************************************
+	  //Now get stuff from the header
+	  // ********************************************************
+	  fType = pfKVBFSimHead->fCORSIKAParticleID;
+	  fEnergyGeV = (float)pfKVBFSimHead->fEnergyGeV;
+	  delete packet;
 	  
 	  // **********************************************************
 	  // Enter this stuff in the map. This is pretty tricky, we use
@@ -427,8 +367,8 @@ int main(int argc, char** argv)
 	  // **********************************************************
 	  fTypesPos=fTypes.find(fType);
 	  if(fTypesPos==fTypes.end())  //If fType doesn't exist as a key
-	    {                           //create it. See pg 206 C_++ std 
-	      //book for [] operator
+	    {                          //create it. See pg 206 C_++ std 
+                                       //book for [] operator
 	      fTypes[fType];
 	      fTypesPos=fTypes.find(fType);
 	    }
@@ -463,9 +403,10 @@ int main(int argc, char** argv)
       //ION(Z,A)     A x 100 + Z
       //He(2,4)      402
       //Fe(26,56)    5626
+
       pfWeights = new KSEventWeights(fTypes);
-      //pfWeights->calculateWeights();
-      pfWeights->calculateLogWeights();
+
+      pfWeights->calculateLogWeights(fMinimumWeight);
       pfWeights->Print();
       if(!fWeightBySpectrum)
 	{
@@ -478,22 +419,16 @@ int main(int argc, char** argv)
 
 	  fMaxWeight=pfWeights->getMaximumWeight();
 	}
-      //    } //end of weight calculation
+      //end of weight calculation
 
 
       // ******************************************************************
-      // Now we are ready to start. Begin by creating the output files;
-      
+      // Now we are ready to start. Begin by creating the output file;
+      // ****************************************************************** 
       VBankFileWriter* pfWriter=NULL;
 
-      VAVDF* pfSumFile= new VAVDF();
-
-      VACalibratedArrayEvent* pfSumCalEvent=NULL;
-      VAKascadeSimulationData* pfSumSimEvent=NULL;
-
-      //std::string fInputFile;
       bool fFirstFile=true;
-      int fNumTels=1;
+
       VATime fFirstValidEventTime;
       VATime fLastValidEventTime;
       VATime fEventTime;
@@ -509,8 +444,7 @@ int main(int argc, char** argv)
       fListIn2.open(ListFileName.c_str());
       if(!fListIn2)
 	{
-	  std::cout<<"ksSumFiles:Failed to open Input List file: "
-		   <<ListFileName
+	  std::cout<<"ksSumFiles:Failed to open Input List file:"<<ListFileName
 		   <<std::endl;
 	  return 0;
 	}
@@ -527,96 +461,61 @@ int main(int argc, char** argv)
       while(getline(fListIn2,fInputFile))
 	{
 
-	  int fType=0;
-	  //int fEnergyGeV=0;
-	  float fEnergyGeV=0;
-	  VBankFileReader* pfReader = NULL;
+	  int     fType      = 0;
+	  float   fEnergyGeV = 0;
+	  uword32 fShowerID  = 0;
+
+          VBankFileReader* pfReader = NULL;
 	  VPacket*       pfPacket   = NULL;
 	  VArrayEvent*   pfAEIn     = NULL;
 	  VEvent*        pfEvent    = NULL;
 	  VArrayTrigger* pfAT       = NULL;
-	  int fNumArrayEvents=0;
-	  int fNumVBFArrayEvents=0;
-	  int fNumRootArrayEvents=0;
+
+	  int fNumArrayEvents     = 0;
+	  int fNumVBFArrayEvents  = 0;
+
 	  std::string fVBFFileName;
 	  
 
-	  if(fOutputVBF)
+	  // *************************************************************
+	  // Use the KascadeSimulationHeader from the first file for the 
+	  //summary file. May improve it a little later.
+	  // Use first file in file list to get these things
+	  // Set up to write things out. We do this using VBF commands 
+	  // directly
+	  // *************************************************************
+	  // Open file from list
+	  // ************************************************************
+	  
+	  fVBFFileName= fInputFile + ".vbf";
+	  if(fDebugPrintEnable)
 	    {
-	      // Use the KascadeSimulationHeader from the first file for the 
-	      //summary file. May improve it a little later.
-	      // Use first file in file list to get these things
-	      // Set up to write things out. We do this using VBF commands 
-	      // directly
-	      // *************************************************************
-	      // *************************************************************
-	      // Open file from list
-	      // ************************************************************
-	   
-	      fVBFFileName= fInputFile + ".vbf";
-	      if(fDebugPrintEnable)
-		{
-		  std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
-		}
-	      pfReader = new VBankFileReader(fVBFFileName);
-	      fNumVBFArrayEvents = pfReader->numPackets()-1;
-	      fNumArrayEvents=fNumVBFArrayEvents;
-	      //Now get stuff from the header
-	      //Primary type first
-	      pfPacket=pfReader->readPacket(0);  //0=Location of header
+	      std::cout<<"InputFile: "<<fVBFFileName<<std::endl;
+	    }
+	  pfReader = new VBankFileReader(fVBFFileName);
+	  fNumVBFArrayEvents = pfReader->numPackets()-1;
+	  fNumArrayEvents=fNumVBFArrayEvents;
+	  //Now get stuff from the header
+	  //Primary type first
+	  pfPacket=pfReader->readPacket(0);  //0=Location of header
+	  
+	  VKascadeSimulationHeader *pfKVBFSimHead =
+	    pfPacket->get< VKascadeSimulationHeader >
+	    (VGetKascadeSimulationHeaderBankName());
+	  // *******************************************************
+	  // Now get stuff from the header
+	  // *******************************************************
+	  fType      = (int)pfKVBFSimHead->fCORSIKAParticleID;
+	  fEnergyGeV = (float)pfKVBFSimHead->fEnergyGeV;
+	  fShowerID  = (uword32)pfKVBFSimHead->fShowerID;
+	  if(fDebugPrintEnable)
+            {
+	      std::cout<<"DebugPrint:fShowerID,fEnergyGeV,fType,fVBFFileName: "
+                       <<fShowerID<<" "<<fEnergyGeV<<" "<<fType<<" "
+                       <<fVBFFileName<<std::endl;
+            } 	  
 
-	      VKascadeSimulationHeader *pfKVBFSimHead =
-		pfPacket->get< VKascadeSimulationHeader >
-		(VGetKascadeSimulationHeaderBankName());
-	      //Now get stuff from the header
-	      //Primary type first
-	      fType = pfKVBFSimHead->fCORSIKAParticleID;
-	      // Now get energy
-	      //fEnergyGeV=(int)pfKVBFSimHead->fEnergyGeV;
-	      fEnergyGeV=(float)pfKVBFSimHead->fEnergyGeV;
-	    }
-	  VAVDF fFileIn;
-	  VACalibratedArrayEvent* pfInCalEvent;
-	  VASimulationHeader* pfRootSimHead=NULL;
-	  VAKascadeSimulationHead *pfKRootSimHead=NULL;
-	  VAKascadeSimulationData* pfKInSimEvent=NULL;
-	  std::string fRootFileName;
-	  
-	  if(fOutputRoot)
-	    {
-	      // Open file from list
-	      fRootFileName= fInputFile + ".root";
-	      fFileIn.OpenForStage3(fRootFileName);
-	      pfKInSimEvent = fFileIn.getKascadeSimulationDataPtr();
-	      if(pfKInSimEvent==NULL)
-	      	{
-	      	  std::cout<<"ksSumFiles:Failed to get "
-		    "VAKascadeSimulationData* in file:"<<fRootFileName
-			   <<std::endl;
-	      	  exit(1);
-	      	}	      
-	      fNumRootArrayEvents = fFileIn.getNumArrayEvents();
-	      fNumArrayEvents = fNumRootArrayEvents;
-	      pfRootSimHead = fFileIn.getSimulationHeaderPtr();
-	      pfKRootSimHead = 
-		dynamic_cast< VAKascadeSimulationHead* >(pfRootSimHead);
-	      fType = pfKRootSimHead->fCORSIKAParticleID;
-	      //fEnergyGeV=(int)pfKRootSimHead->fEnergyGeV;
-	      fEnergyGeV=(float)pfKRootSimHead->fEnergyGeV;
-	    }
-	  
-	  if(fOutputVBF && fOutputRoot)
-	    {
-	      if( fNumVBFArrayEvents!=fNumRootArrayEvents)
-		{
-		  std::cout<<"ksSumFiles:: VBF and Root file have "
-		    "differing number of events"<<std::endl;
-		  std::cout<<fVBFFileName<<" has "
-			   <<fNumVBFArrayEvents<<std::endl;
-		  std::cout<<fRootFileName<<" has "
-			   <<fNumRootArrayEvents<<std::endl;
-		}
-	    }
+
 	  if(fNumArrayEvents>0)
 	    {
 	      // *********************************************************
@@ -627,191 +526,90 @@ int main(int argc, char** argv)
 	      // **********************************************************
 	      if(fFirstFile)
 		{
-		  if(fOutputVBF)
+		  uword32 fNumOfRun = pfReader->getRunNumber();
+		  std::cout<<"ksSumFile: RunNumber from first Input file: "
+			   <<fNumOfRun<<std::endl;
+		  if(!fRunNumberSpecified)
 		    {
-
-		      uword32 fNumOfRun = pfReader->getRunNumber();
-		      std::cout<<"ksSumFile: RunNumber from first Input file: "
-			       <<fNumOfRun<<std::endl;
-		      if(!fRunNumberSpecified)
-			{
-			  fRunNumber=fNumOfRun;
-			}
-		      std::cout<<"ksSumFile: RunNumber for Output file:"
-			       <<fRunNumber<<std::endl;
-
-		      fConfigMask= pfReader->getConfigMask();
-		      pfWriter = new VBankFileWriter(fOutputVBFFileName,
-						     fRunNumber,
-						     fConfigMask);
-		      if(pfWriter==NULL)
-			{
-			  std::cout<<"ksSumFiles--Output VBF file failed to "
-			    "open"<<std::endl;
-			  exit(1);
-			}	      
-		      
-		      // ******************************************************
-		      // copy over the first packet, this is the header 
-		      // packet, no events in it
-		      // ******************************************************
-		      pfWriter->writePacket(0, pfPacket);
-		      delete pfPacket;
-
-		      // ******************************************************
-		      // Now we need a first event time to use. Use first 
-		      // event time in the first event in the first file
-		      // ******************************************************
-		      if(fDebugPrintEnable)
-			{
-			  std::cout<<"fVBFFileName: "<<fVBFFileName<<std::endl;
-			}
-		      if(!pfReader->hasPacket(1))
-			{
-			  std::cout<<"ksSumFiles: Missing packet #1. File: "
-				   <<fVBFFileName<<" fNumArrayEvents: "
-				   <<fNumArrayEvents<<std::endl;
-			  exit(1);
-			}
-		      pfPacket=pfReader->readPacket(1);
-		      pfAEIn=pfPacket->getArrayEvent();
-		      if(pfAEIn->hasTrigger())
-			{
-			  pfAT = pfAEIn->getTrigger();
-			  fEventTime.setFromVBF(fGPSYear,
-						pfAT->getGPSTimeNumElements(),
-						pfAT->getGPSTime());
-			  fFirstValidEventTime=fEventTime;
-			}
-		      else
-			{
-			  std::cout<<"ksSumFiles: Problem reading "
-			    "ArrayTrigger first event"<<std::endl;
-			  exit(1);
-			}
-		      std::cout<<"VBF RunStart Time: "<< fEventTime<<std::endl;
-		      delete pfPacket;
-		    }         //End VBF file
-		  if(fOutputRoot)
+		      fRunNumber=fNumOfRun;
+		    }
+		  std::cout<<"ksSumFile: RunNumber for Output file:"
+			   <<fRunNumber<<std::endl;
+		  
+		  fConfigMask= pfReader->getConfigMask();
+		  pfWriter = new VBankFileWriter(fOutputVBFFileName,
+						 fRunNumber,
+						 fConfigMask);
+		  if(pfWriter==NULL)
 		    {
-		      // *****************************************************
-		      // First input file? Use its various objects for the 
-		      // summaryfile
-		      
-		      VARunHeader* pfInRunHeader=fFileIn.getRunHeaderPtr();
-		      if(pfInRunHeader==NULL)
-			{
-			  std::cout<<"ksSumFiles: File "<<fRootFileName<<
-			    " has no RunHeader"<<std::endl;
-			  exit(1);
-			}
-		      fNumTels   = pfInRunHeader->pfRunDetails->fTels; 
-		      fFirstValidEventTime = 
-			pfInRunHeader->pfRunDetails->fFirstValidEventTime;
-		      std::cout<<"RunStart Time: "<< fFirstValidEventTime
-			       <<std::endl;
-		      pfSumFile->createFile(fOutputRootFileName,fNumTels,
-					    fFirstValidEventTime);
-		      fEventTime=fFirstValidEventTime;
-		      // ******************************************************
-		      // Now copy stuff over
-		      // ******************************************************
-		      pfSumFile->CopyInAndWriteRunHeader(&fFileIn);
-		      pfSumFile->CopyInAndWriteArrayInfo(&fFileIn);
-		      pfSumFile->CopyInAndWriteQStatsData(&fFileIn);
-		      pfSumFile->CopyInAndWritePixelStausData(&fFileIn);
-		      pfSumFile->CopyInAndWriteRelGainData(&fFileIn);
-		      
-		      // ******************************************************
-		      //Copy over Simulation header
-		      // ******************************************************
-		      if(pfKRootSimHead==NULL)
-			{
-			  std::cout<<"ksSumFiles: File "
-				   <<fRootFileName
-				   <<"has no VASimulationHeader record"
-				   <<std::endl;
-			  exit(1);
-			}
-		      if(pfRootSimHead->fSimulationPackage!=
-		      	 VASimulationHeader::E_KASCADE)
-		      	{
-			  std::cout<<"ksSumFiles: Wrong simulation package "
-		      	    "found. fSimulationPackage: "
-		      		   << pfRootSimHead->fSimulationPackage
-		      		   <<std::endl;
-		      	  exit(1);
-		      	}
-		      // ******************************************************
-		      // The following works for anything inherited from 
-		      // VASimulationHeader since VASimulationHeader is a 
-		      // TObject and thus VARootIO can write it out.
-		      // ******************************************************
-		      pfSumFile->setSimulationHeaderPtr(pfKRootSimHead); 
-		      pfSumFile->writeSimulationHeader();
-		      
-		      //  *****************************************************
-		      // Create a Calibrated event tree and a simulation event
-		      // tree
-		      // ******************************************************
-		      pfSumFile->createTheCalibratedArrayEventTree();
-		      pfSumCalEvent=pfSumFile->getCalibratedArrayEventPtr();
-		      if(pfSumCalEvent==NULL)
-			{
-			  std::cout<<"ksSumFiles: Failed to "
-			    "getCalibratedArrayEventPtr during first file "
-			    "processing"<<std::endl;
-			  exit(1);
-			}
-		      else
-			{
-			  std::cout<<"ksSumFiles: Success with "
-			    "getCalibratedArrayEventPtr during first file "
-			    "processing"<<std::endl;
-			}
-		      
-		      std::cout<<"ksSumSiles: Creating Simulation Event "
-			"Tree"<<std::endl;
-		      
-		      pfSumSimEvent= new VAKascadeSimulationData();
-		      TTree* pfSimulationEventTree= 
-			new TTree(gSimulatedEventsTreeName.c_str(),
-				  "Simulation Parameters");
-		      if(pfSimulationEventTree==NULL)
-			{
-			  std::cout<<"KSEvent: Problem creating  "
-			    "pfSimulationEventTree"<<std::endl;
-			  exit(1);
-			}
-		      pfSimulationEventTree->
-			Branch(gSimulatedEventsBranchName.c_str(),
-			       "VAKascadeSimulationData",&pfSumSimEvent,16000,
-			       0);
-		      pfSumFile->setSimulationPtr(pfSumSimEvent);
-		      pfSumFile->setSimulationEventTree(pfSimulationEventTree);
-		    } //End first root file
+		      std::cout<<"ksSumFiles--Output VBF file failed to "
+			"open"<<std::endl;
+		      exit(1);
+		    }	      
+		  
+		  // ******************************************************
+		  // copy over the first packet, this is the header 
+		  // packet, no events in it
+		  // ******************************************************
+		  pfWriter->writePacket(0, pfPacket);
+		  delete pfPacket;
+		  
+		  // ******************************************************
+		  // Now we need a first event time to use. Use first 
+		  // event time in the first event in the first file
+		  // ******************************************************
+		  if(fDebugPrintEnable)
+		    {
+		      std::cout<<"fVBFFileName: "<<fVBFFileName<<std::endl;
+		    }
+		  if(!pfReader->hasPacket(1))
+		    {
+		      std::cout<<"ksSumFiles: Missing packet #1. File: "
+			       <<fVBFFileName<<" fNumArrayEvents: "
+			       <<fNumArrayEvents<<std::endl;
+		      exit(1);
+		    }
+		  pfPacket=pfReader->readPacket(1);
+		  pfAEIn=pfPacket->getArrayEvent();
+		  if(pfAEIn->hasTrigger())
+		    {
+		      pfAT = pfAEIn->getTrigger();
+		      fEventTime.setFromVBF(fGPSYear,
+					    pfAT->getGPSTimeNumElements(),
+					    pfAT->getGPSTime());
+		      fFirstValidEventTime=fEventTime;
+		    }
+		  else
+		    {
+		      std::cout<<"ksSumFiles: Problem reading ArrayTrigger "
+			"first event"<<std::endl;
+		      exit(1);
+		    }
+		  std::cout<<"VBF RunStart Time: "<< fEventTime<<std::endl;
+		  delete pfPacket;
+	      
 		  fFirstFile=false;
-		  std::cout<<"ksSumFiles:Starting Summing Pass"
-			   <<std::endl;
-		}  //End First File
+		  std::cout<<"ksSumFiles:Starting Summing Pass"<<std::endl;
+		}  //End First File test
+
 	      float fWeight;
 	      if(fWeightBySpectrum)
 		{
 		  fWeight=pfWeights->getWeight(fType,fEnergyGeV);
-		}
+                }
 	      else
 		{
 		  fWeight=1.0;    //default we (if we aren't weighting)
 		}
 	      
 	      double fDiffRateHzPerM2 = pfWeights->
-		getWeightedDifferentialRateHzPerM2(fType,fEnergyGeV); 
+		        getWeightedDifferentialRateHzPerM2(fType,fEnergyGeV); 
 	      int fNumShowersAtEnergy=
-		pfWeights->getNumShowers(fType,fEnergyGeV);
-
-
+		                  pfWeights->getNumShowers(fType,fEnergyGeV);
+	      
+	      
 	      for(int index=0;index<fNumArrayEvents;index++)//VBF Events start
-		// at 1, Root at 0
+		                                            // at 1
 		{
 		  // *********************************************************
 		  // Are we weighting by the spectrum? do we cut this event?
@@ -820,171 +618,118 @@ int main(int argc, char** argv)
 		  if((fWeightBySpectrum &&pran(&fXDummy)<fWeight) || 
 		     !fWeightBySpectrum)
 		    {
-		      if(fOutputVBF)
+		      VPacket* pfWritePacket = new VPacket();
+		      if(!pfReader->hasPacket(index+1))
 			{
-			  VPacket* pfWritePacket = new VPacket();
-			  if(!pfReader->hasPacket(index+1))
+			  std::cout<<"ksSumFiles: Missing packet. File: "
+				   <<fVBFFileName<<" at packet#: "<<index
+				   <<std::endl;
+			  continue;
+			}
+		      pfPacket=pfReader->readPacket(index+1); 
+		      
+		      
+		      // *************************************************
+		      // Update event numbers here and maybe times
+		      // Fix up simulation data bank in this packet
+		      // *************************************************
+		      if (!pfPacket->has(VGetKascadeSimulationDataBankName()) )
+			{
+			  std::cout<<"ksSumFiles: Missing "
+			             "SimulationDataBank.File:"
+				   <<fVBFFileName<<" at packet#: "<<index
+				   <<std::endl;
+			} 
+		      else
+			{
+			  VSimulationData *pfSimData =
+			    pfPacket->get< VSimulationData >
+			                      (VGetSimulationDataBankName());
+			  // I think the following is ignored but do anyway
+			  // If it is ignored then we didn't have to do 
+			  // this section
+			  pfSimData->fRunNumber=fRunNumber;
+			  pfSimData->fEventNumber=fArrayEventNum;
+			  
+			  
+			  // ********************************************
+			  // If requested we reset the energy to one 
+			  // somewhere in the energy band this shower 
+			  // represents. Special use by vaStgae4 for 
+			  // lookupTable generation
+			  // ********************************************
+			  if(fDistributeEnergy && fWeightBySpectrum)
 			    {
-			      std::cout<<"ksSumFiles: Missing packet. File: "
-				       <<fVBFFileName<<" at packet#: "<<index
-				       <<std::endl;
-			      continue;
+			      pfSimData->fEnergyGeV= pfWeights->
+				     getDistributedEnergy(fType, fEnergyGeV);
 			    }
-			  pfPacket=pfReader->readPacket(index+1); 
 
 			  
-			  // *************************************************
-			  // Update event numbers here and maybe times
-			  // *************************************************
-			  
-			  // *************************************************
-			  // Fix up simulation data bank in this packet
-			  // *************************************************
-			  if (!pfPacket->
-			            has(VGetKascadeSimulationDataBankName())  )
+			  VSimulationData* pfWriteSimData = 
+			                             pfSimData->copySimData();
+			  pfWritePacket->put(VGetSimulationDataBankName(),
+					                      pfWriteSimData);
+
+			  // **********************************************
+			  // Fix up Kascade simulation data bank in this 
+			  // packet
+			  // **********************************************
+                          // Since we have added a word (fShowerID) to 
+                          // VKascadeSimulationData and we may be reading in a
+                          // old one then the packet we read in may be 1 word 
+                          // short. So we do some tricky stuff of getting a 
+                          // full size VKascadeSimulationData by reading in a 
+                          // short one and copying the short one into a full
+                          // size one. 
+                          // ************************************************
+			
+                           VKascadeSimulationData *pfKSimData =
+			              pfPacket->get< VKascadeSimulationData >
+			                 (VGetKascadeSimulationDataBankName());
+
+
+			  // I think the following is ignored but do anyway
+			  // If it is ignored then we didn't have to do
+			  //  this section
+			  pfKSimData->fRunNumber=fRunNumber;
+			  pfKSimData->fEventNumber=fArrayEventNum;
+			
+			  // ***********************************************
+			  // Copy over the Shower ID from header if it is not 
+			  // already there. If it is check that it matches 
+			  // header.
+			  // ***********************************************
+			  if(pfKSimData->fShowerID>0)
 			    {
-			      std::cout<<"ksSumFiles: Missing "
-				"SimulationDataBank.File:"
-				       <<fVBFFileName<<" at packet#: "<<index
-				       <<std::endl;
-			    } 
+                              if(fDebugPrintEnable)
+                               {
+                                 std::cout<<"VBFData->fShowerID:" 
+                                          <<pfKSimData->fShowerID 
+                                          <<" VBFHead->fShowerID: "
+                                          <<fShowerID<<std::endl;
+                               }
+			       pfKSimData->fShowerID=fShowerID;
+			    }
 			  else
 			    {
-			      VSimulationData *pfSimData =
-				pfPacket->get< VSimulationData >
-				(VGetSimulationDataBankName());
-			      // I think the following is ignored but do anyway
-			      // If it is ignored then we didn't have to do 
-			      // this section
-			      pfSimData->fRunNumber=fRunNumber;
-			      pfSimData->fEventNumber=fArrayEventNum;
-
-
-			      // ********************************************
-			      // If requested we reset the energy to one 
-			      // somewhere in the energy band this shower 
-			      // represents. Special use by vaStgae4 for 
-			      // lookupTable generation
-			      // ********************************************
-			      if(fDistributeEnergy && fWeightBySpectrum)
-				{
-				  pfSimData->fEnergyGeV= pfWeights->
-				     getDistributedEnergy(fType, fEnergyGeV);
-				  //double fEGeV= pfWeights->
-				  //  getDistributedEnergy(fType, fEnergyGeV);
-				  //std::cout<<fEnergyGeV<<","<<fEGeV
-				  //<<std::endl;
-				  
-				}
-
-
-			      VSimulationData* pfWriteSimData = 
-				                     pfSimData->copySimData();
-			      pfWritePacket->put(VGetSimulationDataBankName(),
-						 pfWriteSimData);  
-			      // **********************************************
-			      // Fix up Kascade simulation data bank in this 
-			      // packet
-			      // **********************************************
-			      VKascadeSimulationData *pfKSimData =
-				pfPacket->get< VKascadeSimulationData >
-				(VGetKascadeSimulationDataBankName());
-			      // I think the following is ignored but do anyway
-			      // If it is ignored then we didn't have to do
-			      //  this section
-			      pfKSimData->fRunNumber=fRunNumber;
-			      pfKSimData->fEventNumber=fArrayEventNum;
-
-			      // *********************************************
-			      // Se if we are only to keep events with a 
-			      // certain Direction Index
-			      // *********************************************
-			      if(fDirectionIndexSpecified)
-				{
-				  if(fDirectionIndex != 
-				                  pfKSimData->fDirectionIndex)
-				    {
-				      delete pfWritePacket;
-				      delete pfPacket;
-				      continue;  //go to next entry
-				    }
-				}
-
-			      // *******************************************
-			      // At this point we can determine the event rate
-			      // this event can contribute. We first convert
-			      // the relative weight back to the flux per 
-			      // shower. We then multiply by the Aomega this
-			      // event can contribute. The division by the 
-			      // number of showers is built into the weight.
-			      // *********************************************
-			      // The fIntegralRatePerEventHz, fAomega (per 
-			      // event)and fDifferentialRatePerEventHz 
-			      // function all assume all events from all 
-			      // showers used. However, since we reduce the 
-			      // number of events by fWeight we need to 
-			      // correct for this by dividing by fWeight
-			      // *********************************************
-			      // Correct the fSAomega Area by the 
-			      // cos(source zenith angle)
-			      //if(fWeightBySpectrum)
-			      //	
-			      double fAomega=pfKSimData->fAomega;
-			      double fZenithRad=
-				pfSimData->fPrimaryZenithDeg*M_PI/180.;
-			      fAomega=fAomega*cos(fZenithRad);
-			      pfKSimData->fIntegralRatePerEventHz =
-                                                          fMaxWeight*fAomega;
-			      pfKSimData->fDifferentialRatePerEventHz =
-				fDiffRateHzPerM2*fAomega/fWeight;
-			      pfKSimData->fAomega=
-				fAomega/(fNumShowersAtEnergy*fWeight);
-
-			      //}
-
-			      VKascadeSimulationData* pfWriteKSimData = 
-				pfKSimData->copyKascadeSimData();
-			      pfWritePacket->
-				put(VGetKascadeSimulationDataBankName(),
-				    pfWriteKSimData);  
+                              if(fDebugPrintEnable)
+                               {
+                                 std::cout<<"VBFData->fShowerID:" 
+                                          <<pfKSimData->fShowerID 
+                                          <<" VBFHead->fShowerID: "
+                                          <<fShowerID<<std::endl;
+                               }
+			      pfKSimData->fShowerID=fShowerID;
 			    }
-			  // **********************************************
-			  // Now the ArrayEvents
-			  // First fix times and event number in array Trigger
+
+  
 			  // *********************************************
-			  VArrayEvent* pfAEOut  = new VArrayEvent();
-			  if (!pfPacket->hasArrayEvent())
+			  // See if we are only to keep events with a 
+			  // certain Direction Index
+			  // *********************************************
+			  if(fDirectionIndexSpecified)
 			    {
-			      std::cout<<"ksSumFiles: Missing "
-				"ArrayEventin File:"
-				       <<fVBFFileName<<" at packet#: "<<index
-				       <<std::endl;
-			      continue;
-			    } 
-			  pfAEIn=pfPacket->getArrayEvent();
-			  pfAT = pfAEIn->getTrigger();
-			  // *************************************************
-			  // Special test for Low energy trigger. Must have t1 
-			  // and T4 trigger.
-			  // ************************************************
-                          if(requireT1T4)
-			    {
-			      bool haveT1=false;
-			      bool haveT4=false;
-			      int numTrigTels=pfAT->getNumTriggerTelescopes();
-			      for (unsigned i=0;i<(unsigned)numTrigTels;i++)
-				{
-				  int IDTel=pfAT->getTriggerTelescopeId(i);
-				  if (IDTel==0)
-				    {
-				      haveT1=true;
-				    }
-				  else if(IDTel==3)
-				    {
-				      haveT4=true;
-				    }
-				}
-			      if(!haveT1 || !haveT4)  //Must have T1 and T4
+			      if(fDirectionIndex !=pfKSimData->fDirectionIndex)
 				{
 				  delete pfWritePacket;
 				  delete pfPacket;
@@ -992,127 +737,6 @@ int main(int argc, char** argv)
 				}
 			    }
 
-			  // set the Run Number and event number
-			  pfAT->setRunNumber(fRunNumber);
-			  pfAT->setEventNumber(fArrayEventNum);
-			  uint16_t fGPSWords[5];
-			  fEventTime.getForVBF(fGPSYear,5,fGPSWords);
-			  // SEtGPS Time, I know it looks like a get but its 
-			  //not
-			  pfAT->getGPSTime()[0]=fGPSWords[0];
-			  pfAT->getGPSTime()[1]=fGPSWords[1];
-			  pfAT->getGPSTime()[2]=fGPSWords[2];
-			  pfAT->getGPSTime()[3]=fGPSWords[3];
-			  pfAT->getGPSTime()[4]=fGPSWords[4];
-			  
-			  pfAT->setGPSYear(fGPSYear);
-			  if(pfAT->getEventType().trigger==
-			     VEventType::PED_TRIGGER)
-			    {
-			      fNumPedEvents++;
-			    }
-			  else if(pfAT->getEventType().trigger==
-				  VEventType::L2_TRIGGER)
-			    {
-			      fNumNormalEvents++;
-			    }
-			  // *************************************************
-			  // Set up the live and dead time scalers.
-			  // Remeber scaleras are 32 and wrap around. Thats 
-			  // why we do mod (% symbol) 32 bits.
-			  // *************************************************
-                          uint64_t fElapsedTimeNs =
-			                       fFirstValidEventTime-fEventTime;
-			  uint64_t fElapsedTime10MHz=fElapsedTimeNs/100;
-			  uint32_t fElapsedTime10MHzScaler=
-			                      fElapsedTime10MHz%kThirtyTwobits;
-                          uint32_t fElapsedDeadTime10MhzScaler =
-			                  fElapsedDeadTime10MHz%kThirtyTwobits;
-			  pfAT->setTenMhzClock(0,fElapsedTime10MHzScaler);
-			  pfAT->setTenMhzClock(1,fElapsedDeadTime10MhzScaler);
-
-			  // now put array trigger back into the array event
-			  VArrayTrigger* pfWriteAT=pfAT->copyAT();
-			  pfAEOut->setTrigger(pfWriteAT);
-			  
-			  // **************************************************
-			  // Now fix telescope events
-			  // *************************************************
-			  int fNumTriggeredTels = 
-			    (int) pfAEIn->getNumEvents();
-
-			  //std::cout<<"fNumTriggeredTels:"<<fNumTriggeredTels
-			  //	   <<std::endl;
-			  for(int i=0;i<fNumTriggeredTels;i++)
-			    {
-			      // set the event number
-			      pfEvent=pfAEIn->getEvent(i);
-			      //int fNodeNum=pfEvent->getNodeNumber();
-			      //std::cout<<"fTelID: "<<fNodeNum<<std::endl;
-			      pfEvent->setEventNumber(fArrayEventNum);
-			      pfEvent->getGPSTime()[0]=fGPSWords[0];
-			      pfEvent->getGPSTime()[1]=fGPSWords[1];
-			      pfEvent->getGPSTime()[2]=fGPSWords[2];
-			      pfEvent->getGPSTime()[3]=fGPSWords[3];
-			      pfEvent->getGPSTime()[4]=fGPSWords[4];
-			      
-			      pfEvent->setGPSYear(fGPSYear);
-			      // add the event to the array event!
-			      VEvent* pfWriteEvent=pfEvent->copyEvent();
-			      pfAEOut->addEvent(pfWriteEvent);
-			    }
-
-			  pfAEOut->setRun(fRunNumber);
-
-			  // put the array event back into the packet
-			  pfWritePacket->putArrayEvent(pfAEOut);
-			  
-			  // finally, write the packet into the file
-			  pfWriter->writePacket(fArrayEventNum,pfWritePacket);
-			  delete pfWritePacket;
-			  delete pfPacket;
-			}
-		      if(fOutputRoot)
-			{
-			  // *****************************************
-			  // Now calibrated event
-			  // *****************************************
-			  pfInCalEvent = fFileIn.getCalibratedArrayEventPtr();
-			  if(pfInCalEvent==NULL)
-			    {
-			      std::cout<<"ksSumFiles: Failed to "
-				"getCalibratedArrayEventPtr"
-				       <<std::endl;
-			      exit(1);
-			    } 
-			  // *************************************************
-			  // Update event numbers here and maybe times
-			  // **************************************************
-			  fFileIn.loadInArrayEvent(index);
-			  pfSumCalEvent=
-			    pfSumFile->getCalibratedArrayEventPtr();
-			  if(pfSumCalEvent==NULL)
-			    {
-			      std::cout<<"ksSumFiles: Faile to "
-				"getCalibratedArrayEventPtr"<<std::endl;
-			      exit(1);
-			    }
-			  *pfSumCalEvent=*pfInCalEvent;  //copy over
-			  
-			  int fEventNumTels=pfSumCalEvent->fTelEvents.size();
-			  for(int i=0;i<fEventNumTels;i++)
-			    {
-			      pfSumCalEvent->fTelEvents[i].fTelTime=fEventTime;
-			    }
-			  pfSumCalEvent->fArrayEventNum=fArrayEventNum;
-			  pfSumCalEvent->fArrayTime=fEventTime;
-			  pfSumFile->writeCalibratedArrayEvent(fEventNumTels);
-			  
-			  
-			  // ************************************************
-			  // Now sim data
-			  // ************************************************
-			  fFileIn.readSimulationData(index);
 			  // *******************************************
 			  // At this point we can determine the event rate
 			  // this event can contribute. We first convert
@@ -1121,33 +745,174 @@ int main(int argc, char** argv)
 			  // event can contribute. The division by the 
 			  // number of showers is built into the weight.
 			  // *********************************************
+			  // The fIntegralRatePerEventHz, fAomega (per 
+			  // event)and fDifferentialRatePerEventHz 
+			  // function all assume all events from all 
+			  // showers used. However, since we reduce the 
+			  // number of events by fWeight we need to 
+			  // correct for this by dividing by fWeight
 			  // *********************************************
 			  // Correct the fSAomega Area by the 
 			  // cos(source zenith angle)
-			  // if(fWeightBySpectrum)
-			  // {
-			  double fAomega=pfKInSimEvent->fAomega;
+			  double fAomega=pfKSimData->fAomega;
 			  double fZenithRad=
-			    pfKInSimEvent->fPrimaryZenithDeg*M_PI/180.;
+			               pfSimData->fPrimaryZenithDeg*M_PI/180.;
 			  fAomega=fAomega*cos(fZenithRad);
-			  pfKInSimEvent->fIntegralRatePerEventHz =
-			                                 fMaxWeight*fAomega;
-			  pfKInSimEvent->fDifferentialRatePerEventHz =
-			    fDiffRateHzPerM2*fAomega/fWeight;
-			  pfKInSimEvent->fAomega=
-			    fAomega/(fNumShowersAtEnergy*fWeight);
-			      // }
-			  *pfSumSimEvent=*pfKInSimEvent;
+			  pfKSimData->fIntegralRatePerEventHz =
+			                                   fMaxWeight*fAomega;
+			  pfKSimData->fDifferentialRatePerEventHz =
+			                     fDiffRateHzPerM2*fAomega/fWeight;
+			  pfKSimData->fAomega=
+			                fAomega/(fNumShowersAtEnergy*fWeight);
 
-			  pfSumFile->writeSimulationData();
-			}  //End root event write
 
+			  VKascadeSimulationData* pfWriteKSimData = 
+			                     pfKSimData->copyKascadeSimData();
+                          if(fDebugPrintEnable)
+                            {
+                                   std::cout<<"pfWriteKSimData bank Size: "
+                                      <<pfWriteKSimData->getBankSize()
+                                      <<std::endl;
+                                 
+                                     std::cout<<"VBFWriteData->fShowerID:" 
+                                          <<pfWriteKSimData->fShowerID 
+                                          <<" VBFData->fShowerID:" 
+                                          <<pfKSimData->fShowerID<<std::endl;
+                          std::cout<<"VBFWriteData->fIntegralRatePerEventHz:" 
+                                   <<pfWriteKSimData->fIntegralRatePerEventHz 
+                                   <<" VBFData->fIntegralRatePerEventHz:" 
+                                   <<pfKSimData->fIntegralRatePerEventHz
+                                   <<std::endl;
+                            }
+			
+
+			  pfWritePacket->
+			              put(VGetKascadeSimulationDataBankName(),
+				      pfWriteKSimData);  
+			}
+		      // **********************************************
+		      // Now the ArrayEvents
+		      // First fix times and event number in array Trigger
+		      // *********************************************
+		      VArrayEvent* pfAEOut  = new VArrayEvent();
+		      if (!pfPacket->hasArrayEvent())
+			{
+			  std::cout<<"ksSumFiles: Missing ArrayEventin File:"
+				   <<fVBFFileName<<" at packet#: "<<index
+				   <<std::endl;
+			  continue;
+			} 
+		      pfAEIn=pfPacket->getArrayEvent();
+		      pfAT = pfAEIn->getTrigger();
+
+		      // *************************************************
+		      // Special test for Low energy trigger. Must have t1 
+		      // and T4 trigger.
+		      // ************************************************
+		      if(requireT1T4)
+			{
+			  bool haveT1=false;
+			  bool haveT4=false;
+			  int numTrigTels=pfAT->getNumTriggerTelescopes();
+			  for (unsigned i=0;i<(unsigned)numTrigTels;i++)
+			    {
+			      int IDTel=pfAT->getTriggerTelescopeId(i);
+			      if (IDTel==0)
+				{
+				  haveT1=true;
+				}
+			      else if(IDTel==3)
+				{
+				  haveT4=true;
+				}
+			    }
+			  if(!haveT1 || !haveT4)  //Must have T1 and T4
+			    {
+			      delete pfWritePacket;
+			      delete pfPacket;
+			      continue;  //go to next entry
+			    }
+			}
+		      
+		      // set the Run Number and event number
+		      pfAT->setRunNumber(fRunNumber);
+		      pfAT->setEventNumber(fArrayEventNum);
+		      uint16_t fGPSWords[5];
+		      fEventTime.getForVBF(fGPSYear,5,fGPSWords);
+		      // SEtGPS Time, I know it looks like a get but its 
+		      //not
+		      pfAT->getGPSTime()[0]=fGPSWords[0];
+		      pfAT->getGPSTime()[1]=fGPSWords[1];
+		      pfAT->getGPSTime()[2]=fGPSWords[2];
+		      pfAT->getGPSTime()[3]=fGPSWords[3];
+		      pfAT->getGPSTime()[4]=fGPSWords[4];
+		      
+		      pfAT->setGPSYear(fGPSYear);
+		      if(pfAT->getEventType().trigger==VEventType::PED_TRIGGER)
+			{
+			  fNumPedEvents++;
+			}
+		      else if(pfAT->getEventType().trigger==
+			                                VEventType::L2_TRIGGER)
+			{
+			  fNumNormalEvents++;
+			}
+		      // *************************************************
+		      // Set up the live and dead time scalers.
+		      // Remeber scaleras are 32 and wrap around. Thats 
+		      // why we do mod (% symbol) 32 bits.
+		      // *************************************************
+		      uint64_t fElapsedTimeNs =fFirstValidEventTime-fEventTime;
+		      uint64_t fElapsedTime10MHz=fElapsedTimeNs/100;
+		      uint32_t fElapsedTime10MHzScaler=
+			                      fElapsedTime10MHz%kThirtyTwobits;
+		      uint32_t fElapsedDeadTime10MhzScaler =
+			                  fElapsedDeadTime10MHz%kThirtyTwobits;
+		      pfAT->setTenMhzClock(0,fElapsedTime10MHzScaler);
+		      pfAT->setTenMhzClock(1,fElapsedDeadTime10MhzScaler);
+		      
+		      // now put array trigger back into the array event
+		      VArrayTrigger* pfWriteAT=pfAT->copyAT();
+		      pfAEOut->setTrigger(pfWriteAT);
+		      
+		      // **************************************************
+		      // Now fix telescope events
+		      // *************************************************
+		      int fNumTriggeredTels = (int) pfAEIn->getNumEvents();
+		      
+		      for(int i=0;i<fNumTriggeredTels;i++)
+			{
+			  // set the event number
+			  pfEvent=pfAEIn->getEvent(i);
+			  pfEvent->setEventNumber(fArrayEventNum);
+			  pfEvent->getGPSTime()[0]=fGPSWords[0];
+			  pfEvent->getGPSTime()[1]=fGPSWords[1];
+			  pfEvent->getGPSTime()[2]=fGPSWords[2];
+			  pfEvent->getGPSTime()[3]=fGPSWords[3];
+			  pfEvent->getGPSTime()[4]=fGPSWords[4];
+			  
+			  pfEvent->setGPSYear(fGPSYear);
+			  // add the event to the array event!
+			  VEvent* pfWriteEvent=pfEvent->copyEvent();
+			  pfAEOut->addEvent(pfWriteEvent);
+			}
+		      
+		      pfAEOut->setRun(fRunNumber);
+		      
+		      // put the array event back into the packet
+		      pfWritePacket->putArrayEvent(pfAEOut);
+		      
+		      // finally, write the packet into the file
+		      pfWriter->writePacket(fArrayEventNum,pfWritePacket);
+		      delete pfWritePacket;
+		      delete pfPacket;
+	
 		      fLastValidEventTime=fEventTime;
 		      double fEventTimeMJD=fEventTime.getMJDDbl();
 		      double fTimeGapDay= (kMinimumDeadTimeSec+
 			      Rexp(fMeanTimeBetweenEventsSec))/(60.*60.*24.);
 		      fElapsedDeadTime10MHz+=
-			                 (uint64_t)(kMinimumDeadTimeSec*1.e7);
+			                (uint64_t)(kMinimumDeadTimeSec*1.e7);
 
 		      fEventTimeMJD+=fTimeGapDay;
 		      fEventTime.setFromMJDDbl(fEventTimeMJD);
@@ -1157,40 +922,24 @@ int main(int argc, char** argv)
 		    }   //end weight test
 		}       //end event for loop
 	    }          //End of test that we have events in file
-	  if(fOutputVBF)
-	    {
-	      delete pfReader;
-	    }
-	  if(fOutputRoot)
-	    {
-	      fFileIn.Close();
-	    }
+	  delete pfReader;
 	}              //End of while loop over input files from list
+
+      // ******************************************************************
       // finish up.  
-      if(fOutputVBF)
-	{
-	  //this creates the index and writes the checksum.
-	  pfWriter->finish();
+      //this creates the index and writes the checksum.
+      // ******************************************************************
+      pfWriter->finish();
 	  
-	  std::cout<<"ksSumFiles: Output summary file closed with "
-		   <<fArrayEventNum-1<<" events"<<std::endl;
-	  std::cout<<"ksSumFiles: Number of Normal Events written:"
-		   <<fNumNormalEvents<<std::endl;
-	  std::cout<<"ksSumFiles: Number of Pedestal Events written:"
-		   <<fNumPedEvents<<std::endl;
-	}
-      if(fOutputRoot)
-	{
-	  VARunHeader* pfSumRunHeader=pfSumFile->getRunHeaderPtr();
-	  pfSumRunHeader->pfRunDetails->fLastValidEventTime=
-	    fLastValidEventTime;
-	  pfSumFile->writeRunHeader();
-	  pfSumFile->writeCalibratedEventTree();
-	  pfSumFile->writeSimulationEventTree();
-	  pfSumFile->Close();
-	}
+      std::cout<<"ksSumFiles: Output summary file closed with "
+	       <<fArrayEventNum-1<<" events"<<std::endl;
+      std::cout<<"ksSumFiles: Number of Normal Events written:"
+	       <<fNumNormalEvents<<std::endl;
+      std::cout<<"ksSumFiles: Number of Pedestal Events written:"
+	       <<fNumPedEvents<<std::endl;
       std::cout<<"ksSumFiles: End of Run at: "<<fEventTime<<std::endl;
       std::cout<<"ksSumFiles: Normal end"<<std::endl;
+
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
       // ----------------------------------------------------------------------
