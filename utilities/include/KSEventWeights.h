@@ -37,7 +37,7 @@ class KSEventWeights
   KSEventWeights(std::map<int, fShwrMap_t> Showers); 
   ~KSEventWeights();
   void calculateWeights();
-  void calculateLogWeights();
+  void calculateLogWeights(double minimumWeight);
   //  float getWeight(int type, int fEnergyGeV);
   float getWeight(int type, float fEnergyGeV);
   float getMaximumWeight(){return fMaxWeight;};
