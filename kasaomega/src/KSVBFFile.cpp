@@ -639,8 +639,9 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 			       (float)pfTe->fMuonRatio,
 			       (float)pfTe->fAomega,
 			       (float)fFADCStartGateTimeNS,
+			       fDifferentialRatePerEventHz,
 			       fIntergralRatePerEventHz,
-			       fDifferentialRatePerEventHz
+                               (uword32)fShowerID
 			       );
 
 
