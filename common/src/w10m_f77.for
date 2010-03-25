@@ -211,7 +211,7 @@ c             vector a(2);a(5);.. is vector product
 c             vxz normalized (mod=1)
 
        tix_local=sqrt(tix**2+tiy**2)	!Get length of scatter.
-	if(tix_local==0)then
+	if(tix_local.eq.0)then
 	   return     !no change to vector.
 	endif
 

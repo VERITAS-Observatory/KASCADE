@@ -23,7 +23,7 @@ c	Init random number pointer to 1.
 !!enddebug
 	open(3,access='sequential',status='old',iostat=ios,
 	1 file=random_seed_file_name)
-        if(ios>0)then
+        if(ios.gt.0)then
            print*,' error opening random seed input file',
 	1 random_seed_file_name
            stop 'RANDOM seed input file open error'
@@ -66,7 +66,7 @@ c	Init random number pointer to 1.
 !enddebug
 	open(3,access='append',status='old',iostat=ios,
 	1 file=random_seed_file_name)
-        if(ios>0)then
+        if(ios.gt.0)then
            print*,' error opening output random seed file', 
 	1	random_seed_file_name
            stop 'Random seed file ouput open faslure'
@@ -97,7 +97,7 @@ c	Generate new ones if we deplete the present set.
  	ii=ii+1
 	if(ii.le.5000) then
 		pran=rnrs(ii)
-		if(pran>1.0)then
+		if(pran.gt.1.0)then
 		   print*,'Fatal--PRAN-Random number gen produces pran>1.0'
 		   print*,'Probable seed file corruption.pran:',pran
 		   stop 'PRAN:pran >1.0'
