@@ -21,6 +21,7 @@
 
 extern "C" float pran(float* dummy);
 
+//const double gGammaAlpha  = -2.0;
 //	New gamma flux parameters from Dave Lewis 15/5/96
 const double gGammaAlpha  = -2.45;
 const double gGammaIPhi   =  7.16e-3;          //Spectral Amplitude for gammas
@@ -283,7 +284,7 @@ void KSEventWeights::calculateWeights()
   return;
 }
 // **************************************************************************
-void KSEventWeights::calculateLogWeights() 
+void KSEventWeights::calculateLogWeights(double minimumWeight) 
 {
   // ********************************************************************** 
   //Maps are screwy and you have to look very carefully at whats being done 
@@ -482,7 +483,26 @@ void KSEventWeights::calculateLogWeights()
 	  fShowerWeightPos->second=fShowerWeightPos->second/fMaxWeight;
 	}
     }
-    // And we are done.
+
+  // ************************************************************************
+  // If we have a minimum weight then set to that
+  // ************************************************************************
+  if(minimumWeight>0)
+   {
+     for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end()
+	    ;fWeightPos++)
+        {
+          for(fShowerWeightPos=fWeightPos->second.begin();
+	       fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
+	   {
+              if(fShowerWeightPos->second<minimumWeight)
+               {
+                 fShowerWeightPos->second=minimumWeight;
+               }
+           }
+	}
+    }
+  //   And we are done.
   return;
 }
 // **************************************************************************
@@ -553,12 +573,13 @@ float KSEventWeights::getWeightedDifferentialRateHzPerM2(int type,
 }
 // **************************************************************************
 
-
-
 void KSEventWeights::Print()
 // **************************************************************************
 {
-  std::cout<<" Type Energy(GeV)      Flux      ELow  EHigh Weight #showers"<<std::endl;
+  std::cout<<"Spectral Indices Used: Gammas: "<<gGammaAlpha<<"  Protons: "
+           <<gProtonAlpha<<"  He4: "<<gHe4Alpha<<std::endl;
+  std::cout<<" Type Energy(GeV)      Flux      ELow  EHigh Weight #showers"
+           <<std::endl;
 
   for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end();
       fWeightPos++)
