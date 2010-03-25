@@ -96,7 +96,7 @@ CCLIB=-L/usr/lib -lstdc++
 ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
 
 
-#Set up for fortran type. Default is Intel.
+#Set up for fortran type.
 ifdef ABSOFTV10_FORTRAN
   # -------------------------------------------------------------------------
   #Using ABSOFT Fortran:
@@ -109,8 +109,26 @@ ifdef ABSOFTV10_FORTRAN
   F90FLAGS := -g -O -c -s -YEXT_NAMES=LCS $(KASINCFLAGS) $(VHDF5INCFLAGS) \
   	-p $(TOPCOMMONDIR)
   F77FLAGS := -g -O -V  -W  -f -C  -c -s $(KASINCFLAGS) $(VHDF5INCFLAGS)
+endif
 
-else
+ifdef PGIFORTRAN
+  # -------------------------------------------------------------------------
+  #Using Portland Group Fortran:
+  # -------------------------------------------------------------------------
+  F77  :=pgf77 
+  F90  :=pgf90
+  #PGI Flags 
+  F90FLAGS := -g -O2 -C -c -Mextend -Msave -Munixlogical -Mnoupcase  \
+	$(KASINCFLAGS)
+  F77FLAGS := -g -O2 -C -c -Mextend -Msave -Munixlogical -Mnoupcase  \
+	$(KASINCFLAGS) 
+	 
+  CLDFLAGS = -Mnomain -g77libs  -L/usr/lib -lstdc++
+
+#L$(dir $(shell $(CXX) -print-libgcc-file-name)) -lstdc++
+endif
+
+ifdef INTELFORTRAN
   # -------------------------------------------------------------------------
   #Default: Using Intel Fortran:
   # -------------------------------------------------------------------------
