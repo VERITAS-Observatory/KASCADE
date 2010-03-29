@@ -714,7 +714,7 @@ c	And north only!
 
 !!!!!This is for Haleakala ONLY!!!!!!
 	if(index(segment_head%magnet_field,'L').ne.0.or.
-	1  index(segment_head%magnet_field,'t').ne.0)then
+     1     index(segment_head%magnet_field,'t').ne.0)then
 		b_field=0.365      !Gauss
 		dip_angle=37.8    !Degrees.
 		write(coutstring,1000)'HALEAKALA',b_field,dip_angle
@@ -752,13 +752,13 @@ c	And north only!
 		b_field=0.35      !Gauss
 		dip_angle=-25.0    !Degrees.
 		write(coutstring,1000)'Argentine Search light array',
-	1 b_field,dip_angle
+     1    b_field,dip_angle
 	call kscharstring2cout(trim(coutstring)//char(0))
 
 	else
             write(coutString,3000)
-	1 ' KASCADE--FATAL--Illegal magnetic field type:',
-	1 segment_head%magnet_field
+     1    ' KASCADE--FATAL--Illegal magnetic field type:',
+     1    segment_head%magnet_field
 3000	format(a,a)
 	call kscharstring2cout(trim(coutstring)//char(0))
     
@@ -1573,7 +1573,7 @@ c                                   gamma.
        if(plab.lt.pperp)then
               write(coutstring,3400)u,tix,tenergy,egamma,ee,plab,pperp,pp
 3400  format(' ***Decay-FATAL-:u,tix,tenergy,egamma,ee,plab,
-	1 pperp,pp:',' ***',8e14.7)
+     1    pperp,pp:',' ***',8e14.7)
 	call kscharstring2cout(trim(coutstring)//char(0))
               stop 
               endif
@@ -2225,7 +2225,7 @@ c     This is petes for use by nfluct.
 
 
         subroutine knock_on(tenergy,tsegment,ispec,dl,dm,dn,tim,
-	1 zdni,xm,zbeta,zgamma,xstart,ystart,hstart,hend,t_min,num,qz)
+     1    zdni,xm,zbeta,zgamma,xstart,ystart,hstart,hend,t_min,num,qz)
 !*****************************************************************************
 c       Implimentation of Knock-on electron generation from a projectile
 c	track segment%
@@ -2307,8 +2307,8 @@ c               stack.
         character*256 coutstring
 
 	real*4 tenergy,tsegment,dl,dm,dn,tim,xm,xstart,ystart,hstart,
-	1 hend,t_min,em,z_over_a,d,const,t_max,total_rate,t,fun,
-	2 fun_max,emratio
+     1    hend,t_min,em,z_over_a,d,const,t_max,total_rate,t,fun,
+     1    fun_max,emratio
 	integer ispec,qz,num,num1
         real*8 zgamma,zbeta,betasqr,zdni
 
@@ -2340,9 +2340,9 @@ c	to target.
 		t_max=tenergy		!Positrons can stop dead!
 					!Using z**2=1(charge**2)
 		total_rate=const*(1/t_min-1/t_max-
-	1 (2/t_max)*alog(t_max/t_min)+
-	1 3*(t_max-t_min)/(t_max**2)-(t_max**2-t_min**2)/(t_max**3)+
-	2 (t_max**3-t_min**3)/(3*t_max**4))
+     1    (2/t_max)*alog(t_max/t_min)+
+     1    3*(t_max-t_min)/(t_max**2)-(t_max**2-t_min**2)/(t_max**3)+
+     1    (t_max**3-t_min**3)/(3*t_max**4))
 
 !		num=knock_made(total_rate,tsegment)
 		num=nfluct(total_rate*tsegment)
@@ -2361,7 +2361,7 @@ c	Now see if this t makes it for the F  function for positrons.
 
 c	Put it into the stack
 		call knock_enter(dl,dm,dn,xstart,ystart,hstart,hend,tim,
-	1 zdni,zgamma,zbeta,xm,t)
+     1    zdni,zgamma,zbeta,xm,t)
 
 		num1=num1-1
 		if(num1.ne.0)goto 101
@@ -2378,8 +2378,8 @@ c	Put it into the stack
 		if(t_max.lt.t_min)return
 					!Using z**2=1(charge**2)
 		total_rate=const*((t_max-t_min)/tenergy**2 +
-	1 (2*t_min-tenergy)/(t_min*(t_min-tenergy))-
-	2 (2*t_max-tenergy)/(t_max*(t_max-tenergy)))
+     1    (2*t_min-tenergy)/(t_min*(t_min-tenergy))-
+     1    (2*t_max-tenergy)/(t_max*(t_max-tenergy)))
 	
 !		num=knock_made(total_rate,tsegment)
 		num=nfluct(total_rate*tsegment)
@@ -2390,7 +2390,7 @@ c	Put it into the stack
 
 c	Maximum F at t_max.
  		fun_max=((tenergy/(t_max*(tenergy-t_max)))-
-	1(1./tenergy))**2
+     1   (1./tenergy))**2
 		fun_max=fun_max*t_max*t_max
 
 c	Now pick from 1/t**2
@@ -2404,7 +2404,7 @@ c	Now see if this t makes it for the F function for electrons.
 
 c	Put it into the stack
 		call knock_enter(dl,dm,dn,xstart,ystart,hstart,hend,tim,
-	1 zdni,zgamma,zbeta,xm,t)
+     1    zdni,zgamma,zbeta,xm,t)
 
 		num1=num1-1
 		if(num1.ne.0)goto 100
@@ -2416,7 +2416,7 @@ c	Put it into the stack
 !SPIN 0 and SPIN 1/2
 !***************************************************************************
 	elseif((ispec.ge.4.and.ispec.le.10.and.ispec.ne.6).or.
-	1 ispec.eq.13.or.ispec.gt.20)then
+     1    ispec.eq.13.or.ispec.gt.20)then
                                      !muons+/-(1/2),pi+/-(0),kaon+/-(0)
                                      !protons(1/2)
                                      !Heavy ions(A=even:spin=0, A=odd:spin 1/2)
@@ -2424,18 +2424,18 @@ c	Put it into the stack
 		emratio=em/xm	!Ratio of electron to projectile mass
 				!Maximum energy that can be given to knock-on
 		t_max=(2*em*betasqr*zgamma*zgamma)/(1+2*zgamma*emratio+
-	1 emratio**2)
+     1    emratio**2)
 		if(t_max.le.t_min)return	!Leave if we can't make an
 						!interesting knock-on electorn.
 !Both spin 0 and spin 1/2 use the same first term.
 		total_rate=qz*qz*(const/betasqr)*((1./t_min)-(1/t_max))-
-	1 (const/t_max)*alog(t_max/t_min)
+     1    (const/t_max)*alog(t_max/t_min)
 
 !***************************************************************************
 !SPIN 0: pi+/-,kaon+/-, heavy nuclei with A even
 !***************************************************************************
 		if((ispec.ge.7.and.ispec.le.10).or.
-	1 (ispec.gt.20.and.mod(ispec-20,2).eq.0))then
+     1    (ispec.gt.20.and.mod(ispec-20,2).eq.0))then
 !			num=knock_made(total_rate,tsegment)
 			num=nfluct(total_rate*tsegment)
 
@@ -2444,14 +2444,14 @@ c	Put it into the stack
 			   do num1=1,num
 				!Now pick from 1/t**2
 102				t=(t_max*t_min)/(t_max-pran(xdummy)*
-	1 (t_max-t_min))
+     1    (t_max-t_min))
 				fun=(1-betasqr*t/t_max)
 				!Fun max<1.for t_min>0)
 					!loop until we find one.
 				if(pran(xdummy).gt.fun)goto 102
 c	Put it into the stack
 				call knock_enter(dl,dm,dn,xstart,
-	1 ystart,hstart,hend,tim,zdni,zgamma,zbeta,xm,t)
+     1    ystart,hstart,hend,tim,zdni,zgamma,zbeta,xm,t)
 
 			   enddo
 
@@ -2463,7 +2463,7 @@ c	Put it into the stack
 !SPIN 1/2:  muons, protons, Heavy nuclei with A odd,
 !***************************************************************************
 			total_rate=total_rate+qz*qz*(const/betasqr)*
-	1 .5*(1./(tenergy+xm)**2)*(t_max-t_min)
+     1    .5*(1./(tenergy+xm)**2)*(t_max-t_min)
 !			num=knock_made(total_rate,tsegment)
 			num=nfluct(total_rate*tsegment)
 
@@ -2471,15 +2471,15 @@ c	Put it into the stack
 			   do num1=1,num
 				!Now pick from 1/t**2
 103				t=(t_max*t_min)/(t_max-pran(xdummy)*
-	1 (t_max-t_min))
+     1    (t_max-t_min))
 				fun=(1-betasqr*t/t_max+
-	1 .5*(t/(tenergy+xm))**2)
+     1    .5*(t/(tenergy+xm))**2)
 				!Fun max<1.for t_min>0)
 					!loop until we find one.
 				if(pran(xdummy).gt.fun)goto 103	
 c	Put it into the stack
 				call knock_enter(dl,dm,dn,xstart,
-	1 ystart,hstart,hend,tim,zdni,zgamma,zbeta,xm,t)
+     1    ystart,hstart,hend,tim,zdni,zgamma,zbeta,xm,t)
 
 			   enddo
 
@@ -2493,7 +2493,7 @@ c	Put it into the stack
 
 	
 	subroutine knock_enter(dl,dm,dn,xstart,ystart,hstart,hend,tim,
-	1 zdni,zgamma,zbeta,xm,t)
+     1    zdni,zgamma,zbeta,xm,t)
 c	This routine determines where a knock on electron of energy T is
 c	produced. It uses as input the parameters of the segemnt of the
 c	projectile that produced it.  Once determined the new electron is 
@@ -2509,9 +2509,9 @@ c	E-Mail: 47474::SEMBROSKI
         character*256 coutstring
 
 	real*8 zheight,zpath,zprime,zptim,zstim,zgamma,zbeta,zdni,
-	1 gammaprime
+     1    gammaprime
 	real*4 t,em,c_light,tix,dlk,dmk,dnk,hstart,hend,dl,dm,dn,hk,
-	1 xstart,ystart,xk,yk,tim,timk
+     1    xstart,ystart,xk,yk,tim,timk
 	integer ispec		!Local variable only!!!!!
 
 	parameter  (c_light=2.99792e+8)     !Speed of light in vacume.
@@ -2524,7 +2524,7 @@ c	Rossi: High Energy Particles 1952.
 
 	gammaprime=(t+em)/em
 	tix=(sqrt((gammaprime-1)/(gammaprime+1))/zbeta)*
-	1 (1+em/(xm*zgamma))
+     1    (1+em/(xm*zgamma))
 	tix=acos(tix)	!angle of knock_on electron.
 	dlk=dl		!Save direction cosigns.
 	dmk=dm
@@ -2760,7 +2760,7 @@ c                                   DEPENDENT RK
          endif
 
          xmass = qz*mp + (a-qz)*mn - av*a + as*(a**(2./3.)) +
-	1 ac*(qz**2)/(a**(1./3.)) + aa*((a-2*qz)**2)/a + pmass
+     1    ac*(qz**2)/(a**(1./3.)) + aa*((a-2*qz)**2)/a + pmass
  	return
 	end
 
@@ -2791,7 +2791,7 @@ c                    Purdue
 c                    4/1/89
 
 !	Modified:
-!	11/5/98 GHS V:1:1:5.3
+!     1   1/5/98 GHS V:1:1:5.3
 !		Fix bug in NFLUCT. For small values of x (x<12) check for
 !		values of nfluct out to 18. before we were limited to 4*x.
 !		This was especially bad for x<.25. This error became very 
@@ -2804,7 +2804,7 @@ c       See if fluctuation will be poisson.
                 sum=exp(-x)
                 old=sum
                 test=pran(dummy)
-!	11/5/98 GHS V:1:1:5.3 Let imax always be 18.
+!     1   1/5/98 GHS V:1:1:5.3 Let imax always be 18.
 !                imax=min(4.*x,18.)
                 imax=18
                 do i=1,imax
@@ -2881,7 +2881,7 @@ c		Glenn Sembroski
 c		Physics Dept
 c		Purdue Univ
 c		W.Lafayette Indiana
-c		11/12/96
+c	     1   1/12/96
 
 c	Modified:
 
@@ -2979,7 +2979,7 @@ c		Glenn Sembroski
 c		Physics Dept
 c		Purdue Univ
 c		W.Lafayette Indiana
-c		12/12/96
+c	     1   2/12/96
 
 c	Modified:
 
@@ -3059,7 +3059,7 @@ c		Glenn Sembroski
 c		Physics Dept
 c		Purdue Univ
 c		W.Lafayette Indiana
-c		11/12/96
+c	     1   1/12/96
 
 c	Modified:
         character*256 coutstring
@@ -3181,11 +3181,11 @@ c		Adjust tsegment when particle hits the ground. Last segment
 c		was getting too much de/dx.
 
 
-c	11/9/95 GHS V:1:0.6
+c     1   1/9/95 GHS V:1:0.6
 c		Correct sign of dn normalization caculation in PROPAGATE.
 c	        Fix a buch of stuff includinghandeling of up going particles.
 
-!	15/06/01 GHS
+!     1   5/06/01 GHS
 !		Add stuff to accomodate heavy nucleons(ispec>20).
 !		tenergy is totsl KE of nucleon.
 !               ispec-20 is mass number of nucleon.
@@ -3228,8 +3228,8 @@ c                            Drop it, it is to weak.
               tsegment=((height-hobs)/(height-hd))*tsegment
               if(tsegment.lt.0)then
                  write(coutstring,3004)
-	1 '**PROPAGATE-Warn-Negative seg:tsegment,height,hobs,hd:',
-	1 tsegment,height,hobs,hd
+     1    '**PROPAGATE-Warn-Negative seg:tsegment,height,hobs,hd:',
+     1    tsegment,height,hobs,hd
 3004		 format(a,4(e14.7))
 	call kscharstring2cout(trim(coutstring)//char(0))
               endif
@@ -3344,26 +3344,26 @@ c       Calculate beta and gamma very carefully, r*8.
 !	Generate any knock on electrons.
 !*****************************************************************************
            call knock_on(temid,tsegment,ispec,dl,dm,dn,
-	1 tim,zdni,xmass,zbeta,zgamma,segment%xstart,
-	1 segment%ystart,segment%hstart,hd,thresh(3),num,jcharge)
+     1    tim,zdni,xmass,zbeta,zgamma,segment%xstart,
+     1    segment%ystart,segment%hstart,hd,thresh(3),num,jcharge)
            if((debena(3).or.debena(19)).and.num.ne.0)then
               nstart=nen
               do n=1,num
 					!Use ispeck here(this is a debug if
 					!clause) so we dont mess up ispec.
                  call reca_e(tek,hek,dlk,dmk,dnk,xk,yk,
-	1 timk,ispeck)
+     1    timk,ispeck)
                  if(ispec.lt.20)then
                     write(coutstring,1001)nen+1,namtyp(ispec),
      1 tek,hek,dlk,dmk,dnk,xk,yk,timk
 1001  format(' Knock-on e:',i3':from ',a8,':',f10.6,f13.0,
-	1 2(f8.5,','),f8.5,2f10.1,f12.1)
+     1    2(f8.5,','),f8.5,2f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
                  else
                     write(coutstring,1002)nen+1,
-	1 trim(nuclei_names(jcharge)),ja,tek,hek,dlk,dmk,dnk,xk,yk,timk
+     1    trim(nuclei_names(jcharge)),ja,tek,hek,dlk,dmk,dnk,xk,yk,timk
 1002  format(' Knock-on e:',i3':from ',a,'(',i3,'):',3x,f10.6,f10.0,
-	1 2(f6.3,','),f6.3,2f10.1,f12.1)
+     1    2(f6.3,','),f6.3,2f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
                  endif			
               enddo
@@ -3377,7 +3377,7 @@ c       Calculate beta and gamma very carefully, r*8.
 !*****************************************************************************
 
            if(multscattering_on)call multscatt(temid,tsegment,ispec,dl,dm,dn,
-	1 jcharge,xmass)
+     1    jcharge,xmass)
 					!MULTSCATT comes back with dl,dm,dn 
 					!pointing in the new direction.
 c       There might be some correction to 'zpath' distance here due to particle
@@ -3475,16 +3475,16 @@ c Consistency check!!! Horizontal tracks.
 	      dlsdms=1.-segment%dlend**2-segment%dmend**2
 	      do while (dlsdms.le.0.0)
 		 write(coutstring,1301)segment%dlend,segment%dmend,dlsdms,
-	1	      icheck+1
+     1   	      icheck+1
  1301     format(' ***SEGMENT_OUT--Consistency failure. dlend,dmend,
-	1 dlsdms:',3e20.12,' attempt #',i3)
+     1    dlsdms:',3e20.12,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
 	         segment%dmend=segment%dmend-sign(1.e-6,segment%dmend)
 		 segment%dlend=segment%dlend-sign(1.e-6,segment%dlend)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
 	 write(coutstring,3006)
-	1		 ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
+     1   		 ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
  3006	 format(a)
 	 call kscharstring2cout(trim(coutstring)//char(0))
 	 stop
@@ -3497,16 +3497,16 @@ c Consistency check for d*start!!!
 	      dlsdms=1.-segment%dlstart**2-segment%dmstart**2
 	      do while (dlsdms.le.0.0)
 		 write(coutstring,1300)segment%dlstart,segment%dmstart,
-	1	      dlsdms,icheck
+     1   	      dlsdms,icheck
 1300  format(' ***SEGMENT_OUT--Consistency failure. dlstart,dmstart,
-	1	      dlsdms:',3e14.7,' attempt #',i3)
+     1   	      dlsdms:',3e14.7,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
 		 segment%dlstart=segment%dlstart-sign(1.e-6,segment%dlstart)
 		 segment%dmstart=segment%dmstart-sign(1.e-6,segment%dmstart)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
 	       write(coutstring,3007)
-	1		 ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
+     1   		 ' ***SEGMENT_OUT--FATAL--Cant fix consistency failure'
 3007	       format(a)
 	       call kscharstring2cout(trim(coutstring)//char(0))
 	       stop
@@ -3550,7 +3550,7 @@ c Consistency check for d*start!!!
            else
            	if(debena(ispec))then
                 	 write(coutstring,1004)trim(nuclei_names(jcharge)),ja,
-	1		tenergy,hd,x,y,tim
+     1   		tenergy,hd,x,y,tim
 1004	format('0',a,'(',i3,') :hits',11x,f10.6,f13.0,23x,2f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
@@ -3603,14 +3603,14 @@ c            do the actual propagation.
 c      G.H.S.  5/2/89
 c            In order to prevent problems limit the altitudes to above hobs.
 
-c	11/29/90 G.H.S. v:1:0.3
+c     1   1/29/90 G.H.S. v:1:0.3
 c		For decaying type particles that hit hobs, make sure they do
 c		by pretending that they go through hobs, through air with
 c		density same as at hobs until they reach their decay distance.
 c		Use the resultant gm/cm**2 traveled as the values to feed
 c		to propint.
 
-c	11/9/95 GHS
+c     1   1/9/95 GHS
 c		Limit up going neutrals to 1.0 gm/cm**2 altitude.
 c		Correct handeling of Up going charged at 1.0 gm/cm**2
 c		Fix handeling of sign for up going.
@@ -3634,11 +3634,11 @@ cNeutral particles.(gammas,K long,K short, Neutron, Neutrinos)
 		   hd=yds(.5*segment_head%depth)
 		   write(coutstring,1000)tenergy,height,dl,dm,dn
  1000		   format(' ***Prodec-Neutral Track goes too high:tenergy,
-	1		height,dl,dm,dn,x,y,tim,ispec,t:',5e14.7)
+     1   		height,dl,dm,dn,x,y,tim,ispec,t:',5e14.7)
 	           call kscharstring2cout(trim(coutstring)//char(0))
 		   write(coutstring,1001)x,y,tim,ispec,t
  1001		   format(3e14.7,i5,e14.7,
-	1           ' ***HD set to yds(.5*segment_head%depth)')
+     1              ' ***HD set to yds(.5*segment_head%depth)')
 
 		   call kscharstring2cout(trim(coutstring)//char(0))
 		endif
@@ -3662,8 +3662,8 @@ cCharged propagation
 		tgms=tgms+(gms(hd)-gms(height))/dn
 		if(tgms.lt.0)then
 			write(coutstring,3008)
-	1 '****** PROPDEC--Warning-Negative tgms:tgms,hd,height,dn:',
-	2 tgms,hd,height,dn
+     1    '****** PROPDEC--Warning-Negative tgms:tgms,hd,height,dn:',
+     1    tgms,hd,height,dn
 3008			format(a,4e14.7)
 			call kscharstring2cout(trim(coutstring)//char(0))
 
@@ -3706,12 +3706,12 @@ c             Don't allow us to go below hobs. See 11/9/95
 c	G.H.S. 10/23/89
 c		Don't let us go above 1 gm.
 
-c	11/9/95 GHS V:1:0.6
+c     1   1/9/95 GHS V:1:0.6
 c		Fix hobs limitation. Make test at hobs not sea_level. Fix
 c		t(distance in gm/cm**2) after new distance.
 c		Fix handeling of up going particles.
 
-!	14/06/01 GHS V:1:2.0
+!     1   4/06/01 GHS V:1:2.0
 !		Modify for use with heavies. Heavies have ispec>20.
 !		Mass number of heavy is ispec-20.
 
@@ -3749,7 +3749,7 @@ c              No slices. go straight to destination.
 		elseif(gr.lt.(.5*segment_head%depth))then
 		   write(coutstring,3500)g,r,tenergy,height
  3500   format(' ***Propint-Neutral Track goes too high:g,r,tenergy,height: ',
-	1         5e14.7)
+     1            5e14.7)
 	           call kscharstring2cout(trim(coutstring)//char(0))
 		   write(coutstring,3501)dl,dm,dn,x,y
  3501	format(5e14.7)
@@ -3790,8 +3790,8 @@ c                    t is total distance to go in gm/cm**2. Should be positive.
 
 	if(tsegment.lt.0)then
 	     		write(coutstring,3009)
-	1 '****** PROPINT--Warn-Negative seg:tsegment,t,tsofar,height:',
-	1 tsegment,t,tsofar,height
+     1    '****** PROPINT--Warn-Negative seg:tsegment,t,tsofar,height:',
+     1    tsegment,t,tsofar,height
  3009			format(a,4e14.7)
 	call kscharstring2cout(trim(coutstring)//char(0))
 	endif
@@ -3802,7 +3802,7 @@ c                    t is total distance to go in gm/cm**2. Should be positive.
 	if(ttend.lt.(.5*segment_head%depth))then
 		write(coutstring,3503)g,r,tenergy,height
  3503   format(' ***Propint-Track goes too high:g,r,tenergy,height: ',
-	1         5e14.7)
+     1            5e14.7)
 	        call kscharstring2cout(trim(coutstring)//char(0))
 		write(coutstring,3501)dl,dm,dn,x,y
 		call kscharstring2cout(trim(coutstring)//char(0))
@@ -3861,11 +3861,11 @@ c       Single particle Too weak?
 		IF (tnucleon.lt.thresh(14))then
 			if(debena(20))then
 	          	  call mass_number2charge_mass(ispec-20,
-	1 z_nuclei,xmass)
+     1    z_nuclei,xmass)
           	       	  write(coutstring,2001)trim(nuclei_names(z_nuclei)),
-	1 ispec-20,tenergy,height,x,y,tim
+     1    ispec-20,tenergy,height,x,y,tim
 2001  format('0',a,'(',i3,'):de/dx drop ',3x,f10.6,2f13.0,23x,
-	1 f10.1,f12.1)
+     1    f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
 			endif
@@ -3926,7 +3926,7 @@ c       as found in the particle data book.
      
 !	Modified:
 
-!	18/06/01 GHS v:1:2.0
+!     1   8/06/01 GHS v:1:2.0
 !		Check that equation for heavy particles(nucleos and nuclei) has
 !		been done corretcly. It has! Mary's good! 
 !		Note: t=dx*rho(density).
@@ -3996,14 +3996,14 @@ c       dE for leptons,  From Leo, p. 35
            	if(ispec.eq.3) then
                 		!electron
                 	F=((tau**2)/8-(2*tau+1)*.6931)/((tau+1)**2)+1-
-	1 (beta**2)
+     1    (beta**2)
         	elseif(ispec.eq.2) then
                 		!positron
                 	F=-(23+14/taut+10/(taut**2)+4/(taut**3))*
-	1 (beta**2)/12+1.3862944
+     1    (beta**2)/12+1.3862944
         	endif
         	de=alpha*(1/betasqr)*(cf3+0.5*(alog(tau**2*taut)+
-	1 F-delta))*t
+     1    F-delta))*t
 	        return
 !*************************************************************************
 	
@@ -4011,11 +4011,11 @@ c       dE for leptons,  From Leo, p. 35
 c       dE for HEAVY PARTICLES, Leo eq. 2.27
 !*************************************************************************
 	elseif((ispec.ge.4.and.ispec.ne.6.and.ispec.le.10).or.
-	1 (ispec.eq.13).or.(ispec.gt.20))then
+     1    (ispec.eq.13).or.(ispec.gt.20))then
 
-!	18/06/01 GHS. Add qz**2 for nuclei.Everything else stays the same.
+!     1   8/06/01 GHS. Add qz**2 for nuclei.Everything else stays the same.
 		de=alpha*(1/betasqr)*(qz**2)*(cf2+dlog(gamma*gamma-1)
-	1 -betasqr-delta*0.5)*t
+     1    -betasqr-delta*0.5)*t
 	        return
 !*************************************************************************
 
@@ -4433,7 +4433,7 @@ c                                                 energy to make it
                             totexc=totexc+ee       !Keep track of evap.
                             if(debena(ispc))then
                                    write(coutstring,1003)namtyp(ispc),
-	1			    ee,xm(ispc),totexc
+     1   			    ee,xm(ispc),totexc
 	call kscharstring2cout(trim(coutstring)//char(0))
                                    endif
                             return                     !Drop it.
@@ -4684,7 +4684,7 @@ c		Replace Stanev bremsstrahlung code with new and improved(and
 c		correct) code written by GHS. Replace routines RBSME and RBSMS
 c		with routines BREMSSTRAHLUNG and BREM_INTENSITY.
 
-c	17/12/96 G.H.S. v:1:0.7
+c     1   7/12/96 G.H.S. v:1:0.7
 c		Replace Stanev pair production code with new and improved(and
 c		correct) code written by GHS. Replace routines RPAIMS and
 c		RPAIME	with routines PAIR_PRODUCTION and PAIR_INTENSITY and
@@ -4694,7 +4694,7 @@ c		inaccuaracies in the energy calculation of the pairs above
 c		primary photon energies of 500 MeV.
 c		Also fix a minor error in the compton crosssection calculation.
 
-c	11/06/01 GHS, M.P.K.
+c     1   1/06/01 GHS, M.P.K.
 c		Added calls to the heavy primary code (subroutine do_heavy
 c		which in turns call routines from nuclib). Changed the 
 c		treeament of the initial particle to allow for heavy
@@ -4709,7 +4709,7 @@ c		Helium 4 would have ispec=24).
 !               in the normal manner in the main loop.
 !               
 
-!	10/07/01 GHS V1:2.0
+!     1   0/07/01 GHS V1:2.0
 !		 At very low energies its possible for electron/positron
 !		to end up with less energy at the BREMSTRAHLUNG interaction 
 !		point from de/dx then we give to the gamma. This is due to an 
@@ -4776,7 +4776,7 @@ c      dgn arrAY FOR ALL OTHERS.
        	elseif(ispec.le.18)then 		!Anything else not a heavy
               	call stor_g(teprim,height,dl,dm,dn,x,y,tim,ispec)
 
-!	11/06/01 GHS. If primary is a heavy nucleus process it here.
+!     1   1/06/01 GHS. If primary is a heavy nucleus process it here.
        	else
 		call do_heavy(teprim,height,dl,dm,dn,x,y,tim,ispec)
 
@@ -4846,7 +4846,7 @@ c	GHS 10/07/01: At very low energies its possible for electron/positron
 !****************************************************************************
 
               if(height.eq.hobs.or.tetev.lt.thresh(ispec).or.
-	1 height.ge.yds(.5*segment_head%depth))then
+     1    height.ge.yds(.5*segment_head%depth))then
 			goto 100
 	      endif
                           !Quit if hit ground, or below Cherenkov threshold.
@@ -4867,7 +4867,7 @@ c                                   Assume negligable pperp.
 1006  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
      1 '       X,Y(meters)    Time(nsec)')
                      write(coutstring,3100)namtyp(ispec),nn,
-	1 tetev+e_gamma+bremdedx,height,dl,dm,dn,x,y,tim
+     1    tetev+e_gamma+bremdedx,height,dl,dm,dn,x,y,tim
  3100	format(' ',a8,':',i5,' >>>Brem',
      2 9x,f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
@@ -4947,11 +4947,11 @@ c  prob=(SIGMA)*exp(-T*SIGMA)  where SIGMA is probability/radiation length
 						!lengths to interaction point.
                      t=t*rad_len       		!Convert to gm/cm**2
         	     call propint(tetev,height,dl,dm,dn,x,y,tim,
-	1 ispec,t)
+     1    ispec,t)
 				       		!Propagate sets new height and
 						!tim.
 		     if(height.eq.hobs.or.tetev.lt.thresh(ispec).
-	1or.height.ge.yds(.5*segment_head%depth))then
+     1   or.height.ge.yds(.5*segment_head%depth))then
 	 		goto 100		!Quit if hit ground,or below 
 		     endif
 						!Chrenkow threshold
@@ -5037,7 +5037,7 @@ c                                                 meters.
      1 ispec,t)
 c              Propagate sets new height and tim.
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
+     1    tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 c                            Quit it hits or below chrenkov threshold.
@@ -5060,15 +5060,15 @@ c                     traveled to the interaction point. Fixed it.
 
 		 write(coutstring,2308)g,r,tetev,height
  2308		 format(' ******UNICAS-Track goes too high:g,r,tetev,
-	1	      height,dl,dm,dn,x,y,tim,ispec,t: ',
-	1             5e14.7)
+     1   	      height,dl,dm,dn,x,y,tim,ispec,t: ',
+     1                5e14.7)
 		 call kscharstring2cout(trim(coutstring)//char(0))
 		 write(coutstring,3501)dl,dm,dn,x,y
  3501		 format(5e14.7)
 		 call kscharstring2cout(trim(coutstring)//char(0))
 		 write(coutstring,3502)tim,ispec,t
  3502		 format(e14.7,i5,e14.7,
-	1               ' ***G_R set to .5segment_head%depth gm. ')
+     1                  ' ***G_R set to .5segment_head%depth gm. ')
 		 call kscharstring2cout(trim(coutstring)//char(0))
 		 
 		 gr=.5*segment_head%depth
@@ -5086,7 +5086,7 @@ c                                   propagte to the interaction using r as
 c                                   distance in gm/cm**2.
                      call propint(tetev,height,dl,dm,dn,x,y,tim,ispec,r)
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
+     1    tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 
@@ -5119,7 +5119,7 @@ c                                          interacting.
      1 tim,ispec,t)
 c              Propagate sets new height and tim.and tetev.
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
+     1    tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 c                            Hits or below threshold.
@@ -5132,7 +5132,7 @@ c                            Hits or below threshold.
 
 c              Propagate sets new height and tim.
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
+     1    tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 c                            Hits or below threshold.
@@ -5202,7 +5202,7 @@ c       G.H.S.1/9/86
 
 ! Modified:
 
-!	13/06/01 GHS
+!     1   3/06/01 GHS
 !               Impliment and integrate into KASCADE. Use calls to PROPINT,
 !               TARGET and STOR_G where appropriate. Add comments as we can
 !               figure things out(lower case text). Clean up as we can.
@@ -5253,7 +5253,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 !****************************************************************************
 !  Modified:
 
-!	11/06/01 GHS
+!     1   1/06/01 GHS
 !	    As single nucleons are produced place them into DGN for further
 !               processing.
 !	    As single n8ucleons interact process the interaction with TARGET
@@ -5277,7 +5277,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 
 	integer JAFRAG (60), IAF(60)
 	real XFRAG(60),XXX(60),YYY(60), AXX(60), AYY(60),tim_fragment(60),
-	1 e0(60)
+     1    e0(60)
 	real amp,amp2,rpox
 	real xx1,yy1,axx1,ayy1
 	real xmass
@@ -5419,15 +5419,15 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
           	  	call mass_number2charge_mass(ja,z_nuclei,xmass)
               	  	write(coutstring,4000)
 4000  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
-	1 '       X,Y(meters)    Time(nsec)')
+     1    '       X,Y(meters)    Time(nsec)')
 	call kscharstring2cout(trim(coutstring)//char(0))
 
 
               	  	write(coutstring,3100)trim(nuclei_names(z_nuclei)),
-	1 ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
+     1    ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
  3100	format(' ',a,
-	1 '(',i3,') >>>Heavy int.   ',
-	1 f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
+     1    '(',i3,') >>>Heavy int.   ',
+     1    f10.6,f13.0,2(f8.5,','),f8.5,2f10.1,f12.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
            	  endif
@@ -5466,12 +5466,12 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 	         	CALL FRAGM (IATARGET, JA, NBT,B, NF, IAF)
 	   	  	if(debena(20))then
           	  	  call mass_number2charge_mass(iatarget,
-	1 z_nuclei,xmass)
+     1    z_nuclei,xmass)
 	      	  	  write(coutstring,4001)trim(nuclei_names(z_nuclei)),
-	1 iatarget,nb,nbel,nf
+     1    iatarget,nb,nbel,nf
 4001	format(' Heavy on ',a,'(',i3,') produces:',
-	1 '# Wounded nucleons=',i5,' # Elastic nucleons= ',i5,
-	2 '# Fragments=',i5)
+     1    '# Wounded nucleons=',i5,' # Elastic nucleons= ',i5,
+     1    '# Fragments=',i5)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
 		          write(coutstring,4002)(iaf(j),j=1,nf)
@@ -5533,7 +5533,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 				isp=13
 			endif
 			call target(tnucleon,height,axx1,ayy1,znth,xx1,
-	1 yy1,tim,isp)
+     1    yy1,tim,isp)
                      ENDDO
                   endif
 !**************************************************************************
@@ -5550,7 +5550,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
 				isp=13
 			endif
 			call stor_g(tnucleon,height,axx1,ayy1,znth,
-	1 xx1,yy1,tim,isp) 
+     1    xx1,yy1,tim,isp) 
                      ENDDO
                   endif
                else
@@ -5559,7 +5559,7 @@ C.  mass number A and KE energy  per nucleon teprim/a (TeV)
           	  	call mass_number2charge_mass(ja,z_nuclei,xmass)
 			if(height.le.hobs)then
 	              	  	write(coutstring,4004)trim(nuclei_names(z_nuclei)),
-	1 ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
+     1    ja,tetev,height,axx1,ayy1,znth,xx1,yy1,tim
 4004  format('0',30x,'tetev(Tev)  Alt(meters)    Direction cosigns ',
      1 '      X,Y(meters)    Time(nsec)',' ',a,
      1 '(',i3,') >>>Heavy hits!',

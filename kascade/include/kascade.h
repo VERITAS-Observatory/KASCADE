@@ -51,7 +51,7 @@
 
 
 	common/debug/debugr,dvissum,dsbsum,doldsum,dcsum,dasum,
-	1 shower_dist,shower_trans
+     1     shower_dist,shower_trans
 	integer*4 shower_dist(300),shower_trans(300)
 	real*4 debugr,dvissum,dsbsum,doldsum,dcsum,dasum 
 
@@ -207,31 +207,31 @@ c ** Segment Record Structure **
 
 
 	data nuclei_names/'Hydrogen', 'Helium', 'Lithium', 
-	1'Beryllium',
-	1'Boron', 'Carbon','Nitrogen', 'Oxygen', 'Fluorine', 'Neon', 
-	1'Sodium', 'Magnesium', 'Aluminum', 'Silicon','Phosphorous', 
-	1'Sulfur','Chlorine', 'Argon', 'Potassium', 'Calcium', 
-	1'Scandium', 'Titanium','Vanadium', 'Chromium', 'Manganese', 
-	1'Iron', 'Cobalt', 'Nickel', 'Copper', 'Zinc', 'Gallium',
-	1'Germanium', 'Arsenic', 'Selenium', 'Bromine', 'Krypton', 
-	1'Rubidium', 'Strontium', 'Yttrium', 'Zirconium', 'Niobium', 
-	1'Molybdenum', 'Technetium', 'Ruthenium', 'Rhodium', 
-	1'Palladium','Silver', 'Cadmium', 'Indium', 'Tin', 
-	1'Antimony', 'Tellurium','Iodine', 'Xenon', 'Cesium',
-	1'Barium', 'Lanthanum', 'Cerium', 'Praseodymium', 
-	1'Neodymium', 'Promethium', 'Samarium','Europium', 
-	1'Gadolinium','Terbium', 'Dysprosium', 'Holmium', 'Erbium', 
-	1'Thulium', 'Ytterbium','Lutetium', 'Hafnium', 'Tantalum', 
-	1'Tungsten', 'Rhenium', 'Osmium', 'Iridium','Platinum', 
-	1'Gold', 'Mercury', 'Thallium', 'Lead', 'Bismuth', 
-	1'Polonium', 'Astatine','Radon', 'Francium', 'Radium', 
-	1'Actinium', 'Thorium', 'Proactinium', 'Uranium', 
-	1'Neptunium', 'Plutonium','Americium', 'Curium', 
-	1'Berkelium', 'Californium', 'Einsteinium','Fermium', 
-	1'Mendelevium', 'Nobelium', 'Lawrencium', 'Rutherfordium', 
-	1'Dubnium', 'Seaborgium','Bohrium', 'Hassium', 
-	1'Meitnerium', 'Unununium', 'Ununbium', 'Ununtrium', 
-	1'Ununquadium'/
+     1    'Beryllium',
+     1    'Boron', 'Carbon','Nitrogen', 'Oxygen', 'Fluorine', 'Neon', 
+     1    'Sodium', 'Magnesium', 'Aluminum', 'Silicon','Phosphorous', 
+     1    'Sulfur','Chlorine', 'Argon', 'Potassium', 'Calcium', 
+     1    'Scandium', 'Titanium','Vanadium', 'Chromium', 'Manganese', 
+     1    'Iron', 'Cobalt', 'Nickel', 'Copper', 'Zinc', 'Gallium',
+     1    'Germanium', 'Arsenic', 'Selenium', 'Bromine', 'Krypton', 
+     1    'Rubidium', 'Strontium', 'Yttrium', 'Zirconium', 'Niobium', 
+     1    'Molybdenum', 'Technetium', 'Ruthenium', 'Rhodium', 
+     1    'Palladium','Silver', 'Cadmium', 'Indium', 'Tin', 
+     1    'Antimony', 'Tellurium','Iodine', 'Xenon', 'Cesium',
+     1    'Barium', 'Lanthanum', 'Cerium', 'Praseodymium', 
+     1    'Neodymium', 'Promethium', 'Samarium','Europium', 
+     1    'Gadolinium','Terbium', 'Dysprosium', 'Holmium', 'Erbium', 
+     1    'Thulium', 'Ytterbium','Lutetium', 'Hafnium', 'Tantalum', 
+     1    'Tungsten', 'Rhenium', 'Osmium', 'Iridium','Platinum', 
+     1    'Gold', 'Mercury', 'Thallium', 'Lead', 'Bismuth', 
+     1    'Polonium', 'Astatine','Radon', 'Francium', 'Radium', 
+     1    'Actinium', 'Thorium', 'Proactinium', 'Uranium', 
+     1    'Neptunium', 'Plutonium','Americium', 'Curium', 
+     1    'Berkelium', 'Californium', 'Einsteinium','Fermium', 
+     1    'Mendelevium', 'Nobelium', 'Lawrencium', 'Rutherfordium', 
+     1    'Dubnium', 'Seaborgium','Bohrium', 'Hassium', 
+     1    'Meitnerium', 'Unununium', 'Ununbium', 'Ununtrium', 
+     1    'Ununquadium'/
 
 
 
