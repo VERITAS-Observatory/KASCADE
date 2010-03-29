@@ -1,4 +1,4 @@
-c	This is a Palfrey addaption of the CERN RANLUX functions
+C       This is a Palfrey addaption of the CERN RANLUX functions
 c	for random number generation.
 c	Glenn Sembroski Modified it to work with KASCADE.
 c	I include the RANLUX source code in this file.
@@ -22,10 +22,10 @@ c	Init random number pointer to 1.
 !	Print*,' Opening',trim(random_seed_file_name),' for random seed input'
 !!enddebug
 	open(3,access='sequential',status='old',iostat=ios,
-	1 file=random_seed_file_name)
+     1  file=random_seed_file_name)
         if(ios.gt.0)then
            print*,' error opening random seed input file',
-	1 random_seed_file_name
+     1  random_seed_file_name
            stop 'RANDOM seed input file open error'
         endif
 	read(3,1000) iseedl
@@ -39,7 +39,7 @@ c	correlations have very small chance of being observed."
 	if(printseeds.eq.1)then
 	   WRITE(6,1001) random_seed_file_name,iseedl
 1001  	format('   Random seed vector read from file:',a,
-	1 /,5(' ',5(5i15,/)),/)
+     1  /,5(' ',5(5i15,/)),/)
 	endif
 
         call ranlux(rnrs,5000)
@@ -65,10 +65,10 @@ c	Init random number pointer to 1.
 !	Print*,' Opening', random_seed_file_name
 !enddebug
 	open(3,access='append',status='old',iostat=ios,
-	1 file=random_seed_file_name)
+     1  file=random_seed_file_name)
         if(ios.gt.0)then
            print*,' error opening output random seed file', 
-	1	random_seed_file_name
+     1 	random_seed_file_name
            stop 'Random seed file ouput open faslure'
         endif
 	rewind(3)
@@ -79,7 +79,7 @@ c	Init random number pointer to 1.
 	if(printseeds.eq.1)then
 	   WRITE(6,1001) random_seed_file_name,iseedl
 1001  	format('   Random seed vector written into file',a,
-	1 /,5(' ',5(5i15,/)),/)
+     1  /,5(' ',5(5i15,/)),/)
 	endif
 	return
 	end
