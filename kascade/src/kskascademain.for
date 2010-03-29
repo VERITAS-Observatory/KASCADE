@@ -768,9 +768,9 @@ c	And north only!
 !	This next line is unnecessary. Nobody(including BEND) ever uses BX.
 !	BEND assumes that there is no field in x direction!!!!!
        bx=0.
-       by=-cosd(dip_angle)       !Mag field points north.
+       by=-cos(deg2rad*dip_angle)       !Mag field points north.
 				 !+Y direction is South!!!
-       bz=sind(dip_angle)
+       bz=sin(deg2rad*dip_angle)
        return
        end
 
@@ -4489,7 +4489,7 @@ c                                          Pick type of interaction.
        if((select.le.(charge(1)+charge(2))).and.
      1 (select.gt.charge(1)))then
               il=2                            !its charge exchange.
-              nuc=14-jmod(ispec,13)       !proton goes to n and vice versa.
+              nuc=14-mod(ispec,13)       !proton goes to n and vice versa.
 
               else
               il=3

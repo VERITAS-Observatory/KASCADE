@@ -38,7 +38,7 @@
 	real*4 den,dgn
 	integer*4 nen,ngn
 
-	real*4 refr0,sea_level,z_air,rad_len,cq,c_light,pi,twopi
+      real*4 refr0,sea_level,z_air,rad_len,cq,c_light,pi,twopi,deg2rad
       parameter  (refr0=1.00027)          !Refraction index of air at STP
       parameter  (sea_level=1033.)        !Depth of sea level in gm/cm**2
       parameter  (z_air=7.37)             !Atomic number of air.
@@ -48,7 +48,7 @@
 
       parameter  (pi=3.141592654)	
       parameter  (twopi=6.28318531)
-
+      parameter  (deg2rad=180./pi)
 
 	common/debug/debugr,dvissum,dsbsum,doldsum,dcsum,dasum,
      1     shower_dist,shower_trans
