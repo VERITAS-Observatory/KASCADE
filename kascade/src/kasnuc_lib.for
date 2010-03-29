@@ -3135,7 +3135,6 @@ C...Gaussian deviation
       SAVE
 	real pran,xdummy
 
-      SAVE GSET
       DATA ISET/0/
       IF (ISET.EQ.0) THEN
 1       V1=2.*PRAN(XDUMMY)-1.

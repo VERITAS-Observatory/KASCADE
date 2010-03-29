@@ -60,7 +60,7 @@ c             propagating a segment , assume the segment is straight
 c             with its initial direction to caculate final x,y values
 c             times, mid x,y values and tmid. Apply ther direction
 c             changes due to multiple scattering and mag field 
-c             bending only at the end of the segment.Changes to
+c             bending only at the end of the segment%Changes to
 c             PROPAGATE.
 
 c        G.H.S.  5/23/89
@@ -167,7 +167,7 @@ c		now!!!
 !		the beginning of UNICAS. Everything else remains the
 !		same. Changes to UNICAS"
 !               Below are my adaptations and explanations of her method.
-!               1: Define SEGMENT_HEAD.ITYPE(and thus ISPEC) as 20+A where A 
+!               1: Define SEGMENT_HEAD%ITYPE(and thus ISPEC) as 20+A where A 
 !                  is atomic mass number(must be <= 56). Thus HE(4) has 
 !                  ITYPE=24 and Fe(56) (the heaviest nucleus we can handle!) 
 !                  (BUU SEE BELOW!!!!) has ITYPE=76
@@ -256,7 +256,7 @@ c		now!!!
 !               A Bug, sort of: When the injection depth is less than 1gm we 
 !               have problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where yds(1.0) is used as the 
-!               test limit to .5*segment_head.depth
+!               test limit to .5*segment_head%depth
 
 !      13/01/05 GHS  V:1:3.5
 !               Replaced old MULTSCATT routine with a C++ version of Vladimir
@@ -373,7 +373,7 @@ c            !Masses of stable particles(Tev.).  Uses particle code as index.
 
 
 c	Save version for header file.
-	!segment_head.version=version
+	!segment_head%version=version
 	write(coutstring,1623)trim(version),trim(update)
  1623	format('KASCADE VERSION:',a,' Last updated:',a)
 	call kscharstring2cout(trim(coutstring)//char(0))
@@ -385,13 +385,13 @@ c	Save version for header file.
 ! and call to dtatin
 ! *************************************************************************
 
-	segment_head.TEP=TEP
-	segment_head.itype=itype
-	segment_head.dli=ksdli
-	segment_head.dmi=ksdmi
+	segment_head%TEP=TEP
+	segment_head%itype=itype
+	segment_head%dli=ksdli
+	segment_head%dmi=ksdmi
 	dni=ksdni
-	segment_head.etr=etr
-	segment_head.depth=depth
+	segment_head%etr=etr
+	segment_head%depth=depth
 	tmax=kstmax
 	hobs=kshobs
 	do i=1,20
@@ -410,23 +410,23 @@ c	Save version for header file.
 	   endif
 	enddo
 
-	segment_head.idfile=idfile
+	segment_head%idfile=idfile
 
 	call kskascadegetmagneticfield(magneticfieldspec)
 
-	segment_head.magnet_field=trim(magneticfieldspec)
+	segment_head%magnet_field=trim(magneticfieldspec)
 
 ! **************************************************************************
 !  Setup some stuff
 ! *************************************************************************
        	do  i=1,5		!Convert to TeV
-	   thresh(i)=segment_head.etr*1.0e-6
+	   thresh(i)=segment_head%etr*1.0e-6
 	enddo	
 	
 c ****************************************************************************
 c  	Decode if Earths magnetic file is to be used.
 c ****************************************************************************
-	if((index(segment_head.magnet_field,'F').eq.0).and.
+	if((index(segment_head%magnet_field,'F').eq.0).and.
      1     (ksfuncenable(1).eq.1))then
 	   magnet_on=.true.
 	else
@@ -468,16 +468,16 @@ c  All altitude variables start with 'h' and are in meters.
 c ****************************************************************************
 	call printAtmVersion
 
-	segment_head.zobs   = gms(hobs)
-	height = yds(segment_head.depth) 
+	segment_head%zobs   = gms(hobs)
+	height = yds(segment_head%depth) 
 				    !inital altitude in meters above sea_level
 
 c     10/17/86       G.H.S.          Define xinitial and y initial
        	path=(height-hobs)/dni	!Length of trajectory
-       	segment_head.xinitial=-path*segment_head.dli  
+       	segment_head%xinitial=-path*segment_head%dli  
 				    !X offset to get center of shower
 			            !at origen at hobs.
-       	segment_head.yinitial=-path*segment_head.dmi
+       	segment_head%yinitial=-path*segment_head%dmi
 
 ! ****************************************************************************
 
@@ -513,9 +513,9 @@ c!       All K.e. variables start with 'e' or 't'.(Can be either Mev or Tev)
 !Do the shower.
 c                            Init shower parameters
  103	hei=height
-	tenergy=segment_head.tep
-        dl=segment_head.dli
-        dm=segment_head.dmi
+	tenergy=segment_head%tep
+        dl=segment_head%dli
+        dm=segment_head%dmi
         dn=dni
         if(abs(dn).lt.1.e-8)then
 	   dn=1.e-8		!Cheap way to handle horizontal tracks.
@@ -528,13 +528,13 @@ c                            Init shower parameters
 				!ksgrisuheadwrite is in ksKascade.cpp. There
 				!a test will be made to see if the write is 
 				!actually to be done. 
-        call ksgrisuheadwrite(segment_head.itype,xinitial, yinitial,
+        call ksgrisuheadwrite(segment_head%itype,xinitial, yinitial,
      1			hobs, dl, dm, tenergy)
 
 c                             in  PROPAGATE.  r*8.
-        ispec=segment_head.itype       !Initial particle type
-        x=segment_head.xinitial	!Initial x,y coord.
-        y=segment_head.yinitial
+        ispec=segment_head%itype       !Initial particle type
+        x=segment_head%xinitial	!Initial x,y coord.
+        y=segment_head%yinitial
         size=0.			!size of shower
         CALL UNICAS (tenergy,ispec,hei,dl,dm,dn,x,y)
 c                                   Run the cascade. This the guts
@@ -547,13 +547,13 @@ c                                   of everything.
 				!actually to be done. 
 
        
-	write(coutstring,1001)segment_head.idfile
+	write(coutstring,1001)segment_head%idfile
  1001	   format(' Shower File id:',i4)
 	call kscharstring2cout(trim(coutstring)//char(0))
 	write(coutstring,3100)size
  3100	   format(' Shower size:',f7.0)
 	call kscharstring2cout(trim(coutstring)//char(0))
-	write(coutstring,3101)segment_head.xinitial,segment_head.yinitial
+	write(coutstring,3101)segment_head%xinitial,segment_head%yinitial
  3101	format(' Shower core at:',f10.1,',',f10.1)
 	call kscharstring2cout(trim(coutstring)//char(0))
 	write(coutstring,3102)inext
@@ -713,8 +713,8 @@ c      DETERMINE unit vector for MAG FIELD b
 c	And north only!
 
 !!!!!This is for Haleakala ONLY!!!!!!
-	if(index(segment_head.magnet_field,'L').ne.0.or.
-	1  index(segment_head.magnet_field,'t').ne.0)then
+	if(index(segment_head%magnet_field,'L').ne.0.or.
+	1  index(segment_head%magnet_field,'t').ne.0)then
 		b_field=0.365      !Gauss
 		dip_angle=37.8    !Degrees.
 		write(coutstring,1000)'HALEAKALA',b_field,dip_angle
@@ -722,21 +722,21 @@ c	And north only!
      1           ' B_FIELD(gauss):',f7.3,' DIP_ANGLE(deg):',f7.3)
 	call kscharstring2cout(trim(coutstring)//char(0))
 
-	elseif(index(segment_head.magnet_field,'A').ne.0)then
+	elseif(index(segment_head%magnet_field,'A').ne.0)then
 		!!!!!This is for ASGAT ONLY!!!!!!
 		b_field=0.45     !Gauss
 		dip_angle=57.0    !Degrees.
 		write(coutstring,1000)'ASGAT',b_field,dip_angle
 	call kscharstring2cout(trim(coutstring)//char(0))
 
-	else if(index(segment_head.magnet_field,'M').ne.0)then
+	else if(index(segment_head%magnet_field,'M').ne.0)then
 		!!!!!This is for MACRO ONLY!!!!!!
 		!NOTE THESE ARE JUST HALEAKALA VALUES!!!!
 		b_field=0.365     !Gauss
 		dip_angle=37.8    !Degrees.
                 write(coutstring,1000)'MACRO',b_field,dip_angle
 	call kscharstring2cout(trim(coutstring)//char(0))
-	else if(index(segment_head.magnet_field,'W').ne.0)then
+	else if(index(segment_head%magnet_field,'W').ne.0)then
 		!!!!!This is for WHIPPLE ONLY!!!!!!
 !		b_field=0.5      !Gauss
 !		dip_angle=60.0    !Degrees.
@@ -747,7 +747,7 @@ c	And north only!
 		write(coutstring,1000)'WHIPPLE',b_field,dip_angle
 	        call kscharstring2cout(trim(coutstring)//char(0))
 
-	else if(index(segment_head.magnet_field,'S').ne.0)then
+	else if(index(segment_head%magnet_field,'S').ne.0)then
 		!!!!!This is for Argentine Search light array!!!!!!
 		b_field=0.35      !Gauss
 		dip_angle=-25.0    !Degrees.
@@ -758,7 +758,7 @@ c	And north only!
 	else
             write(coutString,3000)
 	1 ' KASCADE--FATAL--Illegal magnetic field type:',
-	1 segment_head.magnet_field
+	1 segment_head%magnet_field
 3000	format(a,a)
 	call kscharstring2cout(trim(coutstring)//char(0))
     
@@ -2228,7 +2228,7 @@ c     This is petes for use by nfluct.
 	1 zdni,xm,zbeta,zgamma,xstart,ystart,hstart,hend,t_min,num,qz)
 !*****************************************************************************
 c       Implimentation of Knock-on electron generation from a projectile
-c	track segment.
+c	track segment%
 !*****************************************************************************
 c	Written by:
 
@@ -2247,7 +2247,7 @@ c	1952.
      
 c	Input parameters:
 c	tenergy:	Kinectic energy(TeV) of projectile.
-c	tsegment:	Gm/cm**2 that projectile travels in this track segment.
+c	tsegment:	Gm/cm**2 that projectile travels in this track segment%
 c	ispec:		Species type:2=e+,3=e-,4=mu+,5=mu-,7=pi+,8=pi-,9=k+,
 c			10=k-,13=Proton.
 c	dl,dm,dn:	Direction cosigns of projectile.
@@ -2257,11 +2257,11 @@ c			this projectile reached it.
 c	zdni:		R*8 Verticle direction cosign of inital primary particle
 c	xm:		Mass in TeV/c**2 of projectile.
 c	zbeta,zgamma:	R*8 kinectic values for projectile.
-c	xstart,ystart:	x,y coords(meters) of start of projectile track segment.
+c	xstart,ystart:	x,y coords(meters) of start of projectile track segment%
 c	hstart:		Altitude (above sea level in meters) of start of
-c			projectile track segment.
+c			projectile track segment%
 c	hend:		Altitude (above sea level in meters) of end of
-c			projectile track segment.
+c			projectile track segment%
 c	t_min:		Minimum energy of a knock-on electron were interested
 c			in.(TeV). Typically 20e-6 TeV: thresh(3)
 c	num:		i*4 Number of knock_on electrons made.
@@ -2276,7 +2276,7 @@ c		and positrons.  Total expected rate  is integrel of this
 !		funtion from 
 c		t_min to T_max	times gm./cm**2 it went through(tsegment).
 !		This number is then poisson fluctuated to give number created
-!		for this segment.
+!		for this segment%
 c	2:Pick T of created electron from F/(beta*t)**2 distribution. 
 c		Easiest way is to pick from 1/t**2 dist by direct method and 
 c		then using that t use rejection method to pick from F/beta. If
@@ -2535,7 +2535,7 @@ c	Now x,y,height of collision.
 
        zheight=pran(xdummy)*(hstart-hend)  !Verticle distance to travel
        zpath=zheight/dn       !Segment is assumed straignt with direction
-					!Collision is randomomly placed along segment.
+					!Collision is randomomly placed along segment%
 c              Use original path length since its best aprox to tsegment
 	xk=xstart+zpath*dl       !Segment is assumed straignt with direction
 	yk=ystart+zpath*dm       !dl,dm,dn and length zpath.
@@ -3069,6 +3069,7 @@ c	Modified:
 	real common_term,common_term1,common_term2,common_term3
 	real gamma,delta,f1,f2,fn_term1,fn_term2
 	real fncs,c_fun,fng15
+	integer isegmentstart,isegmentend
 	include 'kascade.h'
 	
 
@@ -3133,7 +3134,7 @@ c      If hd is below hobs return with hd=hobs after propgation.
 c      G.H.S. 11/14/86
 c                    In order to make Cherenkov light more realistic, add to
 c                    output segment records the direction cosigns at the
-c                    end of a segment.  Requires moving calls to RIONZ,
+c                    end of a segment%  Requires moving calls to RIONZ,
 c                    MULTSCAT,and BEND into subrotine_ PROPAGATE. Changes to
 c                    PROPAGTE,PROPDEC, and PROPINT.
 
@@ -3279,12 +3280,12 @@ c 					!Only report it if its sizable.
         zpath=zheight/zdnstart  !Segment is assumed straignt with direction
 				    ! zd*startt and this length.
 
-        segment.xstart=x	!Save initial position for writing to segment 
+        segment%xstart=x	!Save initial position for writing to segment 
                                 !file.
-        segment.ystart=y          
-        segment.hstart=height
-        segment.dlstart=dl
-        segment.dmstart=dm
+        segment%ystart=y          
+        segment%hstart=height
+        segment%dlstart=dl
+        segment%dmstart=dm
 
 c              Use original path length since its best aprox to tsegment
         x=x+zpath*dl            !Segment is assumed straignt with direction
@@ -3343,8 +3344,8 @@ c       Calculate beta and gamma very carefully, r*8.
 !	Generate any knock on electrons.
 !*****************************************************************************
            call knock_on(temid,tsegment,ispec,dl,dm,dn,
-	1 tim,zdni,xmass,zbeta,zgamma,segment.xstart,
-	1 segment.ystart,segment.hstart,hd,thresh(3),num,jcharge)
+	1 tim,zdni,xmass,zbeta,zgamma,segment%xstart,
+	1 segment%ystart,segment%hstart,hd,thresh(3),num,jcharge)
            if((debena(3).or.debena(19)).and.num.ne.0)then
               nstart=nen
               do n=1,num
@@ -3443,11 +3444,11 @@ c                                      track.
         endif
 
 c       Write this segment out to the segment file.
-        segment.tend=tim
-        segment.hend=height
-        segment.dlend=dl
-        segment.dmend=dm
-        segment.nspec=ispec	!ispec is local, nspec is in a common block.
+        segment%tend=tim
+        segment%hend=height
+        segment%dlend=dl
+        segment%dmend=dm
+        segment%nspec=ispec	!ispec is local, nspec is in a common block.
 
 ! get charge
 	if(ispec.lt.20)then
@@ -3464,22 +3465,22 @@ C Ignore neutrals.
         if(jcharge.ne.0)then
 
 C Ignore upward going tracks.
-	   if(segment.hstart.ge.segment.hend)then
+	   if(segment%hstart.ge.segment%hend)then
 
 c Gamma at middle of segment.
-	      segment.gamma=(temid+xmass)/xmass
+	      segment%gamma=(temid+xmass)/xmass
 
 c Consistency check!!! Horizontal tracks.
 	      icheck=0
-	      dlsdms=1.-segment.dlend**2-segment.dmend**2
+	      dlsdms=1.-segment%dlend**2-segment%dmend**2
 	      do while (dlsdms.le.0.0)
-		 write(coutstring,1301)segment.dlend,segment.dmend,dlsdms,
+		 write(coutstring,1301)segment%dlend,segment%dmend,dlsdms,
 	1	      icheck+1
  1301     format(' ***SEGMENT_OUT--Consistency failure. dlend,dmend,
 	1 dlsdms:',3e20.12,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
-	         segment.dmend=segment.dmend-sign(1.e-6,segment.dmend)
-		 segment.dlend=segment.dlend-sign(1.e-6,segment.dlend)
+	         segment%dmend=segment%dmend-sign(1.e-6,segment%dmend)
+		 segment%dlend=segment%dlend-sign(1.e-6,segment%dlend)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
 	 write(coutstring,3006)
@@ -3488,20 +3489,20 @@ c Consistency check!!! Horizontal tracks.
 	 call kscharstring2cout(trim(coutstring)//char(0))
 	 stop
 		 endif
-		 dlsdms=1.-segment.dlend**2-segment.dmend**2
+		 dlsdms=1.-segment%dlend**2-segment%dmend**2
 	      enddo
 
 c Consistency check for d*start!!!
 	      icheck=0
-	      dlsdms=1.-segment.dlstart**2-segment.dmstart**2
+	      dlsdms=1.-segment%dlstart**2-segment%dmstart**2
 	      do while (dlsdms.le.0.0)
-		 write(coutstring,1300)segment.dlstart,segment.dmstart,
+		 write(coutstring,1300)segment%dlstart,segment%dmstart,
 	1	      dlsdms,icheck
 1300  format(' ***SEGMENT_OUT--Consistency failure. dlstart,dmstart,
 	1	      dlsdms:',3e14.7,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
-		 segment.dlstart=segment.dlstart-sign(1.e-6,segment.dlstart)
-		 segment.dmstart=segment.dmstart-sign(1.e-6,segment.dmstart)
+		 segment%dlstart=segment%dlstart-sign(1.e-6,segment%dlstart)
+		 segment%dmstart=segment%dmstart-sign(1.e-6,segment%dmstart)
 		 icheck=icheck+1
 		 if(icheck.gt.5)then
 	       write(coutstring,3007)
@@ -3510,13 +3511,13 @@ c Consistency check for d*start!!!
 	       call kscharstring2cout(trim(coutstring)//char(0))
 	       stop
 		 endif
-		 dlsdms=1.-segment.dlstart**2-segment.dmstart**2
+		 dlsdms=1.-segment%dlstart**2-segment%dmstart**2
 	      enddo
 
-	      call kssegmentwrite(segment.xstart,segment.ystart,
-     1	      segment.hstart,
-     1	   segment.dlstart,segment.dmstart,segment.tend,segment.hend,
-     1	   segment.dlend,segment.dmend,segment.gamma,segment.nspec,
+	      call kssegmentwrite(segment%xstart,segment%ystart,
+     1	      segment%hstart,
+     1	   segment%dlstart,segment%dmstart,segment%tend,segment%hend,
+     1	   segment%dlend,segment%dmend,segment%gamma,segment%nspec,
      1     zstim,zptim,temid)
 	      inext=inext+1	!count segments.
 
@@ -3524,7 +3525,9 @@ c Consistency check for d*start!!!
 !*************************************************************************
 !debug tw: But its nice. Leave it.  18/04/02 ghs
 !*************************************************************************
-	      do i=(segment.hend/10),(segment.hstart/10)
+	      isegmentend=segment%hend/10
+	      isegmentstart=segment%hstart/10
+	      do i=isegmentend,isegmentstart
 		 if(i.le.8000.and.i.ge.1)then
 		    shower_max(i)=shower_max(i)+1
 		 endif
@@ -3615,7 +3618,7 @@ c		Fix handeling of sign for up going.
 !               A Bug: When the injection depth is less than 1gm we have 
 !               problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where 1.0 gm is used as the 
-!               test limit to .5*segment_head.depth
+!               test limit to .5*segment_head%depth
         character*256 coutstring
 
        include 'kascade.h'
@@ -3627,15 +3630,16 @@ c                                   distance to interaction.
 cNeutral particles.(gammas,K long,K short, Neutron, Neutrinos)
        if(icharge(ispec).eq.0)then
 		if(hd.lt.hobs)hd=hobs
-		if(hd.ge.yds(.5*segment_head.depth))then    !Control upgoing.
-		   hd=yds(.5*segment_head.depth)
+		if(hd.ge.yds(.5*segment_head%depth))then    !Control upgoing.
+		   hd=yds(.5*segment_head%depth)
 		   write(coutstring,1000)tenergy,height,dl,dm,dn
  1000		   format(' ***Prodec-Neutral Track goes too high:tenergy,
 	1		height,dl,dm,dn,x,y,tim,ispec,t:',5e14.7)
 	           call kscharstring2cout(trim(coutstring)//char(0))
 		   write(coutstring,1001)x,y,tim,ispec,t
  1001		   format(3e14.7,i5,e14.7,
-	1		' ***HD set to yds(.5*segment_head.depth)')
+	1           ' ***HD set to yds(.5*segment_head%depth)')
+
 		   call kscharstring2cout(trim(coutstring)//char(0))
 		endif
 				!Note that PROPAGATE for neutral particles
@@ -3715,7 +3719,7 @@ c		Fix handeling of up going particles.
 !               A Bug: When the injection depth is less than 1gm we have 
 !               problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where 1.0 gm is used as the 
-!               test limit to .5*segment_head.depth
+!               test limit to .5*segment_head%depth
 	IMPLICIT NONE
 
         character*256 coutstring
@@ -3740,12 +3744,12 @@ c              No slices. go straight to destination.
 		g=GMS(height)           !Now convert to altitude in m of 
 					!interaction point
 		gr=g+r
-		if((gr).ge.segment_head.zobs)then
+		if((gr).ge.segment_head%zobs)then
 			hd=hobs		!Neutrals don't care about tsegment(t)
-		elseif(gr.lt.(.5*segment_head.depth))then
+		elseif(gr.lt.(.5*segment_head%depth))then
 		   write(coutstring,3500)g,r,tenergy,height
- 3500	format(' ***Propint-Neutral Track goes too high:g,r,tenergy,height: ',
-	1		5e14.7)
+ 3500   format(' ***Propint-Neutral Track goes too high:g,r,tenergy,height: ',
+	1         5e14.7)
 	           call kscharstring2cout(trim(coutstring)//char(0))
 		   write(coutstring,3501)dl,dm,dn,x,y
  3501	format(5e14.7)
@@ -3754,7 +3758,7 @@ c              No slices. go straight to destination.
  3502	format(e14.7,i5,e14.7,' ***G+R set to 1 gm.')
                    call kscharstring2cout(trim(coutstring)//char(0))
                                          !veriticle height of the interaction.
-	           Hd=YDS(.5*SEGMENT_HEAD.DEPTH) 
+	           Hd=YDS(.5*SEGMENT_HEAD%DEPTH) 
 		else
 		   Hd=YDS(gr)	!veriticle height of the interaction.
 		endif
@@ -3788,25 +3792,25 @@ c                    t is total distance to go in gm/cm**2. Should be positive.
 	     		write(coutstring,3009)
 	1 '****** PROPINT--Warn-Negative seg:tsegment,t,tsofar,height:',
 	1 tsegment,t,tsofar,height
-3009			format(a,4e14.7)
+ 3009			format(a,4e14.7)
 	call kscharstring2cout(trim(coutstring)//char(0))
 	endif
 
 	tstart=ttend                     !Save start of segment.
 	ttend=tstart+tsegment*dn       !End altitude in gm/cm**2
 
-	if(ttend.lt.(.5*segment_head.depth))then
+	if(ttend.lt.(.5*segment_head%depth))then
 		write(coutstring,3503)g,r,tenergy,height
  3503   format(' ***Propint-Track goes too high:g,r,tenergy,height: ',
-	1		5e14.7)
+	1         5e14.7)
 	        call kscharstring2cout(trim(coutstring)//char(0))
 		write(coutstring,3501)dl,dm,dn,x,y
 		call kscharstring2cout(trim(coutstring)//char(0))
 		write(coutstring,3504)tim,ispec,t
- 3504   format(e14.7,i5,e14.7,' ***G+R set to .5*segment_head.depth gm.')
+ 3504   format(e14.7,i5,e14.7,' ***G+R set to .5*segment_head%depth gm.')
                 call kscharstring2cout(trim(coutstring)//char(0))
   
-		ttend=.5*segment_head.depth
+		ttend=.5*segment_head%depth
 	        tsofar=tsofar-tsegment
 	    	tsegment=abs((tstart-ttend)/dn)
 	        tsofar=tsofar+tsegment
@@ -4476,7 +4480,7 @@ C  COULD BE PROTON, CHARGE EXCHANGE NEUTRON OR DIFFRACTIVE PROTON
 C  FOR INCIDENT PROTON. REVERSE FOR INCIDENT NEUTRON.
  
 c                                          Pick type of interaction.
-57       if(debena(ispec).ne.0)then
+57       if(debena(ispec))then
               write(coutstring,7001)
 7001  format(' ',8x,'Leading particle production:')
 	call kscharstring2cout(trim(coutstring)//char(0))
@@ -4717,7 +4721,7 @@ c		Helium 4 would have ispec=24).
 !               A Bug: When the injection depth is less than 1gm we have 
 !               problems with thinking that we have upgoing particles and 
 !               dropping them. Change places where 1.0 gm is used as the 
-!               test limit to .5*segment_head.depth
+!               test limit to .5*segment_head%depth
 
 
 c      This is the main shower generation routine.
@@ -4842,7 +4846,7 @@ c	GHS 10/07/01: At very low energies its possible for electron/positron
 !****************************************************************************
 
               if(height.eq.hobs.or.tetev.lt.thresh(ispec).or.
-	1 height.ge.yds(.5*segment_head.depth))then
+	1 height.ge.yds(.5*segment_head%depth))then
 			goto 100
 	      endif
                           !Quit if hit ground, or below Cherenkov threshold.
@@ -4947,7 +4951,7 @@ c  prob=(SIGMA)*exp(-T*SIGMA)  where SIGMA is probability/radiation length
 				       		!Propagate sets new height and
 						!tim.
 		     if(height.eq.hobs.or.tetev.lt.thresh(ispec).
-	1or.height.ge.yds(.5*segment_head.depth))then
+	1or.height.ge.yds(.5*segment_head%depth))then
 	 		goto 100		!Quit if hit ground,or below 
 		     endif
 						!Chrenkow threshold
@@ -5033,7 +5037,7 @@ c                                                 meters.
      1 ispec,t)
 c              Propagate sets new height and tim.
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head.depth))then
+	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 c                            Quit it hits or below chrenkov threshold.
@@ -5052,22 +5056,22 @@ c                     traveled to the interaction point. Fixed it.
               r=REXP(f)
               g=GMS(height)
 	      gr=g+r*dn
-	      if(gr.le.(.5*segment_head.depth))then
+	      if(gr.le.(.5*segment_head%depth))then
 
 		 write(coutstring,2308)g,r,tetev,height
  2308		 format(' ******UNICAS-Track goes too high:g,r,tetev,
 	1	      height,dl,dm,dn,x,y,tim,ispec,t: ',
-	1	      5e14.7)
+	1             5e14.7)
 		 call kscharstring2cout(trim(coutstring)//char(0))
 		 write(coutstring,3501)dl,dm,dn,x,y
  3501		 format(5e14.7)
 		 call kscharstring2cout(trim(coutstring)//char(0))
 		 write(coutstring,3502)tim,ispec,t
  3502		 format(e14.7,i5,e14.7,
-	1	      '***G+R set to .5*segment_head.depth gm. ')
+	1               ' ***G_R set to .5segment_head%depth gm. ')
 		 call kscharstring2cout(trim(coutstring)//char(0))
 		 
-		 gr=.5*segment_head.depth
+		 gr=.5*segment_head%depth
 	      endif
 	      Hd=YDS(gr)
 c                            See were it interacts
@@ -5082,7 +5086,7 @@ c                                   propagte to the interaction using r as
 c                                   distance in gm/cm**2.
                      call propint(tetev,height,dl,dm,dn,x,y,tim,ispec,r)
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head.depth))then
+	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 
@@ -5115,7 +5119,7 @@ c                                          interacting.
      1 tim,ispec,t)
 c              Propagate sets new height and tim.and tetev.
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head.depth))then
+	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 c                            Hits or below threshold.
@@ -5128,7 +5132,7 @@ c                            Hits or below threshold.
 
 c              Propagate sets new height and tim.
 			    if(height.eq.hobs.or.
-	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head.depth))then
+	1 tetev.lt.thresh(ispec).or.height.eq.yds(.5*segment_head%depth))then
 				goto 100
 	    		    endif
 c                            Hits or below threshold.
