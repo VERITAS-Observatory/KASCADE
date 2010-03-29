@@ -95,6 +95,7 @@ CCLIB=-L/usr/lib -lstdc++
 
 ALLDIR = $(SRCDIR) $(INCDIR) $(BINDIR) $(LIBDIR) $(DOCDIR) $(TMPDIR)
 
+CXX           = g++
 
 #Set up for fortran type.
 ifdef ABSOFTV10_FORTRAN
@@ -115,7 +116,8 @@ ifdef PGIFORTRAN
   # -------------------------------------------------------------------------
   #Using Portland Group Fortran:
   # -------------------------------------------------------------------------
-  F77  :=pgf77 
+  #F77  :=pgf77 
+  F77  :=pgf90 
   F90  :=pgf90
   #PGI Flags 
   F90FLAGS := -g -O2 -C -c -Mextend -Msave -Munixlogical -Mnoupcase  \
@@ -153,7 +155,24 @@ ifdef INTELFORTRAN
 
 endif
 
-CXX           = g++
+ifdef GNUFORTRAN
+  # -------------------------------------------------------------------------
+  #Using GNU gfortran for F77 and f90 compiles
+  # -------------------------------------------------------------------------
+  F77  :=gfortran 
+  F90  :=gfortran
+  #gfortran Flags 
+  F90FLAGS := -g -O2 -c -ffixed-line-length-none -fno-automatic \
+              -fno-underscoring -fbounds-check  $(KASINCFLAGS)
+  F77FLAGS := -g -O2 -c  -ffixed-line-length-none -fno-automatic \
+              -fno-underscoring -fbounds-check  $(KASINCFLAGS)
+
+#  CXX = gcc-3.3
+
+  CLDFLAGS = -L$(dir $(shell $(CXX) -print-libgcc-file-name)) \
+             -lstdc++ 
+endif
+
 
 ifdef OPTIMIZATION
 	ARCHCFLAGS    = -Wall -g -fPIC -O3
