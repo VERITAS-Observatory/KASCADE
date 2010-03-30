@@ -11,12 +11,12 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-#KascadeEnable=enable
-#LightEnable=enable
-#PeSortMergeEnable=enable
-#TriggerEnable=enable
-AomegaEnable=enable                   #These next 2 operate on te files only
-ArrayTriggerEnable=enable
+KascadeEnable=enable
+LightEnable=enable
+PeSortMergeEnable=enable
+TriggerEnable=enable
+#AomegaEnable=enable                   #These next 2 operate on te files only
+#ArrayTriggerEnable=enable
 
 RemoveSingleVBF=enable
 CleanupEnable=enable
@@ -25,7 +25,7 @@ DebugPrintEnable=enable
 echo "**********************************************************************"
 echo "**********************************************************************"
 
-echo $0 $1 $2 $3 $4 $5 
+echo $0 $1 $2 $3 $4 $5 $6
 
 ###########################################################################
 #Setup directory pointers
@@ -42,10 +42,6 @@ while [ -z "$host" ];
     host=$(hostname -s)
 done
 echo Running on $host
-
-ISIS=isis.depauw.edu
-AMDAHL=amdahl.physics.purdue.edu
-VERITASA=analysis
 
 #########################################################################
 #Set up private working directory for this run. 
@@ -91,7 +87,7 @@ wdir=$6
 wdirString=${wdir:0:4}
 #echo wdirString $wdirString
 #echo wspacemin $wspacemin
-if test  "$wdirString" = "/tmp"  #Are we running on VERITASA cluster
+if test  "$wdirString" = "/tmp"  #Are we running on TUCSON cluster
 then
      wsize="$(df $6 | grep /dev | gawk '{print $4 }')"
      echo Space on $6: $wsize
@@ -484,10 +480,9 @@ while test $i -le $4
 #########################################################################
 #This is where we can specify an external mount position file
 #########################################################################
-#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampConfigurationList '  
-#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampAConfigurationList '  
-#      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BasecampBConfigurationList '  
-      ArrayPositionsOptions='-TelescopeArrayPositions=/veritas/local/KASCADE/inputs/BaseCampFall2009ConfigurationList'  
+#      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BasecampConfigurationList '  
+#      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BasecampAConfigurationList '  
+      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BaseCampFall2009ConfigurationList'  
 ##########################################################################
   
     $src/ksArrayTrigger -config=$ksArrayTriggerConfig \

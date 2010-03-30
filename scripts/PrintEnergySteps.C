@@ -5,9 +5,10 @@
 PrintEnergySteps()
 {
 
-  //double fNumMin=10;   //Gammas
-  //double fNumShowersAt100=100;   //gammas
-  //double fAlpha=-2.45; //Gamma Ray spectrum index
+    double fNumMin=50;   //Gammas
+    //double fNumShowersAt100=100;   //gammas
+    double fNumShowersAt100=200;   //gammas
+    double fAlpha=-2.45; //Gamma Ray spectrum index
 
   //double fNumMin=5;   //Cosmic rays
   //double fNumShowersAt100=80;     // protons
@@ -17,9 +18,9 @@ PrintEnergySteps()
   //double fNumShowersAt100=37;     //helium
   //double fAlpha=-2.64;  //Helium spectrum Index
 
-  double fNumMin=20;   //Lookup table/effective area: Gammas
-  double fNumShowersAt100=100;   //gammas
-  double fAlpha=-2.0; //Spectrum index
+  //double fNumMin=20;   //Lookup table/effective area: Gammas
+  //double fNumShowersAt100=100;   //gammas
+  //double fAlpha=-2.0; //Spectrum index
 
   int fNumSteps=9;
   double fBaseE=.020;    //TeV base energy
