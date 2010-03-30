@@ -1,4 +1,3 @@
-
     subroutine whippletilt(dlr,dmr,dnr, dndnm, tdlm, tdmm, tdnm, xdl, xdm,  &
                            & xdn, ydl, ydm, ydn, xg, yg, fTime, wrad2,      &
                            &dn_min_tight,dn_min_loose, facet_diam,          &
@@ -24,7 +23,7 @@
         real*8 :: xg,yg,fTime,wx,wy,wrad2,dn_min_tight,dn_min_loose,facet_diam
         real*8 :: focal_length,jitter_width_ew,jitter_width_ns,meters_per_deg
 
-	real*8,external ::    Gauss		!declare various functions.
+	real*8,external ::    gaussfast		!declare various functions.
 	!integer,external :: nfluct
         real,external :: pran
 
@@ -316,16 +315,6 @@
 !               ns(top-down) for oval spotsizes.
 
 	use kastrigger_def
-!	use record_defs
-!      	use whipple_telescope
-!	use kas_ranlux
-!
-!Absoft C/C++ naming directrive
-!dir$ name(gauss="Gauss")
-!
-!Intel C/C++ naming directrive
-!DEC$ ATTRIBUTES ALIAS:'Gauss' :: Gauss
-
 
 	IMPLICIT NONE
 
@@ -344,7 +333,7 @@
 	real*8 :: w10m_ct
 	real :: xdummy
 
-	real*8,external :: Gauss		!declare various functions.
+	real*8,external :: gaussfast		!declare various functions.
 	!integer,external :: nfluct
         real,external :: pran
 
@@ -477,13 +466,13 @@
 !       Also, use totaly r*8 version. This gets around roundoff problem for 
 !       small angles.
         !
-!	 tix=(Gauss(xdummy)*jitter_width)
-!        tiy=(Gauss(xdummy)*jitter_width)
+!	 tix=(gaussfast(xdummy)*jitter_width)
+!        tiy=(gaussfast(xdummy)*jitter_width)
 ! 08/05/ghs Use seperate jitter widths for e-w and ns(top-down) for oval 
 ! spotsizes.
 
-        gtix=Gauss()
-        gtiy=Gauss()
+        gtix=gaussfast()
+        gtiy=gaussfast()
         tix=(gtix*jitter_width_ew)
         tiy=(gtiy*jitter_width_ns)
         !if(peptr%vw(1).eq.-1)then
@@ -497,7 +486,7 @@
         !   print*,'after geom8:vn(1),vn(2),vn(3): ',vn(1),vn(2),vn(3)
         !endif
 
-!        tix=Gauss*jitter_width
+!        tix=gaussfast*jitter_width
 !	call geom(vn(1),vn(2),vn(3),tix)
 
 
@@ -610,7 +599,7 @@
 !       28/8/00 GHS V:1:1:6:1:2.8
 !               Convert W10M_FULL_ABERRATION to r*8 internally to avoid some 
 !               small angle roundoff problems. Use geom8.  
-!               Use cartisian (x Gaussian and y
+!               Use cartisian (x gaussfastian and y
 !               Gaussian independently) for jitter of mirror normal.
 !       16/04/01 GHS V:1:1:6:1:2.11
 !               Reimpliment the quick and dirty way of finding disc triggers 

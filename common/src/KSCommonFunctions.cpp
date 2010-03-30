@@ -5,7 +5,7 @@
 #include "VASlalib.h"
 
 extern "C" float  pran(float* fXDummy);
-extern "C" double Gauss();
+extern "C" double gaussfast();
 extern "C" void   MassNumber2ChargeAndMass(int fIAtomicNum,int& fCharge, 
 				      double& fMass);
 extern "C" int    NFluct(double fMean);
@@ -20,7 +20,7 @@ extern "C" void   GetXYFromVec(double fAzSrc, double fElSrc,double* fM,
 			       double& fX, double& fY);
 // **********************************************************************
 
-double Gauss()
+double gaussfast()
 {
   //	Modified:
   //    3/14/06 SRC  Converted program to C++ from FORTRAN	
@@ -41,6 +41,7 @@ double Gauss()
   double fGauss=((fSum-3.)/.6932);	//Put mean at 0. Correct width.
   return fGauss;
 }
+
 // **********************************************************************
 
 static  bool  fFirstArgon = true;
@@ -191,7 +192,7 @@ int NFluct(double fMean)
       // *****************************************************************
       //       Fluctuation is gaussian distributed.
       // *****************************************************************
-      double fSca=sqrt(fMean)*Gauss() + fMean;// Remember this 
+      double fSca=sqrt(fMean)*gaussfast() + fMean;// Remember this 
                            //gauss function is only good out to 4.33 sigma
       if(fSca>0.)
 	{

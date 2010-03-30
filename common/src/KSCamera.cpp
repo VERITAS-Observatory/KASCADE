@@ -15,7 +15,7 @@
 
 #include "KSCamera.h"
 
-extern "C" double Gauss();
+extern "C" double gaussfast();
 
 // In the constructor is where most of the work gets done.
 // ************************************************************************
@@ -281,7 +281,7 @@ void KSCamera::generateCameraPixels()
        double fNoise=fNoiseRate;
        if(fNoiseRateSigma>0.0)   //Jitter noise rate if requested.
 	 {
-	   fNoise=fNoiseRate+Gauss()*fNoiseRateSigma;
+	   fNoise=fNoiseRate+gaussfast()*fNoiseRateSigma;
 	 }
 
        double fPixNoiseRate=fNoise*                   //Base Noise rate

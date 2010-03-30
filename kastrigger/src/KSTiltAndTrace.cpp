@@ -16,7 +16,7 @@
 // **********************************************************************
 
 extern "C" float pran(float* dummy);
-extern "C" double Gauss();
+extern "C" double gaussfast();
 extern "C" void geom8(double* dl,double* dm,double* dn,double* tix,
 		      double* tiy);
 
@@ -413,8 +413,8 @@ void KSTiltAndTrace::FullAberationTrace()
   //  Use seperate jitter widths for e-w and ns(top-down) in case some day we
   //  want oval PSF.
   // *****************************************************************
-  double tix=(Gauss()*fJitterWidthEWRad);
-  double tiy=(Gauss()*fJitterWidthNSRad);
+  double tix=(gaussfast()*fJitterWidthEWRad);
+  double tiy=(gaussfast()*fJitterWidthNSRad);
   double dl=fPeFacetNormalDir[0];    //Do this so fortran call to geom8 works.
   double dm=fPeFacetNormalDir[1];
   double dn=fPeFacetNormalDir[2];
