@@ -84,7 +84,7 @@ c       dlstart,dmstart:Initial x,y direction cosigns of segment. dnstart can
 c                       dn assummed to be positive(going down).
 c       tend: relative time at end of segment.
 c	hend: final altitude of segment
-c	dlend,segment.dmend: final direction cosigns of segment.
+c	dlend,segment.dmend: final direction cosigns of segment%
 c	gamma: gamma at middle of segment.
 c	nspec: particle type
 ! ***************************************************************************
@@ -308,12 +308,12 @@ c     xseg*yseg comparable to detector size.
 ! ---------------------------------------------------------------------------
 ! Start main loop
 ! ---------------------------------------------------------------------------
-      do while(1)
+      do while(.true.)
 c     READ a SEGMENT!
-         call kssegmentread(goodread, segment.XStart, segment.YStart, 
-     1       segment.HStart, segment.DlStart, segment.DmStart, segment.tend, 
-     1       segment.HEnd, segment.DlEnd, segment.DmEnd, segment.Gamma, 
-     1       segment.nspec)
+         call kssegmentread(goodread, segment%XStart, segment%YStart, 
+     1       segment%HStart, segment%DlStart, segment%DmStart, segment%tend, 
+     1       segment%HEnd, segment%DlEnd, segment%DmEnd, segment%Gamma, 
+     1       segment%nspec)
 
          if(.not.goodread)then  ! end of shower.
             if(inext.eq.0)then
@@ -330,8 +330,8 @@ c     READ a SEGMENT!
 ! If 'OF' option is selected translate segment postion by the randomly
 ! generated X_OFFSET,Y_OFFSET postion within the area.
          if(RandomCoreOffset)then
-            segment.xstart=segment.xstart+x_offset
-            segment.ystart=segment.ystart+y_offset
+            segment%xstart=segment%xstart+x_offset
+            segment%ystart=segment%ystart+y_offset
          endif
 
 c Process Segment:
@@ -341,20 +341,20 @@ c	telescope is determined here.
          if(WhippleMount.or.VeritasMount)then
                             !Whipple 10m for both with and without ears.
                             !Also for Veritas array which used 12m mirrors/pmts
-            hmid=(segment.hstart+segment.hend)/2.          !Mid altitude
-            dns=sqrt(1.-segment.dlstart**2-segment.dmstart**2) !Form the dns
+            hmid=(segment%hstart+segment%hend)/2.          !Mid altitude
+            dns=sqrt(1.-segment%dlstart**2-segment%dmstart**2) !Form the dns
                                 !Segment is assumed straight for this.
-            path=(segment.hstart-segment.hend)/dns
-            if(segment.nspec.gt.20)then !Determine charge to modify rate.
-               ia=segment.nspec-20
+            path=(segment%hstart-segment%hend)/dns
+            if(segment%nspec.gt.20)then !Determine charge to modify rate.
+               ia=segment%nspec-20
                call mass_number2charge_mass(ia,qz,xmass)
             else
                qz=1    !Everthing else has charge of +/- 1, Since we use Z**2 
             endif      !to modify rate use qz=1.
 
 c     Iterate over all wavelength intervels.
-            do lambda=180.,700.,5.
-               ilambda=lambda	!lambda is real*4
+            do ilambda=180,700,5
+               lambda=ilambda	!lambda is real*4
                i=(ilambda-180)/5
                                 !Determine photon production rate for this 
                                 !5 nm wavelength intervel. LAMBDA passed 
@@ -495,9 +495,9 @@ c        Write out the record. (disabled for Benchmark mode)
             if(.not.benchmark_flag)then
             
                call kspewrite(nx, ny, ttime, dlr, dmr, inext, xg, yg, 
-     1              segment.nspec, wavelength, emissionalt)
+     1              segment%nspec, wavelength, emissionalt)
                photonkept=photonkept+1
-               if(pe.spec.gt.20)then
+               if(pe%spec.gt.20)then
                   heavy_made=heavy_made+1
                endif
            endif
@@ -705,20 +705,20 @@ c                Stuff for finding direction cosigns of emitted photons.
       include 'kaslite.h'
       qq(p,u)=sqrt(p*p+u*u)
 
-      dns=sqrt(1.-segment.dlstart**2-segment.dmstart**2) !Form the dn's
-      dnf=sqrt(1.-segment.dlend**2-segment.dmend**2)
+      dns=sqrt(1.-segment%dlstart**2-segment%dmstart**2) !Form the dn's
+      dnf=sqrt(1.-segment%dlend**2-segment%dmend**2)
 
 c        Length of segment.
-      slength=(segment.hstart-segment.hend)/dns
+      slength=(segment%hstart-segment%hend)/dns
 
 c        Get the cos of the cherenkov angle.  SANGlE is the sin.
       b(3)=sqrt(1.-sangle**2)
 
-      tprimary=(segment.hend-hobs)/(dni*c_light) 
+      tprimary=(segment%hend-hobs)/(dni*c_light) 
 		   !Time for a primary to hit hobs from end of segment.
 
 c Velocity in m/nsec of emitting particle.
-      velocity=(c_light*(1.-1./(2.*segment.gamma**2))) 
+      velocity=(c_light*(1.-1./(2.*segment%gamma**2))) 
 
       do 100 i=1,nphotons       !loop over photons.
         
@@ -741,8 +741,8 @@ c        and endign directions.
 
 
 			          !doesn't change much.
-         dlp=sn*(segment.dlend-segment.dlstart)+segment.dlstart
-         dmp=sn*(segment.dmend-segment.dmstart)+segment.dmstart        
+         dlp=sn*(segment%dlend-segment%dlstart)+segment%dlstart
+         dmp=sn*(segment%dmend-segment%dmstart)+segment%dmstart        
          dnp=sn*(dnf-dns)+dns
 c        Kascade assumes segments are straight with intial direction
 c        going from hstart to hend through starting at xstart,ystart. 
@@ -817,9 +817,9 @@ c        emission problem.
          snl=slength*(sn)       !length of vector from segment start
                                 !to point on segment of photon emission.
                                 !zz,xx,yy are coord of photon emission.
-         zz=segment.hstart-snl*dns !- sign due to z axis negation
-         xx=segment.xstart+snl*segment.dlstart
-         yy=segment.ystart+snl*segment.dmstart 
+         zz=segment%hstart-snl*dns !- sign due to z axis negation
+         xx=segment%xstart+snl*segment%dlstart
+         yy=segment%ystart+snl*segment%dmstart 
 
 
 c        get cord where photon hits ground.
@@ -849,7 +849,7 @@ c                                             emmision point to hobs (in nsec)
 c                                  !Time for particle to get from emmision
 c                                  !point to end of segment(where tend takes
 c                                  !effect).
-         photons(6,nmade)=(segment.tend-ttrack)+tphoton-tprimary
+         photons(6,nmade)=(segment%tend-ttrack)+tphoton-tprimary
          
          photons(7,nmade)=lambda !25/10/93 G.H.S. V:1:0:2.0
 						!Save wavelength of this photon
@@ -1170,20 +1170,20 @@ c	It seems to scale by very roughly a factor of 2 to the R1450.
 c 	Wave lengths are from 180 nanometers to 700 nanometers in
 c     5 nanometer steps.
 	data emi9870beff/ 21*0.0,0.0134,0.0268,0.0402,
-	2 0.0536,0.0641,0.0746,0.0851,0.0956,0.1009,
-	3 0.1062,0.1114,0.1167,0.1184,0.1201,0.1218,
-	4 0.1235,0.1249,0.1264,0.1278,0.1292,0.1289,
-	5 0.1286,0.1284,0.1281,0.1265,0.1249,0.1232,
-	6 0.1216,0.1192,0.1168,0.1144,0.1120,0.1089,
-	7 0.1058,0.1026,0.0995,0.0962,0.0928,0.0895,
-	8 0.0861,0.0823,0.0785,0.0746,0.0708,0.0668,
-	9 0.0627,0.0587,0.0546,0.0505,0.0465,0.0424,
-	1 0.0383,0.0342,0.0302,0.0261,0.0221,0.0197,
-	2 0.0173,0.0149,0.0125,0.0111,0.0097,0.0082,
-	3 0.0068,0.0061,0.0053,0.0046,0.0038,0.0036,
-	4 0.0034,0.0032,0.0030,0.0025,0.0020,0.0014,
-	5 0.0009,0.0007,0.0005,0.0004,0.0002,0.0001,
-	6 0.0001,0.0000,0.0000/
+     1    0.0536,0.0641,0.0746,0.0851,0.0956,0.1009,
+     3 0.1062,0.1114,0.1167,0.1184,0.1201,0.1218,
+     4 0.1235,0.1249,0.1264,0.1278,0.1292,0.1289,
+     5 0.1286,0.1284,0.1281,0.1265,0.1249,0.1232,
+     6 0.1216,0.1192,0.1168,0.1144,0.1120,0.1089,
+     7 0.1058,0.1026,0.0995,0.0962,0.0928,0.0895,
+     8 0.0861,0.0823,0.0785,0.0746,0.0708,0.0668,
+     9 0.0627,0.0587,0.0546,0.0505,0.0465,0.0424,
+     1 0.0383,0.0342,0.0302,0.0261,0.0221,0.0197,
+     1 0.0173,0.0149,0.0125,0.0111,0.0097,0.0082,
+     3 0.0068,0.0061,0.0053,0.0046,0.0038,0.0036,
+     4 0.0034,0.0032,0.0030,0.0025,0.0020,0.0014,
+     5 0.0009,0.0007,0.0005,0.0004,0.0002,0.0001,
+     6 0.0001,0.0000,0.0000/
 
 c	Spectral response array for the Hamamatsu R1398 pmt. This is the visible
 c	1.125" tube for the Whipple HRC. 
@@ -1191,145 +1191,145 @@ c	Quantum eff. for the R1398HA (with UV window) weathered whipple tubes.
 
 c     implied do loops over inner loop I first, then J loop
 	data  ( (R1398HA_UV(I,J),I=1,5),J=0,20)/
-	1 180.,  0.034,  0.006,  0.007,  0.006,				!GHS
-	1 185.,  0.045,  0.012,  0.013,  0.012,				!GHS
-	1 190.,  0.062,  0.018,  0.019,  0.018,
-	1 195.,  0.076,  0.024,  0.025,  0.024, !Quantum efficiency for 
-	1 200.,  0.090,  0.029,  0.031,  0.030,	!Hamamatsu
-	1 205.,  0.108,  0.035,  0.038,  0.037,	!R1398 HA (UV window)
-	1 210.,  0.125,  0.041,  0.044,  0.043,	!col 1 = lambda in nm
-	1 215.,  0.143,  0.057,  0.058,  0.058,	!col 2 = typical values (given
-	1 220.,  0.160,  0.073,  0.072,  0.073,	!by Hamamatsu)
-	1 225.,  0.178,  0.095,  0.091,  0.093,	!col 3 = measured values for 
-	1 230.,  0.187,  0.118,  0.109,  0.113,	!tube serial # LA5163
-	1 235.,  0.197,  0.132,  0.122,  0.127,	!col 4 = measured values for 
-	1 240.,  0.206,  0.146,  0.134,  0.140,	!tube serial # LA5420
-	1 245.,  0.216,  0.154,  0.142,  0.148,	!col 5 = average between col 3
-	1 250.,  0.225,  0.162,  0.151,  0.156,	!and 4
-	1 255.,  0.230,  0.167,  0.157,  0.162,	!Measurements have been done by
-	1 260.,  0.235,  0.172,  0.164,  0.168,	!Hamamatsu in July, 1994.
-	1 265.,  0.239,  0.173,  0.166,  0.170,	!Values given by Hamamatsu were
-	1 270.,  0.244,  0.175,  0.169,  0.172,	!from 200 to 700 nm, in 10 nm 
-	1 275.,  0.249,  0.183,  0.176,  0.179,	!steps.  I have extrapolated 
-	1 280.,  0.253,  0.190,  0.183,  0.186/	!and also from 200 to 190 nm.
+     1 180.,  0.034,  0.006,  0.007,  0.006,				!GHS
+     1 185.,  0.045,  0.012,  0.013,  0.012,          		!GHS
+     1 190.,  0.062,  0.018,  0.019,  0.018,
+     1 195.,  0.076,  0.024,  0.025,  0.024, !Quantum efficiency for 
+     1 200.,  0.090,  0.029,  0.031,  0.030,	!Hamamatsu
+     1 205.,  0.108,  0.035,  0.038,  0.037,     !R1398 HA (UV window)
+     1 210.,  0.125,  0.041,  0.044,  0.043,     !col 1 = lambda in nm
+     1 215.,  0.143,  0.057,  0.058,  0.058,     !col 2 = typical values (given
+     1 220.,  0.160,  0.073,  0.072,  0.073,     !by Hamamatsu)
+     1 225.,  0.178,  0.095,  0.091,  0.093,     !col 3 = measured values for 
+     1 230.,  0.187,  0.118,  0.109,  0.113,     !tube serial # LA5163
+     1 235.,  0.197,  0.132,  0.122,  0.127,     !col 4 = measured values for 
+     1 240.,  0.206,  0.146,  0.134,  0.140,     !tube serial # LA5420
+     1 245.,  0.216,  0.154,  0.142,  0.148,     !col 5 = average between col 3
+     1 250.,  0.225,  0.162,  0.151,  0.156,     !and 4
+     1 255.,  0.230,  0.167,  0.157,  0.162,    !Measurements have been done by
+     1 260.,  0.235,  0.172,  0.164,  0.168,     !Hamamatsu in July, 1994.
+     1 265.,  0.239,  0.173,  0.166,  0.170,    !Values given by Hamamatsu were
+     1 270.,  0.244,  0.175,  0.169,  0.172,     !from 200 to 700 nm, in 10 nm 
+     1 275.,  0.249,  0.183,  0.176,  0.179,     !steps.  I have extrapolated 
+     1 280.,  0.253,  0.190,  0.183,  0.186/     !and also from 200 to 190 nm.
 
 c next group of 21
-	data  ( (R1398HA_UV(I,J),I=1,5),J=21,41)/
-	1 285.,  0.256,  0.196,  0.189,  0.192,	!between values.
-	1 290.,  0.260,  0.202,  0.195,  0.198,	! Adrian Rovero.
-	1 295.,  0.263,  0.206,  0.199,  0.203,
-	1 300.,  0.267,  0.210,  0.203,  0.207,	!I added extrapolated values
-	1 305.,  0.267,  0.212,  0.206,  0.209,	!for 180,185 nm.
-	1 310.,  0.267,  0.215,  0.208,  0.211,	! Glenn Sembroski
-	1 315.,  0.267,  0.219,  0.212,  0.216,	
-	1 320.,  0.267,  0.223,  0.217,  0.220,
-	1 325.,  0.267,  0.226,  0.221,  0.224,
-	1 330.,  0.269,  0.229,  0.226,  0.228,
-	1 335.,  0.271,  0.235,  0.232,  0.233,
-	1 340.,  0.272,  0.240,  0.238,  0.239,
-	1 345.,  0.274,  0.240,  0.237,  0.239,
-	1 350.,  0.276,  0.240,  0.236,  0.238,
-	1 355.,  0.278,  0.239,  0.235,  0.237,
-	1 360.,  0.280,  0.237,  0.233,  0.235,
-	1 365.,  0.282,  0.238,  0.234,  0.236,
-	1 370.,  0.284,  0.239,  0.235,  0.237,
-	1 375.,  0.286,  0.241,  0.237,  0.239,
-	1 380.,  0.286,  0.243,  0.238,  0.241,
-	1 385.,  0.286,  0.241,  0.237,  0.239/
+       data  ( (R1398HA_UV(I,J),I=1,5),J=21,41)/
+     1 285.,  0.256,  0.196,  0.189,  0.192,     !between values.
+     1 290.,  0.260,  0.202,  0.195,  0.198,     ! Adrian Rovero.
+     1 295.,  0.263,  0.206,  0.199,  0.203,
+     1 300.,  0.267,  0.210,  0.203,  0.207,     !I added extrapolated values
+     1 305.,  0.267,  0.212,  0.206,  0.209,     !for 180,185 nm.
+     1 310.,  0.267,  0.215,  0.208,  0.211,     ! Glenn Sembroski
+     1 315.,  0.267,  0.219,  0.212,  0.216,     
+     1 320.,  0.267,  0.223,  0.217,  0.220,
+     1 325.,  0.267,  0.226,  0.221,  0.224,
+     1 330.,  0.269,  0.229,  0.226,  0.228,
+     1 335.,  0.271,  0.235,  0.232,  0.233,
+     1 340.,  0.272,  0.240,  0.238,  0.239,
+     1 345.,  0.274,  0.240,  0.237,  0.239,
+     1 350.,  0.276,  0.240,  0.236,  0.238,
+     1 355.,  0.278,  0.239,  0.235,  0.237,
+     1 360.,  0.280,  0.237,  0.233,  0.235,
+     1 365.,  0.282,  0.238,  0.234,  0.236,
+     1 370.,  0.284,  0.239,  0.235,  0.237,
+     1 375.,  0.286,  0.241,  0.237,  0.239,
+     1 380.,  0.286,  0.243,  0.238,  0.241,
+     1 385.,  0.286,  0.241,  0.237,  0.239/
 
 c next group of 21
 	data  ( (R1398HA_UV(I,J),I=1,5),J=42,62)/
-	1 390.,  0.286,  0.239,  0.235,  0.237,
-	1 395.,  0.286,  0.239,  0.236,  0.237,
-	1 400.,  0.286,  0.239,  0.236,  0.238,
-	1 405.,  0.280,  0.238,  0.236,  0.237,
-	1 410.,  0.275,  0.238,  0.235,  0.236,
-	1 415.,  0.269,  0.237,  0.234,  0.235,
-	1 420.,  0.264,  0.236,  0.233,  0.234,
-	1 425.,  0.258,  0.234,  0.231,  0.233,
-	1 430.,  0.253,  0.232,  0.230,  0.231,
-	1 435.,  0.248,  0.230,  0.228,  0.229,
-	1 440.,  0.243,  0.228,  0.226,  0.227,
-	1 445.,  0.238,  0.224,  0.221,  0.223,
-	1 450.,  0.233,  0.220,  0.216,  0.218,
-	1 455.,  0.226,  0.217,  0.213,  0.215,
-	1 460.,  0.220,  0.214,  0.209,  0.212,
-	1 465.,  0.213,  0.209,  0.204,  0.206,
-	1 470.,  0.207,  0.204,  0.198,  0.201,
-	1 475.,  0.200,  0.198,  0.193,  0.195,
-	1 480.,  0.196,  0.193,  0.187,  0.190,
-	1 485.,  0.191,  0.186,  0.180,  0.183,
-	1 490.,  0.187,  0.180,  0.174,  0.177/
+     1 390.,  0.286,  0.239,  0.235,  0.237,
+     1 395.,  0.286,  0.239,  0.236,  0.237,
+     1 400.,  0.286,  0.239,  0.236,  0.238,
+     1 405.,  0.280,  0.238,  0.236,  0.237,
+     1 410.,  0.275,  0.238,  0.235,  0.236,
+     1 415.,  0.269,  0.237,  0.234,  0.235,
+     1 420.,  0.264,  0.236,  0.233,  0.234,
+     1 425.,  0.258,  0.234,  0.231,  0.233,
+     1 430.,  0.253,  0.232,  0.230,  0.231,
+     1 435.,  0.248,  0.230,  0.228,  0.229,
+     1 440.,  0.243,  0.228,  0.226,  0.227,
+     1 445.,  0.238,  0.224,  0.221,  0.223,
+     1 450.,  0.233,  0.220,  0.216,  0.218,
+     1 455.,  0.226,  0.217,  0.213,  0.215,
+     1 460.,  0.220,  0.214,  0.209,  0.212,
+     1 465.,  0.213,  0.209,  0.204,  0.206,
+     1 470.,  0.207,  0.204,  0.198,  0.201,
+     1 475.,  0.200,  0.198,  0.193,  0.195,
+     1 480.,  0.196,  0.193,  0.187,  0.190,
+     1 485.,  0.191,  0.186,  0.180,  0.183,
+     1 490.,  0.187,  0.180,  0.174,  0.177/
 
 c next group of 21
-	data  ( (R1398HA_UV(I,J),I=1,5),J=63,83)/
-	1 495.,  0.182,  0.173,  0.167,  0.170,
-	1 500.,  0.178,  0.167,  0.160,  0.163,
-	1 505.,  0.170,  0.159,  0.153,  0.156,
-	1 510.,  0.163,  0.152,  0.146,  0.149,
-	1 515.,  0.155,  0.146,  0.140,  0.143,
-	1 520.,  0.148,  0.140,  0.134,  0.137,
-	1 525.,  0.140,  0.135,  0.129,  0.132,
-	1 530.,  0.132,  0.130,  0.125,  0.128,
-	1 535.,  0.124,  0.126,  0.120,  0.123,
-	1 540.,  0.116,  0.122,  0.116,  0.119,
-	1 545.,  0.108,  0.117,  0.110,  0.114,
-	1 550.,  0.100,  0.112,  0.104,  0.108,
-	1 555.,  0.094,  0.104,  0.094,  0.099,
-	1 560.,  0.088,  0.095,  0.084,  0.090,
-	1 565.,  0.082,  0.084,  0.074,  0.079,
-	1 570.,  0.076,  0.073,  0.063,  0.067,
-	1 575.,  0.070,  0.065,  0.056,  0.060,
-	1 580.,  0.065,  0.056,  0.050,  0.053,
-	1 585.,  0.060,  0.051,  0.046,  0.048,
-	1 590.,  0.055,  0.046,  0.041,  0.044,
-	1 595.,  0.050,  0.042,  0.038,  0.040/
+        data  ( (R1398HA_UV(I,J),I=1,5),J=63,83)/
+     1 495.,  0.182,  0.173,  0.167,  0.170,
+     1 500.,  0.178,  0.167,  0.160,  0.163,
+     1 505.,  0.170,  0.159,  0.153,  0.156,
+     1 510.,  0.163,  0.152,  0.146,  0.149,
+     1 515.,  0.155,  0.146,  0.140,  0.143,
+     1 520.,  0.148,  0.140,  0.134,  0.137,
+     1 525.,  0.140,  0.135,  0.129,  0.132,
+     1 530.,  0.132,  0.130,  0.125,  0.128,
+     1 535.,  0.124,  0.126,  0.120,  0.123,
+     1 540.,  0.116,  0.122,  0.116,  0.119,
+     1 545.,  0.108,  0.117,  0.110,  0.114,
+     1 550.,  0.100,  0.112,  0.104,  0.108,
+     1 555.,  0.094,  0.104,  0.094,  0.099,
+     1 560.,  0.088,  0.095,  0.084,  0.090,
+     1 565.,  0.082,  0.084,  0.074,  0.079,
+     1 570.,  0.076,  0.073,  0.063,  0.067,
+     1 575.,  0.070,  0.065,  0.056,  0.060,
+     1 580.,  0.065,  0.056,  0.050,  0.053,
+     1 585.,  0.060,  0.051,  0.046,  0.048,
+     1 590.,  0.055,  0.046,  0.041,  0.044,
+     1 595.,  0.050,  0.042,  0.038,  0.040/
 
 c next group of 21
 	data  ( (R1398HA_UV(I,J),I=1,5),J=84,104)/
 c	data  (R1398HA_UV(5,I),I=0,104)/
-	1 600.,  0.045,  0.039,  0.034,  0.036,
-	1 605.,  0.041,  0.035,  0.031,  0.033,
-	1 610.,  0.037,  0.032,  0.028,  0.030,
-	1 615.,  0.032,  0.029,  0.025,  0.027,
-	1 620.,  0.028,  0.025,  0.022,  0.024,
-	1 625.,  0.024,  0.023,  0.020,  0.021,
-	1 630.,  0.021,  0.020,  0.017,  0.019,
-	1 635.,  0.018,  0.017,  0.015,  0.016,
-	1 640.,  0.016,  0.015,  0.013,  0.014,
+     1 600.,  0.045,  0.039,  0.034,  0.036,
+     1 605.,  0.041,  0.035,  0.031,  0.033,
+     1 610.,  0.037,  0.032,  0.028,  0.030,
+     1 615.,  0.032,  0.029,  0.025,  0.027,
+     1 620.,  0.028,  0.025,  0.022,  0.024,
+     1 625.,  0.024,  0.023,  0.020,  0.021,
+     1 630.,  0.021,  0.020,  0.017,  0.019,
+     1 635.,  0.018,  0.017,  0.015,  0.016,
+     1 640.,  0.016,  0.015,  0.013,  0.014,
      1 645.,  0.013,  0.013,  0.011,  0.012,
      1 650.,  0.010,  0.011,  0.009,  0.010,
-	1 655.,  0.008,  0.009,  0.008,  0.009,
-	1 660.,  0.007,  0.008,  0.006,  0.007,
-	1 665.,  0.005,  0.006,  0.005,  0.006,
+     1 655.,  0.008,  0.009,  0.008,  0.009,
+     1 660.,  0.007,  0.008,  0.006,  0.007,
+     1 665.,  0.005,  0.006,  0.005,  0.006,
      1 670.,  0.004,  0.005,  0.004,  0.005,
      1 675.,  0.002,  0.004,  0.004,  0.004,
-	1 680.,  0.002,  0.003,  0.003,  0.003,
-	1 685.,  0.001,  0.003,  0.002,  0.002,
-	1 690.,  0.001,  0.002,  0.002,  0.002,
-	1 695.,  0.000,  0.002,  0.001,  0.001,
-	1 700.,  0.000,  0.001,  0.001,  0.001/
+     1 680.,  0.002,  0.003,  0.003,  0.003,
+     1 685.,  0.001,  0.003,  0.002,  0.002,
+     1 690.,  0.001,  0.002,  0.002,  0.002,
+     1 695.,  0.000,  0.002,  0.001,  0.001,
+     1 700.,  0.000,  0.001,  0.001,  0.001/
 
 c	Spectral response array for the RCA4518. This is for the Argentine
 c	Searchlight mirror array. Dervied from reading values from a graph
 c	of quantum efficency of RCA4522 which Trever says is the same as the
 c	RCA4518.
 	data rca4518/5*0.,.015,.030,.050,.080,.110,.140,.165,.190, !180-240 nm
-	1  .212,.225,.232,.240,.250,.260,.263,.265,.270,.275,.278, !245-295 nm
-	2  .280,.283,.285,.288,.290,.293,.295,.296,.297,.297,.298, !300-350 nm
-	3  .298,.298,.298,.297,.294,.290,.288,.285,.282,.280,.276, !355-405 nm
-	4  .272,.269,.265,.260,.255,.248,.242,.236,.230,.223,.215, !410-460 nm
-	5  .199,.192,.184,.175,.166,.157,.148,.142,.134,.125,.120, !465-515 nm
-	6  .115,.100,.083,.076,.068,.0585,.051,.0445,.038,.0322,   !520-565 nm
-	7  .0255,.0228,.018,.0145,.011,.0093,.0076,.0062,.0048,    !570-610 nm
-	8  .0041,.0033,.0026,.0018,.0016,.0014,.0012,.0010,10*0/   !615-700 nm
+     1  .212,.225,.232,.240,.250,.260,.263,.265,.270,.275,.278, !245-295 nm
+     1     .280,.283,.285,.288,.290,.293,.295,.296,.297,.297,.298, !300-350 nm
+     3  .298,.298,.298,.297,.294,.290,.288,.285,.282,.280,.276, !355-405 nm
+     4  .272,.269,.265,.260,.255,.248,.242,.236,.230,.223,.215, !410-460 nm
+     5  .199,.192,.184,.175,.166,.157,.148,.142,.134,.125,.120, !465-515 nm
+     6  .115,.100,.083,.076,.068,.0585,.051,.0445,.038,.0322,   !520-565 nm
+     7  .0255,.0228,.018,.0145,.011,.0093,.0076,.0062,.0048,    !570-610 nm
+     8  .0041,.0033,.0026,.0018,.0016,.0014,.0012,.0010,10*0/   !615-700 nm
 
 c     Spectal Transmission for Hoya U340 filter.
 c     Taken from Hoya's book using the tables for this filter.
 	data hoyau340/14*0.,.00002,.001,.0055,.06,.117,.25,.389,.480,
-	1 .613,.670,.727,.75,.772,.78,.79,.794,.798,.799,.799,.785,.755,
-	2 .72,.658,.58,.466,.32,.131,.010,.022,55*0.,.00002,.0001,.0004,
-	3 .0022,.004,.009,.014/
+     1 .613,.670,.727,.75,.772,.78,.79,.794,.798,.799,.799,.785,.755,
+     1    .72,.658,.58,.466,.32,.131,.010,.022,55*0.,.00002,.0001,.0004,
+     3 .0022,.004,.009,.014/
 
 c     Spectal Transmission for Hoya B370 filter.
 c     Taken from Hoya's book using the tables for this filter.
@@ -1344,17 +1344,17 @@ c     Taken from Hoya's book using the tables for this filter.
 c     Spectal Transmission for Hoya B390 filter.
 c     Taken from Hoya's book using the tables for this filter.
 	data hoyab390/25*0.,.00045,.0090,.0160,.023,.0815,.140,.237,
-	1 .334,.422,.510,.57,.63,.665,.7,.721,.742,.7565,.771,.771,
-	2 .771,.763,.755,.7425,.73,.7075,.685,.657,.629,.5895,.550,
-	3 .502,.454,.381,.308,.231,.154,.099,.044,.026,.008,.0065,
-	4 .005,.0025,.00007,.000065,.00006,.00008,.0001,.0002,.0003,
-	5 .000175,.00005,.00003,.00001,.000005,17*0.,.000005,.00001,
-	6 .00005,.0001,.00075,.0014,.0039,.0064/
+     1 .334,.422,.510,.57,.63,.665,.7,.721,.742,.7565,.771,.771,
+     1    .771,.763,.755,.7425,.73,.7075,.685,.657,.629,.5895,.550,
+     3 .502,.454,.381,.308,.231,.154,.099,.044,.026,.008,.0065,
+     4 .005,.0025,.00007,.000065,.00006,.00008,.0001,.0002,.0003,
+     5 .000175,.00005,.00003,.00001,.000005,17*0.,.000005,.00001,
+     6 .00005,.0001,.00075,.0014,.0039,.0064/
 
 c	PMT,Filter, and mirror transmission for ASGAT. Comes from Pete.
 	data asgateff/29*0.,.0275,.055,.0775,.1,.125,.15,.165,.18,.1835,
-	1 .187,.1885,.19,.1885,.187,.1835,.18,.172,.164,.152,.14,.125,
-	2 .11,.09,.07,.0575,.045,.0325,.02,.0135,.007,.0035,45*0./
+     1 .187,.1885,.19,.1885,.187,.1835,.18,.172,.164,.152,.14,.125,
+     1    .11,.09,.07,.0575,.045,.0325,.02,.0135,.007,.0035,45*0./
 
 c	Dummy perfect (100%) transmission array for use with ASGAT to replace
 c	filter and reflectance arrays in RATE_QGEN calls.
@@ -1367,17 +1367,17 @@ c	M. Schubnel took this from the ARTEMIS report 'UV light in the
 c	atmosphere', Fig 2 by P.Fleury et al. (Palaiseau, June 1990).  
 c	(M. Schubnell 27-Sep-1993) (but see below)
 	DATA	REFLect_10M/
-	1   0.539,0.554,0.568,0.582,0.596,0.609,0.622,0.634,0.646,0.657,
-	1   0.668,0.679,0.690,0.700,0.709,0.719,0.727,0.736,0.744,0.752,
-	1   0.760,0.767,0.774,0.781,0.788,0.794,0.800,0.806,0.811,0.816,
-	1   0.821,0.826,0.831,0.835,0.839,0.843,0.846,0.850,0.853,0.856,
-	1   0.859,0.862,0.865,0.867,0.869,0.872,0.874,0.875,0.877,0.879,
-	1   0.880,0.882,0.883,0.884,0.885,0.886,0.887,0.888,0.888,0.889,
-	1   0.889,0.890,0.890,0.890,0.891,0.891,0.891,0.891,0.891,0.891,
-	1   0.891,0.891,0.890,0.890,0.890,0.890,0.889,0.889,0.889,0.888,
-	1   0.888,0.887,0.887,0.887,0.886,0.886,0.885,0.885,0.884,0.884,
-	1   0.883,0.883,0.882,0.882,0.881,0.881,0.880,0.880,0.879,0.879,
-	1   0.878,0.877,0.877,0.876,0.876/
+     1   0.539,0.554,0.568,0.582,0.596,0.609,0.622,0.634,0.646,0.657,
+     1   0.668,0.679,0.690,0.700,0.709,0.719,0.727,0.736,0.744,0.752,
+     1   0.760,0.767,0.774,0.781,0.788,0.794,0.800,0.806,0.811,0.816,
+     1   0.821,0.826,0.831,0.835,0.839,0.843,0.846,0.850,0.853,0.856,
+     1   0.859,0.862,0.865,0.867,0.869,0.872,0.874,0.875,0.877,0.879,
+     1   0.880,0.882,0.883,0.884,0.885,0.886,0.887,0.888,0.888,0.889,
+     1   0.889,0.890,0.890,0.890,0.891,0.891,0.891,0.891,0.891,0.891,
+     1   0.891,0.891,0.890,0.890,0.890,0.890,0.889,0.889,0.889,0.888,
+     1   0.888,0.887,0.887,0.887,0.886,0.886,0.885,0.885,0.884,0.884,
+     1   0.883,0.883,0.882,0.882,0.881,0.881,0.880,0.880,0.879,0.879,
+     1   0.878,0.877,0.877,0.876,0.876/
 
 c	Wavelength dependent Reflectivity of the WHIPPLE 10 meter mirrors.
 c	Mirror reflectivity for new recoated mirror measurements taken on 
@@ -1387,17 +1387,17 @@ c	(substract 0.04 from these reflectivities).
 c	180,185 nm interpolated values added by GHS.
 c	From Adrian, August 1994.
 	DATA	REFLect_10M_1993/
-	1 .6230,.6370,.6510,.6655,.6800,.6965,.7130,.7370,.7610,.7845,!180-225nm
-	2 .8080,.8250,.8420,.8500,.8580,.8655,.8730,.8750,.8770,.8820,!230-275nm
-	3 .8870,.8870,.8870,.8875,.8880,.8905,.8930,.8936,.8942,.8935,!280-325nm
-	4 .8927,.8906,.8884,.8845,.8822,.8822,.8799,.8774,.8750,.8720,!330-375nm
-	5 .8690,.8658,.8626,.8592,.8558,.8519,.8481,.8443,.8405,.8365,!380-425nm
-	6 .8326,.8286,.8247,.8209,.8171,.8133,.8095,.8056,.8018,.7983,!430-475nm
-	7 .7949,.7917,.7885,.7855,.7825,.7800,.7776,.7758,.7740,.7725,!480-525nm
-	8 .7711,.7699,.7687,.7676,.7666,.7659,.7653,.7648,.7644,.7639,!530-575nm
-	9 .7635,.7634,.7633,.7632,.7631,.7632,.7634,.7635,.7636,.7637,!580-625nm
-	1 .7638,.7640,.7642,.7642,.7643,.7644,.7646,.7647,.7648,.7647,!630-675nm
-	2 .7646,.7647,.7647,.7646,.7645/			      !680-700nm
+     1 .6230,.6370,.6510,.6655,.6800,.6965,.7130,.7370,.7610,.7845,!180-225nm
+     1    .8080,.8250,.8420,.8500,.8580,.8655,.8730,.8750,.8770,.8820,!230-275nm
+     3 .8870,.8870,.8870,.8875,.8880,.8905,.8930,.8936,.8942,.8935,!280-325nm
+     4 .8927,.8906,.8884,.8845,.8822,.8822,.8799,.8774,.8750,.8720,!330-375nm
+     5 .8690,.8658,.8626,.8592,.8558,.8519,.8481,.8443,.8405,.8365,!380-425nm
+     6 .8326,.8286,.8247,.8209,.8171,.8133,.8095,.8056,.8018,.7983,!430-475nm
+     7 .7949,.7917,.7885,.7855,.7825,.7800,.7776,.7758,.7740,.7725,!480-525nm
+     8 .7711,.7699,.7687,.7676,.7666,.7659,.7653,.7648,.7644,.7639,!530-575nm
+     9 .7635,.7634,.7633,.7632,.7631,.7632,.7634,.7635,.7636,.7637,!580-625nm
+     1 .7638,.7640,.7642,.7642,.7643,.7644,.7646,.7647,.7648,.7647,!630-675nm
+     1    .7646,.7647,.7647,.7646,.7645/			   !680-700nm
 
 c      Reflectance of al in air for a while.  180-240 nanometers from G.Hass,
 c      W.R. Hunter, Physics of thin films, pg.75. From the graph. 1963. 
@@ -1417,42 +1417,42 @@ c	mirrors being dirty and weathered. The degradation values are derived
 c	from ratios of measured searchlight mirror reflectivities and rhodium 
 c	by Adrian listed in an e-mail note sent to Trever 20/10/95.
 	data Reflect_sl/0.305,0.313,0.320,0.328,0.336,0.344,
-	1 0.352,0.361,0.370,0.379,0.388,0.397,
-	2 0.406,0.416,0.425,0.435,0.445,0.455,
-	3 0.465,0.475,0.485,0.495,0.505,0.516,
-	4 0.526,0.537,0.548,0.556,0.565,0.574,
-	5 0.583,0.592,0.601,0.607,0.613,0.620,
-	6 0.626,0.632,0.639,0.645,0.652,0.655,
-	7 0.658,0.661,0.664,0.667,0.670,0.673,
-	8 0.675,0.678,0.681,0.684,0.687,0.690,
-	9 0.693,0.694,0.696,0.697,0.699,0.700,
-	1 0.702,0.703,0.705,0.706,0.708,0.709,
-	2 0.710,0.712,0.713,0.715,0.716,0.718,
-	3 0.719,0.721,0.722,0.724,0.725,0.726,
-	4 0.728,0.729,0.730,0.732,0.733,0.734,
-	5 0.736,0.737,0.738,0.740,0.741,0.742,
-	6 0.744,0.745,0.746,0.748,0.749,0.750,
-	7 0.752,0.753,0.754,0.756,0.757,0.759,
-	8 0.760,0.761,0.763/
+     1 0.352,0.361,0.370,0.379,0.388,0.397,
+     1    0.406,0.416,0.425,0.435,0.445,0.455,
+     3 0.465,0.475,0.485,0.495,0.505,0.516,
+     4 0.526,0.537,0.548,0.556,0.565,0.574,
+     5 0.583,0.592,0.601,0.607,0.613,0.620,
+     6 0.626,0.632,0.639,0.645,0.652,0.655,
+     7 0.658,0.661,0.664,0.667,0.670,0.673,
+     8 0.675,0.678,0.681,0.684,0.687,0.690,
+     9 0.693,0.694,0.696,0.697,0.699,0.700,
+     1 0.702,0.703,0.705,0.706,0.708,0.709,
+     1    0.710,0.712,0.713,0.715,0.716,0.718,
+     3 0.719,0.721,0.722,0.724,0.725,0.726,
+     4 0.728,0.729,0.730,0.732,0.733,0.734,
+     5 0.736,0.737,0.738,0.740,0.741,0.742,
+     6 0.744,0.745,0.746,0.748,0.749,0.750,
+     7 0.752,0.753,0.754,0.756,0.757,0.759,
+     8 0.760,0.761,0.763/
  
 
 c     ADP    Wavelength dependent quantum efficiency for ADP detectors. 
 c     Linier interpolation of some points given by Wei Cui. 12/10/00. He gave me 
 c     points at 180 nm=.18,300 nm=.56, 366=.77, 450-700 nm=.84. 
          data adp/0.180, 0.196, 0.212, 0.228, 0.243, 0.259, 0.275, 0.291,
-	1 0.307, 0.322, 0.338, 0.354, 0.370, 0.386, 0.402, 0.418,
-	1 0.433, 0.449, 0.465, 0.481, 0.497, 0.512, 0.528, 0.544,
-	1 0.560, 0.576, 0.592, 0.608, 0.625, 0.641, 0.657, 0.673,
-	1 0.689, 0.705, 0.722, 0.738, 0.754, 0.770, 0.774, 0.778,
-	1 0.782, 0.786, 0.791, 0.795, 0.799, 0.803, 0.807, 0.811,
-	1 0.815, 0.819, 0.824, 0.828, 0.832, 0.836, 0.840, 0.840,
-	1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
-	1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
-	1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
-	1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
-	1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
-	1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
-	1 0.840/
+     1 0.307, 0.322, 0.338, 0.354, 0.370, 0.386, 0.402, 0.418,
+     1 0.433, 0.449, 0.465, 0.481, 0.497, 0.512, 0.528, 0.544,
+     1 0.560, 0.576, 0.592, 0.608, 0.625, 0.641, 0.657, 0.673,
+     1 0.689, 0.705, 0.722, 0.738, 0.754, 0.770, 0.774, 0.778,
+     1 0.782, 0.786, 0.791, 0.795, 0.799, 0.803, 0.807, 0.811,
+     1 0.815, 0.819, 0.824, 0.828, 0.832, 0.836, 0.840, 0.840,
+     1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
+     1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
+     1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
+     1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
+     1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
+     1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
+     1 0.840/
 
 
 
@@ -1470,8 +1470,8 @@ c      Form ETASEA=(Index of refraction-1) at sea level. Start at
 c      180 nanometers and go up to 700 nanometers.
 c      Parameters from CRC handbook of Chem and Phy. 70'-71'
 c      pg E-231.
-      Do lambda=180.,700.,5.
-            ilambda=lambda
+      do ilambda=180,700,5
+            lambda=ilambda
             i=(ilambda-180)/5
             etasea(i)=1.e-7*(2726.43+12.288/(lambda**2*1.e-6)+
      1 0.3555/(lambda**4*1.e-12))
@@ -1496,8 +1496,8 @@ c        We will approximate its effect by just using the correction at the
 c        central lambda of the tube/filter combination.
 
         ihobs=hobs/1000.        !Altitude index just below Obs altitude.
-        do lambda=180,700,5         !In nanometers
-               ilambda=lambda
+        do ilambda=180,700,5         !In nanometers
+               lambda=ilambda
                i=(ilambda-180)/5
 c                                 !get linearly interpolated tau for obs height.
                tlow=(extint(ihobs+1,i)-extint(ihobs,i))*
@@ -1530,8 +1530,8 @@ c        Constant
          constant=twopi/137
 
          do j=ihobs+1,50            !Start just above obs alt.
-               do lambda=180,700,5         !In nanometers
-                      ilambda=lambda
+               do ilambda=180,700,5         !In nanometers
+                      lambda=ilambda
                       i=(ilambda-180)/5
 c                   Calculate the Q integrels.  Units are photons/meter.
                       Qeta(i,j)=(1.d+9)*(constant*2*rhoratio(j)*
@@ -1542,8 +1542,8 @@ c                   Calculate the Q integrels.  Units are photons/meter.
 	enddo
 
 c	Calculate these at hobs:
-       do lambda=180,700,5         !In nanometers
-             ilambda=lambda
+       do ilambda=180,700,5         !In nanometers
+             lambda=ilambda
              i=(ilambda-180)/5
 c                   Calculate the Q integrels.  Units are photons/meter.
              Qeta_hobs(i)=(1.e+9)*(constant*2*rhorat_hobs*
@@ -1569,13 +1569,13 @@ c	Used in calls to RATE_GEN
 cVisable.
 c	Make up the lookup tabels for Visable(26 mirror Haleakala)
 	call rate_qgen(r1450eff,hoyau340,reflect,qetavis,qgamvis,
-	1 qetavis_hobs,qgamvis_hobs)
+     1     qetavis_hobs,qgamvis_hobs)
 
 c	Construct lookup tables for  rate calculations for different detectors
 c	sensitive to far UV.  Used in calls to RATE_UV_GEN
 
 c	The integrated q's for detectors that are sensitive to lambdas below
-c	270 nm will need to be lambda(max) dependent since for every gamma we 
+c     1   70 nm will need to be lambda(max) dependent since for every gamma we 
 c	will have some lambda max where q1-q2 goes negative and we should stop
 c	the integration. For most gamma's this is beyond 700 nanometers.
 
@@ -1585,8 +1585,8 @@ c	which means the Cherenkov threhold is also wavelength dependents as
 c	is Cherenkov angle. So just precalculate some things here.
 
 c        Gamma threshold and sin**2 of maximum chrenkov angle.
-         do lambda=180,700,5
-                ilambda=lambda
+         do ilambda=180,700,5
+                lambda=ilambda
                 i=(ilambda-180)/5
                 do j=0,50
                       gammin(i,j)=sqrt(1./(2*rhoratio(j)*etasea(i)))
@@ -1603,7 +1603,7 @@ c	Build efficiency array. use average weathered results.
 	if(ADPPMTs)then
            Print*,' Using ADP quantum efficincy'
            call rate_qgen_uv(ADP,trans_100,REFLect_10M_1993,qeta10m,
-	1 qgam10m,qeta10m_hobs,qgam10m_hobs)
+     1     qgam10m,qeta10m_hobs,qgam10m_hobs)
 
 !***************************************************************************
 cWhipple 10m
@@ -1664,7 +1664,7 @@ c     ***********************************************************************
 
 
       subroutine rate_gen(height,dns,qeta_gen,qgam_gen,qetagen_hobs,
-	1 qgamgen_hobs,rate,qz)
+     1    qgamgen_hobs,rate,qz)
 !*****************************************************************************
 !     This is a generic routine_ that calculates the #/meter of path length
 !	of Chernkov photons for a segment at altitude Height(meters),
@@ -1747,7 +1747,7 @@ c                     Just above hobs. Use special qeta,qgamma.
 	aint=alow+(ahigh-alow)*hi	!This should be within 10% of 1.
         endif
 
-        rate=qetaint-(qgamint/(segment.gamma**2))
+        rate=qetaint-(qgamint/(segment%gamma**2))
 c      correct the rate.
        rate=rate*aint
 
@@ -1757,7 +1757,7 @@ c      correct the rate.
         end
 
 	subroutine rate_qgen(pmteff,filter,reflection,qeta_gen,qgam_gen,
-	1 qetagen_hobs,qgamgen_hobs)
+     1   qetagen_hobs,qgamgen_hobs)
 
 c	25/10/93 G.H.S. V:1:0:2.0
 c	Generate integrated Q's for pmt efficiency PMTEFF, filter transmission 
@@ -1770,8 +1770,8 @@ c              Purdue
 c		25/10/93
 
 	real reflection(0:104),filter(0:104),pmteff(0:104),
-	1 qeta_gen(0:50),qgam_gen(0:50),
-	2 qetagen_hobs,qgamgen_hobs
+     1    qeta_gen(0:50),qgam_gen(0:50),
+     1    qetagen_hobs,qgamgen_hobs
 	include 'kaslite.h'
 
 c        These will be the true integral 'Q's. They are integrated from
@@ -1780,8 +1780,8 @@ c        Start at just above hobs.
          do j=ihobs+1,50
 		qeta_gen(j)=0	!Init some things.
 		qgam_gen(j)=0
-                do lambda=270,700,5
-                      ilambda=lambda
+                do ilambda=270,700,5
+                      lambda=ilambda
                       i=(ilambda-180)/5
                       qe=qeta(i,j)*pmteff(i)*filter(i)*reflection(i)
                       qeta_gen(j)=qeta_gen(j)+qe
@@ -1794,8 +1794,8 @@ c       Make a special qetagen and qgamgen for exactly at hobs. ATMPROB is 1.
 c       here. Requires a special qeta_hobs(i),qgamma_hobs(i)
 	qetagen_hobs=0	!init some things
 	qgamgen_hobs=0
-         do lambda=270,700,5
-                      ilambda=lambda
+        do ilambda=270,700,5
+                      lambda=ilambda
                       i=(ilambda-180)/5
                       qetagen_hobs=qetagen_hobs+qeta_hobs(i)*
      1 pmteff(i)*filter(i)*reflection(i)
@@ -1807,7 +1807,7 @@ c       here. Requires a special qeta_hobs(i),qgamma_hobs(i)
 
 
 	subroutine rate_qgen_uv(pmteff,filter,reflection,qeta_gen,qgam_gen,
-	1 qetagen_hobs,qgamgen_hobs)
+     1    qetagen_hobs,qgamgen_hobs)
 
 c	25/10/93 G.H.S. V:1:0:2.0
 c	Form the q's, as a function of lambda.
@@ -1830,41 +1830,41 @@ c              Purdue
 c		25/10/93
 
 	real reflection(0:104),filter(0:104),pmteff(0:104),
-	1 qeta_gen(0:104,0:50),qgam_gen(0:104,0:50),
-	2 qetagen_hobs(0:104),qgamgen_hobs(0:104)
+     1    qeta_gen(0:104,0:50),qgam_gen(0:104,0:50),
+     1    qetagen_hobs(0:104),qgamgen_hobs(0:104)
 	include 'kaslite.h'
 
 c        Now form the q's, as a function of lambda.
 c        This just saves a little work.
 c        Start at just above hobs.
          do j=ihobs+1,50
-		 do lambda=180,700,5
-                      ilambda=lambda
+		 do ilambda=180,700,5
+                      lambda=ilambda
                       i=(ilambda-180)/5
 c       Terms for the Cherenkov angle and rate.
                       qeta_gen(i,j)=qeta(i,j)*pmteff(i)*filter(i)*
-	1 reflection(i)
+     1    reflection(i)
                       qgam_gen(i,j)=qgamma(i,j)*pmteff(i)*filter(i)*
-	1 reflection(i)
+     1    reflection(i)
                   enddo
          enddo
 
 c        Make up sepcial set at hobs.
-         do lambda=180,700,5
-               ilambda=lambda
+         do ilambda=180,700,5
+               lambda=ilambda
                i=(ilambda-180)/5
 c       Terms for the Cherenkov angle and rate.
                qetagen_hobs(i)=qeta_hobs(i)*pmteff(i)*filter(i)*
-	1 reflection(i)
+     1    reflection(i)
                qgamgen_hobs(i)=qgamma_hobs(i)*pmteff(i)*filter(i)*
-	1 reflection(i)
+     1    reflection(i)
 	enddo
 	return
 	end
 !*****************************************************************************
 
       subroutine rate_uv_gen(height,dns,qeta_gen,qgam_gen,
-	1 qetagen_hobs,qgamgen_hobs,rate,sangle,qz)
+     1    qetagen_hobs,qgamgen_hobs,rate,sangle,qz)
 !*****************************************************************************
 !     This function calculates the rate/meter of path length of Chernkov
 !     photo-electrons for a segment at altitude Height(meters), with velocity
@@ -1912,7 +1912,7 @@ c		Remove all referneces to old rate variables. see '*' comments
 !		Again limit use of ATEXP as exponent to prevent
 !		some overflows.	       
 
-!	11/07/01 GHS V1:2:6.2
+!     1   1/07/01 GHS V1:2:6.2
 !		For Heavy ions add QZ=charge to argument list. Modify rate by
 !		QZ**2.
 !      08/12/04 GHS  V:1:3:8.5
@@ -1923,24 +1923,24 @@ c		Remove all referneces to old rate variables. see '*' comments
 
 
 	real qeta_gen(0:104,0:50),qgam_gen(0:104,0:50),
-	2 qetagen_hobs(0:104),qgamgen_hobs(0:104)
+     1    qetagen_hobs(0:104),qgamgen_hobs(0:104)
 	real pangle
 	integer qz
         include 'kaslite.h'
 
 c     see if weve exceeded max wavelength that this gamma is above threshold.
 
-	pangle=(dns*dni+segment.dlstart*dli+
-	1 segment.dmstart*dmi)
+	pangle=(dns*dni+segment%dlstart*dli+
+     1    segment%dmstart*dmi)
 	if(abs(pangle).gt.1.0)then
 		pangle=1.0
 	endif
-	pangle=abs(acosd(pangle))
-       iheight=height/1000.    !Lower altitude index.
-       hint=(height/1000.-iheight)     !Interpolation factor.
-       rate=0.
-       sangle=0.
-       atexp=(dni-dns)/dns		!Correction exponent.
+	pangle=abs(rad2deg*acos(pangle))
+        iheight=height/1000.    !Lower altitude index.
+        hint=(height/1000.-iheight)     !Interpolation factor.
+        rate=0.
+        sangle=0.
+        atexp=(dni-dns)/dns		!Correction exponent.
 
 	if(atexp.gt.40)then
 		atexp=40.  	!Limit atexp to prevent some overflows.	       
@@ -1961,7 +1961,7 @@ c     see if weve exceeded max wavelength that this gamma is above threshold.
         endif
 
 
-        if(segment.gamma.lt.gammin(i,iheight+1))then
+        if(segment%gamma.lt.gammin(i,iheight+1))then
 		sangle=0.!Flag that weve reached max lambda for this gamma.
 		rate=0.
 		return
@@ -2016,12 +2016,12 @@ c	Interpolate cherenkov angle.
      1 smaxsb(i,iheight))* hint
 
 c      Calculate rate.
-	rate=(qetaint-(qgamint/(segment.gamma**2)))*aint
+	rate=(qetaint-(qgamint/(segment%gamma**2)))*aint
 
-!	11/07/01 GHS: Adjust rate for charge.
+!     1  1/07/01 GHS: Adjust rate for charge.
 	rate=rate*(qz**2)
 c      Calculate angle.
-	sangle=sqrt(smaxint-1./segment.gamma**2)
+	sangle=sqrt(smaxint-1./segment%gamma**2)
         return
         end
 !*****************************************************************************
@@ -2036,8 +2036,7 @@ c      Used to get an array of atmospheric photon extinction
 c      values.
 
        real extint(0:50,0:104)
-	OPEN(1,ACCESS='SEQUENTIAL',STATUS='OLD',READONLY,
-     1 file='extint.dat')
+       OPEN(1,ACCESS='SEQUENTIAL',STATUS='OLD',file='extint.dat')
 
 c       Get Probabilty for absorbing or scattering Cherenkov photons.
 c       !For 270 to 700 nanometers
@@ -2070,7 +2069,7 @@ c        First read in the palfrey numbers from 180 to 270 nanometers.
                if(jlambda.ne.ilambda)then
                          write(6,1003)ilambda,jlambda
 1003  format(' ***RATEex--FATAL-Error reading lambda from EXTINT.DAT.',
-	1 /,' ***Wanted:',i4,' Got:',i10)
+     1    /,' ***Wanted:',i4,' Got:',i10)
                          stop   'Error readin extint.dat'
                endif
 

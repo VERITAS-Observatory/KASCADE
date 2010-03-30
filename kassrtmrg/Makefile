@@ -57,11 +57,6 @@ $(EXETARGET): $(LIBTARGET)
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
 	          $(CCLIB) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
 
-#$(TESTTARGET): $(LIBTARGET) 
-#	$(CXX) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
-#	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
-#	          $(CCLIB) $(KASLDFLAGS) $(KASLIBSROOT) $(ROOTLIBS)
-
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
 

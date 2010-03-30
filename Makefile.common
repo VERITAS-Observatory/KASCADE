@@ -163,7 +163,8 @@ ifdef GNUFORTRAN
   F90  :=gfortran
   #gfortran Flags 
   F90FLAGS := -g -O2 -c -ffixed-line-length-none -fno-automatic \
-              -fno-underscoring -fbounds-check  $(KASINCFLAGS)
+              -fno-underscoring -fbounds-check  -I$(TOPCOMMONDIR) \
+              $(KASINCFLAGS)
   F77FLAGS := -g -O2 -c  -ffixed-line-length-none -fno-automatic \
               -fno-underscoring -fbounds-check  $(KASINCFLAGS)
 
