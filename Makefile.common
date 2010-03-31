@@ -19,7 +19,7 @@
 # Standard directories
 # -----------------------------------------------------------------------------
 
-OPTIMIZATION=ON
+#OPTIMIZATION=ON
 
 
 SRCDIR = src
@@ -162,10 +162,15 @@ ifdef GNUFORTRAN
   F77  :=gfortran 
   F90  :=gfortran
   #gfortran Flags 
-  F90FLAGS := -g -O2 -c -ffixed-line-length-none -fno-automatic \
+
+  ifdef OPTIMIZATION
+	OPT= -O2
+  endif
+
+  F90FLAGS := -g $(OPT) -c -ffixed-line-length-none -fno-automatic \
               -fno-underscoring -fbounds-check  -I$(TOPCOMMONDIR) \
               $(KASINCFLAGS)
-  F77FLAGS := -g -O2 -c  -ffixed-line-length-none -fno-automatic \
+  F77FLAGS := -g $(OPT) -c  -ffixed-line-length-none -fno-automatic \
               -fno-underscoring -fbounds-check  $(KASINCFLAGS)
 
 #  CXX = gcc-3.3

@@ -165,6 +165,8 @@ C!!!                the 25 ++ 32-bit integer seeds, to be used for   ++
 C!!!                restarting. ISVEC must be dimensioned 25 in the  ++
 C!!!                calling program.                                 ++
 C!!! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      !USE iso_c_binding 
+      
       DIMENSION RVEC(LENV)
       DIMENSION SEEDS(24), ISEEDS(24), ISDEXT(25)
       PARAMETER (MAXLEV=4, LXDFLT=3)
@@ -330,7 +332,8 @@ C                    Entry to output the "convenient" restart point
       RETURN
 C
 C                    Entry to initialize from one or three integers
-      ENTRY RLUXGO(LUX,INS,K1,K2)
+      ENTRY RLUXGO(LUX,INS,K1,K2) BIND(C) 
+
          IF (LUX .LT. 0) THEN
             LUXLEV = LXDFLT
          ELSE IF (LUX .LE. MAXLEV) THEN

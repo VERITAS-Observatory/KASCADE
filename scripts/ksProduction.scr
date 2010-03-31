@@ -199,12 +199,22 @@ function Gammas()
 
 #       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
 #        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11) 
+#          end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
+
+        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
+         start=([1]=1033 797  616  475  367  284  219  169  131  101 85    71  60  51    51    36    30   25  21  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20)
+#           end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
+           end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    51    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
+
+
+
+
 #          end=([1]=1032 796  615  474  366  283  218  168  130  100 84    70  59  49    41    35    29   24  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20)
 
  
-       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
-        start=([1]=1    1    1    1    1    1    1    1    1    1   79    61  47  50    42    36    30   25  21  21  21  21  21   21   21   21   21   21   21   21   21   21   21   21   21   21    21    21    21    21    1     11    1     11)
-          end=([1]=1032 796  615  474  366  283  218  168  130  100 79    70  59  50    50    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
+#       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
+#        start=([1]=1    1    1    1    1    1    1    1    1    1   79    61  47  50    42    36    30   25  21  21  21  21  21   21   21   21   21   21   21   21   21   21   21   21   21   21    21    21    21    21    1     11    1     11)
+#          end=([1]=1032 796  615  474  366  283  218  168  130  100 79    70  59  50    50    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
 
 
 
@@ -307,7 +317,50 @@ function Gammas()
 	SubmitAmdahlPBSScripts 23 34 
 	SubmitAmdahlPBSScripts 1  22 
     fi
+
+#PDSF
+   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+#	    let iEntry=1
+	    let iEntry=15
+	    let iEntryEnd=15
+            while test $iEntry -le $iEntryEnd
+            do	
+	       BuildAndSubmitPDSFJobs $iEntry 
+	       iEntry=$((iEntry+1))		
+            done
+    fi
 }
+
+
+function BuildAndSubmitPDSFJobs
+#**********************************************************************
+# Cause PDSF cluster jobs to be submitted.
+# Since we have lots and lots of nodes 1 job per shower
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ let i=$showerStart
+      
+ echo Entry:  ${enableGEN[$1]} ${energy[$1]} ${start[$1]} ${end[$1]}
+
+ while test $i -le $showerEnd
+ do
+      sgeFile=$lcl/k${energy[$1]}'d'$i$jobSpec.pbs
+      echo "#"!/bin/bash                                           >$sgeFile
+      echo cd $lcl                                                >>$sgeFile
+      echo $ksScript ${energy[$1]} $parspec  $i \\                >>$sgeFile
+      echo $i $datadir $workingDir                \\              >>$sgeFile
+      echo ">>"$lcl"/ksProduction_"${energy[$1]}"d"$i"_"$pr".log" >>$sgeFile
+
+      chmod 700 $sgeFile
+      qsub -l 64bit=1 -P astrogfs -V -e k${energy[$i]}'d'$i.err' -o k${energy[$i]}'d'$i.log' $sgeFile
+      i=$((i+1))			#do next shower
+ done
+}
+
 
 
 function SubmitAmdahlPBSScripts()
@@ -444,6 +497,11 @@ fi
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 PULSAR=analysis
+PDSF1=pdsf1
+PDSF2=pdsf2
+PDSF3=pdsf3
+PDSF4=pdsf4
+PDSF5=pdsf5
 
 if [ $host = $ISIS ] ; then
     if test ${lcl:1:4} = "disk"
@@ -504,6 +562,11 @@ if [ $host = $PULSAR ] ; then
 fi
 if [ $host = $AMDAHL ] ; then
     dataDirBase=/project/veritas/sembrosk/simulations
+    workingDir=$lcl
+fi
+
+if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+    dataDirBase=/project/projectdirs/astrogfs/veritas_tools/glenn/simulations
     workingDir=$lcl
 fi
 
@@ -638,6 +701,7 @@ fi
 
 #Nothing for AMDAHL
 
+#Nothing for PDSF
 
 
 
