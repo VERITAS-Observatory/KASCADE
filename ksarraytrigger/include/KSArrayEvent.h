@@ -102,7 +102,7 @@ class KSArrayEvent
   void DetermineTelescopeNxNy();
   double GetTelsNxNy(double fArrayX,double fArrayY,std::vector<int>& pfNXOdd,
 		     std::vector<int>& pfNYOdd,std::vector<int>& pfNXEven,
-		     std::vector<int>& pfNXEven);
+		     std::vector<int>& pfNYEven);
   void GetXYFromNXNY(int fNx, int fNy,double& fX, double& fY);
   void SetTelescopeOffsetFromBaseTel(int fBaseTelIndex, int fTelIndex);
   void PrintRelativeTelescopePositions();
