@@ -39,6 +39,7 @@
 #include <cmath>
 #include <time.h>
 #include <exception>
+#include <algorithm>
 
 #include <VBF/VBankFileReader.h>
 #include <VBF/VBankFileWriter.h>

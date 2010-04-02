@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <sys/time.h>
-
+#include <cstring>
 
 void slaAmpqk ( double ra, double da, double amprms[21],
                 double *rm, double *dm )
@@ -2555,7 +2555,7 @@ void slaNut ( double date, double rmatn[3][3] )
    slaNutc ( date, &dpsi, &deps, &eps0 );
 
 /* Rotation matrix */
-   slaDeuler ( "xzx", eps0, -dpsi, - ( eps0 + deps ), rmatn );
+   slaDeuler ( (char*)"xzx", eps0, -dpsi, - ( eps0 + deps ), rmatn );
 }
 
 void slaNutc ( double date, double *dpsi, double *deps, double *eps0 )
@@ -3428,7 +3428,7 @@ void slaPrebn ( double bep0, double bep1, double rmatp[3][3] )
 	    ( - 0.42647 - 0.000365 * bigt - 0.041802 * t ) * t ) * tas2r;
   
   /* Rotation matrix */
-  slaDeuler ( "ZYZ", -zeta, theta, -z, rmatp );
+  slaDeuler ((char*)"ZYZ", -zeta, theta, -z, rmatp );
 }
 
 void slaPrec ( double ep0, double ep1, double rmatp[3][3] )
@@ -3499,7 +3499,7 @@ void slaPrec ( double ep0, double ep1, double rmatp[3][3] )
 	    + ( ( -0.42665 - 0.000217 * t0 ) - 0.041833 * t ) * t ) * tas2r;
   
   /* Rotation matrix */
-  slaDeuler ( "ZYZ", -zeta, theta, -z, rmatp );
+  slaDeuler ((char*) "ZYZ", -zeta, theta, -z, rmatp );
 }
 
 void slaPrenut ( double epoch, double date, double rmatpn[3][3] )
@@ -3546,7 +3546,7 @@ void slaPrenut ( double epoch, double date, double rmatpn[3][3] )
    slaDmxm ( rmatn, rmatp, rmatpn );
 }
 
-void slaDeuler ( char *order, double phi, double theta,
+void slaDeuler ( char* order, double phi, double theta,
                  double psi, double rmat[3][3] )
   /*
   **  - - - - - - - - - -

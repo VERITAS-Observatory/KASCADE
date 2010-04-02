@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 #include "VASlalib.h"
 
 extern "C" float  pran(float* fXDummy);

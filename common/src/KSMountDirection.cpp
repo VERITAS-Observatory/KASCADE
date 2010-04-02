@@ -14,6 +14,7 @@
  **/
 // This is where the code starts.
 
+#include <cstdlib>
 #include "KSMountDirection.h"
 
 extern "C" float pran(float* fXDummy);

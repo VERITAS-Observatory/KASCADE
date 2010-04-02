@@ -7,6 +7,9 @@
 #include <iostream>
 #include <exception>
 #include <stdexcept>
+#include "stdlib.h"
+#include <stdio.h>
+#include <string.h>
 #include "CommandHandlers.h"
 #include "TextHelpers.h"
 

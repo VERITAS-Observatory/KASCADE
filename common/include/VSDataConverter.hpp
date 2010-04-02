@@ -48,6 +48,7 @@
 #include <cstdlib>
 #include <limits>
 #include <stdint.h>
+#include <cstring>
 
 #ifndef INT8_MIN
 
@@ -233,6 +234,49 @@ namespace VERITAS
     static inline void toString(std::string& s, const std::pair<T1,T2>& x, 
 				bool low_precision=false);
     static inline bool fromString(std::pair<T1,T2>& x, const char* s);
+    static inline std::string typeName();
+  };
+
+  template<typename T1, typename T2, typename T3> class triple
+  {
+  public:
+    triple(): first(), second(), third() { /* nothing to see here */ }
+    triple(const T1& _first, const T2& _second, const T3& _third)
+      : first(_first), second(_second), third(_third) { }
+    T1 first;
+    T2 second;
+    T3 third;
+  };
+
+  template<typename T1, typename T2, typename T3> 
+  class VSDatumConverter<triple<T1,T2,T3> >
+  {
+  public:
+    static inline void toString(std::string& s, const triple<T1,T2,T3>& x, 
+				bool low_precision=false);
+    static inline bool fromString(triple<T1,T2,T3>& x, const char* s);
+    static inline std::string typeName();
+  };
+
+  template<typename T1, typename T2, typename T3, typename T4> class quad
+  {
+  public:
+    quad(): first(), second(), third(), fourth() { /* nothing to see here */ }
+    quad(const T1& _1st, const T2& _2nd, const T3& _3rd, const T4& _4th)
+      : first(_1st), second(_2nd), third(_3rd), fourth(_4th) { }
+    T1 first;
+    T2 second;
+    T3 third;
+    T4 fourth;
+  };
+
+  template<typename T1, typename T2, typename T3, typename T4> 
+  class VSDatumConverter<quad<T1,T2,T3,T4> >
+  {
+  public:
+    static inline void toString(std::string& s, const quad<T1,T2,T3,T4>& x, 
+				bool low_precision=false);
+    static inline bool fromString(quad<T1,T2,T3,T4>& x, const char* s);
     static inline std::string typeName();
   };
   
@@ -665,6 +709,115 @@ namespace VERITAS
     return 
       std::string("pair<")+VSDatumConverter<T1>::typeName()
       +std::string(",")+VSDatumConverter<T2>::typeName()+std::string(">");
+  }
+
+  template<typename T1, typename T2, typename T3> 
+  inline void VSDatumConverter<triple<T1,T2,T3> >::
+  toString(std::string& s, const triple<T1,T2,T3>& x,
+	   bool low_precision)
+  {
+    static const std::string sep("/");
+    VSDatumConverter<T1>::toString(s,x.first,low_precision);
+    s+=sep;
+    std::string s2;
+    VSDatumConverter<T2>::toString(s2,x.second,low_precision); 
+    s+=s2;
+    s+=sep;
+    std::string s3;
+    VSDatumConverter<T3>::toString(s3,x.third,low_precision); 
+    s+=s3;
+  }
+
+  template<typename T1, typename T2, typename T3> inline bool 
+  VSDatumConverter<triple<T1,T2,T3> >::
+  fromString(triple<T1,T2,T3>& x, const char* s)
+  {
+    static const char sep = '/';
+    const char* find1 = s;
+    while((*find1!='\0')&&(*find1!=sep))find1++;
+    if(*find1=='\0')return false;
+    std::string val_string1(s,find1);
+    if(VSDatumConverter<T1>::fromString(x.first,val_string1.c_str())==false)
+      return false;
+    const char* find2 = find1+1;
+    while((*find2!='\0')&&(*find2!=sep))find2++;
+    std::string val_string2(find1+1,find2);
+    if(VSDatumConverter<T2>::fromString(x.second,val_string2.c_str())==false)
+      return false;
+    std::string val_string3(find2+1,s+strlen(s));
+    if(VSDatumConverter<T3>::fromString(x.third,val_string3.c_str())==false)
+      return false;
+    return true;
+  }
+
+  template<typename T1, typename T2, typename T3> 
+  inline std::string VSDatumConverter<triple<T1,T2,T3> >::typeName()
+  {
+    return 
+      std::string("triple<")+VSDatumConverter<T1>::typeName()
+      +std::string(",")+VSDatumConverter<T2>::typeName()
+      +std::string(",")+VSDatumConverter<T3>::typeName()
+      +std::string(">");
+  }
+
+  template<typename T1, typename T2, typename T3, typename T4> 
+  inline void VSDatumConverter<quad<T1,T2,T3,T4> >::
+  toString(std::string& s, const quad<T1,T2,T3,T4>& x,
+	   bool low_precision)
+  {
+    static const std::string sep("/");
+    VSDatumConverter<T1>::toString(s,x.first,low_precision);
+    s+=sep;
+    std::string s2;
+    VSDatumConverter<T2>::toString(s2,x.second,low_precision); 
+    s+=s2;
+    s+=sep;
+    std::string s3;
+    VSDatumConverter<T3>::toString(s3,x.third,low_precision); 
+    s+=s3;
+    s+=sep;
+    std::string s4;
+    VSDatumConverter<T4>::toString(s4,x.fourth,low_precision); 
+    s+=s4;
+  }
+
+  template<typename T1, typename T2, typename T3, typename T4> inline bool 
+  VSDatumConverter<quad<T1,T2,T3,T4> >::
+  fromString(quad<T1,T2,T3,T4>& x, const char* s)
+  {
+    static const char sep = '/';
+    const char* find1 = s;
+    while((*find1!='\0')&&(*find1!=sep))find1++;
+    if(*find1=='\0')return false;
+    std::string val_string1(s,find1);
+    if(VSDatumConverter<T1>::fromString(x.first,val_string1.c_str())==false)
+      return false;
+
+    const char* find2 = find1+1;
+    while((*find2!='\0')&&(*find2!=sep))find2++;
+    std::string val_string2(find1+1,find2);
+    if(VSDatumConverter<T2>::fromString(x.second,val_string2.c_str())==false)
+      return false;
+    const char* find3 = find2+1;
+    while((*find3!='\0')&&(*find3!=sep))find3++;
+    std::string val_string3(find2+1,find3);
+    if(VSDatumConverter<T3>::fromString(x.third,val_string3.c_str())==false)
+      return false;
+    std::string val_string4(find3+1,s+strlen(s));
+    if(VSDatumConverter<T4>::fromString(x.fourth,val_string4.c_str())==false)
+      return false;
+    return true;
+  }
+
+  template<typename T1, typename T2, typename T3, typename T4> 
+  inline std::string VSDatumConverter<quad<T1,T2,T3,T4> >::typeName()
+  {
+    return 
+      std::string("quad<")+VSDatumConverter<T1>::typeName()
+      +std::string(",")+VSDatumConverter<T2>::typeName()
+      +std::string(",")+VSDatumConverter<T3>::typeName()
+      +std::string(",")+VSDatumConverter<T4>::typeName()
+      +std::string(">");
   }
 
   template<typename T> inline void VSDatumConverter<std::vector<T> >::

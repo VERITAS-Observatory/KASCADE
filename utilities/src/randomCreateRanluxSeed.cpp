@@ -14,6 +14,7 @@
 #include <float.h>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 using namespace std;
 
 extern "C" float ranend(int*,char *,int);

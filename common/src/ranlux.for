@@ -332,7 +332,7 @@ C                    Entry to output the "convenient" restart point
       RETURN
 C
 C                    Entry to initialize from one or three integers
-      ENTRY RLUXGO(LUX,INS,K1,K2) BIND(C) 
+      ENTRY RLUXGO(LUX,INS,K1,K2) 
 
          IF (LUX .LT. 0) THEN
             LUXLEV = LXDFLT

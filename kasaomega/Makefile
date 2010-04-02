@@ -60,8 +60,9 @@ $(LIBTARGET): $(CPPOBJECTS)
 	ranlib $@
 
 $(EXETARGET): $(LIBTARGET) 
-	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
+	$(F77) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
+		  -L/lib -lbz2 \
 	          $(VEGASLDFLAGS) $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) \
 	          $(ROOTLIBS) $(VBFLDFLAGS) $(VBFLIBS)
 	         

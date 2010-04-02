@@ -11,6 +11,9 @@
  *
  **/
 
+#include <cstdlib>
+#include <limits>
+
 #include "KSGrISUPilotFile.h"
 extern "C" float yds(float* ggms);
 

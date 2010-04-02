@@ -10,6 +10,7 @@
 #ifndef KSSINGLEPE_H
 #define KSSINGLEPE_H
 
+#include <cstdlib>
 #include "KSCommon.h"
 #include "KSFADC.h"
 #include <vector>

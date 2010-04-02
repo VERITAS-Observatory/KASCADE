@@ -12,6 +12,7 @@
 #define KSPEFILE_H
 
 
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <fstream>

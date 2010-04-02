@@ -17,6 +17,7 @@
  *
  **/
 
+#include <cstdlib>
 #include "KSEventWeights.h"
 
 extern "C" float pran(float* dummy);
