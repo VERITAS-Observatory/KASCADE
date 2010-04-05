@@ -691,7 +691,7 @@ if [ $host = $PULSAR ]; then
 	  else
 	    #Run the script files
 	    chmod 777 $JobScript
-	    qsub $JobScript
+	    qsub -l ' low ' $JobScript
  
 	  fi
        fi
