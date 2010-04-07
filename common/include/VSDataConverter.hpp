@@ -49,6 +49,7 @@
 #include <limits>
 #include <stdint.h>
 #include <cstring>
+#include <cstdio>
 
 #ifndef INT8_MIN
 
