@@ -37,12 +37,12 @@ AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 IO=io.physics.purdue.edu
 PULSAR=analysis
-NODE00=node00.cluster
-NODE01=node01.cluster
-NODE02=node02.cluster
-NODE03=node03.cluster
-NODE04=node04.cluster
-NODE05=node05.cluster
+NODE00=node00
+NODE01=node01
+NODE02=node02
+NODE03=node03
+NODE04=node04
+NODE05=node05
 
 
 if [ $host = $AMDAHL ] ; then

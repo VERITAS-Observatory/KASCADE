@@ -3,20 +3,23 @@
 #$3: Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
 #$4: Sub dir at UCLA to put resulting VBF files. Like Oct1_2009.
 #$5: start direction Index. defualt is 0. 
-#   If $5 not null files coppied gamma/...1234M2
+#$6: end direction Index. defualt is 8. 
+
 lcl=$PWD
 echo Argument1: $1
 echo Argument2: $2
 echo Argument3: $3
 echo Argument4: $4
 echo Argument5: $5
+echo Argument6: $6
 
 
 Base=$3
+echo Base: $Base
 
 UCLASubDir=$4
 
-if  [ -z "$4" ]
+if  [ -z "$3" ]
 then
  echo Fatal-Please supply all arguments Ex: ./GProcessAll V190 40_180Deg Noise3_5 Oct1_2009  
 
@@ -27,17 +30,28 @@ cd $lcl/gammas
 
 if  [ -z "$5" ] ; 
 then
-  if test -e ./gammas/$1'/VG'$2'2D50mv1234M2' ;
-  then
-       echo 'Fatal-'$1'/VG'$2'2D50mv1234M2 exists. You may want to rename it.'
-       exit
-  fi
   let i=0;
 else
   let i=$5
 fi
 
+if  [ -z "$6" ] ; 
+then
+  let end=8;
+else
+cd   let end=$6
+fi
+
+#let i=0
+#let i=2
+#let end=2
+#let end=3
+#let end=4
+#let end=8
+#let end=0
+
 echo i start: $i
+echo end: $end
 
 ArrayDir='VG'$2'2D50mv1234M2'
 SingleDir='VG'$2'2D50mv'
@@ -53,22 +67,25 @@ host=$(hostname)
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 PULSAR=analysis
-NODE00=node00.cluster
+NODE00=node00
+NODE01=node01
+NODE02=node02
+NODE03=node03
+NODE04=node04
+NODE05=node05
 
 echo host: $host
 
 
-#let i=0
-#let i=2
-#let end=4
-let end=8
+
+
 while test $i -le $end
  do
     direction=$i
     if [ $host = $ISIS ] ; then
          cd /veritas/local/veritas
     fi
-    if [ $host = $PULSAR ] || [ $host = $NODE00 ] ; then
+    if [ $host = $PULSAR ] || [ $host = $NODE00 ] || [ $host = $NODE01 ] || [ $host = $NODE02 ] || [ $host = $NODE03 ] || [ $host = $NODE04 ] || [ $host = $NODE05 ] ; then
          cd /usr/local/data/sembrosk/veritas
     fi
     if [ $host = $AMDAHL ] ; then
@@ -124,18 +141,22 @@ while test $i -le $end
 
    # ./ksVegasSimProduction.scr $VBFFile
 
-    bzip2 -vk $VBFFile
+    #cp $VBFFile  vbf.tmp
+    #gzip $VBFFile 
+    #mv vbf.tmp $VBFFile
 
-    if [ $host != $AMDAHL ] ; then 
-	bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu
-
-        bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu 
-    fi
+#    if [ $host != $AMDAHL ] ; then 
+#	bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu
+#
+#        if [ -e $ROOTFile ]; then
+#            bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu 
+#        fi
+#    fi
 
    i=$((i+1))			#do next directoion
 done
 
 cd $lcl'/gammas/'$1
 
-mv ../$ArrayDir  $1'/'$Base'/'$ArrayDir
-mv ../$SingleDir $1'/'$Base'/'$SingleDir
+#mv ../$ArrayDir  $Base'GammaRay/'$ArrayDir
+#mv ../$SingleDir $Base'GammaRay/'$SingleDir
