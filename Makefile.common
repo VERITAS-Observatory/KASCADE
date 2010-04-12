@@ -19,7 +19,7 @@
 # Standard directories
 # -----------------------------------------------------------------------------
 
-#OPTIMIZATION=ON
+OPTIMIZATION=ON
 
 
 SRCDIR = src
