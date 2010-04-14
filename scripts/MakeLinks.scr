@@ -1,0 +1,29 @@
+#$1 Directory to search in: Ex ./LookupTablesDir/
+#$2 Base name to search for files:Ex: PedVar4.875Noise3_5
+
+if test -z $1
+then
+  echo Usage: ./MakeLinks.scr  ./LookupTablesDir/ PedVar4.875Noise3_5
+  exit
+fi
+
+lcl=$PWD
+SrcDir=$1
+cd $SrcDir
+
+rmt=$PWD
+
+ls | grep $2   > $lcl'/List'
+cd $lcl
+
+{
+while read File
+do
+  FileSrc=$rmt'/'$File
+
+  ln -vs $FileSrc $File
+
+  #echo Link $FileSrc to: $File
+done
+} <List
+
