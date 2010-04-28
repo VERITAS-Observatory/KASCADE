@@ -34,10 +34,10 @@ function Protons()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    9    7   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 #10%
-#          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -98,6 +98,19 @@ function Protons()
     if [ $host = $AMDAHL ]; then
 	SubmitAmdahlPBSScripts 1 42
     fi
+
+
+#PDSF
+   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+	    let iEntry=1
+#	    let iEntry=15
+	    let iEntryEnd=42
+            while test $iEntry -le $iEntryEnd
+            do	
+	       BuildAndSubmitPDSFJobs $iEntry 
+	       iEntry=$((iEntry+1))		
+            done
+    fi
 }
 #**********************************************************************
 
@@ -116,10 +129,10 @@ function Helium4()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    9     7     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+#          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 #10%
-#         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
+         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -180,7 +193,20 @@ function Helium4()
     if [ $host = $AMDAHL ]; then
         SubmitAmdahlPBSScripts 1 42 
     fi
+
+#PDSF
+   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+	    let iEntry=6
+#	    let iEntry=15
+	    let iEntryEnd=42
+            while test $iEntry -le $iEntryEnd
+            do	
+	       BuildAndSubmitPDSFJobs $iEntry 
+	       iEntry=$((iEntry+1))		
+            done
+    fi
 }
+
 #**********************************************************************
 
 function Gammas()
@@ -197,18 +223,9 @@ function Gammas()
 ############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON    ON    ON )
 
-#       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
-#        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11) 
-#          end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
-
-        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
-         start=([1]=1033 797  616  475  367  284  219  169  131  101 79    61  46  37    29    23    18   14  11  11  11  11  11   11   11   11   11   11   11   11   11   11   11   11   11   11    11    11    11    11    11    16    11    16)
-           end=([1]=2064 1592 1230 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    15    20    15    20)
-
-#           end=([1]=2064 1592 1230 948  732  565  436  336  260  200 155   120 92  71    29    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    15    20    15    20)
-
-#         start=([1]=1033 797  616  475  367  284  219  169  131  101 85    71  60  51    51    36    30   25  21  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20)
-
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11) 
+          end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -312,9 +329,8 @@ function Gammas()
 
 #PDSF
    if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-#	    let iEntry=1
-	    let iEntry=15
-	    let iEntryEnd=15
+	    let iEntry=1
+	    let iEntryEnd=44
             while test $iEntry -le $iEntryEnd
             do	
 	       BuildAndSubmitPDSFJobs $iEntry 
@@ -336,11 +352,11 @@ function BuildAndSubmitPDSFJobs
  let showerEnd=${end[$1]}
  let i=$showerStart
       
- echo Entry:  ${enableGEN[$1]} ${energy[$1]} ${start[$1]} ${end[$1]}
+ echo Entry:  $pr ${enableGEN[$1]} ${energy[$1]} ${start[$1]} ${end[$1]}
 
  while test $i -le $showerEnd
  do
-      sgeFile=$lcl/k${energy[$1]}'d'$i$jobSpec.pbs
+      sgeFile=$lcl'/K'${energy[$1]}'d'$i$parspec.pbs
       echo "#"!/bin/bash                                           >$sgeFile
       echo cd $lcl                                                >>$sgeFile
       echo $ksScript ${energy[$1]} $parspec  $i \\                >>$sgeFile
@@ -348,7 +364,7 @@ function BuildAndSubmitPDSFJobs
       echo ">>"$lcl"/ksProduction_"${energy[$1]}"d"$i"_"$pr".log" >>$sgeFile
 
       chmod 700 $sgeFile
-      qsub -l 64bit=1 -P astrogfs -V -e k${energy[$i]}'d'$i.err' -o k${energy[$i]}'d'$i.log' $sgeFile
+      qsub -jsv /usr/common/nsg/sge/util/jsv.pm -l 64bit=1 -P astrogfs -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
       i=$((i+1))			#do next shower
  done
 }
