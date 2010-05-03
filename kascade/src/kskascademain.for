@@ -1304,21 +1304,23 @@ c       Don't check for threshold here. do it when its called back out.
 
 c        CONSISTENCY CHECK!
        if(dn**2.gt.1.0)then              !Take care of unlikly round off error
-              write(coutstring,7899)pplab,plab,dn,itrace
-7899  format(' ***DAUGHTER--CONSISTENCY CHECK:pplab,plab,dn,itrace:',
-     1 ' ***',3e14.7,i4)
-	call kscharstring2cout(trim(coutstring)//char(0))
-
-              write(coutstring,1234)energy,height,x,y,tim,ispec,rk,
-     1 xm(ispec)
-1234  format(' ***energy,height,x,y,tim,ispec,rk,xm(ispec):',
-     1 ' ***',5e14.7,i5,' ***',2e14.7)
 	!****************************************************************
         !Disable this print. Its just a info print anyway and it has some
         !problem which I can't see the answer to. It repeats 1234 many times.
-        !Maybe its too long.
+        !Maybe its too long. Later: Nope. This is really starnge behavior. 
+        !Disable the whole print.
         !****************************************************************
-               !call kscharstring2cout(trim(coutstring)//char(0))
+!              write(coutstring,7899)pplab,plab,dn,itrace
+!7899  format(' ***DAUGHTER--CONSISTENCY CHECK:pplab,plab,dn,itrace:',
+!     1 ' ***',3e14.7,i4)
+!	       call kscharstring2cout(trim(coutstring)//char(0))
+!
+!              write(coutstring,1234)energy,height,x,y,tim,ispec,rk,
+!     1 xm(ispec)
+!1234  format(' ***energy,height,x,y,tim,ispec,rk,xm(ispec):',
+!     1 ' ***',5e14.7,i5,' ***',2e14.7)
+!              call kscharstring2cout(trim(coutstring)//char(0))
+
                dn=1.       !Round it
         endif
 
@@ -3250,7 +3252,7 @@ c    Horoizontal track Consistency check.
            if (abs(dldm).lt.1.e-7)then
 c 					!Only report it if its sizable.
               write(coutstring,1000)dl,dm,dn,dldm
-1000  format(' ***PROPAGATE--Consistency failure-dl,dm,dn,dldm:',4e14.7)
+1000  format(' ***PROPAGATE--Consistency check-dl,dm,dn,dldm:',4e14.7)
 	call kscharstring2cout(trim(coutstring)//char(0))
            endif
            dm=dm-sign(1.e-6,dm)	!Reduce by 1.e-6
@@ -3476,7 +3478,7 @@ c Consistency check!!! Horizontal tracks.
 	      do while (dlsdms.le.0.0)
 		 write(coutstring,1301)segment%dlend,segment%dmend,dlsdms,
      1   	      icheck+1
- 1301     format(' ***SEGMENT_OUT--Consistency failure. dlend,dmend,
+ 1301     format(' ***SEGMENT_OUT--Consistency check. dlend,dmend,
      1    dlsdms:',3e20.12,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
 	         segment%dmend=segment%dmend-sign(1.e-6,segment%dmend)
@@ -3498,7 +3500,7 @@ c Consistency check for d*start!!!
 	      do while (dlsdms.le.0.0)
 		 write(coutstring,1300)segment%dlstart,segment%dmstart,
      1   	      dlsdms,icheck
-1300  format(' ***SEGMENT_OUT--Consistency failure. dlstart,dmstart,
+1300  format(' ***SEGMENT_OUT--Consistency check. dlstart,dmstart,
      1   	      dlsdms:',3e14.7,' attempt #',i3)
 	call kscharstring2cout(trim(coutstring)//char(0))
 		 segment%dlstart=segment%dlstart-sign(1.e-6,segment%dlstart)
