@@ -462,8 +462,8 @@ void KSMountDirection::loadDirectionArrays(int fIthPhi, double fSTheta,
   pfConvert->DlDmDnToXY(fDirV[0],fDirV[1],fDirV[2],fAzMount, fElevMount,
 			fXProj, fYProj);
   
-  std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
-  	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
+  //std::cout<<fIthPhi<<" "<<pfDlm[fIthPhi]<<" "<<pfDmm[fIthPhi]<<" "
+  //	   <<pfDnm[fIthPhi]<<" "<<fXProj<<" "<<fYProj<<std::endl;
   //Enddebug
 
   return;

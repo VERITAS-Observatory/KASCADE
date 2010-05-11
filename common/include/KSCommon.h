@@ -40,10 +40,10 @@ const double gElectronicNoiseSigmaPe[2]  = {         .28,         0.0};
 const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 
 //pre OCT 2009
-//const int    gFADCNumSamples[2]          = {          24,          10};
+const int    gFADCNumSamples[2]          = {          24,          10};
 
 //Oct 2009:
-const int    gFADCNumSamples[2]          = {          20,          10};
+//const int    gFADCNumSamples[2]          = {          20,          10};
 
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
@@ -75,12 +75,15 @@ const double gPSTPulseWidthNS[2]         = {        10.0,        10.0};
 //Strobe delay after mult trigger in PST to latch pattern address
 const double gPSTStrobeDelayNS           = 6.0;
 
-                                     //Whipple ECL Pulses to PST's from CFD's 
-                                     // measured by GHS in 09/01
-const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};
-//const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
-
+// ***********************************************************************
+//Whipple ECL Pulses to PST's from CFD's measured by GHS in 09/01
+//VERITAS Single Pe measured by Nepomuk Otte, Pat Moriarty, Mary Kertzman
+// April 2010
+// ***********************************************************************
+//const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};
 //const double gSinglePeFallTimeNS[2]      = {         6.0,         8.5};
+
+const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
 const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
 
 //const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
