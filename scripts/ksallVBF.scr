@@ -11,16 +11,20 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-KascadeEnable=enable
-LightEnable=enable
-PeSortMergeEnable=enable
-TriggerEnable=enable
-#AomegaEnable=enable                   #These next 2 operate on te files only
-#ArrayTriggerEnable=enable
+#KascadeEnable=enable
+#LightEnable=enable
+#PeSortMergeEnable=enable
+#TriggerEnable=enable
+AomegaEnable=enable                   #These next 2 operate on te files only
+ArrayTriggerEnable=enable
 
+#Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
+                                   #Else we get original T1 postion (near T4)
 RemoveSingleVBF=enable
 CleanupEnable=enable
 DebugPrintEnable=enable
+
+
 
 echo "**********************************************************************"
 echo "**********************************************************************"
@@ -356,13 +360,19 @@ while test $i -le $4
 	  rm $tefile
       fi
 
- 
-      MountDirectionsOption='-SaveMountDirectionsToFile=ON' 
-#For all subsequent passes but differeent configs reuse telescope directions
-      if test $j -gt "0"
+      ######################################################################## 
+      if test $dlast -gt 1
       then
-         MountDirectionsOption='-LoadMountDirectionsFromFile=ON'
+        MountDirectionsOption='-SaveMountDirectionsToFile=ON' 
+
+#For all subsequent passes but differeent configs reuse telescope directions
+        if test $j -gt "0"
+        then
+           MountDirectionsOption='-LoadMountDirectionsFromFile=ON'
+        fi
       fi
+      ########################################################################
+
       if [ -n "$DebugPrintEnable" ]; then
         echo MountDirectionsOption: $MountDirectionsOption
         echo MountDirectionsFileName: $MDirFile
@@ -480,11 +490,14 @@ while test $i -le $4
 #########################################################################
 #This is where we can specify an external mount position file
 #########################################################################
-#      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BasecampConfigurationList '  
-#      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BasecampAConfigurationList '  
-      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BaseCampFall2009ConfigurationList'  
+if [ -z "$Fall09ArrayPositions" ]; then
+      ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BasecampConfigurationList '  
+else
+       ArrayPositionsOptions='-TelescopeArrayPositions='$KASCADEBASE'/inputs/BaseCampFall2009ConfigurationList'  
+fi
 ##########################################################################
   
+    echo ArrayPositionsOptions: $ArrayPositionsOptions
     $src/ksArrayTrigger -config=$ksArrayTriggerConfig \
                -RandomSeedFileName=ksArrayTrigger.ran $ArrayPositionsOptions \
                $MultOption $ShowerNameOptions $VBFFileMult

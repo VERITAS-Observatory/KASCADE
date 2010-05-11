@@ -1,34 +1,34 @@
-#$1 20Deg350
-#$2 A
-#$3 B
-#$4 C
-#$5 D
+#$1 Proton src dir: /project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas/protons/V330/VP20_180Deg
+#$2 He4 src dir:/project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas/he4/V330/VHe4_20_180Deg 
+#$3 A
+#$4 B
+#$5 C
+#$6 D
 
 if test -z $1
 then
-  echo Usage: ./CRTeMakeLinks.scr  20Deg400 A B C D
+  echo Usage: ./CRTeMakeLinks.scr  /project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas//protons/V330/VP20_180Deg /project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas/he4/V330/VHe4_20_180Deg  A B C D
   exit
 fi
 
-PSrcDir=VP$1
-HSrcDir=VHe4_$1
+PSrcDir=$1
+HSrcDir=$2
 
-CRNEW1=$2
-CRNEW2=$3
-CRNEW3=$4
-CRNEW4=$5
+CRNEW1=$3
+CRNEW2=$4
+CRNEW3=$5
+CRNEW4=$6
 
 #Protons
 cd ./protons
-ls './'$PSrcDir | grep 'te.d'   > List
+ls $PSrcDir | grep 'te.d'   > List
 
-SourceDir=$PWD'/'$PSrcDir
 {
 while read File
 do
   Fend=${File##*'.d'}
   FStart=${File%%'.d'*}
-  FileSrc=$SourceDir'/'$File
+  FileSrc=$PSrcDir'/'$File
 
   if test -n $CRNEW1
   then
@@ -57,15 +57,14 @@ cd ..
 
 #Helium
 cd ./he4
-ls './'$HSrcDir | grep 'te.d'   > List
+ls $HSrcDir | grep 'te.d'   > List
 
-SourceDir=$PWD'/'$HSrcDir
 {
 while read File
 do
   Fend=${File##*'.d'}
   FStart=${File%%'.d'*}
-  FileSrc=$SourceDir'/'$File
+  FileSrc=$HSrcDir'/'$File
 
   if test -n $CRNEW1
   then

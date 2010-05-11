@@ -44,6 +44,16 @@ NODE03=node03
 NODE04=node04
 NODE05=node05
 
+PDSF1=pdsf1
+PDSF2=pdsf2
+PDSF3=pdsf3
+PDSF4=pdsf4
+PDSF5=pdsf5
+
+if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+    dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
+    dstDir=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
+fi
 
 if [ $host = $AMDAHL ] ; then
     dataDirBase=/project/veritas/sembrosk/simulations
@@ -71,6 +81,10 @@ if [ $host = $PULSAR ] ||  [ $host = $NODE00 ]  ||  [ $host = $NODE01 ] ||  [ $h
     dstDir=/usr/local/data/sembrosk/simulations
 fi
 
+
+
+
+
 if [ ${Spec:0:1} = "V" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
 	dstDir=$dstDir'/veritas'
@@ -80,6 +94,8 @@ if [ ${Spec:0:1} = "W" ] ; then
 	dataDirBase=$dataDirBase'/whipple'
 	dstDir=$dstDir'/whipple'
 fi
+
+echo dataDirBase: $dataDirBase
 
 cd $dataDirBase
 
@@ -164,7 +180,7 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 #                             -EnableDebugPrint \
 #This is normal version 
      $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
-                           -MinimumWeightFraction=.05 \
+                           -MinimumWeightFraction=.0 \
 	                   -RunNumber=$2 \
                       	   -OutputVBFFileName=$dstDir/$Spec$ArConfig.vbf \
 			   $DirIndexOption \

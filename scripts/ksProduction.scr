@@ -34,10 +34,10 @@ function Protons()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 #10%
-          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -102,14 +102,18 @@ function Protons()
 
 #PDSF
    if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-	    let iEntry=1
-#	    let iEntry=15
+            #**********************************************************************
+            #Submit in reverse order so the longest start first.
+            #**********************************************************************
+	    let iEntryStart=1
 	    let iEntryEnd=42
-            while test $iEntry -le $iEntryEnd
+	    let j=$iEntryEnd
+            while test $j -ge $iEntryStart
             do	
-	       BuildAndSubmitPDSFJobs $iEntry 
-	       iEntry=$((iEntry+1))		
-            done
+	       BuildAndSubmitPDSFJobArray $j 
+#	       BuildAndSubmitPDSFJobs $j 
+	       j=$((j-1))		
+	    done
     fi
 }
 #**********************************************************************
@@ -129,10 +133,11 @@ function Helium4()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+
 
 #10%
-         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
+#         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -196,17 +201,20 @@ function Helium4()
 
 #PDSF
    if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-	    let iEntry=6
-#	    let iEntry=15
+            #**********************************************************************
+            #Submit in reverse order so the longest start first.
+            #**********************************************************************
+	    let iEntryStart=6
 	    let iEntryEnd=42
-            while test $iEntry -le $iEntryEnd
+	    let j=$iEntryEnd
+            while test $j -ge $iEntryStart
             do	
-	       BuildAndSubmitPDSFJobs $iEntry 
-	       iEntry=$((iEntry+1))		
+	       BuildAndSubmitPDSFJobArray $j
+#	       BuildAndSubmitPDSFJobs $j
+	       j=$((j-1))		
             done
     fi
 }
-
 #**********************************************************************
 
 function Gammas()
@@ -329,15 +337,21 @@ function Gammas()
 
 #PDSF
    if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-	    let iEntry=1
+            #**********************************************************************
+            #Submit in reverse order so the longest start first.
+            #**********************************************************************
+	    let iEntryStart=1
 	    let iEntryEnd=44
-            while test $iEntry -le $iEntryEnd
+	    let i=$iEntryEnd
+            while test $i -ge $iEntryStart
             do	
-	       BuildAndSubmitPDSFJobs $iEntry 
-	       iEntry=$((iEntry+1))		
+	       BuildAndSubmitPDSFJobArray $i 
+#	       BuildAndSubmitPDSFJobs $i 
+	       i=$((i-1))		
             done
     fi
 }
+#********************************************************************************
 
 
 function BuildAndSubmitPDSFJobs
@@ -364,9 +378,37 @@ function BuildAndSubmitPDSFJobs
       echo ">>"$lcl"/ksProduction_"${energy[$1]}"d"$i"_"$pr".log" >>$sgeFile
 
       chmod 700 $sgeFile
-      qsub -jsv /usr/common/nsg/sge/util/jsv.pm -l 64bit=1 -P astrogfs -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
+      qsub -jsv /usr/common/nsg/sge/util/jsv.pm -P astrogfs -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
       i=$((i+1))			#do next shower
  done
+}
+
+function BuildAndSubmitPDSFJobArray
+#**********************************************************************
+# Cause PDSF cluster jobs to be submitted using Job arrays.
+# Since we have lots and lots of nodes 1 job per shower
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ let i=$showerStart
+      
+ echo Entry:  $pr ${enableGEN[$1]} ${energy[$1]} ${start[$1]} ${end[$1]}
+
+ sgeFile=$lcl'/K'${energy[$1]}$parspec.pbs
+ echo "#"!/bin/bash                                                 >$sgeFile
+ echo let i=\$SGE_TASK_ID                                           >>$sgeFile
+ echo cd $lcl                                                       >>$sgeFile
+ echo LOGFILE=$lcl"/ksProduction_"${energy[$1]}d\$i\'$parspec.log\'   >>$sgeFile
+ echo echo LOGFILE: \$LOGFILE                                        >>$sgeFile
+ echo $ksScript ${energy[$1]} $parspec  \$i \\                      >>$sgeFile
+ echo \$i $datadir $workingDir                \\                    >>$sgeFile
+ echo '>'\$LOGFILE                                                   >>$sgeFile
+
+ chmod 700 $sgeFile
+ qsub -t $showerStart':'$showerEnd  -jsv /usr/common/nsg/sge/util/jsv.pm  -P astrogfs -V -e k${energy[$1]}.err -o k${energy[$1]}.log $sgeFile 
 }
 
 
@@ -574,7 +616,7 @@ if [ $host = $AMDAHL ] ; then
 fi
 
 if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-    dataDirBase=/project/projectdirs/astrogfs/veritas_tools/glenn/simulations
+    dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
     workingDir=$lcl
 fi
 
