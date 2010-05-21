@@ -105,8 +105,12 @@ function Protons()
             #**********************************************************************
             #Submit in reverse order so the longest start first.
             #**********************************************************************
+
 	    let iEntryStart=1
-	    let iEntryEnd=42
+	    let iEntryEnd=42	
+#	    let iEntryEnd=36          #10% end
+
+
 	    let j=$iEntryEnd
             while test $j -ge $iEntryStart
             do	
@@ -206,6 +210,8 @@ function Helium4()
             #**********************************************************************
 	    let iEntryStart=6
 	    let iEntryEnd=42
+#	    let iEntryEnd=36             #10%end
+
 	    let j=$iEntryEnd
             while test $j -ge $iEntryStart
             do	
@@ -341,13 +347,13 @@ function Gammas()
             #Submit in reverse order so the longest start first.
             #**********************************************************************
 	    let iEntryStart=1
-	    let iEntryEnd=44
-	    let i=$iEntryEnd
-            while test $i -ge $iEntryStart
+	    let iEntryEnd=23    #~1TeV
+#	    let iEntryEnd=44
+	    let j=$iEntryEnd
+            while test $j -ge $iEntryStart
             do	
-	       BuildAndSubmitPDSFJobArray $i 
-#	       BuildAndSubmitPDSFJobs $i 
-	       i=$((i-1))		
+	       BuildAndSubmitPDSFJobArray $j
+	       j=$((j-1))		
             done
     fi
 }
@@ -378,7 +384,8 @@ function BuildAndSubmitPDSFJobs
       echo ">>"$lcl"/ksProduction_"${energy[$1]}"d"$i"_"$pr".log" >>$sgeFile
 
       chmod 700 $sgeFile
-      qsub -jsv /usr/common/nsg/sge/util/jsv.pm -P astrogfs -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
+#      qsub -jsv /usr/common/nsg/sge/util/jsv.pm -P astrogfs -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
+      qsub  -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
       i=$((i+1))			#do next shower
  done
 }
@@ -408,7 +415,8 @@ function BuildAndSubmitPDSFJobArray
  echo '>'\$LOGFILE                                                   >>$sgeFile
 
  chmod 700 $sgeFile
- qsub -t $showerStart':'$showerEnd  -jsv /usr/common/nsg/sge/util/jsv.pm  -P astrogfs -V -e k${energy[$1]}.err -o k${energy[$1]}.log $sgeFile 
+# qsub -t $showerStart':'$showerEnd  -jsv /usr/common/nsg/sge/util/jsv.pm  -P astrogfs -V -e k${energy[$1]}.err -o k${energy[$1]}.log $sgeFile 
+ qsub -t $showerStart':'$showerEnd  -V -e k${energy[$1]}.err -o k${energy[$1]}.log $sgeFile 
 }
 
 

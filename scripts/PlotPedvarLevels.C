@@ -27,12 +27,12 @@ void PlotPedvarLevels(std::string fListFileName,int numSamples=7)
 	VARootIO io(inputFileName.c_str(), true);
  	io.loadTheRootFile();
         VAQStatsData *q = io.loadTheQStatsData();
-        //std::cout<<inputFileName<<": "
-	//std::cout<<q->getCameraAverageTraceVarTimeIndpt(0, numSamples)<<" "
-	//	 <<q->getCameraAverageTraceVarTimeIndpt(1, numSamples)<<" "
-	//	 <<q->getCameraAverageTraceVarTimeIndpt(2, numSamples)<<" "
-	//	 <<q->getCameraAverageTraceVarTimeIndpt(3, numSamples)<<" "
-        //        <<endl;
+        std::cout<<inputFileName<<": ";
+	std::cout<<q->getCameraAverageTraceVarTimeIndpt(0, numSamples)<<" "
+		 <<q->getCameraAverageTraceVarTimeIndpt(1, numSamples)<<" "
+		 <<q->getCameraAverageTraceVarTimeIndpt(2, numSamples)<<" "
+		 <<q->getCameraAverageTraceVarTimeIndpt(3, numSamples)<<" "
+                 <<endl;
 	Double_t pedvarT1=q->getCameraAverageTraceVarTimeIndpt(0, numSamples);
 	Double_t pedvarT2=q->getCameraAverageTraceVarTimeIndpt(1, numSamples);
 	Double_t pedvarT3=q->getCameraAverageTraceVarTimeIndpt(2, numSamples);
