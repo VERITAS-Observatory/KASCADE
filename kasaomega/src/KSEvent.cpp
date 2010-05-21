@@ -317,6 +317,20 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 	    }
 	  //std::cout<<chan<<" "<<nightSkyRate<<std::endl;
 
+	  // **************************************************************
+	  // If requested to use relative gains, adjust the CFD thresholds.
+	  // This should help in modeling the rise rate of the Max3 curve.
+	  // This assumes that the gain differences between pixel is due to
+	  // HV settings
+	  // **************************************************************
+	  if(pfCamera->fPixel.at(chan).fPedVarRel>0 && 
+	                                      pfDataIn->fUseRelativeGains)
+	    {
+	      pfCamera->fPixel.at(chan).fThreshold=
+		                    pfCamera->fPixel.at(chan).fThreshold/gain;
+	    }
+	  // **************************************************************
+
 	  bool fPixelSuppressed=false;
 	  bool fChannelIsPMT=true;
 	  if(pfDataIn->fUseBadPixelSupression)
