@@ -188,12 +188,18 @@ function Helium4()
     if [ $host = $PULSAR ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
-	BuildPulsarScriptList 1 6  20
-	BuildPulsarScriptList 2 21 30
-	BuildPulsarScriptList 3 31 36
-	BuildPulsarScriptList 4 37 39
-	BuildPulsarScriptList 5 40 41
-	BuildPulsarScriptList 6 42 42
+#	BuildPulsarScriptList 1  6  20
+	BuildPulsarScriptList 1  11  20
+#	BuildPulsarScriptList 2  21 30
+	BuildPulsarScriptList 2  23 30
+#	BuildPulsarScriptList 3  31 33
+#	BuildPulsarScriptList 4  34 36
+#	BuildPulsarScriptList 5  37 37
+#	BuildPulsarScriptList 6  38 38
+#	BuildPulsarScriptList 7  39 39
+	BuildPulsarScriptList 8  40 40
+	BuildPulsarScriptList 9  41 41
+	BuildPulsarScriptList 10 42 42
       else
 	BuildPulsarScriptList 1 1  $processEnd
       fi
@@ -489,7 +495,7 @@ function BuildPulsarScriptList()
 #**********************************************************************
 {
  pr=$parspec
- jobScript=$lcl'/js'$1'_'$jobSpec'.scr'
+ jobScript=$lcl'/gs'$1'_'$jobSpec'.scr'
  let processStart=$2
  let processEnd=$3
  let i=$processStart
@@ -554,7 +560,7 @@ fi
 
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
-PULSAR=analysis
+PULSAR=analysis.cluster
 PDSF1=pdsf1
 PDSF2=pdsf2
 PDSF3=pdsf3
@@ -584,40 +590,34 @@ fi
 
 if [ $host = $PULSAR ] ; then
     lastJob=44
-    dataDirBase=/usr/local/data/sembrosk/simulations
+    dataDirBase=/usr/local/data0/sembrosk/simulations
     workingDir=/tmp/sembrosk/
-    nID=([1]=5 4 3 0 0 1 1)
+
     #Initialze all the possible script files
     let jobNum=0
-    let length=7
     while test $jobNum -lt $lastJob
     do
       jobNum=$((jobNum+1))
-      let j=jobNum
-      while test $j -gt $length
-      do
-         j=$((j-$length))
-      done
     #define job script name
-	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
-        echo "#"!/bin/bash                                  >$JobScript
-        echo "#$" '-S /bin/bash'                           >>$JobScript
-        echo "#$" '-N KSim'$jobNum'_'$1                    >>$JobScript
-        echo "#$" '-l '\"'arch=lx24-amd64'\"               >>$JobScript
-        echo "#$" '-l '\"'hostname=node0'${nID[$j]}\"      >>$JobScript
-        echo "#$" '-wd /usr/local/data/sembrosk/veritas'   >>$JobScript
-	echo source /etc/bashrc                            >>$JobScript
-        echo source /etc/profile                           >>$JobScript
-        echo ROOTSYS=/usr/local/root_5.24.00               >>$JobScript
-        echo PATH=$ROOTSYS/bin:$PATH                       >>$JobScript
-        echo LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH >>$JobScript
-        echo echo                                          >>$JobScript
-        echo source /home/sembrosk/.bashrc                 >>$JobScript
-	echo echo Starting $JobScript                      >>$JobScript
+	JobScript=$lcl'/gs'$jobNum'_'$1'.scr'
+        echo echo host: '$(hostname)'                         >$JobScript
+        echo . /home/sembrosk/.bashrc                        >>$JobScript
+        echo ROOTSYS=/usr/local/root_5.24.00                 >>$JobScript
+        echo PATH='$ROOTSYS/bin:$PATH'                       >>$JobScript
+        echo LD_LIBRARY_PATH='$ROOTSYS/lib:$LD_LIBRARY_PATH' >>$JobScript
+	echo echo path: '$PATH'                              >>$JobScript
+        echo echo LD_LIBRARY_PATH: '$LD_LIBRARY_PATH'        >>$JobScript
+	echo echo ROOTSYS: '$ROOTSYS'                        >>$JobScript
+ 	echo echo Starting $JobScript                        >>$JobScript
 	jobsUsed[$jobNum]=NO
 
     done
 fi
+#	echo source /etc/bashrc                            >>$JobScript
+#        echo source /etc/profile                          >>$JobScript
+#	echo which rootversion                             >>$JobScript
+#        echo /home/sembrosk/.bashrc                        >>$JobScript
+
 if [ $host = $AMDAHL ] ; then
     dataDirBase=/project/veritas/sembrosk/simulations
     workingDir=$lcl
@@ -735,17 +735,37 @@ fi
 if [ $host = $PULSAR ]; then
 
     let jobNum=1
+    nID=([1]=5 4 3 1 1)
+    let length=5
     while test $jobNum -le $lastJob
     do
 	if [ "${jobUsed[$jobNum]}" == "YES" ]; then
                 #define job script name
-	  JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
+	  JobScript=$lcl'/gs'$jobNum'_'$jobSpec'.scr'
 	  if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
+	    JobScriptLog=$lcl'/gs'$jobNum'_'$jobSpec'.log'
+            let j=jobNum
+            while test $j -gt $length
+            do
+              j=$((j-$length))
+            done
 	    #Initialze the script files
 	    chmod 777 $JobScript
-	
-	    qsub $JobScript  >$JobScriptLog &
+############################################################################
+# Now build submission script
+############################################################################
+	   SubScript=$lcl'/ts'$jobNum'_'$jobSpec'.scr'	
+	   echo "#"!/bin/bash                                  >$SubScript
+           echo "#$" '-S /bin/bash'                           >>$SubScript
+           echo "#$" '-N KSim'$jobNum'_'$1                    >>$SubScript
+           echo "#$" '-l '\"'arch=lx24-amd64'\"               >>$SubScript
+           echo "#$" '-l '\"'hostname=node0'${nID[$j]}\"      >>$SubScript
+           echo "#$" '-wd /usr/local/data0/sembrosk/veritas'  >>$SubScript
+           echo  $JobScript                                   >>$SubScript
+
+
+	    chmod 777 $SubScript
+	    qsub $SubScript  >$JobScriptLog &
 	  else
 	    #Run the script files
 	    chmod 777 $JobScript
