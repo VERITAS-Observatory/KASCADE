@@ -49,6 +49,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	  pfTelsWithData.push_back(pfT1);
 	  fConfigMask="0,";
 	}
+      std::cout<<"T1 Single Tel File: "<<pfDataIn->fFileName[pfT1->fTelID]
+	       <<" Exists"<<std::endl;
     }
 
   KSTelescope* pfT2 = new KSTelescope(E_T2,pfDataIn);
@@ -60,6 +62,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	  pfTelsWithData.push_back(pfT2);
 	  fConfigMask+="1,";
 	}
+      std::cout<<"T2 Single Tel File: "<<pfDataIn->fFileName[pfT2->fTelID]
+	       <<" Exists"<<std::endl;
     }
 
   KSTelescope* pfT3 = new KSTelescope(E_T3,pfDataIn);
@@ -71,6 +75,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	  pfTelsWithData.push_back(pfT3);
 	  fConfigMask+="2,";
 	}
+      std::cout<<"T3 Single Tel File: "<<pfDataIn->fFileName[pfT3->fTelID]
+	       <<" Exists"<<std::endl;
     }
 
   KSTelescope* pfT4 = new KSTelescope(E_T4,pfDataIn);
@@ -82,6 +88,8 @@ KSArrayEvent::KSArrayEvent(std::string fOutputFileName,
 	  pfTelsWithData.push_back(pfT4);
 	  fConfigMask+="3,";
 	}
+      std::cout<<"T4 Single Tel File: "<<pfDataIn->fFileName[pfT4->fTelID]
+	       <<" Exists"<<std::endl;
     }
 
   fNumTelsWithData=pfTelsWithData.size();
