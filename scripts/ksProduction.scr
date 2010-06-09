@@ -56,23 +56,25 @@ function Protons()
 #	BuildIsisScriptList 5 32 33
 #	BuildIsisScriptList 6 34 36
 
-	BuildIsisScriptList 1 1 10
-	BuildIsisScriptList 2 11 20
-	BuildIsisScriptList 3 21 25
-	BuildIsisScriptList 4 26 32
-	BuildIsisScriptList 5 33 37
-	BuildIsisScriptList 6 38 41
-	BuildIsisScriptList 1 42 42	        #For balance
+
+
+#	BuildIsisScriptList 1 1  10
+#	BuildIsisScriptList 2 11 20
+#	BuildIsisScriptList 3 21 25
+#	BuildIsisScriptList 4 26 32
+#	BuildIsisScriptList 5 33 37
+#	BuildIsisScriptList 6 38 41
+#	BuildIsisScriptList 1 42 42	        #For balance
 
 #For High ksall ~ 5hrs
-#           BuildIsisScriptList 1 35 35
-#	    BuildIsisScriptList 2 36 36
-#	    BuildIsisScriptList 3 37 37
-#	    BuildIsisScriptList 4 38 38
-#	    BuildIsisScriptList 5 39 39
-#	    BuildIsisScriptList 6 40 40
-#	    BuildIsisScriptList 7 41 41
-#	    BuildIsisScriptList 8 42 42
+           BuildIsisScriptList 1 35 35
+	    BuildIsisScriptList 2 36 36
+	    BuildIsisScriptList 3 37 37
+	    BuildIsisScriptList 4 38 38
+	    BuildIsisScriptList 5 39 39
+	    BuildIsisScriptList 6 40 40
+	    BuildIsisScriptList 7 41 41
+	    BuildIsisScriptList 8 42 42
  
       else
 	BuildIsisScriptList 1  1  $processEnd
@@ -82,12 +84,32 @@ function Protons()
 #Pulsar
     if [ $host = $PULSAR ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	BuildPulsarScriptList 1 1 10
-	BuildPulsarScriptList 2 11 20
-	BuildPulsarScriptList 3 21 25
-	BuildPulsarScriptList 4 26 32
-	BuildPulsarScriptList 5 33 37
-	BuildPulsarScriptList 6 38 42
+#ALL
+#	BuildPulsarScriptList 1 1 10
+#	BuildPulsarScriptList 2 11 20
+#	BuildPulsarScriptList 3 21 25
+#	BuildPulsarScriptList 4 26 32
+#	BuildPulsarScriptList 5 33 37
+#	BuildPulsarScriptList 6 38 39
+#	BuildPulsarScriptList 7 40 40
+#	BuildPulsarScriptList 8 41 41
+#	BuildPulsarScriptList 9 42 42
+
+	BuildPulsarScriptList 1 3 3
+	BuildPulsarScriptList 2 4 4
+	BuildPulsarScriptList 3 6 6
+	BuildPulsarScriptList 4 7 7
+	BuildPulsarScriptList 5 8 8
+	BuildPulsarScriptList 6 9 9
+	BuildPulsarScriptList 7 10 10
+
+#10%
+#	BuildPulsarScriptList 1 1 10
+#	BuildPulsarScriptList 2 11 20
+#	BuildPulsarScriptList 3 21 26
+#	BuildPulsarScriptList 4 27 31
+#	BuildPulsarScriptList 5 32 34
+#	BuildPulsarScriptList 6 35 36
 
       else
 	BuildVeritasScriptList 1  1  $processEnd
@@ -188,18 +210,45 @@ function Helium4()
     if [ $host = $PULSAR ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
-#	BuildPulsarScriptList 1  6  20
-	BuildPulsarScriptList 1  11  20
-#	BuildPulsarScriptList 2  21 30
-	BuildPulsarScriptList 2  23 30
-#	BuildPulsarScriptList 3  31 33
-#	BuildPulsarScriptList 4  34 36
-#	BuildPulsarScriptList 5  37 37
-#	BuildPulsarScriptList 6  38 38
-#	BuildPulsarScriptList 7  39 39
-	BuildPulsarScriptList 8  40 40
-	BuildPulsarScriptList 9  41 41
-	BuildPulsarScriptList 10 42 42
+#All
+#	BuildPulsarScriptList 1  6  25
+#	BuildPulsarScriptList 2  26 33
+#	BuildPulsarScriptList 3  34 36
+#	BuildPulsarScriptList 4  37 37
+#	BuildPulsarScriptList 5  38 38
+#	BuildPulsarScriptList 6  39 39
+#	BuildPulsarScriptList 7  40 40
+#	BuildPulsarScriptList 8  41 41
+#	BuildPulsarScriptList 9  42 42
+
+	BuildPulsarScriptList 1  25 25
+	BuildPulsarScriptList 2  24 24
+	BuildPulsarScriptList 3  22 22
+	BuildPulsarScriptList 4  21 21
+	BuildPulsarScriptList 5  19 19
+	BuildPulsarScriptList 6  17 17
+	BuildPulsarScriptList 9  10 13
+	BuildPulsarScriptList 8  8  8
+	BuildPulsarScriptList 7  6  6
+
+
+
+
+#10%
+#	BuildPulsarScriptList 1  6  19
+#	BuildPulsarScriptList 2  20 24
+#	BuildPulsarScriptList 3  25 29
+#	BuildPulsarScriptList 4  30 31
+
+#	BuildPulsarScriptList 1  32  32 #Balance
+#	BuildPulsarScriptList 2  33  33
+#	BuildPulsarScriptList 3  34  34
+#	BuildPulsarScriptList 2  35  35
+#	BuildPulsarScriptList 1  36  36
+
+
+
+
       else
 	BuildPulsarScriptList 1 1  $processEnd
       fi
@@ -495,7 +544,7 @@ function BuildPulsarScriptList()
 #**********************************************************************
 {
  pr=$parspec
- jobScript=$lcl'/gs'$1'_'$jobSpec'.scr'
+ jobScript=$lcl'/js'$1'_'$jobSpec'.scr'
  let processStart=$2
  let processEnd=$3
  let i=$processStart
@@ -599,7 +648,7 @@ if [ $host = $PULSAR ] ; then
     do
       jobNum=$((jobNum+1))
     #define job script name
-	JobScript=$lcl'/gs'$jobNum'_'$1'.scr'
+	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
         echo echo host: '$(hostname)'                         >$JobScript
         echo . /home/sembrosk/.bashrc                        >>$JobScript
         echo ROOTSYS=/usr/local/root_5.24.00                 >>$JobScript
@@ -735,15 +784,16 @@ fi
 if [ $host = $PULSAR ]; then
 
     let jobNum=1
-    nID=([1]=5 4 3 1 1)
-    let length=5
+    nID=([1]=1 2 3 4 5 1 2 1 2 1 2)
+    let length=11
     while test $jobNum -le $lastJob
     do
 	if [ "${jobUsed[$jobNum]}" == "YES" ]; then
                 #define job script name
-	  JobScript=$lcl'/gs'$jobNum'_'$jobSpec'.scr'
+	  JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
 	  if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    JobScriptLog=$lcl'/gs'$jobNum'_'$jobSpec'.log'
+	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
+	    JobErrorLog=$lcl'/js'$jobNum'_'$jobSpec'.err'
             let j=jobNum
             while test $j -gt $length
             do
@@ -754,7 +804,7 @@ if [ $host = $PULSAR ]; then
 ############################################################################
 # Now build submission script
 ############################################################################
-	   SubScript=$lcl'/ts'$jobNum'_'$jobSpec'.scr'	
+	   SubScript=$lcl'/ss'$jobNum'_'$jobSpec'.scr'	
 	   echo "#"!/bin/bash                                  >$SubScript
            echo "#$" '-S /bin/bash'                           >>$SubScript
            echo "#$" '-N KSim'$jobNum'_'$1                    >>$SubScript
@@ -765,7 +815,7 @@ if [ $host = $PULSAR ]; then
 
 
 	    chmod 777 $SubScript
-	    qsub $SubScript  >$JobScriptLog &
+	    qsub $SubScript  -e $JobErrorLog >$JobScriptLog &
 	  else
 	    #Run the script files
 	    chmod 777 $JobScript
