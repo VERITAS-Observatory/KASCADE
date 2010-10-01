@@ -1,5 +1,4 @@
 
-
 #This is a short utility script to create a combined summary vbf file from 
 #many individual shower vbf files. 
 
@@ -36,13 +35,13 @@ echo hostname: $host
 AMDAHL=amdahl.physics.purdue.edu
 ISIS=isis.depauw.edu
 IO=io.physics.purdue.edu
-PULSAR=analysis.cluster
-NODE00=node00.cluster
-NODE01=node01.cluster
-NODE02=node02.cluster
-NODE03=node03.cluster
-NODE04=node04.cluster
-NODE05=node05.cluster
+PULSAR=analysis
+NODE00=node00
+NODE01=node01
+NODE02=node02
+NODE03=node03
+NODE04=node04
+NODE05=node05
 
 PDSF1=pdsf1
 PDSF2=pdsf2
@@ -77,12 +76,14 @@ if [ $host = $IO ] ; then
 fi
 
 if [ $host = $PULSAR ] ||  [ $host = $NODE00 ]  ||  [ $host = $NODE01 ] ||  [ $host = $NODE02 ] ||  [ $host = $NODE03 ] ||  [ $host = $NODE04 ] ||  [ $host = $NODE05 ]; then
-    dataDirBase=/usr/local/data0/sembrosk/simulations  
-    dstDir=/usr/local/data0/sembrosk/simulations
+    dataDirBase=/usr/local/data/sembrosk/simulations  
+    dstDir=/usr/local/data/sembrosk/simulations
 fi
 
-
-
+if [ -z $dstDir ] ; then      #Default is pdsf
+    dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
+    dstDir=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
+fi
 
 
 if [ ${Spec:0:1} = "V" ] ; then
@@ -123,13 +124,17 @@ fi
 AC=$3                      #Check to see if $3 is an array configuration
 
 if [ ${AC:4:1} != "M" ]; then
-    if [ -n '$3' ]; then
+    if [ -n "$3" ]; then
 	DirIndexOption='-DirectionIndex='$3
+        direction=$3
+	echo direction from 3
     fi
 else
     ArConfig=$3
-    if [ -n '$4' ]; then
+    if [ -n "$4" ]; then
 	DirIndexOption='-DirectionIndex='$4
+        direction=$4
+        echo 'direction from 4:'$direction':'
     fi
 fi	
 
@@ -162,6 +167,9 @@ if [ ${Spec:1:2} = "CR" ] ; then
    He4spec=$TelSpec'He4_'${Spec#*CR$TypeSpc} #Replace CR with He4_
    He4DirSpec=$TelSpec'He4_'${Spec#*CR}
 
+   echo find argument1: $dataDirBase/protons/$PDirSpec$ArConfig/
+   echo find argument1: $Pspec$ArConfig'GeV*.vbf'
+
    find $dataDirBase/protons/$PDirSpec$ArConfig/ -name $Pspec$ArConfig'GeV*.vbf'  >CRList
 
    find $dataDirBase/he4/$He4DirSpec$ArConfig/ -name $He4spec$ArConfig'GeV*.vbf'    >>CRList
@@ -177,19 +185,28 @@ $KASCADEBASE/bin/randomCreateRanluxSeed -s $seedK -o ksSumFiles.ran
 	                    #date +%N  +$$ gives Number of nanoseconds from 
 			    #last second  + process id.
 
+if [ -n  "$direction" ] ; then
+     DDir=D$direction
+echo direction defined
+fi
+
+
+
+
 #                             -EnableDebugPrint \
 #This is normal version 
+
      $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
                            -MinimumWeightFraction=.0 \
 	                   -RunNumber=$2 \
-                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig.vbf \
+                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir'.vbf' \
 			   $DirIndexOption \
                            ShowerList 
 
 #This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
 #     $KASCADEBASE/bin/ksSumFiles  \
 #	                   -RunNumber=$2  \
-#                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig.vbf \
+#                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir'.vbf' \
 #			   $DirIndexOption \
 #                           ShowerList 
 

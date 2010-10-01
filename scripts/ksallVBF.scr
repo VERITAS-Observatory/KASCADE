@@ -11,14 +11,14 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-#KascadeEnable=enable
-#LightEnable=enable
-#PeSortMergeEnable=enable
-#TriggerEnable=enable
-AomegaEnable=enable                   #These next 2 operate on te files only
-ArrayTriggerEnable=enable
+KascadeEnable=enable
+LightEnable=enable
+PeSortMergeEnable=enable
+TriggerEnable=enable
+#AomegaEnable=enable                   #These next 2 operate on te files only
+#ArrayTriggerEnable=enable
 
-#Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
+Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
                                    #Else we get original T1 postion (near T4)
 RemoveSingleVBF=enable
 CleanupEnable=enable
