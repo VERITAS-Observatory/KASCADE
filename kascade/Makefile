@@ -18,10 +18,17 @@ include ../Makefile.common
 LIBTARGET = $(LIBDIR)/libkascade.a
 EXETARGET = ksKascade.cpp
 
+EXETESTTARGET   = BendTest.cpp
+LIBTESTTARGET = $(LIBDIR)/libkascadeTest.a
+TESTOBJECTS   = $(TMPDIR)/bend.o
+
 
 F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
 #F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
-CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
+CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)| grep -v $(EXETESTTARGET)))
+
+
+
 
 
 #INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h $(INCDIR)/*.hpp))
@@ -32,7 +39,12 @@ CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)))
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
-all: $(LIBTARGET) $(EXEOBJECT) $(EXE)
+EXETESTOBJECT = $(addprefix $(TMPDIR)/, $(EXETESTTARGET:.cpp=.o)) 
+EXETEST = $(addprefix $(BINDIR)/, $(EXETESTTARGET:.cpp=)) 
+
+all: $(LIBTARGET) $(EXEOBJECT) $(EXE)  
+
+test: $(LIBTESTTARGET)  $(TESTOBJECTS) $(EXETESTOBJECT) $(EXETEST)
 
 F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
 #F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
@@ -43,10 +55,24 @@ $(LIBTARGET): $(F77OBJECTS) $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
+$(LIBTESTTARGET): $(TESTOBJECTS)
+	$(AR) r $@ $^
+	ranlib $@
+
+
+
+
 $(EXE): $(LIBTARGET)
 	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(KASLDFLAGS) $(KASLIBS) $(CLDFLAGS)
 
+$(EXETEST): $(LIBTESTTARGET)
+	$(F90) -o $(EXETEST) $(EXETESTOBJECT) $^ $(KASLDFLAGS) $(CLDFLAGS)
+
+
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
+
+$(addprefix $(TMPDIR)/, $(EXETESTTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
 
 
@@ -72,8 +98,8 @@ clean:
 	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-		$(EXEOBJECT) \
+		$(EXEOBJECT)$(EXETESTOBJECT) \
 		out/.depend \
-		$(EXE)
+		$(EXE) $(EXETEST)
 
 #		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
