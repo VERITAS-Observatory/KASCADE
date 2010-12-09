@@ -69,11 +69,13 @@ c       calculation assures accracy(I hope).
 
 
 c       Now calculate new vector.
-       dlt=dl1*cal + dm1*bz*sal - dn1*by*sal
-       dmt=dn1*bx*sal - dl1*bz*sal + dm1*(1.-bz*bz*ccc) + dn1*by*bz*ccc
-!!!    Here add dn1*bx*sal   
-       dnt=-dm1*bx*sal + dl1*by*sal + dm1*by*bz*ccc + dn1*(1.-by*by*ccc)
-!!!    Here add -dm1*bx*sal
+
+       dlt= dm1*bz*sal - dn1*by*sal + dl1*(1.-(bz*bz+by*by)*ccc) +
+     1        bx*ccc*(dm*by+dn*bz)
+       dmt= dn1*bx*sal - dl1*bz*sal + dm1*(1.-(bx*bx+bz*bz)*ccc) + 
+     1        by*ccc*(dn1*bz+dl*bx)
+       dnt= dl1*by*sal - dm1*bx*sal + dn1*(1.-(bx*bx+by*by)*ccc) + 
+     1        bz*ccc*(dm1*by+ dl*bx)
 
 c       Normalize.
        xmag=sqrt(dlt**2+dmt**2+dnt**2)
@@ -189,9 +191,12 @@ c	And north only!
      1           ' B_FIELD(gauss):',f7.3,' DIP_ANGLE(deg):',f7.3,
      1           ' ANGLE_EAST(deg):', f7.3)
 	        call kscharstring2coutit(trim(coutstring)//char(0))
-                bz = sin(dip_angle*deg2rad)
-                bx = cos(dip_angle*deg2rad)*sin(angle_east*deg2rad)
-                by = -cos(dip_angle*deg2rad)*cos(angle_east*deg2rad)
+                bz = sin(dip_angle/deg2rad)
+                bx = cos(dip_angle/deg2rad)*sin(angle_east/deg2rad)
+                by = -cos(dip_angle/deg2rad)*cos(angle_east/deg2rad)
+		write(coutstring,1002)'B: ',bx,by,bz
+ 1002		format(a,' Bx: ',f7.3,' By: ',f7.3,' Bz: ', f7.3)
+		call kscharstring2coutit(trim(coutstring)//char(0))
                 return
                 
 	else if(index(segment_head%magnet_field,'S').ne.0)then

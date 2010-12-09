@@ -596,7 +596,6 @@ c	      qz        particle charge
 c	      xmass     particle mass (TeV)
 c      output:       dl1 dm1 dn1  new dir cos of trk
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c           This assumes bx=0,by<<bz  (sin(15)<<cos(15))
 
 c      G.H.S. 10/23/86
 c                Fix major error in direction cosign calc. at end.
@@ -614,10 +613,12 @@ c             this.
 !               proportional to charge
         character*256 coutstring
 
-       real*8 zpath
+	real*8 zpath
 	real xmass	!Mass of particle (in GeV/c)
 	integer qz	!Charge of particle
+
        include 'kascade.h'
+
 c       Determine charge.
        if(qz.eq.0)return       !Neutrals dont bend
 
@@ -649,10 +650,19 @@ c       calculation assures accracy(I hope).
        end if
 
 
-c       Now calculate new vector.
-       dlt=dl1*cal + dm1*bz*sal - dn1*by*sal
-       dmt=-dl1*bz*sal + dm1*(1.-bz*bz*ccc) + dn1*by*bz*ccc
-       dnt=dl1*by*sal + dm1*by*bz*ccc + dn1*(1.-by*by*ccc)
+c       Now calculate new vector. Allow for Bx!=0
+
+       dlt= dm1*bz*sal - dn1*by*sal + dl1*(1.-(bz*bz+by*by)*ccc) +
+     1        bx*ccc*(dm*by+dn*bz)
+       dmt= dn1*bx*sal - dl1*bz*sal + dm1*(1.-(bx*bx+bz*bz)*ccc) + 
+     1        by*ccc*(dn1*bz+dl*bx)
+       dnt= dl1*by*sal - dm1*bx*sal + dn1*(1.-(bx*bx+by*by)*ccc) + 
+     1        bz*ccc*(dm1*by+ dl*bx)
+
+c       Now calculate new vector. Assumes Bx==0
+c       dlt=dl1*cal + dm1*bz*sal - dn1*by*sal
+c       dmt=-dl1*bz*sal + dm1*(1.-bz*bz*ccc) + dn1*by*bz*ccc
+c       dnt=dl1*by*sal + dm1*by*bz*ccc + dn1*(1.-by*by*ccc)
 
 c       Normalize.
        xmag=sqrt(dlt**2+dmt**2+dnt**2)
@@ -705,7 +715,11 @@ c		Searchlight array.
 !               He gets:Bx=-25.2 By=40.0 =>dipangle=58.3 deg(we were using 60)
 !               And a filed strength 0f .4795 gauss (we were using .5)
 !
+!      12/09/10 GHS
+!               Extend to Bx not = 0. Add an angle east for Veritas/whipple
+
         character*256 coutstring
+	real angle_east
 
 	include 'kascade.h'
 
@@ -741,12 +755,18 @@ c	And north only!
 !		b_field=0.5      !Gauss
 !		dip_angle=60.0    !Degrees.
 
-! 08/02/05 GHS Replaced by new values: see comment above.
-		b_field=0.4795      !Gauss
-		dip_angle=58.3    !Degrees.
+! 11/15/10 GHS, QF Add east component of B field.
+!                  The magnetic field is calculated from the website:
+!             http://www.ngdc.noaa.gov/geomagmodels/struts/calcIGRFWMM
+		b_field=0.4714      !Gauss
+		dip_angle=58.23   !Degrees.
+                angle_east=10.4   !Degrees.
 		write(coutstring,1000)'WHIPPLE',b_field,dip_angle
 	        call kscharstring2cout(trim(coutstring)//char(0))
-
+                bz = sin(dip_angle/deg2rad)
+                bx = cos(dip_angle/deg2rad)*sin(angle_east/deg2rad)
+                by = -cos(dip_angle/deg2rad)*cos(angle_east/deg2rad)
+		return
 	else if(index(segment_head%magnet_field,'S').ne.0)then
 		!!!!!This is for Argentine Search light array!!!!!!
 		b_field=0.35      !Gauss
