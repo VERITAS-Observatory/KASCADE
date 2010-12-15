@@ -22,6 +22,16 @@
 
 #include "KSMagneticFieldBend.h"
 
+
+// ******************************************************************
+//THis class is not presently used but could be. Presently an explcite 
+// set for formulas are used in kskascademain.for:bend and bendinit are
+// used. See below of formulas
+// Presented here is the vector method used to determine the explicit formulas
+// for reference
+// *********************************************************************
+
+
 KSMagneticFieldBend::KSMagneticFieldBend(string location)
 // *********************************************************************
 // Bend a particle in a magnetic field
@@ -48,16 +58,16 @@ KSMagneticFieldBend::KSMagneticFieldBend(string location)
     // Veritas magnetic field is calculated from the website:
     //  http://www.ngdc.noaa.gov/geomagmodels/struts/calcIGRFWMM
     // ***********************************************************
-    //fBFieldGauss=0.4714;
-    //fDipAngleDeg=58.23; 
-    //fAngleEastDeg=10.4; 
-    //Debug test
     fBFieldGauss=0.4714;
-    fDipAngleDeg=0.0; 
-    fAngleEastDeg=0.0; 
-    cout<<"WHIPPLE magnetic field values being used. B Field(gauss): "
+    fDipAngleDeg=58.23; 
+    fAngleEastDeg=10.4; 
+    cout<<"WHIPPLE/VERITAS Earths magnetic field: B Field(gauss): "
 	<<fBFieldGauss<<" DIP_ANGLE(deg): "<<fDipAngleDeg<<" ANGLE_EAST(deg): "
 	<< fAngleEastDeg<<endl;
+
+    // *********************************************************
+    //Fill in B field vector
+    // *********************************************************
 
     fB.at(0) = cos(fDipAngleDeg*kDeg2Rad)*sin(fAngleEastDeg*kDeg2Rad);
     fB.at(1) = -cos(fDipAngleDeg*kDeg2Rad)*cos(fAngleEastDeg*kDeg2Rad);
@@ -67,9 +77,11 @@ KSMagneticFieldBend::KSMagneticFieldBend(string location)
 }
 // ******************************************************************
 
-void KSMagneticFieldBend::bendTrajectory(double KenergyTeV, double pathM, 
+void KSMagneticFieldBend::bendTrajectory(double KenergyTeV, 
+					 double pathM, 
 					 int ispec,
-					 double& dl1, double& dm1, double& dn1,
+					 double& dl1, double& dm1, 
+					 double& dn1,
 					 int qz, double xmass)
 // ********************************************************************
 // find new direction after bending in magnetic field
@@ -130,12 +142,16 @@ void KSMagneticFieldBend::bendTrajectory(double KenergyTeV, double pathM,
                                          // we bend.
   
   // ********************************************************************
-  // Now the calculation. This is the long form which I understand. I've seen
-  // shorter versions. (Ex. kskascademain.for)
+  // Now the calculation. This is the long form which I understand.
+  // kskascademain.for uses explicirt formluls (also given below in the 
+  // comments) but this is the method used to derive them
   // *********************************************************************
   // WE use vectors as possible. Velocity unit vector first
   // *********************************************************************
-
+  // Accuracy:  This form of the code has not been checked for round off
+  // accuracy. There may be problems here for small angles or when the 
+  // velocity is close to the B field direction.
+  // *********************************************************************
   fV.at(0)=dl1;
   fV.at(1)=dm1;
   fV.at(2)=dn1;
@@ -148,39 +164,49 @@ void KSMagneticFieldBend::bendTrajectory(double KenergyTeV, double pathM,
   // ***************************************************************
   // Implimentation note:Always pass vector by reference. its much faster.
   // ***************************************************************
-  // fVyPerp will have length of fSinTheta
+  // V Parrallel is component of velocity unit vector along B file: ie. its 
+  // projection: ie. dot product.
+  // ****************************************************************
+  double costheta=getDotProduct(fV,fB);
+
+  fVParallel.at(0)=fB.at(0)*costheta;
+  fVParallel.at(1)=fV.at(1)*costheta;
+  fVParallel.at(2)=fV.at(2)*costheta;
+ 
+  // ***************************************************************
+  //  V Perp is the vector component of V that is perpendicular to B
+  //  Its just the difference between V and V parrallel
+  // call it VxPerp. its in the B,V plane and perendicular to B
+  // ***************************************************************
   
-  getCrossProduct(fV,fB,fVyPerp);
+  fVxPerp.at(0)=fV.at(0)- fVParallel.at(0);
+  fVxPerp.at(1)=fV.at(1)- fVParallel.at(1);
+  fVxPerp.at(2)=fV.at(2)- fVParallel.at(2);
 
-  //
+  // ****************************************************************
+  // Find the vector with same length as fVxPerp that is perpendicular to B 
+  // and fVxPerp
+  // This is Perpendicular to the V,B plane and in the plane of rotation
   // ***************************************************************
-  // Find the unit vector that is perpendicular to B and fVyPerp
-  // This is in the V,B plane and in the plane of rotation
-  // ***************************************************************
-  // fVxPerp will have length of fSinTheta
 
-  getCrossProduct(fVyPerp,fB,fVxPerp);
+  getCrossProduct(fVxPerp,fB,fVyPerp);
 
   // ***************************************************************
   // Now find the components of V that are perpendicular to the VxPerp 
   // direction.
   // ***************************************************************
-  // V Parrallel is difference (its also not a unit vector!!)
-  // ****************************************************************
-  fVParallel.at(0)=fV.at(0)-fVxPerp.at(0);
-  fVParallel.at(1)=fV.at(1)-fVxPerp.at(1);
-  fVParallel.at(2)=fV.at(2)-fVxPerp.at(2);
 
   // *****************************************************************
-  // Now we actually get to find the new direction after rotation through 
-  // angle of the VPerp vector. 
+  // AS the particle moves through the B field its VPerp vector will be 
+  // rotates in the fxPerp,fVyPerp plane by angle angleRevRadNow
+  // Find new V Perp.
   // *****************************************************************
   fVPerp.at(0)=fVxPerp.at(0)*cos(angleRevRad)+fVyPerp.at(0)*sin(angleRevRad);
   fVPerp.at(1)=fVxPerp.at(1)*cos(angleRevRad)+fVyPerp.at(1)*sin(angleRevRad);
   fVPerp.at(2)=fVxPerp.at(2)*cos(angleRevRad)+fVyPerp.at(2)*sin(angleRevRad);
   
   // **********************************************************************
-  // Form final vector
+  // Final V vector will be sum of new V Perp and original V parallel
   // **********************************************************************
   fV.at(0)=fVPerp.at(0)+fVParallel.at(0);
   fV.at(1)=fVPerp.at(1)+fVParallel.at(1);
@@ -190,6 +216,27 @@ void KSMagneticFieldBend::bendTrajectory(double KenergyTeV, double pathM,
   dl1=fV.at(0);
   dm1=fV.at(1);
   dn1=fV.at(2);
+  // ******************************************************************
+  // The above results in the following (as used in the 
+  // kskascademain.for:bend routine).
+  // ******************************************************************
+  // sal=sin(angleRevRad)
+  // cal=cos(angleRevRad
+  // if(abs(angleRevRad).gt.0.01) then      !Be warry of accuracy here.
+  //   ccc=1.-cal
+  // else
+  //   ccc=(al**2)/2.             !expansion
+  // end if
+  //     
+  // dlt= dm1*bz*sal - dn1*by*sal + dl1*(1.-(bz*bz+by*by)*ccc) +
+  //   1        bx*ccc*(dm*by+dn*bz)
+  // dmt= dn1*bx*sal - dl1*bz*sal + dm1*(1.-(bx*bx+bz*bz)*ccc) + 
+  //   1        by*ccc*(dn1*bz+dl*bx)
+  // dnt= dl1*by*sal - dm1*bx*sal + dn1*(1.-(bx*bx+by*by)*ccc) + 
+  //   1        bz*ccc*(dm1*by+ dl*bx)
+  // *****************************************************************
+  
+
 
   return;
 }
@@ -213,6 +260,14 @@ void KSMagneticFieldBend::getCrossProduct(vector<double>& A,
   C.at(1)=A.at(2)*B.at(0)-A.at(0)*B.at(2);
   C.at(2)=A.at(0)*B.at(1)-A.at(1)*B.at(0);
   return;
+}
+// **************************************************************************
+
+double KSMagneticFieldBend::getDotProduct(vector<double>& A, 
+					  vector<double>& B)
+{
+  double dotProduct=A.at(0)*B.at(0) + A.at(1)*B.at(1) + A.at(2)*B.at(2);
+  return dotProduct;
 }
 // **************************************************************************
 

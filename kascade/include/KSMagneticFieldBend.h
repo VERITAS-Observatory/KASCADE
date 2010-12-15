@@ -37,6 +37,7 @@ class KSMagneticFieldBend
 private:
   void normalize(vector<double>& A);
   void getCrossProduct(vector<double>& A, vector<double>& B,vector<double>& C);
+  double getDotProduct(vector<double>& A, vector<double>& B);
 
   double fBFieldGauss;
   double fDipAngleDeg;

@@ -761,7 +761,11 @@ c	And north only!
 		b_field=0.4714      !Gauss
 		dip_angle=58.23   !Degrees.
                 angle_east=10.4   !Degrees.
-		write(coutstring,1000)'WHIPPLE',b_field,dip_angle
+		write(coutstring,1001)'WHIPPLE/VERITAS',b_field,dip_angle,
+     1            angle_east
+ 1001		format(a,' Earths Magnetic field: '
+     1           ' B_FIELD(gauss):',f7.3,' DIP_ANGLE(deg):',f7.3,
+     1           'angle_east(deg): ',f7.3)
 	        call kscharstring2cout(trim(coutstring)//char(0))
                 bz = sin(dip_angle/deg2rad)
                 bx = cos(dip_angle/deg2rad)*sin(angle_east/deg2rad)
