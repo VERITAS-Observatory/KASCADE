@@ -71,11 +71,11 @@ c       calculation assures accracy(I hope).
 c       Now calculate new vector.
 
        dlt= dm1*bz*sal - dn1*by*sal + dl1*(1.-(bz*bz+by*by)*ccc) +
-     1        bx*ccc*(dm*by+dn*bz)
+     1        bx*ccc*(dm1*by+dn1*bz)
        dmt= dn1*bx*sal - dl1*bz*sal + dm1*(1.-(bx*bx+bz*bz)*ccc) + 
-     1        by*ccc*(dn1*bz+dl*bx)
+     1        by*ccc*(dn1*bz+dl1*bx)
        dnt= dl1*by*sal - dm1*bx*sal + dn1*(1.-(bx*bx+by*by)*ccc) + 
-     1        bz*ccc*(dm1*by+ dl*bx)
+     1        bz*ccc*(dm1*by+ dl1*bx)
 
 c       Normalize.
        xmag=sqrt(dlt**2+dmt**2+dnt**2)
