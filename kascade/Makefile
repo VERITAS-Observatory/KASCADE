@@ -16,71 +16,67 @@ include ../Makefile.common
 
 
 LIBTARGET = $(LIBDIR)/libkascade.a
-EXETARGET = ksKascade.cpp
 
-EXETESTTARGET   = BendTest.cpp
-LIBTESTTARGET = $(LIBDIR)/libkascadeTest.a
-TESTOBJECTS   = $(TMPDIR)/bend.o
+EXETARGET = ksKascade.cpp
+EXEBENDTESTTARGET   = BendTest.cpp
+EXEATMTESTTARGET   = AtmTest.cpp
+
+LIBBENDTESTTARGET = $(LIBDIR)/libkascadeBendTest.a
+BENDTESTOBJECTS   = $(TMPDIR)/bend.o
 
 
 F77SOURCES := $(notdir $(shell ls $(SRCDIR)/*.for | grep -v $(EXETARGET)))
-#F90SOURCES := $(notdir $(shell ls $(SRCDIR)/*.f90 | grep -v $(EXETARGET)))
-CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)| grep -v $(EXETESTTARGET)))
+CPPSOURCES := $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(EXETARGET)| grep -v $(EXEBENDTESTTARGET)| grep -v $(EXEATMTESTTARGET) ))
 
-
-
-
-
-#INCLUDES := $(notdir $(shell ls $(INCDIR)/*.h $(INCDIR)/*.hpp))
-#echo INCLUDES: $(INCLUDES)
-
-#EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.for=.o)) 
-#EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.for=)) 
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 
-EXETESTOBJECT = $(addprefix $(TMPDIR)/, $(EXETESTTARGET:.cpp=.o)) 
-EXETEST = $(addprefix $(BINDIR)/, $(EXETESTTARGET:.cpp=)) 
+EXEBENDTESTOBJECT = $(addprefix $(TMPDIR)/, $(EXEBENDTESTTARGET:.cpp=.o)) 
+EXEBENDTEST = $(addprefix $(BINDIR)/, $(EXEBENDTESTTARGET:.cpp=)) 
+
+EXEATMTESTOBJECT = $(addprefix $(TMPDIR)/, $(EXEATMTESTTARGET:.cpp=.o)) 
+EXEATMTEST = $(addprefix $(BINDIR)/, $(EXEATMTESTTARGET:.cpp=)) 
 
 all: $(LIBTARGET) $(EXEOBJECT) $(EXE)  
 
-test: $(LIBTESTTARGET)  $(TESTOBJECTS) $(EXETESTOBJECT) $(EXETEST)
+bendtest: $(LIBBENDTESTTARGET)  $(BENDTESTOBJECTS) $(EXEBENDTESTOBJECT) $(EXEBENDTEST)
+
+atmtest:  $(EXEATMTESTOBJECT) $(EXEATMTEST)
 
 F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) 
-#F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
-#$(LIBTARGET): $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS)
 $(LIBTARGET): $(F77OBJECTS) $(CPPOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(LIBTESTTARGET): $(TESTOBJECTS)
+$(LIBBENDTESTTARGET): $(BENDTESTOBJECTS)
 	$(AR) r $@ $^
 	ranlib $@
-
-
 
 
 $(EXE): $(LIBTARGET)
 	$(F90) -o $(EXE) $(EXEOBJECT) $^ $(KASLDFLAGS) $(KASLIBS) $(CLDFLAGS)
 
-$(EXETEST): $(LIBTESTTARGET)
-	$(F90) -o $(EXETEST) $(EXETESTOBJECT) $^ $(KASLDFLAGS) $(CLDFLAGS)
+$(EXEBENDTEST): $(LIBBENDTESTTARGET)
+	$(F90) -o $(EXEBENDTEST) $(EXEBENDTESTOBJECT) $^ $(KASLDFLAGS) $(CLDFLAGS)
+
+$(EXEATMTEST):
+	$(F90) -o $(EXEATMTEST) $(EXEATMTESTOBJECT) $^ $(KASLDFLAGS) $(KASLIBS) $(CLDFLAGS)
 
 
 $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
 
-$(addprefix $(TMPDIR)/, $(EXETESTTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+$(addprefix $(TMPDIR)/, $(EXEBENDTESTTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
+
+$(addprefix $(TMPDIR)/, $(EXEATMTESTTARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
 
 
 $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.for
 	$(F77) -o $@ -c $(F77FLAGS) $<
-
-#$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
-#	$(F90) -o $@ -c $(F90FLAGS) $<
 
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(CFLAGS) -D_NOROOT $<
@@ -98,8 +94,7 @@ clean:
 	$(RM) $(LIBTARGET) $(addsuffix /*~, $(ALLDIR)) \
 		$(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-		$(EXEOBJECT)$(EXETESTOBJECT) \
+		$(EXEOBJECT)$(EXEBENDTESTOBJECT) $(EXEATMTESTOBJECT) \
 		out/.depend \
-		$(EXE) $(EXETEST)
+		$(EXE) $(EXEBENDTEST) $(EXEATMTEST)
 
-#		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
