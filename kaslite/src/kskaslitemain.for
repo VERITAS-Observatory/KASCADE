@@ -235,8 +235,6 @@ c		x=0,y=0. This is important for any array study.
       WhipplePMTs=ksWhipplePMTs
       ADPPMTs=ksADPPMTs
 
-      call printAtmVersion
-
 
 ! **************************************************************************
 !Initalize arrays for Cherenkov photon production rates.     
