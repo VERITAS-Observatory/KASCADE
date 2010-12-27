@@ -386,3 +386,4 @@ void GetXYFromVec(double fAzSrc, double fElSrc,double* fM, double& fX,
   return;
 }
 // **************************************************************************
+

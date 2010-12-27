@@ -1,48 +1,59 @@
-//Wrapper for atmosphere76 as needed by kascade.
+//Wrapper for atmosphere class  as needed by kascade (fortran callable).
 //Mainly matches types.
 
-#include "atmosphere76.h"
+#include <string>
+#include "atmosphere.h"
 using namespace std;
 
-static atmosphere76 atm76;
+static atmosphere atm;
 
-extern "C" float rho(float* altitude);
-extern "C" float gms(float* altitude);
-extern "C" float yds(float* depth);
-extern "C" void printatmversion();
+extern "C" float rho(float* pAltitude);//Use of pointers so that these are
+extern "C" float gms(float* pAltitude);// fortran callable
+extern "C" float yds(float* pDepth);
+extern "C" float eta(float* pAltitude, int* pLambdaNM);
 
-void  printatmversion()
+
+extern "C" void initAtmosphere(string atmProfileFile);
+
+void initAtmosphere(string atmProfileFile)
+// ***************************************************
+// Initalize for the selected atmosphere.
+// ***************************************************
 {
-  std::cout<<"Using atmosphere76 implementation of US Standard Atmosphere 76"
-	   <<std::endl;
+  atm.init(atmProfileFile);
   return;
 }
+// ***************************************************
 
+// *************************************************************
+// The following are wrappers for  calls from fortran, thus the arguments
+// are pointers.
+// **************************************************************
 
-
-float rho(float* altitude)
+float rho(float* pAltitude)
   //altitude in meters,  density gm/cm**3
 {
-  double alt= (double) *altitude;
-  float r = (float) atm76.getDensity(alt);
+  float r = (float) atm.getDensity(pAltitude);
   return r;
 }
 
-float gms(float* altitude)
+float gms(float* pAltitude)
   //altitude in meters,  depth gm/cm**2
 {
-  //cout<<" In GMS wrapper"<<endl;
-  double alt=(double) *altitude;
-  float g =(float) atm76.getDepth(alt);
-  //cout<<"alt: "<<alt<<" gms:"<<g<<endl;
+  float g =(float) atm.getDepth(pAltitude);
   return g;
 }
 
  //altitude in meters,  depth gm/cm**2
-float yds(float* depth)
+float yds(float* pDepth)
 {
-  double dpth=(double) *depth;
-  float y=(float) atm76.getAltitude(dpth);
+  float y=(float) atm.getAltitudeM(pDepth);
   return y;
 }
 
+ //altitude in meters,  wavelength in nm
+float eta(float* pAltitude, int* pLambdaNM)
+{
+  float e=(float) atm.getEta(pAltitude, pLambdaNM);
+  return e;
+}
