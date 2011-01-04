@@ -97,7 +97,9 @@ $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
 
 #use below for no root version of common library
 $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) -o $@ -c $(CFLAGS) $(NOROOTFLAG) $< $(OPTPRF) 
+	$(CXX) -o $@ -c $(CFLAGS) $(NOROOTFLAG) -DUSE_RANLUX $< $(OPTPRF) 
+#	$(CXX) -o $@ -c $(CFLAGS) $(NOROOTFLAG) $< $(OPTPRF) 
+
 
 $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90

@@ -11,10 +11,10 @@
  * $Tag$
  *
  **/
-#include <algorithm>
- 
+
 #include "KSLightDataIn.h"
 #include "KSKascadeNames.h"
+
 
 // **************************************************************************
 std::string KSLightDataIn::sDefaultMountType ="WHIPPLE";
@@ -25,27 +25,29 @@ std::string KSLightDataIn::sDefaultPMTType="WHIPPLE";
 std::string KSLightDataIn::sDefaultRandomSeedFileName="";
 double      KSLightDataIn::sDefaultEfficiency=1.0;
 bool        KSLightDataIn::sDefaultBenchmarkFlag=false;
+std::string KSLightDataIn::sDefaultExtinctionFileName="extinction_uv.dat";
 // **************************************************************************
 
 
 KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
 {
   pfPeHead=phead;
+
   std::transform(sDefaultMountType.begin(),sDefaultMountType.end(),
 	    sDefaultMountType.begin(),
-	    toupper);
+		 toupper);
   std::transform(sDefaultGridType.begin(),sDefaultGridType.end(),
 	    sDefaultGridType.begin(),
-	    toupper);
+		 toupper);
   std::transform(sDefaultGridOrientation.begin(),sDefaultGridOrientation.end(),
 	    sDefaultGridOrientation.begin(),
-	    toupper);
+		 toupper);
   std::transform(sDefaultCoreOffsetMode.begin(),sDefaultCoreOffsetMode.end(),
 	    sDefaultCoreOffsetMode.begin(),
-	    toupper);
+		 toupper);
   std::transform(sDefaultPMTType.begin(),sDefaultPMTType.end(),
 	    sDefaultPMTType.begin(),
-	    toupper);
+		 toupper);
   // -------------------------------------------------------------------
   // Decode selections
   // -------------------------------------------------------------------
@@ -176,6 +178,7 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
 
   fRandomSeedFileName=sDefaultRandomSeedFileName;  //A ksLightDataIn variable
   fBenchmarkFlag=sDefaultBenchmarkFlag;      //Another ksLightDataIn variable
+  fExtinctionFileName=sDefaultExtinctionFileName;
 }
 // **************************************************************************
 
@@ -197,6 +200,7 @@ VAConfigurationData KSLightDataIn::getConfig() const
   config.setValue("Efficiency",pfPeHead->fEfficiency);
   config.setValue("Benchmark",fBenchmarkFlag);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
+  config.setValue("ExtinctionFile",fExtinctionFileName);
   return config;
 }
 
@@ -245,5 +249,11 @@ void KSLightDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSLightDataIn",
 		    "File Name for Random Seed File.");
+  doVAConfiguration(file, command_line, 
+		    "ExtinctionFile",sDefaultExtinctionFileName,
+		    "KSLightDataIn",
+		    "File Name for Atmosphere Extinction File. (Including "
+		    "path with file name is permissible). Default is "
+		    "extinction_uv.dat ");
 }
 // **************************************************************************

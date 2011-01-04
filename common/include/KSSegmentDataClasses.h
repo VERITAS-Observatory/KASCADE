@@ -7,14 +7,22 @@
  *
  **/
 // This is derived from structures.f90 and kascade.h  
-// This is preliminary class which I plan to upgrade all of KASCADE to 
-// eventually. Not used by general KASCADE as of yet.
 
 
 #ifndef KSSEGMENTDATACLASSES_H
 #define KSSEGMENTDATACLASSES_H
 
 #include <string>
+#include <iostream>
+
+//#include <cstdlib> // I tried to include this (for the exit90 function) but
+                     // it screws up the transform call (specfically the 
+                     // toupper resolution during compile
+//using namespace std; // This is the actual cause of the problem>Beats me why
+
+const int kNumCharAtmSpec=120;
+const int kNumCharMagFldSpec=15;
+
 
 class KSSegmentHeadData
 // *******************************************************
@@ -24,7 +32,6 @@ class KSSegmentHeadData
  public:
   KSSegmentHeadData();
   virtual ~KSSegmentHeadData();
-  void PrintSegmentHead();
 
   int fType;                     // Primary particle type.
   double fGeVEnergyPrimary;	 // Primary particle energy(TeV.)
@@ -37,16 +44,20 @@ class KSSegmentHeadData
   double fInjectionDepth;        // Injection depth in gm/cm**2
   double fObservationAltitudeM;   // Observation altitude in meters
   int    fShowerID;	                 // File id # for this shower.
-  char   fEarthsMagneticFieldSpec[10];   // Earths magnetic field spec:
-                                         // F=none.W=W10m
+                                  // Earths magnetic field spec:
+  char   fEarthsMagneticFieldSpec[kNumCharMagFldSpec];  
+                                                         // F=none.W=W10m
   int    fFunctionEnableFlags[3];  //Enable(=1) flags for kascade functions:
                                    // [0]= Earths Magnetic field
                                    // [1]= Ionization
                                    // [2]= Multiple Scattering
-
+  char   fAtmosphereSpecification[kNumCharAtmSpec];
 
 
   //char   fVersion[80];	          //Version of kascade that made this file
+  void PrintSegmentHead();
+  bool setAtmosphereSpecification(std::string atmSpec);
+  std::string getAtmosphereSpecification();
   
 };
 // ***************************************************************************

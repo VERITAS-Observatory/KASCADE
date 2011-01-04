@@ -47,12 +47,16 @@ void atmosphere::init(string atmProfileFileName)
 {
   // ****************************************************************
   // Test if file or US76 specified
+  // We do it this funny way so that when the string gotten from the 
+  // segment_head is checked this will work.
   // ****************************************************************
-  if(atmProfileFileName=="US76"){
+  string atmUS76=atmProfileFileName.substr(0,4);
+  if(atmUS76=="US76"){
     fUseUS76atm=true;
     if(!fUS76Initalized){
       initUS76();
       fUS76Initalized=true;
+      fAtmTitle="US76";
     }
   }
   else{
@@ -62,6 +66,7 @@ void atmosphere::init(string atmProfileFileName)
   return;
 }
 // **********************************************************************
+
 
 double  atmosphere::getTemperature(float* pAltitudeM)
 // ***********************************************************************
@@ -159,7 +164,7 @@ double atmosphere::getAltitudeM(float* pDepth)
   return fAltitudeM;
 }
 // ************************************************************************
-double atmosphere::getEta(float* pAltitudeM, int* pLambdaNM)
+double atmosphere::getEta(float* pAltitudeM, float* pLambdaNM)
 // ***********************************************************************
 // Use method specified in init.
 // ***********************************************************************
@@ -548,7 +553,7 @@ double atmosphere::getAltitudeMUS76(float dpth)
     }
 }
 
-double atmosphere::getEtaUS76(float altitudeM, int lambdaNM)
+double atmosphere::getEtaUS76(float altitudeM, float lambdaNM)
 // *********************************************************************
 // Eta at altitudeM and lambda is eta at sealevel time density ratio
 // *********************************************************************
@@ -556,8 +561,10 @@ double atmosphere::getEtaUS76(float altitudeM, int lambdaNM)
 // formula
 // *********************************************************************
 {
-  int i=((lambdaNM-180)/5)-1;  //-1 since index starts at 0 for C++;
-  double eta=fEtaSeaLevel.at(i)*getDensityUS76(altitudeM)/getDensityUS76(0);
+  int i=((lambdaNM-180)/5);  // since index starts at 0 for C++;
+  float seaLevelM=0;
+  double eta=
+    fEtaSeaLevel.at(i)*getDensityUS76(altitudeM)/getDensityUS76(seaLevelM);
   return eta;
 }
 // ********************************************************************
@@ -615,19 +622,21 @@ void atmosphere::initAtmProf(string atmProfileFileName)
   // **************************
   // First line is the table lable
   // **************************
-  char* title= new char[256];
-  int icount=256;
-  atmProf.getline(title,icount);
 
-  cout<<"Atmospheric Profile table lable: "<<title<<endl;
+  char*  fTitle= new char[256];
+  int icount=256;
+  atmProf.getline(fTitle,icount);
+  fAtmTitle=fTitle;
+  
+  cout<<"Atmospheric Profile table lable: "<<fAtmTitle<<endl;
   
   // ***************************************
   // Skip second line and thrid lines.
   // ***************************************
   icount=256;
-  atmProf.getline(title,icount);
+  atmProf.getline(fTitle,icount);
   icount=256;
-  atmProf.getline(title,icount);
+  atmProf.getline(fTitle,icount);
 
   // ******************************************
   // Now loop reading in stuff
@@ -700,7 +709,7 @@ void atmosphere::initAtmProf(string atmProfileFileName)
 // *************************************************************************
 
 
-double atmosphere::getEtaAtmProf(float* pAltitudeM, int* pLambdaNM)
+double atmosphere::getEtaAtmProf(float* pAltitudeM, float* pLambdaNM)
 // *********************************************************************
 // Eta at altitudeM and lambda is eta at sealevel time density ratio
 // *********************************************************************

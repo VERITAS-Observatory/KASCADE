@@ -10,10 +10,11 @@ static atmosphere atm;
 extern "C" float rho(float* pAltitude);//Use of pointers so that these are
 extern "C" float gms(float* pAltitude);// fortran callable
 extern "C" float yds(float* pDepth);
-extern "C" float eta(float* pAltitude, int* pLambdaNM);
+extern "C" float eta(float* pAltitude, float* pLambdaNM);
 
 
 extern "C" void initAtmosphere(string atmProfileFile);
+extern "C" string getAtmosphereTitle();
 
 void initAtmosphere(string atmProfileFile)
 // ***************************************************
@@ -24,6 +25,15 @@ void initAtmosphere(string atmProfileFile)
   return;
 }
 // ***************************************************
+
+string getAtmosphereTitle()
+// *************************************************************
+//  Return the title of the atmosphere: "US76" or first line of atmprof file
+// *************************************************************
+{
+  string atmTitle=atm.getTitle();
+  return atmTitle;
+}
 
 // *************************************************************
 // The following are wrappers for  calls from fortran, thus the arguments
@@ -52,7 +62,7 @@ float yds(float* pDepth)
 }
 
  //altitude in meters,  wavelength in nm
-float eta(float* pAltitude, int* pLambdaNM)
+float eta(float* pAltitude, float* pLambdaNM)
 {
   float e=(float) atm.getEta(pAltitude, pLambdaNM);
   return e;

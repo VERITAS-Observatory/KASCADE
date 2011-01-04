@@ -16,12 +16,12 @@
 
 #include "KSPeDataClasses.h"
 
-
 #include "stdint.h"
 #include <cmath>
 #include <string>
 #include <algorithm>
-#include "KSPeDataClasses.h"
+
+
 
 class KSLightDataIn : public VAAlgorithm  //VAAlgoritm specifys a virtual 
 		                       //getConfig()
@@ -35,7 +35,7 @@ private:
   static std::string sDefaultRandomSeedFileName;
   static double      sDefaultEfficiency;
   static bool        sDefaultBenchmarkFlag;
-
+  static std::string sDefaultExtinctionFileName;
 public:
   KSLightDataIn(KSPeHeadData* pfPeHead);
   virtual ~KSLightDataIn();
@@ -46,6 +46,7 @@ public:
   KSPeHeadData*     pfPeHead;
   std::string       fRandomSeedFileName;
   bool fBenchmarkFlag;
+  std::string        fExtinctionFileName;
 };
 #endif
 

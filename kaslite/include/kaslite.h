@@ -86,9 +86,12 @@ c	Moving rate calculation to KASLITE from KASCADE. Add 10m arrays.
      1 qgam10m_hobs(0:104),
      2 qetasl(0:104,0:50),qgamsl(0:104,0:50),qetasl_hobs(0:104),     !SL
      3 qgamsl_hobs(0:104),
-     2 rhoratio(0:50),Etasea(0:104),lambda
-
-	real lambda,rhoratio,Etasea
+     2 lambda
+c     29/12/10 GHS: Remove rhoratio and etasea. Not needed when we use 
+c                   atmosphere.cpp
+c     2 rhoratio(0:50),Etasea(0:104),lambda
+c       real lambda,rhoratio,Etasea
+	real lambda
         integer i380,ihobs
 
 	  real qeta,qgamma,gamvis,

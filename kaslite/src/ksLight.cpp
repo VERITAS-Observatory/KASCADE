@@ -76,6 +76,8 @@ extern "C" void ksreadwavelengthtable(char* fTableName, float* fTable);
 void findXSegYSeg(double az,double el, double radius, double& xSeg, 
 		  double& ySeg);
 
+extern "C" void initAtmosphere(string atmProfileFile);
+extern "C" void initExtinction(string extintionTableFileName);
 
 KSLightDataIn*     pfDataIn;
 
@@ -329,6 +331,13 @@ int main(int argc, char** argv)
       pfPeHead= new KSPeHeadData;
       pfDataIn=new KSLightDataIn(pfPeHead);
  
+    // -----------------------------------------------------------------
+    // Init the atmosphere using whatever spec was used to make the seg file
+    // -----------------------------------------------------------------
+      string atmSpec=pfSegmentHead->getAtmosphereSpecification();
+      initAtmosphere(atmSpec);
+
+
     // ------------------------------------------------------------------------
     // Initalize the random number generator.
     // ------------------------------------------------------------------------
@@ -337,6 +346,19 @@ int main(int argc, char** argv)
       ranstart(&printseeds,(char*)pfDataIn->fRandomSeedFileName.c_str(),
 	       rslength);
       
+
+    // ------------------------------------------------------------------------
+    // Initalize and read in the Extintion Table
+    // ------------------------------------------------------------------------
+      bool worked=
+	pfPeHead->setExtinctionFileName(pfDataIn->fExtinctionFileName);
+      if(!worked){
+	exit(EXIT_FAILURE);
+      }
+      
+      initExtinction(pfPeHead->getExtinctionFileName());
+
+
     // ------------------------------------------------------------------------
     //  Set up grid size. 
     // ------------------------------------------------------------------------

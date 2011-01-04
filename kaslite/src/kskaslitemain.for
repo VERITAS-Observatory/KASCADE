@@ -165,6 +165,9 @@ c		x=0,y=0. This is important for any array study.
 !               Convert this to a subprogram called by ksLight.cpp. Use config
 !               files and command line options to replace .par files. Use c
 !               ctime stuff for dat and time. General cleanup.
+!      29/12/10 GHS:
+!               Convert to use of atmosphere.cpp for eta calculation. No 
+!               longer need eatsea and rhoratio
 
       IMPLICIT NONE
 
@@ -366,7 +369,7 @@ c     Iterate over all wavelength intervels.
                   numw=nfluct(w10m) !Fluctuate it.
                   nmadeold=nmade    !save pointer.
                   if(numw.ne.0)then
-                     call cerenk(numw,sangle,etasea(i),nmade,arearatio)
+                     call cerenk(numw,sangle,nmade,arearatio)
                   endif
                elseif(sangle.eq.0)then
                   exit          !Quit when threshold reached(flag:sangle=0.0)
@@ -612,7 +615,8 @@ c        Write out the record. (disabled for Benchmark mode)
 ! ***************************************************************************
 
 
-      subroutine cerenk(nphotons,sangle,etazero,nmade,arearatio)
+      subroutine cerenk(nphotons,sangle,nmade,arearatio)
+!      subroutine cerenk(nphotons,sangle,etazero,nmade,arearatio)
 ! ***************************************************************************
 !        This routine generates all the photons for a segment.
 ! ***************************************************************************
@@ -634,8 +638,12 @@ c                Pete's code does this also but he uses the rho functions. why?
 c	25/10/93 G.H.S. V:1:0:2.0
 c		For UV photons that are being created for each wavelength 
 c		intervel, use NMADE as pointer in PHOTONS. Remove clearing of
-c		NMADE in this routine. Store LAMBDA into PHOTONS as we make them
+c		NMADE in this routine. Store LAMBDA into PHOTONS as we make 
+c               them
 c		LAMBDA comes in through common block.
+c       29/12/10 GHS:
+c               Convert to use of atmosphere.cpp for eta calculation. No 
+c               longer need eatsea and rhoratio etazero
 
 c        input:
 
@@ -643,6 +651,7 @@ c        Nphotons:number of photons to generate from this segment.(i*2)
 c        sangle: Sin of Cherenkov angle.
 c        etazero: Eta(N-1) to use for these photons for time of flight.
 c                 will be different for visable and solar blind.
+c                 29/12/10 Replaced by call to eta(0.0,lambda)                 
 c        Nmade:Pointer in photon array for last photon created.
 c	       Usually upon entry this is 0 but for Whipple(or any UV detector)
 c	       it may not be.
@@ -837,7 +846,8 @@ c                uses the rho functions. I don't understand why.
          tz=dheight/(c_light)        
 c                                verticle flight time(as if photon was coming 
 c                                from zenith at speed c.
-         tzcorrect=etazero*(tzcobs-gms(zz)*ftzcobs)
+        
+         tzcorrect=eta(0.0,lambda)*(tzcobs-gms(zz)*ftzcobs)
 c                                             !Correction due to varience of
 c                                             !index of refration with altitude
 
@@ -1047,7 +1057,10 @@ c     Fluctuation is gaussian distributed.
 c     Written: Glenn Sembroski
 c              Purdue
 c              4/20/89
-
+c
+c     References:
+c             Ref 1: pg 72 of Gamma-Ray MC Vol 1 (tan cover)4/27/86-4/20/89
+c                    for (qeta, qgamma,gamvis, setavis) 
 c     Modified:
 
 c	25/10/93 G.H.S. V:1:0:2.0
@@ -1118,7 +1131,8 @@ c		less then this value. This prevents UNIX underflows on SUN.
 	REAL*4	REFLect_10M_1993(0:104)
         real reflect(0:104)
 	real reflect_sl(0:104)
-        !include 'kaslite_command_line.h'
+        real*4 altm
+                                !include 'kaslite_command_line.h'
 	include 'kaslite.h'
 
 c     Spectral response array for the Hamamatsu R821 pmt.
@@ -1456,29 +1470,31 @@ c     points at 180 nm=.18,300 nm=.56, 366=.77, 450-700 nm=.84.
 
 c     
 c       Form the ratio of density of atm as function of altitude.
-      do i=0,50
-              h=1000.*i        !Altitude in meters.
-              rhoratio(i)=rho(h)/rho(0.)       
-	enddo
+   !   do i=0,50
+   !           h=1000.*i        !Altitude in meters.
+   !           rhoratio(i)=rho(h)/rho(0.)       
+   !	enddo
 
 c       And calculate it at exactly hobs.
-       rhorat_hobs=rho(hobs)/rho(0.)       
+  !     rhorat_hobs=rho(hobs)/rho(0.)       
 
 c      Form ETASEA=(Index of refraction-1) at sea level. Start at
 c      180 nanometers and go up to 700 nanometers.
 c      Parameters from CRC handbook of Chem and Phy. 70'-71'
 c      pg E-231.
-      do ilambda=180,700,5
-            lambda=ilambda
-            i=(ilambda-180)/5
-            etasea(i)=1.e-7*(2726.43+12.288/(lambda**2*1.e-6)+
-     1 0.3555/(lambda**4*1.e-12))
-	enddo
+  !    do ilambda=180,700,5
+  !          lambda=ilambda
+  !          i=(ilambda-180)/5
+  !          etasea(i)=1.e-7*(2726.43+12.288/(lambda**2*1.e-6)+
+  !   1 0.3555/(lambda**4*1.e-12))
+  !	enddo
 
 c      Read in the extinction data.
 !	call readex(extint)		!OLd palfrey and Sembroski derived.
 
-	call readex_uv(extint)		!newer and better Vacanti derived.
+!	call readex_uv(extint)		!newer and better Vacanti derived.
+
+        call loadextinct(extint)       !Even better
 
 c        Construct the atmosphere transmisson probabilities using
 c        the direction of the primary as the approxamated direction of the
@@ -1528,12 +1544,15 @@ c        Constant
          constant=twopi/137
 
          do j=ihobs+1,50            !Start just above obs alt.
-               do ilambda=180,700,5         !In nanometers
+            altm=j*1000.0
+            do ilambda=180,700,5 !In nanometers
                       lambda=ilambda
                       i=(ilambda-180)/5
 c                   Calculate the Q integrels.  Units are photons/meter.
-                      Qeta(i,j)=(1.d+9)*(constant*2*rhoratio(j)*
-     1 etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))*atmprob(i,j)
+c                      Qeta(i,j)=(1.d+9)*(constant*2*rhoratio(j)*
+c     1 etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))*atmprob(i,j)
+                      Qeta(i,j)=(1.d+9)*(constant*2*eta(altm,lambda)*
+     1 (1./(lambda-2.5)-1./(lambda+2.5)))*atmprob(i,j)
                       Qgamma(i,j)=(1.d+9)*atmprob(i,j)*constant*
      1 (1./(lambda-2.5)-1./(lambda+2.5))
 		enddo
@@ -1544,8 +1563,10 @@ c	Calculate these at hobs:
              lambda=ilambda
              i=(ilambda-180)/5
 c                   Calculate the Q integrels.  Units are photons/meter.
-             Qeta_hobs(i)=(1.e+9)*(constant*2*rhorat_hobs*
-     1 etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))
+c             Qeta_hobs(i)=(1.e+9)*(constant*2*rhorat_hobs*
+c     1 etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))
+             Qeta_hobs(i)=(1.e+9)*(constant*2*eta(hobs,lambda)*
+     1 (1./(lambda-2.5)-1./(lambda+2.5)))
                       Qgamma_hobs(i)=(1.e+9)*constant*
      1 (1./(lambda-2.5)-1./(lambda+2.5))
 	enddo
@@ -1556,8 +1577,10 @@ c	Use etasea at lambda=380.
 c       Chrenkov angle will be sin(theta)=sqrt(setavis-1/gamma**2)
          i380=(380.-180.)/5.          !Index to reference lambda
          do j=0,50
-                 gamvis(j)=sqrt(1./(2*rhoratio(j)*etasea(i380)))
-                 setavis(j)=2*rhoratio(j)*etasea(i380)
+c                 gamvis(j)=sqrt(1./(2*rhoratio(j)*etasea(i380)))
+c                 setavis(j)=2*rhoratio(j)*etasea(i380)
+                 gamvis(j)=sqrt(1./(2*eta(0.0,380.0)))
+                 setavis(j)=2*eta(0.0,380.0)
 	enddo
 
 
@@ -1587,8 +1610,10 @@ c        Gamma threshold and sin**2 of maximum chrenkov angle.
                 lambda=ilambda
                 i=(ilambda-180)/5
                 do j=0,50
-                      gammin(i,j)=sqrt(1./(2*rhoratio(j)*etasea(i)))
-                      smaxsb(i,j)=2*rhoratio(j)*etasea(i)
+c                      gammin(i,j)=sqrt(1./(2*rhoratio(j)*etasea(i)))
+c                      smaxsb(i,j)=2*rhoratio(j)*etasea(i)
+                      gammin(i,j)=sqrt(1./(2*eta(0.0,380.0)))
+                      smaxsb(i,j)=2*eta(0.0,380.0)
 		enddo
 	enddo
 
@@ -2170,6 +2195,24 @@ c	File constructed form ARTEMUS data. Ref when I can get it.
 	enddo
 
       close(1)
+      return
+      end
+! **************************************************************************
+
+
+       SUBROUTINE LOADEXTINCT(extinct)
+c      Load the exticnt array from the tables read in by the KSExtinctionFile
+c      class
+
+      integer lambda,i,j
+      real extinct(0:50,0:104)
+
+      do lambda=180,700,5
+         i=(lambda-180.)/5.
+	do j=0,50
+           extinct(j,i)=getExtinction(j,lambda)
+        enddo
+      enddo
       return
       end
 ! **************************************************************************

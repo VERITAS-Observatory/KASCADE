@@ -50,10 +50,43 @@ void KSPeHeadData::PrintPeHead()
   std::cout<<"   Shower impact point at X: "<<fXCoreOffsetM<<",  Y: "
 	   <<fYCoreOffsetM<<std::endl;
   std::cout<<" Efficiency (% photons kept): "<<fEfficiency<<std::endl;
+  std::cout<<"        Extinction File Name: "<<fExtinctionFileName<<std::endl;
+
+
   //std::cout<<"             ksLight version: "<<fVersion<<std::endl;
   return;
 }
 // **************************************************************************
+bool KSPeHeadData::setExtinctionFileName(std::string extSpec)
+// *********************************************************
+// Save file specification  in pe header
+// *********************************************************
+{
+  int numChar=extSpec.size();
+  if(numChar+1> kNumCharExtName){
+    std::cout<<"ExtinctionFile too long ("<<numChar<<"bytes) to fit "
+      "in PeHead char array. Extinction File Name: "<<extSpec
+	     <<std::endl;
+    return false;
+  }
+
+  extSpec.copy(fExtinctionFileName, numChar);
+  fExtinctionFileName[numChar]='\0';
+  return true;  
+}
+// **************************************************************************
+
+std::string KSPeHeadData::getExtinctionFileName()
+// *************************************************************
+// Convert the fExtinctionFileName char array back to a std::string
+// *************************************************************
+{
+  std::string extSpec=fExtinctionFileName;
+  return extSpec;
+}
+// *********************************************************************
+
+
 
 
 // ***************************************************************************

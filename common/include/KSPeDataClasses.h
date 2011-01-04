@@ -18,7 +18,7 @@
 #include <string>
 #include "KSSegmentDataClasses.h"
 
-
+const int kNumCharExtName=120;
 
 class KSPeHeadData
 // *******************************************************
@@ -44,11 +44,13 @@ class KSPeHeadData
   bool   fWhipplePMTs;
   bool   fVeritasPMTs;
   bool   fADPPMTs;
-  //  char   fVersion[10];	      //Version of kaslite that made this file.
+  char   fExtinctionFileName[kNumCharExtName];
+
+  bool        setExtinctionFileName(std::string ExtSpec);
+  std::string getExtinctionFileName();
+
 };
 // ***************************************************************************
-
-
 
 
 class KSPeData

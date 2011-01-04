@@ -101,6 +101,9 @@ class atmosphere
   double fAltitudeM;
   double fEta;
 
+ 
+  string fAtmTitle;
+
 // *********************
   //Mostly US76 stuff here
   // *********************
@@ -137,7 +140,7 @@ class atmosphere
   double getDepthUS76(float altitudeM);
   double getDepthSumUS76(float altitudeM);
   double getAltitudeMUS76(float depth);
-  double getEtaUS76(float altitudeM, int lambdaNM);
+  double getEtaUS76(float altitudeM, float lambdaNM);
   // *********************************************
 
   // *****************************************************
@@ -148,7 +151,7 @@ class atmosphere
   double getDensityAtmProf(float* pAltitudeM);
   double getDepthAtmProf(float* pAltitudeM);
   double getAltitudeMAtmProf(float* pDepth);
-  double getEtaAtmProf(float*  pAltitudeM, int* pLambdaNM);
+  double getEtaAtmProf(float*  pAltitudeM, float* pLambdaNM);
 
   vector< double > fAltKM;        //lookup tables
   vector< double > fScaledRhoGMC3;
@@ -181,7 +184,10 @@ class atmosphere
   double getDepth(float* pAltitudeM);
   double getDepthSum(float* pAltitudeM);
   double getAltitudeM(float* pDepth);
-  double getEta(float*  pAltitudeM, int* pLambdaNM);
+  double getEta(float*  pAltitudeM, float* pLambdaNM);
+  
+  string getTitle(){return fAtmTitle;};
+
 };
 #endif
 
