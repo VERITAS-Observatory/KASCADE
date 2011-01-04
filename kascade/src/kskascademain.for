@@ -295,7 +295,10 @@ c		now!!!
 !               pilot files can be used to setup the input parameters.
 !               Also cleanup and cleanout some old stuff
 !               1:remove POG
-
+!     29/12/10 GHS:V:2.0.1
+!               Improve atm. Uses atmosphere.cpp Has atmProf*.dat (aka Corsika)
+!               capability.  Improve Earth's mag field bending to have bx 
+!               (east)component. Update to VERITAS values for Magnetic field.
 
 !!*****************************************************************************
 !	THINGS to DO!!
@@ -343,8 +346,8 @@ c             18:anti-neutrino(muon)
 	logical got_energy
         data got_energy/.false./
 
-	data version/'V:2.0.0'/
-        data update/'16-May-2006 GHS'/    !Last version update        
+	data version/'V:2.0.1'/
+        data update/'29-Dec-2010 GHS'/    !Last version update        
 
         data namtyp/'Gamma   ','Positron','Electron','Mu +    ',
      1 'Mu -    ','PI 0    ','PI +    ','PI -    ','K +     ',
@@ -757,19 +760,29 @@ c	And north only!
 ! 11/15/10 GHS, QF Add east component of B field.
 !                  The magnetic field is calculated from the website:
 !             http://www.ngdc.noaa.gov/geomagmodels/struts/calcIGRFWMM
-		b_field=0.4714      !Gauss
-		dip_angle=58.23   !Degrees.
-                angle_east=10.4   !Degrees.
+!		b_field=0.4714      !Gauss
+!		dip_angle=58.23   !Degrees.
+!                angle_east=10.4   !Degrees.
+		b_field=0.4795      !Gauss
+		dip_angle=58.3   !Degrees.
+                angle_east=0.0   !Degrees.
+
 		write(coutstring,1001)'WHIPPLE/VERITAS',b_field,dip_angle,
      1            angle_east
- 1001		format(a,' Earths Magnetic field: '
-     1           ' B_FIELD(gauss):',f7.3,' DIP_ANGLE(deg):',f7.3,
-     1           'angle_east(deg): ',f7.3)
+ 1001		format(a,' Earths Magnetic field:'
+     1           'B_FIELD(gauss): ',f5.3,' DIP_ANGLE(deg):',f6.3,
+     1           ' ANGLE_EAST(deg): ',f6.3)
 	        call kscharstring2cout(trim(coutstring)//char(0))
                 bz = sin(dip_angle/deg2rad)
                 bx = cos(dip_angle/deg2rad)*sin(angle_east/deg2rad)
                 by = -cos(dip_angle/deg2rad)*cos(angle_east/deg2rad)
+
+	        write(coutstring,1002)'Mag Field: ',bx*b_field, by*b_field,
+     1	          bz*b_field
+ 1002	        format(a,f7.3,', ',f7.3,', ',f7.3)
+                call kscharstring2cout(trim(coutstring)//char(0))
 		return
+
 	else if(index(segment_head%magnet_field,'S').ne.0)then
 		!!!!!This is for Argentine Search light array!!!!!!
 		b_field=0.35      !Gauss
@@ -791,9 +804,9 @@ c	And north only!
 !	This next line is unnecessary. Nobody(including BEND) ever uses BX.
 !	BEND assumes that there is no field in x direction!!!!!
        bx=0.
-       by=-cos(deg2rad*dip_angle)       !Mag field points north.
+       by=-cos(dip_angle/deg2rad)       !Mag field points north.
 				 !+Y direction is South!!!
-       bz=sin(deg2rad*dip_angle)
+       bz=sin(dip_angle/deg2rad)
        return
        end
 

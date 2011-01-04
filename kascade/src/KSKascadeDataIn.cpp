@@ -40,6 +40,7 @@ std::vector<bool> KSKascadeDataIn::sDefaultFunctionEnableFlags(3,true);
 //int              KSKascadeDataIn::sDefaultParticleTraceEnableFlags;[20]=
 //                                  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 std::string       KSKascadeDataIn::sDefaultRandomSeedFileName="";
+std::string       KSKascadeDataIn::sDefaultAtmosphereSpecification="US76";
 // **************************************************************************
 
 
@@ -76,11 +77,13 @@ KSKascadeDataIn::KSKascadeDataIn(KSSegmentHeadData* SegmentHead)
   pfSegmentHead->fObservationAltitudeM=sDefaultObservationAltitudeM;
   pfSegmentHead->fShowerID=sDefaultShowerID;
 
-  for(int i=0;i<(int)sDefaultEarthsMagneticFieldSpec.size();i++)
-    {
-      pfSegmentHead->fEarthsMagneticFieldSpec[i] = 
-	                             sDefaultEarthsMagneticFieldSpec.at(i);
-    }
+  int numChar=sDefaultEarthsMagneticFieldSpec.size();
+  if(numChar+1> kNumCharMagFldSpec){
+    numChar=kNumCharMagFldSpec-1;
+  }
+  sDefaultEarthsMagneticFieldSpec.copy(pfSegmentHead->fEarthsMagneticFieldSpec,
+				       numChar);
+  pfSegmentHead->fEarthsMagneticFieldSpec[numChar]='\0';
 
   pfSegmentHead->fDnInitial=sqrt(1.-
 		     pfSegmentHead->fDlInitial*pfSegmentHead->fDlInitial-
@@ -118,7 +121,7 @@ KSKascadeDataIn::KSKascadeDataIn(KSSegmentHeadData* SegmentHead)
 
 
   fRandomSeedFileName=sDefaultRandomSeedFileName;
-
+  fAtmosphereSpecification=sDefaultAtmosphereSpecification;
 }
 // **************************************************************************
 
@@ -153,6 +156,7 @@ VAConfigurationData KSKascadeDataIn::getConfig() const
   config.setValue("ParticleTraceEnableFlags",sDefaultParticleTraceEnableFlags);
   config.setValue("FunctionEnableFlags",sDefaultFunctionEnableFlags);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
+  config.setValue("AtmosphereSpecification",fAtmosphereSpecification);
   return config;
 }
 
@@ -272,6 +276,12 @@ void KSKascadeDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSKascadeDataIn",
 		    "File Name for Random Seed File.");
-}
+  doVAConfiguration(file, command_line, 
+		    "AtmosphereSpecification",sDefaultAtmosphereSpecification,
+		    "KSKascadeDataIn",
+		    "Either \"US76\" (default) or Atmosphere Profile File "
+		    "name (Ex. \"atmProf21.dat\") for specifying atmosphere."
+		    " (Including path with file name is permissible)");
+} 
 // **************************************************************************
 

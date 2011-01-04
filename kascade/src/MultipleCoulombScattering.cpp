@@ -24,7 +24,7 @@
 
 using namespace std;
 
-RandomNumbers RanP("kasMultScatt.ran"); //VVV random number generator.
+RandomNumbers RanP((char*)"kasMultScatt.ran"); //VVV random number generator.
                                     //This definition should happen only once
                                     //in a program.
                                     //All other classes(in other files) get 

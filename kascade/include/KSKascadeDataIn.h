@@ -46,7 +46,9 @@ private:
   static std::string       sDefaultRandomSeedFileName;
   static std::vector<bool> sDefaultParticleTraceEnableFlags;
   static std::vector<bool> sDefaultFunctionEnableFlags;
-  //  static int         sDefaultParticleTraceEnableFlags[20];
+  static std::string       sDefaultAtmosphereSpecification;
+
+//  static int         sDefaultParticleTraceEnableFlags[20];
   
 public:
   KSKascadeDataIn(KSSegmentHeadData* SegmentHead);
@@ -57,7 +59,7 @@ public:
   KSSegmentHeadData* pfSegmentHead;
   std::string        fRandomSeedFileName;
   int       fParticleTraceEnableFlags[20];
-
+  std::string        fAtmosphereSpecification;
 };
 #endif
 

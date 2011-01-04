@@ -69,6 +69,8 @@ extern "C" int KascadeType2CorsikaType(int fKType);
 
 extern "C" void kscharstring2cout(char* coutString);
 
+extern "C" void initAtmosphere(string atmProfileFile);
+
 void printRandomSeedFile(std::string randomSeedFileName);
 
 KSKascadeDataIn* pfDataIn;
@@ -375,13 +377,23 @@ int main(int argc, char** argv)
 	  config_file.loadConfigFile(load_filename);
 	}
 
-
       // --------------------------------------------------------------------
       // Load up the segment header now that the config stuff is loaded
       // --------------------------------------------------------------------
 
       pfSegmentHead= new KSSegmentHeadData;
       pfDataIn=new KSKascadeDataIn(pfSegmentHead);
+
+      // *******************************************************************
+      //Initalize the atmosphere
+      // *******************************************************************
+      bool worked=pfSegmentHead->setAtmosphereSpecification(
+					  pfDataIn->fAtmosphereSpecification);
+      if(!worked){
+	exit(EXIT_FAILURE);
+      }
+      
+      initAtmosphere(pfDataIn->fAtmosphereSpecification);
 
     // ------------------------------------------------------------------------
     // Save the configuration file if we have been asked to
