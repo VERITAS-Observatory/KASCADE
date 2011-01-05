@@ -1,23 +1,18 @@
 #!/bin/bash
 #$0 ./kas02.scr
-#$1 For ksall and ksallVBF:
-#     Telescope-Type-direction specification code. like: WP1Deg,WHe4_1Deg,
-#     WG1Deg,VG1DegN0.5Deg.  Giveing a Type code of 'WCR1Deg will cause both 
-#     WP1Deg  and WHe4_1Deg to be  run
-#   For ksaomVBF and ksarraytriggerVBF:
-#     append the threshold specifier: VG1Deg50mv, VG1DegN0.5Deg70mv, 
-#     WCR20DegS0.3Deg50mv.
-#   For ksallVBF: 
-#     Like VG20Deg2D50mv1234M2
-#$2 has which script to run: 
-#               ksall:make showers throuth te files
-#               ksaom:makes .root files(depreciated)
-#               ksaomVBF:makes .vbf files
-#               ksaomVBFRoot:makes .vbf and .root files(depreciated)
-#               ksarraytriggerVBF:makes .vbf multi trigger files.
-#               ksMissingVBF:Looks for missing VBF files.
-#               ksMissingTE:Looks for missing TE files.
-#               ksallVBF: All Singing all dancing: ksKascade to ksArrayTrigger
+#$1 Gets passed directly to ksallVBF.scr. Used here to specify what particle 
+#   types are to be processed. (G,P,He4_ or CR(causes P and He4_)
+#   For ksallVBF (minimum:up to kasallVBF.scr calling ksTrigger:
+#     Atm-Telescope-Type-direction-threshold-arraytrigger specification 
+#     designation: 
+#     like: WWP1Deg50mv1234M2, CWHe4_1Deg50mv1234M2, SWG1Deg50mv1234M2,
+#     WVG1DegN0.5Deg50mv1234M2.  
+#     Giveing a Type code of 'WWCR1Deg50mv1234M2 will cause 
+#     both WWP1Deg50mv1234M2  and WWHe4_1Deg50mv1234M2 to be  run
+#   For ksallVBF through ksArrayTrigger append the telescope designations: 
+#     Like WVG20Deg2D50mv1234M2ABCD
+#$2 has which script to run:  ksallVBF.scr
+#        ksallVBF.scr is all Singing all dancing: ksKascade to ksArrayTrigger
 #*****************************************************************
 #Functions to define thigs for various particle specs
 
@@ -518,7 +513,7 @@ function SubmitAmdahlPBSScripts()
  do
       echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
 
-      pbsFile=$lcl/ks_$i$jobSpec.pbs
+      pbsFile=$lcl/ks_$i$parspec.pbs
       echo "#"PBS -N 'pbs_'$sub'_'$i                                 >$pbsFile
       echo "#"PBS -e 'pbs_'$sub'_'$i'.err'                          >>$pbsFile
       echo "#"PBS -o 'pbs_'$sub'_'$i'.log'                          >>$pbsFile
@@ -554,7 +549,7 @@ function BuildIsisScriptList()
     else
 	logFile=' '
     fi
-    echo Entry: $i  ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} 
+    echo Entry: $i  $parspec ${enableGEN[$i]} ${energy[$i]} ${start[$i]} ${end[$i]} 
     if [ "${enableGEN[$i]}" == "ON" ]; then 
       echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
       echo ${end[$i]} $datadir $workingDir                \\   >>$jobScript
@@ -609,7 +604,7 @@ host=$(hostname)
 sdr=$KASCADEBASE"/scripts"
 ksscpt=$2
 
-#Check to see if the user specified wthe script wiht the .scr extention
+#Check to see if the user specified the script wiht the .scr extention
 ksscpt=${ksscpt%.scr}
 
             #Assume local copy of script
@@ -735,30 +730,37 @@ maxMem=240MB
 WALLTIME=20:00:00
 jobSpec=$1
 
-if [ ${jobSpec:0:1} = "W" ]; then
+
+if [ ${jobSpec:1:1} = "W" ]; then
    dataDirBase=$dataDirBase'/whipple'
 fi
 
-if [ ${jobSpec:0:1} = "V" ]; then
+if [ ${jobSpec:1:1} = "V" ]; then
    dataDirBase=$dataDirBase'/veritas'
 fi
 
-if [ ${jobSpec:1:2} = "CR" ]; then      # Only true for  ksaomVBF 
-                                        # and ksarraytriggerVBF
-    TelSpec=${jobSpec:0:1}              #gets W from WG20DegN0.5Deg50mv
-    spec=${jobSpec#*CR}      #gets 20DegN0.3Deg50mv from WCR20DegN0.3Deg50mv
+if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
+                                        
+    AtmSpec=${jobSpec:0:1}             #gets S(for summer) from  
+                                        #SWCR20DegN0.5Deg50mv1234M2
+    TelSpec=${jobSpec:1:1}              #gets W from CWCR20DegN0.5Deg50mv1234M2
+    spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
+                                        #WWCR20DegN0.3Deg50mv1234M2
     let processStart=1
-    parspec=$TelSpec'P'$spec #gives WP20DegN0.3Deg50mv from WCR20DegN0.3Deg50mv
+    parspec=$AtmSpec$TelSpec'P'$spec   #gives SVP20DegN0.3Deg50mv1234M2ABCD
+                                        #from SVCR20DegN0.3Deg50mv1234M2ABCD
 
     datadir="$dataDirBase/protons"
     Protons
-    parspec=$TelSpec'He4_'$spec
+
+    parspec=$AtmSpec$TelSpec'He4_'$spec
     datadir="$dataDirBase/he4"
     Helium4
+
     let pspecset=1;
 fi
 
-if [ ${jobSpec:1:1} = "P" ] ; then 
+if [ ${jobSpec:2:1} = "P" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/protons"
 
@@ -767,7 +769,7 @@ if [ ${jobSpec:1:1} = "P" ] ; then
     let pspecset=1;
 fi
 
-if [ ${jobSpec:1:4} = "He4_" ] ; then 
+if [ ${jobSpec:2:4} = "He4_" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/he4"
 
@@ -776,7 +778,7 @@ if [ ${jobSpec:1:4} = "He4_" ] ; then
     let pspecset=1;
 fi
 
-if [ ${jobSpec:1:1} = "G" ]; then
+if [ ${jobSpec:2:1} = "G" ]; then
     parspec=$1
     datadir="$dataDirBase/gammas"
     let processStart=1
