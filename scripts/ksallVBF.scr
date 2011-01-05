@@ -3,8 +3,8 @@
 #$0 ./kasall.scr
 #$1 primary Energy in gev (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower names like VP1Deg2D50mv1234M2
-#                                     or VHe4_1Deg2D50mv1234M2ABAA
+#                                     in shower names like SVP1Deg2D50mv1234M2
+#                                     or WVHe4_1Deg2D50mv1234M2ABAA
 
 #$3 Lowest flie id
 #$4 Highest file id.
@@ -123,18 +123,20 @@ echo Working Directory is $wrkdir
 ##################################################################
 #Parse the specification string
 jobSpec=$2
-TelSpec=${jobSpec:0:1}                    #gets W from WG20DegN0.5Deg50mv
-PrimarySpec=${jobSpec%%Deg*}'Deg'         #gets VG20Deg from VG20Deg2DDeg1234M2
+AtmSpec=${jobSpec:0:1}                  #gets S from SWG20DegN0.5Deg50mv1234M2
+TelSpec=${jobSpec:1:1}                  #gets W from CWG20DegN0.5Deg50mv1234M2
+PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2DDeg1234M2
 
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
-                                          #VG20Deg2D50mv1234M2AAAB
+                                          #WVG20Deg2D50mv1234M2AAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
     ThresholdSpec=${jobSpec##*Deg}         #No Deg2D: gets 70mv1234M2ABBC from 
-                                           #VG20DegN0.5Deg70mv1234M2ABBC
+                                           #CVG20DegN0.5Deg70mv1234M2ABBC
 fi
 
-TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: VG20Deg2D from
-                                           #VG20Deg2D50mv1234M2BBAB
+TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
+                                           #SVG20Deg2D50mv1234M2BBAB
+TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
 
 
@@ -256,7 +258,7 @@ ln -s $inpDir/$ksArrayTriggerConfig $ksArrayTriggerConfig
 
 #make a links to the various input files:
 ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
-ln -s $inpDir/extinction_uv.dat extinction_uv.dat
+
 
 #Setup unique random seed files into working dir.
 cp -v $inpDir/ksKascade.ran ksKascade.ran  #Copy in a file to overwrite
@@ -284,13 +286,50 @@ $src/randomCreateRanluxSeed -s $seed -o ksArrayTrigger.ran
 ########################################################################
 #Set up base name of shower files. 
 #Note it includes data path
-ShwrTe=$5'/'$TriggerSpec'GeV'$1'te'
-SingleShwr=$5'/'$TriggerSpec$ThreshSpec'GeV'$1
-MultShwr=$5'/'$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+ShwrTe=$5'/'$AtmSpec$TriggerSpec'GeV'$1'te'
+SingleShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec'GeV'$1
+MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
 
 #Define Multiplicity option
 MultOption="-ArrayTriggerMultiplicity="$ArrayMult
 echo MultOption $MultOption
+
+#Define atm and extinction options for ksKascade and ksLight 
+
+AtmSpecOption='-AtmosphereSpecification=US76'           #default
+
+ln -s $inpDir/extinction_uv.dat extinction_uv.dat
+ExtinctionFileOption='-ExtinctionFile=extinction_uv.dat' #default
+
+
+if test "$AtmSpec" == "W"    #Use Veritas winter atm
+then
+  ln -s $inpDir/atmprof21.dat atmprof21.dat
+  AtmSpecOption='-AtmosphereSpecification=atmprof21.dat'
+
+  ln -s $inpDir/V.Winter.US76.50km.profile.ext V.Winter.US76.50km.profile.ext
+  ExtinctionFileOption='-ExtinctionFile=V.Winter.US76.50km.profile.ext'
+fi
+
+if test "$AtmSpec" == "S"    #Use Veritas Summer atm
+then
+  ln -s $inpDir/atmprof21.dat atmprof22dat
+  AtmSpecOption='-AtmosphereSpecification=atmprof22.dat'
+
+  ln -s $inpDir/V.Summer.US76.50km.profile.ext V.Summer.US76.50km.profile.ext
+  ExtinctionFileOption='-ExtinctionFile=V.Summer.US76.50km.profile.ext'
+fi
+
+if test "$AtmSpec" == "C"    #Use Veritas crab atm
+then
+  ln -s $inpDir/atmprof20.dat atmprof20at
+  AtmSpecOption='-AtmosphereSpecification=atmprof20.dat'
+
+  ln -s $inpDir/V.Crab.US76.50km.profile.ext V.Crab.US76.50km.profile.ext
+  ExtinctionFileOption='-ExtinctionFile=V.Crab.US76.50km.profile.ext'
+fi
+echo $AtmSpecOption
+echo $ExtinctionFileOption
 
 
 ##########################################################################
@@ -306,7 +345,7 @@ while test $i -le $4
     fi
 
     $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran \
-                   -PrimaryEnergyGeV=$1 -ShowerID=$i $segfile
+                   -PrimaryEnergyGeV=$1 -ShowerID=$i $AtmSpecOption $segfile
   fi
 		   
 #ksLight
@@ -316,7 +355,7 @@ while test $i -le $4
 	rm $pefile
     fi
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran \
-                  $segfile $pefile
+	$ExtinctionFileOption $segfile $pefile
     rm -v $segfile		#Remove segment file
   fi
 
