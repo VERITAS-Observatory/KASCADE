@@ -68,7 +68,7 @@ void KSExtinctionFile::readFile(string extinctionFileName)
       }
       vector< float >* pExtinctVec = new vector< float >;
       pExtinctVec->clear();
-      pExtinctVec->resize(51,0);
+      pExtinctVec->resize(51,0.0);
 
       for(int i=0;i<51;i++){
 	fIn>>pExtinctVec->at(i);
@@ -78,6 +78,11 @@ void KSExtinctionFile::readFile(string extinctionFileName)
     
   }
   else{
+    // *****************************************************************
+    // Corsika style extinction file
+    // First entry is fro altitude 1 km Last is thus for 51 km (we ignore 
+    // that one)
+    // *****************************************************************
     while(1){
        fIn.getline(buffer,icount,',');
        if(fIn.eof()){
@@ -91,7 +96,7 @@ void KSExtinctionFile::readFile(string extinctionFileName)
 
       vector< float >* pExtinctVec = new vector< float >;
       pExtinctVec->clear();
-      pExtinctVec->resize(51,0);
+      pExtinctVec->resize(52,0.0);  //important to init to 0
 
       for(int i=0;i<5;i++){
 	for(int j=0;j<10;j++){
@@ -100,7 +105,7 @@ void KSExtinctionFile::readFile(string extinctionFileName)
 	  istringstream issExt(strBuffer);
 	  float extinct=0;
 	  issExt>>extinct;
-	  pExtinctVec->at(i*10+j)=extinct;
+	  pExtinctVec->at(i*10+j+1)=extinct;  //We start at 1 km
 	}
 	fIn.ignore(120,'\n');  //Skip rest of this line (if any)
       }
@@ -109,7 +114,8 @@ void KSExtinctionFile::readFile(string extinctionFileName)
       istringstream issLast(strBuffer);
       float extinct=0;
       issLast>>extinct;
-      pExtinctVec->at(50)=extinct;
+      pExtinctVec->at(51)=extinct; //we won't use this
+
       fIn.ignore(120,'\n');  //Skip rest of this line (if any)
 
       fExtinctionMap[wavelength]=pExtinctVec;
