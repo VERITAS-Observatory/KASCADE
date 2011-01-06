@@ -717,7 +717,8 @@ double atmosphere::getEtaAtmProf(float* pAltitudeM, float* pLambdaNM)
  // relative to the fEta400(0) read in. See initAtmProf
 // *********************************************************************
 {
-  int i=((*pLambdaNM-180)/5)-1;  //-1 since index starts at 0 for C++;
+
+  int i=((*pLambdaNM-180)/5);  //Index starts at 0 for C++;
   float seaLevelM = 0;
  
   double eta=fEtaSeaLevel.at(i)*

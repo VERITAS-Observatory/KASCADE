@@ -1174,7 +1174,6 @@ c     5 nanometer steps.
      3       0.00060,0.00045,0.00034,0.00025,0.00019,0.00014,0.00011,0.00008,
      4       0.00006,0.00005,0.00003/ 
 
-
 c     Spectral response array for the EMI 9870b pmt.
 c     Taken from old table Pete had for HPW. This is a bialkali tube
 c	and so should behave like the R1450. It does have thicker glass.
@@ -1670,6 +1669,8 @@ c      ********************************************************************
         print*,'    No filter used'
         print*,'    Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
            do i=0,104
+!              lambda=180+i*5
+!              print*,lambda,' ',xp2970eff(i)
               xp2970eff(i)=1.5*xp2970eff(i)
            enddo
            call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,

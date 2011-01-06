@@ -760,12 +760,9 @@ c	And north only!
 ! 11/15/10 GHS, QF Add east component of B field.
 !                  The magnetic field is calculated from the website:
 !             http://www.ngdc.noaa.gov/geomagmodels/struts/calcIGRFWMM
-!		b_field=0.4714      !Gauss
-!		dip_angle=58.23   !Degrees.
-!                angle_east=10.4   !Degrees.
-		b_field=0.4795      !Gauss
-		dip_angle=58.3   !Degrees.
-                angle_east=0.0   !Degrees.
+		b_field=0.4714      !Gauss
+		dip_angle=58.23   !Degrees.
+                angle_east=10.4   !Degrees.
 
 		write(coutstring,1001)'WHIPPLE/VERITAS',b_field,dip_angle,
      1            angle_east
