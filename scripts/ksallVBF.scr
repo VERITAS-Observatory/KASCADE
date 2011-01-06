@@ -126,7 +126,7 @@ jobSpec=$2
 AtmSpec=${jobSpec:0:1}                  #gets S from SWG20DegN0.5Deg50mv1234M2
 TelSpec=${jobSpec:1:1}                  #gets W from CWG20DegN0.5Deg50mv1234M2
 PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2DDeg1234M2
-
+PrimarySpec=${PrimarySpec:1}            #Strip off the U
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
                                           #WVG20Deg2D50mv1234M2AAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
@@ -151,6 +151,7 @@ if [ -n "$DebugPrintEnable" ]; then
   echo ThresholdSpec: $ThresholdSpec
   echo ArrayConfigSpec $ArrayConfigSpec
   echo ThreshSpec $ThreshSpec
+  echo PrimarySpec: $PrimarySpec
 fi
   
 if test "$ThresholdSpec" != "$ArrayConfigSpec" 
@@ -356,7 +357,9 @@ while test $i -le $4
     fi
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran \
 	$ExtinctionFileOption $segfile $pefile
-    rm -v $segfile		#Remove segment file
+    if [ -n "$CleanupEnable" ]; then
+           rm -v $segfile		#Remove segment file
+    fi
   fi
 
 
@@ -596,6 +599,7 @@ if [ -n "$CleanupEnable" ]; then
   rm -vf *
   cd ..
   rmdir $dirID
+
 fi
 
 
