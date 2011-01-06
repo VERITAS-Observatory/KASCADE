@@ -702,7 +702,8 @@ c        elements of photons
 c        photons(1,i),photons(2,i): X,Y (meters)at hobs of photon i.
 c        photons(3,i),photons(4,i),photons(5,i):direction cosigns of photon i.
 c        photons(6,i):Time of arrival of photon i at hobs.
-c	 photons(7,i):Wavelength of photon in nm.Added 25/10/93 G.H.S. V:1:0:2.0
+c	 photons(7,i):Wavelength of photon in nm.
+c        Added 25/10/93 G.H.S. V:1:0:2.0
 
 
 c                Stuff for finding direction cosigns of emitted photons.
@@ -1087,9 +1088,10 @@ c		Add stuff for the 'SL' (Trevers Argentinia Search light array)
 c	20/10/95 GHS V:1:0:3.0
 c		Add reflect_sl. Argentine search light reflectivity table. 
 c		derived form graph of reflectivity of pure rhodium, degraded in
-c		a wavelength dependent manner to accoutn for mirros being dirty.
-c		Dirtyness dependency determined from measured values from Adrian
-c		sent to Trever in an email on this date.
+c		a wavelength dependent manner to accoutn for mirros being 
+c               dirty.
+c		Dirtyness dependency determined from measured values from 
+c               Adrian sent to Trever in an email on this date.
 
 c	24/10/95 GHS V:1:0:3.0
 c		Add quatum efficnecy table for RCA4518(from graph of rca4522,
@@ -1159,20 +1161,40 @@ c     5 nanometer steps.
 
 !Quantum efficiency from XP2970 from John Finley and Philips (180-700nm in 5nm)
 !This is the VERITAS PMT: From Stephen Fegan.
-        data xp2970eff/0.00013,0.00031,0.00076,0.00187,0.00457,0.00988,
-     1       0.01862,0.02878,0.04000,0.05028,0.06007,0.06766,0.07747,0.08500,
-     2       0.09181,0.09758,0.10355,0.11044,0.11792,0.12552,0.13207,0.13625,
-     3       0.13990,0.14435,0.15012,0.15384,0.15757,0.16130,0.16503,0.16828,
-     4       0.17153,0.17478,0.17803,0.17932,0.18062,0.18191,0.18321,0.18342,
-     5       0.18363,0.18384,0.18405,0.18548,0.18690,0.18832,0.18974,0.18977,
-     6       0.18981,0.18984,0.18988,0.18823,0.18658,0.18492,0.18327,0.17999,
-     7       0.17670,0.17342,0.17014,0.16527,0.16040,0.15554,0.15067,0.14627,
-     8       0.14187,0.13747,0.13307,0.12791,0.12276,0.11760,0.11245,0.10293,
-     9       0.09342,0.08391,0.07439,0.06583,0.05726,0.04869,0.04013,0.02957,
-     1       0.02560,0.02187,0.01865,0.01576,0.01324,0.01076,0.00881,0.00693,
-     2       0.00567,0.00425,0.00336,0.00266,0.00194,0.00143,0.00107,0.00081,
-     3       0.00060,0.00045,0.00034,0.00025,0.00019,0.00014,0.00011,0.00008,
-     4       0.00006,0.00005,0.00003/ 
+!        data xp2970eff/0.00013,0.00031,0.00076,0.00187,0.00457,0.00988,
+!     1       0.01862,0.02878,0.04000,0.05028,0.06007,0.06766,0.07747,0.08500,
+!     2       0.09181,0.09758,0.10355,0.11044,0.11792,0.12552,0.13207,0.13625,
+!     3       0.13990,0.14435,0.15012,0.15384,0.15757,0.16130,0.16503,0.16828,
+!     4       0.17153,0.17478,0.17803,0.17932,0.18062,0.18191,0.18321,0.18342,
+!     5       0.18363,0.18384,0.18405,0.18548,0.18690,0.18832,0.18974,0.18977,
+!     6       0.18981,0.18984,0.18988,0.18823,0.18658,0.18492,0.18327,0.17999,
+!     7       0.17670,0.17342,0.17014,0.16527,0.16040,0.15554,0.15067,0.14627,
+!     8       0.14187,0.13747,0.13307,0.12791,0.12276,0.11760,0.11245,0.10293,
+!     9       0.09342,0.08391,0.07439,0.06583,0.05726,0.04869,0.04013,0.02957,
+!     1       0.02560,0.02187,0.01865,0.01576,0.01324,0.01076,0.00881,0.00693,
+!     2       0.00567,0.00425,0.00336,0.00266,0.00194,0.00143,0.00107,0.00081,
+!     3       0.00060,0.00045,0.00034,0.00025,0.00019,0.00014,0.00011,0.00008,
+!     4       0.00006,0.00005,0.00003/ 
+
+
+! New XP2970 Purdue measurments of VERITAS weathered PMT's Jan-01-2011. 
+! Ben Zitzer supplied 310 nm to 700 nm. Used (after scaling to match)XP2970
+! 2005 data from John Finley and Stephen Fegan. (above, commented out) from
+! 180 to 305nm(may be from Philips).
+       data xp2970eff/     0.00016,0.00038,0.00092,0.00226,0.00553,0.01195,!180
+     1     0.02253,0.03482,0.04840,0.06084,0.07268,0.08187,0.09374,0.10285,!210
+     2     0.11109,0.11807,0.12530,0.13363,0.14268,0.15188,0.15980,0.16486,!250
+     3     0.16928,0.17466,0.18165,0.18615,0.19113,0.19776,0.20440,0.20692,!290
+     4     0.20944,0.20987,0.21030,0.21751,0.22473,0.22640,0.22807,0.22826,!330
+     5     0.22845,0.22919,0.22993,0.23249,0.23505,0.23761,0.24017,0.24017,!370
+     6     0.24017,0.24009,0.24002,0.23796,0.23590,0.23381,0.23171,0.22970,!410
+     7     0.22768,0.22112,0.21456,0.20750,0.20044,0.19505,0.18965,0.18535,!450
+     8     0.18104,0.17825,0.17545,0.17033,0.16521,0.15109,0.13696,0.12214,!490
+     9     0.10732,0.09937,0.09141,0.08660,0.08179,0.07818,0.07457,0.07131,!530
+     1     0.06806,0.06456,0.06107,0.05735,0.05362,0.05063,0.04765,0.04396,!570
+     2     0.04027,0.03670,0.03314,0.02972,0.02631,0.02312,0.01994,0.01723,!610
+     3     0.01451,0.01214,0.00978,0.00799,0.00621,0.00493,0.00365,0.00279,!650
+     4     0.00194,0.00147,0.00101/                                        !690
 
 c     Spectral response array for the EMI 9870b pmt.
 c     Taken from old table Pete had for HPW. This is a bialkali tube
@@ -1663,11 +1685,11 @@ c      normal VERITAS mode
 c      ********************************************************************
           else
         print*,'KASLITE-UV PMTS(Veritas) using for cherenkov pe gen:'
-        print*,'    QE:xp2970 JFinley/S.Fegan 2005 Measured VERITAS pmts'
-        print*,'    QE:xp2970 Values incresed by 1.5:max goes from 18% to 28%'
-        print*,'    QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
-        print*,'    No filter used'
-        print*,'    Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
+        print*,'   QE:xp2970 Zitzer/JFinley/S.Fegan 2011 Measured VERITAS pmts'
+        print*,'   QE:xp2970 Values incresed by 1.5:max goes from 24% to 36%'
+        print*,'   QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
+        print*,'   No filter used'
+        print*,'   Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
            do i=0,104
 !              lambda=180+i*5
 !              print*,lambda,' ',xp2970eff(i)
