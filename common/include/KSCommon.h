@@ -40,10 +40,10 @@ const double gElectronicNoiseSigmaPe[2]  = {         .28,         0.0};
 const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 
 //pre OCT 2009
-const int    gFADCNumSamples[2]          = {          24,          10};
+//const int    gFADCNumSamples[2]          = {          24,          10};
 
 //Oct 2009:
-//const int    gFADCNumSamples[2]          = {          20,          10};
+const int    gFADCNumSamples[2]          = {          20,          10};
 
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
