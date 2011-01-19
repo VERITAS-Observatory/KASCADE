@@ -86,12 +86,14 @@ if [ -z $dstDir ] ; then      #Default is pdsf
 fi
 
 
-if [ ${Spec:0:1} = "V" ] ; then
+
+
+if [ ${Spec:1:1} = "V" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
 	dstDir=$dstDir'/veritas'
 fi
 
-if [ ${Spec:0:1} = "W" ] ; then
+if [ ${Spec:1:1} = "W" ] ; then
 	dataDirBase=$dataDirBase'/whipple'
 	dstDir=$dstDir'/whipple'
 fi
@@ -142,7 +144,7 @@ fi
 	
 
 
-if [ ${Spec:1:1} = "G" ]  ; then
+if [ ${Spec:2:1} = "G" ]  ; then
     ZenithAngleDir=$Spec$ArConfig   #comment this out if using base directory.
     if [ -n "$DebugPrintEnable" ]; then
         echo ZenithAngleDir: $dataDirBase/gammas/$ZenithAngleDir
@@ -152,20 +154,20 @@ if [ ${Spec:1:1} = "G" ]  ; then
 
 fi
 
-if [ ${Spec:1:2} = "CR" ] ; then
+if [ ${Spec:2:2} = "CR" ] ; then
 
-   if [ ${Spec:3:1} = "A" ] || [ ${Spec:3:1} = "B" ] || [ ${Spec:3:1} = "C" ]; then
-	TypeSpc=${Spec:3:1}
+   if [ ${Spec:4:1} = "A" ] || [ ${Spec:4:1} = "B" ] || [ ${Spec:4:1} = "C" ]; then
+	TypeSpc=${Spec:4:1}
    fi
-
-   TelSpec=${Spec:0:1}
-   Pspec=$TelSpec'P'${Spec#*CR$TypeSpc} #gets 20DegN0.3Deg50mv from 
+   AtmSpec=${Spec:0:1}
+   TelSpec=${Spec:1:1}
+   Pspec=$AtmSpec$TelSpec'P'${Spec#*CR$TypeSpc} #gets 20DegN0.3Deg50mv from 
                                        #WCR20DegN0.3Deg50mv
 				       #with P. see pg 97 Bash book.
-   PDirSpec=$TelSpec'P'${Spec#*CR}
+   PDirSpec=$AtmSpec$TelSpec'P'${Spec#*CR}
 
-   He4spec=$TelSpec'He4_'${Spec#*CR$TypeSpc} #Replace CR with He4_
-   He4DirSpec=$TelSpec'He4_'${Spec#*CR}
+   He4spec=$AtmSpec$TelSpec'He4_'${Spec#*CR$TypeSpc} #Replace CR with He4_
+   He4DirSpec=$AtmSpec$TelSpec'He4_'${Spec#*CR}
 
    echo find argument1: $dataDirBase/protons/$PDirSpec$ArConfig/
    echo find argument1: $Pspec$ArConfig'GeV*.vbf'

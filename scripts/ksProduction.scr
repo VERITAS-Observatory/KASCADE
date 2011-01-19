@@ -29,10 +29,10 @@ function Protons()
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
        energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
         start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 #10%
-#          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+          end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -43,21 +43,21 @@ function Protons()
     if [ $host = $ISIS ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 #ksaomVBF ~12hr.
-#	BuildIsisScriptList 1 1   9
-#	BuildIsisScriptList 2 10 18 
-#	BuildIsisScriptList 3 19 24
-#	BuildIsisScriptList 4 25 30
-#	BuildIsisScriptList 2 31 31             #for balance
-#	BuildIsisScriptList 5 32 33
-#	BuildIsisScriptList 6 34 36
+	BuildIsisScriptList 1 1   9
+	BuildIsisScriptList 2 10 18 
+	BuildIsisScriptList 3 19 24
+	BuildIsisScriptList 4 25 30
+	BuildIsisScriptList 2 31 31             #for balance
+	BuildIsisScriptList 5 32 33
+	BuildIsisScriptList 6 34 36
 
-	BuildIsisScriptList 1 1 10
-	BuildIsisScriptList 2 11 20
-	BuildIsisScriptList 3 21 25
-	BuildIsisScriptList 4 26 32
-	BuildIsisScriptList 5 33 37
-	BuildIsisScriptList 6 38 41
-	BuildIsisScriptList 1 42 42	        #For balance
+#	BuildIsisScriptList 1 1 10
+#	BuildIsisScriptList 2 11 20
+#	BuildIsisScriptList 3 21 25
+#	BuildIsisScriptList 4 26 32
+#	BuildIsisScriptList 5 33 37
+#	BuildIsisScriptList 6 38 41
+#	BuildIsisScriptList 1 42 42	        #For balance
 
 #For High ksall ~ 5hrs
 #           BuildIsisScriptList 1 35 35
@@ -131,15 +131,15 @@ function Helium4()
     let processEnd=42
 ############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
     enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
-#       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
-#        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
+        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 
 
 
 #10%
-#         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
+         end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)  
 
 #VeritasSet2
 #    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
@@ -151,21 +151,21 @@ function Helium4()
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 #set 1 kasaomVBF ~5 hr.
-#	BuildIsisScriptList 1 6  25
-#	BuildIsisScriptList 2 26 30
-#	BuildIsisScriptList 3 31 33
-#	BuildIsisScriptList 4 34 34
-#	BuildIsisScriptList 5 35 36
-#	BuildIsisScriptList 6 36 36
+	BuildIsisScriptList 1 6  25
+	BuildIsisScriptList 2 26 30
+	BuildIsisScriptList 3 31 33
+	BuildIsisScriptList 4 34 34
+	BuildIsisScriptList 5 35 36
+	BuildIsisScriptList 6 36 36
 
 
-	BuildIsisScriptList 1 6  20
-	BuildIsisScriptList 2 21 30
-	BuildIsisScriptList 3 31 36
-	BuildIsisScriptList 4 37 39
-	BuildIsisScriptList 5 40 40
-    	BuildIsisScriptList 3 41 41     #Balance
-	BuildIsisScriptList 2 42 42     #balance
+#	BuildIsisScriptList 1 6  20
+#	BuildIsisScriptList 2 21 30
+#	BuildIsisScriptList 3 31 36
+#	BuildIsisScriptList 4 37 39
+#	BuildIsisScriptList 5 40 40
+#    	BuildIsisScriptList 3 41 41     #Balance
+#	BuildIsisScriptList 2 42 42     #balance
 
 #For High ksall ~ 5hrs
 #           BuildIsisScriptList 1 35 35

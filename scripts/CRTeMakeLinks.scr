@@ -1,18 +1,18 @@
-#$1 Proton src dir: /project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas/protons/V330/VP20_180Deg
-#$2 He4 src dir:/project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas/he4/V330/VHe4_20_180Deg 
+#$1 V190
+#$2 20Deg
 #$3 A
 #$4 B
 #$5 C
 #$6 D
 
-if test -z $1
+if test -z $3
 then
-  echo Usage: ./CRTeMakeLinks.scr  /project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas//protons/V330/VP20_180Deg /project/projectdirs/astrogfs/veritas_data/glenn/simulations/veritas/he4/V330/VHe4_20_180Deg  A B C D
+  echo Usage: ./CRTeMakeLinks.scr  V190 20Deg A B C D 
   exit
 fi
 
-PSrcDir=$1
-HSrcDir=$2
+PSrcDir=WVP$2
+HSrcDir=WVHe4_$2
 
 CRNEW1=$3
 CRNEW2=$4
@@ -21,19 +21,36 @@ CRNEW4=$6
 
 #Protons
 cd ./protons
-ls $PSrcDir | grep 'te.d'   > List
+echo PWD: $PWD
+	
+#PSDir=$PWD
+PSDir=/disk3/simulations/veritas/protons       #20_180Deg
+#PSDir=/disk2/simulations/veritas/protons      #20Deg
+PSourceDir=$PSDir'/'$1'/'$PSrcDir
+echo PSourceDir: $PSourceDir
+
+#HSDir=$PWD
+HSDir=/disk2/simulations/veritas/he4           #20_180Deg
+#HSDir=/disk2/simulations/veritas/he4          #20Deg
+HSourceDir=$HSDir'/'$1'/'$HSrcDir
+
+echo HSourceDir: $HSourceDir
+
+ls $PSourceDir | grep 'te.d'   > List
+
 
 {
 while read File
 do
   Fend=${File##*'.d'}
   FStart=${File%%'.d'*}
-  FileSrc=$PSrcDir'/'$File
+  FileSrc=$PSourceDir'/'$File
 
   if test -n $CRNEW1
   then
 	NewFile1=$FStart$CRNEW1'.d'$Fend
         ln -vs $FileSrc $NewFile1
+  	#echo $FileSrc $NewFile1
   fi
   if test -n $CRNEW2
   then
@@ -57,19 +74,21 @@ cd ..
 
 #Helium
 cd ./he4
-ls $HSrcDir | grep 'te.d'   > List
+
+ls $HSourceDir | grep 'te.d'   > List
 
 {
 while read File
 do
   Fend=${File##*'.d'}
   FStart=${File%%'.d'*}
-  FileSrc=$HSrcDir'/'$File
+  FileSrc=$HSourceDir'/'$File
 
   if test -n $CRNEW1
   then
 	NewFile1=$FStart$CRNEW1'.d'$Fend
         ln -vs $FileSrc $NewFile1
+  	#echo $FileSrc $NewFile1
   fi
   if test -n $CRNEW2
   then

@@ -13,27 +13,29 @@ then
  exit
 fi
 
-VBFFile=$3'CosmicRay'$2'1234M2.vbf'
+VBFFile=$3'CR'$2'1234M2.vbf'
 echo Output File Name: $VBFFile
 
 
 cd $lcl'/protons'
 
-PDIR='VP'$2'1234M2'
+PDIR='WVP'$2'1234M2'
 mkdir -pv $PDIR
 ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target='./'$PDIR
 
 
 cd $lcl'/he4'
-HDIR='VHe4_'$2'1234M2'
+HDIR='WVHe4_'$2'1234M2'
 mkdir -pv $HDIR
 ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target='./'$HDIR
 
-cd $lcl'/../../veritas'
-./ksWeRock.scr 'VCR'$2 98020 1234M2
+#cd $lcl'/../../veritas'
+cd $vert/veritas
+
+./ksWeRock.scr 'WVCR'$2 98020 1234M2
 
 cd $lcl
-mv  'VCR'$2'1234M2.vbf' $VBFFile
+mv  'WVCR'$2'1234M2.vbf' $VBFFile
 
 cd $lcl'/protons'
 mv $PDIR './'$1'/'$3$PDIR
