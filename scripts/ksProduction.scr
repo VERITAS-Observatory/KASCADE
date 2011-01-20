@@ -102,7 +102,7 @@ function Protons()
             #**********************************************************************
 
 	    let iEntryStart=1
-	    let iEntryEnd=42	
+	    let iEntryEnd=36	
 #	    let iEntryEnd=39
 #	    let iEntryEnd=36          #10% end
 
@@ -206,12 +206,12 @@ function Helium4()
             #**********************************************************************
             #Submit in reverse order so the longest start first.
             #**********************************************************************
-#	    let iEntryStart=6
+	    let iEntryStart=6   #Normal start
 #	    let iEntryEnd=30
-	    let iEntryStart=1
-	    let iEntryEnd=8
+#	    let iEntryStart=1
+#	    let iEntryEnd=8
 #	    let iEntryEnd=42
-#	    let iEntryEnd=36             #10%end
+	    let iEntryEnd=36             #10%end
 
 	    let j=$iEntryEnd
             while test $j -ge $iEntryStart
@@ -223,6 +223,116 @@ function Helium4()
     fi
 }
 #**********************************************************************
+
+
+function CosmicRay()
+#********************************************************************** 
+#Veritas CR (Protons and Helium)
+#********************************************************************** 
+{
+    echo Cosmic Ray: $parspec 
+    echo Protons: $proton_parspec
+    echo Helium4: $he4_parspec     
+    WALLTIME=75:00:00
+#Veritas$ whipple set1/ksaom/kasall
+    let processEnd=42
+############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23 24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
+    p_enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
+    p_energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
+        p_start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1 1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+
+#10%
+          p_end=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1 1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+
+#VeritasSet2
+#    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
+#       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11431 13669 16346 19546 23374 27951 33424)
+#        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1 1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   5   5   5   5 5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+
+
+
+############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
+    he4_enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON  ON    ON  ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON  )
+       he4_energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
+        he4_start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+
+
+
+
+#10%
+         he4_end=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1  1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+
+#VeritasSet2
+#    enableGEN=([1]=ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON  ON    ON    ON    ON   ON  ON  ON  ON  ON  ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON   ON    ON    ON    ON    ON    ON    ON )
+#       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11431 13669 16346 19546 23374 27951 33424)
+#        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#          end=([1]=448  334  249  186  139  104  78   58   43   32    24    18    14  10    8     6     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
+
+
+
+
+#PDSF
+   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+            #**********************************************************************
+            #Submit in reverse order so the longest start first.
+            #**********************************************************************
+
+            let iPEntryStart=1
+            let iHe4EntryStart=6   #Normal start for helium
+            let iPEntryEnd=36
+            let iHe4EntryEnd=36          #10% end
+
+	    let iEntryEnd=$iPEntryEnd
+            if test $iPEntryEnd -lt $iHe4EntryEnd 
+             then
+              let iEntryEnd=$iHe4EntryEnd
+             fi
+
+	    let iEntryStart=$iPEntryStart
+            if test $iPEntryStart -gt $iHe4EntryStart 
+             then
+              let iEntryStart=$iHe4EntryStart
+             fi
+
+            let j=$iEntryEnd
+            while test $j -ge $iEntryStart
+            do
+	     if [ $j -le $iPEntryEnd ] && [ $j -ge $iPEntryStart ];
+               then 
+                parspec=$proton_parspec               
+                enableGen[$j]=${p_enableGen[$j]}
+                start[$j]=${p_start[$j]}
+                end[$j]=${p_end[$j]}
+		energy[$j]=${p_energy[$j]}
+
+                BuildAndSubmitPDSFJobArray $j
+              fi
+
+ 	      if [ $j -le $iHe4EntryEnd ] && [ $j -ge $iHe4EntryStart ]; 
+               then 
+                  parspec=$he4_parspec
+                  enableGen[$j]=${he4_enableGen[$j]}
+                  start[$j]=${he4_start[$j]}
+                  end[$j]=${he4_end[$j]}
+                  energy[$j]=${he4_energy[$j]}
+
+		  BuildAndSubmitPDSFJobArray $j
+              fi
+
+              j=$((j-1))
+            done
+    fi
+
+}
+#**********************************************************************
+
+
+
+
+
 
 function Gammas()
 #**********************************************************************
@@ -747,15 +857,20 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
     let processStart=1
-    parspec=$AtmSpec$TelSpec'P'$spec   #gives SVP20DegN0.3Deg50mv1234M2ABCD
+    #parspec=$AtmSpec$TelSpec'P'$spec   #gives SVP20DegN0.3Deg50mv1234M2ABCD
                                         #from SVCR20DegN0.3Deg50mv1234M2ABCD
-
-    datadir="$dataDirBase/protons"
-    Protons
-
-    parspec=$AtmSpec$TelSpec'He4_'$spec
-    datadir="$dataDirBase/he4"
-    Helium4
+    #datadir="$dataDirBase/protons"
+    #Protons
+    proton_parspec=$AtmSpec$TelSpec'P'$spec
+    proton_datadir="$dataDirBase/protons"
+    
+    #parspec=$AtmSpec$TelSpec'He4_'$spec
+    #datadir="$dataDirBase/he4"
+    #Helium4
+    he4_parspec=$AtmSpec$TelSpec'He4_'$spec
+    he4_datadir="$dataDirBase/he4"
+    
+    CosmicRay
 
     let pspecset=1;
 fi
