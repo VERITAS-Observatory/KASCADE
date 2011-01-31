@@ -1,6 +1,6 @@
 #This runs first 5 Vegas stages on Kascade sim files;
 #$1 .vbf or .root  file to process.
-#$2 Vegas base dir path: Used when you want vegas from a different directory 
+#$2 Vegas base dir  path: Used when you want vegas from a different directory 
 #             than what VEGAS is set to in .bashrc (or equivalent)
 
 #Make simLaser file (even if it already exists, this is very fast)
@@ -17,6 +17,8 @@ Stage5=enable
 #Configurable options:
 #Stage1:
  #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
+ #KASCADE Sims assume there are no camera rotations.
+ KASCADESimCameraRotationsOption='-AIFC_CameraRotation=1/0.0,2/0.0,3/0.0,4/0.0'
 
 #Stage2:
  #NumEventsToAnalyseOption='-G_NumEventsToAnalyse=240000'
@@ -223,7 +225,8 @@ echo RootFileName: $RootFileName
 if [ -n "$Stage1Data" ]; then
     $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
 	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
-	$MaxWindowWidthOption $VBFFileName $RootFileName
+	$MaxWindowWidthOption $KASCADESimCameraRotationsOption \
+	$VBFFileName $RootFileName
 fi
 
 
