@@ -31,6 +31,8 @@ const double gGammaIPhi   =  7.16e-3;          //Spectral Amplitude for gammas
 
 //Update to lastest proton and He4 spectra from: Weibel-Smith et.al. 
 //Astronomy and Astrophysics, 300(1), pg.389-398,Feb. 1, 1998
+//See also my "Whipple 10m Monte-Carlo II" lab book : pg 95
+
 const double gProtonAlpha = -2.77;
 const double gProtonIPhi  =  2.35e4;	       //Spectral Amplitude for protons
 					       //Units=/m**2/sec/sr/GeV
