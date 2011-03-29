@@ -105,11 +105,11 @@ LightConeConcentration 1
 
 # Azimuth angle of the mount (0 degrees North). Overrides 
 # dl, dm, and dn if specified. 
-MountAzDeg 180.0
+MountAzDeg 90.0
 
 # Zenith angle of the mount (0 degrees is Zenith). Overrides 
 # dl, dm, and dn if specified. 
-MountZenithDeg 10.0
+MountZenithDeg 1.0
 
 # Elevation in degrees of mount. Used when 
 # UseElevationForDlDmDn=ON. In that case it superceds 

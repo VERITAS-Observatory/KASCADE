@@ -105,11 +105,24 @@ LightConeConcentration 1
 
 # Azimuth angle of the mount (0 degrees North). Overrides 
 # dl, dm, and dn if specified. 
-MountAzDeg 180.0
+MountAzDeg 0.0
 
 # Zenith angle of the mount (0 degrees is Zenith). Overrides 
 # dl, dm, and dn if specified. 
-MountZenithDeg 10.0
+MountZenithDeg 1.0
+
+# X direction cosign of the mount direction. X goes East. 
+#MountDirectionXDl -1e-15
+
+# Y direction cosign of the mount direction, Y goes South, 
+# maybe! 
+#MountDirectionYDm -0.0174522  #1 DegN
+#MountDirectionYDm -0.34202     #20 Deg N
+
+# Z direction cosign of the mount direction, Z goes down, 
+# for sure. So this is always a negative value. 
+#MountDirectionZDn -0.999848           #1 Deg N
+#MountDirectionZDn -0.939693            #20 deg N
 
 # Elevation in degrees of mount. Used when 
 # UseElevationForDlDmDn=ON. In that case it superceds 
