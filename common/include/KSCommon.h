@@ -77,14 +77,23 @@ const double gPSTStrobeDelayNS           = 6.0;
 
 // ***********************************************************************
 //Whipple ECL Pulses to PST's from CFD's measured by GHS in 09/01
-//VERITAS Single Pe measured by Nepomuk Otte, Pat Moriarty, Mary Kertzman
-// April 2010
-// ***********************************************************************
+//Whipple measured
 //const double gSinglePeRiseTimeNS[2]      = {         2.0,         2.0};
 //const double gSinglePeFallTimeNS[2]      = {         6.0,         8.5};
 
+// ***********************************************************************
+//VERITAS Single Pe measured by Nepomuk Otte, Pat Moriarty, Mary Kertzman
+// April 2010
+// ***********************************************************************
+// Veritas measured:
 const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
 const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+
+//const double gSinglePeRiseTimeNS[2]      = {         2.8,         2.0};
+//const double gSinglePeFallTimeNS[2]      = {         8.0,         8.5};
+
+//const double gSinglePeRiseTimeNS[2]      = {         3.6,         2.0};
+//const double gSinglePeFallTimeNS[2]      = {         9.0,         8.5};
 
 //const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
 
