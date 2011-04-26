@@ -321,11 +321,12 @@ function Gammas()
 
 #Veritas Set1/ksaom/kasall
 #Whipple Set1/kasaom/kasall starts at 84 GeV
-############       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
+############      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565) 
        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11) 
-#         end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
+#Big         end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
          end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    44    34   26  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20)
+
 
 
 
@@ -432,6 +433,43 @@ function Gammas()
 
     fi
 
+#CARVER
+   if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+    #**********************************************************************
+    #Submit in reverse order so the longest start first.
+    #**********************************************************************
+
+           let iEntryStart=1
+#           let iEntryEnd=44
+	   let iEntryEnd=44
+
+#Reverse order (prefered)
+	   let j=$iEntryEnd
+           while test $j -ge $iEntryStart
+            do	
+               if test $j -le 25
+                then
+                  BuildAndSubmitCARVERJobs $j 
+	        else
+                  #BuildAndSubmitLargeCARVERJobs $j
+                  BuildAndSubmitCARVERJobs $j 
+	       fi
+               let j=j-1		
+            done
+
+#normal order
+#	   let j=$iEntryStart
+#           while test $j -le $iEntryEnd
+#            do	
+#               BuildAndSubmitCARVERJobs $j 
+#	       #BuildAndSubmitLargeCARVERJobs $j
+#	       j=$((j+1))		
+#            done
+
+    fi
+#********************************************************************************
+
+
 #PDSF
    if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
             #**********************************************************************
@@ -456,8 +494,8 @@ function Gammas()
 #	    let iEntryEnd=43       #Use BuildAndSubmitPDSFJobGroups @5 each
 # *********************************************************************
 
-           let iEntryStart=1
-	   let iEntryEnd=27
+           let iEntryStart=44
+	   let iEntryEnd=44
 
 #           let iEntryStart=1
 #	   let iEntryEnd=44
@@ -469,8 +507,152 @@ function Gammas()
 	       j=$((j-1))		
             done
     fi
+# ********************************************
+
 }
 #********************************************************************************
+
+function BuildAndSubmitCARVERJobs
+#**********************************************************************
+# Cause CARVER cluster jobs to be submitted.
+# This is the "all showers of one energy in sequence on one core"
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}     
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
+
+ sgeFile=$lcl'/K'$eGeV$pr'_'$pr.pbs
+ echo "#"!/bin/bash                                   >$sgeFile
+ echo cd $lcl                                        >>$sgeFile
+ echo $ksScript $eGeV $pr $showerStart \\            >>$sgeFile
+ echo $showerEnd $datadir $workingDir   \\           >>$sgeFile
+ echo ">>"$lcl"/ksProduction_"$eGeV"_"$pr".log"      >>$sgeFile
+
+ chmod 700 $sgeFile
+ qsub -q mag_serial  -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+}
+
+function BuildAndSubmitLargeCARVERJobs
+#**********************************************************************
+# Cause CARVER cluster jobs to be submitted.
+# Since we have lots and lots of nodes 1 job per shower
+#This version attempts to run n(<8) jobs per node leaving the rest of the nodes
+# empty. This reduces I/O conflicts and greatly speed processing
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}        
+ echo Entry: $1  $pr $eGeV $showerStart $showerEnd
+
+ #*****************************************************************
+ # This is like a job arry submission limited to a max of
+ #  n jobs per node
+ # Purpose is to not overload IO of a node (conisting of 8 cores(cpus))
+ #  Which can slow things down by an order of magnitude or more for the
+ # large files
+ #*****************************************************************
+
+ let coresPerNode=3
+ let numJobs=(showerEnd-showerStart+1)
+ let numNodes=numJobs/coresPerNode+1
+
+ sgeFile=$lcl'/K'$eGeV$pr.pbs
+ echo "#"PBS -S /bin/bash                             >$sgeFile
+ echo "#"PBS -l walltime=4:00:00,pvmem=5gb          >>$sgeFile
+ echo "#"PBS -l nodes=$numNodes                      >>$sgeFile
+ echo cd "$"PBS_O_WORKDIR                            >>$sgeFile
+ 
+ let i=showerStart  
+ let node=0
+ while test $node -lt $numNodes 
+  do
+   let k=1
+   while test $k -le $coresPerNode
+    do
+     if test $i -le $showerEnd
+      then
+       magFile=Mag$eGeV$pr'd'$i.scr
+       echo "#"!/bin/bash                                      >$magFile
+       echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$magFile
+       echo ">>"$lcl"/ksProduction_"$eGeV"d"$i"_"$pr".log "   >>$magFile
+ 
+       chmod 700 $magFile
+
+       echo pbsdsh -n $node $lcl'/'$magFile' &'        >>$sgeFile
+     fi
+     let i=i+1
+     let k=k+1
+   done
+   let node=node+1
+ done
+ echo wait                                           >>$sgeFile
+
+ chmod 700 $sgeFile
+# ************************************************************************
+# Note submission is to the regular magellan queue. We are limited here to
+#running 8 "submissions" at a time/ Also it usually takes hours before the
+# jobs start to run.
+# ************************************************************************
+ qsub -q magellan -V -e k$eGeV$pr'd'$showerStart.err -o k$eGeV$pr'd'$showerStart.log $sgeFile
+}
+
+
+
+function BuildAndSubmitCARVERJobArray
+#**********************************************************************
+# Cause CARVER cluster jobs to be submitted using Job arrays.
+# Since we have lots and lots of nodes 1 job per shower
+# Need to limit number in each job array submission to 1024
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}
+ let numBlock=1024
+
+
+ let numJobBlock=showerEnd-showerStart+1
+ let numArraySubs=numJobBlock/numBlock
+ if test $numArraySubs -gt 0
+  then
+   let numJobBlock=numBlock
+ fi
+ let k=showerStart
+
+ while test $k -le $showerEnd
+  do
+   let kend=$k+numJobBlock-1
+   if test $kend -gt $showerEnd
+    then
+     let kend=showerEnd
+   fi
+
+   echo Entry:  $pr  $eGeV $k $kend
+
+   sgeFile=$lcl'/K'$eGeV$parspec.pbs
+   echo "#"!/bin/bash                                            >$sgeFile
+   echo let i=\$PBS_ARRAYID                                     >>$sgeFile
+   echo cd $lcl                                                 >>$sgeFile
+   echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'\$i\'$parspec.log\' >>$sgeFile
+   echo echo LOGFILE: \$LOGFILE                                 >>$sgeFile
+   echo $ksScript $eGeV $parspec  \$i  \$i $datadir \\          >>$sgeFile
+   echo $workingDir '>'\$LOGFILE                                >>$sgeFile
+
+   chmod 700 $sgeFile
+   qsub -q mag_serial  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
+   let k=kend+1
+
+  done
+}
 
 
 function BuildAndSubmitPDSFJobs
@@ -484,20 +666,21 @@ function BuildAndSubmitPDSFJobs
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
  let i=$showerStart
-      
- echo Entry:  $pr ${energy[$1]} ${start[$1]} ${end[$1]}
+ eGeV=${energy[$1]}
+
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
 
  while test $i -le $showerEnd
  do
-      sgeFile=$lcl'/K'${energy[$1]}'d'$i$parspec.pbs
-      echo "#"!/bin/bash                                           >$sgeFile
-      echo cd $lcl                                                >>$sgeFile
-      echo $ksScript ${energy[$1]} $parspec  $i \\                >>$sgeFile
-      echo $i $datadir $workingDir                \\              >>$sgeFile
-      echo ">>"$lcl"/ksProduction_"${energy[$1]}"d"$i"_"$pr".log" >>$sgeFile
+      sgeFile=$lcl'/K'$eGeV'd'$i$parspec.pbs
+      echo "#"!/bin/bash                                   >$sgeFile
+      echo cd $lcl                                        >>$sgeFile
+      echo $ksScript $eGeV $parspec  $i \\                >>$sgeFile
+      echo $i $datadir $workingDir                \\      >>$sgeFile
+      echo ">>"$lcl"/ksProduction_"$eGeV"d"$i"_"$pr".log" >>$sgeFile
 
       chmod 700 $sgeFile
-      qsub  -V -e k${energy[$i]}'d'$i.err -o k${energy[$i]}'d'$i.log $sgeFile 
+      qsub  -V -e k$eGeV'd'$i.err -o k$eGeV'd'$i.log $sgeFile 
       i=$((i+1))			#do next shower
  done
 }
@@ -513,21 +696,21 @@ function BuildAndSubmitPDSFJobArray
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
  let i=$showerStart
+ eGeV=${energy[$1]}
       
- echo Entry:  $pr  ${energy[$1]} ${start[$1]} ${end[$1]}
+ echo Entry:  $pr  $eGeV $showerStart $showerEnd
 
- sgeFile=$lcl'/K'${energy[$1]}$parspec.pbs
- echo "#"!/bin/bash                                                 >$sgeFile
- echo let i=\$SGE_TASK_ID                                           >>$sgeFile
- echo cd $lcl                                                       >>$sgeFile
- echo LOGFILE=$lcl"/ksProduction_"${energy[$1]}d\$i\'$parspec.log\'   >>$sgeFile
- echo echo LOGFILE: \$LOGFILE                                        >>$sgeFile
- echo $ksScript ${energy[$1]} $parspec  \$i \\                      >>$sgeFile
- echo \$i $datadir $workingDir                \\                    >>$sgeFile
- echo '>'\$LOGFILE                                                   >>$sgeFile
+ sgeFile=$lcl'/K'$eGeV$parspec.pbs
+ echo "#"!/bin/bash                                            >$sgeFile
+ echo let i=\$SGE_TASK_ID                                     >>$sgeFile
+ echo cd $lcl                                                 >>$sgeFile
+ echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'\$i\'$parspec.log\' >>$sgeFile
+ echo echo LOGFILE: \$LOGFILE                                 >>$sgeFile
+ echo $ksScript $eGeV $parspec  \$i \$i $datadir \\           >>$sgeFile
+ echo $workingDir  '>'\$LOGFILE                               >>$sgeFile
 
  chmod 700 $sgeFile
- qsub -t $showerStart':'$showerEnd  -V -e k${energy[$1]}.err -o k${energy[$1]}.log $sgeFile 
+ qsub -t $showerStart':'$showerEnd  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
 }
 
 function BuildAndSubmitPDSFJobGroups
@@ -542,6 +725,7 @@ function BuildAndSubmitPDSFJobGroups
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
  let i=$showerStart
+ eGeV=${energy[$1]}
 
 
  if [ -z $2 ]; then
@@ -549,10 +733,7 @@ function BuildAndSubmitPDSFJobGroups
  else
     let clusterSize=$2
  fi
-
-
-      
- echo Entry:  $1 $pr ${energy[$1]} ${start[$1]} ${end[$1]} $clusterSize
+ echo Entry:  $1 $pr $eGeV $showerStart $showerEnd $clusterSize
 
  while test $i -le $showerEnd
  do
@@ -561,20 +742,19 @@ function BuildAndSubmitPDSFJobGroups
      clusterEnd=$showerEnd
    fi
 
-   sgeFile=$lcl'/K'${energy[$1]}'d'$i"-"$clusterEnd$parspec.pbs
-   echo "#"!/bin/bash                                                 >$sgeFile
-   echo cd $lcl                                                       >>$sgeFile
-   echo LOGFILE=$lcl"/ksProduction_"${energy[$1]}d$i"-"$clusterEnd$parspec".log"   >>$sgeFile
-   echo echo LOGFILE: \$LOGFILE                                        >>$sgeFile
-   echo $ksScript ${energy[$1]} $parspec  $i \\                      >>$sgeFile
-   echo $clusterEnd $datadir $workingDir       \\                    >>$sgeFile
-   echo '>'\$LOGFILE                                                   >>$sgeFile
+   sgeFile=$lcl'/K'$eGeV'd'$i"-"$clusterEnd$parspec.pbs
+   echo "#"!/bin/bash                                                       >$sgeFile
+   echo cd $lcl                                                            >>$sgeFile
+   echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'$i"-"$clusterEnd$parspec".log" >>$sgeFile
+   echo echo LOGFILE: \$LOGFILE                                            >>$sgeFile
+   echo $ksScript $eGeV $parspec  $i $clusterEnd $datadir $workingDir \\   >>$sgeFile
+   echo '>'\$LOGFILE                                                       >>$sgeFile
 
    chmod 700 $sgeFile
-   qsub -V -e k${energy[$1]}.err -o k${energy[$1]}.log $sgeFile 
+   qsub -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
  
 
-      i=$((clusterEnd+1))			#do next shower
+   i=$((clusterEnd+1))			#do next shower
  done
 }
 
@@ -593,21 +773,24 @@ function SubmitAmdahlPBSScripts()
 
  while test $i -le $processEnd
  do
-      echo Entry: $i ${energy[$i]} ${start[$i]} ${end[$i]} ${queues[$i]}
+      eGeV=${energy[$i]}
+      let showerStart=${start[$i]}
+      let showerEnd=${end[$i]}
+      echo Entry: $i $eGeV $showerStart $showerEnd ${queues[$i]}
 
       pbsFile=$lcl/ks_$i$parspec.pbs
-      echo "#"PBS -N 'pbs_'$sub'_'$i                                 >$pbsFile
-      echo "#"PBS -e 'pbs_'$sub'_'$i'.err'                          >>$pbsFile
-      echo "#"PBS -o 'pbs_'$sub'_'$i'.log'                          >>$pbsFile
-      echo "#"PBS -m ae                                             >>$pbsFile
-      echo "#"PBS -M $user"@purdue.edu"                             >>$pbsFile
-      echo "#"PBS -q ${queues[$i]}                                  >>$pbsFile
-      echo "#"PBS -l mem=$maxMem                                    >>$pbsFile
-      echo "#"PBS -l walltime=$WALLTIME                             >>$pbsFile
-      echo "#"PBS -l nodes=1:home                                   >>$pbsFile
-      echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\        >>$pbsFile
-      echo ${end[$i]} $datadir $workingDir                \\        >>$pbsFile
-      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"                   >>$pbsFile
+      echo "#"PBS -N 'pbs_'$sub'_'$i                   >$pbsFile
+      echo "#"PBS -e 'pbs_'$sub'_'$i'.err'            >>$pbsFile
+      echo "#"PBS -o 'pbs_'$sub'_'$i'.log'            >>$pbsFile
+      echo "#"PBS -m ae                               >>$pbsFile
+      echo "#"PBS -M $user"@purdue.edu"               >>$pbsFile
+      echo "#"PBS -q ${queues[$i]}                    >>$pbsFile
+      echo "#"PBS -l mem=$maxMem                      >>$pbsFile
+      echo "#"PBS -l walltime=$WALLTIME               >>$pbsFile
+      echo "#"PBS -l nodes=1:home                     >>$pbsFile
+      echo $ksScript $eGeV $parspec  $showerStart \\  >>$pbsFile
+      echo $showerEnd $datadir $workingDir        \\  >>$pbsFile
+      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"     >>$pbsFile
       qsub $pbsFile
       i=$((i+1))			#do next process
  done
@@ -626,16 +809,20 @@ function BuildIsisScriptList()
 
  while test $i -le $processEnd
  do
+    eGeV=${energy[$i]}
+    let showerStart=${start[$i]}
+    let showerEnd=${end[$i]}
+    echo Entry: $i  $parspec $eGeV $showerStart $showerEnd 
+
     if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
     else
 	logFile=' '
     fi
-    echo Entry: $i  $parspec ${energy[$i]} ${start[$i]} ${end[$i]} 
   
-    echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
-    echo ${end[$i]} $datadir $workingDir                \\   >>$jobScript
-    echo $logFile                                            >>$jobScript
+    echo $ksScript $eGeV $parspec  $showerStart \\   >>$jobScript
+    echo $showerEnd $datadir $workingDir        \\   >>$jobScript
+    echo $logFile                                    >>$jobScript
 
     i=$((i+1))			#do next process
  done
@@ -655,16 +842,20 @@ function BuildPulsarScriptList()
 
  while test $i -le $processEnd
  do
+    eGeV=${energy[$i]}
+    let showerStart=${start[$i]}
+    let showerEnd=${end[$i]}
+    echo Entry: $i $eGeV $showerStart $showerEnd
+
     if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
     else
 	logFile=' '
     fi
-    echo Entry: $i ${energy[$i]} ${start[$i]} ${end[$i]}
  
-    echo $ksScript ${energy[$i]} $parspec  ${start[$i]} \\   >>$jobScript
-    echo ${end[$i]} $datadir $workingDir                \\   >>$jobScript
-    echo $logFile                                            >>$jobScript
+    echo $ksScript $eGeV $parspec  $showerStart \\ >>$jobScript
+    echo $showerEnd $datadir $workingDir        \\ >>$jobScript
+    echo $logFile                                  >>$jobScript
     jobUsed[$1]=YES
 
     i=$((i+1))			#do next process
@@ -678,6 +869,7 @@ function BuildPulsarScriptList()
 #*************************************************************
 lcl="$PWD"
 host=$(hostname)
+echo host: $host
 
 
 #script directory
@@ -717,6 +909,12 @@ PDSF2=pdsf2
 PDSF3=pdsf3
 PDSF4=pdsf4
 PDSF5=pdsf5
+
+CARVER1=cvrsvc01
+CARVER2=cvrsvc02
+CARVER3=cvrsvc03
+CARVER4=cvrsvc04
+CARVER5=cvrsvc05
 
 if [ $host = $ISIS ] ; then
     if test ${lcl:1:4} = "disk"
@@ -784,6 +982,10 @@ if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $
     dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
     workingDir=$lcl
 fi
+if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    workingDir=$SCRATCH
+fi
 
 user=$USER
 
@@ -826,7 +1028,8 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     TelSpec=${jobSpec:1:1}              #gets W from CWCR20DegN0.5Deg50mv1234M2
     spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
-    if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+    if [ $host = $PDSF1 ]   || [ $host = $PDSF2 ]   || [ $host = $PDSF3 ]   || [ $host = $PDSF4 ]   || [ $host = $PDSF5 ]   || \
+       [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
  
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
@@ -875,7 +1078,7 @@ if [ ${jobSpec:2:1} = "G" ]; then
     let pspecset=1;
 fi
 
-echo datadir $datadir
+ echo datadir $datadir
 
 if [ $pspecset -ne 1 ]; then
     echo No such Particle spec: $1
@@ -933,6 +1136,8 @@ fi
 #Nothing for AMDAHL
 
 #Nothing for PDSF
+
+#Nothing for CARVER
 
 
 
