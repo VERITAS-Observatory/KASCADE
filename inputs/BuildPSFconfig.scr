@@ -1,0 +1,35 @@
+#Build new PSF ksTrigger config files from existing 330 files
+#Also set up links
+#$1 pSF designation: Example: 230
+
+
+#main loop
+
+ls |grep ksTriggerV | grep .config_330 |xargs -n1 >List
+ext=$1
+
+{
+  while read InputFile
+   do
+     ConfigName=${InputFile%%config*}config
+     #echo ConfigName: $ConfigName
+
+     OutputFile=$ConfigName'_'$ext
+     #echo OutputFile: $OutputFile
+
+     if [ -e "$OutputFile" ];
+      then
+        rm -v $OutputFile
+     fi
+
+     sed s/.0330/.0$ext'/' <$InputFile >$OutputFile
+
+     if [ -e "$ConfigName" ];
+      then
+        rm -v $ConfigName
+     fi
+     LNCOMMAND="ln -s $OutputFile $ConfigName"
+     #echo LNCOMMAND: $LNCOMMAND
+     $LNCOMMAND
+   done
+}<List	
