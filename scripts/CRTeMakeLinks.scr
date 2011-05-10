@@ -19,18 +19,20 @@ CRNEW2=$4
 CRNEW3=$5
 CRNEW4=$6
 
+lcl=$PWD
+
 #Protons
-cd ./protons
+cd $lcl'/protons'
 echo PWD: $PWD
 	
 #PSDir=$PWD
-PSDir=/disk3/simulations/veritas/protons       #20_180Deg
+PSDir=$lcl'/protons'       #20_180Deg
 #PSDir=/disk2/simulations/veritas/protons      #20Deg
 PSourceDir=$PSDir'/'$1'/'$PSrcDir
 echo PSourceDir: $PSourceDir
 
 #HSDir=$PWD
-HSDir=/disk2/simulations/veritas/he4           #20_180Deg
+HSDir=$lcl'/he4'           #20_180Deg
 #HSDir=/disk2/simulations/veritas/he4          #20Deg
 HSourceDir=$HSDir'/'$1'/'$HSrcDir
 
