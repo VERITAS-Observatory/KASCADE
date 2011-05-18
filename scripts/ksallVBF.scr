@@ -11,18 +11,21 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-KascadeEnable=enable
-LightEnable=enable
-PeSortMergeEnable=enable
-TriggerEnable=enable
-#AomegaEnable=enable                   #These next 2 operate on te files only
-#ArrayTriggerEnable=enable
+#KascadeEnable=enable
+#LightEnable=enable
+#PeSortMergeEnable=enable
+#TriggerEnable=enable
+AomegaEnable=enable                   #These next 2 operate on te files only
+ArrayTriggerEnable=enable
 
 Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
                                    #Else we get original T1 postion (near T4)
 RemoveSingleVBF=enable
 CleanupEnable=enable
 DebugPrintEnable=enable
+VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
+                                   # $5$Detectorspec:
+                                   # Ex: .../simulations/veritas/protonsABCD
 
 
 
@@ -125,7 +128,7 @@ echo Working Directory is $wrkdir
 jobSpec=$2
 AtmSpec=${jobSpec:0:1}                  #gets S from SWG20DegN0.5Deg50mv1234M2
 TelSpec=${jobSpec:1:1}                  #gets W from CWG20DegN0.5Deg50mv1234M2
-PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2DDeg1234M2
+PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2D50mv1234M2
 PrimarySpec=${PrimarySpec:1}            #Strip off the U
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
                                           #WVG20Deg2D50mv1234M2AAAB
@@ -148,6 +151,8 @@ ArrayConfigSpec=${ThresholdSpec##$ThreshSpec} # gets 1234M2BBAB from
 let TEnd=$(expr length $ArrayConfigSpec)
 
 if [ -n "$DebugPrintEnable" ]; then
+  echo AtmSpec: $AtmSpec
+  echo TriggerSpec: $TriggerSpec
   echo ThresholdSpec: $ThresholdSpec
   echo ArrayConfigSpec $ArrayConfigSpec
   echo ThreshSpec $ThreshSpec
@@ -289,7 +294,17 @@ $src/randomCreateRanluxSeed -s $seed -o ksArrayTrigger.ran
 #Note it includes data path
 ShwrTe=$5'/'$AtmSpec$TriggerSpec'GeV'$1'te'
 SingleShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec'GeV'$1
-MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+echo ShwrTe: $ShwrTe
+
+if [ -n "$VBFOutputToDetectorSpecDir" ];
+ then
+  mkdir -p $5'/'$DetectArraySpec
+  MultShwr=$5'/'$DetectArraySpec'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+ else
+  MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+fi
+
+echo MultShwr: $MultShwr
 
 #Define Multiplicity option
 MultOption="-ArrayTriggerMultiplicity="$ArrayMult
@@ -453,7 +468,8 @@ while test $i -le $4
       if [ -n "$DebugPrintEnable" ]; then
          echo VBFOutputFileName: $VBFFile
          echo j: $j ksAomegaConfig[j] ${ksAomegaConfig[$j]}
-      fi
+         echo tefile $tefile
+     fi
       $src/ksAomega -config=${ksAomegaConfig[$j]} \
                   -RandomSeedFileName=ksAomega.ran \
                   -VBFOutputFileName=$VBFFile  $tefile
@@ -468,7 +484,7 @@ while test $i -le $4
 
   #Make multiple links to file to use for different telescopes
   #Note if dcount=0 we use the same file for all telescopes.
-    VBFFileMult=$MultShwr'.d'$i'.vbf'      #Ouput file Not local
+    VBFFileMult=$MultShwr'.d'$i'.vbf'      #Output file Not local
 
     #Zero the  ShowerNames options list.
     ShowerNameOptions=
