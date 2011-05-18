@@ -1,0 +1,126 @@
+#$1 is PSF sub_dir  Ex: V330 or V190
+#$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 20_180Deg
+#$3: Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
+#$4: Sub dir at UCLA to put resulting VBF files. Like Oct1_2009.
+#$5: start direction Index. defualt is 0. 
+#$6: end direction Index. defualt is 8. 
+
+lcl=$PWD
+echo lcl: $lcl
+
+echo Argument1: $1
+echo Argument2: $2
+echo Argument3: $3
+echo Argument4: $4
+echo Argument5: $5
+echo Argument6: $6
+
+
+Base=$3
+echo Base: $Base
+
+UCLASubDir=$4
+
+if  [ -z "$3" ]
+then
+ echo Fatal-Please supply all arguments Ex: ./GProcessAll V190 40_180Deg Noise3_5 Oct1_2009  
+
+ exit
+fi
+
+cd $lcl/gammas
+
+if  [ -z "$5" ] ; 
+then
+  let i=0;
+else
+  let i=$5
+fi
+pwd
+if  [ -z "$6" ] ; 
+then
+  let end=8;
+else
+cd   let end=$6
+fi
+
+#let i=0
+#let i=2
+#let end=2
+#let end=3
+#let end=4
+#let end=8
+#let end=0
+
+echo i start: $i
+echo end: $end
+
+ArrayDir='WVG'$2'2D50mv1234M2'
+SingleDir='WVG'$2'2D50mv'
+
+mkdir -pv $ArrayDir
+mkdir -pv $SingleDir
+
+ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target=$ArrayDir
+
+#ls | grep vbf |grep $2 | xargs -n1 mv -v --target=$SingleDir
+
+while test $i -le $end
+ do
+    direction=$i
+    if test $direction = '0'
+    then
+       wbl=0.0Wbl
+    fi
+    if test $direction = '1'
+    then
+       wbl=S0.25Wbl
+    fi
+    if test $direction = '2'
+    then
+      wbl=S0.5Wbl 
+    fi
+    if test $direction = '3'
+    then
+       wbl=S0.75Wbl
+    fi
+    if test $direction = '4'
+    then
+       wbl=S1.0Wbl
+    fi
+    if test $direction = '5'
+    then
+       wbl=S1.25Wbl
+    fi
+    if test $direction = '6'
+    then
+       wbl=S1.5Wbl
+    fi
+    if test $direction = '7'
+    then
+       wbl=S1.75Wbl
+    fi
+    if test $direction = '8'
+    then
+       wbl=S2.0Wbl
+    fi
+
+    VBFFile=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.vbf'
+    ROOTFile=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.root'
+
+
+    sgeFile=$lcl'/'$ArrayDir$wbl'.pbs'
+    echo "#"!/bin/bash                                           >$sgeFile
+    echo cd $lcl'/../../veritas'                                >>$sgeFile
+    echo './ksWeRock.scr '$SingleDir 98020 1234M2 $direction \\ >>$sgeFile
+    echo ">"$lcl/'/'$ArrayDir$wbl'.log'                         >>$sgeFile
+    echo cd $lcl                                                >>$sgeFile
+    echo mv  -v $ArrayDir'D'$direction'.vbf' $VBFFile           >>$sgeFile
+
+    chmod 700 $sgeFile
+    qsub -q mag_serial -V -e $SingleDir$wbl'.err' -o $SingleDir$wbl'pbs.log' $sgeFile 
+
+    i=$((i+1))			#do next directoion
+done
+
+
