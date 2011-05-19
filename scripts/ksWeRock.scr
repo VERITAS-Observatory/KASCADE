@@ -9,12 +9,12 @@
 #$1 particle ID (VG20DegS0.5Deg50mv) Required
 #$2 Run Number  (95001, 90020)       Required 
 #$3 Arrayconfig/Multiplicity  (12--M2 123-M2 1234M3) Not required
-#$4 (or $3) Direction index. If $3 has no 'M' in it then $3 is 
-#   considered the direction index and $4 is ignored.Not required
+#$4 Direction index. (-1 means all)
+#$5 dir tag  spec
+
 #Ex ./ksWeRock.scr VG20Deg50mv  95020 123-M2 
 #Ex ./ksWeRock.scr VG20Deg2D50mv 95021 123-M2 4
-#Ex ./ksWeRock.scr VG1Deg50mv 95002 8
-#Ex../ksWeRock.scr VCRA10Deg50mv 96010 1234M2
+#Ex../ksWeRock.scr VCRA10Deg50mv 96010 1234M2 0 W230MDL1
 
 CleanupEnable=enable
 DebugPrintEnable=enable
@@ -49,6 +49,26 @@ PDSF3=pdsf3
 PDSF4=pdsf4
 PDSF5=pdsf5
 
+CARVER1=cvrsvc01
+CARVER2=cvrsvc02
+CARVER3=cvrsvc03
+CARVER4=cvrsvc04
+CARVER5=cvrsvc05
+
+echo host: $host
+
+#CARVER
+if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    dstDir=/project/projectdirs/m1304/veritas_CM/simulations
+fi
+if [ ${host:0:1} = "c" ]; then
+    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    dstDir=/project/projectdirs/m1304/veritas_CM/simulations
+fi
+
+
+#PDSF
 if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
     dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
     dstDir=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
@@ -86,8 +106,6 @@ if [ -z $dstDir ] ; then      #Default is pdsf
 fi
 
 
-
-
 if [ ${Spec:1:1} = "V" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
 	dstDir=$dstDir'/veritas'
@@ -122,34 +140,32 @@ if [ -n "$DebugPrintEnable" ]; then
   echo Working dir: $PWD
 fi
 
+if [ -n "$4" ]; 
+ then
+  let i=$4
+  if [ $i -ge 0 ]; then
+    DirIndexOption='-DirectionIndex='$4
+    direction=$4
+    echo 'direction:' $direction
+   else
+    echo No direction index. Accept all events
+  fi
+  if [ -n "$5" ]; 
+   then
+    TAG=$5
+    echo TAG: $TAG
+  fi
+ else
+   echo No direction index. Accept all events
+fi
 
-AC=$3                      #Check to see if $3 is an array configuration
-
-if [ ${AC:4:1} != "M" ]; then
-    if [ -n "$3" ]; then
-	DirIndexOption='-DirectionIndex='$3
-        direction=$3
-	echo direction from 3
-    fi
-else
-    ArConfig=$3
-    if [ -n "$4" ]; then
-	DirIndexOption='-DirectionIndex='$4
-        direction=$4
-        echo 'direction from 4:'$direction':'
-    fi
-fi	
-
-
-	
-
-
+ArConfig=$3
 if [ ${Spec:2:1} = "G" ]  ; then
     ZenithAngleDir=$Spec$ArConfig   #comment this out if using base directory.
     if [ -n "$DebugPrintEnable" ]; then
         echo ZenithAngleDir: $dataDirBase/gammas/$ZenithAngleDir
     fi
-    find $dataDirBase/gammas/$ZenithAngleDir -name $Spec$ArConfig'GeV*.vbf'  >GList
+    find $dataDirBase/gammas/$ZenithAngleDir$TAG -name $Spec$ArConfig'GeV*.vbf'  >GList
     gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 
 fi
@@ -169,12 +185,12 @@ if [ ${Spec:2:2} = "CR" ] ; then
    He4spec=$AtmSpec$TelSpec'He4_'${Spec#*CR$TypeSpc} #Replace CR with He4_
    He4DirSpec=$AtmSpec$TelSpec'He4_'${Spec#*CR}
 
-   echo find argument1: $dataDirBase/protons/$PDirSpec$ArConfig/
+   echo find argument1: $dataDirBase/protons/$PDirSpec$ArConfig$TAG/
    echo find argument1: $Pspec$ArConfig'GeV*.vbf'
 
-   find $dataDirBase/protons/$PDirSpec$ArConfig/ -name $Pspec$ArConfig'GeV*.vbf'  >CRList
+   find $dataDirBase/protons/$PDirSpec$ArConfig$TAG/ -name $Pspec$ArConfig'GeV*.vbf'  >CRList
 
-   find $dataDirBase/he4/$He4DirSpec$ArConfig/ -name $He4spec$ArConfig'GeV*.vbf'    >>CRList
+   find $dataDirBase/he4/$He4DirSpec$ArConfig$TAG/ -name $He4spec$ArConfig'GeV*.vbf'    >>CRList
    gawk 'gsub(/.vbf/,"",$1)' CRList  >ShowerList  
 fi
 
@@ -198,17 +214,20 @@ fi
 #                             -EnableDebugPrint \
 #This is normal version 
 
-     $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
+  OutputVBFFile=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf'
+  echo Output VBF File: $OutputVBFFile
+
+      $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
                            -MinimumWeightFraction=.0 \
 	                   -RunNumber=$2 \
-                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir'.vbf' \
+                      	   -OutputVBFFileName=$OutputVBFFile \
 			   $DirIndexOption \
                            ShowerList 
 
 #This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
 #     $KASCADEBASE/bin/ksSumFiles  \
 #	                   -RunNumber=$2  \
-#                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir'.vbf' \
+#                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf' \
 #			   $DirIndexOption \
 #                           ShowerList 
 
