@@ -12,19 +12,6 @@
 #include "KSArea.h"
 
 extern "C" float pran(float* dummy);
-extern "C" void whippletilt(double* fDlp, double* fDmp, double* fDnp, 
-			    double* fDnDnm, double* fTDlm, double* fTDmm, 
-			    double* fTDnm,double* fXDl, double* fXDm, 
-			    double* fXDn, double* fYDl, double* fYDm, 
-			    double* fYDn, double* fX, double* fY, 
-			    double* fTime, double* fMirrorRadiusSquared, 
-			    double* fMinimumDnTight, double* fMinimumDnLoose, 
-			    double* fFacetDiameterM,double* fFocalLength,
-			    double* fJitterWidthEastWestRad,
-			    double* fJitterWidthNorthSouthRad,
-			    double* fMetersPerDeg,
-			    double* fWX, double* fWY,int* fDump, 
-			    double* fPeTime, double* fPeTimeTilt); 
 
 KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile, 
 	       KSSegmentHeadData* pSegmentHead, KSPeHeadData* pPeHead, 
@@ -116,8 +103,28 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
 
     }
 
+  // *******************************************************************
+  // Construct the Ray tracing object:KSTiltTrace
+  // (repklaces whippletilt)
+  // *******************************************************************
+  std::string alignmentMethod="WHIPPLE";
+  if(pfDataIn->pfTeHead->fAlignmentMethod==MCGILL){
+    alignmentMethod="MCGILL";
+  }
 
-
+  pfTiltAndTrace=new KSTiltAndTrace(
+				  pfCamera->fMinimumDnTight, 
+				  pfCamera->fMinimumDnLoose, 
+				  pfCamera->fMirrorRadiusSquared,
+				  pfCamera->fFacetDiameterM,
+				  pfCamera->fFocalLengthM,
+				  pfCamera->fJitterWidthEastWestRad,
+				  pfCamera->fJitterWidthNorthSouthRad,
+				  pfCamera->fMetersPerDeg,
+				  pfDataIn->pfTeHead->fFocalPlaneLocationM,
+				  pfDataIn->pfTeHead->fAlignmentPlaneLocationM,
+				  alignmentMethod);
+  
   fNumAreasProcessed=0;
   fGoodTriggerCount=0;
 }
@@ -226,18 +233,19 @@ void KSArea::ProcessImages()
       // For Gamma2D we really only want positions along X. This was set 
       // up in MOuntDirections
       // ***************************************************************
-			// Preset for efficiency:Used in WHIPPLE_TILT
-      double fTDlm=pfMountDir->pfDlm[ithphi];   //Mount direction
-      double fTDmm=pfMountDir->pfDmm[ithphi];
-      double fTDnm=pfMountDir->pfDnm[ithphi];
+			// Preset for efficiency:Used in KSTiltAndTrace
+     
+      pfTiltAndTrace->fTDlm=pfMountDir->pfDlm[ithphi];
+      pfTiltAndTrace->fTDmm=pfMountDir->pfDmm[ithphi];
+      pfTiltAndTrace->fTDnm=pfMountDir->pfDnm[ithphi];
       
-      double fXDl=pfMountDir->pfXDlm[ithphi];   //X vector in focal plane for 
-      double fXDm=pfMountDir->pfXDmm[ithphi];   //this mount direction
-      double fXDn=pfMountDir->pfXDnm[ithphi];
+      pfTiltAndTrace->fXDl=pfMountDir->pfXDlm[ithphi];
+      pfTiltAndTrace->fXDm=pfMountDir->pfXDmm[ithphi];
+      pfTiltAndTrace->fXDn=pfMountDir->pfXDnm[ithphi];
       
-      double fYDl=pfMountDir->pfYDlm[ithphi];   //Y vector in focal plane for 
-      double fYDm=pfMountDir->pfYDmm[ithphi];   //this mount direction
-      double fYDn=pfMountDir->pfYDnm[ithphi];
+      pfTiltAndTrace->fYDl=pfMountDir->pfYDlm[ithphi];
+      pfTiltAndTrace->fYDm=pfMountDir->pfYDmm[ithphi];
+      pfTiltAndTrace->fYDn=pfMountDir->pfYDnm[ithphi];
       
       double fEmissionAltitudeSum=0;
       double fEmissionAltitudeSquaredSum=0;
@@ -254,50 +262,50 @@ void KSArea::ProcessImages()
       int dump2=0;
       int dump3=0;
       int dump4=0;
+      int dump5=0;
       bool fPesHitPixels=false;
       for(int ipe=0;ipe<fNumPes;ipe++)
 	{
-	  double fDlp=fPes[ipe].fPhotonDl;     // Direction cosigns of photon
-	  double fDmp=fPes[ipe].fPhotonDm;
+	  double fDlp=fPes.at(ipe).fPhotonDl; // Direction cosigns of photon
+	  double fDmp=fPes.at(ipe).fPhotonDm;
 	  double fDnp = sqrt(1.-fDlp*fDlp-fDmp*fDmp); //Recreate pe's dn. 
 	                                              //Going down so 
                                                       //should be positive
-	  double fDnDnm=fDnp*fTDnm;
+	  pfTiltAndTrace->fDlr=fDlp;
+	  pfTiltAndTrace->fDmr=fDmp;
+	  pfTiltAndTrace->fDnr=fDnp;
+
+	  pfTiltAndTrace->fXg=fPes.at(ipe).fX;
+	  pfTiltAndTrace->fYg=fPes.at(ipe).fY;
+ 
+	  pfTiltAndTrace->fTime=fPes.at(ipe).fTime;
 
 // ***************************************************************************
 // 	Collect this  Pe into image this direction
 // ***************************************************************************
-// 	WHIPPLE_TILT dtermines: 1:Does pe hit focal plane. 2:Does pe hit mirror
-// 	at its present inclination.3:Angle of pe to mirror. 
-// 	4:Position in focal plane of pe after including aberrations.
-// 	WHIPPLE_TILT also corrects pe_into tilted mirror plane.
+// 	pfTiltAndTrace detrmines: 
+//	      1:Does pe hit focal plane. 
+//	      2:Does pe hit mirror at its present inclination.
+//            3:Angle of pe to mirror. 
+// 	      4:Position in focal plane of pe after including aberrations.
+//            pfTiltAndTrace corrects pe_into tilted mirror plane.
 // ***************************************************************************
-// whippletilt is f90 modified from whipple_tilt to interface with this code
+// KSTiltAndTrace is a C++ modified from whipple_tilt to interface with this 
+// code. Additions have been made for alignment methods and dfocalPlane 
+// locations
 // ***************************************************************************
-	  double fWX=0;
-	  double fWY=0;
-	  int    fDump=0;   //Flag that we are to drop this pe (drop==1)
-	  double fPeTime;
-	  double fPeTimeTilt;
+	  int dump=pfTiltAndTrace->Tilt(); //dump is Flag that we are to drop 
+	                                  // this pe (drop==1)
+	  double fWX=pfTiltAndTrace->fW[0];
+	  double fWY=pfTiltAndTrace->fW[1];
+	  double fPeTime=pfTiltAndTrace->fPeTime;
 
-	  //if(fAreaNx==0 && fAreaNy==0)fWX=-1;
-	  whippletilt(&fDlp, &fDmp, &fDnp, &fDnDnm, &fTDlm, &fTDmm, &fTDnm,
-		      &fXDl, &fXDm, &fXDn, &fYDl, &fYDm, &fYDn, &fPes[ipe].fX,
-		      &fPes[ipe].fY, &fPes[ipe].fTime, 
-		      &pfCamera->fMirrorRadiusSquared, 
-		      &pfCamera->fMinimumDnTight, 
-		      &pfCamera->fMinimumDnLoose, 
-		      &pfCamera->fFacetDiameterM,
-		      &pfCamera->fFocalLengthM,
-		      &pfCamera->fJitterWidthEastWestRad,
-		      &pfCamera->fJitterWidthNorthSouthRad,
-		      &pfCamera->fMetersPerDeg,
-		      &fWX, &fWY,&fDump, &fPeTime, &fPeTimeTilt); 
-	  if(fDump==1)            //Note here that we now use type int for 
+	  if(dump==1)            //Note here that we now use type int for 
 	    {	                  //fDump to avoid differences between Absoft 
 	      if(fWX==1)dump1++;  //and Intel Fortrans definions of true and 
 	      if(fWX==2)dump2++;  //false
 	      if(fWX==3)dump3++;
+	      if(fWX==4)dump4++;
 	      fDumping++;
 	      continue;
 	    }                 // drop pe go to next direction.
@@ -334,7 +342,7 @@ void KSArea::ProcessImages()
 	  bool fDumpFlag=pfCamera->getPixelIndex(fWX,fWY,fPixelIndex);
 	  if(fDumpFlag)
 	    {
-	      dump4++;
+	      dump5++;
 	      fDumping++;
 	      continue;
 	    }                 // drop pe go to next one.
@@ -355,13 +363,13 @@ void KSArea::ProcessImages()
 	  pfCamera->fPixel[fPixelIndex].fTimePe.push_back(fPeTime);
 
 	  fPeHits++;
-	  if(fPes[ipe].fTrackType==4 || fPes[ipe].fTrackType==5)
+	  if(fPes.at(ipe).fTrackType==4 || fPes.at(ipe).fTrackType==5)
 	    {
 	      fMuonSum++;
 	    }
 	  
 
-	  double fEmAlt=fPes[ipe].fEmissionAltitude;
+	  double fEmAlt=fPes.at(ipe).fEmissionAltitude;
 	  fEmissionAltitudeSum        += fEmAlt;
 	  fEmissionAltitudeSquaredSum += fEmAlt*fEmAlt;
 
@@ -370,7 +378,7 @@ void KSArea::ProcessImages()
 
 
 // ***************************************************************************
-//  We now have all the pe's collected into the  disc
+//  We now have all the pe's collected into the discriminators
 // ***************************************************************************
 // Test to see if we have al least on pixel with a pe even look for a trigger
       if(!fPesHitPixels)
@@ -386,8 +394,8 @@ void KSArea::ProcessImages()
       
       if(fTriggered)
 	{
-	  fTe.fMountDl=fTDlm;  //direction of the mount
-	  fTe.fMountDm=fTDmm;
+	  fTe.fMountDl= pfTiltAndTrace->fTDlm;  //direction of the mount
+	  fTe.fMountDm= pfTiltAndTrace->fTDmm;
 	  fTe.fNx=fAreaNx;
 	  fTe.fNy=fAreaNy;
 	  fTe.fAomega=pfMountDir->fAomega;

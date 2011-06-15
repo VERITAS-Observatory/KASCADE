@@ -17,7 +17,7 @@
 #include "KSKascadeNames.h"
 
 // **************************************************************************
-std::string KSTriggerDataIn::sDefaultCameraType="WHIPPLE490";
+std::string KSTriggerDataIn::sDefaultCameraType="VERITAS499";
 std::string KSTriggerDataIn::sDefaultTraceEnable="OFF";
 std::string KSTriggerDataIn::sDefaultGammas2D="OFF";
 std::string KSTriggerDataIn::sDefaultUseElevationForDlDmDn="OFF";
@@ -28,22 +28,22 @@ std::string KSTriggerDataIn::sDefaultSaveMountDirectionsToFile="OFF";
 std::string KSTriggerDataIn::sDefaultMountDirectionsFileName=" ";
 std::string KSTriggerDataIn::sDefaultRandomSeedFileName=" ";
 
-double      KSTriggerDataIn::sDefaultNoiseRate=12.5;	
+double      KSTriggerDataIn::sDefaultNoiseRate=6.0 ;	
 double      KSTriggerDataIn::sDefaultDiscCoincidenceWidthNS=6.5;
 double      KSTriggerDataIn::sDefaultEfficiency=1.0;
-double      KSTriggerDataIn::sDefaultDiscriminatorThresholdPes=4.0;
+double      KSTriggerDataIn::sDefaultDiscriminatorThresholdPes=3.0;
 double      KSTriggerDataIn::sDefaultMaximumThetaDeg=9.0;
 int         KSTriggerDataIn::sDefaultNumDirections=150;	
 double      KSTriggerDataIn::sDefaultGammaStepSizeDeg=.1;
 int         KSTriggerDataIn::sDefaultPatternTriggerLevel=3;
 int         KSTriggerDataIn::sDefaultTriggerMultiplicity=3; 
 double      KSTriggerDataIn::sDefaultLightConeConcentration=1.0; 
-double      KSTriggerDataIn::sDefaultMountDl=-1.e-15;                
-double      KSTriggerDataIn::sDefaultMountDm=-0.017452212;                
-double      KSTriggerDataIn::sDefaultMountDn=-.9998477;                
 double      KSTriggerDataIn::sDefaultMountAzDeg=-1.0;    
 double      KSTriggerDataIn::sDefaultMountZenithDeg=-1.0;
 double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;  
+double      KSTriggerDataIn::sDefaultFocalPlaneLocationM=11.985;
+double      KSTriggerDataIn::sDefaultAlignmentPlaneLocationM=-1;
+std::string KSTriggerDataIn::sDefaultAlignmentMethod="MCGILL";
 double      KSTriggerDataIn::sDefaultPSFNorthSouthDeg=-1.0;
 double      KSTriggerDataIn::sDefaultPSFEastWestDeg=-1.0;
 // **************************************************************************
@@ -77,6 +77,10 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
 		 sDefaultSaveMountDirectionsToFile.end(),
 		 sDefaultSaveMountDirectionsToFile.begin(),
 		 toupper);
+  std::transform(sDefaultAlignmentMethod.begin(),
+		 sDefaultAlignmentMethod.end(),
+		 sDefaultAlignmentMethod.begin(),
+		 toupper);
   // -------------------------------------------------------------------
   // Decode selections
   // -------------------------------------------------------------------
@@ -91,8 +95,8 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
   else
     {
       std::cout<<"Illegal option for CameraType: "<<sDefaultCameraType
-	       <<" Assuming CameraType=WHIPPLE490"<<std::endl;
-      pfTeHead->fCameraType=WHIPPLE490;
+	       <<" Assuming CameraType=VERITAS499"<<std::endl;
+      pfTeHead->fCameraType=VERITAS499;
     }
   
   pfTeHead->fTraceCreation=false;
@@ -207,49 +211,76 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
   // **********************************************************************
   if( sDefaultMountAzDeg >= 0.0 && sDefaultMountZenithDeg >= 0.0 )
   {
-    sDefaultMountDl = sin(sDefaultMountZenithDeg * gDeg2Rad) * 
+    fMountDl = sin(sDefaultMountZenithDeg * gDeg2Rad) * 
                                 sin(sDefaultMountAzDeg * gDeg2Rad);
-    sDefaultMountDm = -sin(sDefaultMountZenithDeg * gDeg2Rad) * 
+    fMountDm = -sin(sDefaultMountZenithDeg * gDeg2Rad) * 
                                 cos(sDefaultMountAzDeg * gDeg2Rad);
-    sDefaultMountDn = -cos(sDefaultMountZenithDeg * gDeg2Rad);
+    fMountDn = -cos(sDefaultMountZenithDeg * gDeg2Rad);
 
-    if( fabs(sDefaultMountDl) < 1.e-15)
+    if( fabs(fMountDl) < 1.e-15)
     {
-      sDefaultMountDl = 1.e-15;
+      fMountDl = 1.e-15;
     }
-    if( fabs(sDefaultMountDm) < 1.e-15)
+    if( fabs(fMountDm) < 1.e-15)
     {
-      sDefaultMountDm = 1.e-15;
+      fMountDm = 1.e-15;
     }
-    if( fabs(sDefaultMountDn) < 1.e-15)
+    if( fabs(fMountDn) < 1.e-15)
     {
-      sDefaultMountDn = 1.e-15;
+      fMountDn = 1.e-15;
     }
   }
 
-  pfTeHead->fMountDl                   = sDefaultMountDl;               
-  pfTeHead->fMountDm                   = sDefaultMountDm;               
-  pfTeHead->fMountDn                   = sDefaultMountDn;               
+  pfTeHead->fMountDl                   = fMountDl;               
+  pfTeHead->fMountDm                   = fMountDm;               
+  pfTeHead->fMountDn                   = fMountDn;               
   fMountElevationDeg         = sDefaultMountElevationDeg;     
   fMountDirectionFileName=sDefaultMountDirectionsFileName;  
   fRandomSeedFileName=sDefaultRandomSeedFileName;  //A ksTriggerDataIn variable
   
-  if(sDefaultPSFNorthSouthDeg<0)
+  pfTeHead->fFocalPlaneLocationM=sDefaultFocalPlaneLocationM;
+
+  if(sDefaultAlignmentPlaneLocationM<0){
+    pfTeHead->fAlignmentPlaneLocationM=pfTeHead->fFocalPlaneLocationM;
+  }
+  else{
+    pfTeHead->fAlignmentPlaneLocationM=sDefaultAlignmentPlaneLocationM;
+  }
+
+
+    
+    if( sDefaultAlignmentMethod=="WHIPPLE")
     {
-      fPSFNorthSouthDeg = gPSFNorthSouthDeg[pfTeHead->fCameraType];
+      pfTeHead->fAlignmentMethod=WHIPPLE;
+    }
+  else if(sDefaultAlignmentMethod=="MCGILL")
+    {
+      pfTeHead->fAlignmentMethod=MCGILL;
     }
   else
     {
-      fPSFNorthSouthDeg = sDefaultPSFNorthSouthDeg;
+      std::cout<<"Illegal option for FacetAlignmentMethod: "
+	       <<sDefaultAlignmentMethod
+	       <<" Assuming Alignment Method: MCGILL"<<std::endl;
+      pfTeHead->fAlignmentMethod=MCGILL;
+    }
+
+  if(sDefaultPSFNorthSouthDeg<0)
+    {
+      pfTeHead->fPSFNorthSouthDeg = gPSFNorthSouthDeg[pfTeHead->fCameraType];
+    }
+  else
+    {
+      pfTeHead->fPSFNorthSouthDeg = sDefaultPSFNorthSouthDeg;
     }
 
   if(sDefaultPSFEastWestDeg<0)
     {
-      fPSFEastWestDeg   = gPSFEastWestDeg[pfTeHead->fCameraType];
+      pfTeHead->fPSFEastWestDeg   = gPSFEastWestDeg[pfTeHead->fCameraType];
     }
   else
     {
-      fPSFEastWestDeg   = sDefaultPSFEastWestDeg;
+      pfTeHead->fPSFEastWestDeg   = sDefaultPSFEastWestDeg;
     }
 }
 // **************************************************************************
@@ -292,6 +323,10 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.setValue("MountElevationDeg",fMountElevationDeg);
   config.setValue("MountDirectionsFileName",fMountDirectionFileName);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
+  config.setValue("FacetAlignmentMethod",sDefaultAlignmentMethod);
+  config.setValue("FocalPlaneLocationM",sDefaultFocalPlaneLocationM);
+  config.setValue("McGillFacetAlignmentPlaneLocationM",
+		                          pfTeHead->fAlignmentPlaneLocationM);
   config.setValue("PSFNorthSouthDeg",fPSFNorthSouthDeg);
   config.setValue("PSFEastWestDeg",fPSFNorthSouthDeg);
 
@@ -305,7 +340,7 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSTriggerDataIn",
 		    "Camera Type: WHIPPLE490 or VERITAS499. Specifies camera "
 		    "structure and telescope parameters such as mirror size "
-		    "and focal length. ");
+		    "and focal length. Default is VERITAS499");
   doVAConfiguration(file, command_line, 
 		    "TraceEnable", sDefaultTraceEnable,
 		    "KSTriggerDataIn",
@@ -339,8 +374,8 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "UseElevationForDlDmDn",sDefaultUseElevationForDlDmDn,
 		    "KSTriggerDataIn",
 		    "ON enables the use of the MountElevationDeg to "
-		    "determine MountDirectionXDl, MountDirectionYDm and "
-		    "MountDirectionZDn. This is part of DriftingGammas mode.");
+		    "determine MountDirection Dl, Dm and Dn. This is part of "
+		    "DriftingGammas mode.");
   doVAConfiguration(file, command_line, 
 		    "MultipleMountDirections",sDefaultMultipleMountDirections,
 		    "KSTriggerDataIn",
@@ -380,8 +415,8 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
   doVAConfiguration(file, command_line, 
 		    "NoiseRate",sDefaultNoiseRate,
 		    "KSTriggerDataIn",
-		    "Night sky shine rate in pes/deg/ns (after application of "
-                    "all efficiency factors)");
+		    "Night sky shine rate in pes/deg**2 (after application of "
+                    "all efficiency factors). Default is 6.0");
   doVAConfiguration(file, command_line, 
 		    "DiscCoincidenceWidthNS",sDefaultDiscCoincidenceWidthNS,
 		    "KSTriggerDataIn",
@@ -392,7 +427,7 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "DiscriminatorThreshold",sDefaultDiscriminatorThresholdPes,
 		    "KSTriggerDataIn",
 		    "Specifies a Threshold level for a pixel to fire. Value "
-		    "is in units of mean pes level");
+		    "is in units of mean pes level. Default is 3.0.");
   doVAConfiguration(file, command_line, 
 		    "Efficiency",sDefaultEfficiency,
 		    "KSTriggerDataIn",
@@ -417,31 +452,17 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "Fraction of light that hits light cone that the light "
 		    "cone will then reflect onto the active PMT photo-cathode "
 		    "to create photo-electrons.");
+  
   doVAConfiguration(file, command_line,               
-                  "MountAzDeg",sDefaultMountAzDeg,
-                  "KSTriggerDataIn",
-                  "Azimuth angle of the mount (0 degrees North). "
-                  "Overrides dl, dm, and dn if specified.");
+                    "MountAzDeg",sDefaultMountAzDeg,
+		    "KSTriggerDataIn",
+		    "Azimuth angle of the mount (0 degrees North). ");
+
   doVAConfiguration(file, command_line,
-                  "MountZenithDeg", sDefaultMountZenithDeg,
-                  "KSTriggerDataIn",
-                  "Zenith angle of the mount (0 degrees is Zenith). "
-                  "Overrides dl, dm, and dn if specified.");
-  doVAConfiguration(file, command_line, 
-		    "MountDirectionXDl",sDefaultMountDl,
+                    "MountZenithDeg", sDefaultMountZenithDeg,
 		    "KSTriggerDataIn",
-		    "X direction cosign of the mount direction. X goes "
-		    "East.");
-  doVAConfiguration(file, command_line, 
-		    "MountDirectionYDm",sDefaultMountDm,
-		    "KSTriggerDataIn",
-		    "Y direction cosign of the mount direction, Y goes "
-		    "South");
-  doVAConfiguration(file, command_line, 
-		    "MountDirectionZDn",sDefaultMountDn,
-		    "KSTriggerDataIn",
-		    "Z direction cosign of the mount direction, Z goes down, "
-		    "for sure. So this is always a negative value.");
+		    "Zenith angle of the mount (0 degrees is Zenith). ");
+
   doVAConfiguration(file, command_line, 
 		    "MountElevationDeg",sDefaultMountElevationDeg,
 		    "KSTriggerDataIn",
@@ -450,10 +471,37 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "MountDirectionXDl,MountDirectionYDm and "
 		    "MountDirectionZDn values.  This is part of the "
 		    "DriftingGammas drift-scan modeling");
+  
   doVAConfiguration(file, command_line, 
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSTriggerDataIn",
 		    "File Name for Random Seed File.");
+
+  doVAConfiguration(file, command_line,"FocalPlaneLocationM",
+		    sDefaultFocalPlaneLocationM,"KSTriggerDataIn",
+		    "Distance from center of Veritas mirror to focal "
+		    "plane. This allows us to move the focal plane when "
+		    "we model focusing when looking at shower images. "
+		    "Default is Veritas mirror focus length of 11.985 "
+		    "meters");
+
+  doVAConfiguration(file, command_line,"McGillFacetAlignmentPlaneLocationM",
+		     sDefaultAlignmentPlaneLocationM,"KSTriggerDataIn",
+		    "Distance from center of Veritas mirror to the "
+		    "plane to be used for facet alignment (used with MCGILL "
+		    "alignment method only). Typically this distance is the "
+		    "same as FocalPlaneLocationM (and "
+		    "defaults to it) but it can be set to something "
+		    "different. This is used when modeling "
+		    "\"defocusing\" the telescope to bring shower max "
+		    "into better focus.");
+  
+  doVAConfiguration(file, command_line,"FacetAlignmentMethod",
+		    sDefaultAlignmentMethod,"KSTriggerDataIn",
+		    "Facet mirror alignment method to simulate. Options are "
+		    "the original WHIPPLE method or the new (as of spring "
+		    "2009) MCGILL method. The default is MCGILL");
+
   doVAConfiguration(file, command_line, 
 		    "PSFNorthSouthDeg",sDefaultPSFNorthSouthDeg,
 		    "KSTriggerDataIn",
@@ -461,6 +509,7 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "direction in Degrees. This is not the actual value but "
 		    "is scaled to it. Default is value given in KSCommon.h "
 		    "for gPSFEastWestDeg[fCamera].");
+
   doVAConfiguration(file, command_line, 
 		    "PSFEastWestDeg",sDefaultPSFEastWestDeg,
 		    "KSTriggerDataIn",
