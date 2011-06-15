@@ -96,18 +96,6 @@ class KSArea
   void ProcessImages();
   void PrintStats();
 
-  //Direction arrays
-  double* pfDlm;           //Mount directions
-  double* pfDmm;
-  double* pfDnm;
-
-  double* pfXDlm;         //X vectors in focal plane for different mount
-  double* pfXDmm;         //directions
-  double* pfXDnm;
-
-  double* pfYDlm;         //Y vectors in focal plane for different mount
-  double* pfYDmm;         //directions
-  double* pfYDnm;
 
   double* pfSTheta;
   double* pfSPhi;

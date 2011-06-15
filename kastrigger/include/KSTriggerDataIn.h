@@ -45,13 +45,18 @@ private:
   static double      sDefaultLightConeConcentration; 
   static double      sDefaultMountAzDeg;    
   static double      sDefaultMountZenithDeg;
-  static double      sDefaultMountDl;                
-  static double      sDefaultMountDm;                
-  static double      sDefaultMountDn;                
   static double      sDefaultMountElevationDeg;      
   static double      sDefaultGammaStepSizeDeg;
   static double      sDefaultPSFNorthSouthDeg;
   static double      sDefaultPSFEastWestDeg;
+  static double      sDefaultFocalPlaneLocationM;
+  static double      sDefaultAlignmentPlaneLocationM;
+  static std::string sDefaultAlignmentMethod;
+
+  double fMountDl;
+  double fMountDm;
+  double fMountDn;
+
 public:
   KSTriggerDataIn(KSTeHeadData* pfTeHead);
   virtual ~KSTriggerDataIn();
@@ -73,6 +78,7 @@ public:
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;
   std::string       fRandomSeedFileName;
+
 };
 #endif
 

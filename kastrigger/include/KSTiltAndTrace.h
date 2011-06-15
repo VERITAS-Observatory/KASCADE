@@ -2,7 +2,7 @@
  * Original Author: Glenn H. Sembroski
  * $Author$
  * $Date$
- * $Revision$
+ * $Revision: 1.3
  * $Tag$
  *
  **/
@@ -19,6 +19,8 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <string>
+#include <vector>
 
 const double kCLightMpS=2.99792e+8;
 const double kCLightMpNS= kCLightMpS/1.e9;
@@ -35,11 +37,15 @@ class KSTiltAndTrace
   double fJitterWidthEWRad;
   double fJitterWidthNSRad;
   double fMetersPerDeg;
+  double fFocalPlaneLocationM;
+  double fAlignmentPlaneLocationM;
+  std::string fAlignmentMethod;
+
 
   double fDir[3]; //Direction of photon in mirror plane system
   
   double fFacet[3]; //Position of facet origen in mirror plane system (m)
-  double fPeFacit[3];  //position on facet of where photon hits it
+  double fPeFacet[3];  //position on facet of where photon hits it
   double fToFocalLength[3];//optical axis to focal plane in mirror plane system
   double fFacetNormal[3];  //Normal vector from center of facet.
   double fFacetNormalDir[3];  //Direction cosigns of facet normal vector.
@@ -51,15 +57,22 @@ class KSTiltAndTrace
   double fReflectedDir[3];
 
   float dummy;
+  int fDebugCount;
 
 public:
   KSTiltAndTrace(double DnMinTight,double DnMinLoose,
 		 double MirrorRadiusSquaredM2,double FacetDiameterM,
 		 double FocalLengthM, double JitterWidthEWDeg,
 		 double JitterWidthNSDeg,double MetersPerDeg);
+  KSTiltAndTrace(double DnMinTight,double DnMinLoose,
+		 double MirrorRadiusSquaredM2,double FacetDiameterM,
+		 double FocalLengthM, double JitterWidthEWDeg,
+		 double JitterWidthNSDeg,double MetersPerDeg,
+		 double FocalPlaneLocationM,  double AlignmentPlaneLocationM,
+		 std::string MirrorAlignmentMethod);
   virtual ~KSTiltAndTrace();
   int Tilt();
-  void FullAberationTrace();
+  int  FullAberationTrace();
 
   double fDlr;   //Inital Photon direction cosigns.
   double fDmr; 
