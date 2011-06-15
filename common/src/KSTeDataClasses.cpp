@@ -68,6 +68,27 @@ void KSTeHeadData::PrintTeHead()
   std::cout<<"           Mount Dl (x direction cosign): "<<fMountDl<<std::endl;
   std::cout<<"           Mount Dm (y direction cosign): "<<fMountDm<<std::endl;
   std::cout<<"           Mount Dn (z direction cosign): "<<fMountDn<<std::endl;
+  std::cout<<"  Facet Normal Jitter sigma(North-South): "<<fPSFNorthSouthDeg
+	   <<std::endl;
+  std::cout<<"    Facet Normal Jitter sigma(East-West): "<<fPSFEastWestDeg
+	   <<std::endl;
+  std::cout<<"           Focal plane location (meters): "
+	   <<fFocalPlaneLocationM<<std::endl;
+  
+
+  if(fAlignmentMethod==MCGILL){
+    std::cout<<"  Facet Alignment plane location(meters): "
+	     <<fAlignmentPlaneLocationM<<std::endl;
+    }
+
+  std::cout<<"                  Facet Alignment Method: ";
+    if(fAlignmentMethod==WHIPPLE){
+      std::cout<<"WHIPPLE"<<std::endl;
+    }
+    else{
+      std::cout<<"MCGILL"<<std::endl;
+    }
+
 //std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
   return;
 }
