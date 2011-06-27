@@ -44,6 +44,7 @@ double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;
 double      KSTriggerDataIn::sDefaultFocalPlaneLocationM=11.985;
 double      KSTriggerDataIn::sDefaultAlignmentPlaneLocationM=-1;
 std::string KSTriggerDataIn::sDefaultAlignmentMethod="MCGILL";
+std::string KSTriggerDataIn::sDefaultFacetLocationFileName= " ";
 double      KSTriggerDataIn::sDefaultPSFNorthSouthDeg=-1.0;
 double      KSTriggerDataIn::sDefaultPSFEastWestDeg=-1.0;
 // **************************************************************************
@@ -247,6 +248,7 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
     pfTeHead->fAlignmentPlaneLocationM=sDefaultAlignmentPlaneLocationM;
   }
 
+  pfTeHead->fFacetLocationFileName=sDefaultFacetLocationFileName; 
 
     
     if( sDefaultAlignmentMethod=="WHIPPLE")
@@ -324,6 +326,7 @@ VAConfigurationData KSTriggerDataIn::getConfig() const
   config.setValue("MountDirectionsFileName",fMountDirectionFileName);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
   config.setValue("FacetAlignmentMethod",sDefaultAlignmentMethod);
+  config.setValue("FacetLocationFileName",sDefaultFacetLocationFileName);
   config.setValue("FocalPlaneLocationM",sDefaultFocalPlaneLocationM);
   config.setValue("McGillFacetAlignmentPlaneLocationM",
 		                          pfTeHead->fAlignmentPlaneLocationM);
@@ -495,6 +498,20 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "different. This is used when modeling "
 		    "\"defocusing\" the telescope to bring shower max "
 		    "into better focus.");
+  
+  doVAConfiguration(file, command_line,"FacetLocationFileName",
+		    sDefaultFacetLocationFileName,"KSTriggerDataIn",
+		    "A \".txt\" file with the locations (in meters) of "
+		    "all facets (including those locations that are not "
+		    "used, like the ones at the center of the Mirror). "
+		    "This file is TTree::ReadFile() compatable with a "
+		    "header line that includes the variables XM,YM and "
+		    "EXIST. For example, the line might look like: "
+		    "\"FACETID/I:XM/F:YM:EXIST\". The variable EXIST has "
+		    "a value of 1.0 if the facet exists or 0.0 if not. "
+		    "If file name is not specified then the default of "
+		    "using the Hillas method of randomly generating "
+		    "facets locations for each photon is used.");
   
   doVAConfiguration(file, command_line,"FacetAlignmentMethod",
 		    sDefaultAlignmentMethod,"KSTriggerDataIn",

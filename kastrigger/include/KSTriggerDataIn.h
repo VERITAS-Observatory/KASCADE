@@ -51,7 +51,9 @@ private:
   static double      sDefaultPSFEastWestDeg;
   static double      sDefaultFocalPlaneLocationM;
   static double      sDefaultAlignmentPlaneLocationM;
-  static std::string sDefaultAlignmentMethod;
+  static std::string sDefaultAlignmentMethod;  
+  static std::string sDefaultFacetLocationFileName;
+
 
   double fMountDl;
   double fMountDm;

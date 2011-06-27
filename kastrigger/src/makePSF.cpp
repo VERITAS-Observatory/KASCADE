@@ -32,6 +32,7 @@
 #include <cmath>
 #include <time.h>
 #include <exception>
+using namespace std;
 
 #include "VAConfigurationHelper.h"
 #include "VAConfigurationData.h"
@@ -52,15 +53,15 @@ void unitCrossProduct(double* X,double* Y,double* Z);
 void getVector(double* X,double& x1,double& x2,double& x3);
 void findXSegYSeg(double az,double el, double radius, double& xSeg, 
 		  double& ySeg);
-void usage(const std::string& progname, 
+void usage(const string& progname, 
 	   const VAOptions& command_line)
 {
-  std::cout << std::endl;
-  std::cout << "makePSF: Usage: " << progname 
+  cout << endl;
+  cout << "makePSF: Usage: " << progname 
 	    << " [options] " 
-	    << std::endl;
-  std::cout<<"makePSF: Options: "<<std::endl;
-  command_line.printUsage(std::cout);
+	    << endl;
+  cout<<"makePSF: Options: "<<endl;
+  command_line.printUsage(cout);
 }
 
 int main(int argc, char** argv)
@@ -71,12 +72,12 @@ int main(int argc, char** argv)
       //We start with defining and setting up the configuration for this
       // processing.
       time_t thetime=time(NULL);
-      std::cout<<"makePSF:  START------"<<ctime(&thetime)<<std::endl;
+      cout<<"makePSF:  START------"<<ctime(&thetime)<<endl;
       
       // **********************************************************************
       // Pick up command line arguments
       // **********************************************************************
-      std::string progname = *argv;
+      string progname = *argv;
       VAOptions command_line(argc,argv,true);
       VAConfigInfo config_file;
     // ------------------------------------------------------------------------
@@ -84,7 +85,7 @@ int main(int argc, char** argv)
     // ------------------------------------------------------------------------
 
       bool load_config = false;
-      std::string load_filename;
+      string load_filename;
       if(command_line.findWithValue("config",load_filename,
 			     "Load Configuration File")==VAOptions::FS_FOUND)
 	{
@@ -97,7 +98,7 @@ int main(int argc, char** argv)
 
       bool save_config = false;
       bool only_save_config = false;
-      std::string save_filename;
+      string save_filename;
       if(command_line.findWithValue("save_config",save_filename,
 				  "Save a configuration file with all "
 				  "configuration values before processing.")
@@ -136,13 +137,14 @@ int main(int argc, char** argv)
       double fTelescopeZenithDeg=0;
       double fPSFNSDeg=0;
       double fPSFEWDeg=0;
-      std::string fRandomSeedFileName="makePSF.ran";
-      std::string fOutputFileName=" ";
+      string fRandomSeedFileName="makePSF.ran";
+      string fOutputFileName=" ";
       double fDistanceToSourceKM=-1;
       double fFocalPlaneLocationM=12.0;
       double fAlignmentPlaneLocationM=-1;//Flag that we need to use default
                                          //(fFocalPlaneLocationM)
-      std::string fAlignmentMethod="MCGILL";
+      string fFacetAlignmentMethod="MCGILL";
+      string fFacetLocationFileName=" ";
 
       doVAConfiguration(config_file, command_line,"NumberOfPhotons",
 			fNumPhotons,"makePSF", 
@@ -199,10 +201,24 @@ int main(int argc, char** argv)
 			"into better focus.");
 
       doVAConfiguration(config_file, command_line,"MirrorAlignmentMethod",
-			fAlignmentMethod,"makePSF",
+			fFacetAlignmentMethod,"makePSF",
 			"Mirror alignment method to simulate. Options are the "
 			"original WHIPPLE method or the new (as of spring "
 			"2009) MCGILL method. The default is MCGILL");
+
+      doVAConfiguration(config_file, command_line,"FacetLocationFileName",
+			fFacetLocationFileName,"makePSF",
+			"A \".txt\" file with the locations (in meters) of "
+			"all facets (including those locations that are not "
+			"used, like the ones at the center of the Mirror). "
+			"This file is TTree::ReadFile() compatable with a "
+			"header line that includes the variables XM,YM and "
+			"EXIST. For example, the line might look like: "
+			"\"FACETID/I:XM/F:YM:EXIST\". The variable EXIST has "
+			"a value of 1.0 if the facet exists or 0.0 if not. "
+			"If file name is not specified then the default of "
+			"using the Hillas method of randomly generating "
+			"facets locations for each photon is used.");
 
       doVAConfiguration(config_file, command_line,"RandomSeedFileName",
 			fRandomSeedFileName,"makePSF","File name where we "
@@ -231,18 +247,18 @@ int main(int argc, char** argv)
       // ----------------------------------------------------------------------
       if(!command_line.assertNoOptions())
 	{
-	  std::cerr << progname << ": unknown options: ";
-	  for(int i=1;i<argc;i++)std::cerr << argv[i];
-	  std::cerr << std::endl;
-	  std::cerr << std::endl;
+	  cerr << progname << ": unknown options: ";
+	  for(int i=1;i<argc;i++)cerr << argv[i];
+	  cerr << endl;
+	  cerr << endl;
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
  
       if(argc!=1)
 	{
-	  std::cout<<"ksTrigger: More than 0 argument given. Assume -help "
-	    "reqested"<<std::endl;
+	  cout<<"ksTrigger: More than 0 argument given. Assume -help "
+	    "reqested"<<endl;
 	  usage(progname, command_line);
 	  exit(EXIT_FAILURE);
 	}
@@ -277,134 +293,142 @@ int main(int argc, char** argv)
       // Check validity of input parameters
       // *******************************************************************
       if(fNumPhotons<=0){
-	std::cout<<"makePSF:NumberOfPhotons option must be >0"<<std::endl;
+	cout<<"makePSF:NumberOfPhotons option must be >0"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: Number of Photons to Simulate: "<<fNumPhotons
-	       <<std::endl;
+	cout<<"makePSF: Number of Photons to Simulate: "<<fNumPhotons
+	       <<endl;
       }
       
       if(fSourceAzDeg<0 ||fSourceAzDeg>360.0){
-	std::cout<<"makePSF:SourceAzDeg out of range (0,360)"<<std::endl;
+	cout<<"makePSF:SourceAzDeg out of range (0,360)"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: Source Azimuth(Deg): "<<fSourceAzDeg
-		 <<std::endl;
+	cout<<"makePSF: Source Azimuth(Deg): "<<fSourceAzDeg
+		 <<endl;
       }
 
       if(fSourceZenithDeg<0 ||fSourceAzDeg>90.0){
-	std::cout<<"makePSF:SourceZenithDeg out of range (0,90)"<<std::endl;
+	cout<<"makePSF:SourceZenithDeg out of range (0,90)"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: Source Zenith(Deg): "<<fSourceZenithDeg
-		 <<std::endl;
+	cout<<"makePSF: Source Zenith(Deg): "<<fSourceZenithDeg
+		 <<endl;
       }
 
       if(fTelescopeAzDeg<0 ||fTelescopeAzDeg>360.0){
-	std::cout<<"makePSF:TelescopeAzDeg out of range (0,360)"<<std::endl;
+	cout<<"makePSF:TelescopeAzDeg out of range (0,360)"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: Telescope Azimuth(Deg): "<<fTelescopeAzDeg
-		 <<std::endl;
+	cout<<"makePSF: Telescope Azimuth(Deg): "<<fTelescopeAzDeg
+		 <<endl;
       }
 
       if(fTelescopeZenithDeg<0 ||fTelescopeAzDeg>90.0){
-	std::cout<<"makePSF:TelescopeZenithDeg out of range (0,90)"<<std::endl;
+	cout<<"makePSF:TelescopeZenithDeg out of range (0,90)"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: Telescope Zenith(Deg): "<<fTelescopeZenithDeg
-		 <<std::endl;
+	cout<<"makePSF: Telescope Zenith(Deg): "<<fTelescopeZenithDeg
+		 <<endl;
       }
       
       if(fPSFNSDeg<0){
-	std::cout<<"makePSF:PSFNorthSouthDeg must be >= 0"<<std::endl;
+	cout<<"makePSF:PSFNorthSouthDeg must be >= 0"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: PSF NorthSouth Jitter Deg): "<<fPSFNSDeg
-		 <<std::endl;
+	cout<<"makePSF: PSF NorthSouth Jitter Deg): "<<fPSFNSDeg
+		 <<endl;
       }
       
       if(fPSFEWDeg<0){
-	std::cout<<"makePSF:PSFEastWestDeg must be >= 0"<<std::endl;
+	cout<<"makePSF:PSFEastWestDeg must be >= 0"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: PSF East-West Jitter Deg): "<<fPSFNSDeg
-		 <<std::endl;
+	cout<<"makePSF: PSF East-West Jitter Deg): "<<fPSFNSDeg
+		 <<endl;
       }
 
 
       if(fDistanceToSourceKM>0){
-	std::cout<<"makePSF: Distance to point source from mirror center(KM):"
-		 <<fDistanceToSourceKM<<std::endl;
+	cout<<"makePSF: Distance to point source from mirror center(KM):"
+		 <<fDistanceToSourceKM<<endl;
       }
       else{
-	std::cout<<"makePSF: Point source is at infinity (a star!)"
-		 <<std::endl;
+	cout<<"makePSF: Point source is at infinity (a star!)"
+		 <<endl;
+      }
+
+      if(fFacetLocationFileName == " "){
+	cout<<"makePSF: Using default Hillas Facet location method"<<endl;
+      }
+      else{
+	cout<<"MakePSF: Obtaining mirror facet locations from file: "
+	    <<fFacetLocationFileName<<endl;
       }
 
       int alignment=-1;
-      if(fAlignmentMethod=="WHIPPLE"){
+      if(fFacetAlignmentMethod=="WHIPPLE"){
 	alignment=0;
       }
-      else if(fAlignmentMethod=="MCGILL"){
+      else if(fFacetAlignmentMethod=="MCGILL"){
 	alignment=1;
       }
 
       if(alignment!=-1){
-	std::cout<<"makePSF: Using "<<fAlignmentMethod
-		 <<" mirror alignment method"<<std::endl;
+	cout<<"makePSF: Using "<<fFacetAlignmentMethod
+		 <<" mirror alignment method"<<endl;
       } 
       else{
-	std::cout<<"makePSF: Unknown mirror alignment method specified:"
-		 << fAlignmentMethod<<":"<<std::endl;
-	std::cout<<"makePSF: Allowable mirror alignment methods are: WHIPPLE "
-	           "or MCGILL"<<std::endl;
+	cout<<"makePSF: Unknown mirror alignment method specified:"
+		 << fFacetAlignmentMethod<<":"<<endl;
+	cout<<"makePSF: Allowable mirror alignment methods are: WHIPPLE "
+	           "or MCGILL"<<endl;
 	exit(EXIT_FAILURE);
       }
 
 
 
-      std::cout<<"makePSF: Distance from focal plane to center of "
+      cout<<"makePSF: Distance from focal plane to center of "
 	         "mirror (meters):"
-	       <<fFocalPlaneLocationM<<std::endl;
+	       <<fFocalPlaneLocationM<<endl;
       
-      if(fAlignmentMethod=="MCGILL"){
+      if(fFacetAlignmentMethod=="MCGILL"){
 	
 	if(fAlignmentPlaneLocationM<0){
 	  fAlignmentPlaneLocationM=fFocalPlaneLocationM;
 	}
-	std::cout<<"makePSF: Distance from Facet alingment plane to center "
+	cout<<"makePSF: Distance from Facet alingment plane to center "
 	           "of mirror (meters):"<<fAlignmentPlaneLocationM
-		 <<std::endl;
-     	std::cout<<"makePSF: Facet alingment plane used with MCGILL alignment "
-                   "method only:"<<std::endl;
+		 <<endl;
+     	cout<<"makePSF: Facet alingment plane used with MCGILL alignment "
+                   "method only:"<<endl;
       }
       
-      std::cout<<"makePSF: Random Seed file name: "<<fRandomSeedFileName
-	       <<std::endl;
+      cout<<"makePSF: Random Seed file name: "<<fRandomSeedFileName
+	       <<endl;
 
       if(fOutputFileName==" "){
-	std::cout<<"makePSF:OutputFileName must be specified"<<std::endl;
+	cout<<"makePSF:OutputFileName must be specified"<<endl;
 	usage(progname, command_line);
 	exit(EXIT_FAILURE);
       }
       else{
-	std::cout<<"makePSF: Output .txt file name: "<<fOutputFileName
-		 <<std::endl;
+	cout<<"makePSF: Output .txt file name: "<<fOutputFileName
+		 <<endl;
       }
       // ******************************************************************
 
@@ -422,10 +446,10 @@ int main(int argc, char** argv)
       // ******************************************************************
       // set up the output file. Add a header for root TTree process ease
       // ********************************************************************
-      std::ofstream out(fOutputFileName.c_str());
+      ofstream out(fOutputFileName.c_str());
       out<<"ZnOffsetDeg/F:focalPlaneM:Alignment/I:SourceZKm/F:JitterXDeg:"
 	   "JitterYDeg:WX/F:WY/F:TimeNS/F:TimeMirNS/F:XGndM/F:YGndM/F:"
-	   "XMirM/F:YMirM/F"<<std::endl;
+	   "XMirM/F:YMirM/F"<<endl;
    
       // ********************************************************************
       // Set up constant parameters for KSTiltAndTrac 
@@ -450,7 +474,8 @@ int main(int argc, char** argv)
 				     fJitterWidthNorthSouthRad,fMetersPerDeg,
 				     fFocalPlaneLocationM,
 				     fAlignmentPlaneLocationM,
-				     fAlignmentMethod);
+				     fFacetAlignmentMethod,
+				     fFacetLocationFileName);
 
       // ******************************************************************
       // Now set up all the other things we will need
@@ -483,8 +508,8 @@ int main(int argc, char** argv)
 	}
       else
 	{
-	  std::cout<<"makePSF: Illegal values for Telescope Azimuth or Zenith"
-		   <<std::endl;
+	  cout<<"makePSF: Illegal values for Telescope Azimuth or Zenith"
+		   <<endl;
 	  exit(0);
 	}
 
@@ -544,8 +569,8 @@ int main(int argc, char** argv)
 	}
       else
 	{
-	  std::cout<<"makePSF: Illegal values for Photon source Azimuth or "
-	    "Zenith" <<std::endl;
+	  cout<<"makePSF: Illegal values for Photon source Azimuth or "
+	    "Zenith" <<endl;
 	  exit(0);
 	}
 
@@ -637,21 +662,21 @@ int main(int argc, char** argv)
 	  int dump=fTiltAndTrace.Tilt();	  
 	  if(dump==0) //Did we hit focal plane?
 	    {
-	      out<<ZnOffsetDeg          <<" "<<fFocalPlaneLocationM<<" "
-		 <<alignment            <<" "<<fDistanceToSourceKM<<" "
-		 <<fPSFEWDeg            <<" "<<fPSFNSDeg<<" "
-		 <<fTiltAndTrace.fW[0]  <<" "<<fTiltAndTrace.fW[1]<<" "
-		 <<fTiltAndTrace.fPeTime<<" "<<fTiltAndTrace.fPeTimeTilt<<" "
-		 <<fTiltAndTrace.fXg    <<" "<<fTiltAndTrace.fYg<<" "
-		 <<fTiltAndTrace.fPe[0] <<" "<<fTiltAndTrace.fPe[1]
-		 <<std::endl;
+	      out<<ZnOffsetDeg            <<" "<<fFocalPlaneLocationM<<" "
+		 <<alignment              <<" "<<fDistanceToSourceKM<<" "
+		 <<fPSFEWDeg              <<" "<<fPSFNSDeg<<" "
+		 <<fTiltAndTrace.fW[0]    <<" "<<fTiltAndTrace.fW[1]<<" "
+		 <<fTiltAndTrace.fPeTime  <<" "<<fTiltAndTrace.fPeTimeTilt<<" "
+		 <<fTiltAndTrace.fXg      <<" "<<fTiltAndTrace.fYg<<" "
+		 <<fTiltAndTrace.fPe.at(0)<<" "<<fTiltAndTrace.fPe.at(1)
+		 <<endl;
 	      countGood++;
 	    }
 	}
      
-      std::cout<<"makePSF: End of Run at: "<<ctime(&thetime)<<std::endl;
-      std::cout<<"makePSF: "<<countGood<<" good events out of: "<<fNumPhotons
-	       <<std::endl;
+      cout<<"makePSF: End of Run at: "<<ctime(&thetime)<<endl;
+      cout<<"makePSF: "<<countGood<<" good events out of: "<<fNumPhotons
+	       <<endl;
 
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
@@ -661,15 +686,15 @@ int main(int argc, char** argv)
       return 0;
     }
   
-  catch (const std::exception &e) 
+  catch (const exception &e) 
     {
-      std::cerr<<"Error: "<<e.what()<<std::endl;
+      cerr<<"Error: "<<e.what()<<endl;
       return 1;
     }
   catch(...)
     {
-      std::cout<<"ksSumFiles - Fatal--Unknown exception found."
-	       <<std::endl;
+      cout<<"ksSumFiles - Fatal--Unknown exception found."
+	       <<endl;
       return 1;
     }
 }
@@ -741,9 +766,9 @@ void findXSegYSeg(double az,double el, double radius, double& xSeg,
   ySeg=2*radius*sqrt(1.0/(c-b*b/(4.0*a)));
   xSeg=2*radius*sqrt(1.0/(a-b*b/(4.0*c)));
 
-  //std::cout<<"radiusSqr; "<<radiusSqr<<std::endl;
-  //std::cout<<"a,b,c: "<<a<<" "<<b<<" "<<c<<std::endl;
-  //std::cout<<"Xseg: "<<xseg<<" Yseg: "<<yseg<<std::endl;
+  //cout<<"radiusSqr; "<<radiusSqr<<endl;
+  //cout<<"a,b,c: "<<a<<" "<<b<<" "<<c<<endl;
+  //cout<<"Xseg: "<<xseg<<" Yseg: "<<yseg<<endl;
   return;
 }
 // **************************************************************************

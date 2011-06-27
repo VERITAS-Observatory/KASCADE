@@ -22,6 +22,10 @@
 #include <string>
 #include <vector>
 
+#include "KSFacets.h"
+
+using namespace std;
+
 const double kCLightMpS=2.99792e+8;
 const double kCLightMpNS= kCLightMpS/1.e9;
  
@@ -39,15 +43,11 @@ class KSTiltAndTrace
   double fMetersPerDeg;
   double fFocalPlaneLocationM;
   double fAlignmentPlaneLocationM;
-  std::string fAlignmentMethod;
+  string fFacetAlignmentMethod;
+  string fFacetLocationFileName;
 
 
-  double fDir[3]; //Direction of photon in mirror plane system
-  
-  double fFacet[3]; //Position of facet origen in mirror plane system (m)
   double fPeFacet[3];  //position on facet of where photon hits it
-  double fToFocalLength[3];//optical axis to focal plane in mirror plane system
-  double fFacetNormal[3];  //Normal vector from center of facet.
   double fFacetNormalDir[3];  //Direction cosigns of facet normal vector.
   double fPh[3]; //Little vector from focal plane to facet focal point
   double fPeFacetNormalDir[3]; //Normal dir of curved facet mirror at point 
@@ -55,21 +55,23 @@ class KSTiltAndTrace
   double fParallel[3];
   double fPerpendicular[3];
   double fReflectedDir[3];
+  double fDir[3]; //Direction of photon in mirror plane system
 
   float dummy;
-  int fDebugCount;
 
 public:
   KSTiltAndTrace(double DnMinTight,double DnMinLoose,
 		 double MirrorRadiusSquaredM2,double FacetDiameterM,
 		 double FocalLengthM, double JitterWidthEWDeg,
 		 double JitterWidthNSDeg,double MetersPerDeg);
+
   KSTiltAndTrace(double DnMinTight,double DnMinLoose,
 		 double MirrorRadiusSquaredM2,double FacetDiameterM,
 		 double FocalLengthM, double JitterWidthEWDeg,
 		 double JitterWidthNSDeg,double MetersPerDeg,
 		 double FocalPlaneLocationM,  double AlignmentPlaneLocationM,
-		 std::string MirrorAlignmentMethod);
+		 string MirrorAlignmentMethod,string FacetLocationFileName);
+ 
   virtual ~KSTiltAndTrace();
   int Tilt();
   int  FullAberationTrace();
@@ -97,9 +99,10 @@ public:
   double fPeTime;      //Photon time when it impacts camera (focal) plane.
   double fPeTimeTilt;  //Photon time when it goes through mirror plane
 
-  double fPe[3];  //Position of photon in mirror plane system (Meters)
+  vector <double> fPe;  //x,y only
   double fW[3];   //Position of photon in camera plane (Deg)
-
+  
+  KSFacets* pMirrorFacets;
 };
 // ***************************************************************************
 

@@ -38,9 +38,13 @@ KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
   //defaults
   fFocalPlaneLocationM     = fFocalLengthM;
   fAlignmentPlaneLocationM = fFocalPlaneLocationM;
-  fAlignmentMethod         = "WHIPPLE";
-  fDebugCount=0;
+  fFacetAlignmentMethod    = "WHIPPLE";
+  fFacetLocationFileName   = " ";
 
+  pMirrorFacets= new KSFacets(fMirrorRadiusSquaredM2, fFacetDiameterM,
+			      fFocalLengthM, fFocalPlaneLocationM,  
+			      fAlignmentPlaneLocationM, fFacetAlignmentMethod,
+			      fFacetLocationFileName);
 }
 
 // **************************************************************************
@@ -53,7 +57,8 @@ KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
 				double JitterWidthNSRad, double MetersPerDeg,
 				double FocalPlaneLocationM, 
 				double AlignmentPlaneLocationM, 
-				std::string MirrorAlignmentMethod)
+				std::string FacetAlignmentMethod,
+				std::string FacetLocationFileName)
 {
   fDnMinTight              = DnMinTight;
   fDnMinLoose              = DnMinLoose;
@@ -65,9 +70,13 @@ KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
   fMetersPerDeg            = MetersPerDeg;
   fFocalPlaneLocationM     = FocalPlaneLocationM;
   fAlignmentPlaneLocationM = AlignmentPlaneLocationM;
-  fAlignmentMethod         = MirrorAlignmentMethod;
-  
-  fDebugCount=0;
+  fFacetAlignmentMethod    = FacetAlignmentMethod;
+  fFacetLocationFileName   = FacetLocationFileName;
+
+  pMirrorFacets = new KSFacets(fMirrorRadiusSquaredM2, fFacetDiameterM,
+			      fFocalLengthM, fFocalPlaneLocationM,  
+			      fAlignmentPlaneLocationM, fFacetAlignmentMethod,
+			      fFacetLocationFileName);
 }
 // **************************************************************************
 
@@ -151,9 +160,10 @@ int  KSTiltAndTrace::Tilt()
   // mirror plane
   // This is a transformation to within the mirror plane.
   // ***********************************************************************
-  fPe[0]=xmount*fXDl+ymount*fXDm+zmount*fXDn;
-  fPe[1]=xmount*fYDl+ymount*fYDm+zmount*fYDn;
-  fPe[2]=0;		              // init it to 0 for w10m_full_aberration
+  fPe.clear();
+  fPe.resize(2);
+  fPe.at(0)=xmount*fXDl+ymount*fXDm+zmount*fXDn;
+  fPe.at(1)=xmount*fYDl+ymount*fYDm+zmount*fYDn;
 
   // ***********************************************************************
   // See if this photon is within pmt mirror radius.
@@ -161,7 +171,7 @@ int  KSTiltAndTrace::Tilt()
   // improve the Aberration calculation slightly also.
   // Do it the simple way:
   // ***********************************************************************
-  double fPhotonRad2=(fPe[0]*fPe[0]+fPe[1]*fPe[1]);
+  double fPhotonRad2=(fPe.at(0)*fPe.at(0)+fPe.at(1)*fPe.at(1));
   if(fPhotonRad2>fMirrorRadiusSquaredM2)
     {
       dump=1;		//  Gets here if mirror is missed.
@@ -330,200 +340,68 @@ int KSTiltAndTrace::FullAberationTrace()
 // I may have a left hand coord system here but it doesn't matter(I think!)
 // ***************************************************************************
 {
-  int dump=0;
-  
   fDir[2]=-fDir[2];  //reverse Z direciton
 
   // *************************************************************************
-  // First: Position on facet where this photon hits.
+  // First: Get X,Y,Z position vector of the facet (fFacet) where this photon 
+  // hits. Z is relative to an origin which is fFocalLengthM along the optical
+  // axis from the mirror plane and will be negative.
   // *************************************************************************
+  vector <double> fFacet(3);
 
-  fFacet[2]=0;	//Init to 0 we really only need x,y for now.
-  // Search for a legal facet position
-  while(1)
-    {
-      fFacet[0]=(pran(&dummy)-.5)*fFacetDiameterM;
-      fFacet[1]=(pran(&dummy)-.5)*fFacetDiameterM;
-      double rf=(fFacet[0]*fFacet[0])+(fFacet[1]*fFacet[1]);
-      if(rf<=((fFacetDiameterM/2)*(fFacetDiameterM/2)))
-	{
-      	  break;
-	}
-    }
 
-  // **********************************************************************
-  // now use this position to position this fake facet.
-  // Make facet vector Vfacet(from origen to center of facet).
-  // fPe is postion vector of mirror plane intercept of the photon
-  // ***********************************************************************
-  fFacet[0]+=fPe[0];
-  fFacet[1]+=fPe[1];
-  fFacet[2]+=fPe[2];  //This should always be 0 
+  int dump= pMirrorFacets->FindFacetLocation(fPe, fFacet);
+  if(dump!=0){
+    fW[0]=4;
+    return dump;
+  }
 
-  // *************************************************************************
-  // Using the equation for a sphere (of radius fFocalLengthM) to determine 
-  // the z component of fFacet
-  // on the spherical surface of the mirror. It is assumed
-  // that the photon is within the mirror aperature.
-  // (but the facet may not be and thats an error for the aberration of the
-  // edge of the telecope).
-  // ************************************************************************
-  double xyfMagSqr=fFacet[0]*fFacet[0]+fFacet[1]*fFacet[1];
-                                         // This is for speed otimization
    
-  fFacet[2]=-sqrt(fFocalLengthM*fFocalLengthM - xyfMagSqr);
-		 // Z is negative since vector goes from the MCC origin (at a 
-                 // distance radius=fFocalLengthM above mirror plane)
-		 // to the mirror surface at fFacet[0],fFacet[1].
-                 // thus  fFacet[2]<=-12.0 meters (like -11.5 m))
-
   // **************************************************************************
   // Backtrack the pe track (direction of Pe is fDir where z is positive 
-  // going up) to this fFacet[2] altitude. This will gives us the
-  // x,y,z point relartive to the MCC where the photon crossed the plane 
+  // going up) to this fFacet.at(2) altitude. This will gives us the
+  // x,y,z point relative to the MCC where the photon crossed the plane 
   // parrallel to the mirror plane but at the mirror facet height positon. Use
   // this new x,y in our approximation as to where the photon refelcts from 
-  // the facet.
+  // the facet. Note there is a small chance this new x,y loc isn't really
+  // still on this facet but assume it is. ASSUMPTION!
   // **************************************************************************
-  double zDist=fFocalLengthM+fFacet[2];  // height of facet above mirror plane.
+  double zDist=fFocalLengthM+fFacet.at(2);  // height of facet above mirror 
+                                            // plane.
   double path=zDist/fDir[2];            // Path length between mirror plane
                                         // and facet plane. Should be negative
  
-  fPeFacet[0]=fPe[0]+path*fDir[0]; //X,Y Positon vector (from center of mirror)
+  fPeFacet[0]=fPe.at(0)+path*fDir[0]; //X,Y Positon vector (from center of 
+                                      // mirror)
                                    //to where the photon
                                    //intecepts the facet plane
-  fPeFacet[1]=fPe[1]+path*fDir[1]; //Determine fPeFacet(2) below
+  fPeFacet[1]=fPe.at(1)+path*fDir[1]; //Determine fPeFacet(2) below
 
-  // ************************************************************************
-  // MIRROR ALIGMENT METHODS
-  // We now want want the normal vector from the fake facet mirror that is 
-  // situated and centered at fFacet. There are 2 ways to do this which are
-  // equivalent if fAlignmentPlaneLocationM == fFocalLength that is the 
-  // alignment focal plane is at the MCC,  but not otherwise. 
-  // This reflects the fact that both Whipple and Veritas have used 2 methods 
-  // for mirror alignment. I've labled them the WHIPPLE and MCGILL methods. 
-  // 1:WHIPPLE: This is the original method used to align the normal of all 
-  //   mirror segments for the WHIPPLE and VERITAAS telescopes before spring 
-  //   of 2009. In this method the normal of the center of each mirror facet
-  //   is pointed at a point 2 times the focal length from the center of the 
-  //   mirror plane along the optical axis (ie.at v2fl=0,0,+focal_length).
-  //  This effectivly put the alignment focal plane at fFocalLength.
-  // 2:MCGILL:  The second method, adopted in the spring of 2009 again has the
-  //   normal of each segment pointed to a spot on the optical axis of the 
-  //   telescope but at a point where the image of a star at infinity would be
-  //   focused at the center of the alignment focal plane (where the alignment
-  //   focal plane may not be at fFocalLength (MCC) or at fFoclaPlaneLengthM 
-  //   but is rather at fAlignmentPlaneLocationM). Thus the
-  //   angle between the normal to the facet and a ray parallel to the optic 
-  //   axis (from a star at the center of the FOV) is 1/2 the angle between a 
-  //   vector from the mirror facet to the center of the alignment focal plane
-  //   and the parallel ray.  This second method produces much tighter PSF's 
-  //   (not sure why, smaller focusing tolenece?) and is now the preferred 
-  //   method of alignment for Veritas and Whipple.
-  // ************************************************************************
-
-  if(fAlignmentMethod=="WHIPPLE"){
-    // ********************************************************************
-    // Using WHIPPLE alignament method for determining facet normal.
-    // This vector is Vrc=V2fl-Vf
-    // First vector from center of facet to MCC (0,0,focal_length.)
-    //  Note: This DOES NOT depend on fAlignmentPlaneLocationM or 
-    //        fFoclaPlaneLocationM
-    // ********************************************************************
-     
-    fToFocalLength[0]=0.;
-    fToFocalLength[1]=0.;
-    fToFocalLength[2]=fFocalLengthM;
+  // *********************************************************************
+  // Get a vector that is normal to center of facet
+  // This depends on the alignment method specified
+  // *********************************************************************
+  vector < double > fFacetNormal(3);
   
-    fFacetNormal[0]= fToFocalLength[0]-fFacet[0];
-    fFacetNormal[1]= fToFocalLength[1]-fFacet[1];
-    fFacetNormal[2]= fToFocalLength[2]-fFacet[2];
-
-    // ********************************************************************
-    // Adjust the fFacet vector for fFocalPlaneLocationM != fFocalLengthM
-    // fFacet's origin will no long be at the MCC but at 
-    // fFocalLengthM-fFocalPlaneLocationM below it, which is where our Focal 
-    // plane will be.
-    // *******************************************************************
-    fFacet[2]= fFacet[2] + (fFocalLengthM-fFocalPlaneLocationM);
-    
+  dump= pMirrorFacets->FindFacetNormal(fFacet, fFacetNormal);
+  if(dump!=0){
+    fW[0]=4;
+    return dump;
   }
-  else{
-    // *********************************************************************
-    // MCGILL alignament method used to determine facet normal direction.
-    //  Note: This DOES NOT depend on fFoclalPlaneLoactionM but DOES depend
-    //        on fAlignmentPlaneLocationM.
-    // ********************************************************************
-    // Adjust (for now) the fFacet vector for fAlignmentPlaneLocationM != 
-    // fFoclaPlanM fFacet's origin will no long be at the MCC but at 
-    // fFocalLengthM-fAlignmentPlaneLocationM below it, which is where our 
-    // alignment Focal plane will be. Later we will adjust fFacet[2] to be 
-    // relative to the fFocalPlaneLocationM.
-    // *******************************************************************
-    fFacet[2]= fFacet[2] + (fFocalLengthM-fAlignmentPlaneLocationM);
 
-    // *******************************************************************
-    // The angle of this vector to the z axis (optical axis) is 2*theta.
-    // WE neeed to find the vector which has the same X,Y components but
-    // is at an angle of theta to the opticle axis
-    // X,Y vector (A) is thus:
-    // ******************************************************************
-    std::vector < double > A(3);     //vector Perp to Z axis to center of facet
-    A.at(0)=fFacet[0];
-    A.at(1)=fFacet[1];
-    A.at(2)=0;
-    // ********************
-    // length of A is sin(theta).
-    // ********************
-    double AMagnitude= sqrt(A.at(0)* A.at(0)+A.at(1)* A.at(1));
-    // ***************************************************************
-    // We are going to drop the central facet. Its shadowed anyway
-    if(AMagnitude<.5*fFacetDiameterM){
-	dump=1; // flag to drop this pe
-	fW[0]=4;
-	gaussfast(); //This just keep the sequence of random numbers in synch.
-	gaussfast(); // for debugging purposes
-	return dump;
-    }
-    
-
-    // Facet[2] is length of FacetMagnitude*cos(2*theta)
-    double FacetMagnitude= sqrt(fFacet[0]*fFacet[0]+ fFacet[1]*fFacet[1]+ 
-				fFacet[2]*fFacet[2]);
-
-    double theta=.5*acos(-fFacet[2]/FacetMagnitude);//fFacet[2] will be -
-    
-    // ***********************************
-    // Now we can contruct the Facet normal vector
-    // *****************************************************
-    fFacetNormal[0]=-A.at(0);
-    fFacetNormal[1]=-A.at(1);
-    
-    // *****************************************************
-    // The length of the facet normal (vector  at angle theta to optical 
-    // axis to center of facet) will be:
-    // **********************************
-    double FacetNormalMagnitude=AMagnitude/sin(theta);
-    fFacetNormal[2]=cos(theta)*FacetNormalMagnitude;
-  
-    // *******************************************************************
-    // Now adjust fFacet[2] to be relative to fFocalPlaneLocationM
-    // *******************************************************************
-    fFacet[2]= fFacet[2]+ (fAlignmentPlaneLocationM-fFocalPlaneLocationM); 
- }
   // *****************************************************************
   // Find  Facet normal direction
   // At this point for both WHIPPLE and MCGILL fFacetNormal goes from the
   // center of the facet to the optical axis. Z is positive from the mirror
   // towards the focal plane. Get the length of this vector.
   // *****************************************************************
-  double mag=sqrt(fFacetNormal[0]*fFacetNormal[0] +
-		  fFacetNormal[1]*fFacetNormal[1] +
-		  fFacetNormal[2]*fFacetNormal[2] );
+  double mag=sqrt(fFacetNormal.at(0)*fFacetNormal.at(0) +
+		  fFacetNormal.at(1)*fFacetNormal.at(1) +
+		  fFacetNormal.at(2)*fFacetNormal.at(2) );
   
-  fFacetNormalDir[0]=fFacetNormal[0]/mag;  //Unit vector. facet normal.
-  fFacetNormalDir[1]=fFacetNormal[1]/mag;
-  fFacetNormalDir[2]=fFacetNormal[2]/mag;
+  fFacetNormalDir[0]=fFacetNormal.at(0)/mag;  //Unit vector. facet normal.
+  fFacetNormalDir[1]=fFacetNormal.at(1)/mag;
+  fFacetNormalDir[2]=fFacetNormal.at(2)/mag;
 
   
   // ***********************************************************************
@@ -556,9 +434,9 @@ int KSTiltAndTrace::FullAberationTrace()
 		    (fPeFacet[1]-fPh[1])*(fPeFacet[1]-fPh[1]) );
 
   // *******************
-  // use this to adjust fFacet[2] (which is based at fFocalPlaneLocationM)
+  // use this to adjust fFacet.at(2) (which is based at fFocalPlaneLocationM)
   // for fPeFacet(2]
-  fPeFacet[2]=fFacet[2]+fPeFacet[2]; 
+  fPeFacet[2]=fFacet.at(2)+fPeFacet[2]; 
   
   // ******************************************************************
   // 	Adjust the petime for the fact that it hits at PeFacet not at
@@ -578,18 +456,18 @@ int KSTiltAndTrace::FullAberationTrace()
   // Vector from reflection point to center of facet   
   // ****************************************************************
   std::vector <double> fReflect(3);
-  fReflect.at(0)=fFacet[0]-fPeFacet[0];
-  fReflect.at(1)=fFacet[1]-fPeFacet[1];
-  fReflect.at(2)=fFacet[2]-fPeFacet[2];
+  fReflect.at(0)=fFacet.at(0)-fPeFacet[0];
+  fReflect.at(1)=fFacet.at(1)-fPeFacet[1];
+  fReflect.at(2)=fFacet.at(2)-fPeFacet[2];
 
   // *****************************************************************
-  // Get vector from reflection point ot center of curvature
+  // Get vector from reflection point to center of curvature
   // center of curvature of the facet(the PH point).
   // ********************************************************************
   
-  fPeFacetNormalDir[0]=fReflect.at(0) + fFacetNormal[0] + fPh[0];
-  fPeFacetNormalDir[1]=fReflect.at(1) + fFacetNormal[1] + fPh[1];
-  fPeFacetNormalDir[2]=fReflect.at(2) + fFacetNormal[2] + fPh[2];
+  fPeFacetNormalDir[0]=fReflect.at(0) + fFacetNormal.at(0) + fPh[0];
+  fPeFacetNormalDir[1]=fReflect.at(1) + fFacetNormal.at(1) + fPh[1];
+  fPeFacetNormalDir[2]=fReflect.at(2) + fFacetNormal.at(2) + fPh[2];
   
   // ********************************************************************
   // Covert this to a unit vector. This is the normal to the surface we

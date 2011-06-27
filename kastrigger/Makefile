@@ -12,7 +12,7 @@
 
 TOPDIR = ..
 #normally comment out next line(we don't want profileing)
-OPTPRF=-pg
+#OPTPRF=-pg
 
 include ../Makefile.common
 
@@ -56,7 +56,7 @@ $(EXETARGET1): $(LIBTARGET)
 $(EXETARGET2): $(LIBTARGET) 
 	$(F90) -o $(addprefix $(BINDIR)/,$(@:.cpp=)) \
 	          $(addprefix $(TMPDIR)/,$(@:.cpp=.o)) $^  \
-	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) $(OPTPRF)
+	          $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS)  $(ROOTLIBS) $(OPTPRF)
 
 
 $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.f90
