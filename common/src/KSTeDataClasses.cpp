@@ -77,18 +77,28 @@ void KSTeHeadData::PrintTeHead()
   
 
   if(fAlignmentMethod==MCGILL){
-    std::cout<<"  Facet Alignment plane location(meters): "
+    std::cout<<"     Facet Alignment plane loc(meters): "
 	     <<fAlignmentPlaneLocationM<<std::endl;
     }
 
   std::cout<<"                  Facet Alignment Method: ";
-    if(fAlignmentMethod==WHIPPLE){
-      std::cout<<"WHIPPLE"<<std::endl;
-    }
-    else{
-      std::cout<<"MCGILL"<<std::endl;
-    }
+  if(fAlignmentMethod==WHIPPLE){
+    std::cout<<"WHIPPLE"<<std::endl;
+  }
+  else{
+    std::cout<<"MCGILL"<<std::endl;
+  }
+  
+  if(fFacetLocationFileName==" "){
+    std::cout<<" Facet location gen Hillas rndm method:"
+	     <<std::endl;
+  }
+  else{
+    std::cout<<"              Facet location from file: "
+	     <<fFacetLocationFileName<<std::endl;
+  }
 
+  
 //std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
   return;
 }

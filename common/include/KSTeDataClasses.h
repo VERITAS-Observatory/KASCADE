@@ -61,6 +61,7 @@ class KSTeHeadData
                                     // 2*FocalLength). New (as of March 2009) 
                                     // is MCGILL: Star focuses at center of 
                                     // FOV on alignment focal plane.
+  std::string fFacetLocationFileName;
 
 //  char   fVersion[16];	    //Version of kastrig that made this m file.
 };
