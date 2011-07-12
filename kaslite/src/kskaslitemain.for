@@ -606,9 +606,9 @@ c        Write out the record. (disabled for Benchmark mode)
          else
             shower_max2=0
          endif
-!         write(6,2401)'E:ID:SHWMax,Sig:Path:#',
-!     1        tep,showerid,shower_max,shower_max2,totalpath,totalmade
-! 2401    format(a,f14.7,i6,1x,f7.1,1x,f7.1,e20.10,i12)
+         write(6,2401)'E:ID:SHWMax,Sig:Path:#',
+     1        tep,showerid,shower_max,shower_max2,totalpath,totalmade
+ 2401    format(a,f14.7,i6,1x,f7.1,1x,f7.1,e20.10,i12)
       endif
       return
       END
