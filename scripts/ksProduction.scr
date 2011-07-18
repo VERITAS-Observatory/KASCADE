@@ -37,7 +37,7 @@ function Protons()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ $host = $ISIS ]; then
+    if [ -n "$ISIS" ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 #ksaomVBF ~12hr.
 	BuildIsisScriptList 1 1   9
@@ -72,7 +72,7 @@ function Protons()
     fi
 
 #Pulsar
-    if [ $host = $PULSAR ]; then
+    if [ -n "$PULSAR" ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	BuildPulsarScriptList 1 1 10
 	BuildPulsarScriptList 2 11 20
@@ -87,17 +87,16 @@ function Protons()
     fi
 
 #AMDAHL
-    if [ $host = $AMDAHL ]; then
+    if [ -n "$AMDAHL" ]; then
 	SubmitAmdahlPBSScripts 1 42
     fi
 
 
 #PDSF
-   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-            #**********************************************************************
-            #Submit in reverse order so the longest start first.
-            #**********************************************************************
-
+   if [ -n "$PDSF" ]; then
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     #**********************************************************************
 	    let iEntryStart=1
 	    let iEntryEnd=36	
 #	    let iEntryEnd=39
@@ -113,14 +112,13 @@ function Protons()
 	    done
     fi
 #CARVER
-   if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+   if [ -n "$CARVER" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
 
            let iEntryStart=1
            let iEntryEnd=44
-
 
 #Reverse order (prefered)
 	   let j=$iEntryEnd
@@ -177,7 +175,7 @@ function Helium4()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=448  334  249  186  139  104  78   58   43   32    24    18    14  10    8     6     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ $host = $ISIS ]; then
+    if [ -n "$ISIS" ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 #set 1 kasaomVBF ~5 hr.
@@ -213,7 +211,7 @@ function Helium4()
     fi
 
 #Pulsar
-    if [ $host = $PULSAR ]; then
+    if [ -n "$PULSAR" ]; then
       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 	BuildPulsarScriptList 1 6  20
@@ -227,12 +225,12 @@ function Helium4()
       fi
     fi
 
-    if [ $host = $AMDAHL ]; then
+    if [ -n "$AMDAHL" ]; then
         SubmitAmdahlPBSScripts 1 42 
     fi
 
 #PDSF
-   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+   if [ -n "$PDSF" ]; then
             #**********************************************************************
             #Submit in reverse order so the longest start first.
             #**********************************************************************
@@ -252,7 +250,7 @@ function Helium4()
             done
     fi
 #CARVER
-   if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+   if [ -n "$CARVER" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -324,11 +322,10 @@ function CosmicRay()
 
 
 #PDSF (ONLY)
-   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-            #**********************************************************************
-            #Submit in reverse order so the longest start first.
-            #**********************************************************************
-
+   if [ -n "$PDSF" ]; then
+    #**********************************************************************
+    #Submit in reverse order so the longest start first.
+    #**********************************************************************
             let iPEntryStart=1
             let iHe4EntryStart=6   #Normal start for helium
             let iPEntryEnd=36
@@ -376,7 +373,7 @@ function CosmicRay()
     fi
 
 #CARVER
-   if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+   if [ -n "$CARVER" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -468,7 +465,7 @@ function Gammas()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     11    1     11)
 #	  end=([1]=1813 1399 1079 833  643  496  383  296  228  176   136   105   81  63    49    38    29   23  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    10    20    10    20)  
  
-    if [ $host = $ISIS ]; then
+    if [ -n "$ISIS" ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildIsisScriptList 1 11 12
@@ -513,7 +510,7 @@ function Gammas()
     fi
 
 #Pulsar
-    if [ $host = $PULSAR ]; then
+    if [ -n "$PULSAR" ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildPulsarScriptList 1 11 12
@@ -556,7 +553,7 @@ function Gammas()
     fi
 
 #AMDAHL
-    if [ $host = $AMDAHL ]; then
+    if [ -n "$AMDAHL" ]; then
         SubmitAmdahlPBSScripts 37 43 
  #     	SubmitAmdahlPBSScripts 23 34 
 #	SubmitAmdahlPBSScripts 1  22 
@@ -565,7 +562,7 @@ function Gammas()
     fi
 
 #CARVER
-   if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+   if [ -n "$CARVER" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -603,10 +600,10 @@ function Gammas()
 
 
 #PDSF
-   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-            #**********************************************************************
-            #Submit in reverse order so the longest start first.
-            #**********************************************************************
+   if [ -n "$PDSF" ]; then
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     #**********************************************************************
 
 # *******************************************************************
 #Folowing for making te.d files on PDSF with our 500 GByte limitation
@@ -670,7 +667,7 @@ function Electrons()
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     11    1     11)
 #	  end=([1]=1813 1399 1079 833  643  496  383  296  228  176   136   105   81  63    49    38    29   23  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    10    20    10    20)  
  
-    if [ $host = $ISIS ]; then
+    if [ -n "$ISIS" ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildIsisScriptList 1 11 12
@@ -715,7 +712,7 @@ function Electrons()
     fi
 
 #Pulsar
-    if [ $host = $PULSAR ]; then
+    if [ -n "$PULSAR" ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildPulsarScriptList 1 11 12
@@ -758,7 +755,7 @@ function Electrons()
     fi
 
 #AMDAHL
-    if [ $host = $AMDAHL ]; then
+    if [ -n "$AMDAHL" ]; then
         SubmitAmdahlPBSScripts 37 43 
  #     	SubmitAmdahlPBSScripts 23 34 
 #	SubmitAmdahlPBSScripts 1  22 
@@ -767,7 +764,7 @@ function Electrons()
     fi
 
 #CARVER
-   if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+   if [ -n "$CARVER" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -804,10 +801,10 @@ function Electrons()
 
 
 #PDSF
-   if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-            #**********************************************************************
-            #Submit in reverse order so the longest start first.
-            #**********************************************************************
+   if [ -n "$PDSF" ]; then
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     #**********************************************************************
 
 # *******************************************************************
 #Folowing for making te.d files on PDSF with our 500 GByte limitation
@@ -1236,8 +1233,36 @@ function BuildPulsarScriptList()
 #Start of main script.
 #*************************************************************
 lcl="$PWD"
+
 host=$(hostname)
 echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+fi
+
+if test  "$hostString" = "amdahl"  #Are we running on AMDAHL
+then
+  AMDAHL=enabled
+fi
+
+if test  "$hostString" = "analys"  #Are we running on PULSAR(TUCSON)
+then
+  PULSAR=enabled
+fi
+
+hostString=${host:0:4}
+if test  "$hostString" = "pdsf"  #Are we running on PDSF
+then
+  PDSF=enabled
+fi
+if test  "$hostString" = "isis"  #Are we running on ISIS
+then
+  ISIS=enabled
+fi
+
 
 
 #script directory
@@ -1269,22 +1294,9 @@ if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
     let lastJob=1
 fi
 
-AMDAHL=amdahl.physics.purdue.edu
-ISIS=isis.depauw.edu
-PULSAR=analysis
-PDSF1=pdsf1
-PDSF2=pdsf2
-PDSF3=pdsf3
-PDSF4=pdsf4
-PDSF5=pdsf5
 
-CARVER1=cvrsvc01
-CARVER2=cvrsvc02
-CARVER3=cvrsvc03
-CARVER4=cvrsvc04
-CARVER5=cvrsvc05
-
-if [ $host = $ISIS ] ; then
+#ISIS
+if [ -n "$ISIS" ]; then
     if test ${lcl:1:4} = "disk"
     then
        dataDirBase=${lcl:0:6}'/simulations'
@@ -1305,7 +1317,7 @@ if [ $host = $ISIS ] ; then
     done
 fi
 
-if [ $host = $PULSAR ] ; then
+if [ -n "$PULSAR" ]; then
     lastJob=44
     dataDirBase=/usr/local/data/sembrosk/simulations
     workingDir=/tmp/sembrosk/
@@ -1341,16 +1353,17 @@ if [ $host = $PULSAR ] ; then
 
     done
 fi
-if [ $host = $AMDAHL ] ; then
+if [ -n "$AMDAHL" ]; then
     dataDirBase=/project/veritas/sembrosk/simulations
     workingDir=$lcl
 fi
 
-if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
+if [ -n "$PDSF" ]; then
     dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
     workingDir=$lcl
 fi
-if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
+
+if [ -n "$CARVER" ]; then
     dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
     workingDir=$SCRATCH
 fi
@@ -1396,9 +1409,8 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     TelSpec=${jobSpec:1:1}              #gets W from CWCR20DegN0.5Deg50mv1234M2
     spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
-    if [ $host = $PDSF1 ]   || [ $host = $PDSF2 ]   || [ $host = $PDSF3 ]   || [ $host = $PDSF4 ]   || [ $host = $PDSF5 ]   || \
-       [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
- 
+
+    if [ -n "$PDSF" ] || [ -n "$CARVER" ]; then
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
        protonDatadir="$dataDirBase/protons"
@@ -1462,7 +1474,7 @@ if [ $pspecset -ne 1 ]; then
 fi
 
 #ISIS
-if [ $host = $ISIS ]; then
+if [ -n "$ISIS" ]; then
    
     let jobNum=1
     while test $jobNum -le $lastJob
@@ -1484,7 +1496,7 @@ if [ $host = $ISIS ]; then
 fi
 
 #Pulsar
-if [ $host = $PULSAR ]; then
+if [ -n "$PULSAR" ]; then
 
     let jobNum=1
     while test $jobNum -le $lastJob
