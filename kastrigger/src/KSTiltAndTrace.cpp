@@ -109,10 +109,10 @@ int  KSTiltAndTrace::Tilt()
     {
       dump=1; // flag to drop this pe
       fW[0]=1;
-      pran(&dummy);
-      pran(&dummy);
-      gaussfast();
-      gaussfast();
+      //pran(&dummy);  //These are for synching rnadom numbers during debugging
+      //pran(&dummy);
+      //gaussfast();
+      //gaussfast();
 
       return dump;
     }
@@ -176,10 +176,10 @@ int  KSTiltAndTrace::Tilt()
     {
       dump=1;		//  Gets here if mirror is missed.
       fW[0]=2;
-      pran(&dummy);
-      pran(&dummy);
-      gaussfast();
-      gaussfast();
+      //pran(&dummy);
+      //pran(&dummy);
+      //gaussfast();
+      //gaussfast();
       return dump;	// Drop this pe.
     }
   // ***********************************************************

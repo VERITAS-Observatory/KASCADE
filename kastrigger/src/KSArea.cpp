@@ -107,7 +107,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   // Construct the Ray tracing object:KSTiltTrace
   // (repklaces whippletilt)
   // *******************************************************************
-  std::string alignmentMethod="WHIPPLE";
+  string alignmentMethod="WHIPPLE";
   if(pfDataIn->pfTeHead->fAlignmentMethod==MCGILL){
     alignmentMethod="MCGILL";
   }
@@ -228,6 +228,7 @@ void KSArea::ProcessImages()
 // Main processing loop
 // Start directions loop
 // **************************************************************************
+
   for(int ithphi=0;ithphi<fNumDirections;ithphi++)
     { 
       // ***************************************************************
@@ -299,6 +300,9 @@ void KSArea::ProcessImages()
 	                                  // this pe (drop==1)
 	  double fWX=pfTiltAndTrace->fW[0];
 	  double fWY=pfTiltAndTrace->fW[1];
+
+	  debugCount++;
+
 	  double fPeTime=pfTiltAndTrace->fPeTime;
 
 	  if(dump==1)            //Note here that we now use type int for 
@@ -334,6 +338,7 @@ void KSArea::ProcessImages()
 	      fWY=-fWY;
 	    }
 
+	  cout<<"cnt,x,y: "<<debugCount<<" "<<fWX<<" "<<fWY<<endl;
 
 	  // ******************************************************************
 	  // Find which PMT this hits.

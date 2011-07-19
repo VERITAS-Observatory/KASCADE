@@ -82,6 +82,7 @@ class KSArea
 
   float fXDummy;
  
+  int debugCount;
 
   void InitMountDirectionVectors();
   void unitCrossProduct(double* X,double* Y,double* Z);

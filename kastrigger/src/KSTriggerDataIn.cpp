@@ -251,39 +251,40 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
   pfTeHead->fFacetLocationFileName=sDefaultFacetLocationFileName; 
 
     
-    if( sDefaultAlignmentMethod=="WHIPPLE")
-    {
-      pfTeHead->fAlignmentMethod=WHIPPLE;
-    }
-  else if(sDefaultAlignmentMethod=="MCGILL")
-    {
-      pfTeHead->fAlignmentMethod=MCGILL;
-    }
-  else
-    {
-      std::cout<<"Illegal option for FacetAlignmentMethod: "
-	       <<sDefaultAlignmentMethod
-	       <<" Assuming Alignment Method: MCGILL"<<std::endl;
-      pfTeHead->fAlignmentMethod=MCGILL;
-    }
+  if( sDefaultAlignmentMethod=="WHIPPLE"){
+    pfTeHead->fAlignmentMethod=WHIPPLE;
+  }
+  else if(sDefaultAlignmentMethod=="MCGILL") {
+    pfTeHead->fAlignmentMethod=MCGILL;
+  }
+  else {
+    std::cout<<"Illegal option for FacetAlignmentMethod: "
+	     <<sDefaultAlignmentMethod
+	     <<" Assuming Alignment Method: MCGILL"<<std::endl;
+    pfTeHead->fAlignmentMethod=MCGILL;
+  }
 
-  if(sDefaultPSFNorthSouthDeg<0)
-    {
-      pfTeHead->fPSFNorthSouthDeg = gPSFNorthSouthDeg[pfTeHead->fCameraType];
-    }
-  else
-    {
-      pfTeHead->fPSFNorthSouthDeg = sDefaultPSFNorthSouthDeg;
-    }
+  // *********************************************************************
+  // Pick up the jitters. may replace with single angle for both
+  // *********************************************************************
 
-  if(sDefaultPSFEastWestDeg<0)
-    {
-      pfTeHead->fPSFEastWestDeg   = gPSFEastWestDeg[pfTeHead->fCameraType];
-    }
-  else
-    {
-      pfTeHead->fPSFEastWestDeg   = sDefaultPSFEastWestDeg;
-    }
+  if(sDefaultPSFNorthSouthDeg<0){
+    fPSFNorthSouthDeg = gPSFNorthSouthDeg[pfTeHead->fCameraType];
+  }
+  else {
+    fPSFNorthSouthDeg = sDefaultPSFNorthSouthDeg;
+  }
+  pfTeHead->fPSFNorthSouthDeg =  fPSFNorthSouthDeg;
+    
+    
+  if(sDefaultPSFEastWestDeg<0){
+    fPSFEastWestDeg   = gPSFEastWestDeg[pfTeHead->fCameraType];
+  }
+  else{
+    fPSFEastWestDeg   = sDefaultPSFEastWestDeg;
+  }
+  pfTeHead->fPSFEastWestDeg   = fPSFEastWestDeg;
+    
 }
 // **************************************************************************
 
