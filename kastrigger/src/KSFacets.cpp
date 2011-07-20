@@ -58,14 +58,16 @@ KSFacets::KSFacets(double MirrorRadiusSquaredM2, double FacetDiameterM,
       pFacetTree->SetBranchAddress("EXIST", &fFacetEXIST);
     }
     else{
-      cout<<"KSFacets: Facet Location file does not have XM and YM "
-	"and EXIST variables (needs all 3)!"<<endl;
+      cout<<"KSFacets: Facet Location file "<<fFacetLocationFileName
+	  <<" does not have XM and YM and EXIST variables (needs all 3)!"
+	  <<endl;
       exit(EXIT_FAILURE);
     }
 
     // *******************************************************************
     // Read XM,YM from the TTRee. Reads EXITS flag is there
     // ******************************************************************
+    cout<<"KSFacets: Facet Location file: "<<fFacetLocationFileName<<endl;
     fFacetX.clear();
     fFacetY.clear();
     fExist.clear();

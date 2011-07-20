@@ -41,7 +41,7 @@ double      KSTriggerDataIn::sDefaultLightConeConcentration=1.0;
 double      KSTriggerDataIn::sDefaultMountAzDeg=-1.0;    
 double      KSTriggerDataIn::sDefaultMountZenithDeg=-1.0;
 double      KSTriggerDataIn::sDefaultMountElevationDeg=0.0;  
-double      KSTriggerDataIn::sDefaultFocalPlaneLocationM=11.985;
+double      KSTriggerDataIn::sDefaultFocalPlaneLocationM=12.00;
 double      KSTriggerDataIn::sDefaultAlignmentPlaneLocationM=-1;
 std::string KSTriggerDataIn::sDefaultAlignmentMethod="MCGILL";
 std::string KSTriggerDataIn::sDefaultFacetLocationFileName= " ";
@@ -486,7 +486,7 @@ void KSTriggerDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "Distance from center of Veritas mirror to focal "
 		    "plane. This allows us to move the focal plane when "
 		    "we model focusing when looking at shower images. "
-		    "Default is Veritas mirror focus length of 11.985 "
+		    "Default is Veritas mirror focus length of 12.00 "
 		    "meters");
 
   doVAConfiguration(file, command_line,"McGillFacetAlignmentPlaneLocationM",
