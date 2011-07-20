@@ -338,7 +338,7 @@ void KSArea::ProcessImages()
 	      fWY=-fWY;
 	    }
 
-	  cout<<"cnt,x,y: "<<debugCount<<" "<<fWX<<" "<<fWY<<endl;
+	  //cout<<"cnt,x,y: "<<debugCount<<" "<<fWX<<" "<<fWY<<endl;
 
 	  // ******************************************************************
 	  // Find which PMT this hits.
