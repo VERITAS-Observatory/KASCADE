@@ -348,9 +348,9 @@ int KSTiltAndTrace::FullAberationTrace()
   // axis from the mirror plane and will be negative.
   // *************************************************************************
   vector <double> fFacet(3);
+  int facetIndex=-1;
 
-
-  int dump= pMirrorFacets->FindFacetLocation(fPe, fFacet);
+  int dump= pMirrorFacets->FindFacetLocation(fPe, fFacet,facetIndex);
   if(dump!=0){
     fW[0]=4;
     return dump;
@@ -383,7 +383,7 @@ int KSTiltAndTrace::FullAberationTrace()
   // *********************************************************************
   vector < double > fFacetNormal(3);
   
-  dump= pMirrorFacets->FindFacetNormal(fFacet, fFacetNormal);
+  dump= pMirrorFacets->FindFacetNormal(fFacet, fFacetNormal,facetIndex);
   if(dump!=0){
     fW[0]=4;
     return dump;

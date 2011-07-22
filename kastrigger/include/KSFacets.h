@@ -31,24 +31,40 @@ using namespace std;
 class KSFacets
 {
  private:
+  void FindFacetNormalWhipple(double FacetX, double FacetY, double FacetZ, 
+			      double& FacetNormalX, double& FacetNormalY,
+			      double& FacetNormalZ);
+
+  void FindFacetNormalMcGill(double FacetX, double FacetY, double FacetZ, 
+			      double& FacetNormalX, double& FacetNormalY,
+			      double& FacetNormalZ);
+
   double fMirrorRadiusSquaredM2;
   double fFacetDiameterM;
   double fFocalLengthM;
+
+
   double fFocalPlaneLocationM;
   double fAlignmentPlaneLocationM;
   string fAlignmentMethod;
   string fFacetLocationFileName;
 
   TTree* pFacetTree;
-  float fFacetXM;
-  float fFacetYM;
-  float fFacetEXIST;
+  float  fFacetXM;
+  float  fFacetYM;
+  double fFacetZM;
+  float  fFacetEXIST;
+
   vector < double > fFacetX;
   vector < double > fFacetY;
+  vector < double > fFacetZ;
   vector < double > fExist;
 
+  vector < double > fFacetNormalX;
+  vector < double > fFacetNormalY;
+  vector < double > fFacetNormalZ;
+
   int fNumFacets;
-  int fMinIndex;
 
   float dummy;
 
@@ -59,8 +75,10 @@ public:
 	  string FacetLocationFileName);
   virtual ~KSFacets();
 
-  int FindFacetLocation( vector <double >& Pe, vector <double >& Facet);
-  int FindFacetNormal(vector <double >& Facet, vector <double >& FacetNormal);
+  int FindFacetLocation( vector <double >& Pe, vector <double >& Facet,
+			 int& facetIndex);
+  int FindFacetNormal(vector <double >& Facet, vector <double >& FacetNormal,
+		      int facetIndex);
 
 };
 // ***************************************************************************

@@ -70,14 +70,71 @@ KSFacets::KSFacets(double MirrorRadiusSquaredM2, double FacetDiameterM,
     cout<<"KSFacets: Facet Location file: "<<fFacetLocationFileName<<endl;
     fFacetX.clear();
     fFacetY.clear();
+    fFacetZ.clear();
     fExist.clear();
     for(int i=0;i<numEntries;i++){
       pFacetTree->GetEntry(i);
       fFacetX.push_back(fFacetXM);
       fFacetY.push_back(fFacetYM);
       fExist.push_back(fFacetEXIST);
+
+      // *******************************************************************
+      // Using the equation for a sphere (of radius fFocalLengthM) to 
+      // determine the z component of fFacet
+      // on the spherical surface of the mirror. It is assumed
+      // that the photon is within the mirror aperature.
+      // (but the facet may not be and thats an error for the aberration of 
+      // the edge of the telecope).
+      // ********************************************************************
+      double xyfMagSqr=(fFacetXM*fFacetXM+fFacetYM*fFacetYM);
+	                                   // This is for speed otimization
+	
+      fFacetZM=-sqrt(fFocalLengthM*fFocalLengthM - xyfMagSqr);
+      fFacetZ.push_back(fFacetZM);
+
+      // **********************************************************************
+      // Now find the facet normals.
+      // **********************************************************************
+      // MIRROR ALIGMENT METHODS
+      // We now want want the normal vector from the fake facet mirror that is 
+      // situated and centered at Facet. There are 2 ways to do this which are
+      // equivalent if fAlignmentPlaneLocationM == fFocalLength that is the 
+      // alignment focal plane is at the MCC,  but not otherwise. 
+      // This reflects the fact that both Whipple and Veritas have used 2 
+      // methods for mirror alignment. I've labled them the WHIPPLE and MCGILL
+      // methods. 
+      // 1:WHIPPLE: This is the original method used to align the normal of 
+      // all mirror segments for the WHIPPLE and VERITAAS telescopes before 
+      // spring of 2009. In this method the normal of the center of each 
+      // mirror facet is pointed at a point 2 times the focal length from the 
+      // center of the mirror plane along the optical axis 
+      // (ie.at v2fl=0,0,+focal_length).
+      //  This effectivly put the alignment focal plane at fFocalLength.
+      // *********************************************************************
+
+      double facetNormX=0;
+      double facetNormY=0;
+      double facetNormZ=0;
+
+      if(fAlignmentMethod=="WHIPPLE"){
+
+	FindFacetNormalWhipple(fFacetXM, fFacetYM, fFacetZM, facetNormX,
+			       facetNormY,facetNormZ);
+      }
+
+      else{                //McGill
+
+	FindFacetNormalMcGill(fFacetXM, fFacetYM, fFacetZM, facetNormX,
+			       facetNormY,facetNormZ);
+
+      }
+
+      fFacetNormalX.push_back(facetNormX);
+      fFacetNormalY.push_back(facetNormY);
+      fFacetNormalZ.push_back(facetNormZ);
     }
-    
+
+
     fNumFacets=fFacetX.size();
     // ************************************************************************
     // And we are done.
@@ -85,7 +142,7 @@ KSFacets::KSFacets(double MirrorRadiusSquaredM2, double FacetDiameterM,
     // facet location info to make lookup faster (maps etc?). We may also 
     // want to be able to read in a secondary file with alignment info for 
     // each segment to model flexing of the OSS.
-  // ************************************************************************
+    // ************************************************************************
   }
   else{
     pFacetTree=NULL;
@@ -102,7 +159,7 @@ KSFacets::~KSFacets()
 // ***************************************************************************
 
 int KSFacets::FindFacetLocation(vector < double >& Pe, 
-				vector < double >& Facet)
+				vector < double >& Facet, int& facetIndex)
 // **************************************************************************
 // Returns vector to the facet location the PE lands on.
 // There are 2 methods:
@@ -145,15 +202,33 @@ int KSFacets::FindFacetLocation(vector < double >& Pe,
     Facet.at(0)+=Pe.at(0);
     Facet.at(1)+=Pe.at(1);  ;
 
-
+    // ***********************************************************************
+    // Using the equation for a sphere (of radius fFocalLengthM) to determine 
+    // the z component of fFacet
+    // on the spherical surface of the mirror. It is assumed
+    // that the photon is within the mirror aperature.
+    // (but the facet may not be and thats an error for the aberration of the
+    // edge of the telecope).
+    // ************************************************************************
+    double xyfMagSqr=Facet.at(0)*Facet.at(0)+Facet.at(1)*Facet.at(1);
+                                              // This is for speed otimization
+   
+    Facet.at(2)=-sqrt(fFocalLengthM*fFocalLengthM - xyfMagSqr);
+    // ***********************************************************************
+    // Z is negative since vector goes from the MCC origin (at a 
+    // distance radius=fFocalLengthM above mirror plane)
+    // to the mirror surface at Facet.at(0),Facet.at(1).
+    // thus  Facet.at(2)<=-12.0 meters (like -11.5 m))
+    // ***********************************************************************
   }
+  
   else{
     // **********************************************************************
     // Find Facet location by searching through X,Y coords from file.
     // Going to do this mainly by brute force
     // **********************************************************************
     double r2Min=fFacetDiameterM*fFacetDiameterM;
-    fMinIndex=-1;
+    facetIndex=-1;
     for(int i=0;i<fNumFacets;i++){
 
       // **************************************************************
@@ -172,48 +247,32 @@ int KSFacets::FindFacetLocation(vector < double >& Pe,
       double radius2M=xDiff*xDiff+yDiff*yDiff;
       if(radius2M<=r2Min){
 	r2Min=radius2M;
-	fMinIndex=i;
+	facetIndex=i;
       }
     }
     // *******************************************************************
     // See if we found a facet
     // *******************************************************************
-    if(fMinIndex==-1){
+    if(facetIndex==-1){
       dump=1;
       return dump;
     }
     // ******************************************************************
     // Now test for existance
     // ******************************************************************
-    if(fExist.at(fMinIndex)!=1){
+    if(fExist.at(facetIndex)!=1){
       dump=2;
       return dump;
     }
     // *****************************************************************
     // Its good.
     // ****************************************************************
-    Facet.at(0)=fFacetX.at(fMinIndex);
+    Facet.at(0)=fFacetX.at(facetIndex);
 
-    Facet.at(1)=fFacetY.at(fMinIndex);
+    Facet.at(1)=fFacetY.at(facetIndex);
+
+    Facet.at(2)=fFacetZ.at(facetIndex);
   }
-  // ***********************************************************************
-  // Using the equation for a sphere (of radius fFocalLengthM) to determine 
-  // the z component of fFacet
-  // on the spherical surface of the mirror. It is assumed
-  // that the photon is within the mirror aperature.
-  // (but the facet may not be and thats an error for the aberration of the
-  // edge of the telecope).
-  // ************************************************************************
-  double xyfMagSqr=Facet.at(0)*Facet.at(0)+Facet.at(1)*Facet.at(1);
-                                              // This is for speed otimization
-   
-  Facet.at(2)=-sqrt(fFocalLengthM*fFocalLengthM - xyfMagSqr);
-  // ***********************************************************************
-  // Z is negative since vector goes from the MCC origin (at a 
-  // distance radius=fFocalLengthM above mirror plane)
-  // to the mirror surface at Facet.at(0),Facet.at(1).
-  // thus  Facet.at(2)<=-12.0 meters (like -11.5 m))
-  // ***********************************************************************
   dump=0;
   return dump;
 }
@@ -221,7 +280,7 @@ int KSFacets::FindFacetLocation(vector < double >& Pe,
 
 
 int KSFacets::FindFacetNormal(vector < double >& Facet, 
-			      vector < double >& FacetNormal)
+			      vector < double >& FacetNormal, int facetIndex)
 // ************************************************************************
 // MIRROR ALIGMENT METHODS
 // We now want want the normal vector from the fake facet mirror that is 
@@ -250,101 +309,131 @@ int KSFacets::FindFacetNormal(vector < double >& Facet,
 //   method of alignment for Veritas and Whipple.
 // ************************************************************************
 {
-  // *********************************************************
-  // Old WHIPPLE method first
-  // *********************************************************
+  // *********************************************************************
+  // If a Facet Location file was provided, the normals (for either specified 
+  // method) are precalculated in the constructor of this class.
+  // Check for that posibility first (just for performance reasons).
+  // **********************************************************************
   int dump=0;
-  if(fAlignmentMethod=="WHIPPLE"){
-    // ********************************************************************
-    // Using WHIPPLE alignament method for determining facet normal.
-    // This vector is Vrc=V2fl-Vf
-    // First vector from center of facet to MCC (0,0,focal_length.)
-    //  Note: This DOES NOT depend on fAlignmentPlaneLocationM or 
-    //        fFoclaPlaneLocationM
-    // ********************************************************************
+  if(fNumFacets!=0){
      
-    vector < double > fToFocalLength;//optical axis to focal plane in mirror 
-                                      //plane systemfToFocalLength.at(0)=0.;
-    fToFocalLength.clear();
-    fToFocalLength.resize(3,0);
-    fToFocalLength.at(2)=fFocalLengthM;
-  
-    FacetNormal.at(0)= fToFocalLength.at(0)-Facet.at(0);
-    FacetNormal.at(1)= fToFocalLength.at(1)-Facet.at(1);
-    FacetNormal.at(2)= fToFocalLength.at(2)-Facet.at(2);
+    FacetNormal.at(0)=fFacetNormalX.at(facetIndex);
+    FacetNormal.at(1)=fFacetNormalY.at(facetIndex);
+    FacetNormal.at(2)=fFacetNormalZ.at(facetIndex);
 
-    // ********************************************************************
-    // Adjust the fFacet vector for fFocalPlaneLocationM != fFocalLengthM
-    // fFacet's origin will no long be at the MCC but at 
-    // fFocalLengthM-fFocalPlaneLocationM below it, which is where our Focal 
-    // plane will be.
-    // *******************************************************************
-    Facet.at(2)= Facet.at(2) + (fFocalLengthM-fFocalPlaneLocationM);
-    
   }
-  else{
-    // *********************************************************************
-    // MCGILL alignament method used to determine facet normal direction.
-    //  Note: This DOES NOT depend on fFoclalPlaneLoactionM but DOES depend
-    //        on fAlignmentPlaneLocationM.
-    // ********************************************************************
-    // Adjust (for now) the fFacet vector for fAlignmentPlaneLocationM != 
-    // fFoclaPlanM fFacet's origin will no long be at the MCC but at 
-    // fFocalLengthM-fAlignmentPlaneLocationM below it, which is where our 
-    // alignment Focal plane will be. Later we will adjust Facet.at(2) to be 
-    // relative to the fFocalPlaneLocationM.
-    // *******************************************************************
-    Facet.at(2) = Facet.at(2) + (fFocalLengthM-fAlignmentPlaneLocationM);
 
-    // *******************************************************************
-    // The angle of this vector to the z axis (optical axis) is 2*theta.
-    // WE neeed to find the vector which has the same X,Y components but
-    // is at an angle of theta to the opticle axis
-    // X,Y vector (A) is thus:
-    // ******************************************************************
-    vector < double > A(3);     //vector Perp to Z axis to center of facet
-    A.at(0)=Facet.at(0);
-    A.at(1)=Facet.at(1);
-    A.at(2)=0;
-    // ********************
-    // length of A is sin(theta).
-    // ********************
-    double AMagnitude= sqrt(A.at(0)* A.at(0)+A.at(1)* A.at(1));
-    // ***************************************************************
-    // We are going to drop the central facet. Its shadowed anyway
-    if(AMagnitude<.5*fFacetDiameterM){
-      dump=1; // flag to drop this pe
-      return dump;
-    }
-    
-
-    // Facet.at(2) is length of FacetMagnitude*cos(2*theta)
-    double FacetMagnitude= sqrt(Facet.at(0)*Facet.at(0)+ 
-				Facet.at(1)*Facet.at(1)+ 
-				Facet.at(2)*Facet.at(2));
-
-    double theta=.5*acos(-Facet.at(2)/FacetMagnitude);  //Facet.at(2) will be -
-    
-    // ***********************************
-    // Now we can contruct the Facet normal vector
-    // *****************************************************
-    FacetNormal.at(0)=-A.at(0);
-    FacetNormal.at(1)=-A.at(1);
-    
-    // *****************************************************
-    // The length of the facet normal (vector  at angle theta to optical 
-    // axis to center of facet) will be:
-    // **********************************
-    double FacetNormalMagnitude=AMagnitude/sin(theta);
-    FacetNormal.at(2)=cos(theta)*FacetNormalMagnitude;
-  
-    // *******************************************************************
-    // Now adjust Facet.at(2) to be relative to fFocalPlaneLocationM
-    // *******************************************************************
-    Facet.at(2)= Facet.at(2)+ 
-                            (fAlignmentPlaneLocationM-fFocalPlaneLocationM); 
+  // *******************************************************************
+  //No file specified. Generate on the fly
+  else if(fAlignmentMethod=="WHIPPLE"){
+    FindFacetNormalWhipple(Facet.at(0), Facet.at(1), Facet.at(2), 
+			   FacetNormal.at(0), FacetNormal.at(1),
+			   FacetNormal.at(2));
   }
+
+  else{                //McGill
+
+    FindFacetNormalMcGill(Facet.at(0), Facet.at(1), Facet.at(2), 
+			  FacetNormal.at(0), FacetNormal.at(1),
+			  FacetNormal.at(2));
+  }
+  // ********************************************************************
+  // Adjust the fFacet vector for fFocalPlaneLocationM != fFocalLengthM
+  // fFacet's origin will no long be at the MCC but at 
+  // fFocalLengthM-fFocalPlaneLocationM below it, which is where our Focal 
+  // plane will be.
+  // *******************************************************************
+
+  Facet.at(2)= Facet.at(2) + (fFocalLengthM-fFocalPlaneLocationM);
+
   dump=0;
   return dump;
 }
 // ************************************************************************
+
+void KSFacets::FindFacetNormalWhipple(double FacetX, double FacetY, 
+				      double FacetZ, double& FacetNormalX,
+				      double& FacetNormalY,
+				      double& FacetNormalZ)
+// ********************************************************************
+// Using WHIPPLE alignament method for determining facet normal.
+// This vector is Vrc=V2fl-Vf
+// First vector from center of facet to MCC (0,0,focal_length.)
+//  Note: This DOES NOT depend on fAlignmentPlaneLocationM or 
+//        fFoclaPlaneLocationM
+// ********************************************************************
+{     
+  vector < double > fToFocalLength;//optical axis to focal plane in mirror 
+                                      //plane systemfToFocalLength.at(0)=0.;
+  fToFocalLength.clear();
+  fToFocalLength.resize(3,0);
+  fToFocalLength.at(2)=fFocalLengthM;
+  
+  FacetNormalX = fToFocalLength.at(0)-FacetX;
+  FacetNormalY = fToFocalLength.at(1)-FacetY;
+  FacetNormalZ = fToFocalLength.at(2)-FacetZ;
+  
+  return;
+}
+// ************************************************************************
+
+void KSFacets::FindFacetNormalMcGill(double FacetX, double FacetY,
+				     double FacetZ, double& FacetNormalX,
+				     double& FacetNormalY,
+				     double& FacetNormalZ)
+// *********************************************************************
+// MCGILL alignament method used to determine facet normal direction.
+//  Note: This DOES NOT depend on fFoclalPlaneLoactionM but DOES depend
+//        on fAlignmentPlaneLocationM.
+// ********************************************************************
+{
+  // *****************************************************************
+  // Adjust (for now) the fFacet vector for fAlignmentPlaneLocationM != 
+  // fFoclaPlanM fFacet's origin will no long be at the MCC but at 
+  // fFocalLengthM-fAlignmentPlaneLocationM below it, which is where our 
+  // alignment Focal plane will be. Later we will adjust Facet.at(2) to be 
+  // relative to the fFocalPlaneLocationM.
+  // *******************************************************************
+  FacetZ = FacetZ + (fFocalLengthM-fAlignmentPlaneLocationM);
+
+  // *******************************************************************
+  // The angle of this vector (fFacetXM,fFacetYM,fFacetZM) to the z axis
+  //  (optical axis) is 2*theta.
+  // WE neeed to find the vector which has the same X,Y components but
+  // is at an angle of theta to the opticle axis
+  // Length of fFacetXM,fFacetYM vector is sin(theta).
+  // *******************************************************************
+
+  double AMagnitude2= (FacetX*FacetX + FacetY*FacetY);
+
+  // ***************************************************************
+  // If we are dealing with the central facet AMagnitude2 will have 0 
+  // length.It will probably have exist==0 anyway (its shadowed).
+  // Facet.at(2) is length of FacetMagnitude*cos(2*theta)
+  // ***************************************************************
+ 
+  double FacetMagnitude= sqrt( AMagnitude2 + FacetZ*FacetZ); 
+
+  double theta=.5*acos(-FacetZ/FacetMagnitude);  //FacetZ will be -
+    
+  // *********************************************************
+  // Now we can contruct the a vector normal to the facet center
+  // *****************************************************
+  FacetNormalX=-FacetX;
+  FacetNormalY=-FacetY;
+    
+  // *****************************************************
+  // The length of the facet normal (vector  at angle theta to optical 
+  // axis to center of facet) will be:
+  // Check that thic isn't the central facet
+  // **********************************
+  double FacetNormalMagnitude=0;
+  if(sin(theta)!=0){
+    FacetNormalMagnitude=sqrt(AMagnitude2)/sin(theta);
+  }
+  else {
+    FacetNormalMagnitude=fAlignmentPlaneLocationM;
+  }
+  FacetNormalZ = cos(theta)*FacetNormalMagnitude;
+  return;
+}
