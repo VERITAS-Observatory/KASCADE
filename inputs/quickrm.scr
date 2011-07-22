@@ -1,0 +1,9 @@
+ext=$1
+ls |grep ksTriggerVG | grep .config_$ext | xargs -n1 >List
+{
+  while read InputFile
+   do
+	rm -v $InputFile
+	cvs rm $InputFile
+   done
+}<List

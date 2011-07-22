@@ -1,0 +1,22 @@
+#Build new Zn-Az PSF ksTrigger config files from existing 20_180 330 files
+
+ZN=([1]=1 10 30 40 50 60 70)
+
+
+#main loop
+let i=1
+let numZn=7
+while test $i -le $numZn
+ do
+  az=${ZN[$i]}
+  in220_180=ksTriggerVG20_180Deg2D.config_330
+  outAz0=ksTriggerVG$az'Deg2D.config_330'
+  outAz180=ksTriggerVG$az'_180Deg2D.config_330'
+ 
+  sed s/'MountZenithDeg 20.0'/'MountZenithDeg '$az'.0/' <$in220_180 >$outAz180
+
+  sed s/'MountZenithDeg 20.0'/'MountZenithDeg '$az'.0/' <$in220_180 >temp
+  sed s/'MountAzDeg 180.0'/'MountAzDeg 0.0'/ <temp >$outAz0
+
+ let i=i+1
+ done
