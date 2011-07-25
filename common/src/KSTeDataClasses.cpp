@@ -77,7 +77,7 @@ void KSTeHeadData::PrintTeHead()
   
 
   if(fAlignmentMethod==MCGILL){
-    std::cout<<"     Facet Alignment plane loc(meters): "
+    std::cout<<"       Facet Alignment plane loc(meters): "
 	     <<fAlignmentPlaneLocationM<<std::endl;
     }
 
@@ -94,7 +94,7 @@ void KSTeHeadData::PrintTeHead()
 	     <<std::endl;
   }
   else{
-    std::cout<<"              Facet location from file: "
+    std::cout<<"                Facet location from file: "
 	     <<fFacetLocationFileName<<std::endl;
   }
 
@@ -102,7 +102,37 @@ void KSTeHeadData::PrintTeHead()
 //std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
   return;
 }
+
 // **************************************************************************
+bool KSTeHeadData::setFacetLocationFileName(std::string facetSpec)
+// *********************************************************
+// Save file specification  in te header
+// *********************************************************
+{
+  int numChar=facetSpec.size();
+  if(numChar+1> kNumCharFacetName){
+    std::cout<<"Facet Location File namer too long ("<<numChar
+	     <<"bytes) to fit in TeHead char array. Facet Location File Name: "
+	     <<facetSpec<<std::endl;
+    return false;
+  }
+
+  facetSpec.copy(fFacetLocationFileName, numChar);
+  fFacetLocationFileName[numChar]='\0';
+  return true;  
+}
+// **************************************************************************
+
+std::string KSTeHeadData::getFacetLocationFileName()
+// *************************************************************
+// Convert the fFacetLocationFileName char array back to a std::string
+// *************************************************************
+{
+  std::string facetSpec=fFacetLocationFileName;
+  return facetSpec;
+}
+// *********************************************************************
+
 
 
 // ***************************************************************************

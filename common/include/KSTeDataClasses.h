@@ -19,6 +19,7 @@
 #include "KSCommon.h"
 
 enum KSFacetAlignmentType {WHIPPLE=0,MCGILL=1};
+const int kNumCharFacetName=120;
 
 class KSTeHeadData
 // *******************************************************
@@ -61,9 +62,12 @@ class KSTeHeadData
                                     // 2*FocalLength). New (as of March 2009) 
                                     // is MCGILL: Star focuses at center of 
                                     // FOV on alignment focal plane.
-  std::string fFacetLocationFileName;
+  char fFacetLocationFileName[kNumCharFacetName];
 
 //  char   fVersion[16];	    //Version of kastrig that made this m file.
+  bool setFacetLocationFileName(std::string facetSpec);
+  std::string getFacetLocationFileName();
+
 };
 // ***************************************************************************
 
