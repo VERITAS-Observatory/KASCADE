@@ -80,7 +80,7 @@ public:
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;
   std::string       fRandomSeedFileName;
-
+  std::string       fFacetLocationFileName;
 };
 #endif
 

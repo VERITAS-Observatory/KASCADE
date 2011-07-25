@@ -124,7 +124,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
 			      pfDataIn->pfTeHead->fFocalPlaneLocationM,
 			      pfDataIn->pfTeHead->fAlignmentPlaneLocationM,
 			      alignmentMethod,
-			      pfDataIn->pfTeHead->getFacetLocationFileName());
+			      pfDataIn->fFacetLocationFileName);
   
   fNumAreasProcessed=0;
   fGoodTriggerCount=0;

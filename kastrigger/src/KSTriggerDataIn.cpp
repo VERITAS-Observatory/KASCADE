@@ -248,8 +248,14 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
     pfTeHead->fAlignmentPlaneLocationM=sDefaultAlignmentPlaneLocationM;
   }
 
-  pfTeHead->setFacetLocationFileName(sDefaultFacetLocationFileName); 
-
+  fFacetLocationFileName = sDefaultFacetLocationFileName; 
+  if(fFacetLocationFileName==" "){
+    std::cout<<" Using Hillas Random facet placement method:"<<std::endl;
+  }
+  else{
+    std::cout<<"                  Using Facet Location File: "
+	     <<fFacetLocationFileName<<std::endl;
+  }
     
   if( sDefaultAlignmentMethod=="WHIPPLE"){
     pfTeHead->fAlignmentMethod=WHIPPLE;

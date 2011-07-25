@@ -88,52 +88,10 @@ void KSTeHeadData::PrintTeHead()
   else{
     std::cout<<"MCGILL"<<std::endl;
   }
-  
-  if(fFacetLocationFileName==" "){
-    std::cout<<" Facet location gen Hillas rndm method:"
-	     <<std::endl;
-  }
-  else{
-    std::cout<<"                Facet location from file: "
-	     <<fFacetLocationFileName<<std::endl;
-  }
-
-  
+   
 //std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
   return;
 }
-
-// **************************************************************************
-bool KSTeHeadData::setFacetLocationFileName(std::string facetSpec)
-// *********************************************************
-// Save file specification  in te header
-// *********************************************************
-{
-  int numChar=facetSpec.size();
-  if(numChar+1> kNumCharFacetName){
-    std::cout<<"Facet Location File namer too long ("<<numChar
-	     <<"bytes) to fit in TeHead char array. Facet Location File Name: "
-	     <<facetSpec<<std::endl;
-    return false;
-  }
-
-  facetSpec.copy(fFacetLocationFileName, numChar);
-  fFacetLocationFileName[numChar]='\0';
-  return true;  
-}
-// **************************************************************************
-
-std::string KSTeHeadData::getFacetLocationFileName()
-// *************************************************************
-// Convert the fFacetLocationFileName char array back to a std::string
-// *************************************************************
-{
-  std::string facetSpec=fFacetLocationFileName;
-  return facetSpec;
-}
-// *********************************************************************
-
-
 
 // ***************************************************************************
 
