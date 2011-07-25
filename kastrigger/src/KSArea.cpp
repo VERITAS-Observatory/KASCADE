@@ -113,18 +113,18 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   }
 
   pfTiltAndTrace=new KSTiltAndTrace(
-				  pfCamera->fMinimumDnTight, 
-				  pfCamera->fMinimumDnLoose, 
-				  pfCamera->fMirrorRadiusSquared,
-				  pfCamera->fFacetDiameterM,
-				  pfCamera->fFocalLengthM,
-				  pfCamera->fJitterWidthEastWestRad,
-				  pfCamera->fJitterWidthNorthSouthRad,
-				  pfCamera->fMetersPerDeg,
-				  pfDataIn->pfTeHead->fFocalPlaneLocationM,
-				  pfDataIn->pfTeHead->fAlignmentPlaneLocationM,
-				  alignmentMethod,
-				  pfDataIn->pfTeHead->fFacetLocationFileName);
+			      pfCamera->fMinimumDnTight, 
+			      pfCamera->fMinimumDnLoose, 
+			      pfCamera->fMirrorRadiusSquared,
+			      pfCamera->fFacetDiameterM,
+			      pfCamera->fFocalLengthM,
+			      pfCamera->fJitterWidthEastWestRad,
+			      pfCamera->fJitterWidthNorthSouthRad,
+			      pfCamera->fMetersPerDeg,
+			      pfDataIn->pfTeHead->fFocalPlaneLocationM,
+			      pfDataIn->pfTeHead->fAlignmentPlaneLocationM,
+			      alignmentMethod,
+			      pfDataIn->pfTeHead->getFacetLocationFileName());
   
   fNumAreasProcessed=0;
   fGoodTriggerCount=0;

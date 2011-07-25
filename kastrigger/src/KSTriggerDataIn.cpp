@@ -248,7 +248,7 @@ KSTriggerDataIn::KSTriggerDataIn(KSTeHeadData* thead)
     pfTeHead->fAlignmentPlaneLocationM=sDefaultAlignmentPlaneLocationM;
   }
 
-  pfTeHead->fFacetLocationFileName=sDefaultFacetLocationFileName; 
+  pfTeHead->setFacetLocationFileName(sDefaultFacetLocationFileName); 
 
     
   if( sDefaultAlignmentMethod=="WHIPPLE"){
