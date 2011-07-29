@@ -19,6 +19,7 @@
 #include "KSCommon.h"
 
 enum KSFacetAlignmentType {WHIPPLE=0,MCGILL=1};
+const int kNumCharFacetLocationName=120;
 
 class KSTeHeadData
 // *******************************************************
@@ -52,19 +53,24 @@ class KSTeHeadData
   double fMountDl;                  //Original mount x direction cosign
   double fMountDm;                  //Original mount y direction cosign
   double fMountDn;                  //Original mount z direction cosign
+
   double fPSFNorthSouthDeg;         //Mirror jitter sigma
   double fPSFEastWestDeg;           //Mirror jitter sigma
-  double fFocalPlaneLocationM;      // Focal plane location.
-  double fAlignmentPlaneLocationM;  // Alignment focal plane location
-                                    // (for McGill Method only).
+
   KSFacetAlignmentType fAlignmentMethod; //Original is WHIPPLE (at
                                     // 2*FocalLength). New (as of March 2009) 
                                     // is MCGILL: Star focuses at center of 
                                     // FOV on alignment focal plane.
+  double fFocalPlaneLocationM;      // Focal plane location.
+  double fAlignmentPlaneLocationM;  // Alignment focal plane location
+                                    // (for McGill Method only).
+  char   fFacetLocationFileName[kNumCharFacetLocationName];
 
-
+  
+  bool        setFacetLocationFileName(std::string FacetLocationFileSpec);
+  std::string getFacetLocationFileName();
+ 
 //  char   fVersion[16];	    //Version of kastrig that made this m file.
-
 };
 // ***************************************************************************
 

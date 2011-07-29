@@ -47,15 +47,15 @@ class KSTiltAndTrace
   string fFacetLocationFileName;
 
 
-  double fPeFacet[3];  //position on facet of where photon hits it
-  double fFacetNormalDir[3];  //Direction cosigns of facet normal vector.
-  double fPh[3]; //Little vector from focal plane to facet focal point
-  double fPeFacetNormalDir[3]; //Normal dir of curved facet mirror at point 
-                              //photon hits
-  double fParallel[3];
-  double fPerpendicular[3];
-  double fReflectedDir[3];
-  double fDir[3]; //Direction of photon in mirror plane system
+  vector< double > fPeFacet;        //position on facet of where photon hits it
+  vector< double > fFacetNormalDir; //Dir-cosigns of facet normal vector.
+  vector< double > fPh;          //Vector from focal plane to facet focal point
+  vector< double > fPeFacetNormalDir;//Normal dir of curved facet mirror at 
+                                     //point photon hits
+  vector< double > fParallel;
+  vector< double > fPerpendicular;
+  vector< double > fReflectedDir;
+  vector< double > fDir;          //Direction of photon in mirror plane system
 
   float dummy;
 
@@ -100,7 +100,7 @@ public:
   double fPeTimeTilt;  //Photon time when it goes through mirror plane
 
   vector <double> fPe;  //x,y only
-  double fW[3];   //Position of photon in camera plane (Deg)
+  vector <double> fW;   //Position of photon in camera plane (Deg)
   
   KSFacets* pMirrorFacets;
 };

@@ -342,6 +342,7 @@ int main(int argc, char** argv)
 	       rslength);
 
       // ---------------------------------------------------------------------
+
       // The KSEvent class does all the event processing and output file
       // creating and writing. It builds pulse shapes, tests for triggers etc.
       // ---------------------------------------------------------------------

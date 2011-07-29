@@ -55,23 +55,21 @@ bool KSTeFile::Create(std::string TeFileName)
 // ***************************************************************************
 
 {
-  if(pfOutFile!=NULL || pfInFile!=NULL)
-    { 
-      std::cout<<"KSTeFile-- Output file already created or Input opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw an exception here
-    }
+  if(pfOutFile!=NULL || pfInFile!=NULL){ 
+    std::cout<<"KSTeFile-- Output file already created or Input opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw an exception here
+  }
   pfOutFile=new std::ofstream(TeFileName.c_str(), 
 			      std::ios::out | std::ios::binary);
-  if(pfOutFile->fail())
-    {
-      std::cout<<"KSTeFile--Failed to Open a new output Te file"
-	       <<std::endl;
-      fFoundError=true;
-      exit(1);
-      //Throw an exception here.
-    }
+  if(pfOutFile->fail()){
+    std::cout<<"KSTeFile--Failed to Open a new output Te file"
+	     <<std::endl;
+    fFoundError=true;
+    exit(1);
+    //Throw an exception here.
+  }
   return pfOutFile->is_open();
 }
 // ***************************************************************************
@@ -83,23 +81,21 @@ bool KSTeFile::Open(std::string TeFileName)
 // ***************************************************************************
 
 {
-  if(pfInFile!=NULL || pfOutFile!=NULL)
-    {
-      std::cout<<"KSTeFile-- Input file already opened or Output created"
-	       <<std::endl;
-      fFoundError=true;
-      //throw an exception here
-    }
+  if(pfInFile!=NULL || pfOutFile!=NULL){
+    std::cout<<"KSTeFile-- Input file already opened or Output created"
+	     <<std::endl;
+    fFoundError=true;
+    //throw an exception here
+  }
   pfInFile=new std::ifstream(TeFileName.c_str(), 
 			     std::ios::in | std::ios::binary);
-  if(pfInFile->fail())
-    {
-      std::cout<<"KSTeFile--Failed to Open an existing input pe file"
-	       <<std::endl;
-      fFoundError=true;
-      exit(1);
-      //Throw an exception here.
-    }
+  if(pfInFile->fail()){
+    std::cout<<"KSTeFile--Failed to Open an existing input pe file"
+	     <<std::endl;
+    fFoundError=true;
+    exit(1);
+    //Throw an exception here.
+  }
   return pfInFile->is_open();
 }
 // ***************************************************************************
@@ -109,27 +105,24 @@ void KSTeFile::Close()
 //  Close the opened file.
 // ***************************************************************************
 {
-  if(pfOutFile!=NULL)
-    {
-      pfOutFile->close();
-      pfOutFile=NULL;
-      fSegmentHeadWritten=false;
-      fPeHeadWritten=false;
-      fTeHeadWritten=false;
-
-      fTeWritten=false;
-  
-    }
-  if(pfInFile!=NULL)
-    {
-      pfInFile->close();
-      pfInFile=NULL;
-      fSegmentHeadRead=false;
-      fPeHeadRead=false;
-      fTeHeadRead=false;
-      fTeRead=false;
-
-    }
+  if(pfOutFile!=NULL){
+    pfOutFile->close();
+    pfOutFile=NULL;
+    fSegmentHeadWritten=false;
+    fPeHeadWritten=false;
+    fTeHeadWritten=false;
+    
+    fTeWritten=false;
+    
+  }
+  if(pfInFile!=NULL){
+    pfInFile->close();
+    pfInFile=NULL;
+    fSegmentHeadRead=false;
+    fPeHeadRead=false;
+    fTeHeadRead=false;
+    fTeRead=false;
+  }
   return;
 }
 // ***************************************************************************
@@ -140,26 +133,23 @@ void KSTeFile::WriteSegmentHead(KSSegmentHeadData* segHead)
 // written to the file. And it should only be written once.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
-    {
-      std::cout<<"KSTeFile--Output pe file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(fSegmentHeadWritten)
-    {
-      std::cout<<"KSSegmentFile--Segment Header already written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else
-    {
-      pfOutFile->write((char*)segHead, sizeof(KSSegmentHeadData));
-      fSegmentHeadWritten=true;
-      fFoundError=false;
-    }
+  if(pfOutFile==NULL){
+    std::cout<<"KSTeFile--Output pe file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(fSegmentHeadWritten){
+    std::cout<<"KSSegmentFile--Segment Header already written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else{
+    pfOutFile->write((char*)segHead, sizeof(KSSegmentHeadData));
+    fSegmentHeadWritten=true;
+    fFoundError=false;
+  }
   return;
 }
 // ***************************************************************************
@@ -172,33 +162,29 @@ void KSTeFile::WritePeHead(KSPeHeadData* peHead)
 // to the file after the seg head. And it should only be written once.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
-    {
-      std::cout<<"KSTeFile--Output te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(!fSegmentHeadWritten)
-    {
-      std::cout<<"KSTeFile--Segment Header not yet written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(fPeHeadWritten)
-    {
-      std::cout<<"KSTeFile--Pe Header already written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else
-    {
-      pfOutFile->write((char*)peHead, sizeof(KSPeHeadData));
-      fPeHeadWritten=true;
-      fFoundError=false;
-    }
+  if(pfOutFile==NULL){
+    std::cout<<"KSTeFile--Output te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(!fSegmentHeadWritten){
+    std::cout<<"KSTeFile--Segment Header not yet written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(fPeHeadWritten){
+    std::cout<<"KSTeFile--Pe Header already written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else{
+    pfOutFile->write((char*)peHead, sizeof(KSPeHeadData));
+    fPeHeadWritten=true;
+    fFoundError=false;
+  }
   return;
 }
 // ***************************************************************************
@@ -210,33 +196,29 @@ void KSTeFile::WriteTeHead(KSTeHeadData* teHead)
 // written once.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
-    {
-      std::cout<<"KSTeFile--Output te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(!fPeHeadWritten)
-    {
-      std::cout<<"KSTeFile--Pe Header not yet written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(fTeHeadWritten)
-    {
-      std::cout<<"KSTeFile--Te Header already written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else
-    {
-      pfOutFile->write((char*)teHead, sizeof(KSTeHeadData));
-      fTeHeadWritten=true;
-      fFoundError=false;
-    }
+  if(pfOutFile==NULL){
+    std::cout<<"KSTeFile--Output te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(!fPeHeadWritten){
+    std::cout<<"KSTeFile--Pe Header not yet written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(fTeHeadWritten){
+    std::cout<<"KSTeFile--Te Header already written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else{
+    pfOutFile->write((char*)teHead, sizeof(KSTeHeadData));
+    fTeHeadWritten=true;
+    fFoundError=false;
+  }
   return;
 }
 // ***************************************************************************
@@ -248,32 +230,28 @@ void KSTeFile::WriteMountDirections(KSMountDirection* pfMountDir)
 // record. Reading is a little more tricky
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
-    {
-      std::cout<<"KSTeFile--Output te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(!fTeHeadWritten)
-    {
-      std::cout<<"KSTeFile--Te Header not yet written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(fFirstTeWritten)
-    {
-      std::cout<<"KSTeFile--Too late to write Mount Directions to Te File. Te "
-	"events already written to file."<<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else
-    {
-      pfMountDir->writeMountDirections(pfOutFile);
-      fFoundError=false;
-    }
+  if(pfOutFile==NULL){
+    std::cout<<"KSTeFile--Output te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(!fTeHeadWritten){
+    std::cout<<"KSTeFile--Te Header not yet written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(fFirstTeWritten){
+    std::cout<<"KSTeFile--Too late to write Mount Directions to Te File. Te "
+      "events already written to file."<<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else{
+    pfMountDir->writeMountDirections(pfOutFile);
+    fFoundError=false;
+  }
   return;
 }
 // ***************************************************************************
@@ -284,40 +262,37 @@ void KSTeFile::WriteTe(KSTeData* te)
 // and te head need to be written before any pe's written out.
 // ***************************************************************************
 {
-  if(pfOutFile==NULL)
-    {
-      std::cout<<"KSTeFile--Output te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(!fTeHeadWritten)
-    {
-      std::cout<<"KSTeFile--Te Header Not yet written."
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(fTeWritten)
-    {
-      std::cout<<"KSTeFile--Trying to write 2 Te tag records in a row"
-	       <<std::endl;
-      std::cout<<"KSTeFile--Must write a TePixelData record for every Te tag"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else
-    {
-      pfOutFile->write((char*)te, sizeof(KSTeData));
-      fFirstTeWritten=true;   //for use with WriteMountDirections
-      fTeWritten=true;
-      fFoundError=false;
-      fNumTe++;
-    }
+  if(pfOutFile==NULL){
+    std::cout<<"KSTeFile--Output te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(!fTeHeadWritten){
+    std::cout<<"KSTeFile--Te Header Not yet written."
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(fTeWritten){
+    std::cout<<"KSTeFile--Trying to write 2 Te tag records in a row"
+	     <<std::endl;
+    std::cout<<"KSTeFile--Must write a TePixelData record for every Te tag"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else{
+    pfOutFile->write((char*)te, sizeof(KSTeData));
+    fFirstTeWritten=true;   //for use with WriteMountDirections
+    fTeWritten=true;
+    fFoundError=false;
+    fNumTe++;
+  }
   return;
 }
 // ***************************************************************************
+
 void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 // ***************************************************************************
 // Write the te pixel data in compressed format with zero supression to the 
@@ -337,63 +312,67 @@ void KSTeFile::WriteTePixelData(std::vector<KSPixel>& fPixel)
 // ****************************************************************************
 {
   int fLength=0;
-  if(pfOutFile==NULL)
-    {
-      std::cout<<"KSTeFile--Output te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else if(!fTeWritten)
-    {
-      std::cout<<"KSTeFile--Te Tag record must be written before each Pixels "
-	         "record"<<std::endl;
-      fFoundError=true;
-      //throw exception
-    }
-  else
-    {
-      int fNumPixels=fPixel.size();
-      std::vector<float> fCompressionBuffer;
-      float fBasePeTime=getMinPeTime(fPixel);
-      for(int i=0;i<fNumPixels;i++)
-	{
-	  int fNumTimes=fPixel.at(i).fTimePe.size();
-	  if(fNumTimes>0)
-	    {
-	      float fIndex=-(float)(i+1); //- sign flags start of a pixels 
-	                                  //time data. All times are positive
-	                                  //Index starts at PixelIndex +1 
-	                                  //(so the - sign can work as a flag)
-	      fCompressionBuffer.push_back(fIndex);
-	      for(int j=0;j<fNumTimes;j++)
-		{
-		  //Times may be negative for inclined showers, so subtract 
-		  //out the minimum time seen.
-		  float fPeTime=fPixel.at(i).fTimePe.at(j) - fBasePeTime;
-		  fCompressionBuffer.push_back(fPeTime);
-		}
-	    }
-	}
-      //Copy over to a float buffer.
-      int fNumInBuffer=fCompressionBuffer.size();
-      float* pfWriteBuffer= new float[fNumInBuffer];
-
-      for(int i=0;i<fNumInBuffer;i++)  
-	{
-	  pfWriteBuffer[i]=fCompressionBuffer.at(i);
-	}
-      fLength=fNumInBuffer*sizeof(float);
-      //std::cout<<"fLength: "<<fLength<<std::endl;
+  if(pfOutFile==NULL){
+    std::cout<<"KSTeFile--Output te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else if(!fTeWritten){
+    std::cout<<"KSTeFile--Te Tag record must be written before each Pixels "
+      "record"<<std::endl;
+    fFoundError=true;
+    //throw exception
+  }
+  else{
+    int fNumPixels=fPixel.size();
+    std::vector<float> fCompressionBuffer;
+   
+    float fBasePeTime=(float)(getMinPeTime(fPixel)-1.0);
+         // Subtract an extra ns to insure that all relative times are indeed 
+         // positive despite any funny round off problems.
  
-      pfOutFile->write((char*)&fBasePeTime, sizeof(float));
+    for(int i=0;i<fNumPixels;i++){
+      int fNumTimes=fPixel.at(i).fTimePe.size();
+      if(fNumTimes>0){
+	float fIndex=-(float)(i+1); //- sign flags start of a pixels 
+	                            //time data. All times are positive
+	                            //Index starts at PixelIndex +1 
+	                            //(so the - sign can work as a flag)
+	fCompressionBuffer.push_back(fIndex);
+	for(int j=0;j<fNumTimes;j++){
+	  //Times may be negative for inclined showers, so subtract 
+		  //out the minimum time seen.
+	  float fPeTime=fPixel.at(i).fTimePe.at(j) - fBasePeTime;
+	  if(fPeTime<0){
+	    std::cout<<"KSTeFile--Fatal: Relative pixel photon fPeTime was "
+	               "negative. This is unacceptable." <<std::endl;
+	    fFoundError=true;
+	    return;
+	  }
 
-      pfOutFile->write((char*)&fLength, sizeof(int));
-      pfOutFile->write((char*)pfWriteBuffer, fLength);
-      fTeWritten=false;
-      fFoundError=false;
-      delete []pfWriteBuffer;
+	  fCompressionBuffer.push_back(fPeTime);
+	}
+      }
     }
+    //Copy over to a float buffer.
+    int fNumInBuffer=fCompressionBuffer.size();
+    float* pfWriteBuffer= new float[fNumInBuffer];
+
+    for(int i=0;i<fNumInBuffer;i++){
+      pfWriteBuffer[i]=fCompressionBuffer.at(i);
+    }
+    fLength=fNumInBuffer*sizeof(float);
+    //std::cout<<"fLength: "<<fLength<<std::endl;
+    
+    pfOutFile->write((char*)&fBasePeTime, sizeof(float));
+    
+    pfOutFile->write((char*)&fLength, sizeof(int));
+    pfOutFile->write((char*)pfWriteBuffer, fLength);
+    fTeWritten=false;
+    fFoundError=false;
+    delete []pfWriteBuffer;
+  }
   return;
 }
 // ***************************************************************************
@@ -405,36 +384,32 @@ bool KSTeFile::ReadSegmentHead(KSSegmentHeadData* segHead)
 // And it should only be read once.
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
-    {
-      std::cout<<"KSTeFile--Input Te file is not yet opened"
+  if(pfInFile==NULL){
+    std::cout<<"KSTeFile--Input Te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(fSegmentHeadRead){
+    std::cout<<"KSSegmentFile--Segment Header Already read."
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else{
+    
+    std::cout<<"KSTeFile: Reading Segment Head"<<std::endl;
+    pfInFile->read((char*)segHead, sizeof(KSSegmentHeadData));
+    if(!pfInFile->good()){
+      std::cout<<"KSTeFile--Failed to read Segment Header."
 	       <<std::endl;
       fFoundError=true;
       return false;
     }
-  else if(fSegmentHeadRead)
-    {
-      std::cout<<"KSSegmentFile--Segment Header Already read."
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else
-    {
-      
-      std::cout<<"KSTeFile: Reading Segment Head"<<std::endl;
-      pfInFile->read((char*)segHead, sizeof(KSSegmentHeadData));
-      if(!pfInFile->good())
-	{
-	  std::cout<<"KSTeFile--Failed to read Segment Header."
-		   <<std::endl;
-	  fFoundError=true;
-	  return false;
-	}
-      fSegmentHeadRead=true;
-      fFoundError=false;
-      return true;
-    }
+    fSegmentHeadRead=true;
+    fFoundError=false;
+    return true;
+  }
 }
 // ***************************************************************************
 
@@ -445,46 +420,39 @@ bool KSTeFile::ReadPeHead(KSPeHeadData* peHead)
 // And it should only be read once.
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
-    {
-      std::cout<<"KSTeFile--Input te file is not yet opened"
+  if(pfInFile==NULL){
+    std::cout<<"KSTeFile--Input te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(!fSegmentHeadRead){
+    std::cout<<"KSTeFile--Segment Header Not yet read."
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(fPeHeadRead){
+    std::cout<<"KSTeFile--Pe Header Already read."
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else{
+    
+    pfInFile->read((char*)peHead, sizeof(KSPeHeadData));
+    if(!pfInFile->good()){
+      std::cout<<"KSTeFile--Failed to read Pe Header."
 	       <<std::endl;
       fFoundError=true;
       return false;
     }
-  else if(!fSegmentHeadRead)
-    {
-      std::cout<<"KSTeFile--Segment Header Not yet read."
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else if(fPeHeadRead)
-    {
-      std::cout<<"KSTeFile--Pe Header Already read."
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else
-    {
-      
-     pfInFile->read((char*)peHead, sizeof(KSPeHeadData));
-     if(!pfInFile->good())
-       {
-	 std::cout<<"KSTeFile--Failed to read Pe Header."
-		  <<std::endl;
-	 fFoundError=true;
-	 return false;
-       }
-     fPeHeadRead=true;
-     fFoundError=false;
-     return true;
-    }
+    fPeHeadRead=true;
+    fFoundError=false;
+    return true;
+  }
 }
 // ***************************************************************************
-
-
 
 bool KSTeFile::ReadTeHead(KSTeHeadData* teHead)
 // ***************************************************************************
@@ -492,47 +460,39 @@ bool KSTeFile::ReadTeHead(KSTeHeadData* teHead)
 // And it should only be read once.
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
-    {
-      std::cout<<"KSTeFile--Input te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else if(!fPeHeadRead)
-    {
-      std::cout<<"KSTeFile--Pe Header Not yet read."
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else if(fTeHeadRead)
-    {
-      std::cout<<"KSTeFile--Te Header Already read."
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else
-    {
+  if(pfInFile==NULL){
+    std::cout<<"KSTeFile--Input te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(!fPeHeadRead){
+    std::cout<<"KSTeFile--Pe Header Not yet read."
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(fTeHeadRead){
+    std::cout<<"KSTeFile--Te Header Already read."
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else{
       
-     pfInFile->read((char*)teHead, sizeof(KSTeHeadData));
-     if(!pfInFile->good())
-       {
-	 std::cout<<"KSTeFile--Failed to read Te Header."
-		  <<std::endl;
-	 fFoundError=true;
-	 return false;
-       }
-     fTeHeadRead=true;
-     fFoundError=false;
-     return true;
+    pfInFile->read((char*)teHead, sizeof(KSTeHeadData));
+    if(!pfInFile->good()){
+      std::cout<<"KSTeFile--Failed to read Te Header."
+	       <<std::endl;
+      fFoundError=true;
+      return false;
     }
+    fTeHeadRead=true;
+    fFoundError=false;
+    return true;
+  }
 }
 // ***************************************************************************
-// ***************************************************************************
-
-
 
 bool KSTeFile::ReadMountDirections(KSMountDirection* pfMountDir)
 // ***************************************************************************
@@ -545,41 +505,37 @@ bool KSTeFile::ReadMountDirections(KSMountDirection* pfMountDir)
 // only be read once.
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
-    {
-      std::cout<<"KSTeFile--Input te file is not yet opened"
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else if(!fTeHeadRead)
-    {
-      std::cout<<"KSTeFile--Te Header Not yet read before trying to read Mount"
-	" Directions." <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else if(fFirstTeRead)
-    {
-      std::cout<<"KSTeFile--First Te Record Already read before trying to "
-	"read MountDirections." <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else
-    {
+  if(pfInFile==NULL){
+    std::cout<<"KSTeFile--Input te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(!fTeHeadRead){
+    std::cout<<"KSTeFile--Te Header Not yet read before trying to read Mount"
+      " Directions." <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(fFirstTeRead){
+    std::cout<<"KSTeFile--First Te Record Already read before trying to "
+      "read MountDirections." <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else{
       
-     pfMountDir->readMountDirections(pfInFile);
-     if(!pfInFile->good())
-       {
-	 std::cout<<"KSTeFile--Failed to read Mount Directions."
-		  <<std::endl;
-	 fFoundError=true;
-	 return false;
-       }
-     fFoundError=false;
-     return true;
-    }
+    pfMountDir->readMountDirections(pfInFile);
+    if(!pfInFile->good())
+      {
+	std::cout<<"KSTeFile--Failed to read Mount Directions."
+		 <<std::endl;
+	fFoundError=true;
+	return false;
+      }
+    fFoundError=false;
+    return true;
+  }
 }
 // ***************************************************************************
 
@@ -590,49 +546,43 @@ bool KSTeFile::ReadTe(KSTeData* te)
 // We must alternate reading TE tag records and te pixel data records
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
-    {
-      std::cout<<"KSTeFile--Input te file is not yet opened"
+  if(pfInFile==NULL){
+    std::cout<<"KSTeFile--Input te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(!fTeHeadRead){
+    std::cout<<"KSTeFile--Te Head not yet read."
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(fTeRead){
+    std::cout<<"KSTeFile--Need to do a TePixelData read after each Te read"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else{
+    pfInFile->read((char*)te, sizeof(KSTeData));
+    if(pfInFile->eof()){
+      fFoundEOF=true;
+      fFoundError=false;
+      return false;
+    }
+    if(!pfInFile->good()){
+      std::cout<<"KSTeFile--Failed to read Pe."
 	       <<std::endl;
       fFoundError=true;
       return false;
     }
-  else if(!fTeHeadRead)
-    {
-      std::cout<<"KSTeFile--Te Head not yet read."
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else if(fTeRead)
-    {
-      std::cout<<"KSTeFile--Need to do a TePixelData read after each Te read"
-	       <<std::endl;
-      fFoundError=true;
-      return false;
-    }
-  else
-    {
-     pfInFile->read((char*)te, sizeof(KSTeData));
-     if(pfInFile->eof())
-       {
-	 fFoundEOF=true;
-	 fFoundError=false;
-	 return false;
-       }
-     if(!pfInFile->good())
-       {
-	 std::cout<<"KSTeFile--Failed to read Pe."
-		  <<std::endl;
-	 fFoundError=true;
-	 return false;
-       }
-     fFirstTeRead=true;
-     fTeRead=true;
-     fFoundError=false;
-     fNumTe++;
-     return true;
-    }
+    fFirstTeRead=true;
+    fTeRead=true;
+    fFoundError=false;
+    fNumTe++;
+    return true;
+  }
 }
 // ***************************************************************************
 
@@ -643,111 +593,97 @@ bool KSTeFile::ReadTePixelData(std::vector<KSPixel>& fPixel)
 // We must alternate reading TE tag records and te pixel data records
 // ***************************************************************************
 {
-  if(pfInFile==NULL)
-    {
-      std::cout<<"KSTeFile--Input te file is not yet opened"
+  if(pfInFile==NULL){
+    std::cout<<"KSTeFile--Input te file is not yet opened"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else if(!fTeRead){
+    std::cout<<"KSTeFile--Need to do a Te read before each TePixelData read"
+	     <<std::endl;
+    fFoundError=true;
+    return false;
+  }
+  else{
+    //Format is a little special here. See WriteTePixelData method above
+    // First comes the base time of pe's  which must be added back in to 
+    // get correct time of pes.
+    //Then comes the one word which is the total length in (char) of the 
+    // remaing data in the TePixelData Record.
+    float fBaseTime=0;
+    pfInFile->read((char*)&fBaseTime, sizeof(float));
+    
+    int fLength=0;
+    pfInFile->read((char*)&fLength, sizeof(int));
+
+
+    if(!pfInFile->good()){
+      std::cout<<"KSTeFile--Failed to read Te Pixel Data."
 	       <<std::endl;
       fFoundError=true;
       return false;
     }
-  else if(!fTeRead)
-    {
-      std::cout<<"KSTeFile--Need to do a Te read before each TePixelData read"
+    int fNumWords     = fLength/sizeof(float);
+    float* pfReadBuffer = new float[fNumWords];
+    pfInFile->read((char*)pfReadBuffer, fLength);
+    if(!pfInFile->good()){
+      std::cout<<"KSTeFile--Failed to read Te Pixel Data."
 	       <<std::endl;
       fFoundError=true;
-      return false;
-    }
-  else
-    {
-      //Format is a little special here. See WriteTePixelData method above
-      // First comes the base time of pe's  which must be added back in to 
-      // get correct time of pes.
-      //Then comes the one word which is the total length in (char) of the 
-      // remaing data in the TePixelData Record.
-      float fBaseTime=0;
-      pfInFile->read((char*)&fBaseTime, sizeof(float));
-
-      int fLength=0;
-      pfInFile->read((char*)&fLength, sizeof(int));
-
-
-      if(!pfInFile->good())
-	{
-	  std::cout<<"KSTeFile--Failed to read Te Pixel Data."
-		   <<std::endl;
-	  fFoundError=true;
-	  return false;
-	}
-      int fNumWords     = fLength/sizeof(float);
-      float* pfReadBuffer = new float[fNumWords];
-      pfInFile->read((char*)pfReadBuffer, fLength);
-      if(!pfInFile->good())
-	{
-	  std::cout<<"KSTeFile--Failed to read Te Pixel Data."
-		   <<std::endl;
-	  fFoundError=true;
-	  delete []pfReadBuffer;
-	  return false;
-	}
-      fTeRead=false;
-      //Now unpack the data
-      //Zero TimePe data
-      int fNumPixels=fPixel.size();
-      for(int i=0;i<fNumPixels;i++)
-	{
-	  fPixel.at(i).fTimePe.clear();
-	}
-      
-      int fPixelIndex=-1;
-      for(int i=0;i<fNumWords;i++)
-	{
-	  if(pfReadBuffer[i]<0)
-	    {
-	      fPixelIndex = (-(int)pfReadBuffer[i])-1; //Back to Pixel index
-	    }
-	  else if(fPixelIndex<0)
-	    {
-	      std::cout<<"KSTeFile--Error Decoding Compressed TePixelData "
-		"Record"<<std::endl;
-	      fFoundError=true;
-	      return false;
-	    }
-	  else
-	    {
-	      fPixel.at(fPixelIndex).fTimePe.push_back(pfReadBuffer[i]+
-						       fBaseTime);
-	    }
-	}
-      fFoundError=false;
       delete []pfReadBuffer;
-      return true;
+      return false;
     }
+    fTeRead=false;
+    //Now unpack the data
+    //Zero TimePe data
+    int fNumPixels=fPixel.size();
+    for(int i=0;i<fNumPixels;i++){
+      fPixel.at(i).fTimePe.clear();
+    }
+      
+    int fPixelIndex=-1;
+    for(int i=0;i<fNumWords;i++){
+      if(pfReadBuffer[i]<0){
+	fPixelIndex = (-(int)pfReadBuffer[i])-1; //Back to Pixel index
+      }
+      else if(fPixelIndex<0){
+	std::cout<<"KSTeFile--Error Decoding Compressed TePixelData "
+	  "Record"<<std::endl;
+	fFoundError=true;
+	return false;
+      }
+      else{
+	fPixel.at(fPixelIndex).fTimePe.push_back(pfReadBuffer[i]+
+						       fBaseTime);
+      }
+    }
+    fFoundError=false;
+    delete []pfReadBuffer;
+    return true;
+  }
 }
 // ***************************************************************************
 
-float KSTeFile::getMinPeTime(std::vector<KSPixel>& fPixel)
+double KSTeFile::getMinPeTime(std::vector<KSPixel>& fPixel)
 // *************************************************************************
 // Search though all pixels for the most negative pe time or 0.0 whichever is 
 // more negative. This is used as an offset to make pe times all positive.
 // *************************************************************************
 {
   int fNumPixels=fPixel.size();
-  float fFirstPeTime=0.0;     //defaults to 0
-  for(int i=0;i<fNumPixels;i++)
-    {
-      int fNumTimes=fPixel.at(i).fTimePe.size();
-      if(fNumTimes>0)
-	{
-	  for(int j=0;j<fNumTimes;j++)
-	    {
-	      float fPeTime=fPixel.at(i).fTimePe.at(j);
-		if(fPeTime<fFirstPeTime)
-		  {
-		    fFirstPeTime=fPeTime;
-		  }
-	    }
+  double fFirstPeTime=0.0;     //defaults to 0
+  for(int i=0;i<fNumPixels;i++){
+    int fNumTimes=fPixel.at(i).fTimePe.size();
+    if(fNumTimes>0){
+      for(int j=0;j<fNumTimes;j++){
+	double fPeTime=fPixel.at(i).fTimePe.at(j);
+	if(fPeTime<fFirstPeTime){
+	  fFirstPeTime=fPeTime;
 	}
+      }
     }
+  }
   return fFirstPeTime;
 }
 

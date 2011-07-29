@@ -24,8 +24,9 @@
 
 KSTeHeadData::KSTeHeadData()
 {
-  //nothing to do
+  setFacetLocationFileName(" ");
 }
+
 KSTeHeadData::~KSTeHeadData()
 {
   //nothing to do
@@ -68,18 +69,17 @@ void KSTeHeadData::PrintTeHead()
   std::cout<<"           Mount Dl (x direction cosign): "<<fMountDl<<std::endl;
   std::cout<<"           Mount Dm (y direction cosign): "<<fMountDm<<std::endl;
   std::cout<<"           Mount Dn (z direction cosign): "<<fMountDn<<std::endl;
+
   std::cout<<"  Facet Normal Jitter sigma(North-South): "<<fPSFNorthSouthDeg
 	   <<std::endl;
   std::cout<<"    Facet Normal Jitter sigma(East-West): "<<fPSFEastWestDeg
 	   <<std::endl;
   std::cout<<"           Focal plane location (meters): "
 	   <<fFocalPlaneLocationM<<std::endl;
-  
-
   if(fAlignmentMethod==MCGILL){
     std::cout<<"       Facet Alignment plane loc(meters): "
 	     <<fAlignmentPlaneLocationM<<std::endl;
-    }
+  }
 
   std::cout<<"                  Facet Alignment Method: ";
   if(fAlignmentMethod==WHIPPLE){
@@ -88,18 +88,56 @@ void KSTeHeadData::PrintTeHead()
   else{
     std::cout<<"MCGILL"<<std::endl;
   }
-   
+  if(getFacetLocationFileName()==" "){
+    std::cout<<"        Using Hillas random facet method:"<<std::endl;
+      }
+  else{
+    std::cout<<"                     Facet Location File: "
+	     <<getFacetLocationFileName()<<std::endl;
+  }
+  
 //std::cout<<"                       ksTrigger Version: "<<fVersion<<std::endl;
   return;
 }
+// **************************************************************************
 
+bool KSTeHeadData::setFacetLocationFileName(std::string FacetLocationFileSpec)
+// *********************************************************
+// Save file specification in te header
+// *********************************************************
+{
+  int numChar=FacetLocationFileSpec.size();
+  if(numChar+1> kNumCharFacetLocationName){
+    std::cout<<"KSTeHeadData: Facet Location File Name: "
+	     <<FacetLocationFileSpec<<" too long ("
+	     <<numChar<<"bytes) to fit in KSTeHeadData char array."
+ 	     <<std::endl;
+    return false;
+  }
+
+  FacetLocationFileSpec.copy(fFacetLocationFileName, numChar);
+  fFacetLocationFileName[numChar]='\0';
+  return true;  
+}
+// **************************************************************************
+
+std::string KSTeHeadData::getFacetLocationFileName()
+// *************************************************************
+// Convert the fFacetLocationFileName char array back to a std::string
+// *************************************************************
+{
+  std::string FacetLocationSpec=fFacetLocationFileName;
+  return FacetLocationSpec;
+}
 // ***************************************************************************
-
 
 KSTeData::KSTeData()
 {
   //nothing to do
 }
+// ******************************************************************
+
+
 KSTeData::~KSTeData()
 {
   //nothing to do

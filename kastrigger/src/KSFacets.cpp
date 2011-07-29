@@ -143,7 +143,10 @@ KSFacets::KSFacets(double MirrorRadiusSquaredM2, double FacetDiameterM,
     // want to be able to read in a secondary file with alignment info for 
     // each segment to model flexing of the OSS.
     // ************************************************************************
-  }
+ 
+    delete pFacetTree;
+
+ }
   else{
     pFacetTree=NULL;
     fNumFacets=0;

@@ -60,6 +60,7 @@ class KSArea
   KSTriggerDataIn* pfDataIn;
   KSTiltAndTrace* pfTiltAndTrace;
   int icount;
+  int debugCount;
 
   int    fPhiSteps;
   int    fThetaSteps;
@@ -82,7 +83,6 @@ class KSArea
 
   float fXDummy;
  
-  int debugCount;
 
   void InitMountDirectionVectors();
   void unitCrossProduct(double* X,double* Y,double* Z);
@@ -96,7 +96,6 @@ class KSArea
   bool ReadPes();
   void ProcessImages();
   void PrintStats();
-
 
   double* pfSTheta;
   double* pfSPhi;

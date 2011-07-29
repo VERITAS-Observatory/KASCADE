@@ -55,7 +55,7 @@ class KSTeFile
   bool foundReadError(){return fFoundError;};
 
  private:
-  float getMinPeTime(std::vector<KSPixel>& fPixel);
+  double getMinPeTime(std::vector<KSPixel>& fPixel);
 
   std::ifstream* pfInFile;
   std::ofstream* pfOutFile;

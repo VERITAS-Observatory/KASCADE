@@ -13,12 +13,17 @@
 
 extern "C" float pran(float* dummy);
 
+// *****************************************************************
+
+
 KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile, 
 	       KSSegmentHeadData* pSegmentHead, KSPeHeadData* pPeHead, 
 	       KSTriggerDataIn* pDataIn)
 {
   pfPesFile=pPesFile;
   pfTeFile=pTeFile;
+
+  debugCount=0;
 
 
 
@@ -105,10 +110,10 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
 
   // *******************************************************************
   // Construct the Ray tracing object:KSTiltTrace
-  // (repklaces whippletilt)
+  // (replaces whippletilt)
   // *******************************************************************
   string alignmentMethod="WHIPPLE";
-  if(pfDataIn->pfTeHead->fAlignmentMethod==MCGILL){
+  if(pfDataIn->fAlignmentMethod==MCGILL){
     alignmentMethod="MCGILL";
   }
 
@@ -121,11 +126,11 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
 			      pfCamera->fJitterWidthEastWestRad,
 			      pfCamera->fJitterWidthNorthSouthRad,
 			      pfCamera->fMetersPerDeg,
-			      pfDataIn->pfTeHead->fFocalPlaneLocationM,
-			      pfDataIn->pfTeHead->fAlignmentPlaneLocationM,
+			      pfDataIn->fFocalPlaneLocationM,
+			      pfDataIn->fAlignmentPlaneLocationM,
 			      alignmentMethod,
 			      pfDataIn->fFacetLocationFileName);
-  
+
   fNumAreasProcessed=0;
   fGoodTriggerCount=0;
 }
@@ -228,7 +233,6 @@ void KSArea::ProcessImages()
 // Main processing loop
 // Start directions loop
 // **************************************************************************
-
   for(int ithphi=0;ithphi<fNumDirections;ithphi++)
     { 
       // ***************************************************************
@@ -248,7 +252,7 @@ void KSArea::ProcessImages()
       pfTiltAndTrace->fYDl=pfMountDir->pfYDlm[ithphi];
       pfTiltAndTrace->fYDm=pfMountDir->pfYDmm[ithphi];
       pfTiltAndTrace->fYDn=pfMountDir->pfYDnm[ithphi];
-      
+
       double fEmissionAltitudeSum=0;
       double fEmissionAltitudeSquaredSum=0;
       double fMuonSum=0;
@@ -270,6 +274,7 @@ void KSArea::ProcessImages()
 	{
 	  double fDlp=fPes.at(ipe).fPhotonDl; // Direction cosigns of photon
 	  double fDmp=fPes.at(ipe).fPhotonDm;
+
 	  double fDnp = sqrt(1.-fDlp*fDlp-fDmp*fDmp); //Recreate pe's dn. 
 	                                              //Going down so 
                                                       //should be positive
@@ -285,6 +290,11 @@ void KSArea::ProcessImages()
 // ***************************************************************************
 // 	Collect this  Pe into image this direction
 // ***************************************************************************
+// 	WHIPPLE_TILT dtermines: 1:Does pe hit focal plane. 2:Does pe hit mirror
+// 	at its present inclination.3:Angle of pe to mirror. 
+// 	4:Position in focal plane of pe after including aberrations.
+// 	WHIPPLE_TILT also corrects pe_into tilted mirror plane.
+// ***************************************************************************
 // 	pfTiltAndTrace detrmines: 
 //	      1:Does pe hit focal plane. 
 //	      2:Does pe hit mirror at its present inclination.
@@ -297,23 +307,20 @@ void KSArea::ProcessImages()
 // locations
 // ***************************************************************************
 	  int dump=pfTiltAndTrace->Tilt(); //dump is Flag that we are to drop 
-	                                  // this pe (drop==1)
-	  double fWX=pfTiltAndTrace->fW[0];
-	  double fWY=pfTiltAndTrace->fW[1];
-
-	  debugCount++;
+	                                   // this pe (drop==1)
+	  double fWX=pfTiltAndTrace->fW.at(0);
+	  double fWY=pfTiltAndTrace->fW.at(1);
 
 	  double fPeTime=pfTiltAndTrace->fPeTime;
 
-	  if(dump==1)            //Note here that we now use type int for 
-	    {	                  //fDump to avoid differences between Absoft 
-	      if(fWX==1)dump1++;  //and Intel Fortrans definions of true and 
-	      if(fWX==2)dump2++;  //false
-	      if(fWX==3)dump3++;
-	      if(fWX==4)dump4++;
-	      fDumping++;
-	      continue;
-	    }                 // drop pe go to next direction.
+	  if(dump==1){          
+	    if(fWX==1)dump1++;  
+	    if(fWX==2)dump2++;  
+	    if(fWX==3)dump3++;
+	    if(fWX==4)dump4++;
+	    fDumping++;
+	    continue;       // Drop pe go to next direction.
+	  }                 
 	  
 	  // *****************************************************************
 	  //  Correct various camera pecularities.
@@ -338,7 +345,6 @@ void KSArea::ProcessImages()
 	      fWY=-fWY;
 	    }
 
-	  //cout<<"cnt,x,y: "<<debugCount<<" "<<fWX<<" "<<fWY<<endl;
 
 	  // ******************************************************************
 	  // Find which PMT this hits.
@@ -384,7 +390,7 @@ void KSArea::ProcessImages()
 
 
 // ***************************************************************************
-//  We now have all the pe's collected into the discriminators
+//  We now have all the pe's collected into the  disc
 // ***************************************************************************
 // Test to see if we have al least on pixel with a pe even look for a trigger
       if(!fPesHitPixels)
@@ -400,8 +406,8 @@ void KSArea::ProcessImages()
       
       if(fTriggered)
 	{
-	  fTe.fMountDl= pfTiltAndTrace->fTDlm;  //direction of the mount
-	  fTe.fMountDm= pfTiltAndTrace->fTDmm;
+	  fTe.fMountDl=pfMountDir->pfDlm[ithphi];  //direction of the mount
+	  fTe.fMountDm=pfMountDir->pfDmm[ithphi];
 	  fTe.fNx=fAreaNx;
 	  fTe.fNy=fAreaNy;
 	  fTe.fAomega=pfMountDir->fAomega;

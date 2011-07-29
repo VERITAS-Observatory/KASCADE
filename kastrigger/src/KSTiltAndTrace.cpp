@@ -1,6 +1,6 @@
 //-*-mode:c++; mode:font-lock;-*-
 /**
- * \class KSTiltAndTrace
+ * \class KSTiltAndTrace 
  * \brief Class to do ray tracing for Davis-Cotton tels.
  * Original Author: Glenn H. Sembroski 
  * $Author$
@@ -41,6 +41,32 @@ KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
   fFacetAlignmentMethod    = "WHIPPLE";
   fFacetLocationFileName   = " ";
 
+  // ***********************************************************
+  //Init vectors
+  // ***********************************************************
+  fW.clear();
+  fPeFacet.clear();        //position on facet of where photon hits it
+  fFacetNormalDir.clear(); //Dir-cosigns of facet normal vector.
+  fPh.clear();          //Vector from focal plane to facet focal point
+  fPeFacetNormalDir.clear();//Normal dir of curved facet mirror at 
+  fParallel.clear();
+  fPerpendicular.clear();
+  fReflectedDir.clear();
+  fDir.clear(); //Direction of photon in mirror plane system
+
+  fW.resize(2);
+  fPeFacet.resize(3); 
+  fFacetNormalDir.resize(3);
+  fPh.resize(3);
+  fPeFacetNormalDir.resize(3);
+  fParallel.resize(3);
+  fPerpendicular.resize(3);
+  fReflectedDir.resize(3);
+  fDir.resize(3);
+  // **************************************************************
+
+
+
   pMirrorFacets= new KSFacets(fMirrorRadiusSquaredM2, fFacetDiameterM,
 			      fFocalLengthM, fFocalPlaneLocationM,  
 			      fAlignmentPlaneLocationM, fFacetAlignmentMethod,
@@ -48,7 +74,7 @@ KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
 }
 
 // **************************************************************************
-// This version of constructor adds focal p[lane location
+// This version of constructor adds focal plane location
 // *************************************************************************
 KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
 				double MirrorRadiusSquaredM2,
@@ -73,7 +99,31 @@ KSTiltAndTrace::KSTiltAndTrace( double DnMinTight,double DnMinLoose,
   fFacetAlignmentMethod    = FacetAlignmentMethod;
   fFacetLocationFileName   = FacetLocationFileName;
 
-  pMirrorFacets = new KSFacets(fMirrorRadiusSquaredM2, fFacetDiameterM,
+   // ***********************************************************
+  //Init vectors
+  // ***********************************************************
+  fW.clear();
+  fPeFacet.clear();        //position on facet of where photon hits it
+  fFacetNormalDir.clear(); //Dir-cosigns of facet normal vector.
+  fPh.clear();          //Vector from focal plane to facet focal point
+  fPeFacetNormalDir.clear();//Normal dir of curved facet mirror at 
+  fParallel.clear();
+  fPerpendicular.clear();
+  fReflectedDir.clear();
+  fDir.clear(); //Direction of photon in mirror plane system
+
+  fW.resize(2);
+  fPeFacet.resize(3); 
+  fFacetNormalDir.resize(3);
+  fPh.resize(3);
+  fPeFacetNormalDir.resize(3);
+  fParallel.resize(3);
+  fPerpendicular.resize(3);
+  fReflectedDir.resize(3);
+  fDir.resize(3);
+  // **************************************************************
+
+ pMirrorFacets = new KSFacets(fMirrorRadiusSquaredM2, fFacetDiameterM,
 			      fFocalLengthM, fFocalPlaneLocationM,  
 			      fAlignmentPlaneLocationM, fFacetAlignmentMethod,
 			      fFacetLocationFileName);
@@ -108,7 +158,7 @@ int  KSTiltAndTrace::Tilt()
                                    // Z axis
     {
       dump=1; // flag to drop this pe
-      fW[0]=1;
+      fW.at(0)=1;
       //pran(&dummy);  //These are for synching rnadom numbers during debugging
       //pran(&dummy);
       //gaussfast();
@@ -175,7 +225,7 @@ int  KSTiltAndTrace::Tilt()
   if(fPhotonRad2>fMirrorRadiusSquaredM2)
     {
       dump=1;		//  Gets here if mirror is missed.
-      fW[0]=2;
+      fW.at(0)=2;
       //pran(&dummy);
       //pran(&dummy);
       //gaussfast();
@@ -187,9 +237,9 @@ int  KSTiltAndTrace::Tilt()
   // ***********************************************************
   if(vn==-1.0)
     {	// Photon direction along opticle axis?
-      fDir[0]=0.;  // DL
-      fDir[1]=0.;  // DM
-      fDir[2]=1.0;  // DN	(positive)
+      fDir.at(0)=0.;  // DL
+      fDir.at(1)=0.;  // DM
+      fDir.at(2)=1.0;  // DN	(positive)
     }
   else
     {
@@ -197,9 +247,9 @@ int  KSTiltAndTrace::Tilt()
       // Form the relative vector components of photon to mount.
       // 	Again dot products with x',y' unit vectors.
       // **********************************************************
-      fDir[0] = fDlr*fXDl + fDmr*fXDm + fDnr*fXDn;
-      fDir[1] = fDlr*fYDl + fDmr*fYDm + fDnr*fYDn;
-      fDir[2]=sqrt(1-fDir[0]*fDir[0]-fDir[1]*fDir[1]);
+      fDir.at(0) = fDlr*fXDl + fDmr*fXDm + fDnr*fXDn;
+      fDir.at(1) = fDlr*fYDl + fDmr*fYDm + fDnr*fYDn;
+      fDir.at(2)=sqrt(1-fDir.at(0)*fDir.at(0)-fDir.at(1)*fDir.at(1));
                                            //Positive sign means down going.
     }
 
@@ -209,18 +259,18 @@ int  KSTiltAndTrace::Tilt()
   // 	after applying  both  global and facet aberations for the whipple
   // 	10m mirror. Save mirror plane time.
   // ********************************************************************
-  fW[0]=0;
+  fW.at(0)=0;
 
   dump=FullAberationTrace();    //Trace the photon to the camera focal plane
-
+  
   if(dump==0){
-    double vnActual=sqrt(fW[0]*fW[0]+fW[1]*fW[1]);  //Deg
+    double vnActual=sqrt(fW.at(0)*fW.at(0)+fW.at(1)*fW.at(1));  //Deg
     // Why cos? Because vnNow and fDnMinTight is a direction cosign to z axis 
     double vnNow = cos(vnActual*3.14159265/180.0);
     if(vnNow<fDnMinTight)
       {
 	dump=1;
-	fW[0]=3;
+	fW.at(0)=3;
       }
   }
   return dump;
@@ -340,7 +390,7 @@ int KSTiltAndTrace::FullAberationTrace()
 // I may have a left hand coord system here but it doesn't matter(I think!)
 // ***************************************************************************
 {
-  fDir[2]=-fDir[2];  //reverse Z direciton
+  fDir.at(2)=-fDir.at(2);  //reverse Z direciton
 
   // *************************************************************************
   // First: Get X,Y,Z position vector of the facet (fFacet) where this photon 
@@ -352,7 +402,7 @@ int KSTiltAndTrace::FullAberationTrace()
 
   int dump= pMirrorFacets->FindFacetLocation(fPe, fFacet,facetIndex);
   if(dump!=0){
-    fW[0]=4;
+    fW.at(0)=4;
     return dump;
   }
 
@@ -368,14 +418,14 @@ int KSTiltAndTrace::FullAberationTrace()
   // **************************************************************************
   double zDist=fFocalLengthM+fFacet.at(2);  // height of facet above mirror 
                                             // plane.
-  double path=zDist/fDir[2];            // Path length between mirror plane
+  double path=zDist/fDir.at(2);            // Path length between mirror plane
                                         // and facet plane. Should be negative
  
-  fPeFacet[0]=fPe.at(0)+path*fDir[0]; //X,Y Positon vector (from center of 
-                                      // mirror)
+  fPeFacet.at(0)=fPe.at(0)+path*fDir.at(0); //X,Y Positon vector (from 
+                                            //center of mirror)
                                    //to where the photon
                                    //intecepts the facet plane
-  fPeFacet[1]=fPe.at(1)+path*fDir[1]; //Determine fPeFacet(2) below
+  fPeFacet.at(1)=fPe.at(1)+path*fDir.at(1); //Determine fPeFacet(2) below
 
   // *********************************************************************
   // Get a vector that is normal to center of facet
@@ -385,7 +435,7 @@ int KSTiltAndTrace::FullAberationTrace()
   
   dump= pMirrorFacets->FindFacetNormal(fFacet, fFacetNormal,facetIndex);
   if(dump!=0){
-    fW[0]=4;
+    fW.at(0)=4;
     return dump;
   }
 
@@ -399,9 +449,9 @@ int KSTiltAndTrace::FullAberationTrace()
 		  fFacetNormal.at(1)*fFacetNormal.at(1) +
 		  fFacetNormal.at(2)*fFacetNormal.at(2) );
   
-  fFacetNormalDir[0]=fFacetNormal.at(0)/mag;  //Unit vector. facet normal.
-  fFacetNormalDir[1]=fFacetNormal.at(1)/mag;
-  fFacetNormalDir[2]=fFacetNormal.at(2)/mag;
+  fFacetNormalDir.at(0)=fFacetNormal.at(0)/mag;  //Unit vector. facet normal.
+  fFacetNormalDir.at(1)=fFacetNormal.at(1)/mag;
+  fFacetNormalDir.at(2)=fFacetNormal.at(2)/mag;
 
   
   // ***********************************************************************
@@ -412,39 +462,39 @@ int KSTiltAndTrace::FullAberationTrace()
   // 2*fFocalLengthM. So make that little vector and call it fPh
   // ***********************************************************************
   double magPh=2*fFocalLengthM-mag;
-  fPh[0]=fFacetNormalDir[0]*magPh;
-  fPh[1]=fFacetNormalDir[1]*magPh;
-  fPh[2]=fFacetNormalDir[2]*magPh;
+  fPh.at(0)=fFacetNormalDir.at(0)*magPh;
+  fPh.at(1)=fFacetNormalDir.at(1)*magPh;
+  fPh.at(2)=fFacetNormalDir.at(2)*magPh;
   
   // *********************************************************************
   // Find z value of where photon hits the facet mirror. This must
   // satisy the sphere equation from the fPh point with radius of curvature
-  // of 2*fFocalLengthM and use the facet altitude plane fPeFacet[0],
-  // fPeFacet[1] values (which we know shold be adjusted some more, but screw 
-  // it!)
+  // of 2*fFocalLengthM and use the facet altitude plane fPeFacet.at(0),
+  // fPeFacet.at(1) values (which we know shold be adjusted some more, but 
+  // screw it!)
   // Remember sign convention.
   // fPeFacet goes positive up (from fFocalPlaneLocationM not MCC (Mirror 
   // Center of Curvature). We put origin at our focal plane
   // Find difference in z from facet center to point of photon reflection
   // ******************************************************************
   
-  fPeFacet[2]=mag*fFacetNormalDir[2]+fPh[2]-
+  fPeFacet.at(2)=mag*fFacetNormalDir.at(2)+fPh.at(2)-
                 sqrt((2*fFocalLengthM)*(2*fFocalLengthM)-
-		    (fPeFacet[0]-fPh[0])*(fPeFacet[0]-fPh[0])- 
-		    (fPeFacet[1]-fPh[1])*(fPeFacet[1]-fPh[1]) );
+		    (fPeFacet.at(0)-fPh.at(0))*(fPeFacet.at(0)-fPh.at(0))- 
+		    (fPeFacet.at(1)-fPh.at(1))*(fPeFacet.at(1)-fPh.at(1)) );
 
   // *******************
   // use this to adjust fFacet.at(2) (which is based at fFocalPlaneLocationM)
   // for fPeFacet(2]
-  fPeFacet[2]=fFacet.at(2)+fPeFacet[2]; 
+  fPeFacet.at(2)=fFacet.at(2)+fPeFacet.at(2); 
   
   // ******************************************************************
   // 	Adjust the petime for the fact that it hits at PeFacet not at
   // 	the mirror plane. Note this is always a reduction.
   // ********************************************************************
-  zDist=fFocalPlaneLocationM+fPeFacet[2];// height of reflection point above 
-                                  // mirror plane.
-  path=zDist/fDir[2];		// Path length between mirror plane
+  zDist=fFocalPlaneLocationM+fPeFacet.at(2);// height of reflection point 
+                                            // above mirror plane.
+  path=zDist/fDir.at(2);		// Path length between mirror plane
 					// and facet plane. Should be negative.
   fPeTime=fPeTimeTilt+(path/kCLightMpNS);
   
@@ -456,33 +506,35 @@ int KSTiltAndTrace::FullAberationTrace()
   // Vector from reflection point to center of facet   
   // ****************************************************************
   std::vector <double> fReflect(3);
-  fReflect.at(0)=fFacet.at(0)-fPeFacet[0];
-  fReflect.at(1)=fFacet.at(1)-fPeFacet[1];
-  fReflect.at(2)=fFacet.at(2)-fPeFacet[2];
+  fReflect.at(0)=fFacet.at(0)-fPeFacet.at(0);
+  fReflect.at(1)=fFacet.at(1)-fPeFacet.at(1);
+  fReflect.at(2)=fFacet.at(2)-fPeFacet.at(2);
 
   // *****************************************************************
   // Get vector from reflection point to center of curvature
   // center of curvature of the facet(the PH point).
   // ********************************************************************
   
-  fPeFacetNormalDir[0]=fReflect.at(0) + fFacetNormal.at(0) + fPh[0];
-  fPeFacetNormalDir[1]=fReflect.at(1) + fFacetNormal.at(1) + fPh[1];
-  fPeFacetNormalDir[2]=fReflect.at(2) + fFacetNormal.at(2) + fPh[2];
+  fPeFacetNormalDir.at(0)=fReflect.at(0) + fFacetNormal.at(0) + fPh.at(0);
+  fPeFacetNormalDir.at(1)=fReflect.at(1) + fFacetNormal.at(1) + fPh.at(1);
+  fPeFacetNormalDir.at(2)=fReflect.at(2) + fFacetNormal.at(2) + fPh.at(2);
   
   // ********************************************************************
   // Covert this to a unit vector. This is the normal to the surface we
   // are reflecting from.
   // ********************************************************************
   
-  double magPeFacetNormalDir=sqrt(fPeFacetNormalDir[0]*fPeFacetNormalDir[0] +
-				  fPeFacetNormalDir[1]*fPeFacetNormalDir[1] +
-				  fPeFacetNormalDir[2]*fPeFacetNormalDir[2]);
+  double magPeFacetNormalDir=
+    sqrt(fPeFacetNormalDir.at(0)*fPeFacetNormalDir.at(0) +
+	 fPeFacetNormalDir.at(1)*fPeFacetNormalDir.at(1) +
+	 fPeFacetNormalDir.at(2)*fPeFacetNormalDir.at(2));
   
-  fPeFacetNormalDir[0]=fPeFacetNormalDir[0]/ magPeFacetNormalDir;
-  fPeFacetNormalDir[1]=fPeFacetNormalDir[1]/ magPeFacetNormalDir;
-  fPeFacetNormalDir[2]=fPeFacetNormalDir[2]/ magPeFacetNormalDir;
+  fPeFacetNormalDir.at(0)=fPeFacetNormalDir.at(0)/ magPeFacetNormalDir;
+  fPeFacetNormalDir.at(1)=fPeFacetNormalDir.at(1)/ magPeFacetNormalDir;
+  fPeFacetNormalDir.at(2)=fPeFacetNormalDir.at(2)/ magPeFacetNormalDir;
   
-  // *****************************************************************
+
+ // *****************************************************************
   // At this point we include the effect of mirror imperfections and
   // pointing errors by throwing over a Gaussian of widths fJitterWidthEWRad
   // and fJitterWidthNSDeg and using GEOM to re-orient the normal vector 
@@ -498,15 +550,15 @@ int KSTiltAndTrace::FullAberationTrace()
   // *****************************************************************
   double tix=(gaussfast()*fJitterWidthEWRad);
   double tiy=(gaussfast()*fJitterWidthNSRad);
-  double dl=fPeFacetNormalDir[0];    //Do this so fortran call to geom8 works.
-  double dm=fPeFacetNormalDir[1];
-  double dn=fPeFacetNormalDir[2];
+  double dl=fPeFacetNormalDir.at(0);  //Do this so fortran call to geom8 works.
+  double dm=fPeFacetNormalDir.at(1);
+  double dn=fPeFacetNormalDir.at(2);
 
   geom8( &dl, &dm, &dn, &tix, &tiy);
 
-  fPeFacetNormalDir[0]=dl;   //restore
-  fPeFacetNormalDir[1]=dm;
-  fPeFacetNormalDir[2]=dn;
+  fPeFacetNormalDir.at(0)=dl;   //restore
+  fPeFacetNormalDir.at(1)=dm;
+  fPeFacetNormalDir.at(2)=dn;
 
   // *****************************************************************
   // Now we can do the reflection of the incident ray. The reflected ray
@@ -516,36 +568,36 @@ int KSTiltAndTrace::FullAberationTrace()
   // The dot product gives us the projection along fPeFacetNormalDir: the 
   // parallel part
   // ******************************************************************
-  double projection=(fDir[0]*fPeFacetNormalDir[0] +
-		     fDir[1]*fPeFacetNormalDir[1] +
-		     fDir[2]*fPeFacetNormalDir[2]);
-  fParallel[0]=fPeFacetNormalDir[0]*projection;
-  fParallel[1]=fPeFacetNormalDir[1]*projection;
-  fParallel[2]=fPeFacetNormalDir[2]*projection;
+  double projection=(fDir.at(0)*fPeFacetNormalDir.at(0) +
+		     fDir.at(1)*fPeFacetNormalDir.at(1) +
+		     fDir.at(2)*fPeFacetNormalDir.at(2));
+  fParallel.at(0)=fPeFacetNormalDir.at(0)*projection;
+  fParallel.at(1)=fPeFacetNormalDir.at(1)*projection;
+  fParallel.at(2)=fPeFacetNormalDir.at(2)*projection;
   
   // *******************************************************************  
   // Perpendicular component is just difference.
   // *******************************************************************
-  fPerpendicular[0]=fDir[0]-fParallel[0];
-  fPerpendicular[1]=fDir[1]-fParallel[1];
-  fPerpendicular[2]=fDir[2]-fParallel[2];
-  
+  fPerpendicular.at(0)=fDir.at(0)-fParallel.at(0);
+  fPerpendicular.at(1)=fDir.at(1)-fParallel.at(1);
+  fPerpendicular.at(2)=fDir.at(2)-fParallel.at(2);
+
   // *****************************************************************
   // Find dl,dm,dn the unit reflected direction vector
   // It is unitized already(except for any roundoff. Ignore that)
   // *****************************************************************
   
-  fReflectedDir[0]=fPerpendicular[0]-fParallel[0];
-  fReflectedDir[1]=fPerpendicular[1]-fParallel[1];
-  fReflectedDir[2]=fPerpendicular[2]-fParallel[2];
+  fReflectedDir.at(0)=fPerpendicular.at(0)-fParallel.at(0);
+  fReflectedDir.at(1)=fPerpendicular.at(1)-fParallel.at(1);
+  fReflectedDir.at(2)=fPerpendicular.at(2)-fParallel.at(2);
   
   // ******************************************************************
   // Now find position vector in focal plane of where this photon hits.
   // First get length of vector from hit point on mirror to hit point in 
   // focal plane. z componet is equal to z component of the hit position.
-  // Cosin of angle is fReflectedDir[2]. so:
+  // Cosin of angle is fReflectedDir.at(2). so:
   
-  double distToMirror=-fPeFacet[2]/fReflectedDir[2]; // Always positive
+  double distToMirror=-fPeFacet.at(2)/fReflectedDir.at(2); // Always positive
   
   // **************************************************************
   // This is also the path length of the reflected photon from the facet to
@@ -553,7 +605,7 @@ int KSTiltAndTrace::FullAberationTrace()
   // The correction should always be postitive.
   // **************************************************************
   fPeTime=fPeTime+(distToMirror/kCLightMpNS);
-  
+
   // ****************************************************************
   // Use this to scale unit vector.(we really only need x,y components)
   // Sum of mirror hit position vector and focal plane hit vector is
@@ -561,8 +613,8 @@ int KSTiltAndTrace::FullAberationTrace()
   // also convert to deg
   // ****************************************************************
   
-  fW[0]=(fPeFacet[0]+(distToMirror*fReflectedDir[0]))/fMetersPerDeg;
-  fW[1]=(fPeFacet[1]+(distToMirror*fReflectedDir[1]))/fMetersPerDeg;
+  fW.at(0)=(fPeFacet.at(0)+(distToMirror*fReflectedDir.at(0)))/fMetersPerDeg;
+  fW.at(1)=(fPeFacet.at(1)+(distToMirror*fReflectedDir.at(1)))/fMetersPerDeg;
   return dump;
 }
 // ******************************************************************

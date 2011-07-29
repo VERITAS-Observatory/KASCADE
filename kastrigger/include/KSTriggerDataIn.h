@@ -49,11 +49,11 @@ private:
   static double      sDefaultGammaStepSizeDeg;
   static double      sDefaultPSFNorthSouthDeg;
   static double      sDefaultPSFEastWestDeg;
+
   static double      sDefaultFocalPlaneLocationM;
   static double      sDefaultAlignmentPlaneLocationM;
   static std::string sDefaultAlignmentMethod;  
   static std::string sDefaultFacetLocationFileName;
-
 
   double fMountDl;
   double fMountDm;
@@ -76,11 +76,15 @@ public:
   double fGammaStepSizeRad;         // 2d Gamma step size
   double fPSFNorthSouthDeg;    // Spotsize paramter(scales to measured 
   double fPSFEastWestDeg;      // real spot size)
+  double fFocalPlaneLocationM;      // Focal plane location.
+  double fAlignmentPlaneLocationM;  // Alignment focal plane location
+
   bool fLoadMountDirectionsFromFile;
   bool fSaveMountDirectionsToFile;
   std::string       fMountDirectionFileName;
   std::string       fRandomSeedFileName;
   std::string       fFacetLocationFileName;
+  KSFacetAlignmentType fAlignmentMethod;
 };
 #endif
 
