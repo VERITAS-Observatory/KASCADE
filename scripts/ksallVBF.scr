@@ -24,6 +24,9 @@ RemoveSingleVBF=enable
 CleanupEnable=enable
 DebugPrintEnable=enable
 
+VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
+                                   # $5$Detectorspec:
+                                   # Ex: .../simulations/veritas/protonsABCD
 
 
 echo "**********************************************************************"
@@ -148,6 +151,8 @@ ArrayConfigSpec=${ThresholdSpec##$ThreshSpec} # gets 1234M2BBAB from
 let TEnd=$(expr length $ArrayConfigSpec)
 
 if [ -n "$DebugPrintEnable" ]; then
+  echo AtmSpec: $AtmSpec
+  echo TriggerSpec: $TriggerSpec
   echo ThresholdSpec: $ThresholdSpec
   echo ArrayConfigSpec $ArrayConfigSpec
   echo ThreshSpec $ThreshSpec
@@ -290,6 +295,18 @@ $src/randomCreateRanluxSeed -s $seed -o ksArrayTrigger.ran
 ShwrTe=$5'/'$AtmSpec$TriggerSpec'GeV'$1'te'
 SingleShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec'GeV'$1
 MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+echo ShwrTe: $ShwrTe
+
+if [ -n "$VBFOutputToDetectorSpecDir" ];
+ then
+  mkdir -p $5'/'$DetectArraySpec
+  MultShwr=$5'/'$DetectArraySpec'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+ else
+  MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+fi
+
+echo MultShwr: $MultShwr
+
 
 #Define Multiplicity option
 MultOption="-ArrayTriggerMultiplicity="$ArrayMult
@@ -452,8 +469,9 @@ while test $i -le $4
     if [ -n "$AomegaEnable" ]; then
 
       if [ -n "$DebugPrintEnable" ]; then
-         echo VBFOutputFileName: $VBFFile
-         echo j: $j ksAomegaConfig[j] ${ksAomegaConfig[$j]}
+        echo tefile $tefile
+	echo VBFOutputFileName: $VBFFile
+	echo j: $j ksAomegaConfig[j] ${ksAomegaConfig[$j]}
       fi
       $src/ksAomega -config=${ksAomegaConfig[$j]} \
                   -RandomSeedFileName=ksAomega.ran \
