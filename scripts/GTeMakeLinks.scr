@@ -11,7 +11,10 @@ then
   exit
 fi
 
-GSrcDir=$1'/VG'$2
+#GSrcDir=$1'/VG'$2
+
+#QF: Change directory name
+GSrcDir=$1'/WVG'$2
 
 GSFNEW1=$3
 GSFNEW2=$4
