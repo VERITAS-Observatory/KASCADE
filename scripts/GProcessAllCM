@@ -95,7 +95,7 @@ while test $i -le $end
     fi
     if test $direction = '7'
     then
-       wbl=S1.75Wbl
+ls       wbl=S1.75Wbl
     fi
     if test $direction = '8'
     then
@@ -116,7 +116,7 @@ while test $i -le $end
     echo ./ksVegasSimProduction.scr $VBFFile \\                   >>$sgeFile
     echo ">"$lcl'/'$VBFFile'.log'                                 >>$sgeFile
     echo cd $lcl'/gammas'                                         >>$sgeFile
-    echo mv $GDIR './'$1'/'$GDIR                                  >>$sgeFile
+    echo mv $GDir './'$1'/'$GDir                                  >>$sgeFile
 
     chmod 700 $sgeFile
     qsub -q mag_serial -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
