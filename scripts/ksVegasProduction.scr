@@ -6,7 +6,7 @@
 #$3 Vegas base dir path: Used when you want vegas from a different directory 
 #            than what VEGAS is set to in .bashrc (or equivalent)
 
-#Stage1Laser=enable
+Stage1Laser=enable
 Stage1Data=enable
 Stage2=enable
 
@@ -25,13 +25,13 @@ Stage5=enable
   #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
  # AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
                                                        #pedvars with vaDisplay
-  EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
+  #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
-  EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
+  #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
 #############################################################################
 
  #Stage4_2         
-./  #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
+ #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
   #FileBase="M82WstnsCutsDenyT1T4.root"  #Extention to put on the end of the 
@@ -41,7 +41,7 @@ Stage5=enable
   FileBase="StdCuts.root"  
 
 
-  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   #SeperationAngleCutOption='-GC_SeparationCut=16'
@@ -52,11 +52,11 @@ Stage5=enable
   QualityCuts='-cuts=QualityStdCuts'
   #QualityCuts='-cuts=QualityJWCuts'
 
-  Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
+  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
   #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
   #Table=LookupTable6.85StdCutsDenyANY2.root
   #Table=LookupTable4.97StdCutsDenyT1T4.root
-
+  Table=LTCrab1011V190MDL6.root
 ##############################################################################
 
 #Stage5
@@ -78,8 +78,8 @@ ShowerCutsOption='-cuts=ShowerCutsFile'
 
 
 #OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-#OutputTreeOptions='-Method=combined'
-OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+OutputTreeOptions='-Method=combined'
+#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
 
 
 #############################################################################

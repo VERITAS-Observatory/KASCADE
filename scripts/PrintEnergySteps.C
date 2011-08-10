@@ -5,7 +5,7 @@
 PrintEnergySteps()
 {
 
-    double fNumMin=50;   //Gammas
+    double fNumMin=20;   //Gammas
     //double fNumShowersAt100=100;   //gammas
     double fNumShowersAt100=200;   //gammas
     double fAlpha=-2.45; //Gamma Ray spectrum index
@@ -24,7 +24,7 @@ PrintEnergySteps()
 
   int fNumSteps=9;
   double fBaseE=.020;    //TeV base energy
-  int fNumEntries=42;
+  int fNumEntries=47;
   int fNStart=0;
 
   //int fNumSteps=10;
@@ -36,7 +36,7 @@ PrintEnergySteps()
   double fIAlpha=fAlpha+1.0;
   double fStepLogE=(log(.100)-log(fBaseE))/fNumSteps;
   double fLogEBase= log(fBaseE);    
-  int fNumE=42;
+  int fNumE=47;
   double fEOld=.018;
  
   double fE[200];
