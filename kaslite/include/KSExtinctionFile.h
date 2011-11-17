@@ -3,8 +3,8 @@
 // This is a class that reads, stores ind interpolates an extinction file.
 // **************************************************************************
 
-#ifndef ATMOSPHERE_H
-#define ATMOSPHERE_H
+#ifndef KSEXTINCTIONFILE_H
+#define KSEXTINCTIONFILE_H
 
 #include <iostream>
 #include <fstream>
