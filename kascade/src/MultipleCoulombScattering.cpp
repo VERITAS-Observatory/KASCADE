@@ -24,13 +24,14 @@
 
 using namespace std;
 
-RandomNumbers RanP((char*)"kasMultScatt.ran"); //VVV random number generator.
-                                    //This definition should happen only once
-                                    //in a program.
-                                    //All other classes(in other files) get 
-                                    //ranp with extern declarations of 
-                                    //ranp(looks like):
-                                    //  extern RandomNumbers ranp;
+extern "C" float pran(float* dummy);
+//RandomNumbers RanP("kasMultScatt.ran"); //VVV random number generator.
+//                                    //This definition should happen only once
+//                                    //in a program.
+//                                    //All other classes(in other files) get 
+//                                    //ranp with extern declarations of 
+//                                    //ranp(looks like):
+//                                    //  extern RandomNumbers ranp;
 
 MultipleCoulombScattering::MultipleCoulombScattering()
 // ************************************************************************
@@ -247,7 +248,8 @@ double MultipleCoulombScattering::getScatteringAngle(double E, double path_s,
 	  x=1./y;                      // x_max
 	      
 	  double Qz;
-	  double rand=(double)RanP.Uniform();
+	  //double rand=(double)RanP.Uniform();
+	  double rand=pran(&fDummy);
 	  double Z=CoulombScattering(x,B_prmtr,Qz,0.);
 	  Z=rand+(1.-rand)*Z;
 	      

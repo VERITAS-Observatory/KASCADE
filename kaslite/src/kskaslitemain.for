@@ -1597,11 +1597,13 @@ c	Calculate visable gamma threshold table, and chernkov angle table.
 c	Use etasea at lambda=380.
 c       Chrenkov angle will be sin(theta)=sqrt(setavis-1/gamma**2)
          i380=(380.-180.)/5.          !Index to reference lambda
+         lambda=380.0
          do j=0,50
-c                 gamvis(j)=sqrt(1./(2*rhoratio(j)*etasea(i380)))
-c                 setavis(j)=2*rhoratio(j)*etasea(i380)
-                 gamvis(j)=sqrt(1./(2*eta(0.0,380.0)))
-                 setavis(j)=2*eta(0.0,380.0)
+            altm=j*1000.0
+c           gamvis(j)=sqrt(1./(2*rhoratio(j)*etasea(i380)))
+c           setavis(j)=2*rhoratio(j)*etasea(i380)
+            gamvis(j)=sqrt(1./(2*eta(altm,lambda)))
+            setavis(j)=2*eta(altm,lambda)
 	enddo
 
 
@@ -1631,10 +1633,11 @@ c        Gamma threshold and sin**2 of maximum chrenkov angle.
                 lambda=ilambda
                 i=(ilambda-180)/5
                 do j=0,50
-c                      gammin(i,j)=sqrt(1./(2*rhoratio(j)*etasea(i)))
-c                      smaxsb(i,j)=2*rhoratio(j)*etasea(i)
-                      gammin(i,j)=sqrt(1./(2*eta(0.0,380.0)))
-                      smaxsb(i,j)=2*eta(0.0,380.0)
+                   altm=j*1000.0
+c                  gammin(i,j)=sqrt(1./(2*rhoratio(j)*etasea(i)))
+c                  smaxsb(i,j)=2*rhoratio(j)*etasea(i)
+                   gammin(i,j)=sqrt(1./(2*eta(altm,lambda)))
+                   smaxsb(i,j)=2*eta(altm,lambda)
 		enddo
 	enddo
 

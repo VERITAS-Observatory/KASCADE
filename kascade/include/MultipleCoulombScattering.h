@@ -107,6 +107,8 @@ class MultipleCoulombScattering
 
   void Spline(double* f, double* g, double h, int n, double fl, double fr);
   double CoulombScattering(double x, double B, double& dq, double Z);
+
+  float fDummy;  //for pran call
   
  public:
   MultipleCoulombScattering();

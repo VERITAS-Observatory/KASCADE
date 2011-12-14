@@ -17,23 +17,10 @@ extern "C" void multscatt(float* tenergy, float* tsegment, int* ispec,
 			  float* dl, float* dm, float* dn, int* qz,
 			  float* xmass);
 
-//Debug
-extern "C" float rndm2(float* xdummy);
-extern  RandomNumbers RanP;
-//enddebug
-
 //***********************************************************************
 // geom is a fortran routine that we call. Its in kascade.for
 // **********************************************************************
 extern "C" void geom(float* dl,float* dm, float* dn,float* tix);
-
-
-
-float rndm2(float* xdummy)
-{
-  return RanP.Uniform();
-}
-
 
 void multscatt(float* tenergy, float* tsegment, int* ispec, float* dl, 
 	       float* dm, float* dn, int* qz,float* xmass)
