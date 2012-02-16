@@ -1,0 +1,31 @@
+#$1 List of data.vbf or pedvar.root files
+#$2 ksVegasSimProduction file name: 
+#       EX: ksVegasProductionFall09DenyT1T4Stg4.scr
+#$3 Identifying letter for Job name (ex A)
+#$4 Alternate VEGAS path (optional)
+
+lcl="$PWD"
+
+let i=0
+{
+  while read InputFile ; do
+      i=$((i+1))
+####################################################################
+# Make up the job script file that will be submitted below
+####################################################################
+      sgeFile=$lcl'/V'$3'Job'$i
+      echo cd $lcl                              >$sgeFile
+      echo $lcl'/'$2  \\                       >>$sgeFile
+      echo $lcl'/'$InputFile' '  \\  >>$sgeFile
+      if test -n $4
+      then
+        echo $4  \\                            >>$sgeFile
+      fi 
+
+      echo ' >'$lcl'/'$InputFile'.log'         >>$sgeFile
+      chmod 700 $sgeFile
+      qsub -q serial  -V -e 'W'$3$i'.err' -o 'W'$3$i'.log' $sgeFile
+done
+} <$1
+
+

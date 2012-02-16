@@ -1,0 +1,12 @@
+#bin/bash
+#$1 start entry
+#$2 end entry
+#$3 = "[]" or not.
+let i=$1
+let end=$2
+
+while test $i -le $end
+ do
+  qdel $i$3
+  let i=i+1
+done

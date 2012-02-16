@@ -1,0 +1,46 @@
+#Build new azimuth  ksKascade and ksTrigger config files from existing 180 Deg 
+#files
+
+#$1 new azimuth designation: Example: 135
+
+
+#main loop
+#this is a little tricky in that we only want the azimuth180
+ls |grep ksKascadeVG | grep 180Deg|xargs -n1 >List
+az=$1
+
+{
+  while read InputFile
+   do
+#ksKascade first
+     ConfigFile=${InputFile%%180*}$az'Deg.config'
+     echo New Config File Name: $ConfigFile
+
+     if [ -e "$ConfigFile" ];
+      then
+        rm -v $ConfigFile
+     fi
+     sed '/AzInitialDeg/s/180/'$az'/g' <$InputFile >$ConfigFile
+   done
+}<List	
+
+#ksTrigger
+ls |grep ksTriggerV | grep .config | grep 180Deg |xargs -n1 >List
+
+{
+  while read InputFile
+   do
+     ConfigFileStart=${InputFile%%180*}
+     ConfigFileEnd=${InputFile##*180}
+     ConfigFile=$ConfigFileStart$az$ConfigFileEnd		
+     
+     echo New ksTrigger Config File Name: $ConfigFile
+
+     if [ -e "$ConfigFile" ];
+      then
+        rm -v $ConfigFile
+     fi
+     sed '/MountAzDeg/s/180/'$az'/g' <$InputFile >$ConfigFile
+
+   done
+}<List	

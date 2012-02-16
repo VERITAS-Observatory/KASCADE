@@ -11,18 +11,22 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-#KascadeEnable=enable
-#LightEnable=enable
-#PeSortMergeEnable=enable
-#TriggerEnable=enable
+KascadeEnable=enable
+LightEnable=enable
+PeSortMergeEnable=enable
+TriggerEnable=enable
 AomegaEnable=enable                   #These next 2 operate on te files only
 ArrayTriggerEnable=enable
 
+CarverGammaProduction=enable    #Enable Carver te.d  file Production scheme 
+                                  #(makes dirs, moves files etc.0
 Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
                                    #Else we get original T1 postion (near T4)
 RemoveSingleVBF=enable
 CleanupEnable=enable
 DebugPrintEnable=enable
+
+
 
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
                                    # $5$Detectorspec:
@@ -86,7 +90,7 @@ done
 
 #All auxillary files are in wrkdir.
 #All temp data kept in $wrkdir. 
-#Final results go into $5;
+#Final results go into $5; (But see CarverGammaProduction switch)
 
 cd $6
 let wspacemin=35000000
@@ -128,7 +132,7 @@ echo Working Directory is $wrkdir
 jobSpec=$2
 AtmSpec=${jobSpec:0:1}                  #gets S from SWG20DegN0.5Deg50mv1234M2
 TelSpec=${jobSpec:1:1}                  #gets W from CWG20DegN0.5Deg50mv1234M2
-PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2DDeg1234M2
+PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2D50mv1234M2
 PrimarySpec=${PrimarySpec:1}            #Strip off the U
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
                                           #WVG20Deg2D50mv1234M2AAAB
@@ -235,27 +239,31 @@ ksLightConfig=ksLight$TelSpec'.config'
 ln -s $inpDir/$ksLightConfig $ksLightConfig
 
 
+ksTriggerConfig=ksTrigger$TriggerSpec'.config'
+ln -s $inpDir/$ksTriggerConfig $ksTriggerConfig
+if [ -n "$DebugPrintEnable" ]; then
+    echo ksTriggerConfig: $ksTriggerConfig
+fi
+
+################################################################
+#Now the different ksAomega config file links
 if test $dcount -gt "0"
 then
     let i=0
     while test $i -lt $dcount
     do
-	ksTriggerConfig[$i]=ksTrigger$TriggerSpec${dspec[$i]}'.config'
         ksAomegaConfig[$i]=ksAomega$ThresholdSpec${dspec[$i]}'.config'
-        ln -s $inpDir/${ksTriggerConfig[$i]} ${ksTriggerConfig[$i]}
         ln -s $inpDir/${ksAomegaConfig[$i]} ${ksAomegaConfig[$i]}
         i=$((i+1))
     done
 else
-    ksTriggerConfig[0]=ksTrigger$TriggerSpec'.config'
     ksAomegaConfig[0]=ksAomega$ThresholdSpec'.config'
-    ln -s $inpDir/${ksTriggerConfig[0]} ${ksTriggerConfig[0]}
     ln -s $inpDir/${ksAomegaConfig[0]} ${ksAomegaConfig[0]}
     if [ -n "$DebugPrintEnable" ]; then
-         echo ksTriggerConfig[0] ${ksTriggerConfig[0]}
          echo ksAomegaConfig[0] ${ksAomegaConfig[0]}
     fi
 fi
+
 
 ksArrayTriggerConfig=ksArrayTrigger.config
 ln -s $inpDir/$ksArrayTriggerConfig $ksArrayTriggerConfig
@@ -339,7 +347,7 @@ then
 fi
 
 if test "$AtmSpec" == "C"    #Use Veritas crab atm
-then
+then 
   ln -s $inpDir/atmprof20.dat atmprof20at
   AtmSpecOption='-AtmosphereSpecification=atmprof20.dat'
 
@@ -349,6 +357,20 @@ fi
 echo $AtmSpecOption
 echo $ExtinctionFileOption
 
+#############################################################################
+#CARVER Gamma Ray Production SetUP
+#############################################################################
+if [ -n "$CarverGammaProduction" ]; then #Get 20_180:
+    ZNAZSpec=${PrimarySpec:1}            #Strip off leading V
+    ZNAZSpec=${ZNAZSpec:1}               #Strip off leading G
+    ZNAZSpec=${ZNAZSpec%%Deg*}           #Strip of Trailing from DEG: 
+    echo ZN_AZ: $ZNAZSpec
+	
+    TEDIR=$AtmSpec$TelSpec'G'$ZNAZSpec'Deg2D'  #Make Te.d directory name. Note
+    echo teDir: $TEDIR                          #this is gamma specific
+             #To make this more general, we could grab the end of $5: ${$5##/*/}
+             # and test for 'gammas' 'protons' 'he4' for G P or He4_ in TEDIR
+fi
 
 ##########################################################################
 #Setup to loop over showers
@@ -362,8 +384,9 @@ while test $i -le $4
 	rm $segfile
     fi
 
-    $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran \
-                   -PrimaryEnergyGeV=$1 -ShowerID=$i $AtmSpecOption $segfile
+   $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran \
+                  -PrimaryEnergyGeV=$1 -ShowerID=$i $AtmSpecOption $segfile
+
   fi
 		   
 #ksLight
@@ -391,95 +414,85 @@ while test $i -le $4
     rm Temp*            #delete temp sort files.
   fi
 
-#############################################################################
-# Loop over different detector configurations
-  let j=0
-  MDirFile=$SingleShwr'MDir.d'$i          #We keep this one
-  if [ -e "$MDirFile" ]; then
-     rm -v $MDirFile
-  fi
-  if test $dcount = 0
-  then
-   let dlast=1
-  else
-   let dlast=$dcount
-  fi
+  
 
-  while test $j -lt $dlast
-  do
 #ksTrigger
-    if test $dcount = 0
-    then
+  if [ -n "$TriggerEnable" ]; then
       tefile=$ShwrTe'.d'$i                  #We keep this one
-    else
-      tefile=$ShwrTe${dspec[$j]}'.d'$i                  #We keep this one
-    fi
-    if [ -n "$TriggerEnable" ]; then
       if [ -e "$tefile" ]; then
 	  rm $tefile
       fi
-
-      ######################################################################## 
-      if test $dlast -gt 1
-      then
-        MountDirectionsOption='-SaveMountDirectionsToFile=ON' 
-
-#For all subsequent passes but differeent configs reuse telescope directions
-        if test $j -gt "0"
-        then
-           MountDirectionsOption='-LoadMountDirectionsFromFile=ON'
-        fi
-      fi
-      ########################################################################
-
-      if [ -n "$DebugPrintEnable" ]; then
-        echo MountDirectionsOption: $MountDirectionsOption
-        echo MountDirectionsFileName: $MDirFile
+      
+      $src/ksTrigger  -config=$ksTriggerConfig \
+	  -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
+      
+     ##########################################################################
+     #For Carver Te Gamma  Production move the file to the te directory off of 
+     #V190.  mkdir the dir if it doesn't exist yet
+     #Note this is for gammas only: $5 ends in /gammas or /protons see above
+     ##########################################################################
+      if [ -n "$CarverGammaProduction" ]; then
+	  lcl="$PWD"
+	  cd $5/V190
+	  mkdir -p $TEDIR
+	  mv -v $tefile  ./$TEDIR
+	  cd $lcl
       fi
 
-      $src/ksTrigger  -config=${ksTriggerConfig[$j]} \
-		    $MountDirectionsOption \
-		    -FacetLocationFileName=VeritasFacetLocations.txt \
-	            -MountDirectionsFileName=$MDirFile \
-                    -RandomSeedFileName=ksTrigger.ran $pesfile $tefile
-    fi
-    j=$((j+1))
-  done
-
-    if [ -n "$TriggerEnable" ] && [ -n "$CleanupEnable" ] ; then
+  fi
+  if [ -n "$TriggerEnable" ] && [ -n "$CleanupEnable" ] ; then
       rm $pesfile
-    fi
+  fi
+
+
+  if test $dcount = 0
+      then
+      let dlast=1
+  else
+      let dlast=$dcount
+  fi
 
 
 #ksAomega
-  let j=0
-  while test $j -lt $dlast
-  do
-    if test $dcount = 0
-    then
-      tefile=$ShwrTe'.d'$i                  #We kept this one
-      rootFile=$SingleShwr'.d'$i'.root'
-      VBFFile=$SingleShwr'.d'$i'.vbf'
-    else
-      tefile=$ShwrTe${dspec[$j]}'.d'$i                  #We keep this one
-      rootFile=$SingleShwr${dspec[$j]}'.d'$i'.root'
-      VBFFile=$SingleShwr${dspec[$j]}'.d'$i'.vbf'
-    fi
+  if [ -n "$AomegaEnable" ]; then
 
-    if [ -n "$AomegaEnable" ]; then
+      tefile=$ShwrTe'.d'$i
 
-      if [ -n "$DebugPrintEnable" ]; then
-        echo tefile $tefile
-	echo VBFOutputFileName: $VBFFile
-	echo j: $j ksAomegaConfig[j] ${ksAomegaConfig[$j]}
+      #############################################################
+      # we will have to change the path of the te file for the
+      #CarverGammaProdution mode of operation.
+      #Assume the file has been moved to TEDIR and get the new path.
+      ###########################################################
+      if [ -n "$CarverGammaProduction" ]; then
+	  tefileName=${tefile##/*/}
+	  tePath=$5/V190/$TEDIR
+	  tefile=$tePath'/'$tefileName
       fi
-      $src/ksAomega -config=${ksAomegaConfig[$j]} \
-                  -RandomSeedFileName=ksAomega.ran \
-                  -VBFOutputFileName=$VBFFile  $tefile
-    fi
 
-    j=$((j+1))
-  done
+    #Loop over config files
+      let j=0
+      while test $j -lt $dlast
+	do
+	if test $dcount = 0
+	    then
+	    VBFFile=$SingleShwr'.d'$i'.vbf'
+	else
+	    VBFFile=$SingleShwr${dspec[$j]}'.d'$i'.vbf'
+	fi
+
+
+	if [ -n "$DebugPrintEnable" ]; then
+	    echo tefile $tefile
+	    echo VBFOutputFileName: $VBFFile
+	    echo j: $j ksAomegaConfig[j] ${ksAomegaConfig[$j]}
+	fi
+	$src/ksAomega -config=${ksAomegaConfig[$j]} \
+	    -RandomSeedFileName=ksAomega.ran \
+	    -VBFOutputFileName=$VBFFile  $tefile
+  
+	j=$((j+1))
+      done
+  fi
 
 
 #ksArrayTrigger		   
@@ -487,7 +500,7 @@ while test $i -le $4
 
   #Make multiple links to file to use for different telescopes
   #Note if dcount=0 we use the same file for all telescopes.
-    VBFFileMult=$MultShwr'.d'$i'.vbf'      #Ouput file Not local
+    VBFFileMult=$MultShwr'.d'$i'.vbf'      #Output file Not local
 
     #Zero the  ShowerNames options list.
     ShowerNameOptions=
@@ -581,32 +594,49 @@ fi
 
     #Remove single tel VBF files. (mostly for isis where space is tight)
     if [ -n "$RemoveSingleVBF" ]; then
-      echo Removing Singel Tel VBF files
-      if test $dcount = 0
-      then
-	if [ -e "$VBFFile" ]; then
-	    rm -v $VBFFile
+	echo Removing Singel Tel VBF files
+	if test $dcount = 0
+	    then
+	    if [ -e "$VBFFile" ]; then
+		rm -v $VBFFile
+	    fi
+	else
+	    VBFFile=$SingleShwr${DetectArraySpec:0:1}'.d'$i'.vbf'
+	    if [ -e "$VBFFile" ]; then
+		rm -v $VBFFile
+	    fi
+	    VBFFile=$SingleShwr${DetectArraySpec:1:1}'.d'$i'.vbf'
+	    if [ -e "$VBFFile" ]; then
+		rm -v $VBFFile
+	    fi
+	    VBFFile=$SingleShwr${DetectArraySpec:2:1}'.d'$i'.vbf'
+	    if [ -e "$VBFFile" ]; then
+		rm -v $VBFFile
+	    fi
+	    VBFFile=$SingleShwr${DetectArraySpec:3:1}'.d'$i'.vbf'
+	    if [ -e "$VBFFile" ]; then
+		rm -v $VBFFile
+	    fi
 	fi
-      else
-#        if test [ -e "$SingleShwr${DetectArraySpec:0:1}'.d'$i'.vbf'" ];
-#	then
-		rm -v $SingleShwr${DetectArraySpec:0:1}'.d'$i'.vbf'
-#	fi
-#        if test [ -e $SingleShwr${DetectArraySpec:1:1}'.d'$i'.vbf' ];
-#	then
-		rm -v $SingleShwr${DetectArraySpec:1:1}'.d'$i'.vbf'
-#	fi
-#        if test [ -e $SingleShwr${DetectArraySpec:2:1}'.d'$i'.vbf' ];
-#	then
-		rm -v $SingleShwr${DetectArraySpec:2:1}'.d'$i'.vbf'
-#	fi
-#        if test [ -e $SingleShwr${DetectArraySpec:3:1}'.d'$i'.vbf' ];
-#	then
-		rm -v $SingleShwr${DetectArraySpec:3:1}'.d'$i'.vbf'
-#	fi
-     fi
-   fi
+    fi
+    
+    #########################################################################
+    # Move the vbf file to the vbf directory. mkdir the directory if needed
+    #This used to be in GProcessAll
+    #########################################################################
+    if [ -n "$CarverGammaProduction" ]; then    
+	lcl=$PWD
+	VBFDir=$TEDIR'50mv1234M2'$AtmSpec
+	cd $5
+	mkdir -pv $VBFDir
+	mv -v $VBFFileMult ./$VBFDir
+	cd $lcl
+    fi
 
+
+
+    echo GBase: $GBase	
+    
   fi
   i=$((i+1))			#do next shower
 done
@@ -614,10 +644,10 @@ done
 
 ##Cleanup:
 if [ -n "$CleanupEnable" ]; then
-  cd $wrkdir
-  rm -vf *
-  cd ..
-  rmdir $dirID
+    cd $wrkdir
+    rm -vf *
+    cd ..
+    rmdir $dirID
 
 fi
 

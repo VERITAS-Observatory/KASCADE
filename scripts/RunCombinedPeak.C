@@ -39,8 +39,8 @@ std::string fPlotOption=" ";
 bool useCutMask=false;
 //bool useCutMask=true;
 
-bool normPeaks=false;
-//bool normPeaks=true;                  //For Compare Runs
+//bool normPeaks=false;
+bool normPeaks=true;                  //For Compare Runs
 
 //Strings for Cumulative tree.
 //std::string fCTreeName="CTree"

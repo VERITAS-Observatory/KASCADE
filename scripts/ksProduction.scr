@@ -299,13 +299,13 @@ function CosmicRay()
     echo Helium4: $he4Parspec     
     WALLTIME=75:00:00
 #Veritas/Whipple Set1/ksaom/kasall
-############     1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42     43    44
-    pEnergy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
-     pStart=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1 1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#          end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+############     1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17  18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42     43    44
+    pEnergy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350 418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
+     pStart=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1   1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+       pEnd=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10  10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 #10%
-       pEnd=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1 1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#       pEnd=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1 1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 
 #VeritasSet2
 #     energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11431 13669 16346 19546 23374 27951 33424)
@@ -313,12 +313,13 @@ function CosmicRay()
 #        end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   5   5   5   5 5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
 
-  he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
-   he4Start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
-#        end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
+############     1   2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17  18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42     43    44
+  he4Energy=([1]=20  23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350 418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565)
+   he4Start=([1]=1   1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1   1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+     he4End=([1]=519 387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10  10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5)
 
 #10%
-     he4End=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1  1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
+#     he4End=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1  1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 
 
 #PDSF (ONLY)
@@ -327,9 +328,9 @@ function CosmicRay()
     #Submit in reverse order so the longest start first.
     #**********************************************************************
             let iPEntryStart=1
-            let iHe4EntryStart=6   #Normal start for helium
-            let iPEntryEnd=36
-            let iHe4EntryEnd=36          #10% end
+            let iHe4EntryStart=5  #Normal start for helium
+            let iPEntryEnd=40
+            let iHe4EntryEnd=40       #10% end
 
 	    let iEntryEnd=$iPEntryEnd
             if test $iPEntryEnd -lt $iHe4EntryEnd 
@@ -378,9 +379,9 @@ function CosmicRay()
     #Submit in reverse order so the longest start first.
     #**********************************************************************
       let iPEntryStart=1
-      let iHe4EntryStart=6   #Normal start for helium
-      let iPEntryEnd=36
-      let iHe4EntryEnd=36          #10% end
+      let iHe4EntryStart=5  #Normal start for helium
+      let iPEntryEnd=42
+      let iHe4EntryEnd=42          #36 is 10% end
 
       let iEntryEnd=$iPEntryEnd
       if test $iPEntryEnd -lt $iHe4EntryEnd 
@@ -406,7 +407,7 @@ function CosmicRay()
           end[$j]=${pEnd[$j]}
           energy[$j]=${pEnergy[$j]}
        
-          if test $j -le 25
+          if test $j -le 19
            then
             BuildAndSubmitCARVERJobs $j 
 	   else
@@ -424,7 +425,7 @@ function CosmicRay()
           end[$j]=${he4End[$j]}
           energy[$j]=${he4Energy[$j]}
        
-          if test $j -le 25
+          if test $j -le 19
            then
             BuildAndSubmitCARVERJobs $j 
 	   else
@@ -455,8 +456,10 @@ function Gammas()
 ############      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44
       energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565) 
        start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11) 
+      #end=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11) 
 #Big         end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    50    50   50  50  50  50  50  50   50   50   50   50   50   50   50   50   50   50   50   50   50    50    50    50    50    10    20    10    20)
-         end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    44    34   26  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20)
+#Small
+       end=([1]=2064 1592 1229 948  732  565  436  336  260  200 155   120 92  71    55    44    34   26  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20)
 
 
 #VeritasSet2
@@ -566,20 +569,22 @@ function Gammas()
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
+#           let iEntryStart=19
+#           let iEntryEnd=19
 
-           let iEntryStart=1
+           let iEntryStart=1   #498 jobs
+#           let iEntryStart=41   #498jobs
+#           let iEntryEnd=40
            let iEntryEnd=44
-
 
 #Reverse order (prefered)
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
-               if test $j -le 25
+               if test $j -le 19
                 then
                   BuildAndSubmitCARVERJobs $j 
 	        else
-                  #BuildAndSubmitLargeCARVERJobs $j
                   #BuildAndSubmitCARVERJobs $j 
 	          BuildAndSubmitCarverJobsSingly $j
                fi
@@ -846,6 +851,7 @@ function BuildAndSubmitCARVERJobs
 #**********************************************************************
 # Cause CARVER cluster jobs to be submitted.
 # This is the "all showers of one energy in sequence on one core"
+# This is a standard way to submit Carver jobs
 #**********************************************************************
 {
  pr=$parspec
@@ -857,21 +863,21 @@ function BuildAndSubmitCARVERJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"!/bin/bash                            >$sgeFile
+ echo "#"PBS -l walltime=48:00:00             >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
  echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
 
  chmod 700 $sgeFile
- qsub -q mag_serial -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+ qsub -q $CarverQueue -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
 }
 
 function BuildAndSubmitCarverJobsSingly 
 #**********************************************************************
-# Cause CARVER mag_serial jobs to be submitted.
-# This version submits 1 job per shower. Useful for high energies.
-# Don't use for low energies. The Magellan queue manager chokes with too many
-# jobs in the queue. Don't know what "too many" is yet.
+# Cause CARVER serial jobs to be submitted.
+# This version submits 1 job per shower. 
+# This is standard way to submit to Carver
 #**********************************************************************
 {
  pr=$parspec
@@ -886,19 +892,26 @@ function BuildAndSubmitCarverJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"!/bin/bash                                      >$sgeFile
+   echo "#"PBS -l walltime=48:00:00                       >>$sgeFile
+   if test $1 -ge 25
+     then
+      echo "#PBS -l pvmem=8GB"                            >>$sgeFile
+   fi	
    echo cd $lcl                                           >>$sgeFile
    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   qsub -q mag_serial -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+   qsub -q $CarverQueue -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
    let i=i+1
   done
 }
 
 function BuildAndSubmitLargeCARVERJobs
 #**********************************************************************
-# Cause CARVER multi-node cloud jobs to be submitted.
+#  This routine never used. Outdated due to disapearance of Magellan
+# *********************************************************************
+# Cause Magellan multi-node cloud jobs to be submitted.
 # Since we have lots and lots of nodes 1 job per shower
 # This version attempts to run n(<8) jobs per node leaving the rest of the 
 # nodes empty. This reduces I/O conflicts and greatly speeds processing
@@ -940,6 +953,7 @@ function BuildAndSubmitLargeCARVERJobs
       then
        magFile=Mag$eGeV$pr'd'$i.scr
        echo "#"!/bin/bash                                      >$magFile
+       echo "#"PBS -l walltime=48:00:00                       >>$magFile
        echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$magFile
        echo ">>"$lcl"/ksProduction_"$eGeV"d"$i"_"$pr".log "   >>$magFile
  
@@ -956,14 +970,14 @@ function BuildAndSubmitLargeCARVERJobs
 
  chmod 700 $sgeFile
 # ************************************************************************
-# Note submission is to the regular magellan queue. We are limited here to
-# having 8 "submissions" run at a time.  However it usually takes hours/days 
+# Note submission is to the regular Carver queue. We are limited here to
+# having 150 "submissions" run at a time.  However it usually takes hours/days 
 # before any of the submitted jobs actually run, so the limit of 8 is never 
 # even approached. Because of the difficulty of ever geting the jobs to run,
 # even after waiting days in the queue, this isn't a particulay good way to 
 # run things..
 # ************************************************************************
- qsub -q magellan -V -e k$eGeV$pr'd'$showerStart.err -o k$eGeV$pr'd'$showerStart.log $sgeFile
+ qsub -q reg_small  -V -e k$eGeV$pr'd'$showerStart.err -o k$eGeV$pr'd'$showerStart.log $sgeFile
 }
 
 
@@ -973,7 +987,7 @@ function BuildAndSubmitCARVERJobArray
 # Cause CARVER cluster jobs to be submitted using Job arrays.
 # Since we have lots and lots of nodes 1 job per shower
 # Need to limit number in each job array submission to 1024
-# We don't use this since the Magellan queue manager can't handle lots of 
+# We don't use this since the Carver queue manager probably can't handle lots of 
 # short jobs. This is just here for future reference.
 #**********************************************************************
 {
@@ -1013,7 +1027,7 @@ function BuildAndSubmitCARVERJobArray
    echo $workingDir '>'\$LOGFILE                                >>$sgeFile
 
    chmod 700 $sgeFile
-   qsub -q mag_serial  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
+   qsub -q $CarverQueue  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
    let k=kend+1
 
   done
@@ -1241,6 +1255,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
+  CarverQueue=serial
 fi
 
 if test  "$hostString" = "amdahl"  #Are we running on AMDAHL

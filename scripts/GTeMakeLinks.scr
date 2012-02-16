@@ -1,26 +1,32 @@
 #$1 V190
 #$2 20Deg2D
-#$3 A
-#$4 B
-#$5 C
-#$6 D
+#$3 WV        #Prefix for dir name(before the G20_180Deg2D(Ex. WV or SV or V)
+#$4 w
+#$5 x
+#$6 y
+#$7 z
 
-if test -z $1
+
+echo arg1 arg2 arg3 arg4: $1 $2 $3 $4
+
+if test -z $4
 then
-  echo Usage: ./GTeMakeLinks.scr  V190 20Deg2D A B C D
+  echo Usage: ./GTeMakeLinks.scr  V190 20Deg2D WV A
+  echo or: ./GTeMakeLinks.scr  V190 20Deg2D WV w x y z 
   exit
 fi
 
 #GSrcDir=$1'/VG'$2
 
 #QF: Change directory name
-GSrcDir=$1'/WVG'$2
+GSrcDir=$1'/'$3'G'$2
 
-GSFNEW1=$3
-GSFNEW2=$4
-GSFNEW3=$5
-GSFNEW4=$6
 
+GSFNEW1=$4
+GSFNEW2=$5
+GSFNEW3=$6
+GSFNEW4=$7
+echo GSFNEW1 GSFNEW2 GSFNEW3 GSFNEW4: $GSFNEW1 $GSFNEW2 $GSFNEW3 $GSFNEW4
 #Gammas
 cd ./gammas
 ls './'$GSrcDir | grep 'te.d'   > List
@@ -33,23 +39,25 @@ do
   FStart=${File%%'.d'*}
   FileSrc=$SourceDir'/'$File
 
-  if test -n $GSFNEW1
+  if test -n "$GSFNEW1"
   then
 	NewFile1=$FStart$GSFNEW1'.d'$Fend
         ln -vs $FileSrc $NewFile1
 	#echo Old: $FileSrc New1: $NewFile1
   fi
-  if test -n $GSFNEW2
+
+  if test -n "$GSFNEW2"
   then
 	NewFile2=$FStart$GSFNEW2'.d'$Fend
         ln -vs $FileSrc $NewFile2
+	#echo Old: $FileSrc New2: $NewFile2
   fi
-  if test -n $GSFNEW3
+  if test -n "$GSFNEW3"
   then
 	NewFile3=$FStart$GSFNEW3'.d'$Fend
         ln -vs $FileSrc $NewFile3
   fi
-  if test -n $GSFNEW4
+  if test -n "$GSFNEW4"
   then
 	NewFile4=$FStart$GSFNEW4'.d'$Fend
         ln -vs $FileSrc $NewFile4

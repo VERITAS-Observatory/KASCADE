@@ -16,6 +16,7 @@ MakeTGraphFromTTree(string filename)
   int numMDLs=numPoints/4;
 
   float m3_5;
+  float m3;
   float T;
   float G;
   int t;
@@ -26,6 +27,7 @@ MakeTGraphFromTTree(string filename)
   float S;
 
   A.SetBranchAddress("Max3_50",&m3_5);
+  A.SetBranchAddress("Max3",&m3);
   A.SetBranchAddress("T",&T);
   A.SetBranchAddress("G",&G);
   A.SetBranchAddress("t",&t);
@@ -50,12 +52,14 @@ MakeTGraphFromTTree(string filename)
   for(int i=0;i<numPoints;i++){
     A.GetEntry(i);
     float mx=T*G;
-    Threshold->SetPoint(i,mx,m3_5);
+    //Threshold->SetPoint(i,mx,m3_5);
+    Threshold->SetPoint(i,mx,m3);
   }
   
-  Threshold[0]->SetTitle("Threshold from 50% Max3");
+  //Threshold[0]->SetTitle("Threshold from 50% Max3");
+  Threshold->SetTitle("Threshold from Max3 peak");
   Threshold->GetXaxis()->SetTitle("T*G");
-  Threshold->GetYaxis()->SetTitle("Max3_50");
+  Threshold->GetYaxis()->SetTitle("Max3");
   Threshold->Draw("AP");
   Threshold->Fit("pol1");
   TF1 *fit =  Threshold->GetFunction("pol1");
@@ -183,10 +187,16 @@ genParams( double gain1,double gain2, double gain3,double gain4)
   noise4=noise4*noise4;
 
   //Threshold from 50% Max3 from data
-  double thresh1= (24.-threshIntercept)/(threshSlope*gain1);
-  double thresh2= (25.-threshIntercept)/(threshSlope*gain2);
-  double thresh3= (28.-threshIntercept)/(threshSlope*gain3);
-  double thresh4= (27.-threshIntercept)/(threshSlope*gain4);
+  //double thresh1= (24.-threshIntercept)/(threshSlope*gain1);
+  //double thresh2= (25.-threshIntercept)/(threshSlope*gain2);
+  //double thresh3= (28.-threshIntercept)/(threshSlope*gain3);
+  //double thresh4= (27.-threshIntercept)/(threshSlope*gain4);
+  
+///Threshold from Max3 peak from data
+  double thresh1= (42.-threshIntercept)/(threshSlope*gain1);
+  double thresh2= (38.-threshIntercept)/(threshSlope*gain2);
+  double thresh3= (42.-threshIntercept)/(threshSlope*gain3);
+  double thresh4= (38.-threshIntercept)/(threshSlope*gain4);
 
   //Threshold from Size
   //double thresh1= sqrt(noise1)/(TSizeSlope*gain1)*(190-TSizeInter);
