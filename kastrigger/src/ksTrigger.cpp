@@ -228,6 +228,8 @@ int main(int argc, char** argv)
     // ------------------------------------------------------------------------
       if(load_config)
 	{
+	  std::cout<<"ksTrigger: Loading Config file: "<<load_filename
+		   <<std::endl;
 	  config_file.loadConfigFile(load_filename);
 	}
 
