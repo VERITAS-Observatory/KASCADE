@@ -1,0 +1,58 @@
+#This scrip gernetaes the .config  files for use with ProduceLookupTables.
+#These Sub*.config files are used in conjunction with the Sub*List file to
+#produce the SubLT*.root files using producelookuptables.
+#These Sub*.config file are identical to the LTStandard.conf file except they 
+#only have 2 entries in the ZENITH and Noise parameter specs (2 is a minimum 
+#for produce_lookuptables).  More entries cause produce_lookuptables to crash.
+#
+#$1  Standard (full) config file name that all Sub Config files are derived 
+#    from. EX: LTMeanMDL15.config
+
+#Specify all possible parameter values
+Zenith=([1]=1 10 20 30 40 50 60 70)
+Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
+ 
+#We make a seperate Sub LT config file for each pair of ZN, pair of noise 
+#combination
+
+#The Basic config file is $1
+let izn=1
+let iznEnd=8
+while test $izn -le $iznEnd
+ do
+   let jnoise=1;
+   let jnoiseEnd=10
+   while test $jnoise -le $jnoiseEnd
+     do
+       #Now we need to "edit the new config file
+       #Figure out what the Zenith arguments should look like
+       let iznp=izn+1
+       Zn=${Zenith[izn]}','${Zenith[iznp]}
+       ZNLBL=${Zenith[izn]}'_'${Zenith[iznp]}
+	       #now replace Zenith argument and put in a tmp file
+       sed '/Zenith/s/1,10,20,30,40,50,60,70/'$Zn'/g' <$1 >config.tmp
+
+       #Now do the same for the Noise but put in final file
+
+       let jnoisep=jnoise+1
+       Ns=${Noise[$jnoise]}','${Noise[$jnoisep]}
+       NsLBL=${Noise[$jnoise]}'_'${Noise[$jnoisep]}
+       #Construct the Sub Lt Config File Name
+       ConfigName='SubLT'$ZNLBL'Deg'$NsLBL'noise.config'
+ 
+       #now replace AbsoluteNoise  argument and put in a final file
+       sed '/Noise/s/4.016,4.75,5.5,6.25,7.0,7.75,8.5,9.5,10.5,11.5/'$Ns'/g' \
+                                              <config.tmp >$ConfigName
+	
+       rm config.tmp
+       jnoise=$((jnoise+2))
+       echo $ConfigName' done'    
+     done
+   izn=$((izn+2))
+ done
+
+
+
+
+
+
