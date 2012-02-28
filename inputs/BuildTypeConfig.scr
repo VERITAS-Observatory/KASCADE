@@ -1,0 +1,48 @@
+#Build new type  ksKascade and ksTrigger config files from existing 180 Deg 
+#files
+
+#$1 new type designation: Example: 3      (for electrons)
+#$2 Name of type: Ex: E
+
+#main loop
+#We will use all the gamma (ksKascadeVG*.conifg ) files as our base files
+# we only need to change the name and the type value
+
+type=$1
+spec=$2
+
+#ksKascade first
+ls *.config |grep ksKascadeVG |xargs -n1 >List
+{
+  while read InputFile
+   do
+     ConfigFile=ksKascadeV$spec${InputFile##ksKascadeVG}
+
+     echo New Config File Name: $ConfigFile
+
+     if [ -e "$ConfigFile" ];
+      then
+        rm -v $ConfigFile
+     fi
+     sed '/PrimaryType/s/1/'$type'/g' <$InputFile >$ConfigFile
+   done
+}<List	
+
+#ksTrigger
+ls *.config |grep ksTriggerVG |xargs -n1 >List
+#We just need to copy the gammas files with a new name 
+#Electrons will use the "2D" mode!(so we can make Lookup tables).
+{
+  while read InputFile
+   do
+      ConfigFile=ksTriggerV$spec${InputFile##ksTriggerVG}
+      echo New ksTrigger Config File Name: $ConfigFile
+
+     if [ -e "$ConfigFile" ];
+      then
+        rm -v $ConfigFile
+     fi
+     cp -v $InputFile $ConfigFile
+
+   done
+}<List	

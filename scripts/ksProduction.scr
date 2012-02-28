@@ -71,25 +71,6 @@ function Protons()
       fi
     fi
 
-#Pulsar
-    if [ -n "$PULSAR" ]; then
-      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	BuildPulsarScriptList 1 1 10
-	BuildPulsarScriptList 2 11 20
-	BuildPulsarScriptList 3 21 25
-	BuildPulsarScriptList 4 26 32
-	BuildPulsarScriptList 5 33 37
-	BuildPulsarScriptList 6 38 42
-
-      else
-	BuildPulsarScriptList 1 1  42
-      fi
-    fi
-
-#AMDAHL
-    if [ -n "$AMDAHL" ]; then
-	SubmitAmdahlPBSScripts 1 42
-    fi
 
 
 #PDSF
@@ -124,12 +105,12 @@ function Protons()
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
-               if test $j -le 25
+               if test $j -le 19
                 then
-                  BuildAndSubmitCARVERJobs $j 
+                  BuildAndSubmitCarverJobs $j 
 	        else
-                  #BuildAndSubmitLargeCARVERJobs $j
-                  #BuildAndSubmitCARVERJobs $j 
+                  #BuildAndSubmitLargeCarverJobs $j
+                  #BuildAndSubmitCarverJobs $j 
 	          BuildAndSubmitCarverJobsSingly $j
                fi
                let j=j-1		
@@ -139,13 +120,37 @@ function Protons()
 #	   let j=$iEntryStart
 #           while test $j -le $iEntryEnd
 #            do	
-#               BuildAndSubmitCARVERJobs $j 
-#	       #BuildAndSubmitLargeCARVERJobs $j
+#               BuildAndSubmitCarverJobs $j 
+#	       #BuildAndSubmitLargeCarverJobs $j
 #	       j=$((j+1))		
 #            done
 
     fi
 #********************************************************************************
+
+#HANSEN
+   if [ -n "$HANSEN" ]; then
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     #**********************************************************************
+     let iEntryStart=1
+     let iEntryEnd=44
+
+     #Reverse order (prefered)
+     let j=$iEntryEnd
+     while test $j -ge $iEntryStart
+       do	
+         if test $j -le 19
+         then
+           BuildAndSubmitHansenJobs $j 
+	 else
+	   BuildAndSubmitHansenJobsSingly $j
+         fi
+         let j=j-1		
+       done
+   fi
+
+
 }
 #**********************************************************************
 
@@ -210,24 +215,6 @@ function Helium4()
       fi
     fi
 
-#Pulsar
-    if [ -n "$PULSAR" ]; then
-      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-
-	BuildPulsarScriptList 1 6  20
-	BuildPulsarScriptList 2 21 30
-	BuildPulsarScriptList 3 31 36
-	BuildPulsarScriptList 4 37 39
-	BuildPulsarScriptList 5 40 41
-	BuildPulsarScriptList 6 42 42
-      else
-	BuildPulsarScriptList 1 1  42
-      fi
-    fi
-
-    if [ -n "$AMDAHL" ]; then
-        SubmitAmdahlPBSScripts 1 42 
-    fi
 
 #PDSF
    if [ -n "$PDSF" ]; then
@@ -263,12 +250,12 @@ function Helium4()
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
-               if test $j -le 25
+               if test $j -le 19
                 then
-                  BuildAndSubmitCARVERJobs $j 
+                  BuildAndSubmitCarverJobs $j 
 	        else
-                  #BuildAndSubmitLargeCARVERJobs $j
-                  #BuildAndSubmitCARVERJobs $j 
+                  #BuildAndSubmitLargeCarverJobs $j
+                  #BuildAndSubmitCarverJobs $j 
 	          BuildAndSubmitCarverJobsSingly $j
                fi
                let j=j-1		
@@ -278,12 +265,33 @@ function Helium4()
 #	   let j=$iEntryStart
 #           while test $j -le $iEntryEnd
 #            do	
-#               BuildAndSubmitCARVERJobs $j 
-#	       #BuildAndSubmitLargeCARVERJobs $j
+#               BuildAndSubmitCarverJobs $j 
+#	       #BuildAndSubmitLargeCarverJobs $j
 #	       j=$((j+1))		
 #            done
 
     fi
+#HANSEN
+   if [ -n "$HANSEN" ]; then
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     #**********************************************************************
+     let iEntryStart=1
+     let iEntryEnd=44
+
+     #Reverse order (prefered)
+     let j=$iEntryEnd
+     while test $j -ge $iEntryStart
+       do	
+         if test $j -le 19 
+         then
+           BuildAndSubmitHansenJobs $j 
+	 else
+	   BuildAndSubmitHansenJobsSingly $j
+         fi
+         let j=j-1		
+       done
+   fi
 #********************************************************************************
 }
 #**********************************************************************
@@ -409,10 +417,10 @@ function CosmicRay()
        
           if test $j -le 19
            then
-            BuildAndSubmitCARVERJobs $j 
+            BuildAndSubmitCarverJobs $j 
 	   else
-            #BuildAndSubmitLargeCARVERJobs $j
-            #BuildAndSubmitCARVERJobs $j 
+            #BuildAndSubmitLargeCarverJobs $j
+            #BuildAndSubmitCarverJobs $j 
 	    BuildAndSubmitCarverJobsSingly $j
           fi
  	fi      
@@ -427,16 +435,78 @@ function CosmicRay()
        
           if test $j -le 19
            then
-            BuildAndSubmitCARVERJobs $j 
+            BuildAndSubmitCarverJobs $j 
 	   else
-            #BuildAndSubmitLargeCARVERJobs $j
-            #BuildAndSubmitCARVERJobs $j 
+            #BuildAndSubmitLargeCarverJobs $j
+            #BuildAndSubmitCarverJobs $j 
 	    BuildAndSubmitCarverJobsSingly $j
           fi
         fi
         let j=j-1		
        done
     fi
+#********************************************************************************
+
+#HANSEN
+   if [ -n "$HANSEN" ]; then
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     #**********************************************************************
+     let iPEntryStart=1
+     let iHe4EntryStart=6   #Normal start for helium
+#     let iPEntryEnd=36
+#     let iHe4EntryEnd=36          #10% end
+     let iPEntryEnd=42
+     let iHe4EntryEnd=42          #10% end
+
+     let iEntryEnd=$iPEntryEnd
+     if test $iPEntryEnd -lt $iHe4EntryEnd 
+     then
+       let iEntryEnd=$iHe4EntryEnd
+     fi
+
+     let iEntryStart=$iPEntryStart
+     if test $iPEntryStart -gt $iHe4EntryStart 
+     then
+       let iEntryStart=$iHe4EntryStart
+     fi
+
+     #Reverse order (prefered)
+     let j=$iEntryEnd
+     while test $j -ge $iEntryStart
+       do
+	 if [ $j -le $iPEntryEnd ] && [ $j -ge $iPEntryStart ];then 
+           parspec=$protonParspec               
+           datadir=$protonDatadir
+           start[$j]=${pStart[$j]}
+           end[$j]=${pEnd[$j]}
+           energy[$j]=${pEnergy[$j]}
+       
+           if test $j -le 19  
+           then
+             BuildAndSubmitHansenJobs $j 
+	   else
+	     BuildAndSubmitHansenJobsSingly $j
+           fi
+ 	 fi      
+          
+         if [ $j -le $iHe4EntryEnd ] && [ $j -ge $iHe4EntryStart ]; then 
+           parspec=$he4Parspec
+           datadir=$he4Datadir
+           start[$j]=${he4Start[$j]}
+           end[$j]=${he4End[$j]}
+           energy[$j]=${he4Energy[$j]}
+       
+           if test $j -le 19  
+           then
+             BuildAndSubmitHansenJobs $j 
+	   else
+	     BuildAndSubmitHansenJobsSingly $j
+           fi
+         fi
+         let j=j-1		
+      done
+  fi
 #********************************************************************************
 
 }
@@ -512,57 +582,6 @@ function Gammas()
 	fi
     fi
 
-#Pulsar
-    if [ -n "$PULSAR" ]; then
-	if [ ${jobSpec:0:1} = "W" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    BuildPulsarScriptList 1 11 12
-	    BuildPulsarScriptList 2 13 14
-	    BuildPulsarScriptList 3 15 16
-	    BuildPulsarScriptList 4 17 18
-	    BuildPulsarScriptList 5 19 20
-	    BuildPulsarScriptList 6 21 23
-	    BuildPulsarScriptList 7 24 26
-	    BuildPulsarScriptList 8 27 28
-          else
-	    BuildPulsarScriptList 1 1 44
-          fi
-	fi
-	if [ ${jobSpec:0:1} = "V" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-#	    BuildPulsarScriptList 1 1  9 
-#	    BuildPulsarScriptList 2 10 19
-#	    BuildPulsarScriptList 3 20 30
-#	    BuildPulsarScriptList 4 31 35
-#	    BuildPulsarScriptList 5 36 38
-#	    BuildPulsarScriptList 6 39 40
-#	    BuildPulsarScriptList 7 41 42
-#	    BuildPulsarScriptList 8 43 44
-
-	    let iEntry=1
-#	    let iEntry=13
-	    let iEntryEnd=4
-#	    let iEntryEnd=10
-            while test $iEntry -le $iEntryEnd
-            do	
-	       BuildPulsarScriptList $iEntry $iEntry $iEntry
-	       iEntry=$((iEntry+1))		
-            done
-
-          else
-	    BuildPulsarScriptList 1 1 44
-          fi
-	fi
-    fi
-
-#AMDAHL
-    if [ -n "$AMDAHL" ]; then
-        SubmitAmdahlPBSScripts 37 43 
- #     	SubmitAmdahlPBSScripts 23 34 
-#	SubmitAmdahlPBSScripts 1  22 
-
-
-    fi
 
 #CARVER
    if [ -n "$CARVER" ]; then
@@ -583,9 +602,9 @@ function Gammas()
             do	
                if test $j -le 19
                 then
-                  BuildAndSubmitCARVERJobs $j 
+                  BuildAndSubmitCarverJobs $j 
 	        else
-                  #BuildAndSubmitCARVERJobs $j 
+                  #BuildAndSubmitCarverJobs $j 
 	          BuildAndSubmitCarverJobsSingly $j
                fi
                let j=j-1		
@@ -595,11 +614,35 @@ function Gammas()
 #	   let j=$iEntryStart
 #           while test $j -le $iEntryEnd
 #            do	
-#               BuildAndSubmitCARVERJobs $j 
-#	       #BuildAndSubmitLargeCARVERJobs $j
+#               BuildAndSubmitCarverJobs $j 
+#	       #BuildAndSubmitLargeCarverJobs $j
 #	       j=$((j+1))		
 #            done
 
+    fi
+
+
+#HANSEN
+   if [ -n "$HANSEN" ]; then
+    #**********************************************************************
+    #Submit in reverse order so the longest start first.
+    #**********************************************************************
+#      let iEntryStart=1
+      let iEntryStart=44
+      let iEntryEnd=44
+
+      #Reverse order (prefered)
+      let j=$iEntryEnd
+      while test $j -ge $iEntryStart
+        do	
+          if test $j -le 19  
+          then
+            BuildAndSubmitHansenJobs $j 
+	  else
+	    BuildAndSubmitHansenJobsSingly $j
+          fi
+          let j=j-1		
+        done
     fi
 #********************************************************************************
 
@@ -716,57 +759,6 @@ function Electrons()
 	fi
     fi
 
-#Pulsar
-    if [ -n "$PULSAR" ]; then
-	if [ ${jobSpec:0:1} = "W" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    BuildPulsarScriptList 1 11 12
-	    BuildPulsarScriptList 2 13 14
-	    BuildPulsarScriptList 3 15 16
-	    BuildPulsarScriptList 4 17 18
-	    BuildPulsarScriptList 5 19 20
-	    BuildPulsarScriptList 6 21 23
-	    BuildPulsarScriptList 7 24 26
-	    BuildPulsarScriptList 8 27 28
-          else
-	    BuildPulsarScriptList 1 1 44
-          fi
-	fi
-	if [ ${jobSpec:0:1} = "V" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-#	    BuildPulsarScriptList 1 1  9 
-#	    BuildPulsarScriptList 2 10 19
-#	    BuildPulsarScriptList 3 20 30
-#	    BuildPulsarScriptList 4 31 35
-#	    BuildPulsarScriptList 5 36 38
-#	    BuildPulsarScriptList 6 39 40
-#	    BuildPulsarScriptList 7 41 42
-#	    BuildPulsarScriptList 8 43 44
-
-	    let iEntry=1
-#	    let iEntry=13
-	    let iEntryEnd=4
-#	    let iEntryEnd=10
-            while test $iEntry -le $iEntryEnd
-            do	
-	       BuildPulsarScriptList $iEntry $iEntry $iEntry
-	       iEntry=$((iEntry+1))		
-            done
-
-          else
-	    BuildPulsarScriptList 1 1 44
-          fi
-	fi
-    fi
-
-#AMDAHL
-    if [ -n "$AMDAHL" ]; then
-        SubmitAmdahlPBSScripts 37 43 
- #     	SubmitAmdahlPBSScripts 23 34 
-#	SubmitAmdahlPBSScripts 1  22 
-
-
-    fi
 
 #CARVER
    if [ -n "$CARVER" ]; then
@@ -782,12 +774,12 @@ function Electrons()
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
-               if test $j -le 25
+               if test $j -le 19
                 then
-                  BuildAndSubmitCARVERJobs $j 
+                  BuildAndSubmitCarverJobs $j 
 	        else
-                  #BuildAndSubmitLargeCARVERJobs $j
-                  BuildAndSubmitCARVERJobs $j 
+                  #BuildAndSubmitLargeCarverJobs $j
+                  BuildAndSubmitCarverJobs $j 
 	       fi
                let j=j-1		
             done
@@ -796,11 +788,33 @@ function Electrons()
 #	   let j=$iEntryStart
 #           while test $j -le $iEntryEnd
 #            do	
-#               BuildAndSubmitCARVERJobs $j 
-#	       #BuildAndSubmitLargeCARVERJobs $j
+#               BuildAndSubmitCarverJobs $j 
+#	       #BuildAndSubmitLargeCarverJobs $j
 #	       j=$((j+1))		
 #            done
 
+    fi
+#HANSEN
+   if [ -n "$HANSEN" ]; then
+    #**********************************************************************
+    #Submit in reverse order so the longest start first.
+    #**********************************************************************
+#      let iEntryStart=1
+      let iEntryStart=44
+      let iEntryEnd=44
+
+      #Reverse order (prefered)
+      let j=$iEntryEnd
+      while test $j -ge $iEntryStart
+        do	
+          if test $j -le 19  
+          then
+            BuildAndSubmitHansenJobs $j 
+	  else
+	    BuildAndSubmitHansenJobsSingly $j
+          fi
+          let j=j-1		
+        done
     fi
 #********************************************************************************
 
@@ -846,10 +860,73 @@ function Electrons()
 
 }
 #********************************************************************************
+#********************************************************************************
 
-function BuildAndSubmitCARVERJobs
+function BuildAndSubmitHansenJobs
 #**********************************************************************
-# Cause CARVER cluster jobs to be submitted.
+# Cause HANSEN cluster jobs to be submitted.
+# This is the "all showers of one energy in sequence on one core"
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}     
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
+
+ sgeFile=$lcl'/K'$eGeV$pr.pbs
+ echo "#"PBS -q $QUEUE                         >$sgeFile
+ echo "#"PBS -l walltime=24:00:00             >>$sgeFile
+ echo source /etc/profile                     >>$sgeFile
+ echo module load gcc                         >>$sgeFile
+ echo lcl=$PBS_O_WORKDIR                      >>$sgeFile
+ echo cd $lcl                                 >>$sgeFile
+ echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
+ echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
+ echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
+ chmod 700 $sgeFile
+ qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+}
+
+function BuildAndSubmitHansenJobsSingly 
+#**********************************************************************
+# Cause HANSEN serial jobs to be submitted.
+# This version submits 1 job per shower. Useful for high energies.
+# Don't use for low energies. The queue manager whill probably chokes 
+# with too many jobs in the queue. Don't know what "too many" is yet.
+#**********************************************************************
+{
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}     
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
+
+ let i=showerStart
+ while test $i -le $showerEnd
+  do
+   sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
+   echo "#"PBS -q $QUEUE                                   >$sgeFile
+   echo "#"PBS -l walltime=24:00:00                       >>$sgeFile
+   echo source /etc/profile                               >>$sgeFile
+   echo module load gcc                                   >>$sgeFile
+   echo lcl=$PBS_O_WORKDIR                                >>$sgeFile
+   echo cd $lcl                                           >>$sgeFile
+   echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
+   echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
+
+   chmod 700 $sgeFile
+   qsub -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+   let i=i+1
+  done
+}
+#**********************************************************************
+
+function BuildAndSubmitCarverJobs
+#**********************************************************************
+# Cause Carver cluster jobs to be submitted.
 # This is the "all showers of one energy in sequence on one core"
 # This is a standard way to submit Carver jobs
 #**********************************************************************
@@ -875,7 +952,7 @@ function BuildAndSubmitCARVERJobs
 
 function BuildAndSubmitCarverJobsSingly 
 #**********************************************************************
-# Cause CARVER serial jobs to be submitted.
+# Cause Carver serial jobs to be submitted.
 # This version submits 1 job per shower. 
 # This is standard way to submit to Carver
 #**********************************************************************
@@ -907,11 +984,11 @@ function BuildAndSubmitCarverJobsSingly
   done
 }
 
-function BuildAndSubmitLargeCARVERJobs
+function BuildAndSubmitLargeCarverJobs
 #**********************************************************************
 #  This routine never used. Outdated due to disapearance of Magellan
 # *********************************************************************
-# Cause Magellan multi-node cloud jobs to be submitted.
+# Cause Carver multi-node cloud jobs to be submitted.
 # Since we have lots and lots of nodes 1 job per shower
 # This version attempts to run n(<8) jobs per node leaving the rest of the 
 # nodes empty. This reduces I/O conflicts and greatly speeds processing
@@ -982,9 +1059,9 @@ function BuildAndSubmitLargeCARVERJobs
 
 
 
-function BuildAndSubmitCARVERJobArray
+function BuildAndSubmitCarverJobArray
 #**********************************************************************
-# Cause CARVER cluster jobs to be submitted using Job arrays.
+# Cause Carver cluster jobs to be submitted using Job arrays.
 # Since we have lots and lots of nodes 1 job per shower
 # Need to limit number in each job array submission to 1024
 # We don't use this since the Carver queue manager probably can't handle lots of 
@@ -1139,42 +1216,6 @@ function BuildAndSubmitPDSFJobGroups
 
 
 
-function SubmitAmdahlPBSScripts()
-#**********************************************************************
-# Cause pbs jobs to be submitted.
-#**********************************************************************
-{
- pr=$parspec
- sub=${pr%%mv*}mv
- let processStart=$1
- let processEnd=$2
- let i=$processStart
-
- while test $i -le $processEnd
- do
-      eGeV=${energy[$i]}
-      let showerStart=${start[$i]}
-      let showerEnd=${end[$i]}
-      echo Entry: $i $eGeV $showerStart $showerEnd ${queues[$i]}
-
-      pbsFile=$lcl/ks_$i$parspec.pbs
-      echo "#"PBS -N 'pbs_'$sub'_'$i                   >$pbsFile
-      echo "#"PBS -e 'pbs_'$sub'_'$i'.err'            >>$pbsFile
-      echo "#"PBS -o 'pbs_'$sub'_'$i'.log'            >>$pbsFile
-      echo "#"PBS -m ae                               >>$pbsFile
-      echo "#"PBS -M $user"@purdue.edu"               >>$pbsFile
-      echo "#"PBS -q ${queues[$i]}                    >>$pbsFile
-      echo "#"PBS -l mem=$maxMem                      >>$pbsFile
-      echo "#"PBS -l walltime=$WALLTIME               >>$pbsFile
-      echo "#"PBS -l nodes=1:home                     >>$pbsFile
-      echo $ksScript $eGeV $parspec  $showerStart \\  >>$pbsFile
-      echo $showerEnd $datadir $workingDir        \\  >>$pbsFile
-      echo ">>"$lcl"/ksProduction_"$i"_"$pr".log"     >>$pbsFile
-      qsub $pbsFile
-      i=$((i+1))			#do next process
- done
-}
-
 function BuildIsisScriptList()
 #**********************************************************************
 # Causes sub-script list to be created and run
@@ -1208,41 +1249,6 @@ function BuildIsisScriptList()
 }
 
 
-function BuildPulsarScriptList()
-#**********************************************************************
-# Causes sub-script list to be created and run
-#**********************************************************************
-{
- pr=$parspec
- jobScript=$lcl'/js'$1'_'$jobSpec'.scr'
- let processStart=$2
- let processEnd=$3
- let i=$processStart
-
- while test $i -le $processEnd
- do
-    eGeV=${energy[$i]}
-    let showerStart=${start[$i]}
-    let showerEnd=${end[$i]}
-    echo Entry: $i $eGeV $showerStart $showerEnd
-
-    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
-    else
-	logFile=' '
-    fi
- 
-    echo $ksScript $eGeV $parspec  $showerStart \\ >>$jobScript
-    echo $showerEnd $datadir $workingDir        \\ >>$jobScript
-    echo $logFile                                  >>$jobScript
-    jobUsed[$1]=YES
-
-    i=$((i+1))			#do next process
- done
-}
-
-# ************************************************************************
-
 #*************************************************************
 #Start of main script.
 #*************************************************************
@@ -1258,14 +1264,13 @@ then
   CarverQueue=serial
 fi
 
-if test  "$hostString" = "amdahl"  #Are we running on AMDAHL
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
-  AMDAHL=enabled
-fi
-
-if test  "$hostString" = "analys"  #Are we running on PULSAR(TUCSON)
-then
-  PULSAR=enabled
+  HANSEN=enabled
+  QUEUE1=physics
+  QUEUE2=standby
+  QUEUE=$QUEUE1
 fi
 
 hostString=${host:0:4}
@@ -1318,7 +1323,7 @@ if [ -n "$ISIS" ]; then
     else
        dataDirBase=/simulations
     fi
-
+    mkdir -vp $dataDirBase
     workingDir=$lcl
 
     let jobNum=1
@@ -1332,55 +1337,25 @@ if [ -n "$ISIS" ]; then
     done
 fi
 
-if [ -n "$PULSAR" ]; then
-    lastJob=44
-    dataDirBase=/usr/local/data/sembrosk/simulations
-    workingDir=/tmp/sembrosk/
-    nID=([1]=5 4 3 0 0 1 1)
-    #Initialze all the possible script files
-    let jobNum=0
-    let length=7
-    while test $jobNum -lt $lastJob
-    do
-      jobNum=$((jobNum+1))
-      let j=jobNum
-      while test $j -gt $length
-      do
-         j=$((j-$length))
-      done
-    #define job script name
-	JobScript=$lcl'/js'$jobNum'_'$1'.scr'
-        echo "#"!/bin/bash                                  >$JobScript
-        echo "#$" '-S /bin/bash'                           >>$JobScript
-        echo "#$" '-N KSim'$jobNum'_'$1                    >>$JobScript
-        echo "#$" '-l '\"'arch=lx24-amd64'\"               >>$JobScript
-        echo "#$" '-l '\"'hostname=node0'${nID[$j]}\"      >>$JobScript
-        echo "#$" '-wd /usr/local/data/sembrosk/veritas'   >>$JobScript
-	echo source /etc/bashrc                            >>$JobScript
-        echo source /etc/profile                           >>$JobScript
-        echo ROOTSYS=/usr/local/root_5.24.00               >>$JobScript
-        echo PATH=$ROOTSYS/bin:$PATH                       >>$JobScript
-        echo LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH >>$JobScript
-        echo echo                                          >>$JobScript
-        echo source /home/sembrosk/.bashrc                 >>$JobScript
-	echo echo Starting $JobScript                      >>$JobScript
-	jobsUsed[$jobNum]=NO
-
-    done
-fi
-if [ -n "$AMDAHL" ]; then
-    dataDirBase=/project/veritas/sembrosk/simulations
-    workingDir=$lcl
-fi
 
 if [ -n "$PDSF" ]; then
     dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
+    mkdir -vp $dataDirBase
     workingDir=$lcl
 fi
 
 if [ -n "$CARVER" ]; then
     dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+fi
+
+if [ -n "$HANSEN" ]; then
+    dataDirBase=$RCAC_SCRATCH'/simulations'
+    mkdir -vp $dataDirBase
+    
+    workingDir=$RCAC_SCRATCH
+
 fi
 
 user=$USER
@@ -1411,10 +1386,12 @@ jobSpec=$1
 
 if [ ${jobSpec:1:1} = "W" ]; then
    dataDirBase=$dataDirBase'/whipple'
+   mkdir -vp $dataDirBase
 fi
 
 if [ ${jobSpec:1:1} = "V" ]; then
-   dataDirBase=$dataDirBase'/veritas'
+    dataDirBase=$dataDirBase'/veritas'
+    mkdir -vp $dataDirBase
 fi
 
 if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
@@ -1425,25 +1402,28 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
 
-    if [ -n "$PDSF" ] || [ -n "$CARVER" ]; then
+    if [ -n "$PDSF" ] || [ -n "$CARVER" ]|| [ -n "$HANSEN" ]; then
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
        protonDatadir="$dataDirBase/protons"
-      #Helium4
+       mkdir -vp $protonDataDir
+
+#Helium4
        he4Parspec=$AtmSpec$TelSpec'He4_'$spec
        he4Datadir="$dataDirBase/he4"
-    
+       mkdir -vp  $he4Datadir
+ 
        CosmicRay
        let pspecset=1;
     else
        parspec=$AtmSpec$TelSpec'P'$spec   #gives SVP20DegN0.3Deg50mv1234M2ABCD
        datadir="$dataDirBase/protons"     #from SVCR20DegN0.3Deg50mv1234M2ABCD
-    
+       mkdir -vp $datadir
        Protons
 
        datadir="$dataDirBase/he4"
        parspec=$AtmSpec$TelSpec'He4_'$spec
-
+       mkdir -vp $datadir
        Helium4
        let pspecset=1;
     fi
@@ -1452,7 +1432,7 @@ fi
 if [ ${jobSpec:2:1} = "E" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/electrons"
-
+    mkdir -vp $datadir
     Electrons
     let pspecset=1;
 fi
@@ -1460,7 +1440,7 @@ fi
 if [ ${jobSpec:2:1} = "P" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/protons"
-
+    mkdir -vp $datadir
     Protons
     let pspecset=1;
 fi
@@ -1468,7 +1448,7 @@ fi
 if [ ${jobSpec:2:4} = "He4_" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/he4"
-
+    mkdir -vp $datadir
     Helium4
     let pspecset=1;
 fi
@@ -1476,7 +1456,7 @@ fi
 if [ ${jobSpec:2:1} = "G" ]; then
     parspec=$1
     datadir="$dataDirBase/gammas"
-
+    mkdir -vp $datadir 
     Gammas
     let pspecset=1;
 fi
@@ -1510,40 +1490,10 @@ if [ -n "$ISIS" ]; then
     done
 fi
 
-#Pulsar
-if [ -n "$PULSAR" ]; then
-
-    let jobNum=1
-    while test $jobNum -le $lastJob
-    do
-	if [ "${jobUsed[$jobNum]}" == "YES" ]; then
-                #define job script name
-	  JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
-	  if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
-	    #Initialze the script files
-	    chmod 777 $JobScript
-	
-	    qsub $JobScript  >$JobScriptLog &
-	  else
-	    #Run the script files
-	    chmod 777 $JobScript
-	    qsub -l low  $JobScript
- 
-	  fi
-       fi
-    jobNum=$((jobNum+1))
-    done
-fi
-
-#Nothing for AMDAHL
 
 #Nothing for PDSF
 
-#Nothing for CARVER
-
-
-
+#Nothing for CARVER,HANSEN
 
 
 ###########################################################################
