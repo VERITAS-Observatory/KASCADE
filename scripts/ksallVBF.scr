@@ -18,7 +18,7 @@ TriggerEnable=enable
 AomegaEnable=enable                   #These next 2 operate on te files only
 ArrayTriggerEnable=enable
 
-CarverGammaProduction=enable    #Enable Carver te.d  file Production scheme 
+Production=enable    #Enable Carver te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
 Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
                                    #Else we get original T1 postion (near T4)
@@ -58,7 +58,7 @@ echo Running on $host
 #Set up private working directory for this run. 
 #Keeps random number independent
 
-#Make sure base of working directory name exists
+#Make sure base of working directory name was specified
 if [ -z "$6" ]; then
     echo "ksall:Working dir base must be specified"
     exit
@@ -90,27 +90,9 @@ done
 
 #All auxillary files are in wrkdir.
 #All temp data kept in $wrkdir. 
-#Final results go into $5; (But see CarverGammaProduction switch)
+#Final results go into $5; (But see Production switch)
 
 cd $6
-let wspacemin=35000000
-wdir=$6
-wdirString=${wdir:0:4}
-#echo wdirString $wdirString
-#echo wspacemin $wspacemin
-if test  "$wdirString" = "/tmp"  #Are we running on TUCSON cluster
-then
-     wsize="$(df $6 | grep /dev | gawk '{print $4 }')"
-     echo Space on $6: $wsize
- 
-    let sizew=$wsize
-    if test $sizew -lt $wspacemin
-     then
-        echo 'Not enough space( '$wspacemin 'required) on '$6
-	echo Switching workingDir to $5
-	cd $5
-     fi
-fi
 
 if [ ! -d "workingScratch" ]; then
        mkdir -p workingScratch
@@ -130,10 +112,10 @@ echo Working Directory is $wrkdir
 ##################################################################
 #Parse the specification string
 jobSpec=$2
-AtmSpec=${jobSpec:0:1}                  #gets S from SWG20DegN0.5Deg50mv1234M2
-TelSpec=${jobSpec:1:1}                  #gets W from CWG20DegN0.5Deg50mv1234M2
-PrimarySpec=${jobSpec%%Deg*}'Deg'       #gets UVG20Deg from UVG20Deg2D50mv1234M2
-PrimarySpec=${PrimarySpec:1}            #Strip off the U
+AtmSpec=${jobSpec:0:1}                 #gets S from SWG20DegN0.5Deg50mv1234M2
+TelSpec=${jobSpec:1:1}                 #gets W from CWG20DegN0.5Deg50mv1234M2
+PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets UVG20Deg from UVG20Deg2D50mv1234M2
+PrimarySpec=${PrimarySpec:1}           #Strip off the U
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
                                           #WVG20Deg2D50mv1234M2AAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
@@ -358,18 +340,29 @@ echo $AtmSpecOption
 echo $ExtinctionFileOption
 
 #############################################################################
-#CARVER Gamma Ray Production SetUP
+#Production SetUP
 #############################################################################
-if [ -n "$CarverGammaProduction" ]; then #Get 20_180:
+if [ -n "$Production" ]; then #Get 20_180:
     ZNAZSpec=${PrimarySpec:1}            #Strip off leading V
-    ZNAZSpec=${ZNAZSpec:1}               #Strip off leading G
-    ZNAZSpec=${ZNAZSpec%%Deg*}           #Strip of Trailing from DEG: 
+    TypeSpec=${ZNAZSpec:0:1}        #get leading G,P,E or H
+    if [ $TypeSpec = "H" ]; then
+  	TypeSpec=He4_
+        ZNAZSpec=${ZNAZSpec##He4_}  #Remove He4_ from beginning
+        ZNAZSpec=${ZNAZSpec%%Deg*}  #Strip Deg off end
+        TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
+    else
+       ZNAZSpec=${ZNAZSpec:1}     #remove  leading G,P,E     
+       ZNAZSpec=${ZNAZSpec%%Deg*} #Strip of Trailing from DEG: 
+       if [ $TypeSpec = "P" ]; then
+         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
+       else
+         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg2D'  #E and G
+       fi
+    fi
     echo ZN_AZ: $ZNAZSpec
-	
-    TEDIR=$AtmSpec$TelSpec'G'$ZNAZSpec'Deg2D'  #Make Te.d directory name. Note
-    echo teDir: $TEDIR                          #this is gamma specific
-             #To make this more general, we could grab the end of $5: ${$5##/*/}
-             # and test for 'gammas' 'protons' 'he4' for G P or He4_ in TEDIR
+    echo TypeSpec: $TypeSpec
+    echo teDir: $TEDIR                          
+
 fi
 
 ##########################################################################
@@ -431,11 +424,13 @@ while test $i -le $4
      #V190.  mkdir the dir if it doesn't exist yet
      #Note this is for gammas only: $5 ends in /gammas or /protons see above
      ##########################################################################
-      if [ -n "$CarverGammaProduction" ]; then
+      if [ -n "$Production" ]; then
 	  lcl="$PWD"
-	  cd $5/V190
+	  cd $5
+	  mkdir -p V190
+	  cd V190
 	  mkdir -p $TEDIR
-	  mv -v $tefile  ./$TEDIR
+	  mv -v $tefile  $5'/V190/'$TEDIR
 	  cd $lcl
       fi
 
@@ -463,7 +458,7 @@ while test $i -le $4
       #CarverGammaProdution mode of operation.
       #Assume the file has been moved to TEDIR and get the new path.
       ###########################################################
-      if [ -n "$CarverGammaProduction" ]; then
+      if [ -n "$Production" ]; then
 	  tefileName=${tefile##/*/}
 	  tePath=$5/V190/$TEDIR
 	  tefile=$tePath'/'$tefileName
@@ -624,7 +619,7 @@ fi
     # Move the vbf file to the vbf directory. mkdir the directory if needed
     #This used to be in GProcessAll
     #########################################################################
-    if [ -n "$CarverGammaProduction" ]; then    
+    if [ -n "$Production" ]; then    
 	lcl=$PWD
 	VBFDir=$TEDIR'50mv1234M2'$AtmSpec
 	cd $5
@@ -633,10 +628,6 @@ fi
 	cd $lcl
     fi
 
-
-
-    echo GBase: $GBase	
-    
   fi
   i=$((i+1))			#do next shower
 done
