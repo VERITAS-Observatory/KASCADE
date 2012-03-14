@@ -1,0 +1,84 @@
+#This scrip gernetaes the *List files for use with ProduceLookupTables.
+#These subList are used to splitup the production of the various Parameter
+# combinations Lookup tables for speed reason.
+#See: http://veritas.sao.arizona.edu/OAWGwiki/index.php/Simulations#Producing_a_LookupTable
+#Our tables will use "local" (could be links) files with names like:
+#  PedVar4.016WMDL15GammaRay1_225Deg2DS1.0Wbl50mv1234M2.root
+#
+#In this version of the program a particular Sub LT List file will have files for a certain  ZN value (like 20 and 30 deg), a  noise 
+# values (like 8.5_9.5)
+# and all Offset levels and all azimuth values.
+
+#This program has no arguments.
+# ***********************************************************************
+*  7 Sample Parameters
+# ***********************************************************************
+
+#Specify all possible parameter values
+Zenith=([1]=1 10 20 30 40 50 60 70)
+Azimuth=([1]=0 45 90 135 180 225 270 315)
+Offset=([1]=0.0 S0.25 S0.5 S0.75 S1.0 S1.25 S1.5 S1.75 S2.0)
+Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
+ 
+#We make a seperate Sub LT File list for each ZN pair , noise pair combo
+BASEDIR='/project/projectdirs/m1304/veritas_CM/simulations/veritas/gammas/V190/WMDL15/7samples'
+
+let izn=1
+let iznEnd=8
+while test $izn -le $iznEnd
+ do
+  let jnoise=1;
+  let jnoiseEnd=10
+  while test $jnoise -le $jnoiseEnd
+   do
+    #Construct the Sub Lt List File Name
+    ZnLBL=${Zenith[$izn]}
+    NsLBL=${Noise[$jnoise]}
+
+    ListName='SubLT7Sample'$ZnLBL'Deg'$NsLBL'noiseList'
+    #echo $ListName
+    if [ -e "$ListFile" ]; then 
+      echo removing $ListName
+      rm -v $ListFile
+    fi
+
+    #Iterate through Offset and Azimuth
+    let kaz=1
+    let kazEnd=8
+    while test $kaz -le $kazEnd
+      do
+       let loff=1
+       let loffEnd=9
+       while test $loff -le $loffEnd
+        do
+          #Make first  Zn_Az string
+          if test $kaz = 1
+          then
+            ZnAz=${Zenith[$izn]}'Deg'
+          else
+            ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
+          fi
+          #Make up file (there will be 4 of them
+          FileName=$BASEDIR'/PedVar'${Noise[jnoise]}'WMDL15GammaRay'$ZnAz'2D'${Offset[loff]}'Wbl50mv1234M2.root'
+
+          #Check file exists
+          if [ -e "$FileName" ]; then 
+	    echo $FileName >>$ListName
+          else
+            echo No Such File: $FileName for List file: $ListFile
+          fi
+         loff=$((loff+1))
+         done
+        kaz=$((kaz+1))
+       done
+      echo $ListName' done'    
+      jnoise=$((jnoise+1))
+     done
+   izn=$((izn+1))
+ done
+
+
+
+
+
+
