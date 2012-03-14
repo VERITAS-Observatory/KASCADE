@@ -15,8 +15,9 @@ let i=0
 ####################################################################
       sgeFile=$lcl'/V'$3'Job'$i
       echo cd $lcl                              >$sgeFile
+      echo "#PBS  -l pvmem=8GB"                >>$sgeFile
       echo $lcl'/'$2  \\                       >>$sgeFile
-      echo $lcl'/'$InputFile' '  \\  >>$sgeFile
+      echo $lcl'/'$InputFile' '  \\            >>$sgeFile
       if test -n $4
       then
         echo $4  \\                            >>$sgeFile
