@@ -6,15 +6,15 @@
 # THIS IS THE NORMAL SPECTRUM WEIGHTED VERSION
 ##################################################
 
-#$1 particle ID (VG20DegS0.5Deg50mv) Required
+#$1 particle ID (WVG20Deg50mv) Required
 #$2 Run Number  (95001, 90020)       Required 
 #$3 Arrayconfig/Multiplicity  (12--M2 123-M2 1234M3) Not required
 #$4 Direction index. (-1 means all)
 #$5 dir tag  spec
 
-#Ex ./ksWeRock.scr VG20Deg50mv  95020 123-M2 
-#Ex ./ksWeRock.scr VG20Deg2D50mv 95021 123-M2 4
-#Ex../ksWeRock.scr VCRA10Deg50mv 96010 1234M2 0 W230MDL1
+#Ex ./ksWeRock.scr WVG20Deg50mv  95020 123-M2 
+#Ex ./ksWeRock.scr SVG20Deg2D50mv 95021 123-M2 4
+#Ex../ksWeRock.scr UVCRA10Deg50mv 96010 1234M2 0 W230MDL1
 
 CleanupEnable=enable
 DebugPrintEnable=enable
@@ -160,12 +160,31 @@ if [ -n "$4" ];
 fi
 
 ArConfig=$3
+
+#####################################################################
+# For compatability with older vesions of kallVBF where the
+# filenames have he form:  VG20Deg50mv ((no atm spec letter)
+# Remove the first letter when AtmSpec is "U"
+#####################################################################
+ASpec=${Spec:0:1}
+#if [ "$ASpec" = "U" ]; then     #Drop the"U"
+# fileSpec=${Spec#U}
+#  echo fileSpec: $fileSpec
+#else
+ fileSpec=$Spec
+ echo fileSpec: $fileSpec
+ AtmSpec=$ASpec
+#fi
+
+
 if [ ${Spec:2:1} = "G" ]  ; then
     ZenithAngleDir=$Spec$ArConfig   #comment this out if using base directory.
     if [ -n "$DebugPrintEnable" ]; then
         echo ZenithAngleDir: $dataDirBase/gammas/$ZenithAngleDir
+        echo find argument1: $dataDirBase/gammas/$ZenithAngleDir$TAG
+        echo find argument2: $fileSpec$ArConfig'GeV*.vbf'
     fi
-    find $dataDirBase/gammas/$ZenithAngleDir$TAG -name $Spec$ArConfig'GeV*.vbf'  >GList
+    find $dataDirBase/gammas/$ZenithAngleDir$TAG -name $fileSpec$ArConfig'GeV*.vbf'  >GList
     gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 
 fi
@@ -175,7 +194,7 @@ if [ ${Spec:2:2} = "CR" ] ; then
    if [ ${Spec:4:1} = "A" ] || [ ${Spec:4:1} = "B" ] || [ ${Spec:4:1} = "C" ]; then
 	TypeSpc=${Spec:4:1}
    fi
-   AtmSpec=${Spec:0:1}
+
    TelSpec=${Spec:1:1}
    Pspec=$AtmSpec$TelSpec'P'${Spec#*CR$TypeSpc} #gets 20DegN0.3Deg50mv from 
                                        #WCR20DegN0.3Deg50mv
