@@ -1,0 +1,26 @@
+#$1 list file of Base names of sub EA: SubEA7sampleList
+#$2 cuts config file
+# *****************************************************************
+{
+lcl="$PWD"
+while read SUBEABASE ; do
+
+####################################################################
+# Make up the job script file that will be submitted below
+####################################################################
+   sgeFile=$lcl'/'$SUBEABASE'.pbs'
+   echo "#"PBS -l walltime=10:00:00                              >$sgeFile
+   echo cd $lcl                                                 >>$sgeFile
+   echo $VEGAS/resultsExtractor/bin/makeEA \\                   >>$sgeFile
+   echo -config $lcl'/'$SUBEABASE'.config' \\                   >>$sgeFile
+   echo -cuts  $lcl'/'$2 \\                                     >>$sgeFile
+   echo  $lcl'/'$SUBEABASE'List' \\                             >>$sgeFile
+   echo  $lcl'/'$SUBEABASE'.root' \\                            >>$sgeFile
+   echo ' >'$lcl'/'$SUBEABASE'.log'                             >>$sgeFile
+   chmod 700 $sgeFile
+
+   qsub -q serial  -V -e $SUBEABASE.qsub.err -o $SUBEABASE.qsub.log  $sgeFile
+
+ done
+
+} <$1

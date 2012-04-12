@@ -1,0 +1,23 @@
+#$1 list file of Base names of sub LT: SubLT20DegS0.5Wbl
+
+{
+lcl="$PWD"
+while read SUBLTBASE ; do
+####################################################################
+# Make up the job script file that will be submitted below
+####################################################################
+      sgeFile=$lcl'/'$SUBLTBASE'.pbs'
+      echo "#"PBS -l pvmem=15GB                     >$sgeFile
+      echo "#"PBS -l walltime=10:00:00            >>$sgeFile
+      echo cd $lcl                                >>$sgeFile
+      echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
+      echo -config $lcl'/'$SUBLTBASE'.config' \\  >>$sgeFile
+      echo -cuts  $lcl'/LookupTableStdCuts' \\    >>$sgeFile
+      echo  $lcl'/'$SUBLTBASE'List'   \\          >>$sgeFile
+      echo  $lcl'/'$SUBLTBASE'.root'  \\          >>$sgeFile
+      echo ' >'$lcl'/'$SUBLTBASE'.log'            >>$sgeFile
+      chmod 700 $sgeFile
+
+     qsub -q serial -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+ done
+} <$1

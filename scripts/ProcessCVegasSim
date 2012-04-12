@@ -15,7 +15,8 @@ let i=0
 ####################################################################
       sgeFile=$lcl'/V'$3'Job'$i
       echo cd $lcl                              >$sgeFile
-      echo "#PBS  -l pvmem=8GB"                >>$sgeFile
+      echo "#"PBS -l walltime=12:00:00         >>$sgeFile
+      echo "#"PBS  -l pvmem=8GB                >>$sgeFile
       echo $lcl'/'$2  \\                       >>$sgeFile
       echo $lcl'/'$InputFile' '  \\            >>$sgeFile
       if test -n $4
