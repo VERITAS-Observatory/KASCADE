@@ -230,7 +230,7 @@ fi
 
 
 
-#                             -EnableDebugPrint \
+#EnableDebugPrintOption='-EnableDebugPrint'
 #This is normal version 
 
   OutputVBFFile=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf'
@@ -240,7 +240,7 @@ fi
                            -MinimumWeightFraction=.0 \
 	                   -RunNumber=$2 \
                       	   -OutputVBFFileName=$OutputVBFFile \
-			   $DirIndexOption \
+			   $DirIndexOption $EnableDebugPrintOption \
                            ShowerList 
 
 #This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
