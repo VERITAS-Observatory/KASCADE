@@ -1,6 +1,6 @@
-#$1 is PSF sub_dir  Ex: V330 or V190
+#$1 is PSF subdir  Ex: V330 or V190
 #$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 20_180Deg
-#$3: Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
+#$3: Output file BaseName Ex: CrabA or Noise4 Noise3_5 WMDL15 etc.
 #$4: Input Sub-dir: Ex: ABCD
 #$5: start direction Index. defualt is 0. 
 #$6: end direction Index. defualt is 8. 
@@ -130,6 +130,7 @@ while test $i -le $end
     sgeFile=$lcl'/'$3'G'$2$wbl'.pbs'
     echo "#"!/bin/bash                                            >$sgeFile
     echo "#PBS -l walltime=10:00:00"                             >>$sgeFile
+    echo "#PBS -l pvmem=8GB"                                     >>$sgeFile
     echo cd $lcl'/../../veritas'                                 >>$sgeFile
     echo './ksWeRock.scr '$GBase 98020 1234M2 $direction $3   \\ >>$sgeFile
     echo ">"$lcl'/'$3'G'$2$wbl'.log'                             >>$sgeFile
