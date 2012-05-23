@@ -1,0 +1,11 @@
+#$1: EA file name
+# EX:  eak_20102011_atm21_7samples_vegas240_alloffsets_medcuts_E-2.0.root
+
+
+   $VEGAS/resultsExtractor/bin/buildTree -config=BuildEATree7Samples.config \
+	-Azimuth=0,45,90,135,180,225,270,315 \
+	-Zenith=1,10,20,30,40,50,60,70 \
+	-AbsoluteOffset=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0 \
+	-Noise=4.016,4.075,5.5,6.25,7.0,7.25,8.5,9.5,10.5,11.5 \
+	$1
+
