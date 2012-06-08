@@ -25,14 +25,20 @@ void CheckFilesInList(string listOfFiles, string dir,int startLine=1)
       if(!pfRootIO)
 	{
 	  cout<<"Couldn't generate a  pointer to VARootIO for "<<file<<endl;
-	  continue;
+	  return 1;
 	}
 
       pfRootIO->loadTheRootFile();
       if(!pfRootIO->IsOpen()){
 	cout<<"Couldn't open "<<file<<endl;
-	continue;
+	return 1;
       } 
+      TTree* pfParameterisedEventTree = pfRootIO->loadTheParameterisedEventTree();
+      if(!pfParameterisedEventTree)
+	{
+	  cout<<"Couldn't find the parameterised event tree for "<<file<<endl;
+	  return 1;
+	}
     }
   }
   return;
