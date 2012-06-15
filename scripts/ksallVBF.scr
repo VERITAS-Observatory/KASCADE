@@ -321,7 +321,7 @@ fi
 
 if test "$AtmSpec" == "S"    #Use Veritas Summer atm
 then
-  ln -s $inpDir/atmprof21.dat atmprof22dat
+  ln -s $inpDir/atmprof22.dat atmprof22.dat
   AtmSpecOption='-AtmosphereSpecification=atmprof22.dat'
 
   ln -s $inpDir/V.Summer.US76.50km.profile.ext V.Summer.US76.50km.profile.ext
@@ -330,7 +330,7 @@ fi
 
 if test "$AtmSpec" == "C"    #Use Veritas crab atm
 then 
-  ln -s $inpDir/atmprof20.dat atmprof20at
+  ln -s $inpDir/atmprof20.dat atmprof20.dat
   AtmSpecOption='-AtmosphereSpecification=atmprof20.dat'
 
   ln -s $inpDir/V.Crab.US76.50km.profile.ext V.Crab.US76.50km.profile.ext
