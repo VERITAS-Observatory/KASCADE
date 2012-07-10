@@ -24,7 +24,8 @@ extern "C" float pran(float* dummy);
 
 //const double gGammaAlpha  = -2.0;
 //	New gamma flux parameters from Dave Lewis 15/5/96
-const double gGammaAlpha  = -2.45;
+//const double gGammaAlpha  = -2.45;
+const double gGammaAlpha  = -2.0;          //Better High E ststistics
 const double gGammaIPhi   =  7.16e-3;          //Spectral Amplitude for gammas
 //const double gGammaIPhi   =  .00716;         //Spectral Amplitude for gammas
                                                //Units=/m**2/sec/GeV
