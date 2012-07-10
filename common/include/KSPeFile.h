@@ -8,10 +8,12 @@
  **/
 // This is a class that mainpulate the Kascade binary segment file.
 
+//#define EnableFileStream 
+
 #ifndef KSPEFILE_H
 #define KSPEFILE_H
 
-
+#define EnableFileStream
 #include <cstdlib>
 #include <string>
 #include <iostream>
@@ -46,11 +48,14 @@ class KSPeFile
   bool foundReadError(){return fFoundError;};
 
  private:
-  //std::ifstream* pfInFile;
-  //std::ofstream* pfOutFile;
-  std::string fInFileName;
+#ifdef EnableFileStream
+  std::ifstream* pfInFile;
+  std::ofstream* pfOutFile;
+#else
   int pfInFile;
   int pfOutFile;
+#endif
+  std::string fInFileName;
   bool fSegmentHeadWritten;
   bool fSegmentHeadRead;
   bool fPeHeadWritten;
