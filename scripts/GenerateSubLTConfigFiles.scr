@@ -1,0 +1,119 @@
+#!/bin/bash
+#This scrip gernetaes the .config  files for use with ProduceLookupTables.
+#These Sub*.config files are used in conjunction with the Sub*List file to
+#produce the SubLT*.root files using producelookuptables.
+#These Sub*.config file are identical to the LTStandard.conf file except they 
+#only have 2 entries in the ZENITH and Noise parameter specs (2 is a minimum 
+#for produce_lookuptables).  More entries cause produce_lookuptables to crash.
+#
+
+#$1  Number of samples: Ex: 7 or 12
+#$2  H or HFIT source. Default is H
+
+
+# *************************************************************************
+#Specify all possible parameter values
+Zenith=([1]=1 10 20 30 40 50 60 70)
+ZNStr=1,10,20,30,40,50,60,70
+
+TelIDStr=0,1,2,3
+AzStr=0,45,90,135,180,225,270,315
+ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
+if [ $1 =  "7" ]; then
+  NoiseStr=4.016,4.75,5.5,6.25,7.0,7.75,8.5,9.5,10.5,11.5
+  Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
+else
+  NoiseStr=5.88,7.0,8.0,9.0,10.0,11.0,12.25,13.5,15.0,16.5
+  Noise=([1]=5.88 7.0 8.0 9.0 10.0 11.0 12.25 13.5 15.0 16.5)
+fi
+
+HMode=$2
+if [ -z "$2" ]; then
+	HMode=H
+fi
+
+# *************************************************************************
+# Generate template config file
+# Change for KASCADE and Number of samples
+# *************************************************************************
+rm Temp*config.tmp
+$VEGAS/showerReconstruction2/bin/produce_lookuptables -save_config_and_exit TempAconfig.tmp
+sed '/CorePositionFractionalErrorCut/s/100/.25/g' <TempAconfig.tmp >TempBconfig.tmp
+sed '/CorePositionAbsoluteErrorCut/s/1000/20/g'   <TempBconfig.tmp >TempCconfig.tmp
+sed '/LTC_SimulationType/s/GrISU/KASCADE/g'       <TempCconfig.tmp >TempDconfig.tmp
+sed '/LTM_FillType "MEDIAN"/s/MEDIAN/MEAN/g'      <TempDconfig.tmp >TempEconfig.tmp
+sed '/LTM_WidthFillType " "/s/" "/"MEAN"/g'       <TempEconfig.tmp >TempFconfig.tmp
+sed '/LTM_LengthFillType " "/s/" "/"MEAN"/g'      <TempFconfig.tmp >TempGconfig.tmp
+sed '/LTM_EnergyFillType " "/s/" "/"MEAN"/g'      <TempGconfig.tmp >TempHconfig.tmp
+sed '/LTM_EaxisEnergyFillType " "/s/" "/"MEAN"/g' <TempHconfig.tmp >TempIconfig.tmp
+sed '/TelID        /s/TelID/TelID  '$TelIDStr'/g' <TempIconfig.tmp >TempJconfig.tmp
+sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <TempJconfig.tmp >TempKconfig.tmp
+sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g' <TempKconfig.tmp >TempLconfig.tmp
+sed '/Noise         /s/Noise/Noise '$NoiseStr'/g' <TempLconfig.tmp >TempMconfig.tmp
+sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <TempMconfig.tmp >TempNconfig.tmp
+sed '/Log10SizePerBin/s/0.04/0.07/g'              <TempNconfig.tmp >TempOconfig.tmp
+sed '/ImpDistUpperLimit/s/400/800/g'	          <TempOconfig.tmp >TempPconfig.tmp
+sed '/Log10EaxisEnergyUpperLimit/s/6/5/g'         <TempPconfig.tmp >TempQconfig.tmp
+
+#Set the number of samples for noise
+sed '/LTM_WindowSizeForNoise/s/7/'$1'/g'          <TempQconfig.tmp >TempRconfig.tmp
+
+#Replace HillasBranchName argument
+sed '/HillasBranchName "H"/s/"H"/"'$HMode'"/g'  <TempRconfig.tmp  >config1.tmp
+
+# *****************************************************************************
+#We make a seperate Sub LT config file for each of ZN, and  noise 
+#combination
+# *****************************************************************************
+
+#The Basic config file is $1
+let izn=1
+let iznEnd=8
+while test $izn -le $iznEnd
+ do
+   let jnoise=1;
+   let jnoiseEnd=10
+   while test $jnoise -le $jnoiseEnd
+     do
+       #Now we need to "edit the new config file
+
+
+       #Figure out what the Zenith argument should look like
+       if test $izn = 1 
+       then
+           Zn=${Zenith[izn]}','${Zenith[2]}
+       else
+           Zn=${Zenith[1]}','${Zenith[izn]}
+       fi
+
+       ZNLBL=${Zenith[izn]}
+	       #now replace Zenith argument and put in a tmp file
+       sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
+
+      #Now do the same for the Noise but put in final file
+       if test $jnoise = 1 
+       then
+	   Ns=${Noise[$jnoise]}','${Noise[2]}
+       else
+	   Ns=${Noise[1]}','${Noise[$jnoise]}
+       fi
+
+       NsLBL=${Noise[$jnoise]}
+       #Construct the Sub Lt Config File Name
+       ConfigName='SubLT'$1'Sample'$HMode$ZNLBL'Deg'$NsLBL'noise.config'
+ 
+       #now replace AbsoluteNoise  argument and put in a final file
+       sed '/Noise/s/'$NoiseStr'/'$Ns'/g'  <config2.tmp >$ConfigName
+	
+       rm config2.tmp
+       jnoise=$((jnoise+1))
+       echo $ConfigName' done'    
+     done
+   izn=$((izn+1))
+ done
+
+
+
+
+
+
