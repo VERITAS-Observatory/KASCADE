@@ -1,13 +1,16 @@
-#$1 list file of Base names of sub LT: SubLT20DegS0.5Wbl
+#$1 list file of Names of sub LT List files: SubLTHList
+#  make with: ls SubLT*Sample*noiseList |grep -v HFit |xargs -n1 >SubLTHList
+# or for HFit: ls SubLT*SampleHFit*noiseList |xargs -n1 >SubLTHFitList
 
 {
 lcl="$PWD"
 while read SUBLTBASE ; do
+        SUBLTBASE=${SUBLTBASE%%List}
 ####################################################################
 # Make up the job script file that will be submitted below
 ####################################################################
       sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-      echo "#"PBS -l pvmem=15GB                     >$sgeFile
+      echo "#"PBS -l pvmem=15GB                      >$sgeFile
       echo "#"PBS -l walltime=10:00:00            >>$sgeFile
       echo cd $lcl                                >>$sgeFile
       echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
