@@ -8,7 +8,8 @@
 #
 
 #$1  Number of samples: Ex: 7 or 12
-#$2  H or HFIT source. Default is H
+#$2  Winter or Summer atm EX S or W
+#$3  H or HFIT source. Default is H
 
 
 # *************************************************************************
@@ -27,8 +28,8 @@ else
   Noise=([1]=5.88 7.0 8.0 9.0 10.0 11.0 12.25 13.5 15.0 16.5)
 fi
 
-HMode=$2
-if [ -z "$2" ]; then
+HMode=$3
+if [ -z "$3" ]; then
 	HMode=H
 fi
 
@@ -103,7 +104,7 @@ while test $izn -le $iznEnd
 
        NsLBL=${Noise[$jnoise]}
        #Construct the Sub Lt Config File Name
-       ConfigName='SubLT'$1'Sample'$ZNLBL'Deg'$NsLBL'noise'$HMode'.config'
+       ConfigName='SubLT'$2$1'Sample'$ZNLBL'Deg'$NsLBL'noise'$HMode'.config'
  
        #now replace AbsoluteNoise  argument and put in a final file
        sed '/Noise/s/'$NoiseStr'/'$Ns'/g'  <config2.tmp >$ConfigName

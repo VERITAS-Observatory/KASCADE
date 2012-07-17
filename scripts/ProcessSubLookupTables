@@ -6,6 +6,7 @@
 lcl="$PWD"
 while read SUBLTBASE ; do
         SUBLTBASE=${SUBLTBASE%%.config}
+	SUBLTLISTBASE=${SUBLTBASE%%H*}
 ####################################################################
 # Make up the job script file that will be submitted below
 ####################################################################
@@ -16,7 +17,7 @@ while read SUBLTBASE ; do
       echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
       echo -config $lcl'/'$SUBLTBASE'.config' \\  >>$sgeFile
       echo -cuts  $lcl'/LookupTableStdCuts' \\    >>$sgeFile
-      echo  $lcl'/'$SUBLTBASE'List'   \\          >>$sgeFile
+      echo  $lcl'/'$SUBLTLISTBASE'List'   \\          >>$sgeFile
       echo  $lcl'/'$SUBLTBASE'.root'  \\          >>$sgeFile
       echo ' >'$lcl'/'$SUBLTBASE'.log'            >>$sgeFile
       chmod 700 $sgeFile
