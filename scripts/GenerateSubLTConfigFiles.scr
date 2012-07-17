@@ -37,6 +37,9 @@ fi
 # Change for KASCADE and Number of samples
 # *************************************************************************
 rm Temp*config.tmp
+rm config1.tmp
+rm config2.tmp
+
 $VEGAS/showerReconstruction2/bin/produce_lookuptables -save_config_and_exit TempAconfig.tmp
 sed '/CorePositionFractionalErrorCut/s/100/.25/g' <TempAconfig.tmp >TempBconfig.tmp
 sed '/CorePositionAbsoluteErrorCut/s/1000/20/g'   <TempBconfig.tmp >TempCconfig.tmp
@@ -111,7 +114,8 @@ while test $izn -le $iznEnd
      done
    izn=$((izn+1))
  done
-
+rm config1.tmp
+rm Temp*config.tmp
 
 
 
