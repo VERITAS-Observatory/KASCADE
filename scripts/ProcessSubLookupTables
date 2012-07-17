@@ -1,11 +1,11 @@
-#$1 list file of Names of sub LT List files: SubLTHList
-#  make with: ls SubLT*Sample*noiseList |grep -v HFit |xargs -n1 >SubLTHList
-# or for HFit: ls SubLT*SampleHFit*noiseList |xargs -n1 >SubLTHFitList
+ #$1 list file of Names of sub LT config files: SubLTHList
+#  make with: ls SubLT*Sample*noiseH.config |xargs -n1 >SubLTHList
+# or for HFit: ls SubLT*Sample*noiseHFit.config |xargs -n1 >SubLTHFitList
 
 {
 lcl="$PWD"
 while read SUBLTBASE ; do
-        SUBLTBASE=${SUBLTBASE%%List}
+        SUBLTBASE=${SUBLTBASE%%.config}
 ####################################################################
 # Make up the job script file that will be submitted below
 ####################################################################

@@ -103,7 +103,7 @@ while test $izn -le $iznEnd
 
        NsLBL=${Noise[$jnoise]}
        #Construct the Sub Lt Config File Name
-       ConfigName='SubLT'$1'Sample'$HMode$ZNLBL'Deg'$NsLBL'noise.config'
+       ConfigName='SubLT'$1'Sample'$ZNLBL'Deg'$NsLBL'noise'$HMode'.config'
  
        #now replace AbsoluteNoise  argument and put in a final file
        sed '/Noise/s/'$NoiseStr'/'$Ns'/g'  <config2.tmp >$ConfigName
