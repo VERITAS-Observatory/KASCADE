@@ -1,10 +1,12 @@
-#$1 list file of Base names of sub EA: SubEA7sampleList
+#$1 list file  names of sub EA List files: SubEAS7sampleList
+#  make with: ls SubEAS7Sample*noise*List |xargs -n1 >SubEAS7sampleList
 #$2 cuts config file
 # *****************************************************************
 {
 lcl="$PWD"
-while read SUBEABASE ; do
-
+while read SUBEAListFile ; do
+	SUBEAConfigFile=${SUBEAListFile%%noise*}noise.config
+	SUBEABASE=${SUBEAListFile%%List}
 ####################################################################
 # Make up the job script file that will be submitted below
 ####################################################################
@@ -12,14 +14,14 @@ while read SUBEABASE ; do
    echo "#"PBS -l walltime=10:00:00                              >$sgeFile
    echo cd $lcl                                                 >>$sgeFile
    echo $VEGAS/resultsExtractor/bin/makeEA \\                   >>$sgeFile
-   echo -config $lcl'/'$SUBEABASE'.config' \\                   >>$sgeFile
+   echo -config $lcl'/'$SUBEAConfigFile \\                      >>$sgeFile
    echo -cuts  $lcl'/'$2 \\                                     >>$sgeFile
-   echo  $lcl'/'$SUBEABASE'List' \\                             >>$sgeFile
+   echo  $lcl'/'$SUBEAListFile \\                               >>$sgeFile
    echo  $lcl'/'$SUBEABASE'.root' \\                            >>$sgeFile
    echo ' >'$lcl'/'$SUBEABASE'.log'                             >>$sgeFile
    chmod 700 $sgeFile
 
-   qsub -q serial  -V -e $SUBEABASE.qsub.err -o $SUBEABASE.qsub.log  $sgeFile
+   qsub -q serial  -V -e $SUBEABASE'.qsub.err' -o $SUBEABASE'.qsub.log'  $sgeFile
 
  done
 
