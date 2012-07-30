@@ -1,0 +1,16 @@
+#$1 List of ksVegasSimProduction*.scr files to add DoublePass stuff to
+
+{
+  while read InputFile ; do
+    sed " /PFL_Window=12/i DoublePassOption='-DoublePass=1 -S2A_DoublePassWindowWidth=12' " <$InputFile >g.tmp
+    FileName=${InputFile%%Sample*}SamplesDPass
+    FileName=$FileName${InputFile##*Sample}
+
+    sed '/$BadPixelOption $NumEventsToAnalyseOption/s/$NumEventsToAnalyseOption/$NumEventsToAnalyseOption  $DoublePassOption/' <g.tmp >$FileName
+    rm g.tmp
+
+   echo $FileName done
+done
+} <$1
+
+

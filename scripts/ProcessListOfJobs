@@ -1,0 +1,9 @@
+#!/bin/bash
+#This is a generic process list of Job files. It submits exixting jobs files
+#$1 List of Job files to submit
+
+{
+  while read InputJob ; do
+      qsub -q serial  -V -e $InputJob'.err' -o $InputJob'.log' $InputJob
+  done
+} <$1

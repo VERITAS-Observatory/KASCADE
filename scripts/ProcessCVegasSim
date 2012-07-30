@@ -5,26 +5,26 @@
 #$4 Alternate VEGAS path (optional)
 
 lcl="$PWD"
-WMDL15SCRATCH=/global/scratch/sd/u15013/gammas/WVG21AtmMDL15E-2.0VBF
 let i=0
 {
   while read InputFile ; do
       i=$((i+1))
+	BaseFileName=${InputFile##/*/}
 ####################################################################
 # Make up the job script file that will be submitted below
 ####################################################################
       sgeFile=$lcl'/V'$3'Job'$i'.pbs'
-      echo "#"PBS -l walltime=16:00:00          >$sgeFile
+      echo "#"PBS -l walltime=30:00:00          >$sgeFile
       echo "#"PBS -l pvmem=5gb                 >>$sgeFile
       echo cd $lcl                             >>$sgeFile
       echo $lcl'/'$2  \\                       >>$sgeFile
-      echo $WMDL15SCRATCH'/'$InputFile' '  \\  >>$sgeFile
+      echo $InputFile' '  \\  >>$sgeFile
       if test -n $4
       then
         echo $4  \\                            >>$sgeFile
       fi 
 
-      echo ' >'$lcl'/'$InputFile$3'.log'         >>$sgeFile
+      echo ' >'$lcl'/'$BaseFileName$3'.log'         >>$sgeFile
       chmod 700 $sgeFile
       qsub -q serial  -V -e 'W'$3$i'.err' -o 'W'$3$i'.log' $sgeFile
 done
