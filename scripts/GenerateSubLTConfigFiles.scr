@@ -1,4 +1,4 @@
-#!/bin/bash
+$#!/bin/bash
 #This scrip gernetaes the .config  files for use with ProduceLookupTables.
 #These Sub*.config files are used in conjunction with the Sub*List file to
 #produce the SubLT*.root files using producelookuptables.
@@ -8,7 +8,7 @@
 #
 
 #$1  Number of samples: Ex: 7 or 12
-#$2  Winter or Summer atm EX S or W
+#$2  Winter or Summer atm EX S or W  //Needed by ProcessSubLookupTables to find PedVar List files
 #$3  H or HFIT source. Default is H
 
 
