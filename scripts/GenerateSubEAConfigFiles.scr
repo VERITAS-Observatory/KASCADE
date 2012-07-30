@@ -8,14 +8,31 @@
 
 #$1:  Standard (full) config file name that all Sub Config files are derived 
 #     from. EX: KascadeMakeEAStandard.config
-
-# ****************************************************************************
-# 7 Sample Noise Parameters, KASCADE
+#     Note config file should have standard 7 sample noise list. We will
+#     convert it to special 12 sample in this program (if 12 sample requested).
+#$2: number of samples (Ex: "7" or "12") Used to pick noise levels
+#$3: Summer or winter atm: Ex S or W
 # ****************************************************************************
 
 #Specify all possible parameter values
 Zenith=([1]=1 10 20 30 40 50 60 70)
-Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
+
+# ***********************************************************************
+# Select noise parameters on number of samples
+# ***********************************************************************
+
+if [ $2 != "7" ] &&  [ $2 != "12" ] ; then
+  echo Invalid 3rd argument: $2  Permissable values are 7 or 12
+  exit
+fi
+
+if [ $2 = "7" ]; then
+   Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
+fi 
+
+if [ $2 = "12" ]; then
+   Noise=([1]=5.88 7.0 8.0 9.0 10.0 11.0 12.25 13.5 15.0 16.5)
+fi 
  
 #We make a seperate Sub EA config file for each of ZN, and  noise 
 #combination
@@ -30,7 +47,11 @@ while test $izn -le $iznEnd
    while test $jnoise -le $jnoiseEnd
      do
        #Now we need to "edit the new config file
-       #Figure out what the Zenith argument should look like
+
+       #First set the number of samples for noise(Should originally be 7)
+       sed '/EA_WindowSizeForNoise/s/7/'$2'/g' <$1 >config1.tmp
+
+      #Figure out what the Zenith argument should look like
        if test $izn = 1 
        then
            Zn=${Zenith[izn]}','${Zenith[2]}
@@ -40,7 +61,7 @@ while test $izn -le $iznEnd
 
        ZNLBL=${Zenith[izn]}
 	       #now replace Zenith argument and put in a tmp file
-       sed '/Zenith/s/1,10,20,30,40,50,60,70/'$Zn'/g' <$1 >config.tmp
+       sed '/Zenith/s/1,10,20,30,40,50,60,70/'$Zn'/g' <config1.tmp >config2.tmp
 
        #Now do the same for the Noise but put in final file
        if test $jnoise = 1 
@@ -52,13 +73,15 @@ while test $izn -le $iznEnd
 
        NsLBL=${Noise[$jnoise]}
        #Construct the Sub EA Config File Name
-       ConfigName='SubEA7Sample'$ZNLBL'Deg'$NsLBL'noise.config'
+       ConfigName='SubEA'$3$2'Sample'$ZNLBL'Deg'$NsLBL'noise.config'
  
        #now replace AbsoluteNoise  argument and put in a final file
+       #original file should have full 7 sample values. We will replace.
        sed '/Noise/s/4.016,4.75,5.5,6.25,7.0,7.75,8.5,9.5,10.5,11.5/'$Ns'/g' \
-                                              <config.tmp >$ConfigName
+                                              <config2.tmp >$ConfigName
 	
-       rm config.tmp
+       rm config1.tmp
+       rm config2.tmp
        jnoise=$((jnoise+1))
        echo $ConfigName' done'    
      done

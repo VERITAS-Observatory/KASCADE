@@ -1,6 +1,9 @@
-#$1: Cuts extention to PedVar files: EX:  ""MediumStdCuts.root"
+#$1: Cuts extention to PedVar files: EX:  ""7SampleMediumStdCuts.root"
 #    This is the same vaule as used in ksVegasSimProduction to extend the name
 #    of the files: "FileBase" in ksVegasSimProduction.scr
+#$2: Directory that holds the stage4 PedVar files. 
+#$3: number of samples (Ex: "7" or "12") Used to pick noise levels
+#$4 summer/winter: Ex S or W
 
 ###########################################################################
 #This scrip gernetaes the *List files for use with MakeEA.
@@ -11,25 +14,44 @@
 #This file is modified from GenerateSubLT7SampleListFiles.scr
 
 #Our tables will use "local" (could be links) files with names like:
-#  PedVar4.016WMDL15GammaRay1_225Deg2DS1.0Wbl50mv1234M2MediumCuts.root
+#  PedVar4.016WMDL15GammaRay1_225Deg2DS1.0Wbl50mv1234M27SampleMediumCuts.root
 #
 #In this version of the program a particular Sub EA List file will have all 
 # files for a certain  ZN value (like 20 and 30 deg), and  noise 
 # values (like 8.5_9.5) and all Offset levels and all azimuth values.
 
 # ***********************************************************************
-#  7 Sample Parameters
+#  Parameters
 # ***********************************************************************
-
 #Specify all possible parameter values
 Zenith=([1]=1 10 20 30 40 50 60 70)
 Azimuth=([1]=0 45 90 135 180 225 270 315)
 Offset=([1]=0.0 S0.25 S0.5 S0.75 S1.0 S1.25 S1.5 S1.75 S2.0)
-Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
- 
+
+# ***********************************************************************
+# Select noise parameters on number of samples
+# ***********************************************************************
+
+if [ $3 != "7" ] &&  [ $3 != "12" ] ; then
+   echo Invalid 3rd argument: $3  Permissable values are 7 or 12
+  exit
+fi
+
+if [ $3 = "7" ]; then
+   Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)
+fi 
+
+if [ $3 = "12" ]; then
+   Noise=([1]=5.88 7.0 8.0 9.0 10.0 11.0 12.25 13.5 15.0 16.5)
+fi 
+
 #We make a seperate Sub EA File list for each ZN pair , noise pair combo
-BASEDIR='/project/projectdirs/m1304/veritas_CM/simulations/veritas/gammas/V190/WMDL15/7samples'
+
+# Set up base directory for stage4 PedVar files
+BASEDIR=$2
+
 FileBase=$1
+BaseName=${FileBase%%.root}
 
 let izn=1
 let iznEnd=8
@@ -43,7 +65,7 @@ while test $izn -le $iznEnd
     ZnLBL=${Zenith[$izn]}
     NsLBL=${Noise[$jnoise]}
 
-    ListName='SubEA7Sample'$ZnLBL'Deg'$NsLBL'noiseList'
+    ListName='SubEA'$4$3'Sample'$ZnLBL'Deg'$NsLBL'noise'$BaseName'List'
     #echo $ListName
     if [ -e "$ListFile" ]; then 
       echo removing $ListName
@@ -67,7 +89,7 @@ while test $izn -le $iznEnd
             ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
           fi
           #Make up file (there will be 4 of them
-          FileName=$BASEDIR'/PedVar'${Noise[jnoise]}'WMDL15GammaRay'$ZnAz'2D'${Offset[loff]}'Wbl50mv1234M2'$FileBase
+          FileName=$BASEDIR'/PedVar'${Noise[jnoise]}$4'MDL15GammaRay'$ZnAz'2D'${Offset[loff]}'Wbl50mv1234M2'$FileBase
 
           #Check file exists
           if [ -e "$FileName" ]; then 
