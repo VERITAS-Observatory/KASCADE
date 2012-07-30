@@ -1,0 +1,7 @@
+#$1: Number of samples Ex : 7 or 12
+#$2 LT file name
+# EX:  ltk_20102011_atm21_7samples_vegas240_alloffsets.root
+   $VEGAS/showerReconstruction2/bin/buildTree '-config=BuildTree'$1Samples.config \
+	$2
+
+
