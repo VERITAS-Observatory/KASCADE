@@ -71,10 +71,14 @@ Stage4_2=enable
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="MediumStdCuts.root"  #Extension to put on the end of the stages 4-5 
-                              #output files. Differentiates between various 
-                              #cutfile possibilities. 
-                              #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
+  #FileBase="7SampleSoftStdCuts.root"  #Extension to put on the end of the stages 4-5 
+  FileBase="7SampleMediumStdCuts.root"
+  #FileBase="7SampleHardStdCuts.root"
+  
+
+		                         #output files. Differentiates between various 
+                	              #cutfile possibilities. 
+                        	      #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
 #  OutputFileNameExt="S7"   #Additional extension to add to the file name of 
                            #the separate output file from stage5. If not 
                            #specified you don't get a separate output file and
@@ -90,15 +94,13 @@ Stage4_2=enable
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
-  QualityCuts='-cuts=QualityStdCuts'
-  #QualityCuts='-cuts=QualityHrdCuts'
+  #QualityCuts='-cuts=QualitySoftStdCuts'
+  QualityCuts='-cuts=QualityMedStdCuts'
+  #QualityCuts='-cuts=QualityHardStdCuts'
 
-  #Table=lt-newarray-050-4.root
+
   #Table=lt_Nov2010_na_ATM21_7samples_vegasv220.root
-  #Table=ltk_20102011_atm21_7samples_vegas240_alloffsets.root
-  Table=ltk_20102011_atm21_7samples_vegas240_alloffsets_E-2.0.root
-
-
+  Table=ltk_20102011_atm22_7samples_H_vegas240_alloffsets.root
 	
 #Stage5
  ShowerCutsBaseFile=ShowerCutsStd	  
@@ -216,7 +218,7 @@ if [ -n "$Stage4_2" ]; then
      echo CutRootFileName: $CutRootFileName
      cp -v $RootFileName $CutRootFileName
      echo ET: $LookUpTableDir/$Table
-     $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+     $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table -OverrideLTCheck=1 \
 	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
 	$SeparationAngleCutOption $CutRootFileName
