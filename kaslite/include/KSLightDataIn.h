@@ -35,6 +35,7 @@ private:
   static std::string sDefaultRandomSeedFileName;
   static double      sDefaultEfficiency;
   static bool        sDefaultBenchmarkFlag;
+  static bool        sDefaultMoonFilterFlag;
   static std::string sDefaultExtinctionFileName;
 public:
   KSLightDataIn(KSPeHeadData* pfPeHead);
@@ -46,6 +47,7 @@ public:
   KSPeHeadData*     pfPeHead;
   std::string       fRandomSeedFileName;
   bool fBenchmarkFlag;
+  bool fMoonFilterFlag;
   std::string        fExtinctionFileName;
 };
 #endif

@@ -58,6 +58,7 @@ extern "C" void kskaslitemain(bool* WhippleMount,   bool* VeritasMount,
 			      bool* NorthSouthGrid, bool* RandomCoreOffset, 
 			      bool* WhipplePMTs,    bool* VeritasPMTs, 
 			      bool* ADPPMTs,        bool* benchmark_flag, 
+			      bool* moonFilterFlag, 
 			      float* dli, float* dmi, float* dni, float* hobs,
 			      int* itype, float* tep, float* xseg, 
 			      float* yseg, float* xoff, float* yoff, int* id,
@@ -526,6 +527,7 @@ int main(int argc, char** argv)
 		    &pfPeHead->fNorthSouthGrid, &pfPeHead->fRandomCoreOffset, 
 		    &pfPeHead->fWhipplePMTs,    &pfPeHead->fVeritasPMTs, 
 		    &pfPeHead->fADPPMTs,        &pfDataIn->fBenchmarkFlag,
+		    &pfDataIn->fMoonFilterFlag,
 		    &dl, &dm, &dn, &hobs, &pfSegmentHead->fType, &tep, 
 		    &xseg,&yseg,&xoff, &yoff,&pfSegmentHead->fShowerID,&eff);
     // done

@@ -1,7 +1,8 @@
         SUBROUTINE KSKASLITEMAIN(WhippleMount, VeritasMount, TriangularGrid, 
      1                           SquareGrid, NorthSouthGrid,RandomCoreOffset, 
      1                           ksWhipplePMTs, ksVeritasPMTs, ksADPPMTs,
-     1                           benchmark, ksdli, ksdmi, ksdni, kshobs,
+     1                           benchmark, moonfilter, ksdli, ksdmi, ksdni, 
+     1                           kshobs,
      1                           ksitype, tep, ksxseg, ksyseg, ksxoff, ksyoff,
      1                           showerid,efficiency)
 
@@ -168,7 +169,10 @@ c		x=0,y=0. This is important for any array study.
 !      29/12/10 GHS:
 !               Convert to use of atmosphere.cpp for eta calculation. No 
 !               longer need eatsea and rhoratio
-
+!      24/07/12 GHS:
+!               Add Jami Holder's Moon Filter: data array, flag, use of flag
+!               with veritas data. Defualts to not use
+                         
       IMPLICIT NONE
 
 ! *************************************************************************
@@ -176,7 +180,7 @@ c		x=0,y=0. This is important for any array study.
 ! *************************************************************************
       logical*1 WhippleMount,VeritasMount,TriangularGrid, SquareGrid
       logical*1 NorthSouthGrid, RandomCoreOffset, ksWhipplePMTs
-      logical*1 ksVeritasPMTs,ksADPPMTs,Benchmark
+      logical*1 ksVeritasPMTs,ksADPPMTs,Benchmark,moonfilter
       real*4  ksdli, ksdmi, ksdni, kshobs,ksxseg, ksyseg, ksxoff
       real*4  ksyoff, tep, efficiency
       integer*4 ksitype,showerid
@@ -234,6 +238,7 @@ c		x=0,y=0. This is important for any array study.
       dni=ksdni
 
       benchmark_flag=benchmark
+      moonFilterFlag=moonfilter
       VeritasPMTs=ksVeritasPMTs
       WhipplePMTs=ksWhipplePMTs
       ADPPMTs=ksADPPMTs
@@ -1129,6 +1134,7 @@ c		less then this value. This prevents UNIX underflows on SUN.
 	real hoyab390(0:104)
 	real asgateff(0:104)
 	real trans_100(0:104)
+	real MoonFilter2012(0:104)
 	REAL*4	REFLect_10M(0:104)
 	REAL*4	REFLect_10M_1993(0:104)
         real reflect(0:104)
@@ -1470,7 +1476,8 @@ c	by Adrian listed in an e-mail note sent to Trever 20/10/95.
  
 
 c     ADP    Wavelength dependent quantum efficiency for ADP detectors. 
-c     Linier interpolation of some points given by Wei Cui. 12/10/00. He gave me 
+c     Linier interpolation of some points given by Wei Cui. 12/10/00. 
+c     He gave me 
 c     points at 180 nm=.18,300 nm=.56, 366=.77, 450-700 nm=.84. 
          data adp/0.180, 0.196, 0.212, 0.228, 0.243, 0.259, 0.275, 0.291,
      1 0.307, 0.322, 0.338, 0.354, 0.370, 0.386, 0.402, 0.418,
@@ -1487,7 +1494,21 @@ c     points at 180 nm=.18,300 nm=.56, 366=.77, 450-700 nm=.84.
      1 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840, 0.840,
      1 0.840/
 
-
+c     Moon Filter used by Jammie Holder for e+/e- ratio from
+c     shadow of the moon. Original values from Jamie. I put them into
+c     folowing data statement in 5 nm steps 180-700 nm
+        DATA    MoonFilter2012/
+     1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!180-225
+     1   0.000,0.000,0.000,0.000,0.000,0.004,0.021,0.065,0.141,0.251,!230-275
+     1   0.361,0.465,0.562,0.629,0.681,0.719,0.746,0.769,0.779,0.789,!280-325
+     1   0.794,0.791,0.781,0.766,0.744,0.707,0.649,0.562,0.432,0.271,!330-375
+     1   0.112,0.024,0.002,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!380-425
+     1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!430-475
+     1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!480-525
+     1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!530-575
+     1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!580-625
+     1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!630-675
+     1   0.000,0.001,0.003,0.006,0.011/                              !680-700
 
 c     
 c       Form the ratio of density of atm as function of altitude.
@@ -1691,16 +1712,26 @@ c      ********************************************************************
         print*,'   QE:xp2970 Zitzer/JFinley/S.Fegan 2011 Measured VERITAS pmts'
         print*,'   QE:xp2970 Values incresed by 1.5:max goes from 24% to 36%'
         print*,'   QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
-        print*,'   No filter used'
+           if(moonFilterFlag) then
+             print*,'   Using Moon Filter (e+/e- moon shadow analysis)'  
+           else
+             print*,'   No filter used'
+           endif
         print*,'   Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
            do i=0,104
 !              lambda=180+i*5
 !              print*,lambda,' ',xp2970eff(i)
               xp2970eff(i)=1.5*xp2970eff(i)
            enddo
-           call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
+           if(moonFilterFlag) then
+              call rate_qgen_uv(xp2970eff,MoonFilter2012,REFLect_10M_1993,
+     1           qeta10m,qgam10m,qeta10m_hobs,qgam10m_hobs)
+           else
+              call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
      1           qgam10m,qeta10m_hobs,qgam10m_hobs)
-c     ************************************************************************
+           endif
+
+c ************************************************************************
          endif
       else
          print*,' Fatal-KASLIT--RateINIT-Invalid petype:',petype

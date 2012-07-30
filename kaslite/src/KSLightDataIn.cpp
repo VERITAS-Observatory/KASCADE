@@ -25,6 +25,7 @@ std::string KSLightDataIn::sDefaultPMTType="WHIPPLE";
 std::string KSLightDataIn::sDefaultRandomSeedFileName="";
 double      KSLightDataIn::sDefaultEfficiency=1.0;
 bool        KSLightDataIn::sDefaultBenchmarkFlag=false;
+bool        KSLightDataIn::sDefaultMoonFilterFlag=false;
 std::string KSLightDataIn::sDefaultExtinctionFileName="extinction_uv.dat";
 // **************************************************************************
 
@@ -178,6 +179,7 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
 
   fRandomSeedFileName=sDefaultRandomSeedFileName;  //A ksLightDataIn variable
   fBenchmarkFlag=sDefaultBenchmarkFlag;      //Another ksLightDataIn variable
+  fMoonFilterFlag=sDefaultMoonFilterFlag;      //Another ksLightDataIn variable
   fExtinctionFileName=sDefaultExtinctionFileName;
 }
 // **************************************************************************
@@ -199,6 +201,7 @@ VAConfigurationData KSLightDataIn::getConfig() const
   config.setValue("PMTType",sDefaultPMTType);
   config.setValue("Efficiency",pfPeHead->fEfficiency);
   config.setValue("Benchmark",fBenchmarkFlag);
+  config.setValue("MoonFilter",fMoonFilterFlag);
   config.setValue("RandomSeedFileName",fRandomSeedFileName);
   config.setValue("ExtinctionFile",fExtinctionFileName);
   return config;
@@ -245,6 +248,13 @@ void KSLightDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSLightDataIn",
 		    "Specifies a special Output mode for producing a VERITAS "
                     "Benchmark results text file");
+  doVAConfiguration(file, command_line, 
+		    "MoonFilter",sDefaultMoonFilterFlag,
+		    "KSLightDataIn",
+		    "Specifies use with Veritas PMTs (only) of a Moonlight "
+		    "filter. Used for e+/e- ratio investigations using the "
+		    "moons shadow. From Jamie Holder 2012. Default is to not "
+		    "use (=0)");
   doVAConfiguration(file, command_line, 
 		    "RandomSeedFileName",sDefaultRandomSeedFileName,
 		    "KSLightDataIn",
