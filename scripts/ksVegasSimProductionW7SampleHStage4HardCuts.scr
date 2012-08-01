@@ -1,4 +1,3 @@
-
 #This runs first 5 Vegas stages on Kascade sim files;
 #$1 .vbf or .root  file to process.
 #$2 Vegas base dir  path: Used when you want vegas from a different directory 
@@ -100,7 +99,7 @@ Stage4_2=enable
   QualityCuts='-cuts=QualityHardStdCuts'
 
   #Table=lt_Nov2010_na_ATM21_7samples_vegasv220.root
-  Table=ltk_20102011_atm22_7samples_H_vegas240_alloffsets.root
+  Table=ltk_20102011_atm21_7samples_vegas240_alloffsets.root
 	
 #Stage5
  ShowerCutsBaseFile=ShowerCutsStd	  
