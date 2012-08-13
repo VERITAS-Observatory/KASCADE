@@ -1712,11 +1712,6 @@ c      ********************************************************************
         print*,'   QE:xp2970 Zitzer/JFinley/S.Fegan 2011 Measured VERITAS pmts'
         print*,'   QE:xp2970 Values incresed by 1.5:max goes from 24% to 36%'
         print*,'   QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
-           if(moonFilterFlag) then
-             print*,'   Using Moon Filter (e+/e- moon shadow analysis)'  
-           else
-             print*,'   No filter used'
-           endif
         print*,'   Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
            do i=0,104
 !              lambda=180+i*5
@@ -1724,9 +1719,11 @@ c      ********************************************************************
               xp2970eff(i)=1.5*xp2970eff(i)
            enddo
            if(moonFilterFlag) then
+              print*,'   Using Moon Filter (e+/e- moon shadow analysis)'  
               call rate_qgen_uv(xp2970eff,MoonFilter2012,REFLect_10M_1993,
      1           qeta10m,qgam10m,qeta10m_hobs,qgam10m_hobs)
            else
+              print*,'   No filter used'
               call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
      1           qgam10m,qeta10m_hobs,qgam10m_hobs)
            endif
