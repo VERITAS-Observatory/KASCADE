@@ -31,6 +31,8 @@ DebugPrintEnable=enable
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
                                    # $5$Detectorspec:
                                    # Ex: .../simulations/veritas/protonsABCD
+#MoonFilterEnable=enable           #Enable moon filter us in kaslite. Veritas
+                                   #telescopes only.
 
 
 echo "**********************************************************************"
@@ -388,8 +390,12 @@ while test $i -le $4
     if [ -e "$pefile" ]; then 
 	rm $pefile
     fi
+    if [ -n "MoonFilterEnable" ]; then
+	MoonFilterOption='-MoonFilter=1'
+    fi
+
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran \
-	$ExtinctionFileOption $segfile $pefile
+	$ExtinctionFileOption $MoonFilterOption $segfile $pefile
     if [ -n "$CleanupEnable" ]; then
            rm -v $segfile		#Remove segment file
     fi
