@@ -49,9 +49,9 @@ CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))
 
 F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
 
-TARGET_SHARED = $(LIBDIR)/libKascadeCommon.so
-LIBTARGET := $(LIBDIR)/libKascadeCommon.a $(TARGET_SHARED)
-LIBTARGETROOT := $(LIBDIR)/libKascadeCommonRoot.a
+TARGET_SHARED = $(LIBDIR)/libKascadeCppCommon.so
+LIBTARGET := $(LIBDIR)/libKascadeCommon.a
+LIBTARGETROOT := $(LIBDIR)/libKascadeCommonRoot.a $(TARGET_SHARED)
 LIBSOURCES := $(F90USEOBJECTS) $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS) 
 
 ifndef ROOTYES
@@ -89,7 +89,7 @@ $(LIBTARGET): $(LIBSOURCES)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(TARGET_SHARED): $(OBJECTS)
+$(TARGET_SHARED): $(CPPOBJECTS)
 	 $(BUILD_SHARED) -o $@ $^
 
 $(TMPDIR)/root_dict.cpp: $(addprefix $(INCDIR)/, $(CLASSDEFS))
