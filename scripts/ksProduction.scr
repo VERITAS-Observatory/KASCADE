@@ -799,8 +799,7 @@ function Electrons()
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
-#      let iEntryStart=1
-      let iEntryStart=44
+      let iEntryStart=1
       let iEntryEnd=44
 
       #Reverse order (prefered)
@@ -879,7 +878,7 @@ function BuildAndSubmitHansenJobs
  echo "#"PBS -q $QUEUE                         >$sgeFile
  echo "#"PBS -l walltime=24:00:00             >>$sgeFile
  echo source /etc/profile                     >>$sgeFile
- echo module load gcc                         >>$sgeFile
+ echo module load gcc/4.5.1                   >>$sgeFile
  echo lcl=$PBS_O_WORKDIR                      >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
@@ -910,8 +909,12 @@ function BuildAndSubmitHansenJobsSingly
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"PBS -q $QUEUE                                   >$sgeFile
    echo "#"PBS -l walltime=24:00:00                       >>$sgeFile
+   if test $1 -ge 19
+     then
+      echo "#PBS -l mem=20GB"                             >>$sgeFile
+   fi
    echo source /etc/profile                               >>$sgeFile
-   echo module load gcc                                   >>$sgeFile
+   echo module load gcc/4.5.1                             >>$sgeFile
    echo lcl=$PBS_O_WORKDIR                                >>$sgeFile
    echo cd $lcl                                           >>$sgeFile
    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
