@@ -19,6 +19,9 @@ include ../Makefile.common
 
 TOPDIR = ..
 
+BUILD_SHARED = $(CXX) -shared -Wl,-s
+
+
 #This is the No root and root  version of the common Makefile. 
 #It creats 2 libraries: libKascadeCommon.a libKascadeCommonRoot.a
 #The difference is the specification of the -D_NOROOT in  the cpp compile 
@@ -46,7 +49,8 @@ CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))
 
 F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
 
-LIBTARGET := $(LIBDIR)/libKascadeCommon.a
+TARGET_SHARED = $(LIBDIR)/libKascadeCommon.so
+LIBTARGET := $(LIBDIR)/libKascadeCommon.a $(TARGET_SHARED)
 LIBTARGETROOT := $(LIBDIR)/libKascadeCommonRoot.a
 LIBSOURCES := $(F90USEOBJECTS) $(F77OBJECTS) $(F90OBJECTS) $(CPPOBJECTS) 
 
@@ -84,6 +88,9 @@ norootcomment:
 $(LIBTARGET): $(LIBSOURCES)
 	$(AR) r $@ $^
 	ranlib $@
+
+$(TARGET_SHARED): $(OBJECTS)
+	 $(BUILD_SHARED) -o $@ $^
 
 $(TMPDIR)/root_dict.cpp: $(addprefix $(INCDIR)/, $(CLASSDEFS))
 	$(ROOTCINT) -v -f $@ -c -p $(ROOTCINTFLAGS) $^ include/LinkDef.h
