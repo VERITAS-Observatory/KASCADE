@@ -1,0 +1,235 @@
+#!/bin/bash
+#This is the first of several scipt files to automate EA production
+#This script checks that the Stage4 files were all made corectly.
+#$1 S or W
+#$2 7 or 12
+#$3 H or HFit
+#$4 Soft or Medium or Hard
+
+#MakeStg4Files=enabled
+#CheckStg4Files=enabled
+HTARStg4Files=enabled
+#MakeSubEAFiles=enabled
+#MakeEAKFile=enabled
+
+lcl=$PWD
+lclend=${lcl##*veritas}
+lclstart=${lcl%%$lclend}
+PEDVARDIR=$lclstart'/gammas/V190/'$1'MDL15/'$2'samples'
+if [ "$3" = "HFit" ]; then
+  PEDVAREXTEN=$2'Sample'$3$4'StdCuts'
+else
+  PEDVAREXTEN=$2'Sample'$4'StdCuts'
+fi
+
+###########################################################################
+
+function checkRunningJobs()
+{
+  if [ -s checkRunners.dat ]; then
+      rm checkRunners.dat
+  fi
+  {
+    while  read jobID;  do
+      qstat $jobID &>checkJobRun.dat
+      cat checkJobRun.dat | grep -v Unknown >>checkRunners.dat
+    done
+  } <$1
+  rm checkJobRun.dat
+  if [ -s checkRunners.dat ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+############################################################################
+#Process the Stage2 files through vaStage4 using specified cuts files 
+if [ -n "$MakeStg4Files" ]; then
+
+  CT=$4
+  if [ $4 = "Medium" ]; then
+     CT="Med"
+  fi
+
+  cd "../gammas/V190/"$1"MDL15/"$2"samples"
+  pwd
+  rm "PedVar*"$1"MDL15GammaRay*Wbl50mv1234M2"$PEDVAREXTEN".root"
+  rm *.err
+  rm *.pbs
+  mv *.log ./log/
+  SamList="Stage4"$2"SampleList"
+  KSPROD="ksVegasSimProduction"$1$2"Sample"$3"Stage4"$CT"Cuts.scr"
+  rm SubMakeStage4.log
+  ./ProcessLists ProcessCVegasSimStage4 $SamList $KSPROD "a >>SubMakeStage4.log"
+  echo "EAAuto: Submission of vaStage4 staage2 files on cluster complete."
+  echo "EAAuto: Sleeping until they all finish. About 00:45"
+  #Figure out when above finishes.
+  let runsNotDone=1
+  while test $runsNotDone -eq 1 
+  do
+    #echo "Sleeping 20s"
+    sleep 60s
+    checkRunningJobs "SubMakeStage4.log"
+    let runsNotDone=$?
+  done
+   
+fi
+#############################################################################
+
+if [ -n "$CheckStg4Files" ]; then
+  echo 'EAAuto:  This may take awhile (10 min)'
+  cd $lcl
+
+  LIST=Stage4$3$4'Cuts'$2'Samples'$1'List'
+
+  LISTBAD=$LIST'Bad.txt'
+  echo "EAAuto: Generate List of Stage4 files"
+  ./GenerateStage4CheckFilesList.scr $PEDVAREXTEN'.root'  $PEDVARDIR \
+                                   $2 $1 >$LIST
+  echo "{"                                               >EAAuto.rootscr
+  echo "gROOT->ProcessLine(\".L CheckFilesInList.C\");" >>EAAuto.rootscr
+  echo "int bad=CheckFilesInList(\""$LIST"\");"         >>EAAuto.rootscr
+  echo "ofstream os(\""$LISTBAD"\");"                   >>EAAuto.rootscr
+  echo "os<<bad<<endl;"                                 >>EAAuto.rootscr
+  echo "os.close();"                                    >>EAAuto.rootscr
+  echo "}"                                              >>EAAuto.rootscr
+
+  echo "EAAuto: Checking files. To moniter use \"less EAAuto.rootscr.log.\""
+
+  ~/Switch.rootrcTo.rootrc_glenn.scr
+  root -q -b EAAuto.rootscr  >EAAuto.rootscr.log
+  {
+    read BAD
+    if [ $BAD != "0" ]; then
+       cat EAAuto.rootscr.log
+       exit
+    fi
+  } <$LISTBAD
+  rm EAAuto.rootscr.log
+  echo 'EAAuto: All PedVar root files for' $1 $2 $3 $4 ':exist and can be opened by VARootIO'
+
+  grep -H received $PEDVARDIR/*.err |grep -v "0 errors" >EAAuto.rootscr.log
+  if [ -s EAAuto.rootscr.log ]; then
+    echo 'EAAuto: Found failre of vaStage4 in *.err files'
+    cat EAAuto.rootscr.log
+    exit
+  fi
+  echo 'EAAuto: No vaStage4 errors found'
+fi
+
+############################################################################
+if [ -n "$HTARStg4Files" ]; then
+  echo 'EAAuto: Submits a job to run htar on the vaStage4 files.'
+  cd $lcl
+  #Do this since it takes more than an hour and so can't run on an 
+  #interactive node.
+  TARFILE='PedVar'$1$PEDVAREXTEN'.tar'
+  PEDVARFILES=' PedVar*'$1'MDL15GammaRay*Wbl50mv1234M2'$PEDVAREXTEN'.root'
+  ####################################################################
+  # Make up the job script file that will be submitted below
+  ####################################################################
+      sgeFile=EAAutoHTAR.pbs
+      echo "#"PBS -l walltime=10:00:00                              >$sgeFile
+      echo cd $PEDVARDIR                                           >>$sgeFile
+      echo 'htar -cvf  '$TARFILE' '$PEDVARFILES  \\                >>$sgeFile
+      echo ' >'$lcl'/EAAutoHTar.log'                                >>$sgeFile
+      chmod 700 $sgeFile
+
+  qsub -q serial -V -e 'EAAutoHTARP.pbs.err' -o 'EAAutoHTAR.pbs.log'  $sgeFile >EAAutoHTARJobID.dat
+
+  {
+   read HTARJOBID
+   echo 'HTARJOBID: '$HTARJOBID 
+  }<EAAutoHTARJobID.dat
+fi
+
+####################################################################
+if [ -n "$MakeSubEAFiles" ]; then
+  #Set up to make the SubEA files
+  echo  'EAAuto:  Making SubEA files'
+  cd $lcl
+  ./GenerateSubEAConfigFiles.scr $2 $1
+  ./GenerateSubEAListFiles.scr $PEDVAREXTEN'.root' $PEDVARDIR $2 $1
+  SUBEAFILES='SubEA'$1$2'Sample*'$PEDVAREXTEN'List' 
+  ls  $SUBEAFILES   | xargs -n1 >SubEA$1$PEDVAREXTEN'List'
+  mv *.qsub.log ./log/
+
+  ./ProcessSubMakeEA SubEA$1$PEDVAREXTEN'List' Shower$PEDVAREXTEN >SubMakeEA.log
+#Figure out when above finishes.
+
+  echo "EAAuto: Submission of MakeEA on SubEALists on cluster complete."
+  echo "EAAuto: Sleeping until they all finish. About 00:45"
+
+  let runsNotDone=1
+  while test $runsNotDone -eq 1 
+  do
+    sleep 60s
+    checkRunningJobs "SubMakeEA.log"
+    let runsNotDone=$?
+  done
+   
+#Should all be done now. Check that it worked
+  grep -H "status code" *qsub.log |grep -v "code is 0" >statusCode.dat
+  if [ -s "statusCode.dat" ]; then
+    cat statusCode.dat
+    echo "ProcessSubMakeEA failed!"
+    exit
+  else
+    echo "EAAuto:  ProcessSubMakeEA did good!"
+  fi
+fi
+
+  
+######################################################################
+if [ -n "$MakeEAKFile" ]; then
+  # Now use root to combine all the SubEA files into the EA file.
+  #Make up the macro we will use
+  cd $VEGAS/resultsExtractor/macros
+  ~/Switch.rootrcTo.rootrc_resultsExtractor.scr
+  SUBLIST=SubEA$1$PEDVAREXTEN'List'
+  if [ $1 = "S" ]; then
+    ATM="22"
+  fi
+  if [ $1 = "W" ]; then
+    ATM="21"
+  fi
+
+  HS=$3
+  if [ $3 = "HFit" ]; then
+    HS="HFit25"
+  fi
+
+  if [ $4 = "Soft" ]; then
+    CT="soft"
+  fi
+  if [ $4 = "Medium" ]; then
+    CT="med"
+  fi
+  if [ $4 = "Hard" ]; then
+    CT="hard"
+  fi
+
+  EAKFILE='eak_20102011_atm'$ATM'_'$2'samples_'$HS'_vegas240_alloffsets_'$CT'cuts.root'
+  echo "EAKFILE:" $EAKFILE
+
+  SUBEAFILES=$lcl'/SubEA'$1$2'Sample*noise'$PEDVAREXTEN'.root'
+  
+  ls $SUBEAFILES >$SUBLIST
+
+#Going to use root in batch mode. set up our "macro"
+
+  echo "{"                                                   >EAAuto.rootscr
+  echo "gROOT->ProcessLine(\".L combineEAKascade.C\");"     >>EAAuto.rootscr
+  echo "combineEAKFromList(\""$SUBLIST"\", \""$EAKFILE"\");">>EAAuto.rootscr
+  echo "}"                                                  >>EAAuto.rootscr
+  root -q -b EAAuto.rootscr  >EAAuto.rootscr.log
+ 
+  echo "EAAuto:  Combining SubEA files done."
+ 
+  ./BuildEATree.scr $EAKFILE $2
+  cp -v $EAKFILE   ../../showerReconstruction2/tables/KASCADE/
+  BBCMD="\"put "$EAKFILE" /veritas/upload/KASCADE/tables/\""
+  BCMD='bbftp -u bbftp -p 12 -S -V -e '$BBCMD'  gamma1.astro.ucla.edu'
+  echo 'To copy ea file to UCLA archive use: '$BCMD
+fi
+

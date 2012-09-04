@@ -1,6 +1,13 @@
- #$1 list file of Names of sub LT config files: SubLTHList
-#  make with: ls SubLT*Sample*noiseH.config |xargs -n1 >SubLTHList
+#$1 list file of Names of sub LT config files: SubLTHList
+#$2 type Ex H or HFit
+
+# make with: ls SubLT*Sample*noiseH.config |xargs -n1 >SubLTHList
 # or for HFit: ls SubLT*Sample*noiseHFit.config |xargs -n1 >SubLTHFitList
+
+LTCUTSFILE=LookupTableStdCuts
+if [ $2 = "HFit" ]; then
+  LTCUTSFILE=LookupTableHFitStdCuts
+fi
 
 {
 lcl="$PWD"
@@ -16,8 +23,8 @@ while read SUBLTBASE ; do
       echo cd $lcl                                >>$sgeFile
       echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
       echo -config $lcl'/'$SUBLTBASE'.config' \\  >>$sgeFile
-      echo -cuts  $lcl'/LookupTableStdCuts' \\    >>$sgeFile
-      echo  $lcl'/'$SUBLTLISTBASE'List'   \\          >>$sgeFile
+      echo -cuts  $lcl'/'$LTCUTSFILE  \\          >>$sgeFile
+      echo  $lcl'/'$SUBLTLISTBASE'List'   \\      >>$sgeFile
       echo  $lcl'/'$SUBLTBASE'.root'  \\          >>$sgeFile
       echo ' >'$lcl'/'$SUBLTBASE'.log'            >>$sgeFile
       chmod 700 $sgeFile

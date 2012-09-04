@@ -67,9 +67,9 @@ while test $izn -le $iznEnd
 
     ListName='SubEA'$4$3'Sample'$ZnLBL'Deg'$NsLBL'noise'$BaseName'List'
     #echo $ListName
-    if [ -e "$ListFile" ]; then 
+    if [ -e "$ListName" ]; then 
       echo removing $ListName
-      rm -v $ListFile
+      rm -v $ListName
     fi
 
     #Iterate through Offset and Azimuth
@@ -95,7 +95,7 @@ while test $izn -le $iznEnd
           if [ -e "$FileName" ]; then 
 	    echo $FileName >>$ListName
           else
-            echo No Such File: $FileName for List file: $ListFile
+            echo No Such File: $FileName for List file: $ListName
           fi
          loff=$((loff+1))
          done

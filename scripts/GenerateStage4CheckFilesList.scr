@@ -1,0 +1,72 @@
+#This scrip generates a list of all the Stage4 ouput PedVar files that should
+# have been produced. Itis for use with CheckFilesInList.C
+#
+# ***********************************************************************
+#$1 PedVar Stage4 extention
+#$2 PedVar File path
+#$3 Number of samples specifier Ex: 7 or 12
+#$4  Winter or summer specifier EX : W or S
+
+# ***********************************************************************
+
+#Specify all possible parameter values
+Zenith=([1]=1 10 20 30 40 50 60 70)
+Azimuth=([1]=0 45 90 135 180 225 270 315)
+Offset=([1]=0.0 S0.25 S0.5 S0.75 S1.0 S1.25 S1.5 S1.75 S2.0)
+if [ $4 = "S" ]; then
+  WS="S"
+else
+  WS="W"
+fi 
+
+if [ $3 = "7" ]; then
+ Noise=([1]=4.016 4.75 5.5 6.25 7.0 7.75 8.5 9.5 10.5 11.5)	
+else
+ Noise=([1]=5.88 7.0 8.0 9.0 10.0 11.0 12.25 13.5 15.0 16.5)
+fi
+
+#Iterate through noise and offset
+let jnoise=1;
+let jnoiseEnd=10
+while test $jnoise -le $jnoiseEnd
+ do
+  let loff=1
+  let loffEnd=9
+  while test $loff -le $loffEnd
+   do
+    #Azimuth
+    let izn=1
+    let iznEnd=8
+    while test $izn -le $iznEnd
+     do
+      #Iterate through Azimuth
+      let kaz=1
+      let kazEnd=8
+      while test $kaz -le $kazEnd
+       do
+        #Make first  Zn_Az string
+        if test $kaz = 1
+         then
+          ZnAz=${Zenith[$izn]}'Deg'
+        else
+          ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
+        fi
+        #Make up file
+        FileName='PedVar'${Noise[jnoise]}$WS'MDL15GammaRay'$ZnAz'2D'${Offset[loff]}'Wbl50mv1234M2'$1
+
+	echo $2'/'$FileName
+
+        kaz=$((kaz+1))
+       done
+       izn=$((izn+1))
+     done
+     loff=$((loff+1))
+   done
+   jnoise=$((jnoise+1))
+ done
+
+
+
+
+
+

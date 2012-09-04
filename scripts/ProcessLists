@@ -1,0 +1,21 @@
+#!/bin/bash
+#This is a generic process lists of lists. It does not submit jobs
+# is runs Process's that use list to submit jobs
+#$1 Process Script name: ex; ProcessCVegasSimStage4
+#$2 List of lists Ex. Stage47Sample0.0Wbl10.5noiseList
+#$3 Job script: Ex ksVegasSimProduction7SampleStage4.scr 
+#$4 Identifying letter for Job name (ex A) handed to Process script
+
+lcl="$PWD"
+if test -e "ProcessListJobs"
+ then
+   rm -v "ProcessListJobs"
+fi
+
+{
+  while read InputList ; do
+     echo $lcl'/'$1' '$InputList' '$3' '$4  >>ProcessListJobs
+  done
+} <$2
+chmod 777 ProcessListJobs
+./ProcessListJobs
