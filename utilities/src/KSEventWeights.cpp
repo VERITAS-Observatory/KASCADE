@@ -41,6 +41,14 @@ const double gHe4Alpha    = -2.64;
 const double gHe4IPhi     =  5.98e3;	       //Spectral Amplitude Helium
 					       //Units=/m**2/sec/sr/GeV
 
+//  New electron/positron flux parameters from HESS 2009
+//const double gElectronAlpha  = -3.9;
+const double gElectronAlpha  = -2.0;         //Better High E ststistics
+const double gElectronIPhi   =  1.17e-7;     //Spectral Amplitude for electron
+                                             //Units=/m**2/sec/GeV
+const double gPositronAlpha  = -2.0;         //Better High E ststistics
+const double gPositronIPhi   =  1.17e-7;     //Spectral Amplitude for positrons
+                                             //Units=/m**2/sec/GeV
 
 
 KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t> Showers) 
@@ -581,7 +589,7 @@ void KSEventWeights::Print()
 // **************************************************************************
 {
   std::cout<<"Spectral Indices Used: Gammas: "<<gGammaAlpha<<"  Protons: "
-           <<gProtonAlpha<<"  He4: "<<gHe4Alpha<<std::endl;
+           <<gProtonAlpha<<"  He4: "<<gHe4Alpha<<"  Electrons:   "<<gElectronAlpha <<"   Positrons"<<gPositronAlpha<<std::endl;
   std::cout<<" Type Energy(GeV)      Flux      ELow  EHigh Weight #showers"
            <<std::endl;
 
@@ -637,6 +645,14 @@ double KSEventWeights::getIPhi(int fShowerType)
     {
       fPhi=gGammaIPhi;
     }
+  else if(fShowerType==2)
+    {
+      fPhi=gPositronIPhi;
+    }
+  else if(fShowerType==3)
+    {
+      fPhi=gElectronIPhi;
+    }
   else if(fShowerType==14)
     {
       fPhi=gProtonIPhi;
@@ -664,6 +680,14 @@ double KSEventWeights::getAlpha(int fShowerType)
   if(fShowerType==1)  //Check Corsika type
     {
       fAlpha=gGammaAlpha;
+    }
+  else if(fShowerType==2)
+    {
+      fAlpha=gPositronAlpha;
+    }
+  else if(fShowerType==3)
+    {
+      fAlpha=gElectronAlpha;
     }
   else if(fShowerType==14)
     {
