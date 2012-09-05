@@ -38,6 +38,9 @@ double      KSAomegaDataIn::sDefaultNewEfficiency=1.0;
 double      KSAomegaDataIn::sDefaultNewLightConeConcentration=0.35; 
 double      KSAomegaDataIn::sDefaultDigitalCountsPerPE=4.2; 
 int         KSAomegaDataIn::sDefaultRunNumber=90000;
+double      KSAomegaDataIn::sDefaultSinglePeRiseTimeNS=0.0;
+double      KSAomegaDataIn::sDefaultSinglePeFallTimeNS=0.0;
+
 // **************************************************************************
 
 KSAomegaDataIn::KSAomegaDataIn()
@@ -185,6 +188,17 @@ KSAomegaDataIn::KSAomegaDataIn()
 
   fDigitalCountsPerPE = sDefaultDigitalCountsPerPE;
   fRunNumber=sDefaultRunNumber;
+  fSinglePeRiseTimeNS=sDefaultSinglePeRiseTimeNS;
+  fSinglePeFallTimeNS=sDefaultSinglePeFallTimeNS;
+  if( (fSinglePeRiseTimeNS!=0.0 && fSinglePeFallTimeNS==0.0) ||
+      (fSinglePeRiseTimeNS==0.0 && fSinglePeFallTimeNS!=0.0)){
+    std::cout<<"KSAomega: Fatal--If one of "
+               "SinglePeRiseTimeNS/SinglePeFallTimens speficed, both must be."
+	     <<std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+
 }
 // **************************************************************************
 
@@ -219,6 +233,8 @@ VAConfigurationData KSAomegaDataIn::getConfig() const
   config.setValue("ADCGateWidthNS",fNewADCGateWidthNS);
   config.setValue("LightConeConcentration",fNewLightConeConcentration);
   config.setValue("OutputRunNumber",fRunNumber);
+  config.setValue("SinglePeRiseTimeNS",fSinglePeRiseTimeNS);
+  config.setValue("SinglePeFallTimeNS",fSinglePeFallTimeNS);
   return config;
 }
 // *************************************************************************
@@ -372,6 +388,26 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "KSAomegaDataIn",
 		    "Run Number to use for Output file (VDF or VBF) if one is "
 		    "specified. Default value is 90000");
+  doVAConfiguration(file, command_line, 
+		    "SinglePeRiseTimeNS",sDefaultSinglePeRiseTimeNS,
+		    "KSAomegaDataIn",
+		    "Specifies the rise time in ns of the single pe pulse "
+		    "used to build the CFD/FADC input waveforms. Upgrade "
+		    "VERITAS PMTS are much faster than original VERITAS PMTs. "
+		    "If this option specified so must the SinglePeFallTimeNS "
+		    "option be specified! Default value (0.0) results in the "
+		    "telescope specified value in KSCommon.h to be used "
+		    "(Standard-Not Upgrade for VERITAS).");
+  doVAConfiguration(file, command_line, 
+		    "SinglePeFallTimeNS",sDefaultSinglePeFallTimeNS,
+		    "KSAomegaDataIn",
+		    "Specifies the fall time in ns of the single pe pulse "
+		    "used to build the CFD/FADC input waveforms. Upgrade "
+		    "VERITAS PMTS are much faster than original VERITAS PMTs. "
+		    "If this option specified so must the SinglePeRiseTimeNS "
+		    "option be specified! Default value (0.0) results in the "
+		    "telescope specified value in  KSCommon.h to be used. "
+		    "(Standard-Not Upgrade for VERITAS)");
 }
 
 // ***********************************************************************
@@ -402,14 +438,19 @@ void KSAomegaDataIn::Print()
 	   <<std::endl;
   std::cout<<"       New TriggerMultiplicity: "<<fNewTriggerMultiplicity
 	   <<std::endl;
-  if(fNewNumPixelsInTrigger>0)
-    {
-  std::cout<<" New Num Pixels In PST Trigger: "<<fNewNumPixelsInTrigger
-	   <<std::endl;
-    }
+  if(fNewNumPixelsInTrigger>0){
+    std::cout<<" New Num Pixels In PST Trigger: "<<fNewNumPixelsInTrigger
+	     <<std::endl;
+  }
      
   std::cout<<"            New ADCGateWidthNS: "<<fNewADCGateWidthNS
 	   <<std::endl;
+  if(fSinglePeRiseTimeNS!=0.0 && fSinglePeFallTimeNS!=0.0) {
+    std::cout<<"      Single Pe Rise Time (NS): "<<fSinglePeRiseTimeNS
+	     <<std::endl;
+    std::cout<<"      Single Pe Fall Time (NS): "<<fSinglePeFallTimeNS
+	     <<std::endl;
+  }
   std::cout<<"             Output Run Number: "<<fRunNumber<<std::endl;
   return;
 }

@@ -45,8 +45,8 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   // values specified in the config file read by the KDAomegaDataIn class
   // Basically this is a trick to allow us to try telescope parameters from
   // those used to create the pfTeFile (in ksTrigger). These new values should
-  // be more strick than those used in ksTrigger.
-  // We do this since the KSCameras constructor uses pfTeHead yo get these
+  // be more strict than those used in ksTrigger.
+  // We do this since the KSCameras constructor uses pfTeHead to get these
   // parameters
   // ************************************************************************
   pfTeHead->fNoiseRate                =pfDataIn->fNewNoiseRate;
@@ -70,8 +70,18 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
 			fFADCDigCntsPerPEHiGain,fNoiseRateSigma,
 			numPixelsInTrigger);
-  std::cout<<"ksAomega-- Ignore jitter values below"<<std::endl;
   
+  if(pfDataIn->fSinglePeRiseTimeNS!=0 && pfDataIn->fSinglePeFallTimeNS!=0){
+    for(int i=0;i<numPixelsInTrigger;i++){
+      pfCamera->fPixel.at(i).pfSinglePe->setRiseFallTimes(
+					     pfDataIn->fSinglePeRiseTimeNS, 
+					     pfDataIn->fSinglePeFallTimeNS);
+    }
+  }
+
+
+  std::cout<<"ksAomega-- Ignore jitter values below"<<std::endl;
+
   pfCamera->Print();
 
   // ************************************************************************

@@ -18,5 +18,6 @@
 #pragma link C++ class KSRootSegmentData+;
 #pragma link C++ class KSRootPeHeadData+;
 #pragma link C++ class KSRootPeData+;
+#pragma link C++ class KSSinglePe+;
 
 #endif

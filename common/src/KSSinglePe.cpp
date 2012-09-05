@@ -13,6 +13,10 @@
 #include <iostream>
 #include "KSSinglePe.h"
 
+#ifndef _NOROOT
+  ClassImp(KSSinglePe)
+#endif
+
 KSSinglePe::KSSinglePe()
 {
   pRandom=new TRandom3(0);
@@ -27,7 +31,14 @@ KSSinglePe::KSSinglePe(double singlePulseRiseNS,double singlePulseFallNS)
 }
 // ************************************************************************
 
-void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS, 
+
+KSSinglePe::~KSSinglePe()
+{
+  //Nothing here
+}
+// **************************************************************************
+
+void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS, 
 				        double SinglePulseFallTimeNS)
 // ************************************************************************
 //    This method builds the single pe pulse shape. Max value is normalized 
@@ -50,21 +61,30 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 	       <<std::endl;
       exit(1);
     }
-  fNumBinsInPulse=fNumBinsInRisingPulse+fNumBinsInFallingPulse;
+  fNumBinsInPulse=kBaseRiseSize+fNumBinsInFallingPulse;//Keep peak at same place
   pfSinglePulse.clear();
   pfSinglePulse.resize(fNumBinsInPulse);
-
+  std::cout<<"fRiseTimeRatio, fFallTimeRatio,fNumBinsInRisingPulse, "
+    "fNumBinsInFallingPulse, fNumBinsInPulse: "<<fRiseTimeRatio<<' '<< fFallTimeRatio
+	   <<' '<<fNumBinsInRisingPulse<<' '<< fNumBinsInFallingPulse<<' '
+	   << fNumBinsInPulse<<std::endl;
   // ********************************************************************
   // Interpolate rising part of pulse
+  //Note here that we always want the pulse to be centered at kBaseRiseSize with the
+  //First bin at 0.
   // ********************************************************************
   if(fNumBinsInRisingPulse==kBaseRiseSize)
     {                                   //No change from base.
-      for(int i=0;i<fNumBinsInRisingPulse;i++)pfSinglePulse.at(i)=kBasePulse[i];
+      for(int i=0;i<kBaseRiseSize;i++)pfSinglePulse.at(i)=kBasePulse[i];
+      std::cout<<"KSSinglePe: Riseing Slope:/No change from base."<<std::endl;
     }            
   else
     {
-      pfSinglePulse.at(0)=kBasePulse[0];    //Starts at same place
-      for (int j=1;j<fNumBinsInRisingPulse-1; j++)
+      
+      int pBin=0;
+      int startBin=fNumBinsInRisingPulse-kBaseRiseSize-1;
+	pfSinglePulse.at(0)=kBasePulse[0];    //Starts at same place
+      for (int j=startBin;j<fNumBinsInRisingPulse-1; j++)
 	                                 //different from base:interpolate.
 	{
 	  double aindex=(j/fRiseTimeRatio);//fractional index within 
@@ -78,11 +98,12 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 		       <<std::endl;
 	      exit(1);
 	    }
-	  pfSinglePulse.at(j)=kBasePulse[k]+
+	  pBin=j-startBin;
+	  pfSinglePulse.at(pBin)=kBasePulse[k]+
 	                           fFraction*(kBasePulse[k+1]-kBasePulse[k]);
 	}
                                          //ends at same place. (1.0)
-      pfSinglePulse.at(fNumBinsInRisingPulse-1)=kBasePulse[kBaseRiseSize-1];  
+      pfSinglePulse.at(kBaseRiseSize-1)=kBasePulse[kBaseRiseSize-1];  
     }
   // **********************************************************************
   //Now the falling second half of the pulse.
@@ -91,10 +112,11 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
     {                                   //No change from base.
       for(int i=0;i<kBaseFallSize;i++)
 	{
-	  int j=fNumBinsInRisingPulse+i;
+	  int j=kBaseRiseSize+i;
 	  int k=kBaseRiseSize+i;
 	  pfSinglePulse.at(j)=kBasePulse[k];
 	}
+      std::cout<<"KSSinglePe: Falling slope:/No change from base."<<std::endl;
     }
   else
     {
@@ -122,7 +144,7 @@ void  KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 	      fBaseDifference=(kBasePulse[k+1]-kBasePulse[k]);
 	    }
 
-	  int m=fNumBinsInRisingPulse+j;
+	  int m=kBaseRiseSize+j;
 	  pfSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
 	}
                                          //ends at same place.

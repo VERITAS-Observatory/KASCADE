@@ -11,7 +11,7 @@
 #ifndef KSCOMMON_H
 #define KSCOMMON_H
 
-#include <cmath>    //For M_PI
+#include <TMath.h>    //For PI
 
 enum KSCameraTypes                         {VERITAS499=0,WHIPPLE490=1};
 const double gFocalLengthM[2]            = {        12.0,         7.3};
@@ -105,8 +105,8 @@ const double g490OuterPixelRadiusMM  = 12.5;
 const double g490OuterRingsAngularStepDeg=360.0/37.0;//Angular step size deg 
 const double gPulseHeightWidthFactor = 0.135;   //Used in pulseheight modeling
 
-const double gRad2Deg=180./M_PI;
-const double gDeg2Rad=M_PI/180.;
+const double gRad2Deg=180./TMath::Pi();
+const double gDeg2Rad=TMath::Pi()/180.;
 //const double gWhip490RotRad=-7.306*gDeg2Rad; //Whipple 490 camera is rotated 
 //                            //by this much: Handled in WhippleCams.h
 

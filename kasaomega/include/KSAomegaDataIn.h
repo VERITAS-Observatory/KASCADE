@@ -49,6 +49,8 @@ private:
   static double      sDefaultNewLightConeConcentration; 
   static double      sDefaultDigitalCountsPerPE; 
   static int         sDefaultRunNumber;
+  static double      sDefaultSinglePeRiseTimeNS;
+  static double      sDefaultSinglePeFallTimeNS;
 public:
   KSAomegaDataIn();
   virtual ~KSAomegaDataIn();
@@ -74,6 +76,8 @@ public:
   double      fDigitalCountsPerPE; 
   int         fRunNumber;
   VATelID     fTelescope;
+  double      fSinglePeRiseTimeNS;
+  double      fSinglePeFallTimeNS;
   
   std::string fVBFFileName;
   std::string fRootFileName;

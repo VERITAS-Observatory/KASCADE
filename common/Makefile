@@ -47,6 +47,9 @@ F77OBJECTS = $(addprefix $(TMPDIR)/, $(F77SOURCES:.for=.o))
 F90OBJECTS = $(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) 
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))  
 
+
+
+
 F90USEOBJECTS = $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) 
 
 TARGET_SHARED = $(LIBDIR)/libKascadeCppCommon.so
@@ -59,12 +62,12 @@ ifndef ROOTYES
 else
 	LIBTARGET := $(LIBTARGETROOT)
 	CPPOBJECTS=$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-                   $(TMPDIR)/root_dict.o
+                   $(TMPDIR)/root_dict_Kascade.o
 	LIBSOURCES := $(CPPOBJECTS) 
 	NOROOTFLAG :=
 endif
 
-
+SHAREDCPPOBJECTS= $(CPPOBJECTS)  out/root_dict_Kascade.o
 
 INCLUDES  := $(notdir $(shell ls $(INCDIR)/*.h ))
 CLASSDEFS := $(notdir $(shell grep ClassDef -l $(INCDIR)/*.h $(INCDIR)/*.hpp))
@@ -89,10 +92,10 @@ $(LIBTARGET): $(LIBSOURCES)
 	$(AR) r $@ $^
 	ranlib $@
 
-$(TARGET_SHARED): $(CPPOBJECTS)
+$(TARGET_SHARED): $(SHAREDCPPOBJECTS)
 	 $(BUILD_SHARED) -o $@ $^
 
-$(TMPDIR)/root_dict.cpp: $(addprefix $(INCDIR)/, $(CLASSDEFS))
+$(TMPDIR)/root_dict_Kascade.cpp: $(addprefix $(INCDIR)/, $(CLASSDEFS))
 	$(ROOTCINT) -v -f $@ -c -p $(ROOTCINTFLAGS) $^ include/LinkDef.h
 
 
@@ -112,7 +115,7 @@ $(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)): $(TMPDIR)/%.o: \
             $(INCDIR)/%.f90
 	$(F90) -o $@ -c $(F90FLAGS) $<  
 
-$(TMPDIR)/root_dict.o: $(TMPDIR)/root_dict.cpp
+$(TMPDIR)/root_dict_Kascade.o: $(TMPDIR)/root_dict_Kascade.cpp
 	$(CXX) -o $@ -c $(CFLAGS) $< 
 
 
@@ -125,8 +128,8 @@ clean:
 		$(addprefix $(TMPDIR)/, $(F90SOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(F90USESOURCES:.f90=.o)) \
 		$(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) \
-		$(TMPDIR)/root_dict.o \
-		$(TMPDIR)/root_dict.cpp $(TMPDIR)/root_dict.h 
+		$(TMPDIR)/root_dict_Kascade.o \
+		$(TMPDIR)/root_dict_Kascade.cpp $(TMPDIR)/root_dict_Kascade.h 
 #\
 #		out/.depend
 
