@@ -397,7 +397,7 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "If this option specified so must the SinglePeFallTimeNS "
 		    "option be specified! Default value (0.0) results in the "
 		    "telescope specified value in KSCommon.h to be used "
-		    "(Standard-Not Upgrade for VERITAS).");
+		    "(Upgrade for VERITAS).");
   doVAConfiguration(file, command_line, 
 		    "SinglePeFallTimeNS",sDefaultSinglePeFallTimeNS,
 		    "KSAomegaDataIn",
@@ -407,7 +407,7 @@ void KSAomegaDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "If this option specified so must the SinglePeRiseTimeNS "
 		    "option be specified! Default value (0.0) results in the "
 		    "telescope specified value in  KSCommon.h to be used. "
-		    "(Standard-Not Upgrade for VERITAS)");
+		    "(Upgrade for VERITAS)");
 }
 
 // ***********************************************************************
