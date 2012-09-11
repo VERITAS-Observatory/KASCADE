@@ -31,30 +31,33 @@ class KSPixel
 {
  public:
   KSPixel();
-  KSPixel(KSCameraTypes CameraType, double fDigCntPerPEHiGain);
+  KSPixel(KSCameraTypes CameraType, double DigCntPerPEHiGain);
   virtual ~KSPixel();
   void InitPixel();
-  void InitWaveForm(double fWaveFormStart,double fWaveFormLength);
+  void InitWaveForm(double WaveFormStartNS,double WaveFormLengthNS);
   void BuildPeWaveForm();
-  int  AddNoiseToWaveForm(bool fAfterPulse);
+  int  AddNoiseToWaveForm(bool afterPulse);
   void DetermineNoisePedestals();
-  void RemovePedestalFromWaveForm(double fWaveFormPedestal);
-  void AddPedestalToWaveForm(double fWaveFormPedestal);
-  double  GetCharge(double fTriggerTimeNS, bool fPedestalEvent);
-  double  GetCharge(double fTriggerTimeNS)
-                                     {return GetCharge(fTriggerTimeNS,false);};
+  void RemovePedestalFromWaveForm(double waveFormPedestal);
+  void AddPedestalToWaveForm(double waveFormPedestal);
+  double  GetCharge(double triggerTimeNS, bool pedestalEvent);
+  double  GetCharge(double triggerTimeNS)
+                                     {return GetCharge(triggerTimeNS,false);};
   void PrintWaveForm(int nx, int ny, int seqNum,double time);
   void PrintPulseHeightsOfLightPulse();
  private:
-  void addPe(double fPeTime,bool fAfterPulse);
+  void addPe(double fPeTime,bool afterPulse);
+
+
   float fXDummy;
   KSCameraTypes fCameraType;
-  TRandom3* pRandom;
+  TRandom3* pfRandom;
 
  
  public:
   KSSinglePe* pfSinglePe;
   KSFADC fFADC;
+
   int    fID;
   double fHalfSpacingDeg;
   double fRadiusDeg;
@@ -78,6 +81,7 @@ class KSPixel
   //WaveForm stuff
   std::vector<double> fWaveForm;
   double fWaveFormStartNS;
+  double fWaveFormLengthNS;
   int    fNumWaveFormBins;
   double fWaveFormNightSkyPedestal;
   double fPedPE;

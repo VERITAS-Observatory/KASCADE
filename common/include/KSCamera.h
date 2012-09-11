@@ -45,7 +45,7 @@ class KSCamera
 	   double fNoiseRateSigma, int numPixelsInTrigger,
 	   double PSFNSDeg=-1.0, double PSFEWDeg=-1.0);
  private:
-  void InitCamera(KSTeHeadData* pTeHead,bool fUsePatternTrigger);
+  void InitCamera(KSTeHeadData* pTeHead,bool usePatternTrigger);
  public:
   virtual ~KSCamera();
 
@@ -55,7 +55,7 @@ class KSCamera
   void buildNonTriggerWaveForms();
   void loadNoiseRatesAndPeds();
   double getPSTTriggerTimeNS(){return pfCameraTrigger->fPSTTriggerTimeNS;};
-  bool getPixelIndex(double fWX, double fWY, int& fPixelIndex);
+  bool getPixelIndex(double WX, double WY, int& pixelIndex);
   void InitPixelImageData();
   void Print();
   void loadAPedestalEventIntoPedPixels();
@@ -72,8 +72,8 @@ class KSCamera
 
   void generateCameraPixels();
   void loadPixelCharacteristics();
-  bool trywhipple490OuterPixels(double fXDeg, double fYDeg, int&fIPix);
-  void findWaveFormLimits(double& fWaveFormStartNS, double& fWaveFormLengthNS);
+  bool trywhipple490OuterPixels(double XDeg, double YDeg, int&IPix);
+  void findWaveFormLimits(double& WaveFormStartNS, double& WaveFormLengthNS);
 
   KSTeHeadData* pfTeHead;
   KSCameraTrigger* pfCameraTrigger;

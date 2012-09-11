@@ -92,11 +92,11 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
   //    when we generate pedestal events.  All we want is a place to keep the 
   //    waveforms, anything else is already set up in fPixels
   // ************************************************************************
-  KSPixel fPixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
+  KSPixel pixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
                                                      //pixel to start with
-  int fPedPixelsSize=fPixel.size();
+  int pedPixelsSize=fPixel.size();
   fPedPixels.clear();
-  fPedPixels.resize(fPedPixelsSize,fPixelElem);//Allocate pixels
+  fPedPixels.resize(pedPixelsSize,pixelElem);//Allocate pixels
   // Some stuff gets filled in in loadNoiseRatesAndPeds
   return;
 }
@@ -543,7 +543,7 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
  
   int numCFDTriggers=0;
   int numCFDNoiseTriggers=0;
-  int numCFDRealTriggers=0;
+  //int numCFDRealTriggers=0;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
       // **************************************************************
@@ -597,7 +597,7 @@ int KSCamera::buildTriggerWaveForms(int nx, int ny)
   // Now generate wave forms from sky shine for Trigger Pixels that don't
   // have any real pes in them(before efficiency cut) and see if they trigger.
   // ******************************************************************** 
-  numCFDRealTriggers=numCFDTriggers;
+  //numCFDRealTriggers=numCFDTriggers;
   numCFDTriggers+=numCFDNoiseTriggers;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
@@ -763,22 +763,25 @@ void KSCamera::loadAPedestalEventIntoPedPixels()
   // ********************************************************************
   // First task is to fill up the waveforms.
   // ********************************************************************
-  double fTraceLengthNS=gFADCNumSamples[fCameraType]*gFADCBinSizeNS+1;
-  for(int i=0;i<gNumPixelsCamera[fCameraType];i++)
-    {
-      fPedPixels.at(i).InitWaveForm(0.0,fTraceLengthNS);
-      bool fAfterPulse=false;
-      fPedPixels.at(i).AddNoiseToWaveForm(fAfterPulse);  
-      //Note that this noise has not been modified by overall efficiency 
-      //but has been modified by light cone efficiency
-      // ****************************************************************
-      // Note: For both WHIPPLE and VERITAS the wave form fed to the 
-      // ADC/FADC is ac coupled(0 mean) which in our case means the night 
-      // sky pedestal has to be removed. 
-      // ****************************************************************
-      fPedPixels.at(i).RemovePedestalFromWaveForm(
-			     fPedPixels.at(i).fWaveFormNightSkyPedestal);
-    }
+  double traceLengthNS=gFADCNumSamples[fCameraType]*gFADCBinSizeNS+1;
+  for(int i=0;i<gNumPixelsCamera[fCameraType];i++){
+    double pedStart=0.0;
+    fPedPixels.at(i).InitWaveForm(pedStart,traceLengthNS);
+    bool afterPulse=false;
+    fPedPixels.at(i).AddNoiseToWaveForm(afterPulse);  
+ 
+    // ****************************************************************
+    //Note that this noise has not been modified by overall efficiency 
+    //but has been modified by light cone efficiency
+    // ****************************************************************
+    // Note: For both WHIPPLE and VERITAS the wave form fed to the 
+    // ADC/FADC is ac coupled(0 mean) which in our case means the night 
+    // sky pedestal has to be removed. 
+    // ****************************************************************
+    
+    fPedPixels.at(i).RemovePedestalFromWaveForm(
+			          fPedPixels.at(i).fWaveFormNightSkyPedestal);
+  }
   return;
 }
 // ***********************************************************************

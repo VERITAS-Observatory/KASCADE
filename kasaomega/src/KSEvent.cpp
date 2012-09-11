@@ -72,8 +72,16 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 			numPixelsInTrigger);
   
   if(pfDataIn->fSinglePeRiseTimeNS!=0 && pfDataIn->fSinglePeFallTimeNS!=0){
+    std::cout<<"KSEvent: Reset Rising Slope to: "<<pfDataIn->fSinglePeRiseTimeNS
+	     <<"ns"<<std::endl;
+    std::cout<<"KSEvent: Reset Falling Slope to: "<<pfDataIn->fSinglePeFallTimeNS
+	     <<"ns"<<std::endl;
+
     for(int i=0;i<numPixelsInTrigger;i++){
       pfCamera->fPixel.at(i).pfSinglePe->setRiseFallTimes(
+					     pfDataIn->fSinglePeRiseTimeNS, 
+					     pfDataIn->fSinglePeFallTimeNS);
+      pfCamera->fPedPixels.at(i).pfSinglePe->setRiseFallTimes(
 					     pfDataIn->fSinglePeRiseTimeNS, 
 					     pfDataIn->fSinglePeFallTimeNS);
     }
@@ -417,7 +425,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   pfVDFOut=NULL;
   if(pfDataIn->fRootFileName!=" ")
     {
-      VAArrayInfo* pfArrayInfo;
+      //VAArrayInfo* pfArrayInfo;
       KSVDFHelper* pfVDFHelper = new KSVDFHelper(fNumPixels, fEventTime, 
 			    E_T1, gFADCWinSize[fCameraType], fCameraType);
       double fEastLongitude;
@@ -426,7 +434,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       pfVDFHelper->CreateVDFFile(pfDataIn->fRootFileName,fEastLongitude,
 				       fLatitude);
       pfVDFOut=pfVDFHelper->getVDFFilePtr();
-      pfArrayInfo=pfVDFOut->getArrayInfoPtr();
+      //pfArrayInfo=pfVDFOut->getArrayInfoPtr();
       
       std::cout<<"KSAomega: Output VDF Root File: "<<pfDataIn->fRootFileName
 	       <<std::endl;
@@ -736,76 +744,70 @@ void KSEvent::SaveImage()
   // *********************************************************************
   // See if we need to write a Pedestal event out
   // *********************************************************************
-  if(fNewSeconds>fOriginalSeconds)
-    {
-	  uint32_t fYear,fMonth,fDay,H,M,S,NS;
-	  fEventTime.getCalendarDate(fYear,fMonth,fDay);
-	  fEventTime.getTime(H,M,S,NS);
-	  NS=0;   //On the tick!
-	  VATime fPedestalEventTime;
-	  fPedestalEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
-							H,M,S,NS);
-	  pfCamera->loadAPedestalEventIntoPedPixels();
+  if(fNewSeconds>fOriginalSeconds){
+    uint32_t fYear,fMonth,fDay,H,M,S,NS;
+    fEventTime.getCalendarDate(fYear,fMonth,fDay);
+    fEventTime.getTime(H,M,S,NS);
+    NS=0;   //On the tick!
+    VATime fPedestalEventTime;
+    fPedestalEventTime.setFromCalendarDateAndTime(fYear,fMonth,fDay,
+						  H,M,S,NS);
+    pfCamera->loadAPedestalEventIntoPedPixels();
 
-	  //Pedestal event to VBF file
-	  if(pfDataIn->fVBFFileName!=" ")
-	    {
-	      bool fPedestalEvent=true;
-	      pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, 
-			     fPedestalEventTime, 
-				 fFADCStartGateTimeNS, pfTe,fPedestalEvent,
-				 0.0,0.0);
-	    }
-	  if(pfDataIn->fRootFileName!=" ")
-	    {
-	      // *************************************************************
-	      //Create, Fill and Write out a Pedestal VACalibratedEvent and 
-	      // Save  the VASimulation event MC tags
-	      // *************************************************************
-	      bool fPedestalEvent=true;
-	      CreateRootEvent(fPedestalEvent,fPedestalEventTime);
-	      pfVDFOut->writeCalibratedArrayEvent(1);
-	      pfVDFOut->writeSimulationData();
-	    }
-	  fNumPedestalEvents++;
-
-	  if(pfDataIn->fVBFFileName!=" " ||pfDataIn->fRootFileName!=" ")
-	    {
-	      fEventIndex++; 
-	    }
+    //Pedestal event to VBF file
+    if(pfDataIn->fVBFFileName!=" "){
+      bool fPedestalEvent=true;
+      pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, 
+			 fPedestalEventTime, 
+			 fFADCStartGateTimeNS, pfTe,fPedestalEvent,
+			 0.0,0.0);
     }
+    if(pfDataIn->fRootFileName!=" "){
+      // *************************************************************
+      //Create, Fill and Write out a Pedestal VACalibratedEvent and 
+      // Save  the VASimulation event MC tags
+      // *************************************************************
+      bool fPedestalEvent=true;
+      CreateRootEvent(fPedestalEvent,fPedestalEventTime);
+      pfVDFOut->writeCalibratedArrayEvent(1);
+      pfVDFOut->writeSimulationData();
+    }
+    fNumPedestalEvents++;
 
-  if(pfDataIn->fRootFileName!=" ")
-    {
+    if(pfDataIn->fVBFFileName!=" " ||pfDataIn->fRootFileName!=" "){
+      fEventIndex++; 
+    }
+  }
+
+  if(pfDataIn->fRootFileName!=" "){
       
-      // ********************************************************************
-      //Create, Fill and Write out a VACalibratedEvent and Save  the 
-      //VASimulation event MC tags
-      // ********************************************************************
-      bool fPedestalEvent=false;
-      CreateRootEvent(fPedestalEvent,fEventTime);
-
-      pfVDFOut->writeCalibratedArrayEvent(1);//Only one telescope to write
-
-      pfVDFOut->writeSimulationData();  //This write works because we already 
-      //set with setSimulationPtr pfSimEvent as our simulation pointer within 
-      //createSimulationEventTree.
-    }
+    // ********************************************************************
+    //Create, Fill and Write out a VACalibratedEvent and Save  the 
+    //VASimulation event MC tags
+    // ********************************************************************
+    bool fPedestalEvent=false;
+    CreateRootEvent(fPedestalEvent,fEventTime);
+    
+    pfVDFOut->writeCalibratedArrayEvent(1);//Only one telescope to write
+    
+    pfVDFOut->writeSimulationData();  //This write works because we already 
+    //set with setSimulationPtr pfSimEvent as our simulation pointer within 
+    //createSimulationEventTree.
+  }
 
   //  ******************************************************************
   // Write out event to VBF file
   // *******************************************************************
-  if(pfDataIn->fVBFFileName!=" ")
-    {
-      // ********************************************************************
-      // Write out a VAArrayEvent
-      // ********************************************************************
-      float fCoreEastM  = -(float)findTelescopeXM();
-      float fCoreSouthM = -(float)findTelescopeYM();
-      pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
-			 fFADCStartGateTimeNS, pfTe,false,fCoreEastM,
-			 fCoreSouthM);
-    } 
+  if(pfDataIn->fVBFFileName!=" "){
+    // ********************************************************************
+    // Write out a VAArrayEvent
+    // ********************************************************************
+    float fCoreEastM  = -(float)findTelescopeXM();
+    float fCoreSouthM = -(float)findTelescopeYM();
+    pfVBFOut->WriteVBF(fEventIndex+1, pfDataIn->fTelescope, fEventTime, 
+		       fFADCStartGateTimeNS, pfTe,false,fCoreEastM,
+		       fCoreSouthM);
+  } 
   fEventIndex++;
   return;
 }

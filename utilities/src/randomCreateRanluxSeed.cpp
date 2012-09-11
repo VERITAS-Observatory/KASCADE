@@ -26,7 +26,8 @@ int main( int argc, char **argv )
  {
    bool seedSupplied=false;
    int primeSeed;
-   char* oFilename="";
+   //char* oFilename="";
+   char* oFilename;
    bool outID=false;
 
    cout<<"randomCreateRanluxSeed:Creating new RanLux seed file values"<<endl;

@@ -86,8 +86,10 @@ const double gPSTStrobeDelayNS           = 6.0;
 // April 2010
 // ***********************************************************************
 // Veritas measured:
-const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
-const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+//const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
+//const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+const double gSinglePeRiseTimeNS[2]      = {          1.7,         2.0};
+const double gSinglePeFallTimeNS[2]      = {         4.75,         8.5};
 
 //const double gSinglePeRiseTimeNS[2]      = {         2.8,         2.0};
 //const double gSinglePeFallTimeNS[2]      = {         8.0,         8.5};

@@ -21,17 +21,14 @@
 //const double kSinglePePulseHeightSigma=.275;
 const double kSinglePePulseHeightSigma=.45;
 
-
-
-
 // ********************************************************************
 // Original Single PE. Measured in lab at Purdue by John Finley
 // ********************************************************************
-//const double kBaseRiseTimeNS=2.0;  //ns
-//const double kBaseFallTimeNS=8.5;  //ns
-//const int    kBaseSize=67;
-//const int    kBaseRiseSize=17;
-//const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
+//  const double kBaseRiseTimeNS=2.0;  //ns
+//  const double kBaseFallTimeNS=8.5;  //ns
+//  const int    kBaseSize=67;
+//  const int    kBaseRiseSize=17;
+//  const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
 //
 //const static double kBasePulse[kBaseSize]=
 //    {
@@ -46,8 +43,6 @@ const double kSinglePePulseHeightSigma=.45;
 //    };
 // ***********************************************************************
 
- 
-
 // ***********************************************************************
 // VERITAS single Pe measured by Pat Moriarty/Mary Kertzman April, 2010
 // Measured 16 channels from T1 T2 and T4. This is average pulse at FADC
@@ -55,6 +50,11 @@ const double kSinglePePulseHeightSigma=.45;
 // Source saved in KASCADE repository under KASCADE/calibrartions/SinglePe.
 // ***********************************************************************
 //Original VERITAS single pe pulse
+//const double kBaseRiseTimeNS=3.2;  //ns
+//const double kBaseFallTimeNS=8.5;  //ns
+//const int    kBaseSize=120;
+//const int    kBaseRiseSize=27;
+//const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
 //const static double kBasePulse[kBaseSize]=
 //  {
 //    0.008, 0.011, 0.012, 0.015, 0.021, 0.031, 0.035, 0.041, 0.056,
@@ -72,18 +72,21 @@ const double kSinglePePulseHeightSigma=.45;
 //    0.045, 0.043, 0.045, 0.041, 0.046, 0.042, 0.039, 0.040, 0.050,
 //    0.034, 0.020, 0.010
 //  };
+// ************************************************************************
 
-
-// VERITAS Upgrade single Pe measured by Nepomuk
+// ************************************************************************
+// VERITAS Upgrade single Pe measured by Nepomuk Spring 2012
+// ************************************************************************
 const double kBaseRiseTimeNS=1.7;  //ns
 const double kBaseFallTimeNS=4.75;  //ns
-const int    kBaseSize=175;
 const int    kBaseRiseSize=27;
+const int    kBaseSize=175;
+const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
 
 const static double kBasePulse[kBaseSize]=
   {
     0.00861,0.000293, 0.00243,-0.00156,-0.00591, -0.0146, -0.0106,-0.00435,
-    0.00823,  0.0101,-0.000694,-0.00029, 0.00229,  0.0111,-0.000993,  0.0262,
+    0.00823,  0.0101,-0.000694,-0.00029,0.00229,  0.0111,-0.000993, 0.0262,
      0.0559,  0.0981,   0.149,   0.256,   0.396,   0.556,   0.726,   0.871,
       0.965,   0.996,       1,   0.971,   0.932,   0.881,    0.84,   0.817,
       0.773,   0.706,   0.647,   0.598,    0.56,   0.507,   0.446,   0.388,
@@ -102,12 +105,9 @@ const static double kBasePulse[kBaseSize]=
      0.0305,  0.0252,  0.0286,  0.0318,  0.0224, 0.00783,  0.0194,  0.0245,
      0.0333,  0.0223,  0.0144,   0.012,  0.0145,  0.0181,  0.0143,   0.025,
      0.0334,  0.0233,  0.0256,  0.0241,  0.0173,  0.0307,  0.0248,  0.0176,
-    0.00956,  0.0206,   0.021,  0.0234,   0.021,  0.0136,  0.0226,  0.0214,
-    0.0234,  0.0271,  0.0181,   0.024,  0.0119,  0.0248,  0.0306
-};
-
-
-const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
+     0.00956, 0.0206,   0.021,  0.0234,   0.021,  0.0136,  0.0226,  0.0214,
+     0.0234,  0.0271,  0.0181,   0.024,  0.0119,  0.0248,  0.0306
+  };
 
 // *************************************************************************
 

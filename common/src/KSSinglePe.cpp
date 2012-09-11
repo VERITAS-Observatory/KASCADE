@@ -43,116 +43,129 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 // ************************************************************************
 //    This method builds the single pe pulse shape. Max value is normalized 
 //    to 1. Scale the size of the pulse to the risetime using interpolation.
-//    Inital pulse has 2.0 ns risetime.  Also determine area.
+//    Inital pulse has kBaseRiseTimeNS risetime.  Also determine area.
 // ************************************************************************
 {
-  fSinglePulseRiseTimeNS=SinglePulseRiseTimeNS;
-  fSinglePulseFallTimeNS=SinglePulseFallTimeNS;
+  fSinglePulseRiseTimeNS=SinglePulseRiseTimeNS;  //Comes from options usually
+  fSinglePulseFallTimeNS=SinglePulseFallTimeNS;  // or KSCommon defaults
 
                                                     //Ratio of pulse widths.
   double fRiseTimeRatio=(fSinglePulseRiseTimeNS/kBaseRiseTimeNS);
   double fFallTimeRatio=(fSinglePulseFallTimeNS/kBaseFallTimeNS);
   int fNumBinsInRisingPulse=int(fRiseTimeRatio*kBaseRiseSize);
   int fNumBinsInFallingPulse=int(fFallTimeRatio*kBaseFallSize);
-  if(fNumBinsInRisingPulse<1 || fNumBinsInFallingPulse<1)
-    {
-      std::cout<<"KSSinglePe: Rise or Fall Size is too small. risesize:"
-	       <<fNumBinsInRisingPulse<<" Fall size:"<<fNumBinsInFallingPulse 
-	       <<std::endl;
-      exit(1);
-    }
+  if(fNumBinsInRisingPulse<1 || fNumBinsInFallingPulse<1){
+    std::cout<<"KSSinglePe: Rise or Fall Size is too small. risesize:"
+	     <<fNumBinsInRisingPulse<<" Fall size:"<<fNumBinsInFallingPulse 
+	     <<std::endl;
+    exit(1);
+  }
+
+  // ******************************************************************************
+  // In the hope of keeping the timing the same in the FADC window for all pulses
+  // we will try to keep the position of the peak the same as the Base pulse. If this
+  // is not possible (rise time is faster than base pulse we will fill in with zero's
+  // Otherwise if its expanded we drop off the starting bins
+  // ******************************************************************************
   fNumBinsInPulse=kBaseRiseSize+fNumBinsInFallingPulse;//Keep peak at same place
+
+  
   pfSinglePulse.clear();
-  pfSinglePulse.resize(fNumBinsInPulse);
-  std::cout<<"fRiseTimeRatio, fFallTimeRatio,fNumBinsInRisingPulse, "
-    "fNumBinsInFallingPulse, fNumBinsInPulse: "<<fRiseTimeRatio<<' '<< fFallTimeRatio
-	   <<' '<<fNumBinsInRisingPulse<<' '<< fNumBinsInFallingPulse<<' '
-	   << fNumBinsInPulse<<std::endl;
+  pfSinglePulse.resize(fNumBinsInPulse,0); //non filled bins will be 0
+  
+  // std::cout<<"fRiseTimeRatio, fFallTimeRatio,fNumBinsInRisingPulse, "
+  //           "fNumBinsInFallingPulse, fNumBinsInPulse, kBaseRiseSize: "
+  //	   <<fRiseTimeRatio<<' '
+  //	   <<fFallTimeRatio<<' '<<fNumBinsInRisingPulse<<' '<< fNumBinsInFallingPulse
+  //	   <<' '<< fNumBinsInPulse<<' '<<kBaseRiseSize<<std::endl;
+
   // ********************************************************************
   // Interpolate rising part of pulse
   //Note here that we always want the pulse to be centered at kBaseRiseSize with the
-  //First bin at 0.
+  //First bin at value 0.
+  // If requested rise is less than kBaseRise we fill in start with 0.
+  // If reqesrted rise is greater than kBaseRise we chop off bins that would come
+  // before bin 0.
+  // Note Upgrade pulse  is very narrow and has leading ~0 bins that can be dropped
+  // for slower rise pulses.
   // ********************************************************************
-  if(fNumBinsInRisingPulse==kBaseRiseSize)
-    {                                   //No change from base.
-      for(int i=0;i<kBaseRiseSize;i++)pfSinglePulse.at(i)=kBasePulse[i];
-      std::cout<<"KSSinglePe: Riseing Slope:/No change from base."<<std::endl;
-    }            
-  else
-    {
-      
-      int pBin=0;
-      int startBin=fNumBinsInRisingPulse-kBaseRiseSize-1;
-	pfSinglePulse.at(0)=kBasePulse[0];    //Starts at same place
-      for (int j=startBin;j<fNumBinsInRisingPulse-1; j++)
-	                                 //different from base:interpolate.
-	{
-	  double aindex=(j/fRiseTimeRatio);//fractional index within 
-	                                   //kBasePulse.
-	  int k=int(aindex);
-	  double fFraction=(aindex-(double)k);
- 
-	  if(k+1>kBaseRiseSize)
-	    {
-	      std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
-		       <<std::endl;
-	      exit(1);
-	    }
-	  pBin=j-startBin;
-	  pfSinglePulse.at(pBin)=kBasePulse[k]+
-	                           fFraction*(kBasePulse[k+1]-kBasePulse[k]);
-	}
-                                         //ends at same place. (1.0)
-      pfSinglePulse.at(kBaseRiseSize-1)=kBasePulse[kBaseRiseSize-1];  
+  if(fNumBinsInRisingPulse==kBaseRiseSize){        //No change from base.
+    for(int i=0;i<kBaseRiseSize;i++){
+      pfSinglePulse.at(i)=kBasePulse[i];
     }
+    std::cout<<"KSSinglePe: Rising Slope:Base: "<<kBaseRiseTimeNS<<"ns"<<std::endl;
+  }            
+  else{
+    int pBin=0;
+    int startBin=fNumBinsInRisingPulse-kBaseRiseSize-1;
+    if(startBin<0){
+      startBin=0;
+    }
+ 
+    for (int j=startBin;j<fNumBinsInRisingPulse-1; j++){
+	                                 //different from base:interpolate.
+      double aindex=(j/fRiseTimeRatio);//fractional index within kBasePulse.
+      int k=int(aindex);
+
+      double fFraction=(aindex-(double)k);
+ 
+      if(k+1>kBaseRiseSize){
+	std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
+		 <<std::endl;
+	exit(1);
+      }
+      pBin=j-startBin;
+      pfSinglePulse.at(pBin)=kBasePulse[k]+fFraction*(kBasePulse[k+1]-kBasePulse[k]);
+    }
+    //ends at same place. (1.0)
+    pfSinglePulse.at(kBaseRiseSize-1)=kBasePulse[kBaseRiseSize-1];  
+  }
+  
   // **********************************************************************
   //Now the falling second half of the pulse.
+  // The tail expanda or contrack in the new pulse as requested.
   // **********************************************************************
-  if(fNumBinsInFallingPulse==kBaseFallSize)
-    {                                   //No change from base.
-      for(int i=0;i<kBaseFallSize;i++)
-	{
-	  int j=kBaseRiseSize+i;
-	  int k=kBaseRiseSize+i;
-	  pfSinglePulse.at(j)=kBasePulse[k];
-	}
-      std::cout<<"KSSinglePe: Falling slope:/No change from base."<<std::endl;
+  if(fNumBinsInFallingPulse==kBaseFallSize){      //No change from base.
+    for(int i=0;i<kBaseFallSize;i++){
+      int j=kBaseRiseSize+i;   //This reflects attempt to keep peak in the same place
+      int k=kBaseRiseSize+i;
+      pfSinglePulse.at(j)=kBasePulse[k];
     }
-  else
-    {
-      for (int j=0;j<fNumBinsInFallingPulse-1; j++)
-	                                 //different from base:interpolate.
-	{
-	  double aindex=(j/fFallTimeRatio);//fractional index within 
-	                                   //kBasePulse.
-	  int k=int(aindex);
-	  double fFraction=aindex-(double)k;
-	  k=k+kBaseRiseSize;
-	  double fBaseDifference;
-	  if((k+1)==kBaseSize)
-	    {
-	      fBaseDifference=0;
-	    }
-	  else if(k+1>kBaseSize)
-	    {
-	      std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
-		       <<std::endl;
-	      exit(1);
-	    }
-	  else
-	    {
-	      fBaseDifference=(kBasePulse[k+1]-kBasePulse[k]);
-	    }
+    std::cout<<"KSSinglePe: Falling Slope:Base: "<<kBaseFallTimeNS<<"ns"<<std::endl;
+  }
+  else{
 
-	  int m=kBaseRiseSize+j;
-	  pfSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
-	}
-                                         //ends at same place.
-      pfSinglePulse.at(fNumBinsInPulse-1)=kBasePulse[kBaseSize-1];  
+    for (int j=0;j<fNumBinsInFallingPulse-1; j++){  //different from base:interpolate.
+
+      double aindex=(j/fFallTimeRatio);//fractional index within kBasePulse.
+      int k=int(aindex);
+      double fFraction=aindex-(double)k;
+      k=k+kBaseRiseSize;
+      double fBaseDifference;
+      if((k+1)==kBaseSize){
+	fBaseDifference=0;
+      }
+      else if(k+1>kBaseSize){
+	std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
+		 <<std::endl;
+	exit(1);
+      }
+      else{
+	fBaseDifference=(kBasePulse[k+1]-kBasePulse[k]);
+      }
+
+      int m=kBaseRiseSize+j;
+      pfSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
     }
+                                         //ends at same place.
+    pfSinglePulse.at(fNumBinsInPulse-1)=kBasePulse[kBaseSize-1];  
+  }
   fLengthNS=fNumBinsInPulse*gWaveFormBinSizeNS;
   fArea=0;
-  for(int i=0;i<fNumBinsInPulse;i++)fArea+=pfSinglePulse.at(i);
+  for(int i=0;i<fNumBinsInPulse;i++){
+    fArea+=pfSinglePulse.at(i);
+  }
+  return;
 }
 // ************************************************************************
 

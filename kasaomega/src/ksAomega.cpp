@@ -355,16 +355,20 @@ int main(int argc, char** argv)
       // ---------------------------------------------------------------------
       while(1)
 	{
+	  //cout<<"at 1,";
 	  bool fShowerEnded = fEvent.BuildImage();
 	  if(fShowerEnded)
 	    {
 	      break;
 	    }
+	  //cout<<"2,";
 	  bool fTriggered=fEvent.ProcessImage();
 	  if(fTriggered)
 	    {
+	      //  cout<<"3,";
 	      fEvent.SaveImage();   //Write event to output file(s).
 	    }
+	  //cout<<"4"<<endl;
 	}
 
       fEvent.Close();
