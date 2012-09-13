@@ -16,6 +16,10 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
 
 #include "KSSinglePe.h"
 #include "KSFADC.h"
@@ -63,7 +67,7 @@ class KSPixel
   double fRadiusDeg;
   double fXDeg;
   double fYDeg;
-  std::vector<int> fAdjacentPixels;
+  vector<int> fAdjacentPixels;
 
   double fBaseEfficiency;     //Efficency from config file
   double fEfficiency;         //Overall efficency to see pes (0.0 <--> 1.0 )
@@ -76,10 +80,10 @@ class KSPixel
   bool   fDiscTrigger;        //This pixels fires
 
   // Timing stuff
-  std::vector<double> fTimePe;
+  vector<double> fTimePe;
 
   //WaveForm stuff
-  std::vector<double> fWaveForm;
+  vector<double> fWaveForm;
   double fWaveFormStartNS;
   double fWaveFormLengthNS;
   int    fNumWaveFormBins;
@@ -89,7 +93,7 @@ class KSPixel
   double fPedDC;
   double fChargeVarDC;  //Veritas:units of FADC DC
 
-  std::vector< double> fCFDTriggerTimeNS;
+  vector< double> fCFDTriggerTimeNS;
 
 
   double fRelativeGain;

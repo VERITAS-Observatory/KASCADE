@@ -14,8 +14,6 @@
 // This is where the code starts.
 
 #include "KSPixel.h"
-#include <iostream>
-#include <iomanip>
 
 
 extern "C" double Rexp(double rate);
@@ -123,7 +121,7 @@ int KSPixel::AddNoiseToWaveForm(bool afterPulse)
     }
   
 
-  //std::cout<<"Num noise pe's:"<<icount<<std::endl;
+  //cout<<"Num noise pe's:"<<icount<<endl;
   return icount;
 }
 
@@ -137,54 +135,54 @@ void KSPixel::addPe(double peTimeNS,bool afterPulse)
   // PeTimeNS could be negative
   // **********************************************************************
   int EndInWaveFormThisPeNS=peTimeNS+fSinglePeSizeNS+gWaveFormBinSizeNS;
-  if(( EndInWaveFormThisPeNS)>0){ //End of pe after start.
-     
-    // ************************************************************************
-    // The single pe we are adding ends after the start of the wave form.
-    // See if it starts after the end of the waveform.
-    // ************************************************************************
-    int startBin=(int)(peTimeNS/gWaveFormBinSizeNS);//Noise can start at 
-                                                    // or before 0.
-    if(startBin>fNumWaveFormBins-1){
-      return;
-    }
-      
-     
-    // **************************************************************************
-    // Find where it starts. If before the wave form find place in the single pe
-    // that goes into first bin of wave form
-    // **************************************************************************
+  if(EndInWaveFormThisPeNS<=0){ //End of pe before waveform start.
+    return;
+  }
 
-    int peStartIndex=0;       //Nominal atart and end index of single pe
-    int peEndIndex=fSinglePeSizeNumBins-1;
-    if(startBin<0)              //We only have the tail end of the pe pulse
-      {
-	peStartIndex=-startBin;   //So we skip the first startBin's of the single pe 
-	startBin=0;               //and we put that in first wave form bin
-      }
-      
-    // *******************************************************************************
-    // If pulse ends after the end of the wave form reduce to that.
-    // *****************************************************************************
-    if((startBin+fSinglePeSizeNumBins-1)>=fNumWaveFormBins){
-      peEndIndex=fNumWaveFormBins-startBin-1;
+  // ************************************************************************
+  // The single pe we are adding ends after the start of the wave form.
+  // See if it starts after the end of the waveform.
+  // ************************************************************************
+  int startBin=(int)(peTimeNS/gWaveFormBinSizeNS);//Noise can start at 
+  // or before 0.
+  if(startBin>fNumWaveFormBins-1){
+    return;
+  }
+  
+  
+  // **************************************************************************
+  // Find where it starts. If before the wave form find place in the single pe
+  // that goes into first bin of wave form
+  // **************************************************************************
+  
+  int peStartIndex=0;       //Nominal atart and end index of single pe
+  int peEndIndex=fSinglePeSizeNumBins-1;
+  if(startBin<0)              //We only have the tail end of the pe pulse
+    {
+      peStartIndex=-startBin;   //So we skip the first startBin's of the single pe 
+      startBin=0;               //and we put that in first wave form bin
     }
-    
-    double pulseHeight=pfSinglePe->getPulseHeight(afterPulse);
-
-    // Now load in the single pe
-    int waveFormIndex=startBin;     
-    for(int i=peStartIndex;i<=peEndIndex;i++){
-      if( i<0 ||
-	  i>(int)pfSinglePe->pfSinglePulse.size()-1){
-	std::cout<<"Out of range SinglePe: i: "<<i<<std::endl;
-      }
-      if(waveFormIndex<0 || waveFormIndex >(int)fWaveForm.size()-1 ) {
-	std::cout<<"Out of range waveformindex: "<<waveFormIndex<<std::endl;
-      }
-      fWaveForm.at(waveFormIndex)+=pfSinglePe->pfSinglePulse.at(i)*pulseHeight;
-      waveFormIndex++;
-    }
+  
+  // *******************************************************************************
+  // If pulse ends after the end of the wave form reduce to that.
+  // *****************************************************************************
+  if((startBin+fSinglePeSizeNumBins-1)>=fNumWaveFormBins){
+    peEndIndex=fNumWaveFormBins-startBin-1;
+  }
+  
+  double pulseHeight=pfSinglePe->getPulseHeight(afterPulse);
+  
+  // Now load in the single pe
+  int waveFormIndex=startBin;     
+  for(int i=peStartIndex;i<=peEndIndex;i++){
+    //    if( i<0 || i>(int)pfSinglePe->pfSinglePulse.size()-1){
+    // cout<<"Out of range SinglePe: i: "<<i<<endl;
+    // }
+    //if(waveFormIndex<0 || waveFormIndex >(int)fWaveForm.size()-1 ) {
+    //  cout<<"Out of range waveformindex: "<<waveFormIndex<<endl;
+    // }
+    fWaveForm.at(waveFormIndex)+=pfSinglePe->pfSinglePulse.at(i)*pulseHeight;
+    waveFormIndex++;
   }
   return;
 } 
@@ -290,7 +288,7 @@ void KSPixel::DetermineNoisePedestals()
 	{
 	  int chargeSum =                    // Start next window at i
 	             (int)fFADC.getWindowArea(i,gFADCWinSize[fCameraType]);
-	  //std::cout<<chargeSum<<std::endl;
+	  //cout<<chargeSum<<endl;
 	  pedSum+=chargeSum;
 	  ped2Sum+=chargeSum*chargeSum;
 	  iCount++;//Just being careful here.
@@ -298,13 +296,13 @@ void KSPixel::DetermineNoisePedestals()
       fPedDC  =  pedSum/(double)iCount; //This is Charge pedestal in FADC's
       double pedMean2 =  ped2Sum/(double)iCount;
       fChargeVarDC=sqrt(pedMean2-fPedDC*fPedDC);
-      //      std::cout<<"fID,iCount,pedSum,pedDC,fChargeVarDC, "
+      //      cout<<"fID,iCount,pedSum,pedDC,fChargeVarDC, "
       //	"fWaveFormNightSkyPedestal: "
-      //std::cout<<fID<<" "<<fICount<<" "<<fNoiseRatePerNS
+      //cout<<fID<<" "<<fICount<<" "<<fNoiseRatePerNS
       //	       <<" "<<iCount
       //	       <<" "<<pedSum<<" "<<fPedDC<<" "<<fChargeVarDC
       //       <<" "<<fWaveFormNightSkyPedestal<<" "<<fSinglePeMeanFADCArea
-      //	       <<std::endl;
+      //	       <<endl;
     }
   return;
 }
@@ -399,8 +397,8 @@ void KSPixel::PrintWaveForm(int nx, int ny, int seqNum,
   for(int i=0;i<numBins;i++)
     {
       double binTime=fWaveFormStartNS+i*gWaveFormBinSizeNS;
-      std::cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<fID<<" "<<binTime<<" "
-	       <<fWaveForm.at(i)<<" "<<time<<std::endl;
+      cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<fID<<" "<<binTime<<" "
+	       <<fWaveForm.at(i)<<" "<<time<<endl;
     }
   return;
 }
@@ -415,15 +413,15 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 {
   // Make 5000 6 pe light pulses.
   int numPes[6]={4,5,6,8,10,12};
-  std::cout<<"N/I:P1/F:A1/F:P2/F:A2/F:P3/F:A3/F:P4/F:A4/F:P5/F:A5/F"
-	   <<std::endl;
+  cout<<"N/I:P1/F:A1/F:P2/F:A2/F:P3/F:A3/F:P4/F:A4/F:P5/F:A5/F"
+	   <<endl;
   double timeSpreadNS[5]= {0.0, 2.0, 4.5, 6.0, 8.0};
   for(int n=0;n<6;n++)  //Over Number pes
     {
       for(int i=0;i<5000;i++)  //over trials
 	{
       
-	  std::cout<<numPes[n]<<" ";
+	  cout<<numPes[n]<<" ";
 	  for(int k=0;k<5;k++)  //Over Time spread
 	    {
 	      
@@ -459,11 +457,11 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 			      numTraceBins*gPedestal[VERITAS499])/numPes[n];
 
 
-	      std::cout<<std::fixed<<std::setprecision(10)
+	      cout<<fixed<<setprecision(10)
 		       <<waveFormMax<<" "
 		       <<singlePeFADCArea<<" ";
 	    }
-	  std::cout<<std::endl;
+	  cout<<endl;
 	}
     }
 

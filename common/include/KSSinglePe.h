@@ -81,6 +81,7 @@ const double kBaseRiseTimeNS=1.7;  //ns
 const double kBaseFallTimeNS=4.75;  //ns
 const int    kBaseRiseSize=27;
 const int    kBaseSize=175;
+const int    kMaxSinglePePulseSize=175;    //Cut off tail to not exceed this length
 const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
 
 const static double kBasePulse[kBaseSize]=
@@ -108,7 +109,7 @@ const static double kBasePulse[kBaseSize]=
      0.00956, 0.0206,   0.021,  0.0234,   0.021,  0.0136,  0.0226,  0.0214,
      0.0234,  0.0271,  0.0181,   0.024,  0.0119,  0.0248,  0.0306
   };
-
+    
 // *************************************************************************
 
 

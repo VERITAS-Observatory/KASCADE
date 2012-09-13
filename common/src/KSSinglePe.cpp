@@ -69,6 +69,18 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
   // ******************************************************************************
   fNumBinsInPulse=kBaseRiseSize+fNumBinsInFallingPulse;//Keep peak at same place
 
+  // ******************************************************************************
+  // We also want to limit the total length of the pulse (determines run time of 
+  // ksAomega to kMaxSinglePePulseSize. Cut tail (reduce fNumBinsInFallingPulse) to 
+  // make this so.  Note that we keep and use the fFallTimeRatio when making the
+  // falling pulse
+  // ******************************************************************************
+
+  if(fNumBinsInPulse> kMaxSinglePePulseSize){
+    fNumBinsInPulse = kMaxSinglePePulseSize;
+  }
+
+  fNumBinsInFallingPulse=fNumBinsInPulse-kBaseRiseSize;
   
   pfSinglePulse.clear();
   pfSinglePulse.resize(fNumBinsInPulse,0); //non filled bins will be 0
@@ -125,7 +137,7 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
   //Now the falling second half of the pulse.
   // The tail expanda or contrack in the new pulse as requested.
   // **********************************************************************
-  if(fNumBinsInFallingPulse==kBaseFallSize){      //No change from base.
+  if(fSinglePulseFallTimeNS==kBaseFallTimeNS){      //No change from base.
     for(int i=0;i<kBaseFallSize;i++){
       int j=kBaseRiseSize+i;   //This reflects attempt to keep peak in the same place
       int k=kBaseRiseSize+i;
