@@ -11,7 +11,6 @@
 
 #$1 Winter or summer specifier EX : W or S
 #$2 Number of samples specifier Ex: 7 or 12
-
 # ***********************************************************************
 
 #Specify all possible parameter values
@@ -48,11 +47,11 @@ while test $jnoise -le $jnoiseEnd
     OffLBL=${Offset[$loff]}
     NsLBL=${Noise[$jnoise]}
 
-    ListName='Stage4'$2'Sample'$OffLBL'Wbl'$NsLBL'noiseList'
+    ListName='Stage4Input'$1$2'Sample'$OffLBL'Wbl'$NsLBL'noiseList'
     #echo $ListName
-    if [ -e "$ListFile" ]; then 
+    if [ -e "$ListName" ]; then 
      echo removing $ListName
-     rm -v $ListFile
+     rm -v $ListName
     fi
 
 
