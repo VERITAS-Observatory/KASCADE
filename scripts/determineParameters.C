@@ -8,23 +8,24 @@ vector < double > effSlope(4);
 vector < double > effIntercept(4);
 TGraph* Threshold;
 
+float m3_5;
+float m3;
+float T;
+float G;
+int t;
+float N;
+float PVar;
+float R;
+float Eff;
+float S;
+
+
 MakeTGraphFromTTree(string filename)
 {
   TTree A;
   A.ReadFile(filename.c_str());
   int numPoints=A.GetEntries();
   int numMDLs=numPoints/4;
-
-  float m3_5;
-  float m3;
-  float T;
-  float G;
-  int t;
-  float N;
-  float PVar;
-  float R;
-  float Eff;
-  float S;
 
   A.SetBranchAddress("Max3_50",&m3_5);
   A.SetBranchAddress("Max3",&m3);
@@ -163,89 +164,149 @@ MakeTGraphFromTTree(string filename)
     cout<<"k,effIntercept[k],effSlope[k]: "<<k<<": "<<effIntercept[k]<<"  "
 	<<effSlope[k]<<endl;
   }
-
+  return;
 }
+// ************************************************************************
 
-genParams( double gain1,double gain2, double gain3,double gain4)
+genParams(string refParmaFileName)
 {
+  // *****************************************************************
+  // Load up referance values, include chosen gains!!!
+  // *****************************************************************
 
-!  effSlope.resize(4,0);
-!  effIntercept.resize(4,0);
+  vector <double> refPedVar;
+  vector <double> refMax3Peak;
+  vector <double> refRate;
+  vector <double> refGains;
+  refPedVar.clear();
+  refMax3Peak.clear();
+  refRate.clear();
+  refGains.clear();
 
- 
+  if(refParmaFileName==" "){
+    // Use params from run 54008
+    
+    refPedVar.push_back(5.94);
+    refPedVar.push_back(5.61);
+    refPedVar.push_back(6.15);
+    refPedVar.push_back(5.88);
+
+    refMax3Peak.push_back(42);
+    refMax3Peak.push_back(38);
+    refMax3Peak.push_back(42);
+    refMax3Peak.push_back(38);
+
+    refRate.push_back(117);
+    refRate.push_back(140);
+    refRate.push_back(146);
+    refRate.push_back(142);
+
+    refGains.push_back(1.32);
+    refGains.push_back(1.32);
+    refGains.push_back(1.32);
+    refGains.push_back(1.32);
+  }
+  else{
+    // *******************************************************
+    // Open and read in referance parameters from a TTree compatable
+    // txt file.
+    // First line looks like:
+    // G/F:R:PVar:Max3
+    // *******************************************************
+    TFile RefParams;
+    RefParams.ReadFile(refParamsFileName.c_str());
+    RefParams.SetBranchAddress("Max3",&m3);
+    RefParams.SetBranchAddress("PVar",&PVar);
+    RefParams.SetBranchAddress("Rate",&R);
+    RefParams.SetBranchAddress("Gain",&G);
+
+    for(int i=0;i<4;i++){
+      RefParams.GetEntry(i);
+      refPedVar.push_back(PVar);
+      refMax3Peak.push_back(m3);
+      refRate.push_back(R);
+      refGains.push_back(G);
+    }
+  }
   // Noise:
-  double noise1=(5.94-noiseIntercept)/(noiseSlope*gain1);
+  double noise1=( refPedVar.at(0)-noiseIntercept)/(noiseSlope*refGains.at(0));
   noise1=noise1*noise1;
     
-  double noise2=(5.61-noiseIntercept)/(noiseSlope*gain2);
+  double noise2=( refPedVar.at(1)-noiseIntercept)/(noiseSlope*refGains.at(1));
   noise2=noise2*noise2;
     
-  double noise3=(6.15-noiseIntercept)/(noiseSlope*gain3);
+  double noise3=( refPedVar.at(2)-noiseIntercept)/(noiseSlope*refGains.at(2));
   noise3=noise3*noise3;
     
-  double noise4=(5.88-noiseIntercept)/(noiseSlope*gain4);
+  double noise4=( refPedVar.at(3)-noiseIntercept)/(noiseSlope*refGains.at(3));
   noise4=noise4*noise4;
 
   //Threshold from 50% Max3 from data
-  //double thresh1= (24.-threshIntercept)/(threshSlope*gain1);
-  //double thresh2= (25.-threshIntercept)/(threshSlope*gain2);
-  //double thresh3= (28.-threshIntercept)/(threshSlope*gain3);
-  //double thresh4= (27.-threshIntercept)/(threshSlope*gain4);
+  //double thresh1= (24.-threshIntercept)/(threshSlope*refGains.at(0));
+  //double thresh2= (25.-threshIntercept)/(threshSlope*refGains.at(1));
+  //double thresh3= (28.-threshIntercept)/(threshSlope*refGains.at(2));
+  //double thresh4= (27.-threshIntercept)/(threshSlope*refGains.at(3));
   
-///Threshold from Max3 peak from data
-  double thresh1= (42.-threshIntercept)/(threshSlope*gain1);
-  double thresh2= (38.-threshIntercept)/(threshSlope*gain2);
-  double thresh3= (42.-threshIntercept)/(threshSlope*gain3);
-  double thresh4= (38.-threshIntercept)/(threshSlope*gain4);
+  //Threshold from Max3 peak from data
+  double thresh1= (refMax3Peak.at(0)-threshIntercept)/
+                                                (threshSlope*refGains.at(0));
+  double thresh2= (refMax3Peak.at(1)-threshIntercept)/
+                                                (threshSlope*refGains.at(1));
+  double thresh3= (refMax3Peak.at(2)-threshIntercept)/
+                                                (threshSlope*refGains.at(2));
+  double thresh4= (refMax3Peak.at(3)-threshIntercept)/
+                                                (threshSlope*refGains.at(3));
 
   //Threshold from Size
-  //double thresh1= sqrt(noise1)/(TSizeSlope*gain1)*(190-TSizeInter);
-  //double thresh2= sqrt(noise2)/(TSizeSlope*gain2)*(190-TSizeInter);
-  //double thresh3= sqrt(noise3)/(TSizeSlope*gain3)*(230-TSizeInter);
-  //double thresh4= sqrt(noise4)/(TSizeSlope*gain4)*(190-TSizeInter);
+  //double thresh1= sqrt(noise1)/(TSizeSlope*refGains.at(0))*(190-TSizeInter);
+  //double thresh2= sqrt(noise2)/(TSizeSlope*refGains.at(1))*(190-TSizeInter);
+  //double thresh3= sqrt(noise3)/(TSizeSlope*refGains.at(2))*(230-TSizeInter);
+  //double thresh4= sqrt(noise4)/(TSizeSlope*refGains.at(3))*(190-TSizeInter);
 
   //Efficiency from rate
-  double eff1=((117.-effIntercept.at(0))/effSlope.at(0))*thresh1;
-  double eff2=((140.-effIntercept.at(1))/effSlope.at(1))*thresh2;
-  double eff3=((146.-effIntercept.at(2))/effSlope.at(2))*thresh3;
-  double eff4=((142.-effIntercept.at(3))/effSlope.at(3))*thresh4;
+  double eff1=((refRate.at(0)-effIntercept.at(0))/effSlope.at(0))*thresh1;
+  double eff2=((refRate.at(1)-effIntercept.at(1))/effSlope.at(1))*thresh2;
+  double eff3=((refRate.at(2)-effIntercept.at(2))/effSlope.at(2))*thresh3;
+  double eff4=((refRate.at(3)-effIntercept.at(3))/effSlope.at(3))*thresh4;
 
   //Print out the table
   cout<<"T1      "
       <<setw(4)<<setprecision(3)<<thresh1<<"    "
       <<setw(4)<<setprecision(3)<<noise1 <<"    "
       <<setw(4)<<setprecision(2)<<eff1   <<"    "
-      <<setw(4)<<setprecision(3)<<gain1  <<"    "
+      <<setw(4)<<setprecision(3)<<refGains.at(0)  <<"    "
       <<endl;
   
   cout<<"T2      "
       <<setw(4)<<setprecision(3)<<thresh2<<"    "
       <<setw(4)<<setprecision(3)<<noise2 <<"    "
       <<setw(4)<<setprecision(2)<<eff2   <<"    "
-      <<setw(4)<<setprecision(3)<<gain2  <<"    "
+      <<setw(4)<<setprecision(3)<<refGains.at(1)  <<"    "
       <<endl;
   
   cout<<"T3      "
       <<setw(4)<<setprecision(3)<<thresh3<<"    "
       <<setw(4)<<setprecision(3)<<noise3 <<"    "
       <<setw(4)<<setprecision(2)<<eff3   <<"    "
-      <<setw(4)<<setprecision(3)<<gain3  <<"    "
+      <<setw(4)<<setprecision(3)<<refGains.at(2)  <<"    "
       <<endl;
   
   cout<<"T4      "
       <<setw(4)<<setprecision(3)<<thresh4<<"    "
       <<setw(4)<<setprecision(3)<<noise4 <<"    "
       <<setw(4)<<setprecision(2)<<eff4   <<"    "
-      <<setw(4)<<setprecision(3)<<gain4  <<"    "
+      <<setw(4)<<setprecision(3)<<refGains.at(3)  <<"    "
       <<endl;
   return;
 }
 
- 
-determineParameters(string filename,double gain1,double gain2, double gain3,
-		    double gain4)
+
+determineParameters(string filename, string refParamFileName=" ")
 {
   MakeTGraphFromTTree(filename);
-  genParams(   gain1, gain2,  gain3, gain4);
+  genParams(refParamFileName);
   return;
 }
+
+
+
