@@ -35,7 +35,7 @@ Stage5=enable
  #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
                      #Makes timing-across-image tree
 
- #Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
+ Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
  #HillasFitOption='-HillasFitAlgorithum=2DEllipticalGaussian' 
 
  #CleanUpMethod='-CleanUpApp=CleanUpStd'
@@ -109,7 +109,7 @@ Stage5=enable
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="StdCutsDenyT1T4.root"  #Extension to put on the end of the stages 4-5 
+  FileBase="StdCuts.root"  #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
@@ -126,7 +126,7 @@ Stage5=enable
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'         #default is 7
   #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
-  DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   QualityCuts='-cuts=QualityStdCuts'
   #QualityCuts='-cuts=QualityHrdCuts'
@@ -134,8 +134,9 @@ Stage5=enable
   #Table=KLT_AllPedVarStdCutsDenyANY2Fall09.root
   #Table=KLT_AllPedVarStdCutsFall09.root
   #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
-  Table=lt-newarray-050-4.root
-	
+  #Table=lt-newarray-050-4.root
+  Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root	
+
 #Stage5
  ShowerCutsBaseFile=ShowerCutsStd	  
  #ShowerCutsBaseFile=ShowerCutsM1	  
@@ -252,7 +253,7 @@ if [ -n "$Stage4_2" ]; then
      echo CutRootFileName: $CutRootFileName
      cp -v $RootFileName $CutRootFileName
      echo ET: $LookUpTableDir/$Table
-     $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+     $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table -OverrideLTCheck=1 \
 	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
 	$SeparationAngleCutOption $CutRootFileName

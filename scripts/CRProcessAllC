@@ -1,43 +1,67 @@
-
+#Production version
 
 #$1 is PSF sub_dir  Ex: V330 or V190
 #$2 Zn_AZ and threshold specification EX: 20Deg50mv  (if az=0) or 20_180Deg50mv
-#$3 Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
+#$3 Output file BaseName Ex:  WMDL15A etc. First letter will be atm spec in newer KASCADEs
 #$4 Input Sub-dir: Ex: ABCD
 
 lcl=$PWD
 echo PSF Sub_dir: $1
 echo ZN_AzThreshold: $2
+Base=$3
+echo Base: $Base
 echo SubDir: $4
 
-if test -z $3 ;
+if test -z $4 ;
 then
- echo Fatal-Please supply all arguments Ex: ./Process V190 20Deg50mv Noise3_5
+ echo Fatal-Please supply all arguments Ex: ./Process V190 20Deg50mv SMDL15 wxyz
  exit
 fi
 
+#####################################################################
+# For compatability with the old version sof VEGAS where the
+#  is given  the form:  U190MDL6 ("U" for US76 atm)
+# Remove the first letter for filenames (will be atm spec in newer KASCADEs)
+#####################################################################
+ABase=${Base:0:1}
+
+PBase=$ABase'VP'$2
+echo PBase: $PBase
+PDir=$PBase'1234M2'$3 
+echo PDir: $PDir
+PDirOrig=$PBase'1234M2'$ABase$4 
+echo PDirOrig: $PDirOrig
+
+
+He4Base=$ABase'VHe4_'$2
+echo He4Base: $He4Base
+He4Dir=$He4Base'1234M2'$3
+echo He4Dir: $He4Dir
+He4DirOrig=$He4Base'1234M2'$ABase$4 
+echo He4DirOrig: $He4DirOrig
+
+
+
+#################Find protons first ##################
+cd $lcl'/protons/'   #Find our input directory and put it in the right place
+pwd                     # with the right name.
+if [ -d "$PDirOrig" ]; then
+  rmdir $PDir
+  mv -v $PDirOrig $PDir
+fi
+
+
+########## Now He4 #################
+cd $lcl'/he4/'    #Find our input directory and put it in the right place
+pwd                     # with the right name.
+if [ -d "$He4DirOrig" ]; then
+  rmdir $He4Dir
+  mv -v $He4DirOrig $He4Dir
+fi
+
+
 VBFFile=$3'CR'$2'1234M2.vbf'
 echo Output File Name: $VBFFile
-
-
-cd $lcl'/protons'
-
-PDIR='WVP'$2'1234M2'$3
-mkdir -pv $PDIR
-
-cd $lcl'/protons/'$4
-pwd
-ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target=$lcl'/protons/'$PDIR
-
-
-cd $lcl'/he4'
-HDIR='WVHe4_'$2'1234M2'$3
-mkdir -pv $HDIR
-
-cd $lcl'/he4/'$4
-pwd
-
-ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target=$lcl'/he4/'$HDIR
 
 cd $lcl'/../../veritas'
 
@@ -51,10 +75,10 @@ echo cd $lcl                                       >>$sgeFile
 echo mv  -v 'WVCR'$2'1234M2'$3'.vbf' $VBFFile      >>$sgeFile
 echo ./ksVegasSimProduction.scr $VBFFile \\        >>$sgeFile
 echo ">"$lcl'/'$VBFFile'.log'                      >>$sgeFile
-echo cd $lcl'/protons'                             >>$sgeFile
-echo mv $PDIR './'$1'/'$PDIR                       >>$sgeFile
-echo cd  $lcl'/he4'                                >>$sgeFile
-echo mv $HDIR './'$1'/'$HDIR                       >>$sgeFile
+#echo cd $lcl'/protons'                             >>$sgeFile
+#echo mv $PDir './'$1'/'$PDir                       >>$sgeFile
+#echo cd  $lcl'/he4'                                >>$sgeFile
+#echo mv $He4Dir './'$1'/'$He4Dir                   >>$sgeFile
 
 chmod 700 $sgeFile
 

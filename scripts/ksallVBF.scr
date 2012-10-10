@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 #This runs production kascade on LINUX. Arguments are:
 #$0 ./kasall.scr
 #$1 primary Energy in gev (integer only)
@@ -11,10 +11,10 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-KascadeEnable=enable
-LightEnable=enable
-PeSortMergeEnable=enable
-TriggerEnable=enable
+#KascadeEnable=enable
+#LightEnable=enable
+#PeSortMergeEnable=enable
+#TriggerEnable=enable
 AomegaEnable=enable                   #These next 2 operate on te files only
 ArrayTriggerEnable=enable
 
@@ -29,8 +29,8 @@ DebugPrintEnable=enable
 
 
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
-                                   # $5$Detectorspec:
-                                   # Ex: .../simulations/veritas/protonsABCD
+                                   # $5/$Detectorspec:
+                                   # Ex: .../simulations/veritas/protons/ABCD
 #MoonFilterEnable=enable           #Enable moon filter us in kaslite. Veritas
                                    #telescopes only.
 
@@ -627,7 +627,7 @@ fi
     #########################################################################
     if [ -n "$Production" ]; then    
 	lcl=$PWD
-	VBFDir=$TEDIR'50mv1234M2'$AtmSpec
+	VBFDir=$TEDIR'50mv1234M2'$AtmSpec$DetectArraySpec
 	cd $5
 	mkdir -pv $VBFDir
 	mv -v $VBFFileMult ./$VBFDir

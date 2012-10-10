@@ -1,20 +1,24 @@
-#!./bin/bash
+#!/bin/bash
 #This script is used to automate the generation of the MDL7 (best guess)
 #ksAomega config files from the V190*Ratios.dat files (in SV).
 # it has several part which will be added to as things go on.
 #It has some arguments listed below.
 # ************************************************************************
-#$1 String used to specify which season we are doing Ex 20102012  or Upgrade
-#$2 Name of TTree capable Param file( Tel/I:Gain/F:Rate:PVar:Max3 ) 
-#   Ex: UpgradeParams.txt
-#$3 Telescope 4 character spec: Ex: ABCD or wxyz
-#$4 Zn_AZ; Example 20_180Deg or 30Deg
+#$1 MDL spec: Ex   MDL7U
+#$2 String used to specify which season we are doing Ex 20102012  or Upgrade
+#$3 Name of TTree capable Param file( Gain/F:Rate:PVar:Max3 ) 
+#   Ex: UpgradeParams.txt or V190Run63559G2.0.txt
+#$4 Telescope 4 character spec: Ex: ABCD or wxyz
+#$5 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
+#$6 Zn_AZ; Example 20_180Deg or 30Deg
 
-#BulidRatiosTxtFile=enabled
-#DetermineMDL7=enabled
-#BuildMDL7AomeagaConfig=enabled
-#ProductionMDL7CR=enabled
-#ProcessMDL7CR=enabled
+
+
+#BulidRatiosTxtFile=enabled                   #needs $1 $2
+#DetermineMDL=enabled                         #needs $1 $2 $3
+#BuildMDLAomeagaConfig=enabled                #needs $1 $2 $3 $4 $5
+#ProductionMDLCR=enabled                      #needs $1 $2 $3 $4 $5 $6
+ProcessMDLCR=enabled                         #needs $1 $2 $3 $4 $5 $6
 
  
 lcl=$PWD
@@ -22,9 +26,17 @@ lcl=$PWD
 # We are assumed to be in SV
 ###################################
 
-if [ "$1" = "Upgrade" ]; then
+if [ "$2" = "Upgrade" ]; then
   RatiosFileBase='V190UpgradeRatios'
 fi
+if [ "$2" = "Upgrade" ]; then
+    DatFile=$RatiosFileBase'.dat'
+    TxtFile=$RatiosFileBase'.txt'
+fi    
+
+MDLLast=MDL7U
+
+
 ###########################################################################
 
 function checkRunningJobs()
@@ -50,56 +62,60 @@ function checkRunningJobs()
 
 ############################################################################
 #Bulid the Ratios.Txt File from the Rations.dat file for use as input to the 
-#next DetermineMDL7 step. Its assumed that all 6 MDL entries will be in the
+#next DetermineMDL step. Its assumed that all  MDL entries will be in the
 # .dat file
-if [ -n "$MakeStg4Files" ]; then
+#Needs $2 only
+if [ -n "$BulidRatiosTxtFile" ]; then
   echo '##########################################################'
-  echo '# MakeStg4Files '
+  echo '# BulidRatiosTxtFile '
   echo '##########################################################'
 
   cd $lcl
 
-  if [ "$1" = "Upgrade" ]; then
-    DatFile=$RatiosFileBase'.dat'
-    TxtFile=$RatiosFileBase'.dat'
+  if [ "$2" = "Upgrade" ]; then
     echo "t/I:T/F:N:Eff:G:R:PVar:S:NumPix:Max3_50:Max3:LRatio" >temp1.txt
-    while read line
-     do
-      MDL6=${line##*MDL6}          #See if the line has MDL in it.
-      if [ "$MDL6" != "$line" ]; then
-        foundMDL6="found"
-      fi
-      if [  -n "$foundMDL6" ]; then #We are at or after the MDL6 first instance
-	if [ ${line:0:1} = "T" ]; then  #We only want lines That start with "T"
-           echo $line >>$TxtFile
-        fi
-      fi
-     done <$DatFile
+    {
+      while read line
+        do
+         #echo Line: "$line"
+         if [ -n "$line" ]; then
+           MDL=${line##*$MDLLast}          #See if the line the highest MDL in it.
+           if [ "$MDL" != "$line" ]; then
+             foundMDL="found"
+           fi
+           if [  -n "$foundMDL" ]; then #We are at or after the MDL6 first instance
+	     if [ ${line:0:1} = "T" ]; then  #We only want lines That start with "T"
+              echo "$line" >>temp1.txt
+              fi
+           fi
+          fi
+        done 
+     } <$DatFile
      sed '/T1/s/T1/1/g' <temp1.txt >temp2.txt  #remove T's
-     sed '/T2/s/T2/2/g' <temp2.txt >temp3.txt
-     sed '/T3/s/T3/3/g' <temp3.txt >temp4.txt
-     sed '/T4/s/T4/4/g' <temp4.txt >$TxtFile
+     sed '/T2/s/T2/2/g' <temp2.txt >temp1.txt
+     sed '/T3/s/T3/3/g' <temp1.txt >temp2.txt
+     sed '/T4/s/T4/4/g' <temp2.txt >$TxtFile
   else
-    echo 'MDLAuto:  Unknown Configuration: '$1
+    echo 'MDLAuto:  Unknown Configuration: '$2
     exit
   fi
 fi
 
 
 ######################################################################
-if [ -n "$DetermineMDL7" ]; then
+if [ -n "$DetermineMDL" ]; then
   echo '##########################################################'
-  echo '# DetermineMDL7 '
+  echo '# DetermineMDL '
   echo '##########################################################'
-  # Using the determineParams.C root macro make the MDL7 parameter set
-  # Save to MDL7.dat file
+  # Using the determineParams.C root macro make the MDL parameter set
+  # Save to $1.dat file
   ################################################################
 
   cd $lcl
 
   echo "{"                                                  >MDLAuto.rootscr
   echo "gROOT->ProcessLine(\".L determineParameters.C\");" >>MDLAuto.rootscr
-  echo "determineParameters(""$TxtFile"",""$2"");"         >>MDLAuto.rootscr
+  echo "determineParameters(\""$TxtFile"\",\""$3"\");"     >>MDLAuto.rootscr
   echo "}"                                                 >>MDLAuto.rootscr
 
   ~/Switch.rootrcTo.rootrc_glenn.scr
@@ -107,30 +123,31 @@ if [ -n "$DetermineMDL7" ]; then
 
   echo
   echo
-  echo "MDLAuto: MDL7 parameters found"
+  echo "MDLAuto: "$1" parameters found and placed in "$1".dat:"
+  echo
 
   ############################################################
   # Parse the root log file to make the MDL7 Ratioos.dat file entry
   #  Will be used to make the ksAomega confifg files.
   ############################################################
-  grep T1 MDLAuto.rootscr.log >>MDL7.dat
-  grep T2 MDLAuto.rootscr.log >>MDL7.dat
-  grep T3 MDLAuto.rootscr.log >>MDL7.dat
-  grep T4 MDLAuto.rootscr.log >>MDL7.dat
+  grep T1 MDLAuto.rootscr.log >$1.dat
+  grep T2 MDLAuto.rootscr.log >>$1.dat
+  grep T3 MDLAuto.rootscr.log >>$1.dat
+  grep T4 MDLAuto.rootscr.log >>$1.dat
 
-  cat MDL7.dat
-}
+  cat $1.dat
+fi
 ######################################################################
 
-if [ -n "$BuildMDL7AomeagaConfig" ]; then
+if [ -n "$BuildMDLAomeagaConfig" ]; then
   echo '##########################################################'
-  echo '# BuildMDL7AomeagaConfig '
+  echo '# BuildMDLAomeagaConfig '
   echo '##########################################################'
-  echo 'MDLAuto: Generating ksAomega config files
+  echo 'MDLAuto: Generating ksAomega config files'
 
   cd $KASCADEBASE/inputs
 
-  tConfig=$3
+  tConfig=$4
   T1=${tConfig:0:1}
   T2=${tConfig:1:1}
   T3=${tConfig:2:1}
@@ -142,56 +159,56 @@ if [ -n "$BuildMDL7AomeagaConfig" ]; then
   ##############################################################
  
   ################################################################
-  #Read in the MDL7.txt file and set params
+  #Read in the $1.txt file and set params
   ################################################################
-  echo 'MDLAuto: Setting ksAomegaV50*.config files to mDL&.dat values'
+  echo 'MDLAuto: Setting ksAomegaV50('$4').config files to '$1'.dat values'
 
-  if [ "$1" != "Upgrade" ]; then
+  if [ "$2" != "Upgrade" ]; then
      PFile=/project/projectdirs/astrogfs/veritas_data/glenn/data/veritas/1FGLJ0515.9+1528/54008.root
   else
-     PFile="" ""
+     PFile=$lcl'/'$5
   fi
-  
-  {
+{
    while read tel threshold noise eff gain 
     do
-    sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config >tmp1.config
-    sed '/NoiseRate/s/12.5/'$noise'/g'                <tmp1.config >tmp2.config
+    sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config  >tmp1.config
+    sed '/NoiseRate/s/12.5/'$noise'/g'                <tmp1.config  >tmp2.config
     sed '/Efficiency/s/1/'$eff'/g'                    <tmp2.config >tmp1.config
     sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmp1.config >tmp2.config
     sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2.config >tmp1.config
-    sed '/PixelStatsFileName " "/s/" "/"'$PFile'"/g'  <tmp1.config >tmp2.config
-    sed '/LightConeConcentration/s/0.35/0.45'/g'      <tmp2.config >tmp1.config
-    sed '/BadPixelSupression/s/ON/OFF'/g'             <tmp1.config >tmp2.config
-    if [ "$1" != "Upgrade" ]; then
-      sed '/SinglePeRiseTimeNS/s/0/1.7'/g'            <tmp2.config >tmp1.config
-      sed '/SinglePeFallTimeNS/s/0/4.75'/g'         <tmp1.config >$tel'.config'
+    sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1.config >tmp2.config
+    sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2.config >tmp1.config
+    sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1.config >tmp2.config
+    if [ "$2" = "Upgrade" ]; then
+      sed '/SinglePeRiseTimeNS/s/0/1.7/g'             <tmp2.config >tmp1.config
+      sed '/SinglePeFallTimeNS/s/0/4.75/g'            <tmp1.config >tmp2.config
     else
-      sed '/SinglePeRiseTimeNS/s/0/3.2'/g'            <tmp2.config >tmp1.config
-      sed '/SinglePeFallTimeNS/s/0/8.5'/g'          <tmp1.config >$tel'.config'
+      sed '/SinglePeRiseTimeNS/s/0/3.2/g'             <tmp2.config >tmp1.config
+      sed '/SinglePeFallTimeNS/s/0/8.5/g'             <tmp1.config >tmp2.config
     fi
-    sed '6 a\> #This is special for '$tel'.'  $tel'.config'    
-    done
-  }<"MDL7.txt"
+    sed '5 a \#This is special for tel '$tel'.'   tmp2.config >$tel'.config'    
+   done
+  }<$lcl'/'$1".dat"
 
   mv  T1.config ksAomegaV50mv$T1'.config'
   mv  T2.config ksAomegaV50mv$T2'.config'
   mv  T3.config ksAomegaV50mv$T3'.config'
   mv  T4.config ksAomegaV50mv$T4'.config'
   cd $lcl
-}
+fi
 ############################################################################
 
 
-if [ -n "$ProductionMDL7CR" ]; then
+if [ -n "$ProductionMDLCR" ]; then
   echo '##########################################################'
-  echo '# ProductionMDL7CR '
+  echo '# ProductionMDLCR '
   echo '##########################################################'
-  echo 'MDLAuto: Process MDL7 through ksAomega and ksArrayTrig'
-
+  echo 'MDLAuto: Process ksAomega*.config: ' $4 ' through ksAomega and ksArrayTrig'
+  #echo 'MDLAuto: This takes about 10 min so be patient. '
+  echo 'MDLAuto:  use "less MDLProcess.log" or qstat  to monitor progress.'
   cd $lcl
 
-  ./ksProduction.scr WVCR$4'50mv1234M2'$3 ksallVBF.scr >MDLProcess.log
+  ./ksProduction.scr WVCR$6'50mv1234M2'$4 ksallVBF.scr >MDLProcess.log
 
   ########################################################################
   # We are now going to wait for all of these to finish.
@@ -201,7 +218,7 @@ if [ -n "$ProductionMDL7CR" ]; then
   echo "MDLAuto: Sleeping until they all finish. About 3 hrs"
   
       # Cleanup the log file to only have cCarver cluster pids in it
-  cat MDLProcess.log | grep cv >ShowerMakeVBF.log
+  cat MDLProcess.log | grep cvrsvc >ShowerMakeVBF.log
 
   let runsNotDone=1
   while test $runsNotDone -eq 1 
@@ -211,23 +228,20 @@ if [ -n "$ProductionMDL7CR" ]; then
     let runsNotDone=$?
   done
 #Should all be done now. Check that it worked(add that later)
-}
+fi
 ###########################################################################
 
-if [ -n "$ProcessMDL7CR" ]; then
+if [ -n "$ProcessMDLCR" ]; then
   echo '##########################################################'
-  echo '# ProcessMDL7CR '
+  echo '# ProcessMDLCR '
   echo '##########################################################'
-  echo 'MDLAuto: Process MDL7 through ksWeRock and VEGAS 1,2,4,5
+  echo 'MDLAuto: Process '$4'through ksWeRock and VEGAS 1,2,4,5'
 
   #########################################################################
   #Now run these showers through CRProcessAllC to make VBF files and 
   # process through stage5.
   #########################################################################
 
-  ./CRProcessallC V190 $4'50mv " WMDL7U $3
-}
-
-
-
+   ./CRProcessAllC V190 $6'50mv'  W$1 $4
+fi
 

@@ -7,7 +7,7 @@ double TSizeInter=0;
 vector < double > effSlope(4);
 vector < double > effIntercept(4);
 TGraph* Threshold;
-
+TCanvas* pfCanvas;
 float m3_5;
 float m3;
 float T;
@@ -38,7 +38,7 @@ MakeTGraphFromTTree(string filename)
   A.SetBranchAddress("Eff",&Eff);
   A.SetBranchAddress("S",&S);
 
-  TCanvas* pfCanvas = new TCanvas("c1", "Modeling Plots", 0, 0, 1200, 700);
+  pfCanvas = new TCanvas("c1", "Modeling Plots", 0, 0, 1200, 700);
   pfCanvas->Divide(2,2);
   
   // ************************************************************
@@ -168,7 +168,7 @@ MakeTGraphFromTTree(string filename)
 }
 // ************************************************************************
 
-genParams(string refParmaFileName)
+genParams(string refParamsFileName)
 {
   // *****************************************************************
   // Load up referance values, include chosen gains!!!
@@ -183,7 +183,7 @@ genParams(string refParmaFileName)
   refRate.clear();
   refGains.clear();
 
-  if(refParmaFileName==" "){
+  if(refParamsFileName==" "){
     // Use params from run 54008
     
     refPedVar.push_back(5.94);
@@ -211,9 +211,9 @@ genParams(string refParmaFileName)
     // Open and read in referance parameters from a TTree compatable
     // txt file.
     // First line looks like:
-    // G/F:R:PVar:Max3
+    // Gain/F:Rate:PVar:Max3
     // *******************************************************
-    TFile RefParams;
+    TTree RefParams;
     RefParams.ReadFile(refParamsFileName.c_str());
     RefParams.SetBranchAddress("Max3",&m3);
     RefParams.SetBranchAddress("PVar",&PVar);
@@ -269,6 +269,30 @@ genParams(string refParmaFileName)
   double eff3=((refRate.at(2)-effIntercept.at(2))/effSlope.at(2))*thresh3;
   double eff4=((refRate.at(3)-effIntercept.at(3))/effSlope.at(3))*thresh4;
 
+  if(eff1>1.0){
+    cout<<"determineParameters found T1 eff >1.0(eff1="<<eff1<<")"<<endl;
+    cout<<"setting T1 eff to 1.0"<<endl;
+    eff1=1.0;
+  }
+ 
+  if(eff2>1.0){
+    cerr<<"determineParameters found T2 eff >1.0(eff2="<<eff2<<")"<<endl;
+    cerr<<"setting T2 eff to 1.0"<<endl;
+    eff2=1.0;
+  }
+
+  if(eff3>1.0){
+    cerr<<"determineParameters found T3 eff >1.0(eff3="<<eff3<<")"<<endl;
+    cerr<<"setting T3 eff to 1.0"<<endl;
+    eff3=1.0;
+  }
+
+  if(eff4>1.0){
+    cerr<<"determineParameters found T4 eff >1.0(eff4="<<eff4<<")"<<endl;
+    cerr<<"setting T4 eff to 1.0"<<endl;
+    eff4=1.0;
+  }
+
   //Print out the table
   cout<<"T1      "
       <<setw(4)<<setprecision(3)<<thresh1<<"    "
@@ -301,10 +325,10 @@ genParams(string refParmaFileName)
 }
 
 
-determineParameters(string filename, string refParamFileName=" ")
+determineParameters(string filename, string refParamsFileName=" ")
 {
   MakeTGraphFromTTree(filename);
-  genParams(refParamFileName);
+  genParams(refParamsFileName);
   return;
 }
 

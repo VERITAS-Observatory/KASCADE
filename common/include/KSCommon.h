@@ -30,7 +30,10 @@ const int    gNumPixelsCamera[2]         = {         499,         490};
 const int    gNumTriggerPixels[2]        = {         463,         331};
 const int    gNumImagePixels[2]          = {         499,         379};
 const int    gNumLines[2]                = {          13,          11};
-const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
+
+//const double gPixelHalfSpacingMM[2]      = {       15.74,         7.5};
+//Full spacing is 31.4mm Changed 10/10/12
+const double gPixelHalfSpacingMM[2]      = {       15.7,         7.5};
 const double gPixelActiveCathRadiusMM[2] = {       12.00,         5.0};
 
 const double gPedestal[2]                = {        14.5,         2.0};
@@ -52,9 +55,12 @@ const double gRealDataSinglePeDC[2]      = {        5.00,        10.0};
 //charge integeration. 
 const double gFADCTOffsetNS[2]           = {        10.0,          9.0};
 
-//Oct 2009 Start pulse at sample 4(skip 3 more bins)2ns/bin
-const double gFADCWindowOffsetNS[2]      = {         6.0,         8.0};
 
+//Oct 2012 Upgrade: Start pulse at sample 3(skip 2 more bins)2ns/bin
+const double gFADCWindowOffsetNS[2]      = {         4.0,         8.0};
+
+//Oct 2009 Start pulse at sample 4(skip 3 more bins)2ns/bin
+//const double gFADCWindowOffsetNS[2]      = {         6.0,         8.0};
 //Pre Oct 2009 Start pulse at sample 5(skip  4 more bins)2ns/bin
 //const double gFADCWindowOffsetNS[2]      = {         8.0,         8.0};
 //Start pulse at sample 6(skip 5 more bins)2ns/bin

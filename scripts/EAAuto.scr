@@ -222,6 +222,8 @@ if [ -n "$MakeSubEAFiles" ]; then
   SUBEAFILES='SubEA'$1$2'Sample*'$PEDVAREXTEN'List' 
   ls  $SUBEAFILES   | xargs -n1 >SubEA$1$PEDVAREXTEN'List'
   mv *.qsub.log ./log/
+  rm *.err
+  rm *.pbs
 
   ./ProcessSubMakeEA SubEA$1$PEDVAREXTEN'List' Shower$PEDVAREXTEN >SubMakeEA.log
 #Figure out when above finishes.
@@ -238,14 +240,21 @@ if [ -n "$MakeSubEAFiles" ]; then
   done
    
 #Should all be done now. Check that it worked
+  rm statusCode.dat
   grep -H "status code" *qsub.log |grep -v "code is 0" >statusCode.dat
   if [ -s "statusCode.dat" ]; then
     cat statusCode.dat
     echo "ProcessSubMakeEA failed!"
     exit
-  else
-    echo "EAAuto:  ProcessSubMakeEA did good!"
   fi
+  rm errors.dat
+  grep -H "received" *qsub.err |grep -v "0 error" >errors.dat  
+  if [ -s "errors.dat" ]; then
+    cat errors.dat
+    echo "ProcessSubMakeEA failed!"
+    exit
+  fi
+  echo "EAAuto:  ProcessSubMakeEA did good!"
 fi
 
   

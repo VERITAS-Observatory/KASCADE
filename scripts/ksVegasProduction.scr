@@ -28,6 +28,7 @@ Stage5=enable
   #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
   #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
+  Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
 #############################################################################
 
  #Stage4_2         
@@ -41,7 +42,7 @@ Stage5=enable
   FileBase="StdCuts.root"  
 
 
-  DenyTelescopeOption='-TelCombosToDeny=ANY2'
+  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   #SeperationAngleCutOption='-GC_SeparationCut=16'
@@ -56,7 +57,9 @@ Stage5=enable
   #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
   #Table=LookupTable6.85StdCutsDenyANY2.root
   #Table=LookupTable4.97StdCutsDenyT1T4.root
-  Table=LTCrab1011V190MDL6.root
+  Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root  
+
+  OverrideLTCheckOption='-OverrideLTCheck=1'
 ##############################################################################
 
 #Stage5
@@ -143,7 +146,7 @@ echo LSRRootFileName: $LSRRootFileName
 
 if [ -n "$Stage2" ]; then
     $VEGAS/bin/vaStage2  $AddCalibratedEvents $EnableMuonDataOption \
-    $WindowWidthOption $EnableImageTimingOption $VBFFileName \
+    $WindowWidthOption $EnableImageTimingOption  $Hillas2DOption $VBFFileName \
     $RootFileName $LSRRootFileName
 fi
 
@@ -168,7 +171,7 @@ if [ -n "$Stage4_2" ]; then
 	    $CutRootFileName
 
 
-	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table \
+	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table $OverrideLTCheckOption \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
