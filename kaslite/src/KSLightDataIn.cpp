@@ -115,7 +115,7 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
 
   pfPeHead->fWhipplePMTs=false;
   pfPeHead->fVeritasPMTs=false;
-  pfPeHead->fADPPMTs=false;
+  pfPeHead->fUpgradePMTs=false;
 
   if(sDefaultPMTType=="WHIPPLE")
     {
@@ -125,9 +125,9 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
     {
       pfPeHead->fVeritasPMTs=true;
     }
-  else if(sDefaultPMTType=="ADP")
+  else if(sDefaultPMTType=="UPGRADE")
      {
-      pfPeHead->fADPPMTs=true;
+      pfPeHead->fUpgradePMTs=true;
     }
   else
     {
@@ -147,7 +147,7 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
 
   pfPeHead->fWhipplePMTs=false;
   pfPeHead->fVeritasPMTs=false;
-  pfPeHead->fADPPMTs=false;
+  pfPeHead->fUpgradePMTs=false;
 
   if(sDefaultPMTType=="WHIPPLE")
     {
@@ -157,9 +157,9 @@ KSLightDataIn::KSLightDataIn(KSPeHeadData* phead)
     {
       pfPeHead->fVeritasPMTs=true;
     }
-  else if(sDefaultPMTType=="ADP")
+  else if(sDefaultPMTType=="UPGRADE")
      {
-      pfPeHead->fADPPMTs=true;
+      pfPeHead->fUpgradePMTs=true;
     }
   else
     {
@@ -236,7 +236,7 @@ void KSLightDataIn::configure(VAConfigInfo& file, VAOptions& command_line)
 		    "PMTType",sDefaultPMTType,
 		    "KSLightDataIn",
 		    "Defines which Quantum Efficiency table to use for the "
-		    "PMTs. Options are WHIPPLE or  VERITAS or ADP ");
+		    "PMTs. Options are WHIPPLE, VERITAS or UPGRADE");
   doVAConfiguration(file, command_line, 
 		    "Efficiency",sDefaultEfficiency,
 		    "KSLightDataIn",

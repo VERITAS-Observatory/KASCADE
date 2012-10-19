@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 #This runs production kascade on LINUX. Arguments are:
 #$0 ./kasall.scr
 #$1 primary Energy in gev (integer only)
@@ -11,12 +11,12 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-#KascadeEnable=enable
-#LightEnable=enable
-#PeSortMergeEnable=enable
-#TriggerEnable=enable
-AomegaEnable=enable                   #These next 2 operate on te files only
-ArrayTriggerEnable=enable
+KascadeEnable=enable
+LightEnable=enable
+PeSortMergeEnable=enable
+TriggerEnable=enable
+#AomegaEnable=enable                   #These next 2 operate on te files only
+#ArrayTriggerEnable=enable
 
 Production=enable    #Enable Carver te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
@@ -390,7 +390,7 @@ while test $i -le $4
     if [ -e "$pefile" ]; then 
 	rm $pefile
     fi
-    if [ -n "MoonFilterEnable" ]; then
+    if [ -n "$MoonFilterEnable" ]; then
 	MoonFilterOption='-MoonFilter=1'
     fi
 

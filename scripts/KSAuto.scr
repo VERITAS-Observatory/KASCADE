@@ -1,0 +1,167 @@
+#!/bin/bash
+#This script is used to automate the generation of the veritas Te files
+#It has some arguments listed below.
+# ************************************************************************
+#$1 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
+#$2 ksProduction season spec: Ex: W or S
+#$3 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
+#$4 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
+#$5 Thresholda: Ex 45mv or 50mv
+#************************************************************************
+# This will loop over all combinations of $3 and $4 entries
+# Resulting te files will all be placed in same  directory
+
+# Within that loop we can do:
+
+GenerateTeFiles=enabled
+HTARTeFiles=enabled
+
+###########################################################################
+
+function checkRunningJobs()
+# *********************************************************************
+# This function counts the number of jobs in the $1 file list that are
+# still running
+#$1 File name which has a list of job ID's to check
+# returns 0 if no jobs running
+# *********************************************************************
+{
+  if [ -s checkRunners.dat ]; then
+      rm checkRunners.dat
+  fi
+  let count=0
+  {
+    while  read jobID;  do
+      qstat $jobID &>checkJobRun.dat
+      cat checkJobRun.dat | grep -v Unknown >>checkRunners.dat
+      if [ ! -s checkRunners.dat ]; then
+       count=$((count+1))
+      fi
+      rm checkJobRun.dat
+      rm checkRunners.dat
+    done
+  } <$1
+  return $count
+}
+############################################################################
+
+lcl=$PWD
+date
+source /etc/profile
+
+#To find the Zn amd AZ combinations first put $3 and $4 into arrays
+#This is tricky. We save away the present Inertnal Filed Seperator and then
+# set IFS to a comma. We then user the -a option with the read command to 
+# read in our stingsd into arrays. Then we resore the IFS.
+
+
+SAVEIFS=$IFS
+IFS=, read -a Zenith <<< "$3"
+IFS=, read -a Azimuth <<< "$4"
+IFS=$SAVEIFS
+
+#Check if the is for 2D offsets, blank if not
+if [ "$1" = "G" ] || [ "$1" = "E" ]; then
+  OffSetSpec="2D"
+fi
+
+#now we loop
+
+#Zenith
+let izn=0
+let iznEnd=${#Zenith[@]}
+while test $izn -lt $iznEnd
+  do
+
+   #Iterate through Azimuth
+   let kaz=0
+   let kazEnd=${#Azimuth[@]}
+   while test $kaz -lt $kazEnd
+    do
+     #Make   Zn_Az string
+     if test ${Azimuth[$kaz]} = "0"
+      then
+       ZnAz=${Zenith[$izn]}'Deg'
+     else
+       ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
+     fi
+# *****************************************************************************
+#  Now all the things we can do for a particular Zn_AZ
+# *****************************************************************************
+     if [ -n "$GenerateTeFiles" ]; then
+       echo '##########################################################'
+       echo '# GenerateTeFiles '
+       echo '##########################################################'
+
+       #make up our ksProduction designation
+      
+       Spec=$2'V'$1$ZnAz$OffSetSpec$5'1234M2'
+  
+       echo "KSAuto: Submitting ksProduction for " $Spec 
+       echo "KSAuto: This takes a few minuts"
+
+       ./ksProduction.scr $Spec ksallVBF.scr >KSProd.log
+
+       ########################################################################
+       # We are now going to wait for all of these to finish.
+       ########################################################################
+
+       echo "KSAuto: Submission of ksProduction to make shower TE files on "
+       echo "KSAuto: Hansen cluster for "$ZnAz" complete."
+       date
+       echo "KSAuto: Sleeping until they all finish."
+       # Cleanup the log file to only have Hansen cluster pids in it
+       cat KSProd.log | grep hansen-adm >ShowerMakeTE.log
+
+       let runsNotDone=1
+       let lastRunsNotDone=2000
+       while test $runsNotDone -ne 0 
+	 do
+         sleep 60s
+	 checkRunningJobs "ShowerMakeTE.log"
+	 let runsNotDone=$?
+         if [ "$runsNotDone" <  "$lastRunsNotDone" ]; then
+	     echo 'runsNotDone: '$runsNotDone
+             let lastRunsNotDone=$runsNotDone
+         fi
+         done
+       echo
+       echo "KSAuto: Te file generation complete"
+     fi
+
+     if [ -n "$HTARTeFiles" ]; then
+	 echo '##########################################################'
+	 echo '# HTARTeFiles '
+	 echo '##########################################################'
+
+	 cd /scratch/lustreC/s/sembrosk/simulations/veritas/gammas/V190/ 
+	 TeName=$2'V'$1$ZnAz$OffSetSpec
+
+         echo "KSAuto: htar "$TeName" to archive."
+	 date
+	 DestinationDir="/archive/fortress/group/veritas/simulations/"
+
+	 if htar -cvf $DestinationDir'/'$TeName'.tar' ./$TeName  
+	 then
+	 # And now cleanup: change protections and remove it from the scratch
+           chmod 775 $DestinationDir'/'$TeName'.tar*'
+           echo "KSAuto: htar sucessful. Removing directory "$TeName 
+           rm -rf $TeName
+	 else
+	    echo "KSAuto: Fatal--htar failed for "$TeName
+            cd $lcl
+            exit
+         fi
+         cd $lcl
+     fi
+
+     #Should all be done now. Go on to next combo. This all could take a
+     # couple of  weeks or so
+     date
+     kaz=$((kaz+1))
+    done
+   izn=$((izn+1))
+  done
+###########################################################################
+
+      

@@ -55,11 +55,11 @@ C	PE structure(new)
 
         COMMON /HALE1/DL,DM,DN,xseg,yseg,reflectivity,x_offset,y_offset,
      1                namtyp, plot, luny_cut, benchmark_flag, VeritasPMTs,
-     1                WhipplePMTs, ADPPMTs, moonFilterFlag, petype
+     1                WhipplePMTs, UpgradePMTs, moonFilterFlag, petype
         real dl,dm,dn,xseg,yseg,reflectivity,x_offset,y_offset
         character*8 namtyp(18)
         logical plot,luny_cut
-        logical*1 benchmark_flag,VeritasPMTs,WhipplePMTs,ADPPMTs
+        logical*1 benchmark_flag,VeritasPMTs,WhipplePMTs,UpgradePMTs
         logical*1 moonFilterFlag
 
 	character*16 petype

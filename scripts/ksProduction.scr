@@ -572,9 +572,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
-#      let iEntryStart=1
-      let iEntryStart=44
-      let iEntryEnd=44
+      let iEntryStart=1
+      let iEntryEnd=46
 
       #Reverse order (prefered)
       let j=$iEntryEnd
@@ -861,7 +860,7 @@ function BuildAndSubmitHansenJobsSingly
    echo "#"PBS -l walltime=24:00:00                       >>$sgeFile
    if test $1 -ge 19
      then
-      echo "#PBS -l mem=20GB"                             >>$sgeFile
+      echo "#PBS -l mem=10GB"                             >>$sgeFile
    fi
    echo source /etc/profile                               >>$sgeFile
    echo module load gcc/4.5.1                             >>$sgeFile

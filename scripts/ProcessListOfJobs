@@ -1,9 +1,25 @@
 #!/bin/bash
 #This is a generic process list of Job files. It submits exixting jobs files
 #$1 List of Job files to submit
+host=$(hostname)
+echo host: $host
+hostString=${host:0:6}
+
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  QUEUE=serial
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  QUEUE1=physics
+  QUEUE2=standby
+  QUEUE=$QUEUE1
+fi
 
 {
   while read InputJob ; do
-      qsub -q serial  -V -e $InputJob'.err' -o $InputJob'.log' $InputJob
+      qsub -q $QUEUE  -V -e $InputJob'.err' -o $InputJob'.log' $InputJob
   done
 } <$1

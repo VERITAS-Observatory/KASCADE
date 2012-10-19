@@ -45,7 +45,7 @@ void KSPeHeadData::PrintPeHead()
   std::cout<<"           North-South Grid: "<<fNorthSouthGrid<<std::endl;
   std::cout<<"               Whipple PMTs: "<<fWhipplePMTs<<std::endl;
   std::cout<<"               Veritas PMTs: "<<fVeritasPMTs<<std::endl;
-  std::cout<<"                   ADP PMTs: "<<fADPPMTs<<std::endl;
+  std::cout<<"               Upgrade PMTs: "<<fUpgradePMTs<<std::endl;
   std::cout<<"         Random Core Offset: "<<fRandomCoreOffset<<std::endl;
   std::cout<<"   Shower impact point at X: "<<fXCoreOffsetM<<",  Y: "
 	   <<fYCoreOffsetM<<std::endl;

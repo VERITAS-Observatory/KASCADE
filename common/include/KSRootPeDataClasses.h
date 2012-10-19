@@ -55,10 +55,10 @@
   bool   fRandomCoreOffset; 
   bool   fWhipplePMTs;
   bool   fVeritasPMTs;
-  bool   fADPPMTs;
-//  char   fVersion[10];	      //Version of kaslite that made this file.
+  bool   fUpgradePMTs;
 #ifndef _NOROOT
-  ClassDef(KSRootPeHeadData,1);
+  //ClassDef(KSRootPeHeadData,1);
+  ClassDef(KSRootPeHeadData,2);   //Change ADP to Upgrade. ADP no longer used
 #endif
 };
 // ***************************************************************************

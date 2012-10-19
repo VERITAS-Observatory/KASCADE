@@ -23,7 +23,7 @@ Stage5=enable
 
  #Stage2:
   #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
- # AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
+ #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
                                                        #pedvars with vaDisplay
   #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
@@ -156,7 +156,7 @@ CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
 
-LookUpTableDir=$VEGAS'/showerReconstruction2/tables/KASCADE'
+LookUpTableDir=$VEGAS'/showerReconstruction2/tables'
 
 
 

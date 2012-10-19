@@ -43,7 +43,7 @@ class KSPeHeadData
   bool   fRandomCoreOffset; 
   bool   fWhipplePMTs;
   bool   fVeritasPMTs;
-  bool   fADPPMTs;
+  bool   fUpgradePMTs;       //Change ADP to Upgrade. ADP no longer used
   char   fExtinctionFileName[kNumCharExtName];
 
   bool        setExtinctionFileName(std::string ExtSpec);

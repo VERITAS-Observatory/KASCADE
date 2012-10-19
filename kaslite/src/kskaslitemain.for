@@ -1,6 +1,6 @@
         SUBROUTINE KSKASLITEMAIN(WhippleMount, VeritasMount, TriangularGrid, 
      1                           SquareGrid, NorthSouthGrid,RandomCoreOffset, 
-     1                           ksWhipplePMTs, ksVeritasPMTs, ksADPPMTs,
+     1                           ksWhipplePMTs, ksVeritasPMTs, ksUpgradePMTs,
      1                           benchmark, moonfilter, ksdli, ksdmi, ksdni, 
      1                           kshobs,
      1                           ksitype, tep, ksxseg, ksyseg, ksxoff, ksyoff,
@@ -180,7 +180,7 @@ c		x=0,y=0. This is important for any array study.
 ! *************************************************************************
       logical*1 WhippleMount,VeritasMount,TriangularGrid, SquareGrid
       logical*1 NorthSouthGrid, RandomCoreOffset, ksWhipplePMTs
-      logical*1 ksVeritasPMTs,ksADPPMTs,Benchmark,moonfilter
+      logical*1 ksVeritasPMTs,ksUpgradePMTs,Benchmark,moonfilter
       real*4  ksdli, ksdmi, ksdni, kshobs,ksxseg, ksyseg, ksxoff
       real*4  ksyoff, tep, efficiency
       integer*4 ksitype,showerid
@@ -241,7 +241,7 @@ c		x=0,y=0. This is important for any array study.
       moonFilterFlag=moonfilter
       VeritasPMTs=ksVeritasPMTs
       WhipplePMTs=ksWhipplePMTs
-      ADPPMTs=ksADPPMTs
+      UpgradePMTs=ksUpgradePMTs
 
 
 ! **************************************************************************
@@ -1510,27 +1510,6 @@ c     folowing data statement in 5 nm steps 180-700 nm
      1   0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,0.000,!630-675
      1   0.000,0.001,0.003,0.006,0.011/                              !680-700
 
-c     
-c       Form the ratio of density of atm as function of altitude.
-   !   do i=0,50
-   !           h=1000.*i        !Altitude in meters.
-   !           rhoratio(i)=rho(h)/rho(0.)       
-   !	enddo
-
-c       And calculate it at exactly hobs.
-  !     rhorat_hobs=rho(hobs)/rho(0.)       
-
-c      Form ETASEA=(Index of refraction-1) at sea level. Start at
-c      180 nanometers and go up to 700 nanometers.
-c      Parameters from CRC handbook of Chem and Phy. 70'-71'
-c      pg E-231.
-  !    do ilambda=180,700,5
-  !          lambda=ilambda
-  !          i=(ilambda-180)/5
-  !          etasea(i)=1.e-7*(2726.43+12.288/(lambda**2*1.e-6)+
-  !   1 0.3555/(lambda**4*1.e-12))
-  !	enddo
-
 c      Read in the extinction data.
 !	call readex(extint)		!OLd palfrey and Sembroski derived.
 
@@ -1585,7 +1564,7 @@ c        ((h1-h2)/dn))*(qeta-qgamma/gamma**2)
 c        Constant
          constant=twopi/137
 
-         do j=ihobs+1,50            !Start just above obs alt.
+        do j=ihobs+1,50            !Start just above obs alt.
             altm=j*1000.0
             do ilambda=180,700,5 !In nanometers
                       lambda=ilambda
@@ -1594,32 +1573,32 @@ c                   Calculate the Q integrels.  Units are photons/meter.
 c                      Qeta(i,j)=(1.d+9)*(constant*2*rhoratio(j)*
 c     1 etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))*atmprob(i,j)
                       Qeta(i,j)=(1.d+9)*(constant*2*eta(altm,lambda)*
-     1 (1./(lambda-2.5)-1./(lambda+2.5)))*atmprob(i,j)
+     1  (1./(lambda-2.5)-1./(lambda+2.5)))*atmprob(i,j)
                       Qgamma(i,j)=(1.d+9)*atmprob(i,j)*constant*
-     1 (1./(lambda-2.5)-1./(lambda+2.5))
+     1  (1./(lambda-2.5)-1./(lambda+2.5))
 		enddo
 	enddo
 
 c	Calculate these at hobs:
-       do ilambda=180,700,5         !In nanometers
+        do ilambda=180,700,5         !In nanometers
              lambda=ilambda
              i=(ilambda-180)/5
 c                   Calculate the Q integrels.  Units are photons/meter.
 c             Qeta_hobs(i)=(1.e+9)*(constant*2*rhorat_hobs*
-c     1 etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))
+c     1  etasea(i)*(1./(lambda-2.5)-1./(lambda+2.5)))
              Qeta_hobs(i)=(1.e+9)*(constant*2*eta(hobs,lambda)*
-     1 (1./(lambda-2.5)-1./(lambda+2.5)))
+     1   (1./(lambda-2.5)-1./(lambda+2.5)))
                       Qgamma_hobs(i)=(1.e+9)*constant*
-     1 (1./(lambda-2.5)-1./(lambda+2.5))
+     1   (1./(lambda-2.5)-1./(lambda+2.5))
 	enddo
 
 
 c	Calculate visable gamma threshold table, and chernkov angle table.
 c	Use etasea at lambda=380.
 c       Chrenkov angle will be sin(theta)=sqrt(setavis-1/gamma**2)
-         i380=(380.-180.)/5.          !Index to reference lambda
-         lambda=380.0
-         do j=0,50
+        i380=(380.-180.)/5.          !Index to reference lambda
+        lambda=380.0
+        do j=0,50
             altm=j*1000.0
 c           gamvis(j)=sqrt(1./(2*rhoratio(j)*etasea(i380)))
 c           setavis(j)=2*rhoratio(j)*etasea(i380)
@@ -1650,7 +1629,7 @@ c	which means the Cherenkov threhold is also wavelength dependents as
 c	is Cherenkov angle. So just precalculate some things here.
 
 c        Gamma threshold and sin**2 of maximum chrenkov angle.
-         do ilambda=180,700,5
+        do ilambda=180,700,5
                 lambda=ilambda
                 i=(ilambda-180)/5
                 do j=0,50
@@ -1664,22 +1643,22 @@ c                  smaxsb(i,j)=2*rhoratio(j)*etasea(i)
 
 
 !***************************************************************************
-c       ADP
+c       ADP ::: Removed from use 17/10/12:GHS
 !***************************************************************************
 c	No filter, use dummy array(100% transmission) TRANS_100
 c	Build efficiency array. use average weathered results.
-	if(ADPPMTs)then
-           Print*,' Using ADP quantum efficincy'
-           call rate_qgen_uv(ADP,trans_100,REFLect_10M_1993,qeta10m,
-     1     qgam10m,qeta10m_hobs,qgam10m_hobs)
-
+c	if(ADPPMTs)then
+c           Print*,' Using ADP quantum efficincy'
+c           call rate_qgen_uv(ADP,trans_100,REFLect_10M_1993,qeta10m,
+c     1     qgam10m,qeta10m_hobs,qgam10m_hobs)
+c
 !***************************************************************************
 cWhipple 10m
-	elseif(WhipplePMTs)then
-        print*,'KASLITE-UV PMTS(Whipple) using for cherenkov pe gen:'
-        print*,'     QE:A.Rovero 1994 R1398HA (with UV window) weathered PMTS'
-        print*,'     No filter used'
-        print*,'     Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
+        if(WhipplePMTs)then
+          print*,'KASLITE-UV PMTS(Whipple) using for cherenkov pe gen:'
+          print*,'   QE:A.Rovero 1994 R1398HA (with UV window) weathered PMTS'
+          print*,'   No filter used'
+          print*,'   Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
             do i=0,104
                r1398eff(i)=R1398HA_UV(5,i)
             enddo
@@ -1688,57 +1667,68 @@ cWhipple 10m
 
 
 c***************************************************************************
-cVERITAS 12m
-        elseif(VeritasPMTs)then
-
-c     ************************************************************************
-c     Benchmark mode
-c     ***********************************************************************
-          if(benchmark_flag) then
-        print*,'KASLITE-UV PMTS(Veritas) using for cherenkov pe gen:'
-        print*,'Benchmark Mode:'
-        print*,'      QE:1.0 all lambda'
-        print*,'      No filter used'
-        print*,'      Mirror Reflec:1.0 all lambda'
+cVERITAS 12m Benchmark mode
+        elseif(VeritasPMTs.and.benchmark_flag) then
+         print*,'KASLITE-UV PMTS(Veritas) using for cherenkov pe gen:'
+         print*,'Benchmark Mode:'
+         print*,'      QE:1.0 all lambda'
+         print*,'      No filter used'
+         print*,'      Mirror Reflec:1.0 all lambda'
                                              ! Trans_100 is 100% (1.0) array
-              call rate_qgen_uv(trans_100,trans_100,trans_100,qeta10m,
+         call rate_qgen_uv(trans_100,trans_100,trans_100,qeta10m,
      1      qgam10m,qeta10m_hobs,qgam10m_hobs)
 
-c      ***********************************************************************
+c**************************************************************************
 c      normal VERITAS mode
-c      ********************************************************************
-          else
-        print*,'KASLITE-UV PMTS(Veritas) using for cherenkov pe gen:'
-        print*,'   QE:xp2970 Zitzer/JFinley/S.Fegan 2011 Measured VERITAS pmts'
-        print*,'   QE:xp2970 Values incresed by 1.5:max goes from 24% to 36%'
-        print*,'   QE:xp2970 Can be removed in ksAomega: Use Efficiency=.66'
-        print*,'   Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
+        elseif(VeritasPMTs)then
+         print*,'KASLITE-UV PMTS(Veritas) using for cherenkov pe gen:'
+         print*,'  QE:xp2970:Zitzer/JFinley/S.Fegan 2011 Measured VERITAS pmts'
+         print*,'  QE:xp2970:Values incresed by 1.75:max goes from 24% to 42%'
+         print*,'  QE:xp2970:Can be removed in ksAomega: Use Efficiency=.57'
+         print*,'  Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
            do i=0,104
-!              lambda=180+i*5
-!              print*,lambda,' ',xp2970eff(i)
-              xp2970eff(i)=1.5*xp2970eff(i)
+              xp2970eff(i)=1.75*xp2970eff(i)
            enddo
            if(moonFilterFlag) then
-              print*,'   Using Moon Filter (e+/e- moon shadow analysis)'  
+              print*,'  Using Moon Filter (e+/e- moon shadow analysis)'  
               call rate_qgen_uv(xp2970eff,MoonFilter2012,REFLect_10M_1993,
      1           qeta10m,qgam10m,qeta10m_hobs,qgam10m_hobs)
            else
-              print*,'   No filter used'
+              print*,'  No filter used'
               call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
      1           qgam10m,qeta10m_hobs,qgam10m_hobs)
            endif
 
+c***************************************************************************
+c      normal VERITAS Upgrade mode
+        elseif(UpgradePMTs)then
+         print*,'KASLITE-UV PMTS(Veritas Upgrade) using for cherenkov pe gen:'
+         print*,' QE:Upgrade:Finley-Theiling 2012 Measured Upgrade pmts'
+         print*,' QE:Upgrade:QE Values scaled by 1.25:max goes from 36% to 45%'
+         print*,' QE:Upgrade:Increase can be removed in ksAomega:' 
+         print*,' QE:Upgrade:Use Efficiency=.8'
+         print*,' Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
+           do i=0,104
+              xp2970eff(i)=1.5*xp2970eff(i)
+           enddo
+           if(moonFilterFlag) then
+              print*,' Using Moon Filter (e+/e- moon shadow analysis)'  
+              call rate_qgen_uv(xp2970eff,MoonFilter2012,REFLect_10M_1993,
+     1           qeta10m,qgam10m,qeta10m_hobs,qgam10m_hobs)
+           else
+              print*,' No filter used'
+              call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
+     1           qgam10m,qeta10m_hobs,qgam10m_hobs)
+           endif
 c ************************************************************************
-         endif
-      else
+       else
          print*,' Fatal-KASLIT--RateINIT-Invalid petype:',petype
          stop 'Fatal Error-KASLITE-Invalid PETYPE'
-      endif
+       endif
 
       return
       end
 c     ***********************************************************************
-
 
       subroutine rate_gen(height,dns,qeta_gen,qgam_gen,qetagen_hobs,
      1    qgamgen_hobs,rate,qz)
