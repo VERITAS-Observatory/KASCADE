@@ -17,33 +17,25 @@ GenerateTeFiles=enabled
 HTARTeFiles=enabled
 
 ###########################################################################
-
 function checkRunningJobs()
-# *********************************************************************
-# This function counts the number of jobs in the $1 file list that are
-# still running
-#$1 File name which has a list of job ID's to check
-# returns 0 if no jobs running
-# *********************************************************************
 {
   if [ -s checkRunners.dat ]; then
       rm checkRunners.dat
   fi
-  let count=0
   {
     while  read jobID;  do
       qstat $jobID &>checkJobRun.dat
       cat checkJobRun.dat | grep -v Unknown >>checkRunners.dat
-      if [ ! -s checkRunners.dat ]; then
-       count=$((count+1))
-      fi
-      rm checkJobRun.dat
-      rm checkRunners.dat
     done
   } <$1
-  return $count
+  rm checkJobRun.dat
+  if [ -s checkRunners.dat ]; then
+    return 1
+  else
+    return 0
+  fi
 }
-############################################################################
+##########################################################################
 
 lcl=$PWD
 date
@@ -102,9 +94,9 @@ while test $izn -lt $iznEnd
 
        ./ksProduction.scr $Spec ksallVBF.scr >KSProd.log
 
-       ########################################################################
+       #####################################################################
        # We are now going to wait for all of these to finish.
-       ########################################################################
+       #####################################################################
 
        echo "KSAuto: Submission of ksProduction to make shower TE files on "
        echo "KSAuto: Hansen cluster for "$ZnAz" complete."
@@ -113,19 +105,13 @@ while test $izn -lt $iznEnd
        # Cleanup the log file to only have Hansen cluster pids in it
        cat KSProd.log | grep hansen-adm >ShowerMakeTE.log
 
-       let runsNotDone=1
-       let lastRunsNotDone=2000
-       while test $runsNotDone -ne 0 
+       runsNotDone=1
+       while test $runsNotDone -eq 1 
 	 do
-         sleep 60s
-	 checkRunningJobs "ShowerMakeTE.log"
-	 let runsNotDone=$?
-         if [ "$runsNotDone" <  "$lastRunsNotDone" ]; then
-	     echo 'runsNotDone: '$runsNotDone
-             let lastRunsNotDone=$runsNotDone
-         fi
-         done
-       echo
+          sleep 60s
+	  checkRunningJobs "ShowerMakeTE.log"
+          let runsNotDone=$?
+	 done
        echo "KSAuto: Te file generation complete"
      fi
 
