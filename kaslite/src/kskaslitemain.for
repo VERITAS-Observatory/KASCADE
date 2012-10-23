@@ -1124,6 +1124,7 @@ c		less then this value. This prevents UNIX underflows on SUN.
 	real extint(0:50,0:104)
         real R821eff(0:104)
         real xp2970eff(0:104)
+        real R10560Qeff(0:104)
         real r1450eff(0:104)
 	real emi9870beff(0:104)
 	real  r1398eff(0:104),R1398HA_UV(5,0:104)
@@ -1201,6 +1202,22 @@ c     5 nanometer steps.
      2     0.04027,0.03670,0.03314,0.02972,0.02631,0.02312,0.01994,0.01723,!610
      3     0.01451,0.01214,0.00978,0.00799,0.00621,0.00493,0.00365,0.00279,!650
      4     0.00194,0.00147,0.00101/                                        !690
+
+! Upgrade R10560 Purdue measurments of VERITAS PMT's Oct-2012:300 nm to 600 nm.
+! Used (after scaleing to match)XP2970 180 to 300 nm
+! Used after scaleing Nepomuk's CareR10560 600 to 700 nm
+       DATA    R10560Qeff/
+     1   0.000,0.001,0.002,0.004,0.010,0.023,0.043,0.066,0.091,0.115,!180-225
+     1   0.137,0.155,0.177,0.194,0.210,0.223,0.236,0.252,0.269,0.287,!230-275
+     1   0.302,0.311,0.319,0.330,0.343,0.344,0.345,0.350,0.355,0.356,!280-325
+     1   0.357,0.362,0.367,0.366,0.365,0.362,0.358,0.360,0.362,0.356,!330-375
+     1   0.349,0.348,0.346,0.345,0.344,0.340,0.335,0.330,0.325,0.319,!380-425
+     1   0.314,0.305,0.296,0.288,0.279,0.270,0.260,0.250,0.240,0.229,!430-475
+     1   0.218,0.209,0.199,0.192,0.185,0.177,0.170,0.160,0.150,0.138,!480-525
+     1   0.125,0.111,0.096,0.085,0.073,0.065,0.058,0.052,0.046,0.042,!530-575
+     1   0.037,0.033,0.029,0.025,0.022,0.019,0.016,0.014,0.012,0.010,!580-625
+     1   0.008,0.006,0.005,0.004,0.003,0.002,0.002,0.001,0.001,0.001,!630-675
+     1   0.001,0.000,0.000,0.000,0.000/                              !680-700
 
 c     Spectral response array for the EMI 9870b pmt.
 c     Taken from old table Pete had for HPW. This is a bialkali tube
@@ -1702,22 +1719,22 @@ c      normal VERITAS mode
 c***************************************************************************
 c      normal VERITAS Upgrade mode
         elseif(UpgradePMTs)then
-         print*,'KASLITE-UV PMTS(Veritas Upgrade) using for cherenkov pe gen:'
-         print*,' QE:Upgrade:Finley-Theiling 2012 Measured Upgrade pmts'
-         print*,' QE:Upgrade:QE Values scaled by 1.25:max goes from 36% to 45%'
-         print*,' QE:Upgrade:Increase can be removed in ksAomega:' 
-         print*,' QE:Upgrade:Use Efficiency=.8'
+         print*,'KASLITE-UV R10560PMTS used for cherenkov pe gen:'
+         print*,' QE:R10560:Finley-Theiling 2012 Measured Upgrade pmts'
+         print*,' QE:R10560:QE Values scaled by 1.25:max goes from 36% to 45%'
+         print*,' QE:R10560:Increase can be removed in ksAomega:' 
+         print*,' QE:R10560:Use Efficiency=.8'
          print*,' Mirror Reflec:Recoated Clean WHIPPLE 10 meter Sept-93'
            do i=0,104
-              xp2970eff(i)=1.5*xp2970eff(i)
+              R10560Qeff(i)=1.25*R10560Qeff(i)
            enddo
            if(moonFilterFlag) then
               print*,' Using Moon Filter (e+/e- moon shadow analysis)'  
-              call rate_qgen_uv(xp2970eff,MoonFilter2012,REFLect_10M_1993,
+              call rate_qgen_uv(R10560Qeff,MoonFilter2012,REFLect_10M_1993,
      1           qeta10m,qgam10m,qeta10m_hobs,qgam10m_hobs)
            else
               print*,' No filter used'
-              call rate_qgen_uv(xp2970eff,trans_100,REFLect_10M_1993,qeta10m,
+              call rate_qgen_uv(R10560Qeff,trans_100,REFLect_10M_1993,qeta10m,
      1           qgam10m,qeta10m_hobs,qgam10m_hobs)
            endif
 c ************************************************************************

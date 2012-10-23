@@ -95,21 +95,21 @@ void GenerateR10560QECurve()
   //180 to 300:
   for (int i=0;i<=Index300xp2970;i++){
       xp2970.GetEntry(i);
-      os<<xp2970Lambda<<" "<<xp2970Qe*ScaleAt300<<endl;
+      os<<xp2970Lambda<<" "<<xp2970Qe*ScaleAt300/100.0<<endl;
   }
 
   //305 to 600 and interpolate
-  double qePrevious=xp2970Qe*ScaleAt300;
+  double qePrevious=xp2970Qe*ScaleAt300/100.;
 
   for (int i=Index300PurdueR10560+1;i<=Index600PurdueR10560;i++){ 
     PurdueR10560.GetEntry(i);
     //this skips a lambda interpolate
 
     int lambda=PurdueR10560Lambda-5;
-    double qe=(PurdueR10560Qe+qePrevious)/2.0;
+    double qe=(PurdueR10560Qe/100.+qePrevious)/2.0;
     os<<lambda<<" "<<qe<<endl;
-    os<<PurdueR10560Lambda<<" "<<PurdueR10560Qe<<endl;
-    qePrevious=PurdueR10560Qe;
+    os<<PurdueR10560Lambda<<" "<<PurdueR10560Qe/100.<<endl;
+    qePrevious=PurdueR10560Qe/100.;
   }    
 
   //600 to 680
@@ -122,11 +122,11 @@ void GenerateR10560QECurve()
 
     //this skips a lambda interpolate
     int lambda=CareR10560Lambda-5;
-    double qe=(CareR10560Qe*ScaleAt600+qePrevious)/2.0;
+    double qe=(CareR10560Qe*ScaleAt600/100.+qePrevious)/2.0;
     os<<lambda<<" "<<qe<<endl;
 
-    os<<CareR10560Lambda<<" "<<CareR10560Qe* ScaleAt600<<endl;
-    qePrevious=CareR10560Qe*ScaleAt600;
+    os<<CareR10560Lambda<<" "<<CareR10560Qe*ScaleAt600/100.<<endl;
+    qePrevious=CareR10560Qe*ScaleAt600/100.;
   }    
 
   for(int lambda=685;lambda<=700;lambda=lambda+5){
