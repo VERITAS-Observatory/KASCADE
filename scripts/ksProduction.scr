@@ -892,7 +892,7 @@ function BuildAndSubmitCarverJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"!/bin/bash                            >$sgeFile
- echo "#"PBS -l walltime=48:00:00             >>$sgeFile
+ echo "#"PBS -l walltime=12:00:00             >>$sgeFile
  echo "#"PBS -l gres=gscratch%project         >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
@@ -922,7 +922,7 @@ function BuildAndSubmitCarverJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"!/bin/bash                                      >$sgeFile
-   echo "#"PBS -l walltime=48:00:00                       >>$sgeFile
+   echo "#"PBS -l walltime=12:00:00                       >>$sgeFile
    echo "#"PBS -l gres=gscratch%project                   >>$sgeFile
    if test $1 -ge 25
      then
@@ -1332,7 +1332,7 @@ if [ ${jobSpec:1:1} = "W" ]; then
    mkdir -vp $dataDirBase
 fi
 
-if [ ${jobSpec:1:1} = "V" ]; then
+if [ ${jobSpec:1:1} = "V" ] || [ ${jobSpec:1:1} = "U" ]; then
     dataDirBase=$dataDirBase'/veritas'
     mkdir -vp $dataDirBase
 fi

@@ -5,7 +5,14 @@
 #$2 Shower type specification string (To be included in config file names and 
 #                                     in shower names like SVP1Deg2D50mv1234M2
 #                                     or WVHe4_1Deg2D50mv1234M2ABAA
-
+# Atm:Char1: W or S  (Winter or summer atm)
+# Telescope:Char2: V (VERITAS) or U(Veritas Upgrade PMT) or W (Whipple) 
+# PrimaryType: P or G or E or He4_
+# Shower source direction: 1Deg or 10Deg2D or 40_135Deg2D
+# Threshold 45mv or 50mv
+# Tels in array  1234
+# Array trigger Multiplicity: M2
+# ksTrigger source files any set of 4 letters lc or uc 
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
@@ -29,10 +36,8 @@ DebugPrintEnable=enable
 
 
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
-                                   # $5/$Detectorspec:
-                                   # Ex: .../simulations/veritas/protons/ABCD
-#MoonFilterEnable=enable           #Enable moon filter us in kaslite. Veritas
-                                   #telescopes only.
+                                   # $5$Detectorspec:
+                                   # Ex: .../simulations/veritas/protonsABCD
 
 
 echo "**********************************************************************"
@@ -114,10 +119,12 @@ echo Working Directory is $wrkdir
 ##################################################################
 #Parse the specification string
 jobSpec=$2
-AtmSpec=${jobSpec:0:1}                 #gets S from SWG20DegN0.5Deg50mv1234M2
-TelSpec=${jobSpec:1:1}                 #gets W from CWG20DegN0.5Deg50mv1234M2
-PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets UVG20Deg from UVG20Deg2D50mv1234M2
-PrimarySpec=${PrimarySpec:1}           #Strip off the U
+AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2
+TelSpec=${jobSpec:1:1}                 #gets W from WVG20DegN0.5Deg50mv1234M2
+
+PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2
+PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives VG20Deg 
+                                       #or UE20_180Deg
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
                                           #WVG20Deg2D50mv1234M2AAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
@@ -129,6 +136,16 @@ TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
                                            #SVG20Deg2D50mv1234M2BBAB
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
+
+
+if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
+   TelSpec='V'
+   PMTSpec='U'
+   TriggerSpec='V'${TriggerSpec:1}
+   PrimarySpec='V'${PrimarySpec:1}
+else
+   PMTSpec=$TelSpec
+fi
 
 
 #########################
@@ -212,15 +229,18 @@ else
     exit
 fi
 
-ThresholdSpec=$TelSpec$ThreshSpec   #Gives final threshold spec of V50mv
+ThresholdSpec=$TelSpec$ThreshSpec   #Gives final threshold spec of V50mv got
+                                    # ksAomega*.config
 
 #############################################################################
 #Make up names of all config files and make links to them
 ksKascadeConfig=ksKascade$PrimarySpec'.config'
 ln -s $inpDir/$ksKascadeConfig $ksKascadeConfig
 
-ksLightConfig=ksLight$TelSpec'.config'
+ksLightConfig=ksLight$PMTSpec'.config'
+
 ln -s $inpDir/$ksLightConfig $ksLightConfig
+
 
 
 ksTriggerConfig=ksTrigger$TriggerSpec'.config'
@@ -351,14 +371,14 @@ if [ -n "$Production" ]; then #Get 20_180:
   	TypeSpec=He4_
         ZNAZSpec=${ZNAZSpec##He4_}  #Remove He4_ from beginning
         ZNAZSpec=${ZNAZSpec%%Deg*}  #Strip Deg off end
-        TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
+        TEDIR=$AtmSpec$PMTSpec$TypeSpec$ZNAZSpec'Deg'
     else
        ZNAZSpec=${ZNAZSpec:1}     #remove  leading G,P,E     
        ZNAZSpec=${ZNAZSpec%%Deg*} #Strip of Trailing from DEG: 
        if [ $TypeSpec = "P" ]; then
-         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
+         TEDIR=$AtmSpec$PMTSpec$TypeSpec$ZNAZSpec'Deg'
        else
-         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg2D'  #E and G
+         TEDIR=$AtmSpec$PMTSpec$TypeSpec$ZNAZSpec'Deg2D'  #E and G
        fi
     fi
     echo ZN_AZ: $ZNAZSpec
@@ -390,12 +410,8 @@ while test $i -le $4
     if [ -e "$pefile" ]; then 
 	rm $pefile
     fi
-    if [ -n "$MoonFilterEnable" ]; then
-	MoonFilterOption='-MoonFilter=1'
-    fi
-
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran \
-	$ExtinctionFileOption $MoonFilterOption $segfile $pefile
+	$ExtinctionFileOption $segfile $pefile
     if [ -n "$CleanupEnable" ]; then
            rm -v $segfile		#Remove segment file
     fi
@@ -627,7 +643,7 @@ fi
     #########################################################################
     if [ -n "$Production" ]; then    
 	lcl=$PWD
-	VBFDir=$TEDIR'50mv1234M2'$AtmSpec$DetectArraySpec
+	VBFDir=$TEDIR'50mv1234M2'$AtmSpec
 	cd $5
 	mkdir -pv $VBFDir
 	mv -v $VBFFileMult ./$VBFDir
