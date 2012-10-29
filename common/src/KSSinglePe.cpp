@@ -105,7 +105,7 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
     for(int i=0;i<kBaseRiseSize;i++){
       pfSinglePulse.at(i)=kBasePulse[i];
     }
-    std::cout<<"KSSinglePe: Rising Slope:Base: "<<kBaseRiseTimeNS<<"ns"<<std::endl;
+    //std::cout<<"KSSinglePe: Rising Slope:Base: "<<kBaseRiseTimeNS<<"ns"<<std::endl;
   }            
   else{
     int pBin=0;
@@ -143,7 +143,7 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
       int k=kBaseRiseSize+i;
       pfSinglePulse.at(j)=kBasePulse[k];
     }
-    std::cout<<"KSSinglePe: Falling Slope:Base: "<<kBaseFallTimeNS<<"ns"<<std::endl;
+    //std::cout<<"KSSinglePe: Falling Slope:Base: "<<kBaseFallTimeNS<<"ns"<<std::endl;
   }
   else{
 
