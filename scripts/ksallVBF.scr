@@ -18,14 +18,14 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-KascadeEnable=enable
-LightEnable=enable
-PeSortMergeEnable=enable
-TriggerEnable=enable
-#AomegaEnable=enable                   #These next 2 operate on te files only
-#ArrayTriggerEnable=enable
+#KascadeEnable=enable
+#LightEnable=enable
+#PeSortMergeEnable=enable
+#TriggerEnable=enable
+AomegaEnable=enable                   #These next 2 operate on te files only
+ArrayTriggerEnable=enable
 
-Production=enable    #Enable Carver te.d  file Production scheme 
+Production=enable                 #Enable Carver te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
 Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
                                    #Else we get original T1 postion (near T4)
@@ -120,7 +120,7 @@ echo Working Directory is $wrkdir
 #Parse the specification string
 jobSpec=$2
 AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2
-TelSpec=${jobSpec:1:1}                 #gets W from WVG20DegN0.5Deg50mv1234M2
+TelSpec=${jobSpec:1:1}                 #gets V from WVG20DegN0.5Deg50mv1234M2
 
 PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2
 PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives VG20Deg 
@@ -141,7 +141,7 @@ ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
    TelSpec='V'
    PMTSpec='U'
-   TriggerSpec='V'${TriggerSpec:1}
+   ConfigTriggerSpec='V'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}
 else
    PMTSpec=$TelSpec
@@ -158,10 +158,13 @@ let TEnd=$(expr length $ArrayConfigSpec)
 if [ -n "$DebugPrintEnable" ]; then
   echo AtmSpec: $AtmSpec
   echo TriggerSpec: $TriggerSpec
+  echo ConfigTriggerSpec: $ConfigTriggerSpec
   echo ThresholdSpec: $ThresholdSpec
   echo ArrayConfigSpec $ArrayConfigSpec
   echo ThreshSpec $ThreshSpec
   echo PrimarySpec: $PrimarySpec
+  echo TelSpec: $TelSpec
+  echo PMTSpec: $PMTSpec
 fi
   
 if test "$ThresholdSpec" != "$ArrayConfigSpec" 
@@ -243,7 +246,7 @@ ln -s $inpDir/$ksLightConfig $ksLightConfig
 
 
 
-ksTriggerConfig=ksTrigger$TriggerSpec'.config'
+ksTriggerConfig=ksTrigger$ConfigTriggerSpec'.config'
 ln -s $inpDir/$ksTriggerConfig $ksTriggerConfig
 if [ -n "$DebugPrintEnable" ]; then
     echo ksTriggerConfig: $ksTriggerConfig
@@ -306,7 +309,7 @@ $src/randomCreateRanluxSeed -s $seed -o ksArrayTrigger.ran
 #Note it includes data path
 ShwrTe=$5'/'$AtmSpec$TriggerSpec'GeV'$1'te'
 SingleShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec'GeV'$1
-MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+#MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
 echo ShwrTe: $ShwrTe
 
 if [ -n "$VBFOutputToDetectorSpecDir" ];
@@ -613,7 +616,7 @@ fi
     if [ -n "$RemoveSingleVBF" ]; then
 	echo Removing Singel Tel VBF files
 	if test $dcount = 0
-	    then
+	then
 	    if [ -e "$VBFFile" ]; then
 		rm -v $VBFFile
 	    fi
@@ -639,14 +642,19 @@ fi
     
     #########################################################################
     # Move the vbf file to the vbf directory. mkdir the directory if needed
-    #This used to be in GProcessAll
+    #This used to be in GProcessAll abd CRProcessAll
     #########################################################################
-    if [ -n "$Production" ]; then    
-	lcl=$PWD
+    echo 'Testing Production: '$Production
+    if [ -n "$Production" ]; then
+        lcl=$PWD
 	VBFDir=$TEDIR'50mv1234M2'$AtmSpec
-	cd $5
+	if [ -n "$VBFOutputToDetectorSpecDir" ]; then
+	    VBFDir=$VBFDir$DetectArraySpec
+        fi
+	echo 'Production: Move shower vbf file '$VBFFileMult' to ' $5'/'$VBFDir
+        cd $5
 	mkdir -pv $VBFDir
-	mv -v $VBFFileMult ./$VBFDir
+	mv -v $VBFFileMult $5'/'$VBFDir
 	cd $lcl
     fi
 
@@ -663,6 +671,5 @@ if [ -n "$CleanupEnable" ]; then
     rmdir $dirID
 
 fi
-
 
 

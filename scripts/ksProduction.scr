@@ -1,4 +1,4 @@
-#	!/bin/bash
+#!/bin/bash
 #$0 ./kas02.scr
 #$1 Gets passed directly to ksallVBF.scr. Used here to specify what particle 
 #   types are to be processed. (G,P,He4_ or CR(causes P and He4_ , Or E for electrons)
@@ -893,7 +893,7 @@ function BuildAndSubmitCarverJobs
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"!/bin/bash                            >$sgeFile
  echo "#"PBS -l walltime=12:00:00             >>$sgeFile
- echo "#"PBS -l gres=gscratch%project         >>$sgeFile
+ #echo "#"PBS -l gres=gscratch%project         >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
  echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
@@ -923,7 +923,7 @@ function BuildAndSubmitCarverJobsSingly
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"!/bin/bash                                      >$sgeFile
    echo "#"PBS -l walltime=12:00:00                       >>$sgeFile
-   echo "#"PBS -l gres=gscratch%project                   >>$sgeFile
+  # echo "#"PBS -l gres=gscratch%project                   >>$sgeFile
    if test $1 -ge 25
      then
       echo "#PBS -l pvmem=8GB"                            >>$sgeFile
@@ -971,7 +971,7 @@ function BuildAndSubmitLargeCarverJobs
  echo "#"PBS -S /bin/bash                             >$sgeFile
  echo "#"PBS -l walltime=4:00:00,pvmem=5gb          >>$sgeFile
  echo "#"PBS -l nodes=$numNodes                      >>$sgeFile
- echo "#"PBS -l gres=gscratch%project                >>$sgeFile
+ #echo "#"PBS -l gres=gscratch%project                >>$sgeFile
  echo cd "$"PBS_O_WORKDIR                            >>$sgeFile
  
  let i=showerStart  
@@ -1051,7 +1051,7 @@ function BuildAndSubmitCarverJobArray
 
    sgeFile=$lcl'/K'$eGeV$parspec.pbs
    echo "#"!/bin/bash                                            >$sgeFile
-   echo "#"PBS -l gres=gscratch%project                         >>$sgeFile
+   #echo "#"PBS -l gres=gscratch%project                         >>$sgeFile
    echo let i=\$PBS_ARRAYID                                     >>$sgeFile
    echo cd $lcl                                                 >>$sgeFile
    echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'\$i\'$parspec.log\' >>$sgeFile
