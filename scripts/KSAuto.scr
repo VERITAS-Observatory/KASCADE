@@ -6,7 +6,7 @@
 #$2 ksProduction season spec: Ex: W or S
 #$3 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
 #$4 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
-#$5 Thresholda: Ex 45mv or 50mv
+#$5 Threshold: Ex 45mv or 50mv
 #************************************************************************
 # This will loop over all combinations of $3 and $4 entries
 # Resulting te files will all be placed in same  directory
@@ -14,7 +14,13 @@
 # Within that loop we can do:
 
 GenerateTeFiles=enabled
+CheckGeneratedTeFiles=enabled
 HTARTeFiles=enabled
+CheckHTARTeFiles=enabled
+Cleanup=enabled                 #should only enabler this is 
+                                #"ExitOnTeCreationFailure" (below) is enabled
+
+#ExitOnTeCreationFailure=enabled  
 
 ###########################################################################
 function checkRunningJobs()
@@ -35,16 +41,63 @@ function checkRunningJobs()
     return 0
   fi
 }
-##########################################################################
+###########################################################################
+function checkTeFiles()
+{
+  energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565 43707 52265 ) 
+  start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11    1     1) 
+  end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10 )
+  let iFilesNotFound=0;
+  let iEntryStart=1
+  let iEntryEnd=44
+
+  let j=$iEntryStart
+  echo 'KSAuto: Searching  for Te files in CheckTe.txt'
+  while test $j -le $iEntryEnd
+    do      
+     let iShStart=${start[$j]}
+     let iShEnd=${end[$j]}
+     e=${energy[$j]}
+     #echo 'Searching energy '$e' GeV for '$iShEnd' showers'
+     let k=$iShStart
+
+     while test $k -le $iShEnd
+       do
+        #Make up the file name
+        TeFile=$TeName'GeV'$e'te.d'$k
+        Found=0
+        {
+         while read FileName
+           do
+	    if [ "$TeFile" = "$FileName" ]; then
+             Found=1
+             break
+            fi
+          done
+        }<$1
+        if [ "$Found" = "0" ]; then
+          echo 'File Not found: '$TeFile
+          let iFilesNotFound=iFilesNotFound+1
+        fi
+        let k=k+1
+       done
+     let j=j+1
+    done
+  if [ $iFilesNotFound != 0 ]; then
+      return 1
+  else
+      return 0
+  fi
+}
+#############################################################################
 
 lcl=$PWD
-date
 source /etc/profile
 
 #To find the Zn amd AZ combinations first put $3 and $4 into arrays
-#This is tricky. We save away the present Inertnal Filed Seperator and then
-# set IFS to a comma. We then user the -a option with the read command to 
-# read in our stingsd into arrays. Then we resore the IFS.
+#This is tricky. We save away the present Internal Filed Seperator and then
+# set IFS to a comma. We then use the -a option with the read command to 
+# read in our stings into arrays. Then we restore the IFS.
 
 
 SAVEIFS=$IFS
@@ -62,6 +115,7 @@ fi
 #Zenith
 let izn=0
 let iznEnd=${#Zenith[@]}
+let iFilesNotFound=0
 while test $izn -lt $iznEnd
   do
 
@@ -85,8 +139,10 @@ while test $izn -lt $iznEnd
        echo '# GenerateTeFiles '
        echo '##########################################################'
 
+       cd $lcl
+       date
+
        #make up our ksProduction designation
-      
        Spec=$2'V'$1$ZnAz$OffSetSpec$5'1234M2'
   
        echo "KSAuto: Submitting ksProduction for " $Spec 
@@ -103,6 +159,7 @@ while test $izn -lt $iznEnd
        date
        echo "KSAuto: Sleeping until they all finish."
        # Cleanup the log file to only have Hansen cluster pids in it
+ 
        cat KSProd.log | grep hansen-adm >ShowerMakeTE.log
 
        runsNotDone=1
@@ -114,33 +171,130 @@ while test $izn -lt $iznEnd
 	 done
        echo "KSAuto: Te file generation complete"
      fi
+ 
+     TeName=$2'V'$1$ZnAz$OffSetSpec
+     V190Dir='/scratch/lustreC/s/sembrosk/simulations/veritas/gammas/V190/'
+     if [ -n "$CheckGeneratedTeFiles" ]; then
+       echo '##########################################################'
+       echo '# CheckGeneratedTeFiles '
+       echo '##########################################################'
+
+       cd $lcl
+       date
+
+       #Check we actually got some files (ie made the Te Directory)
+       if [ ! -d $V190Dir'/'$Tename ]; then
+	   echo 'KSAuto: Directory '$V190Dir'/'$Tename' does not exist!'
+           echo 'KSAuto: Apparently no te files were generated!'
+           echo 'KSAuto: *************Exiting. Cluster failure?********'
+           cd $lcl
+           exit
+       fi
+
+       #Get a list of the files into CheckTe.txt
+       cd $V190Dir'/'$Tename
+       ls |xargs -n1 >CheckTe.txt
+       checkTeFiles "CheckTe.txt"
+       FilesMissing=$?
+
+       if [ "$FilesMissing" -eq "1" ]; then
+         echo 'KSAuto: '$iFilesNotFound' files not created.'
+         if [ -n "$ExitOnTeCreationFailure" ]; then
+           echo 'KSAuto: *************Exiting. Missing files***********'
+           cd $lcl
+	   exit
+         fi
+       else
+         echo 'KSAuto: All files present in '$TeName' directory'
+       fi
+    fi
+
+     HtarDestinationDir="/archive/fortress/group/veritas/simulations/"
 
      if [ -n "$HTARTeFiles" ]; then
 	 echo '##########################################################'
 	 echo '# HTARTeFiles '
 	 echo '##########################################################'
 
-	 cd /scratch/lustreC/s/sembrosk/simulations/veritas/gammas/V190/ 
-	 TeName=$2'V'$1$ZnAz$OffSetSpec
+	 cd $V190Dir
+	 date
 
          echo "KSAuto: htar "$TeName" to archive."
-	 date
-	 DestinationDir="/archive/fortress/group/veritas/simulations/"
 
-	 if htar -cvf $DestinationDir'/'$TeName'.tar' ./$TeName  
+	 if htar -cvf $HtarDestinationDir'/'$TeName'.tar' ./$TeName  
 	 then
 	 # And now cleanup: change protections and remove it from the scratch
-           chmod 775 $DestinationDir'/'$TeName'.tar*'
-           echo "KSAuto: htar sucessful. Removing directory "$TeName 
-           rm -rf $TeName
+           chmod 775 $HtarDestinationDir'/'$TeName'.tar'
+           echo 'KSAuto: htar sucessful.'
 	 else
 	    echo "KSAuto: Fatal--htar failed for "$TeName
+            echo 'KSAuto: ***********Exiting. htar failure!**************'
             cd $lcl
             exit
          fi
          cd $lcl
      fi
 
+     if [ -n "$CheckHTARTeFiles" ]; then
+       echo '##########################################################'
+       echo '# CheckHTARTeFiles '
+       echo '##########################################################'
+       
+       cd $lcl
+       date
+
+       #Get a list of the files into CheckTe.txt
+       TEDIR=$HtarDestinationDir'/'$TeName'.tar'
+       echo 'KSAuto: Get listing of htar file: '$TEDIR
+       htar -tf $TEDIR >TeFileList
+
+       #go through this file and edit the names so that only the filename 
+       #part remains
+       rm CheckTe.txt
+    
+       #echo 'Make file CheckTe.txt with only file names'
+       {
+         while read string
+           do
+             HtarFileName=${string##*/}
+             # make sure its a filename
+             if [ "${HtarFileName%%GeV*}" = "$TeName" ]; then
+               echo $HtarFileName >>CheckTe.txt
+             fi   
+           done
+        }<TeFileList
+       checkTeFiles "CheckTe.txt"
+       FilesMissing=$?
+
+       cd $lcl
+
+       if [ "$FilesMissing" -eq "1" ]; then
+         echo 'KSAuto: '$iFilesNotFound' files not created.'
+         if [ -n "$ExitOnTeCreationFailure" ]; then
+	   exit
+         fi
+       else
+         echo 'KSAuto: All files present in htar file'$TEDIR
+       fi
+     fi
+ 
+     #########################################################################
+     if [ -n "$Cleanup" ]; then
+       echo '##########################################################'
+       echo '# Cleanup '
+       echo '##########################################################'
+       echo 'KSAuto:  Removing *.err,*.pbs and moving k*.log to ./log/' 
+       cd $lcl
+       date
+       rm *.err
+       rm *.pbs
+       mv k*.log ./log/   #Don't want to move KAuto.log out of V.
+       cd $V190Dir
+       echo 'KSAuto:  Removing directory '$TeName 
+       rm -rf $TeName
+       cd $lcl
+     fi
+     #########################################################################
      #Should all be done now. Go on to next combo. This all could take a
      # couple of  weeks or so
      date
@@ -148,6 +302,9 @@ while test $izn -lt $iznEnd
     done
    izn=$((izn+1))
   done
+ date
+echo 'KSAuto: All done!--Good bye!'
+
 ###########################################################################
 
       
