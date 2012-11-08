@@ -4,20 +4,21 @@
 # ************************************************************************
 #$1 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
 #$2 ksProduction season spec: Ex: W or S
-#$3 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
-#$4 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
-#$5 Threshold: Ex 45mv or 50mv
+#$3 telescope designation: W or V or U (Whipple, veritas, Upgrade)
+#$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
+#$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
+#$6 Threshold: Ex 45mv or 50mv
 #************************************************************************
-# This will loop over all combinations of $3 and $4 entries
+# This will loop over all combinations of $4 and $5 entries
 # Resulting te files will all be placed in same  directory
 
 # Within that loop we can do:
 
-GenerateTeFiles=enabled
+#GenerateTeFiles=enabled
 CheckGeneratedTeFiles=enabled
-HTARTeFiles=enabled
-CheckHTARTeFiles=enabled
-Cleanup=enabled                 #should only enabler this is 
+#HTARTeFiles=enabled
+#CheckHTARTeFiles=enabled
+#Cleanup=enabled                 #should only enabler this is 
                                 #"ExitOnTeCreationFailure" (below) is enabled
 
 #ExitOnTeCreationFailure=enabled  
@@ -43,16 +44,55 @@ function checkRunningJobs()
 }
 ###########################################################################
 function checkTeFiles()
+#$1 V190Dir
+#$2 TeName
+#$3 Particle type
 {
-  energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565 43707 52265 ) 
-  start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11    1     1) 
-  end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10 )
-  let iFilesNotFound=0;
   let iEntryStart=1
   let iEntryEnd=44
 
+  energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565 43707 52265 ) 
+  
+  if [ "$3" = "G" ] || [ "$3" = "E" ]; then
+     start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11    1     1) 
+     end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10 )
+  fi
+
+
+  if [ "$3" = "P" ]; then
+     start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1 ) 
+     end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5 )
+  fi
+
+  if [ "$3" = "He4_" ]; then
+     echo '***Helium4***'
+     let iEntryStart=5
+
+     start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1 ) 
+     end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5 )
+  fi
+
+
+
+
+
+  TeDirName=$1'/'$2
+  #Check we actually got some files (ie made the Te Directory)
+  if [ ! -d $TeDirName ]; then
+    echo 'KSAuto: Directory '$TeDirName' does not exist!'
+    echo 'KSAuto: Apparently no te files were generated!'
+    echo 'KSAuto: *************Exiting. Cluster failure?********'
+    cd $lcl
+    exit
+  fi
+
+  #Get a list of the files into CheckTe.txt
+  cd $TeDirName
+  ls |xargs -n1 >CheckTe.txt
+  let iFilesNotFound=0
+
   let j=$iEntryStart
-  echo 'KSAuto: Searching  for Te files in CheckTe.txt'
+  echo 'KSAuto: Searching  for Te files in '$TeDirName
   while test $j -le $iEntryEnd
     do      
      let iShStart=${start[$j]}
@@ -64,7 +104,7 @@ function checkTeFiles()
      while test $k -le $iShEnd
        do
         #Make up the file name
-        TeFile=$TeName'GeV'$e'te.d'$k
+        TeFile=$2'GeV'$e'te.d'$k
         Found=0
         {
          while read FileName
@@ -74,7 +114,7 @@ function checkTeFiles()
              break
             fi
           done
-        }<$1
+        }<CheckTe.txt
         if [ "$Found" = "0" ]; then
           echo 'File Not found: '$TeFile
           let iFilesNotFound=iFilesNotFound+1
@@ -94,15 +134,33 @@ function checkTeFiles()
 lcl=$PWD
 source /etc/profile
 
-#To find the Zn amd AZ combinations first put $3 and $4 into arrays
+host=$(hostname)
+echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  V190DirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  echo '***Carver Cluster***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  V190DirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
+  echo ***Hansen Cluster***
+fi
+
+#To find the Zn amd AZ combinations first put $4 and $5 into arrays
 #This is tricky. We save away the present Internal Filed Seperator and then
 # set IFS to a comma. We then use the -a option with the read command to 
 # read in our stings into arrays. Then we restore the IFS.
 
+PMT=$3
 
 SAVEIFS=$IFS
-IFS=, read -a Zenith <<< "$3"
-IFS=, read -a Azimuth <<< "$4"
+IFS=, read -a Zenith <<< "$4"
+IFS=, read -a Azimuth <<< "$5"
 IFS=$SAVEIFS
 
 #Check if the is for 2D offsets, blank if not
@@ -143,7 +201,7 @@ while test $izn -lt $iznEnd
        date
 
        #make up our ksProduction designation
-       Spec=$2'V'$1$ZnAz$OffSetSpec$5'1234M2'
+       Spec=$2$PMT$1$ZnAz$OffSetSpec$6'1234M2'
   
        echo "KSAuto: Submitting ksProduction for " $Spec 
        echo "KSAuto: This takes a few minuts"
@@ -171,9 +229,37 @@ while test $izn -lt $iznEnd
 	 done
        echo "KSAuto: Te file generation complete"
      fi
+     #######################################################################
+
  
-     TeName=$2'V'$1$ZnAz$OffSetSpec
-     V190Dir='/scratch/lustreC/s/sembrosk/simulations/veritas/gammas/V190/'
+     TeName=$2$PMT$1$ZnAz$OffSetSpec
+     if [ "$1" = "G" ] ; then
+           ParticleDir='gammas'
+     fi
+     if [ "$1" = "E" ] ; then
+           ParticleDir='electrons'
+     fi
+     if [ "$1" = "P" ] ; then
+           ParticleDir='protons'
+     fi
+     if [ "$1" = "He4_" ] ; then
+           ParticleDir='he4'
+     fi
+     
+     if [ "$1" = "CR" ] ; then
+       V190DirP=$V190DirBase'/protons/V190' 
+       V190DirHe4=$V190DirBase'/he4/V190' 
+       V190Dir=$V190DirP
+       TeNameP=$2$PMT'P'$ZnAz$OffSetSpec
+       TeNameHe4=$2$PMT'He4_'$ZnAz$OffSetSpec
+       TeName=$TeNameP
+     else
+       V190Dir=$V190DirBase'/'$ParticleDir'/V190'
+       TeName=$2$PMT$1$ZnAz$OffSetSpec
+     fi
+
+     #######################################################################
+
      if [ -n "$CheckGeneratedTeFiles" ]; then
        echo '##########################################################'
        echo '# CheckGeneratedTeFiles '
@@ -182,20 +268,30 @@ while test $izn -lt $iznEnd
        cd $lcl
        date
 
-       #Check we actually got some files (ie made the Te Directory)
-       if [ ! -d $V190Dir'/'$Tename ]; then
-	   echo 'KSAuto: Directory '$V190Dir'/'$Tename' does not exist!'
-           echo 'KSAuto: Apparently no te files were generated!'
-           echo 'KSAuto: *************Exiting. Cluster failure?********'
-           cd $lcl
-           exit
-       fi
 
-       #Get a list of the files into CheckTe.txt
-       cd $V190Dir'/'$Tename
-       ls |xargs -n1 >CheckTe.txt
-       checkTeFiles "CheckTe.txt"
-       FilesMissing=$?
+       if [ "$1" = "CR" ] ; then
+         checkTeFiles $V190Dir $TeNameP 'P'
+         PFilesMissing=$?
+         if [ "$PFilesMissing" -ne "1" ]; then
+            echo 'KSAuto: All Te files present in '$TeNameP' directory'
+         fi
+
+         checkTeFiles $V190Dir $TeNameHe4 'He4_'
+         He4FilesMissing=$?
+         if [ "$He4FilesMissing" -ne "1" ]; then
+            echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
+         fi
+
+	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; then
+	    FilesMissing=1
+         fi
+       else
+         checkTeFiles $V190Dir $TeName $1
+         FilesMissing=$?
+         if [ "$FilesMissing" -ne "1" ]; then
+            echo 'KSAuto: All Te files present in '$TeName' directory'
+         fi
+       fi
 
        if [ "$FilesMissing" -eq "1" ]; then
          echo 'KSAuto: '$iFilesNotFound' files not created.'
@@ -204,10 +300,8 @@ while test $izn -lt $iznEnd
            cd $lcl
 	   exit
          fi
-       else
-         echo 'KSAuto: All files present in '$TeName' directory'
        fi
-    fi
+     fi
 
      HtarDestinationDir="/archive/fortress/group/veritas/simulations/"
 
