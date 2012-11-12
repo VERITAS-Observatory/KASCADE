@@ -14,11 +14,11 @@
 
 # Within that loop we can do:
 
-#GenerateTeFiles=enabled
+GenerateTeFiles=enabled
 CheckGeneratedTeFiles=enabled
-#HTARTeFiles=enabled
-#CheckHTARTeFiles=enabled
-#Cleanup=enabled                 #should only enabler this is 
+HTARTeFiles=enabled
+CheckHTARTeFiles=enabled
+#Cleanup=enabled                 #should only enable  this if 
                                 #"ExitOnTeCreationFailure" (below) is enabled
 
 #ExitOnTeCreationFailure=enabled  
@@ -26,17 +26,21 @@ CheckGeneratedTeFiles=enabled
 ###########################################################################
 function checkRunningJobs()
 {
-  if [ -s checkRunners.dat ]; then
-      rm checkRunners.dat
+  RunningList=RunningList$2'.dat'
+  SingleRunList=singleRunList$2'dat'
+
+  if [ -s $RunningList ]; then
+      rm $RunningList
   fi
   {
     while  read jobID;  do
-      qstat $jobID &>checkJobRun.dat
-      cat checkJobRun.dat | grep -v Unknown >>checkRunners.dat
+      qstat $jobID &>$SingleRunList
+      cat $SingleRunList | grep -v Unknown >>$RunningList
     done
   } <$1
-  rm checkJobRun.dat
-  if [ -s checkRunners.dat ]; then
+
+  rm $SingleRunList
+  if [ -s  $RunningList ]; then
     return 1
   else
     return 0
@@ -48,35 +52,12 @@ function checkTeFiles()
 #$2 TeName
 #$3 Particle type
 {
-  let iEntryStart=1
-  let iEntryEnd=44
-
-  energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565 43707 52265 ) 
+  cd $lcl
+  V190Dir=$1
+  TeName=$2
+  Particle=$3
   
-  if [ "$3" = "G" ] || [ "$3" = "E" ]; then
-     start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11    1     1) 
-     end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10 )
-  fi
-
-
-  if [ "$3" = "P" ]; then
-     start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1 ) 
-     end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5 )
-  fi
-
-  if [ "$3" = "He4_" ]; then
-     echo '***Helium4***'
-     let iEntryStart=5
-
-     start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1 ) 
-     end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5 )
-  fi
-
-
-
-
-
-  TeDirName=$1'/'$2
+  TeDirName=$V190Dir'/'$TeName
   #Check we actually got some files (ie made the Te Directory)
   if [ ! -d $TeDirName ]; then
     echo 'KSAuto: Directory '$TeDirName' does not exist!'
@@ -86,50 +67,77 @@ function checkTeFiles()
     exit
   fi
 
-  #Get a list of the files into CheckTe.txt
+  #Get a list of the files into CheckTe$ZnAz.txt
+  CheckTeFile='CheckTe'$ZnAz'.txt'
+  echo CheckTeFile: $CheckTeFile
+
   cd $TeDirName
-  ls |xargs -n1 >CheckTe.txt
-  let iFilesNotFound=0
+  ls |xargs -n1 >$lcl'/'$CheckTeFile
+  cd $lcl
 
-  let j=$iEntryStart
-  echo 'KSAuto: Searching  for Te files in '$TeDirName
-  while test $j -le $iEntryEnd
-    do      
-     let iShStart=${start[$j]}
-     let iShEnd=${end[$j]}
-     e=${energy[$j]}
-     #echo 'Searching energy '$e' GeV for '$iShEnd' showers'
-     let k=$iShStart
-
-     while test $k -le $iShEnd
-       do
-        #Make up the file name
-        TeFile=$2'GeV'$e'te.d'$k
-        Found=0
-        {
-         while read FileName
-           do
-	    if [ "$TeFile" = "$FileName" ]; then
-             Found=1
-             break
-            fi
-          done
-        }<CheckTe.txt
-        if [ "$Found" = "0" ]; then
-          echo 'File Not found: '$TeFile
-          let iFilesNotFound=iFilesNotFound+1
-        fi
-        let k=k+1
-       done
-     let j=j+1
-    done
-  if [ $iFilesNotFound != 0 ]; then
-      return 1
+  #checking this list for all files that should be there takes 5 - 10 min
+  #thus , to insure we don't over run the 30 min time limit
+  #we will have to submit the te file check and sleep until it finishes
+  echo 'KSAuto: Checking for all te files in: '$TeName
+       
+  CheckTeFiles $CheckTeFile $TeName  $Particle
+       
+  date
+  cd $lcl
+  Result=$CheckTeFile'.Result'
+  if [ -s $Result ]; then
+     cat  $Result
+     iFilesNotFound=1
+     if [ -n "$ExitOnTeCreationFailure" ]; then
+       exit
+     fi
+     return 1
   else
-      return 0
+       echo 'KSAuto: All files present in file: ' $TeName
+     return 0
   fi
 }
 #############################################################################
+
+function CheckTeFiles()
+
+#$1 is list of files to match
+#$2 is base name of all files.
+#$3 particle type
+{
+  FileList=$1
+  TeName=$2
+  Particle=$3
+
+  #build a submission .pbs file
+  sgeFile=$lcl'/'$TeName'TeCheck.pbs'
+  echo "#"PBS -q $QUEUE                                          >$sgeFile
+  echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
+  if [ -n "$HANSEN" ]; then
+    echo source /etc/profile                                    >>$sgeFile
+    echo module load gcc/4.5.1                                  >>$sgeFile
+  fi
+  echo cd $lcl                                                  >>$sgeFile
+  echo $lcl/TeFileCheck.scr $lcl'/'$FileList  $TeName $Particle >>$sgeFile
+  chmod 700 $sgeFile
+  TECHECKLOG=$lcl'/TeCheck'$ZnAz'.log'
+
+  qsub -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$TECHECKLOG
+
+  TECLOG=TEC$ZnAz'.log'
+  cat $TECHECKLOG | grep $JobIDHost >$TECLOG
+  echo "KSAuto: Sleeping until TeCeckFile finishes."
+  runsNotDone=1
+  while test $runsNotDone -eq 1 
+    do
+      sleep 300s
+      checkRunningJobs $TECLOG $ZnAz
+      let runsNotDone=$?
+    done
+  return
+} 
+#########################################################################
+
 
 lcl=$PWD
 source /etc/profile
@@ -140,14 +148,20 @@ echo host: $host
 hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
+  CARVER=enabled
   V190DirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  JobIDHost='cvrsvc'
+  QUEUE=serial
   echo '***Carver Cluster***'
 fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
+  HANSEN=enabled
   V190DirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
+  JobIDHost='hansen-adm'
+  QUEUE=physics
   echo ***Hansen Cluster***
 fi
 
@@ -206,7 +220,7 @@ while test $izn -lt $iznEnd
        echo "KSAuto: Submitting ksProduction for " $Spec 
        echo "KSAuto: This takes a few minuts"
 
-       ./ksProduction.scr $Spec ksallVBF.scr >KSProd.log
+       ./ksProduction.scr $Spec ksallVBF.scr >KSProd$ZnAz'.log'
 
        #####################################################################
        # We are now going to wait for all of these to finish.
@@ -218,13 +232,13 @@ while test $izn -lt $iznEnd
        echo "KSAuto: Sleeping until they all finish."
        # Cleanup the log file to only have Hansen cluster pids in it
  
-       cat KSProd.log | grep hansen-adm >ShowerMakeTE.log
+       cat KSProd$ZnAz'.log' | grep $JobIDHost  >ShowerMakeTE$ZnAz'.log'
 
        runsNotDone=1
        while test $runsNotDone -eq 1 
 	 do
-          sleep 60s
-	  checkRunningJobs "ShowerMakeTE.log"
+          sleep 300s
+	  checkRunningJobs 'ShowerMakeTE'$ZnAz'.log' $ZnAz
           let runsNotDone=$?
 	 done
        echo "KSAuto: Te file generation complete"
@@ -303,30 +317,66 @@ while test $izn -lt $iznEnd
        fi
      fi
 
-     HtarDestinationDir="/archive/fortress/group/veritas/simulations/"
+     if [ -n "$HANSEN" ]; then
+         HtarDestinationDir="/archive/fortress/group/veritas/simulations/"
+     fi     
+     # Carver HTAR just goes into base directory so don't define 
+     # HtarDestinationDir       
 
      if [ -n "$HTARTeFiles" ]; then
-	 echo '##########################################################'
-	 echo '# HTARTeFiles '
-	 echo '##########################################################'
+       echo '##########################################################'
+       echo '# HTARTeFiles '
+       echo '##########################################################'
+         #In order to not have this task (KSAuto.scr) be killed because it
+         #runs too long, we have to submit this htar command to the cluster.
+   
+       cd $lcl
+       date
 
-	 cd $V190Dir
-	 date
+       echo "KSAuto: htar "$TeName" to archive."
 
-         echo "KSAuto: htar "$TeName" to archive."
+       #build a submission .pbs file
+       sgeFile=$lcl'/'$TeName'HTAR.pbs'
+       echo "#"PBS -q physics                       >$sgeFile
+       echo "#"PBS -l walltime=04:00:00            >>$sgeFile
+       echo source /etc/profile                    >>$sgeFile
+       echo module load gcc/4.5.1                  >>$sgeFile
+       echo cd $V190Dir                            >>$sgeFile
+       echo htar -cvf   \\                         >>$sgeFile
+       echo $HtarDestinationDir$TeName'.tar' \\ >>$sgeFile
+       echo ./$TeName \\                           >>$sgeFile  
+       echo '>'$lcl'/'$TeName'HTAR.log'            >>$sgeFile
+       chmod 700 $sgeFile
+       #pwd
+       #echo lcl: $lcl
+       HTARLOG=$lcl'/KSHTAR'$ZnAz'.log'
+       #echo HTARLOG: $HTARLOG
+       qsub -V -e $TeName'HTAR.pbs.err' -o $TeName'HTAR.pbs.log' $sgeFile >$HTARLOG
+      
+       #####################################################################
+       # We are now going to wait for the htar to finish.
+       #####################################################################
 
-	 if htar -cvf $HtarDestinationDir'/'$TeName'.tar' ./$TeName  
-	 then
-	 # And now cleanup: change protections and remove it from the scratch
-           chmod 775 $HtarDestinationDir'/'$TeName'.tar'
-           echo 'KSAuto: htar sucessful.'
-	 else
-	    echo "KSAuto: Fatal--htar failed for "$TeName
-            echo 'KSAuto: ***********Exiting. htar failure!**************'
-            cd $lcl
-            exit
-         fi
-         cd $lcl
+       echo "KSAuto: htar $TeName job submission to Hansen cluster complete."
+       date
+       echo "KSAuto: Sleeping until it finishes."
+       # Cleanup the log file to only have Hansen cluster pids in it
+ 
+       ShowerMakeTe='ShowerMakeTE'$ZnAz'.log'
+       cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+
+       runsNotDone=1
+       while test $runsNotDone -eq 1 
+	 do
+          sleep 300s
+	  checkRunningJobs $ShowerMakeTE $ZnAz
+          let runsNotDone=$?
+	 done
+       echo "KSAuto: HTAR of "$TeName" complete"
+
+       # And now cleanup: change protection
+       chmod 775 $HtarDestinationDir$TeName'.tar'
+       cd $lcl
      fi
 
      if [ -n "$CheckHTARTeFiles" ]; then
@@ -338,13 +388,14 @@ while test $izn -lt $iznEnd
        date
 
        #Get a list of the files into CheckTe.txt
-       TEDIR=$HtarDestinationDir'/'$TeName'.tar'
+       TEDIR=$HtarDestinationDir$TeName'.tar'
        echo 'KSAuto: Get listing of htar file: '$TEDIR
-       htar -tf $TEDIR >TeFileList
+       htar -tf $TEDIR >TeFileList$ZnAz
 
        #go through this file and edit the names so that only the filename 
        #part remains
-       rm CheckTe.txt
+       CheckTeFile= CheckTeHTAR$ZnAz'.txt'
+       rm $CheckTeFile
     
        #echo 'Make file CheckTe.txt with only file names'
        {
@@ -353,17 +404,21 @@ while test $izn -lt $iznEnd
              HtarFileName=${string##*/}
              # make sure its a filename
              if [ "${HtarFileName%%GeV*}" = "$TeName" ]; then
-               echo $HtarFileName >>CheckTe.txt
+               echo $HtarFileName >>$CheckTeFile
              fi   
            done
-        }<TeFileList
-       checkTeFiles "CheckTe.txt"
-       FilesMissing=$?
-
+        }<TeFileList$ZnAz
+       #checking this list for all files that should be there takes 5 - 10 min
+       #thus , to insure we don't over run the 30 min time limit
+       #we will have to submit the te file check and sleep until it finishes
+       echo 'KSAuto: Checking for all te files in: '$TEDIR
+       
+       CheckTeFiles $CheckTeFile $TeName $1
+       
+       date
        cd $lcl
-
-       if [ "$FilesMissing" -eq "1" ]; then
-         echo 'KSAuto: '$iFilesNotFound' files not created.'
+       if [ -s $CheckTeFile'.Result' ]; then
+         cat  $CheckTeFile'.Result'
          if [ -n "$ExitOnTeCreationFailure" ]; then
 	   exit
          fi
