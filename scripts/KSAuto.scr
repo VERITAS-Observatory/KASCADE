@@ -362,7 +362,7 @@ while test $izn -lt $iznEnd
        echo "KSAuto: Sleeping until it finishes."
        # Cleanup the log file to only have Hansen cluster pids in it
  
-       ShowerMakeTe='ShowerMakeTE'$ZnAz'.log'
+       ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
        cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
 
        runsNotDone=1
@@ -390,11 +390,12 @@ while test $izn -lt $iznEnd
        #Get a list of the files into CheckTe.txt
        TEDIR=$HtarDestinationDir$TeName'.tar'
        echo 'KSAuto: Get listing of htar file: '$TEDIR
-       htar -tf $TEDIR >TeFileList$ZnAz
+       TeFileList=TeFileList$ZnAz
+       htar -tf $TEDIR >$TeFileList
 
        #go through this file and edit the names so that only the filename 
        #part remains
-       CheckTeFile= CheckTeHTAR$ZnAz'.txt'
+       CheckTeFile=CheckTeHTAR$ZnAz'.txt'
        rm $CheckTeFile
     
        #echo 'Make file CheckTe.txt with only file names'
@@ -407,7 +408,7 @@ while test $izn -lt $iznEnd
                echo $HtarFileName >>$CheckTeFile
              fi   
            done
-        }<TeFileList$ZnAz
+        }<$TeFileList
        #checking this list for all files that should be there takes 5 - 10 min
        #thus , to insure we don't over run the 30 min time limit
        #we will have to submit the te file check and sleep until it finishes
