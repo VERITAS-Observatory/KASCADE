@@ -227,14 +227,20 @@ while test $izn -lt $iznEnd
        #####################################################################
 
        echo "KSAuto: Submission of ksProduction to make shower TE files on "
-       echo "KSAuto: Hansen cluster for "$ZnAz" complete."
+       if [ -n "$HANSEN" ]; then
+         echo "KSAuto: Hansen cluster for "$ZnAz" complete."
+       fi
+       if [ -n "$CARVER" ]; then
+         echo "KSAuto: Carver cluster for "$ZnAz" complete."
+       fi
        date
        echo "KSAuto: Sleeping until they all finish."
        # Cleanup the log file to only have Hansen cluster pids in it
  
-       cat KSProd$ZnAz'.log' | grep $JobIDHost  >ShowerMakeTE$ZnAz'.log'
+       cat KSProd$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeTE$ZnAz'.log'
 
        runsNotDone=1
+        
        while test $runsNotDone -eq 1 
 	 do
           sleep 300s
@@ -337,13 +343,15 @@ while test $izn -lt $iznEnd
 
        #build a submission .pbs file
        sgeFile=$lcl'/'$TeName'HTAR.pbs'
-       echo "#"PBS -q physics                       >$sgeFile
+       echo "#"PBS -q $QUEUE                        >$sgeFile
        echo "#"PBS -l walltime=04:00:00            >>$sgeFile
-       echo source /etc/profile                    >>$sgeFile
-       echo module load gcc/4.5.1                  >>$sgeFile
+       if [ -n "$HANSEN" ]; then
+          echo source /etc/profile                 >>$sgeFile
+          echo module load gcc/4.5.1               >>$sgeFile
+       fi
        echo cd $V190Dir                            >>$sgeFile
        echo htar -cvf   \\                         >>$sgeFile
-       echo $HtarDestinationDir$TeName'.tar' \\ >>$sgeFile
+       echo $HtarDestinationDir$TeName'.tar' \\    >>$sgeFile
        echo ./$TeName \\                           >>$sgeFile  
        echo '>'$lcl'/'$TeName'HTAR.log'            >>$sgeFile
        chmod 700 $sgeFile
@@ -357,7 +365,12 @@ while test $izn -lt $iznEnd
        # We are now going to wait for the htar to finish.
        #####################################################################
 
-       echo "KSAuto: htar $TeName job submission to Hansen cluster complete."
+       if [ -n "$HANSEN" ]; then
+         echo "KSAuto: htar $TeName job submission to Hansen cluster complete."
+       fi
+       if [ -n "$CARVER" ]; then
+         echo "KSAuto: htar $TeName job submission to Carver cluster complete."
+       fi
        date
        echo "KSAuto: Sleeping until it finishes."
        # Cleanup the log file to only have Hansen cluster pids in it
