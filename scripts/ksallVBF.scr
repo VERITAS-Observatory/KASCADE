@@ -18,12 +18,12 @@
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
 #$6 working disk directory base: Where all temproary files are held)
 
-#KascadeEnable=enable
-#LightEnable=enable
-#PeSortMergeEnable=enable
-#TriggerEnable=enable
-AomegaEnable=enable                   #These next 2 operate on te files only
-ArrayTriggerEnable=enable
+KascadeEnable=enable
+LightEnable=enable
+PeSortMergeEnable=enable
+TriggerEnable=enable
+#AomegaEnable=enable                   #These next 2 operate on te files only
+#ArrayTriggerEnable=enable
 
 Production=enable                 #Enable Carver te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
@@ -32,8 +32,6 @@ Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
 RemoveSingleVBF=enable
 CleanupEnable=enable
 DebugPrintEnable=enable
-
-
 
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
                                    # $5$Detectorspec:

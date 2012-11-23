@@ -162,6 +162,7 @@ then
   V190DirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
   JobIDHost='hansen-adm'
   QUEUE=physics
+  #QUEUE=standby
   echo ***Hansen Cluster***
 fi
 

@@ -1,6 +1,6 @@
 #$1 filename with list of files to be checked 
 #$2 TeName value: ex: WVG10_315Deg2D
-This script looks in the $1 file to see if the expected te files are there.
+#This script looks in the $1 file to see if the expected te files are there.
 #This usually takes about 5 to 10 min. So it probably needs to be run
 # by a qsub command... sigh.....
 ########################################################################
@@ -12,8 +12,7 @@ end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82
 let iFilesNotFound=0;
 let iEntryStart=1
 let iEntryEnd=44
-qq
-qqq
+
 TeName=$2
 
 let j=$iEntryStart
