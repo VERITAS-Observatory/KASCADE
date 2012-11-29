@@ -46,7 +46,10 @@ const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 //const int    gFADCNumSamples[2]          = {          24,          10};
 
 //Oct 2009:
-const int    gFADCNumSamples[2]          = {          20,          10};
+//const int    gFADCNumSamples[2]          = {          20,          10};
+
+//Oct 2012 Upgrade:
+const int    gFADCNumSamples[2]          = {          16,          10};
 
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
@@ -94,6 +97,8 @@ const double gPSTStrobeDelayNS           = 6.0;
 // Veritas measured:
 //const double gSinglePeRiseTimeNS[2]      = {         3.2,         2.0};
 //const double gSinglePeFallTimeNS[2]      = {         8.5,         8.5};
+
+//Oct 2012 upgrade
 const double gSinglePeRiseTimeNS[2]      = {          1.7,         2.0};
 const double gSinglePeFallTimeNS[2]      = {         4.75,         8.5};
 
