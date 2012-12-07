@@ -131,7 +131,8 @@ class KSSinglePe
   void setRiseFallTimes(double riseTimeNS,double fallTimeNS);
   double getLengthNS(){return fLengthNS;};
   double getArea(){return fArea;};
-  double getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC);
+  // double getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC, 
+  //		                                 double scaledPulseHeight);
   double getPulseHeight(bool fAfterPulse);
   double getRiseTimeNS(){return fSinglePulseRiseTimeNS;};
   double getFallTimeNS(){return fSinglePulseFallTimeNS;};

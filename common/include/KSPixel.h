@@ -51,7 +51,8 @@ class KSPixel
   void PrintPulseHeightsOfLightPulse();
  private:
   void addPe(double fPeTime,bool afterPulse);
-
+  double getMeanFADCArea(KSCameraTypes fCameraType, double scaledPulseHeight,
+			 double numPesInPulse);
 
   float fXDummy;
   KSCameraTypes fCameraType;
@@ -102,6 +103,7 @@ class KSPixel
 
   //Single pe stuf
   double fSinglePeArea;
+  double fSinglePeMeanFADCAreaNoRounding;
   double fSinglePeMeanFADCArea;
   double fSinglePeSizeNS;
   int    fSinglePeSizeNumBins;

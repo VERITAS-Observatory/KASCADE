@@ -3,7 +3,6 @@
  * \ingroup common
  * \brief File of methods for KSPixel.
  *  
- 
  * Original Author: Glenn H. Sembroski
  * $Author$
  * $Date$
@@ -51,7 +50,13 @@ void KSPixel::InitPixel()
   fSinglePeSizeNS      = pfSinglePe->getLengthNS();
   fSinglePeSizeNumBins = pfSinglePe->fNumBinsInPulse;
   fSinglePeArea        = pfSinglePe->getArea();
-  fSinglePeMeanFADCArea= pfSinglePe->getMeanFADCArea(fCameraType,fFADC);
+  //  fSinglePeMeanFADCArea           =  pfSinglePe->getMeanFADCArea(fCameraType,fFADC,
+  //						        gPulseHeightForMeanFADCArea);
+  //fSinglePeMeanFADCAreaNoRounding = pfSinglePe->getMeanFADCArea(fCameraType,fFADC,
+  //								             1000.0);
+  fSinglePeMeanFADCArea = getMeanFADCArea(fCameraType,gPulseHeightForMeanFADCArea,1.0);
+  fSinglePeMeanFADCAreaNoRounding = 
+                       getMeanFADCArea(fCameraType,gPulseHeightForMeanFADCArea,5000.0);
 }
 // **************************************************************
 
@@ -467,5 +472,104 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 
   return;
 }
+// *************************************************************************
 
+double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  double scaledPulseHeight,
+				double numPesInPulse)
+// *************************************************************************
+// Get mean area for a single pe after its WaveFormn is converted to a FADC
+// trace. 
+// Do this in two parts just like single pe analyis does.
+//
+// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// And remember dumb ass, with a holey plate there is no night sky nouse!
+// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+// A: Get mean area of trace with no pulse, just night sky and pedestal
+// 1.Init a singlePe wave form length of waveform vector.
+// 2: make FADC Trace (adds FADC pedestal=14.5, adds uncorreltated FADC noise with 
+//    .35dc sigma, rounddown to make trace)
+// 3: Find area
+// 4:Do above some number of time (100000 times ) and find mean.
+// 
+// B:Get mean area of trace with added single Pe Pulse
+// Same as A but:
+// 1.5: Add single Pe pulse multiplied by product of gains (HV and normal) and random 
+//    Pulse height
+//
+// C:
+// 6: Find difference with non-pulse mean
+// 7: Divide out HV gain.
+// Note:If we use a very large HV scale factor (say 1000) we would have a very small 
+// rounddown effect, and if we use a small value (like 1.75 (typical for 10% HV 
+// increase) or so) then we get the round down that the singePe area calculation 
+// from singlePe runs get.
+// *************************************************************************
+{
+  //Number of NS in SinglePe wave form. Extra 3 is just for insruance
+  int singlePeSizeNS=  (int)fSinglePeSizeNumBins*gWaveFormBinSizeNS + 3;  
+  int numSamplesTrace= (int)( (double)singlePeSizeNS/gFADCBinSizeNS);  
+  int numWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
+
+  double singlePeAreaSum=0;  
+  double pedAreaSum=0;
+  int numTraces=100000;
+  for (int i=0;i< numTraces;i++){
+    double cleanPed=gPedestal[VERITAS499];
+
+    //A:Step1:
+    InitWaveForm(0.0,singlePeSizeNS);
+    // *************************************************************************
+    //A:Step2:make FADC Trace (adds FADC pedestal,Adds FADC noise)
+    // *************************************************************************
+    fFADC.makeFADCTrace(fWaveForm,0,numSamplesTrace,false,cleanPed);  
+    double traceArea=fFADC.getWindowArea(0,numSamplesTrace);  
+    //pedFADCAreaSum+=traceArea ;
+  
+    // ******************************************************************************
+    // now do same for singlePe pulse
+
+    //A:Step1:   //Add elctronic noise:
+    InitWaveForm(0.0,singlePeSizeNS);
+    // ***************************
+    // Jitter electronic noise
+    // ***************************
+    //for(int j=0;j<fWaveForm.size();j++){
+    //  fWaveForm(j)=pRandom->Gaus()*gElectronicNoiseSigmaPe[VERITAS499];
+    // }
+    
+    // **************************************************************************
+    //B:step 1.5 Add single pe: start pulse at least one sample in then dirft it
+    // *************************************************************************
+    // Jitter Start time of pulse
+    // **************************
+    int j = (int)(pfRandom->Rndm()*numWaveFormBinsPerFADCBin);
+    if(j==numWaveFormBinsPerFADCBin){
+      j=0;
+    }
+    // **************************
+    // Jitter PePulse Hieght
+    // **************************
+    bool afterPulse=false;
+    double PEpulseHeight=pfSinglePe->getPulseHeight(afterPulse);
+    for(int k=0;k<fSinglePeSizeNumBins;k++) {
+      fWaveForm.at(k+j)= fWaveForm.at(k+j)+PEpulseHeight*scaledPulseHeight*
+	                         (numPesInPulse*pfSinglePe->pfSinglePulse.at(k));
+    }
+	
+    //Adds FADC Ped, adds FADC noise, rounddowns.
+    fFADC.makeFADCTrace(fWaveForm,0,numSamplesTrace,false,cleanPed);  
+    double traceSinglePeArea=fFADC.getWindowArea(0,numSamplesTrace);  
+    //cout<<"0 "<<numPesInPulse<<" "<<j<<" "<<cleanPed<<" "<<PEpulseHeight<<" "
+    //	<<traceSinglePeArea<<" "<<traceArea<<endl;
+    //cout<<"1 "<<numPesInPulse<<" "<<j<<" "<<cleanPed<<" "<<PEpulseHeight<<" "
+    //	<<traceSinglePeArea<<" "<<traceSinglePeArea<<endl;
+    singlePeAreaSum+=traceSinglePeArea;
+    pedAreaSum+=traceArea;
+  }
+  double pedAreaMean      = pedAreaSum/(numTraces*numPesInPulse);
+  double singlePeAreaMean = singlePeAreaSum/(numTraces*numPesInPulse);
+  double singlePeArea     = (singlePeAreaMean-pedAreaMean)/scaledPulseHeight;
+  return singlePeArea;
+}
+// *************************************************************************
  

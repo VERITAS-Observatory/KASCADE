@@ -125,9 +125,14 @@ void KSCamera::Print()
   std::cout<<"         Pixel 1 light Total collection effciency = "
 	   <<fPixel.at(0).fEfficiency<<std::endl;
   std::cout<<"    Pixel 1 Total Light Cone collection effciency = "
-	   <<fPixel.at(0).fEfficiency/fPixel.at(0).fBaseEfficiency<<std::endl;
+	   <<fPixel.at(0).fEfficiency/fPixel.at(0).fBaseEfficiency<<std::endl
+	   <<std::endl;
+  std::cout<<"                         For Hi gain of (DC / PE) = " 
+	   <<fDigCntsPerPEHiGain<<std::endl;           
   std::cout<<"            Pixel 1 Single Pe Mean FADC Area (DC) = "
 	   <<fPixel.at(0).fSinglePeMeanFADCArea<<std::endl;
+  std::cout<<"  Pixel 1 Single Pe Mean Area (No Round Down)(DC) = "
+	   <<fPixel.at(0).fSinglePeMeanFADCAreaNoRounding<<std::endl<<std::endl;
 
   pfCameraTrigger->Print();
 

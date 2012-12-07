@@ -42,6 +42,7 @@ const double gElectronicNoiseSigmaPe[2]  = {         .28,         0.0};
 //const double gElectFADCNoiseSigmaDC[2]   = {         .49,         0.0};
 const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 
+
 //pre OCT 2009
 //const int    gFADCNumSamples[2]          = {          24,          10};
 
@@ -135,5 +136,11 @@ const double gFADCHiLoGainRatio     = 6.0;
 const double gTrigMultiplicityWidthNS = 10.0;  // WHIPPLE490 CFD Pulse width
 const int    gAbsNXAbsNYMax         =16000;    //Ranges of nx,ny
 
+//Dec 3 Value to account for round down: see notes Simulations - Dec-2012 03/12/12 
+const double    gPulseHeightForMeanFADCArea  =1.7391;//Flasher singlePe HV induced gain                                          //Assumes increasing HV by 10% increases
+                                          //gain by 1.7391
+                                          //Think about it!
+
+//Upgrade
 const std::string gDefaultStartOfRunTime="2007-09-11 00:02:00 UTC";
 #endif

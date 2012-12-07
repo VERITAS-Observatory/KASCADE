@@ -253,53 +253,66 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
 }
 // ****************************************************************************
 
-double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC)
+//Following moved to KSPixel
+//double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC, 
+//				   double scaledPulseHeight)
 // *************************************************************************
 // Get mean area for a single pe after its WaveFormn is converted to a FADC
-// trace. Do this by taking 1000 single pes. Do this starting with pes at each 
-// .25 ns position. This is to find best estimate taking account of the FADC
-// digitization
+// trace. Do this by taking a single pe scaled by scaledPulseHeight. Do this starting 
+// with pes at each  .25 ns position. This is to find best estimate taking account of 
+// the FADC digitization.
+// If we use a very large scale factor (say 1000) we would have a very small rounddown
+// effect, and if we use a small value (like 3.75 or so) then we get the round 
+// down that the singePe area calculation from singPe runs get.
 // *************************************************************************
-
-{
-  //Number of time steps
-  int fNumWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
-
-  double fSinglePeFADCAreaSum=0;
-
-  //Number of Bins in FADC wave form.
-  int fNumSamplesTrace=
-    (int)(fNumBinsInPulse*gWaveFormBinSizeNS/gFADCBinSizeNS)+ 1+1;  
-                                              //Extra 1 is just for insruance.
-
-  //Number of bins in Wave form to span FADC Trace
-  int fNumWaveFormBins=fNumSamplesTrace*fNumWaveFormBinsPerFADCBin;
-
-  //Loop over progressive starting place of pe pulse.
-  for(int j=0;j<fNumWaveFormBinsPerFADCBin;j++)  //like 8: 4bins/ns @ 2 ns
-    {
-      //Make a WaveForm of 1000 single pes offset in time by j bins;
-      std::vector<double> fPulse;
-      //Make wave form big enough for FADC Trace
-      
-      fPulse.resize(fNumWaveFormBins);
-      for(int i=0;i<fNumBinsInPulse;i++)
-	{
-	  int k=j+i;
-	  fPulse.at(k)=1000.*pfSinglePulse.at(i);
-	}
-      // **********************************************************************
-      // Because we use so many pe's here we don't really need to worry about 
-      // the pedestal.  But do so anyways
-      // *********************************************************************
-      fFADC.makeFADCTrace(fPulse,0,fNumSamplesTrace,false,gPedestal[VERITAS499]);
-      fSinglePeFADCAreaSum+=(fFADC.getWindowArea(0,fNumSamplesTrace)-
-			     fNumSamplesTrace*gPedestal[VERITAS499])/1000.;
-    }
-  double fSinglePeMeanFADCArea=fSinglePeFADCAreaSum/fNumWaveFormBinsPerFADCBin;
-  return fSinglePeMeanFADCArea;
-}
-// *************************************************************************
+//{
+//  //Number of time stepsfNumWaveFormBinsPerFADCBin
+//  int fNumWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
+//
+//  double fSinglePeFADCAreaSum=0;
+//
+//  //Number of Bins in FADC wave form.
+//  int fNumSamplesTrace=
+//    (int)(fNumBinsInPulse*gWaveFormBinSizeNS/gFADCBinSizeNS)+ 1+1;  
+//                                              //Extra 1 is just for insruance.
+//
+//  //Number of bins in Wave form to span FADC Trace
+//  int fNumWaveFormBins=fNumSamplesTrace*fNumWaveFormBinsPerFADCBin;
+//
+//  // Loop over various pedvar values that cover complete step
+//  int roundDownPed=(int)gPedestal[VERITAS499];
+//  double startPed=(double)roundDownPed;
+//  for(int m=0;m<10;m++){
+//    double cleanPed=startPed+.1*m;
+//    
+//    //Loop over progressive starting place of pe pulse.
+//    std::vector<double> fPulse;
+//    for(int j=0;j<fNumWaveFormBinsPerFADCBin;j++)  //like 8: 4bins/ns @ 2 ns
+//      {
+//	//Make a WaveForm of a scaledPulseHeight pe offset in time by j bins;
+//	//Make wave form big enough for FADC Trace
+//      
+//	fPulse.clear();
+//	fPulse.resize(fNumWaveFormBins,0);
+//	for(int i=0;i<fNumBinsInPulse;i++)
+//	  {
+//	    int k=j+i;
+//	    fPulse.at(k)=scaledPulseHeight*pfSinglePulse.at(i);
+//	  }
+//	// **********************************************************************
+//	// *********************************************************************
+//
+//	fFADC.makeFADCTrace(fPulse,0,fNumSamplesTrace,false,cleanPed);
+//	
+//	double traceArea=fFADC.getWindowArea(0,fNumSamplesTrace);
+//	fSinglePeFADCAreaSum+=(traceArea-
+//			       fNumSamplesTrace*cleanPed)/scaledPulseHeight;
+//      }
+//  }
+//  double fSinglePeMeanFADCArea=fSinglePeFADCAreaSum/(fNumWaveFormBinsPerFADCBin*10);
+//  return fSinglePeMeanFADCArea;
+//}
+//// *************************************************************************
 
 
 void  KSSinglePe::PrintSinglePe()
