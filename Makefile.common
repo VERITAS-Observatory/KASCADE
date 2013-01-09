@@ -80,8 +80,9 @@ endif
 ROOTCONFIG = $(ROOTBIN)root-config
 ROOTCFLAGS   := $(shell $(ROOTCONFIG) --cflags)
 ROOTLDFLAGS  := 
-ROOTLIBS     := $(shell $(ROOTCONFIG) --libs)
+ROOTLIBS     := $(shell $(ROOTCONFIG) --libs) -lMinuit -lTreePlayer -lTMVA -lMLP -lXMLIO
 ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
+
 
 ROOTCINT = $(ROOTBIN)rootcint
 ROOTCINTFLAGS = $(KASINCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
