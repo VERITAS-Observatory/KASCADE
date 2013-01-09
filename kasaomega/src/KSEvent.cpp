@@ -1014,7 +1014,7 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
   // ****************************************************************
   // Next Save  the VASimulation event MC tags
   // ****************************************************************
-  pfSimEvent->fEventNumber=pfVDFOut->getNumArrayEvents()-1;
+  pfSimEvent->fArrayEventNum=pfVDFOut->getNumArrayEvents()-1;
   pfSimEvent->fObservationZenithDeg=((M_PI/2)-fElevation)*gRad2Deg;
   pfSimEvent->fObservationAzimuthDeg=fAzimuth*gRad2Deg;
 
