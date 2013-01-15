@@ -23,7 +23,7 @@ LightEnable=enable
 PeSortMergeEnable=enable
 TriggerEnable=enable
 #AomegaEnable=enable                   #These next 2 operate on te files only
-#ArrayTriggerEnable=enable
+#ArrayTrigEnable=enable
 
 Production=enable                 #Enable Carver te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
@@ -520,7 +520,7 @@ while test $i -le $4
 
 
 #ksArrayTrigger		   
-  if [ -n "$ArrayTriggerEnable" ]; then
+  if [ -n "$ArrayTrigEnable" ]; then
 
   #Make multiple links to file to use for different telescopes
   #Note if dcount=0 we use the same file for all telescopes.
