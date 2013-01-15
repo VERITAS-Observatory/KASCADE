@@ -19,13 +19,13 @@
 
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
-GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
+#GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
 #HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
 #CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 dm $7 $8 $9 
-#GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5
+GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5
 
 #below needs work!
 #SaveVBFFilesToArchive=enabled          #Needs $1 $2 $3 $4 $5 $6 $7
@@ -37,7 +37,7 @@ GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6
                                 #"ExitOnTeCreationFailure" (below) is enabled
 #ExitOnTeCreationFailure=enabled  
 
-DisableSleep=enabled           #Don't wait for files to finish. ususally use 
+#DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
                                 #GenerateTeFiles and want to load up the 
                                 #cluster
@@ -683,22 +683,22 @@ while test $izn -lt $iznEnd
        ####################################################################
        #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
        ####################################################################
-       cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF'$ZnAz'.scr
-       sed 'KascadeEnable=enable/s/Kascade/#Kascade/g' \
+       cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF$ZnAz'.scr'
+       sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
                                                 <ksallVBF$ZnAz'.scr' >tmp1
-       sed 'LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
-       sed 'PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
-       sed 'TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
-       sed '#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
-       sed '#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
-       sed '#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
-       sed '#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'  <tmp1 >tmp2
-       sed '#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
-       sed '#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
-       sed '#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
-       sed '#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
-       sed 'MoonFilterEnable=enable/s/Moon/#Moon/g'   \
-                                                  <tmp2 >ksallVBF$ZnAz'.scr'
+       sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
+       sed '/PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
+       sed '/TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
+       sed '/#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
+       sed '/#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
+       sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+       sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'  <tmp1 >tmp2
+       sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
+       sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
+       sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
+       sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
+       sed '/MoonFilterEnable=enable/s/Moon/#Moon/g'   \
+                                                   <tmp2 >ksallVBF$ZnAz'.scr'
        rm tmp1
        rm tmp2
        ####################################################################
@@ -710,7 +710,7 @@ while test $izn -lt $iznEnd
        #make up our ksProduction designation
        Spec=$ksProdSpec$8
 
-       $lcl'/ksProduction.scr '$Spec ksallVBF$ZnAz'.scr' >KSProcess$ZnAz'.log'
+       $lcl'/ksProduction.scr'  $Spec ksallVBF$ZnAz'.scr' >KSProcess$ZnAz'.log'
 
        #####################################################################
        # We are now going to wait for all of these to finish.
