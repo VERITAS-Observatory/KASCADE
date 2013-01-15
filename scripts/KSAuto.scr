@@ -8,23 +8,57 @@
 #$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
 #$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
 #$6 Threshold: Ex 45mv or 50mv
+#$7 MDL file name for VBF files: Ex MDL12U
+#$8 Telescope 4 character spec: Ex: ABCD or wxyz
+#$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
 #************************************************************************
-# This will loop over all combinations of $4 and $5 entries
-# Resulting te files will all be placed in same  directory
+# We may want a function that makes sure all scripts are in place
+##########################################################################
 
-# Within that loop we can do:
+# This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-GenerateTeFiles=enabled
-CheckGeneratedTeFiles=enabled
-HTARTeFiles=enabled
-CheckHTARTeFiles=enabled
-#Cleanup=enabled                 #should only enable  this if 
+# Within that loop we can do:         #"dm" below indicates dummy value needed
+
+GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
+#HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
+#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
+#HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
+#CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
+#BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 dm $7 $8 $9 
+#GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5
+
+#below needs work!
+#SaveVBFFilesToArchive=enabled          #Needs $1 $2 $3 $4 $5 $6 $7
+#GenerateZnAzVBFFile=enabled            #Needs $1 $2 $3 $4 $5 $6 $7 $8
+
+
+
+#Cleanup=enabled                #should only enable  this if 
                                 #"ExitOnTeCreationFailure" (below) is enabled
-
 #ExitOnTeCreationFailure=enabled  
+
+DisableSleep=enabled           #Don't wait for files to finish. ususally use 
+                                #only when we have a a group of small runs of 
+                                #GenerateTeFiles and want to load up the 
+                                #cluster
+
+EntryGEStart=1          #Gammas and Electrons 
+                        #This for the checks not the running
+#EntryGEEnd=44
+EntryGEEnd=46
+
+EntryPStart=1
+EntryPEnd=44
+
+EntryHe4Start=5
+EntryHe4End=44
+
 
 ###########################################################################
 function checkRunningJobs()
+#$1 Job ID List
+#$2 Zn_Az
+
 {
   RunningList=RunningList$2'.dat'
   SingleRunList=singleRunList$2'dat'
@@ -41,8 +75,10 @@ function checkRunningJobs()
 
   rm $SingleRunList
   if [ -s  $RunningList ]; then
+    rm $RunningList
     return 1
   else
+    rm $RunningList
     return 0
   fi
 }
@@ -51,11 +87,15 @@ function checkTeFiles()
 #$1 V190Dir
 #$2 TeName
 #$3 Particle type
+#$4 EntryStart
+#$5 EntryEnd
 {
   cd $lcl
   V190Dir=$1
   TeName=$2
   Particle=$3
+  EntryStart=$4
+  EntryEnd=$5
   
   TeDirName=$V190Dir'/'$TeName
   #Check we actually got some files (ie made the Te Directory)
@@ -80,7 +120,7 @@ function checkTeFiles()
   #we will have to submit the te file check and sleep until it finishes
   echo 'KSAuto: Checking for all te files in: '$TeName
        
-  CheckTeFiles $CheckTeFile $TeName  $Particle
+  CheckTeFiles $CheckTeFile $TeName $Particle $EntryStart $EntryEnd
        
   date
   cd $lcl
@@ -88,12 +128,15 @@ function checkTeFiles()
   if [ -s $Result ]; then
      cat  $Result
      iFilesNotFound=1
+     rm $Result
      if [ -n "$ExitOnTeCreationFailure" ]; then
+       echo 'KSAuto: Exiting on File check failure'
+       echo 'KSAuto: Goodbye'
        exit
      fi
      return 1
   else
-       echo 'KSAuto: All files present in file: ' $TeName
+     echo 'KSAuto: All files present in file: ' $TeName
      return 0
   fi
 }
@@ -103,11 +146,16 @@ function CheckTeFiles()
 
 #$1 is list of files to match
 #$2 is base name of all files.
-#$3 particle type
+#$3 Particle type
+#$4 EntryStart
+#$5 EntryEnd
 {
   FileList=$1
   TeName=$2
   Particle=$3
+  EntryStart=$4
+  EntryEnd=$5
+
 
   #build a submission .pbs file
   sgeFile=$lcl'/'$TeName'TeCheck.pbs'
@@ -115,10 +163,11 @@ function CheckTeFiles()
   echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
   if [ -n "$HANSEN" ]; then
     echo source /etc/profile                                    >>$sgeFile
-    echo module load gcc/4.5.1                                  >>$sgeFile
+    echo module load gcc/4.7.2                                  >>$sgeFile
   fi
   echo cd $lcl                                                  >>$sgeFile
-  echo $lcl/TeFileCheck.scr $lcl'/'$FileList  $TeName $Particle >>$sgeFile
+  echo $lcl/TeFileCheck.scr $lcl'/'$FileList  $TeName \\        >>$sgeFile
+  echo $Particle $EntryStart $EntryEnd                          >>$sgeFile
   chmod 700 $sgeFile
   TECHECKLOG=$lcl'/TeCheck'$ZnAz'.log'
 
@@ -126,14 +175,18 @@ function CheckTeFiles()
 
   TECLOG=TEC$ZnAz'.log'
   cat $TECHECKLOG | grep $JobIDHost >$TECLOG
-  echo "KSAuto: Sleeping until TeCeckFile finishes."
+  rm $TECHECKLOG
+  echo "KSAuto: Running TeCheckFile: Entries: " $EntryStart "-" $EntryEnd
+  echo "KSAuto: Sleeping until TeCheckFile finishes. "
   runsNotDone=1
   while test $runsNotDone -eq 1 
     do
-      sleep 300s
+      sleep 60s
       checkRunningJobs $TECLOG $ZnAz
       let runsNotDone=$?
     done
+  rm $TECLOG
+  rm $sgeFile
   return
 } 
 #########################################################################
@@ -159,7 +212,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  V190DirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
+  V190DirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='hansen-adm'
   QUEUE=physics
   #QUEUE=standby
@@ -182,6 +235,14 @@ IFS=$SAVEIFS
 if [ "$1" = "G" ] || [ "$1" = "E" ]; then
   OffSetSpec="2D"
 fi
+
+
+if [ ! -e "$lcl/TeFileCheck.scr" ]; then
+  cp -v $KASCADEBASE'/scripts/TeFileCheck.scr' $lcl
+fi
+
+
+
 
 #now we loop
 
@@ -207,6 +268,9 @@ while test $izn -lt $iznEnd
 # *****************************************************************************
 #  Now all the things we can do for a particular Zn_AZ
 # *****************************************************************************
+     #make up our ksProduction designation
+     ksProdSpec=$2$PMT$1$ZnAz$OffSetSpec$6'1234M2'
+  
      if [ -n "$GenerateTeFiles" ]; then
        echo '##########################################################'
        echo '# GenerateTeFiles '
@@ -215,13 +279,32 @@ while test $izn -lt $iznEnd
        cd $lcl
        date
 
-       #make up our ksProduction designation
-       Spec=$2$PMT$1$ZnAz$OffSetSpec$6'1234M2'
-  
-       echo "KSAuto: Submitting ksProduction for " $Spec 
-       echo "KSAuto: This takes a few minuts"
+       ####################################################################
+       #Make sure ksallVBF.scr is set up correctly to generate Te files
+       ####################################################################
+       cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF$ZnAz'.scr'
+       sed '/#KascadeEnable=enable/s/#Kascade/Kascade/g' \
+                                                  <ksallVBF$ZnAz'.scr' >tmp1
+       sed '/#LightEnable=enable/s/#Light/Light/g'               <tmp1 >tmp2
+       sed '/#PeSortMergeEnable=enable/s/#PeSort/PeSort/g'       <tmp2 >tmp1
+       sed '/#TriggerEnable=enable/s/#Trigger/Trigger/g'         <tmp1 >tmp2
+       sed '/AomegaEnable=enable/s/Aomega/#Aomega/g'             <tmp2 >tmp1
+       sed '/ArrayTrigEnable=enable/s/Array/#Array/g'            <tmp1 >tmp2
+       sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+       sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'  <tmp1 >tmp2
+       sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
+       sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
+       sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
+       sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
+       sed '/MoonFilterEnable=enable/s/Moon/#Moon/g' <tmp2 >ksallVBF$ZnAz'.scr'
+       rm tmp1
+       rm tmp2
+       ####################################################################
 
-       ./ksProduction.scr $Spec ksallVBF.scr >KSProd$ZnAz'.log'
+       echo "KSAuto: Submitting ksProduction for " $Spec 
+       echo "KSAuto: This submission takes a few minuts"
+
+       ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' >KSProd$ZnAz'.log'
 
        #####################################################################
        # We are now going to wait for all of these to finish.
@@ -229,29 +312,35 @@ while test $izn -lt $iznEnd
 
        echo "KSAuto: Submission of ksProduction to make shower TE files on "
        if [ -n "$HANSEN" ]; then
-         echo "KSAuto: Hansen cluster for "$ZnAz" complete."
+         echo "KSAuto: Hansen "$QUEUE" queue for "$ZnAz" complete."
        fi
        if [ -n "$CARVER" ]; then
          echo "KSAuto: Carver cluster for "$ZnAz" complete."
        fi
        date
-       echo "KSAuto: Sleeping until they all finish."
-       # Cleanup the log file to only have Hansen cluster pids in it
- 
-       cat KSProd$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeTE$ZnAz'.log'
 
-       runsNotDone=1
+       if [ -n "$DisableSleep" ]; then
+         echo 'SAuto: Done submission (but not generation) ' $ZnAz
+       else
+         echo "KSAuto: Sleeping until they all finish."
+         #Cleanup the log file to only have Hansen cluster pids in it
+ 
+         cat KSProd$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeTE$ZnAz'.log'
+         rm KSProd$ZnAz'.log'
+         runsNotDone=1
         
-       while test $runsNotDone -eq 1 
-	 do
-          sleep 300s
-	  checkRunningJobs 'ShowerMakeTE'$ZnAz'.log' $ZnAz
-          let runsNotDone=$?
-	 done
-       echo "KSAuto: Te file generation complete"
+         while test $runsNotDone -eq 1 
+	   do
+            sleep 300s
+	    checkRunningJobs 'ShowerMakeTE'$ZnAz'.log' $ZnAz
+            let runsNotDone=$?
+	   done
+           rm 'ShowerMakeTE'$ZnAz'.log'
+           rm ksallVBF$ZnAz'.scr'
+           echo "KSAuto: Te file generation complete"
+       fi
      fi
      #######################################################################
-
  
      TeName=$2$PMT$1$ZnAz$OffSetSpec
      if [ "$1" = "G" ] ; then
@@ -278,8 +367,82 @@ while test $izn -lt $iznEnd
        V190Dir=$V190DirBase'/'$ParticleDir'/V190'
        TeName=$2$PMT$1$ZnAz$OffSetSpec
      fi
+   
+     if [ -n "$HANSEN" ]; then
+         HtarDir="/archive/fortress/group/veritas/simulations/"
+     fi     
+     # Carver HTAR just goes into base directory so don't define 
+     # HtarDir       
 
-     #######################################################################
+
+     if [ -n "$HTARTeFilesFromArchive" ]; then
+       echo '##########################################################'
+       echo '# HTARTeFilesFromArchive'
+       echo '##########################################################'
+         #In order to not have this task (KSAuto.scr) be killed because it
+         #runs too long, we have to submit this htar command to the cluster.
+   
+     ###################################################################
+     # Brings in Htar files. If a directory already exists it just adds to it
+     # This is a way to add missing files
+     # This is also a way to bring in files for vbf file creation processing.
+     ###################################################################
+       cd $lcl
+       date
+
+       echo "KSAuto: htar "$TeName" from archive."
+
+       #build a submission .pbs file
+       sgeFile=$lcl'/'$TeName'HTARFrom.pbs'
+       echo "#"PBS -q $QUEUE                        >$sgeFile
+       echo "#"PBS -l walltime=04:00:00            >>$sgeFile
+       if [ -n "$HANSEN" ]; then
+          echo source /etc/profile                 >>$sgeFile
+          echo module load gcc/4.7.2               >>$sgeFile
+       fi
+       echo cd $V190Dir                            >>$sgeFile
+       echo htar -xvf   \\                         >>$sgeFile
+       echo $HtarDir$TeName'.tar' \\    >>$sgeFile
+       echo ./$TeName \\                           >>$sgeFile  
+       echo '>'$lcl'/'$TeName'HTAR.log'            >>$sgeFile
+       chmod 700 $sgeFile
+       #pwd
+       #echo lcl: $lcl
+       HTARLOG=$lcl'/KSHTAR'$ZnAz'From.log'
+       #echo HTARLOG: $HTARLOG
+       qsub -V -e $TeName'HTARFrom.pbs.err' -o $TeName'HTARFrom.pbs.log' $sgeFile >$HTARLOG
+      
+       #####################################################################
+       # We are now going to wait for the htar to finish.
+       #####################################################################
+
+       if [ -n "$HANSEN" ]; then
+         echo "KSAuto: htar from archive "$TeName" job submission to Hansen "$QUEUE" queue complete."
+       fi
+       if [ -n "$CARVER" ]; then
+         echo "KSAuto: htar from archive "$TeName" job submission to Carver cluster complete."
+       fi
+       date
+       echo "KSAuto: Sleeping until it finishes."
+       # Cleanup the log file to only have Hansen cluster pids in it
+ 
+       ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
+       cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+
+       runsNotDone=1
+       while test $runsNotDone -eq 1 
+	 do
+          sleep 60s
+	  checkRunningJobs $ShowerMakeTE $ZnAz
+          let runsNotDone=$?
+	 done
+       rm $sgeFile
+       echo "KSAuto: HTAR of "$TeName" complete"
+
+       # And now cleanup: change protection
+       chmod 775 $HtarDir$TeName'.tar'
+       cd $lcl
+     fi
 
      if [ -n "$CheckGeneratedTeFiles" ]; then
        echo '##########################################################'
@@ -291,23 +454,24 @@ while test $izn -lt $iznEnd
 
 
        if [ "$1" = "CR" ] ; then
-         checkTeFiles $V190Dir $TeNameP 'P'
+         checkTeFiles $V190Dir $TeNameP 'P' $EntryPStart $EntryPEnd
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameP' directory'
          fi
 
-         checkTeFiles $V190Dir $TeNameHe4 'He4_'
+         checkTeFiles $V190Dir $TeNameHe4 'He4_' $EntryHe4Star $EntryHe4End
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
          fi
 
-	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; then
+	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
+         then
 	    FilesMissing=1
          fi
        else
-         checkTeFiles $V190Dir $TeName $1
+         checkTeFiles $V190Dir $TeName $1 $EntryGEStart $EntryGEEnd
          FilesMissing=$?
          if [ "$FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeName' directory'
@@ -317,22 +481,19 @@ while test $izn -lt $iznEnd
        if [ "$FilesMissing" -eq "1" ]; then
          echo 'KSAuto: '$iFilesNotFound' files not created.'
          if [ -n "$ExitOnTeCreationFailure" ]; then
-           echo 'KSAuto: *************Exiting. Missing files***********'
+           echo 'KSAuto: *************Missing files***********'
+           echo 'KSAuto: Exiting on File check failure'
+           echo 'KSAuto: Goodbye'
            cd $lcl
 	   exit
          fi
        fi
      fi
 
-     if [ -n "$HANSEN" ]; then
-         HtarDestinationDir="/archive/fortress/group/veritas/simulations/"
-     fi     
-     # Carver HTAR just goes into base directory so don't define 
-     # HtarDestinationDir       
 
-     if [ -n "$HTARTeFiles" ]; then
+     if [ -n "$HTARTeFilesToArchive" ]; then
        echo '##########################################################'
-       echo '# HTARTeFiles '
+       echo '# HTARTeFilesToArchive'
        echo '##########################################################'
          #In order to not have this task (KSAuto.scr) be killed because it
          #runs too long, we have to submit this htar command to the cluster.
@@ -348,29 +509,29 @@ while test $izn -lt $iznEnd
        echo "#"PBS -l walltime=04:00:00            >>$sgeFile
        if [ -n "$HANSEN" ]; then
           echo source /etc/profile                 >>$sgeFile
-          echo module load gcc/4.5.1               >>$sgeFile
+          echo module load gcc/4.7.2               >>$sgeFile
        fi
        echo cd $V190Dir                            >>$sgeFile
        echo htar -cvf   \\                         >>$sgeFile
-       echo $HtarDestinationDir$TeName'.tar' \\    >>$sgeFile
+       echo $HtarDir$TeName'.tar' \\    >>$sgeFile
        echo ./$TeName \\                           >>$sgeFile  
        echo '>'$lcl'/'$TeName'HTAR.log'            >>$sgeFile
        chmod 700 $sgeFile
        #pwd
        #echo lcl: $lcl
-       HTARLOG=$lcl'/KSHTAR'$ZnAz'.log'
+       HTARLOG=$lcl'/KSHTAR'$ZnAz'To.log'
        #echo HTARLOG: $HTARLOG
-       qsub -V -e $TeName'HTAR.pbs.err' -o $TeName'HTAR.pbs.log' $sgeFile >$HTARLOG
+       qsub -V -e $TeName'HTARTo.pbs.err' -o $TeName'HTARTo.pbs.log' $sgeFile >$HTARLOG
       
        #####################################################################
        # We are now going to wait for the htar to finish.
        #####################################################################
 
        if [ -n "$HANSEN" ]; then
-         echo "KSAuto: htar $TeName job submission to Hansen cluster complete."
+         echo "KSAuto: htar to archive "$TeName" job submission to Hansen "$QUEUE" queue complete."
        fi
        if [ -n "$CARVER" ]; then
-         echo "KSAuto: htar $TeName job submission to Carver cluster complete."
+         echo "KSAuto: htar to archive "$TeName" job submission to Carver cluster complete."
        fi
        date
        echo "KSAuto: Sleeping until it finishes."
@@ -382,14 +543,14 @@ while test $izn -lt $iznEnd
        runsNotDone=1
        while test $runsNotDone -eq 1 
 	 do
-          sleep 300s
+          sleep 60s
 	  checkRunningJobs $ShowerMakeTE $ZnAz
           let runsNotDone=$?
 	 done
        echo "KSAuto: HTAR of "$TeName" complete"
 
        # And now cleanup: change protection
-       chmod 775 $HtarDestinationDir$TeName'.tar'
+       chmod 775 $HtarDir$TeName'.tar'
        cd $lcl
      fi
 
@@ -397,12 +558,14 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
        echo '# CheckHTARTeFiles '
        echo '##########################################################'
-       
        cd $lcl
        date
+       ###############################################
+       #Only good for gammas and electrons
+       ########################################
 
        #Get a list of the files into CheckTe.txt
-       TEDIR=$HtarDestinationDir$TeName'.tar'
+       TEDIR=$HtarDir$TeName'.tar'
        echo 'KSAuto: Get listing of htar file: '$TEDIR
        TeFileList=TeFileList$ZnAz
        htar -tf $TEDIR >$TeFileList
@@ -428,21 +591,224 @@ while test $izn -lt $iznEnd
        #we will have to submit the te file check and sleep until it finishes
        echo 'KSAuto: Checking for all te files in: '$TEDIR
        
-       CheckTeFiles $CheckTeFile $TeName $1
+       CheckTeFiles $CheckTeFile $TeName $1 $EntryGEStart $EntryGEEnd
        
        date
        cd $lcl
        if [ -s $CheckTeFile'.Result' ]; then
          cat  $CheckTeFile'.Result'
          if [ -n "$ExitOnTeCreationFailure" ]; then
+           echo 'KSAuto: ***Exiting on File check failure***'
+           echo 'KSAuto: Goodbye'
 	   exit
          fi
        else
          echo 'KSAuto: All files present in htar file'$TEDIR
        fi
      fi
+     ######################################################################
+
+     if [ -n "$BuildMDLAomeagaConfig" ]; then
+	 echo '##########################################################'
+	 echo '# BuildMDLAomeagaConfig '
+	 echo '##########################################################'
+	 echo 'KSAuto: Generating ksAomega config files from '$7'.dat'
+
+	 cd $KASCADEBASE/inputs
+
+	 tConfig=$8
+	 T1=${tConfig:0:1}
+	 T2=${tConfig:1:1}
+	 T3=${tConfig:2:1}
+	 T4=${tConfig:3:1}
+	 ../bin/ksAomega -save_config_and_exit=Base.config
+
+         ##############################################################
+         # now update each file with sed commands
+         ##############################################################
  
+         ################################################################
+         #Read in the $7.txt file and set params
+         ################################################################
+         echo 'KSAuto: Setting ksAomegaV'$6'('$8').config files to '$7'.dat values'
+
+	 if [ "$PMT" != "U" ]; then
+	    if [ - n "$CARVER" ]; then
+              PFile=/project/projectdirs/astrogfs/veritas_data/glenn/data/veritas/1FGLJ0515.9+1528/54008.root
+            else
+	      PFile=$SCRATCH'/simulations/veritas/54008StdCuts.root'
+            fi
+         else
+	   PFile=$lcl'/../simulations/veritas/'$9
+         fi
+
+	 {
+	     while read tel threshold noise eff gain 
+	       do
+	sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config  >tmp1
+	       sed '/NoiseRate/s/12.5/'$noise'/g'                <tmp1  >tmp2
+	       sed '/Efficiency/s/1/'$eff'/g'                    <tmp2 >tmp1
+	       sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmp1 >tmp2
+	       sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2 >tmp1
+	       sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1 >tmp2
+	       sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
+	       sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1 >tmp2
+	       if [ "$PMT" = "U" ]; then
+		   sed '/SinglePeRiseTimeNS/s/0/1.7/g'           <tmp2 >tmp1
+		   sed '/SinglePeFallTimeNS/s/0/4.75/g'          <tmp1 >tmp2
+	       else
+		   sed '/SinglePeRiseTimeNS/s/0/3.2/g'           <tmp2 >tmp1
+		   sed '/SinglePeFallTimeNS/s/0/8.5/g'           <tmp1 >tmp2
+	       fi
+	       sed '5 a \#This is special for tel '$tel'.'<tmp2 >$tel'.config'
+	     done
+	     }<$lcl'/'$7".dat"
+
+	 mv  T1.config ksAomegaV$6$T1'.config'
+	 mv  T2.config ksAomegaV$6$T2'.config'
+	 mv  T3.config ksAomegaV$6$T3'.config'
+	 mv  T4.config ksAomegaV$6$T4'.config'
+	 cd $lcl
+     fi
+
      #########################################################################
+     if [ -n "$GenerateShowerVBFFiles" ]; then
+       echo '##########################################################'
+       echo '# GenerateShowerVBFFiles '
+       echo '##########################################################'
+
+       cd $lcl'/../simulations/veritas/'
+       date
+
+       ####################################################################
+       #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
+       ####################################################################
+       cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF'$ZnAz'.scr
+       sed 'KascadeEnable=enable/s/Kascade/#Kascade/g' \
+                                                <ksallVBF$ZnAz'.scr' >tmp1
+       sed 'LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
+       sed 'PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
+       sed 'TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
+       sed '#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
+       sed '#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
+       sed '#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+       sed '#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'  <tmp1 >tmp2
+       sed '#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
+       sed '#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
+       sed '#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
+       sed '#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
+       sed 'MoonFilterEnable=enable/s/Moon/#Moon/g'   \
+                                                  <tmp2 >ksallVBF$ZnAz'.scr'
+       rm tmp1
+       rm tmp2
+       ####################################################################
+       echo 'KSAuto: Process ksAomega*.config: ' $8 ' through ksAomega and ksArrayTrig'
+       echo 'KSLAuto:  use less KSProcess'$ZnAz'.log or qstat to monitor progress.'
+       cd $lcl'/../simulations/veritas/'
+
+       date
+       #make up our ksProduction designation
+       Spec=$ksProdSpec$8
+
+       $lcl'/ksProduction.scr '$Spec ksallVBF$ZnAz'.scr' >KSProcess$ZnAz'.log'
+
+       #####################################################################
+       # We are now going to wait for all of these to finish.
+       ### #################################################################
+
+       echo "KSAuto: Submission of ksProduction to make shower TE files on "
+       if [ -n "$HANSEN" ]; then
+         echo "KSAuto: Hansen "$QUEUE" queue for "$ZnAz" complete."
+       fi
+       if [ -n "$CARVER" ]; then
+         echo "KSAuto: Carver cluster for "$ZnAz" complete."
+       fi
+       date
+       echo "KSAuto: Sleeping until they all finish."
+       # Cleanup the log file to only have Hansen cluster pids in it
+ 
+       cat KSProcess$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeVBF$ZnAz'.log'
+
+       runsNotDone=1
+        
+       while test $runsNotDone -eq 1 
+	 do
+          sleep 300s
+	  checkRunningJobs 'ShowerMakeVBF'$ZnAz'.log' $ZnAz
+          let runsNotDone=$?
+	 done
+       rm ksallVBF$ZnAz'.scr'
+       echo "KSAuto: VBF shower file generation complete"
+      
+       cd $lcl
+     fi
+
+
+     if [ -n "$SaveVBFFilesToArchive" ]; then
+       echo '##########################################################'
+       echo '# SaveVBFFilesToArchive '
+       echo '##########################################################'
+       SVDir=$lcl'/../simulations/veritas/'
+
+       # Build archive directory name
+       GammaArchive=$HtarDir/gammas/
+       mkdir -vp $GammaArchive
+       cd $GammaArchive
+       VBFArchiveDir=$2$3$1$7'VBF'
+       mkdir -vp VBFArchiveDir 
+       cd $SVDir
+       mv -v $2$3$1'*'$ZnAz'Deg$OffSetSpec*1234M2.vbf' $GammaArchive'/'$VBFArchiveDir'/'       
+       echo "KSAuto: Saved all  "2$3$1'*'$ZnAz'Deg$OffSetSpec*1234M2.vbf files to '$VBFArchiveDir
+     fi      
+
+     #########################################################################
+     #Following only works for G so far!
+     if [ -n "$GenerateZnAzVBFFile" ]; then
+       echo '##########################################################'
+       echo '# GenerateZnAzVBFFile '
+       echo '##########################################################'
+       SVDir=$lcl'/../simulations/veritas/'
+       cd $SVDir
+
+       if [ "$1" = "CR" ] ; then
+         echo"CRProcessAll not working with KSAuto yet"
+	 exit
+	   #./CRProcessAll V190 $ZnAz $6 $2$PMT $7 $8
+       fi
+
+       if [ "$1" = "G" ] || [ "$1" = "E" ] ; then
+         ./$1ProcessAll V190 $ZnAz $6 $2$PMT $7 $8 >$1ProcessAll$ZnAz'.log'
+       fi
+       date
+
+       #Wait for it!
+
+       cat $1ProcessAll$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerProcessAll$ZnAz'.log'
+
+       runsNotDone=1
+        
+       while test $runsNotDone -eq 1 
+	 do
+          sleep 300s
+	  checkRunningJobs ShowerProcessAll$ZnAz'.log' $ZnAz
+          let runsNotDone=$?
+	 done
+       rm ksallVBF$ZnAz'.scr'
+       echo "KSAuto: '$1'ProcessAll VBF wobble shower file generation complete"
+      fi
+     ########################################################################
+#For reference
+#$1 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
+#$2 ksProduction season spec: Ex: W or S
+#$3 telescope designation: W or V or U (Whipple, veritas, Upgrade)
+#$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
+#$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
+#$6 Threshold: Ex 45mv or 50mv
+#$7 MDL file name for VBF files: Ex MDL12U
+#$8 Telescope 4 character spec: Ex: ABCD or wxyz
+#$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
+
+
      if [ -n "$Cleanup" ]; then
        echo '##########################################################'
        echo '# Cleanup '
@@ -460,7 +826,7 @@ while test $izn -lt $iznEnd
      fi
      #########################################################################
      #Should all be done now. Go on to next combo. This all could take a
-     # couple of  weeks or so
+     #couple of weeks or so
      date
      kaz=$((kaz+1))
     done
