@@ -651,7 +651,7 @@ fi
     #echo 'Testing Production: '$Production
     if [ -n "$Production" ]; then
         lcl=$PWD
-	VBFDir=$TEDIR'50mv1234M2'$AtmSpec
+	VBFDir=$TEDIR$ThreshSpec'1234M2'$AtmSpec
 	if [ -n "$VBFOutputToDetectorSpecDir" ]; then
 	    VBFDir=$VBFDir$DetectArraySpec
         fi

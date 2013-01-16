@@ -1,19 +1,25 @@
+//-*-mode:c++; mode:font-lock;-*-
 #$1 filename with list of files to be checked 
 #$2 TeName value: ex: WVG10_315Deg2D
 #$3  Particle
-#$4  EntryStart:ex usually 1
-#$5  EntryEnd:  ex 44 or maybe 46
-#This script looks in the $1 file to see if the expected te files are there.
-#This usually takes about 5 to 10 min. So it probably needs to be run
+#$4 File Type ( TE or VBF )
+#$5  EntryStart:ex usually 1
+#$6  EntryEnd:  ex 44 or maybe 46
+#$7 Thershold (45mv needed only for filetype = VBF)
+#This script looks in the $1 file to see if the expected File Type files are 
+#there. This usually takes about 5 to 10 min. So it probably needs to be run
 # by a qsub command... sigh.....
 ########################################################################
 
+#echo KSAutoFileCheck:args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
 
+FileList=$1
 TeName=$2
 Particle=$3
-let iEntryStart=$4
-let iEntryEnd=$5
-
+FileType=$4
+let iEntryStart=$5
+let iEntryEnd=$6
+Threshold=$7
 
 
 #The following arrays came from ksProduction.scr for CR
@@ -42,8 +48,11 @@ fi
 let iFilesNotFound=0;
 
 let j=$iEntryStart
-echo 'TeFileCheck: Searching  for Te files in '$1
-rm $1'.Result'
+echo 'KSAutoFileCheck: Searching  for '$FileType' files in '$FileList
+if [ -e $FileList'.Result' ]; then
+     rm $FileList'.Result'
+fi
+#echo j,iEntryEnd:  $j $iEntryEnd
 
 while test $j -le $iEntryEnd
   do      
@@ -52,25 +61,39 @@ while test $j -le $iEntryEnd
    e=${energy[$j]}
 
    let k=$iShStart
+   #echo k,iShEnd: $k $iShEnd
+
    while test $k -le $iShEnd
      do
       #Make up the file name
-      TeFile=$TeName'GeV'$e'te.d'$k
+      #echo before namegens:FileType: $FileType
+	
+      if [ "$FileType" = "TE" ]; then
+        NameFile=$TeName'GeV'$e'te.d'$k
+        #echo Looking for: $NameFile
+      fi
+      if [ "$FileType" = "VBF" ]; then
+        NameFile=$TeName$Threshold'1234M2GeV'$e'.d'$k'.vbf'
+      fi
+      
       Found=0
       {
        while read FileName
          do
-	   if [ "$TeFile" = "$FileName" ]; then
+	   if [ "$NameFile" = "$FileName" ]; then
              Found=1
+             #echo Found: $FileName
              break
            fi
          done
-      }<$1
+      }<$FileList
       if [ "$Found" = "0" ]; then
-        echo 'File Not found: '$TeFile >>$1'.Result'
+        #echo 'File Not found: '$NameFile
+        echo 'File Not found: '$NameFile >>$FileList'.Result'
       fi
       let k=k+1
      done
    let j=j+1
   done
+
 #############################################################################

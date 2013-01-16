@@ -20,16 +20,18 @@
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
 #GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
-HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
+#HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
 CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
-#BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 dm $7 $8 $9 
-GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 dm $8 $9
+#BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
+#GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
 
-#below needs work!
-#SaveVBFFilesToArchive=enabled          #Needs $1 $2 $3 $4 $5 $6 $7 $8 $9
-#GenerateZnAzVBFFile=enabled            #Needs $1 $2 $3 $4 $5 $6 $7 $8
+#CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
+
+#below need work!
+#SaveVBFFilesToArchive=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 
+#GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
 
 
 
@@ -83,52 +85,57 @@ function checkRunningJobs()
   fi
 }
 ###########################################################################
-function checkTeFiles()
-#$1 V190Dir
+function checkFilesExist()
+#$1 FileDir
 #$2 TeName
 #$3 Particle type
-#$4 EntryStart
-#$5 EntryEnd
+#$4 File Type (TE or VBF)
+#$5 EntryStart
+#$6 EntryEnd
+#$7 Threshold speck (for file type VBF only)
 {
+  #echo checkFilesExist:args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
+ 
   cd $lcl
-  V190Dir=$1
+  FileDir=$1
   TeName=$2
   Particle=$3
-  EntryStart=$4
-  EntryEnd=$5
-  
-  TeDirName=$V190Dir'/'$TeName
-  #Check we actually got some files (ie made the Te Directory)
-  if [ ! -d $TeDirName ]; then
-    echo 'KSAuto: Directory '$TeDirName' does not exist!'
+  FileType=$4
+  EntryStart=$5
+  EntryEnd=$6
+  Threshold=$7
+
+  #Check we actually got some files (ie made the Directory)
+  if [ ! -d $FileDir ]; then
+    echo 'KSAuto: Directory '$FileDir' does not exist!'
     echo 'KSAuto: Apparently no te files were generated!'
     echo 'KSAuto: *************Exiting. Cluster failure?********'
     cd $lcl
     exit
   fi
 
-  #Get a list of the files into CheckTe$ZnAz.txt
-  CheckTeFile='CheckTe'$ZnAz'.txt'
-  echo CheckTeFile: $CheckTeFile
+  #Get a list of the files into Check$ZnAz.txt
+  CheckListFiles='Check'$ZnAz'.txt'
+  echo CheckListFiles: $CheckListFiles
 
-  cd $TeDirName
-  ls |xargs -n1 >$lcl'/'$CheckTeFile
+  cd $FileDir
+  ls |xargs -n1 >$lcl'/'$CheckListFiles
   cd $lcl
 
   #checking this list for all files that should be there takes 5 - 10 min
   #thus , to insure we don't over run the 30 min time limit
   #we will have to submit the te file check and sleep until it finishes
-  echo 'KSAuto: Checking for all te files in: '$TeName
+  echo 'KSAuto: Checking for all te files in: '$FileDir
        
-  CheckTeFiles $CheckTeFile $TeName $Particle $EntryStart $EntryEnd
+  CheckList $CheckListFiles $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold
        
   date
   cd $lcl
-  Result=$CheckTeFile'.Result'
+  Result=$CheckListFiles'.Result'
   if [ -s $Result ]; then
      cat  $Result
      iFilesNotFound=1
-     rm $Result
+     #rm $Result
      if [ -n "$ExitOnTeCreationFailure" ]; then
        echo 'KSAuto: Exiting on File check failure'
        echo 'KSAuto: Goodbye'
@@ -136,29 +143,34 @@ function checkTeFiles()
      fi
      return 1
   else
-     echo 'KSAuto: All files present in file: ' $TeName
+     echo 'KSAuto: All files in Directory: '$FileDir' are present!'
      return 0
   fi
 }
 #############################################################################
 
-function CheckTeFiles()
+function CheckList()
 
 #$1 is list of files to match
 #$2 is base name of all files.
-#$3 Particle type
-#$4 EntryStart
-#$5 EntryEnd
+#$3 Particle type (P He4 G or E)
+#$4 File Type ( TE or VBF)
+#$5 EntryStart
+#$6 EntryEnd
+#$7 Threshold (45mv needed only for FileType= VBF)
 {
+  #echo CheckkList:Args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
   FileList=$1
   TeName=$2
   Particle=$3
-  EntryStart=$4
-  EntryEnd=$5
+  FileType=$4
+  EntryStart=$5
+  EntryEnd=$6
+  Threshold=$7
 
 
   #build a submission .pbs file
-  sgeFile=$lcl'/'$TeName'TeCheck.pbs'
+  sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
   echo "#"PBS -q $QUEUE                                          >$sgeFile
   echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
   if [ -n "$HANSEN" ]; then
@@ -166,30 +178,34 @@ function CheckTeFiles()
     echo module load gcc/4.7.2                                  >>$sgeFile
   fi
   echo cd $lcl                                                  >>$sgeFile
-  echo $lcl/TeFileCheck.scr $lcl'/'$FileList  $TeName \\        >>$sgeFile
-  echo $Particle $EntryStart $EntryEnd                          >>$sgeFile
+  echo $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName \\     >>$sgeFile
+  echo $Particle $FileType $EntryStart $EntryEnd $Threshold     >>$sgeFile
   chmod 700 $sgeFile
-  TECHECKLOG=$lcl'/TeCheck'$ZnAz'.log'
+  CHECKLOG=$lcl'/'$FileType'Check'$ZnAz'.log'
 
-  qsub -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$TECHECKLOG
+  qsub -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
 
-  TECLOG=TEC$ZnAz'.log'
-  cat $TECHECKLOG | grep $JobIDHost >$TECLOG
-  rm $TECHECKLOG
-  echo "KSAuto: Running TeCheckFile: Entries: " $EntryStart "-" $EntryEnd
-  echo "KSAuto: Sleeping until TeCheckFile finishes. "
+  CLOG=$FileType'C'$ZnAz'.log'
+  cat $CHECKLOG | grep $JobIDHost >$CLOG
+  #rm $CHECKLOG
+  echo "KSAuto: Running CheckFile: Entries: " $EntryStart "-" $EntryEnd
+  echo "KSAuto: Sleeping until CheckFile finishes. "
   runsNotDone=1
   while test $runsNotDone -eq 1 
     do
       sleep 60s
-      checkRunningJobs $TECLOG $ZnAz
+      checkRunningJobs $CLOG $ZnAz
       let runsNotDone=$?
     done
-  rm $TECLOG
-  rm $sgeFile
+  #rm $CLOG
+  #rm $sgeFile
   return
 } 
 #########################################################################
+
+
+
+
 
 
 lcl=$PWD
@@ -225,6 +241,7 @@ fi
 # read in our stings into arrays. Then we restore the IFS.
 
 PMT=$3
+Threshold=$6
 
 SAVEIFS=$IFS
 IFS=, read -a Zenith <<< "$4"
@@ -269,7 +286,7 @@ while test $izn -lt $iznEnd
 #  Now all the things we can do for a particular Zn_AZ
 # *****************************************************************************
      #make up our ksProduction designation
-     ksProdSpec=$2$PMT$1$ZnAz$OffSetSpec$6'1234M2'
+     ksProdSpec=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'
   
      if [ -n "$GenerateTeFiles" ]; then
        echo '##########################################################'
@@ -363,9 +380,12 @@ while test $izn -lt $iznEnd
        TeNameP=$2$PMT'P'$ZnAz$OffSetSpec
        TeNameHe4=$2$PMT'He4_'$ZnAz$OffSetSpec
        TeName=$TeNameP
+       ShowerPDir=$V190DirBase'/'$ParticleDir'/'$TeNameP$Threshold'1234M2'$2$8
+       ShowerHe4Dir=$V190DirBase'/'$ParticleDir'/'$TeNameHe4$Threshold'1234M2'$2$8
      else
        V190Dir=$V190DirBase'/'$ParticleDir'/V190'
        TeName=$2$PMT$1$ZnAz$OffSetSpec
+       ShowerDir=$V190DirBase'/'$ParticleDir'/'$TeName$Threshold'1234M2'$2$8
      fi
    
      if [ -n "$HANSEN" ]; then
@@ -454,13 +474,13 @@ while test $izn -lt $iznEnd
 
 
        if [ "$1" = "CR" ] ; then
-         checkTeFiles $V190Dir $TeNameP 'P' $EntryPStart $EntryPEnd
+         checkFilesExist $V190Dir'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameP' directory'
          fi
 
-         checkTeFiles $V190Dir $TeNameHe4 'He4_' $EntryHe4Star $EntryHe4End
+         checkFilesExist $V190Dir'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Star $EntryHe4End $Threshold
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
@@ -471,7 +491,7 @@ while test $izn -lt $iznEnd
 	    FilesMissing=1
          fi
        else
-         checkTeFiles $V190Dir $TeName $1 $EntryGEStart $EntryGEEnd
+         checkFilesExist $V190Dir'/'$TeName $TeName $1 'TE' $EntryGEStart $EntryGEEnd $Threshold
          FilesMissing=$?
          if [ "$FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeName' directory'
@@ -591,7 +611,7 @@ while test $izn -lt $iznEnd
        #we will have to submit the te file check and sleep until it finishes
        echo 'KSAuto: Checking for all te files in: '$TEDIR
        
-       CheckTeFiles $CheckTeFile $TeName $1 $EntryGEStart $EntryGEEnd
+       CheckList $CheckTeFile $TeName $1 $EntryGEStart $EntryGEEnd
        
        date
        cd $lcl
@@ -603,7 +623,7 @@ while test $izn -lt $iznEnd
 	   exit
          fi
        else
-         echo 'KSAuto: All files present in htar file'$TEDIR
+         echo 'KSAuto: All files present in htar file '$TEDIR
        fi
      fi
      ######################################################################
@@ -633,7 +653,7 @@ while test $izn -lt $iznEnd
          ################################################################
          #Read in the $7.txt file and set params
          ################################################################
-         echo 'KSAuto: Setting ksAomegaV'$6'('$8').config files to '$7'.dat values'
+         echo 'KSAuto: Setting ksAomegaV'$Threshold'('$8').config files to '$7'.dat values'
 
 	 if [ "$PMT" != "U" ]; then
 	    if [ - n "$CARVER" ]; then
@@ -667,10 +687,10 @@ while test $izn -lt $iznEnd
 	     done
 	     }<$lcl'/'$7".dat"
 
-	 mv  -f T1.config ksAomegaV$6$T1'.config'
-	 mv  -f T2.config ksAomegaV$6$T2'.config'
-	 mv  -f T3.config ksAomegaV$6$T3'.config'
-	 mv  -f T4.config ksAomegaV$6$T4'.config'
+	 mv  -f T1.config ksAomegaV$Threshold$T1'.config'
+	 mv  -f T2.config ksAomegaV$Threshold$T2'.config'
+	 mv  -f T3.config ksAomegaV$Threshold$T3'.config'
+	 mv  -f T4.config ksAomegaV$Threshold$T4'.config'
 	 rm tmp1
          rm tmp2
          rm Base.config
@@ -731,7 +751,7 @@ while test $izn -lt $iznEnd
        fi
        date
        echo "KSAuto: Sleeping until they all finish."
-       # Cleanup the log file to only have Hansen cluster pids in it
+       # Cleanup the log file to only have cluster pids in it
  
        cat KSProcess$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeVBF$ZnAz'.log'
 
@@ -748,7 +768,56 @@ while test $izn -lt $iznEnd
       
        cd $lcl
      fi
+     #######################################################################
 
+
+
+     if [ -n "$CheckGeneratedShwrVBFFiles" ]; then
+       echo '##########################################################'
+       echo '# CheckGeneratedShwrVBFFiles '
+       echo '##########################################################'
+
+       cd $lcl
+       date
+
+
+       if [ "$1" = "CR" ] ; then
+         checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $Threshold
+         PFilesMissing=$?
+         if [ "$PFilesMissing" -ne "1" ]; then
+            echo 'KSAuto: All Te files present in '$TeNameP' directory'
+         fi
+
+         checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Star $EntryHe4End $Threshold
+         He4FilesMissing=$?
+         if [ "$He4FilesMissing" -ne "1" ]; then
+            echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
+         fi
+
+	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
+         then
+	    FilesMissing=1
+         fi
+       else
+         checkFilesExist $ShowerDir $TeName $1 'VBF' $EntryGEStart $EntryGEEnd $Threshold
+         FilesMissing=$?
+         if [ "$FilesMissing" -ne "1" ]; then
+            echo 'KSAuto: All Te files present in '$TeName' directory'
+         fi
+       fi
+
+       if [ "$FilesMissing" -eq "1" ]; then
+         echo 'KSAuto: '$iFilesNotFound' files not created.'
+         if [ -n "$ExitOnTeCreationFailure" ]; then
+           echo 'KSAuto: *************Missing files***********'
+           echo 'KSAuto: Exiting on File check failure'
+           echo 'KSAuto: Goodbye'
+           cd $lcl
+	   exit
+         fi
+       fi
+     fi
+     #########################################################################
 
      if [ -n "$SaveVBFFilesToArchive" ]; then
        echo '##########################################################'
@@ -779,11 +848,11 @@ while test $izn -lt $iznEnd
        if [ "$1" = "CR" ] ; then
          echo"CRProcessAll not working with KSAuto yet"
 	 exit
-	   #./CRProcessAll V190 $ZnAz $6 $2$PMT $7 $8
+	   #./CRProcessAll V190 $ZnAz $Threshold $2$PMT $7 $8
        fi
 
        if [ "$1" = "G" ] || [ "$1" = "E" ] ; then
-         ./$1ProcessAll V190 $ZnAz $6 $2$PMT $7 $8 >$1ProcessAll$ZnAz'.log'
+         ./$1ProcessAll V190 $ZnAz $Threshold $2$PMT $7 $8 >$1ProcessAll$ZnAz'.log'
        fi
        date
 
