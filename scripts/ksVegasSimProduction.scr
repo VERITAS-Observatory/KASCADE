@@ -1,16 +1,19 @@
 #This runs first 5 Vegas stages on Kascade sim files;
+#It is the base version with only defualt things enabled.
 #$1 .vbf or .root  file to process.
-#$2 Vegas base dir  path: Used when you want vegas from a different directory 
-#             than what VEGAS is set to in .bashrc (or equivalent)
+#$2 PedVarScaleing file to set noise(optional or dummy)
+#$3 Vegas base dir  path: Used when you want vegas from a different directory 
+#   than what VEGAS is set to in .bashrc (or equivalent)(optional)
 
-#Make simLaser file (even if it already exists, this is very fast)
+#Make simLaser file (even if it already exists, this is very fast, but worry 
+                     about dual processing on clusters)
 
 #Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Data=enable
+#Stage2=enable
 
-Stage4_2=enable
-Stage5=enable
+#Stage4_2=enable
+#Stage5=enable
 
 
 ##############################################################################
@@ -22,88 +25,30 @@ Stage5=enable
 
 #Stage2:
  #NumEventsToAnalyseOption='-G_NumEventsToAnalyse=240000'
-
-
-#WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
-
+ #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
  #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1' #Depreciated (don't use)
- 
  #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
                                                        #pedvars with vaDisplay
  #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
- #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
-                     #Makes timing-across-image tree
+ #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' #Makes timing-across-image tree
 
  Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
  #HillasFitOption='-HillasFitAlgorithum=2DEllipticalGaussian' 
-
  #CleanUpMethod='-CleanUpApp=CleanUpStd'
-
  #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
 
-######################2007-2008####################################################################
+#######################################################################
+#The following is an example of what should be in a seasons PedVarScaling file:
 # IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.1,3/1.24,4/1.02'  #4.97
 # PedVarBase='PedVar4.97'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.17,2/1.29,3/1.44,4/1.19'#5.8
-# PedVarBase='PedVar5.8'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.4,2/1.55,3/1.73,4/1.43' #6.85
-# PedVarBase='PedVar6.85'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.0,2/2.21,3/2.48,4/2.05' #9.75
-# PedVarBase='PedVar9.75'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.08,2/1.18,3/1.31,4/1.05'#Crab0809-Noise4
-# PedVarBase='PedVarCrab0708HFits'
-
-######################################2008-2009 V190 Noisde3.5 #####################################
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.29,2/1.3,3/1.33,4/1.3'#Crab0809
-# PedVarBase='PedVarCrab0809HFits'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.034,3/1.055,4/1.042' #4.06
-# PedVarBase='PedVar4.06V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.24,2/1.28,3/1.30,4/1.29'   #5.0
-# PedVarBase='PedVar5.0V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.52,2/1.59,3/1.6,4/1.57'    #6.0
-# PedVarBase='PedVar6.0V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.05,2/2.16,3/2.154,4/2.1'   #8.0
-# PedVarBase='PedVar8.0V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.586,2/2.727,3/2.711,4/2.64'#10.0
-# PedVarBase='PedVar10.0V190_0809'
-
-######################################2008-2009 V330 N4.0 #####################################
-
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.25,2/1.19,3/1.25,4/1.25' #CrabDec08
-# PedVarBase='PedVarCrab0809'
-
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.022,3/1.017,4/1.015' #4.27
-# PedVarBase='PedVarCrabV330.0809N4'
-
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.24,2/1.28,3/1.30,4/1.29'   #5.0
-# PedVarBase='PedVar5.0V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.52,2/1.59,3/1.6,4/1.57'    #6.0
-# PedVarBase='PedVar6.0V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.05,2/2.16,3/2.154,4/2.1'   #8.0
-# PedVarBase='PedVar8.0V190_0809'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.586,2/2.727,3/2.711,4/2.64'#10.0
-# PedVarBase='PedVar10.0V190_0809'
-
-########################################2009-2010######################################################
-#IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.42,2/1.36,3/1.49,4/1.38' #CrabDec08MDL21
-#IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.35,2/1.30,3/1.42,4/1.32' #CrabDec08N3.5B
-#PedVarBase='PedVarCrab'
-
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.022,3/1.017,4/1.015' #4.27
-# PedVarBase='PedVarCrabV330.0809N4'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.012,2/1.079,3/1.00,4/1.006' #4.875
-# PedVarBase='PedVar4.875'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.148,2/1.225,3/1.133,4/1.139'#5.5
-# PedVarBase='PedVar5.5'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.363,2/1.46,3/1.346,4/1.354' #6.5
-# PedVarBase='PedVar6.5'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.689,2/1.808,3/1.666,4/1.674'#8.0
-# PedVarBase='PedVar8.0'
-# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/2.122,2/2.273,3/2.086,4/2.102'#10.0
-# PedVarBase='PedVar10.0'
-
-
+# etc
+#######################################################################
+if [ -n "$2" ]; then
+  if [ -s "$2" ]; then
+    source $2
+  fi
+fi
 
 #Stage4_2         
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
@@ -186,17 +131,14 @@ function makeShowerCutsFile()
 }
 
 #############################################################################
-if [ -n "$2" ]; then
+if [ -n "$3" ]; then
     VEGASORIG=$VEGAS
-    VEGAS=$2
+    VEGAS=$3
     export VEGAS=$VEGAS
     echo VEGAS: $VEGAS
 fi
 
-
-
 if [ -n "$Stage1Laser" ]; then
-
     echo Stage1Laser:$Stage1Laser
     $VEGAS/bin/vaStage1 -Stage1_RunMode=simLaser \
         -AIF_DataSource=CompiledOnly $MaxWindowWidthOption \
@@ -222,14 +164,12 @@ if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
 fi
 echo RootFileName: $RootFileName
 
-
 if [ -n "$Stage1Data" ]; then
     $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
 	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
 	$MaxWindowWidthOption $KASCADESimCameraRotationsOption \
 	$VBFFileName $RootFileName
 fi
-
 
 if [ -n "$Stage2" ]; then
     $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
@@ -246,7 +186,6 @@ fi
 echo CutRootFileName: $CutRootFileName
 
 LookUpTableDir=$VEGAS/showerReconstruction2/tables/KASCADE
-
 
 if [ -n "$Stage4_2" ]; then
      echo RootFileName: $RootFileName
@@ -270,7 +209,7 @@ if [ -n "$Stage5" ]; then
          -inputFile=$CutRootFileName $OutputFileNameOpt
 fi
 
-if [ -n "$2" ]; then
+if [ -n "$3" ]; then
     VEGAS=$VEGASORIG
     export VEGAS=$VEGAS
 fi

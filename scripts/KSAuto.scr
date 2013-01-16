@@ -20,15 +20,15 @@
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
 #GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
-#HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
-#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
+HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
+CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 dm $7 $8 $9 
-GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5
+GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 dm $8 $9
 
 #below needs work!
-#SaveVBFFilesToArchive=enabled          #Needs $1 $2 $3 $4 $5 $6 $7
+#SaveVBFFilesToArchive=enabled          #Needs $1 $2 $3 $4 $5 $6 $7 $8 $9
 #GenerateZnAzVBFFile=enabled            #Needs $1 $2 $3 $4 $5 $6 $7 $8
 
 
@@ -615,6 +615,9 @@ while test $izn -lt $iznEnd
 	 echo 'KSAuto: Generating ksAomega config files from '$7'.dat'
 
 	 cd $KASCADEBASE/inputs
+	 rm -f tmp1
+         rm -f tmp2
+         rm -f Base.config
 
 	 tConfig=$8
 	 T1=${tConfig:0:1}
@@ -664,10 +667,13 @@ while test $izn -lt $iznEnd
 	     done
 	     }<$lcl'/'$7".dat"
 
-	 mv  T1.config ksAomegaV$6$T1'.config'
-	 mv  T2.config ksAomegaV$6$T2'.config'
-	 mv  T3.config ksAomegaV$6$T3'.config'
-	 mv  T4.config ksAomegaV$6$T4'.config'
+	 mv  -f T1.config ksAomegaV$6$T1'.config'
+	 mv  -f T2.config ksAomegaV$6$T2'.config'
+	 mv  -f T3.config ksAomegaV$6$T3'.config'
+	 mv  -f T4.config ksAomegaV$6$T4'.config'
+	 rm tmp1
+         rm tmp2
+         rm Base.config
 	 cd $lcl
      fi
 

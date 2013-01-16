@@ -1,101 +1,105 @@
-#$1 is PSF sub_dir  Ex: V330 or V190
-#$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 20_180Deg
-#$3: Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
-#$4: Sub dir at UCLA to put resulting VBF files. Like Oct1_2009.
-#$5: start direction Index. defualt is 0. 
-#$6: end direction Index. defualt is 8. 
+#This is for Carver or Hansen
+#$1 is PSF subdir  Ex: V330 or V190
+#$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
+#   20_180Deg
+#$3:Threshold spec ex 45mv or 50 mv
+#$4 Season:teleSpec: Ex WU or SV
+#$5: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
+#$6: Input Sub-dir: Ex: ABCD
+#$7: start direction Index. defualt is 0. 
+#$8: end direction Index. defualt is 8. 
 
 lcl=$PWD
+echo lcl: $lcl
+
 echo Argument1: $1
 echo Argument2: $2
 echo Argument3: $3
 echo Argument4: $4
-echo Argument5: $5
-echo Argument6: $6
+echo Argument4: $5
+echo Argument5: $6
+echo Argument6: $7
+echo Argument7: $8
 
 
-Base=$3
+host=$(hostname)
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  QUEUE=serial
+  echo '***Carver Cluster***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  QUEUE=physics
+  #QUEUE=standby
+  echo ***Hansen Cluster***
+fi
+
+ABase=$4
+SeasonSpec=${ABase:0:1}
+Base=$SeasonSpec$5
 echo Base: $Base
 
-UCLASubDir=$4
-
-if  [ -z "$3" ]
+if  [ -z "$6" ]
 then
- echo Fatal-Please supply all arguments Ex: ./GProcessAll V190 40_180Deg Noise3_5 Oct1_2009  
+ echo Fatal-Please supply all arguments Ex: ./GProcessAll V190 40_180Deg Noise3_5 ABCD  
 
  exit
 fi
 
-cd $lcl/gammas
-
-if  [ -z "$5" ] ; 
+if  [ -z "$7" ] ; 
 then
   let i=0;
 else
-  let i=$5
+  let i=$7
 fi
-
-if  [ -z "$6" ] ; 
+pwd
+if  [ -z "$8" ] ; 
 then
   let end=8;
 else
-cd   let end=$6
+  let end=$8
 fi
 
-#let i=0
-#let i=2
-#let end=2
-#let end=3
-#let end=4
-#let end=8
-#let end=0
 
 echo i start: $i
 echo end: $end
 
-ArrayDir='VG'$2'2D50mv1234M2'
-SingleDir='VG'$2'2D50mv'
+GBase=$ABase'G'$2'2D'$3
+echo GBase: $GBase
 
-mkdir -pv $ArrayDir
-mkdir -pv $SingleDir
+GDir=$GBase'1234M2'$Base
+GDirOrig=$GBase'1234M2'$ABase  #Add MDL15 to dir name. Needed by ksWeRock
+echo GDir: $GDir
+echo GDirOrig: $GDirOrig
 
-ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target=$ArrayDir
 
-ls | grep vbf |grep $2 | xargs -n1 mv -v --target=$SingleDir
 
-host=$(hostname)
-AMDAHL=amdahl.physics.purdue.edu
-ISIS=isis.depauw.edu
-PULSAR=analysis
-NODE00=node00
-NODE01=node01
-NODE02=node02
-NODE03=node03
-NODE04=node04
-NODE05=node05
+cd $lcl'/gammas/'
+pwd
 
-echo host: $host
+if [ -d "$GDirOrig" ]; then
+    mv -v $GDirOrig './'$GDir
+fi
 
+mkdir -pv $GDir
+
+cd $lcl'/gammas/'$6
+pwd
+
+
+ls | grep 1234M2 | grep vbf|grep $2'2D'$3 |xargs -n1 mv -v --target=$lcl'/gammas/'$GDir
 
 
 
 while test $i -le $end
  do
     direction=$i
-    if [ $host = $ISIS ] ; then
-         cd /veritas/local/veritas
-    fi
-    if [ $host = $PULSAR ] || [ $host = $NODE00 ] || [ $host = $NODE01 ] || [ $host = $NODE02 ] || [ $host = $NODE03 ] || [ $host = $NODE04 ] || [ $host = $NODE05 ] ; then
-         cd /usr/local/data/sembrosk/veritas
-    fi
-    if [ $host = $AMDAHL ] ; then
-         cd /project/veritas/sembrosk/veritas
-    fi
-
-
-    ./ksWeRock.scr $SingleDir 98020 1234M2 $direction
-
-    cd $lcl
     if test $direction = '0'
     then
        wbl=0.0Wbl
@@ -133,30 +137,25 @@ while test $i -le $end
        wbl=S2.0Wbl
     fi
 
-    VBFFile=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.vbf'
-    VBFFilebz2=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.vbf.bz2'
-    ROOTFile=$Base'GammaRay'$2'2D'$wbl'50mv1234M2.root'
+    VBFFile=$ABase'G'$5$2'2D'$wbl$3'1234M2.vbf'
 
-    mv  -v $ArrayDir'.vbf' $VBFFile
+    sgeFile=$lcl'/'$Base'G'$2$wbl'.pbs'
+    echo "#"!/bin/bash                                            >$sgeFile
+    echo "#PBS -l walltime=10:00:00"                             >>$sgeFile
+    if [ -n "$CARVER" ]; then
+     echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
+    fi
+    if [ -n "$HANSEN" ]; then
+     echo "#PBS -l mem=8GB"                                      >>$sgeFile
+    fi
+    echo cd $lcl'/../../veritas'                                 >>$sgeFile
+    echo './ksWeRock.scr '$GBase 98020 1234M2  \\                >>$sgeFile
+    echo $direction $Base ">"$lcl'/'$Base'G'$2$wbl'.log'         >>$sgeFile
+    echo cd $lcl                                                 >>$sgeFile
+    echo mv  -v $GBase'1234M2D'$direction$Base'.vbf' $VBFFile    >>$sgeFile
 
-   # ./ksVegasSimProduction.scr $VBFFile
+    chmod 700 $sgeFile
+    qsub -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
 
-    #cp $VBFFile  vbf.tmp
-    #gzip $VBFFile 
-    #mv vbf.tmp $VBFFile
-
-#    if [ $host != $AMDAHL ] ; then 
-#	bbftp -u bbftp -p 12 -S -V -e "put $VBFFilebz2 /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu
-#
-#        if [ -e $ROOTFile ]; then
-#            bbftp -u bbftp -p 12 -S -V -e "put $ROOTFile /veritas/upload/KASCADE/$UCLASubDir" gamma1.astro.ucla.edu 
-#        fi
-#    fi
-
-   i=$((i+1))			#do next directoion
+    i=$((i+1))			#do next directoion
 done
-
-cd $lcl'/gammas/'$1
-
-#mv ../$ArrayDir  $Base'GammaRay/'$ArrayDir
-#mv ../$SingleDir $Base'GammaRay/'$SingleDir

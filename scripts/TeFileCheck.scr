@@ -1,19 +1,45 @@
 #$1 filename with list of files to be checked 
 #$2 TeName value: ex: WVG10_315Deg2D
+#$3  Particle
+#$4  EntryStart:ex usually 1
+#$5  EntryEnd:  ex 44 or maybe 46
 #This script looks in the $1 file to see if the expected te files are there.
 #This usually takes about 5 to 10 min. So it probably needs to be run
 # by a qsub command... sigh.....
 ########################################################################
+
+
+TeName=$2
+Particle=$3
+let iEntryStart=$4
+let iEntryEnd=$5
+
+
+
 #The following arrays came from ksProduction.scr for CR
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565 43707 52265 ) 
 start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11    1     1) 
+
+if [ "$Particle" = "G" ] || [  "$Particle" = "E" ]; then
+
 end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10 )
 
-let iFilesNotFound=0;
-let iEntryStart=1
-let iEntryEnd=44
+fi
 
-TeName=$2
+if [ "$Particle" = "P" ]; then
+
+end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5 )
+
+fi
+
+if [ "$Particle" = "He4" ]; then
+
+end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5 )
+
+fi
+
+
+let iFilesNotFound=0;
 
 let j=$iEntryStart
 echo 'TeFileCheck: Searching  for Te files in '$1
