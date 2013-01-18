@@ -16,95 +16,47 @@
 #Ex ./ksWeRock.scr SVG20Deg2D50mv 95021 123-M2 4
 #Ex../ksWeRock.scr UVCRA10Deg50mv 96010 1234M2 0 W230MDL1
 
-CleanupEnable=enable
+#CleanupEnable=enable
 DebugPrintEnable=enable
+
+lcl="$PWD"
 
 inpDir=$KASCADEBASE'/inputs'
 
 Spec=$1
-let SpecEnd=$(expr length $Spec)
-SpecEnd=$((SpecEnd-1))
 if [ -n "$DebugPrintEnable" ]; then
   echo Spec: $Spec
 fi
 
-
 host=$(hostname)
-echo hostname: $host
-
-AMDAHL=amdahl.physics.purdue.edu
-ISIS=isis.depauw.edu
-IO=io.physics.purdue.edu
-PULSAR=analysis
-NODE00=node00
-NODE01=node01
-NODE02=node02
-NODE03=node03
-NODE04=node04
-NODE05=node05
-
-PDSF1=pdsf1
-PDSF2=pdsf2
-PDSF3=pdsf3
-PDSF4=pdsf4
-PDSF5=pdsf5
-
-CARVER1=cvrsvc01
-CARVER2=cvrsvc02
-CARVER3=cvrsvc03
-CARVER4=cvrsvc04
-CARVER5=cvrsvc05
-
 echo host: $host
 
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  echo ***Carver Cluster***
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  echo ***Hansen Cluster***
+fi
+
+
+
 #CARVER
-if [ $host = $CARVER1 ] || [ $host = $CARVER2 ] || [ $host = $CARVER3 ] || [ $host = $CARVER4 ] || [ $host = $CARVER5 ]; then
-    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
-    dstDir=/project/projectdirs/m1304/veritas_CM/simulations
-fi
-if [ ${host:0:1} = "c" ]; then
+if [ -n "$CARVER" ]; then
     dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
     dstDir=/project/projectdirs/m1304/veritas_CM/simulations
 fi
 
-
-#PDSF
-if [ $host = $PDSF1 ] || [ $host = $PDSF2 ] || [ $host = $PDSF3 ] || [ $host = $PDSF4 ] || [ $host = $PDSF5 ]; then
-    dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
-    dstDir=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
+if [ -n "$HANSEN" ]; then
+    dataDirBase=$RCAC_SCRATCH'/simulations'
+    dstDir=$dataDirBase
 fi
-
-if [ $host = $AMDAHL ] ; then
-    dataDirBase=/project/veritas/sembrosk/simulations
-    dstDir=/project/veritas/sembrosk/simulations
-fi
-
-if [ $host = $ISIS ] ; then
-    lcl="$PWD"
-    if [ ${lcl:1:4} = "disk" ]; then
-       Disk=${lcl:0:6}
-    fi
-    dataDirBase=$Disk/simulations
-    dstDir=/simulations
-fi
-
-if [ $host = $IO ] ; then
-    lcl="$PWD"
-    Disk=${lcl:0:12}
-    dataDirBase=$Disk/simulations  
-    dstDir=$Disk/simulations
-fi
-
-if [ $host = $PULSAR ] ||  [ $host = $NODE00 ]  ||  [ $host = $NODE01 ] ||  [ $host = $NODE02 ] ||  [ $host = $NODE03 ] ||  [ $host = $NODE04 ] ||  [ $host = $NODE05 ]; then
-    dataDirBase=/usr/local/data/sembrosk/simulations  
-    dstDir=/usr/local/data/sembrosk/simulations
-fi
-
-if [ -z $dstDir ] ; then      #Default is pdsf
-    dataDirBase=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
-    dstDir=/project/projectdirs/astrogfs/veritas_data/glenn/simulations
-fi
-
 
 if [ ${Spec:1:1} = "V" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
@@ -116,8 +68,12 @@ if [ ${Spec:1:1} = "W" ] ; then
 	dstDir=$dstDir'/whipple'
 fi
 
-echo dataDirBase: $dataDirBase
+if [ ${Spec:1:1} = "U" ] ; then
+	dataDirBase=$dataDirBase'/veritas'
+	dstDir=$dstDir'/veritas'
+fi
 
+echo dataDirBase: $dataDirBase
 cd $dataDirBase
 
 if [ ! -d "workingScratch" ]; then
@@ -167,15 +123,9 @@ ArConfig=$3
 # Remove the first letter when AtmSpec is "U"
 #####################################################################
 ASpec=${Spec:0:1}
-#if [ "$ASpec" = "U" ]; then     #Drop the"U"
-# fileSpec=${Spec#U}
-#  echo fileSpec: $fileSpec
-#else
- fileSpec=$Spec
- echo fileSpec: $fileSpec
- AtmSpec=$ASpec
-#fi
-
+fileSpec=$Spec
+echo fileSpec: $fileSpec
+AtmSpec=$ASpec
 
 if [ ${Spec:2:1} = "G" ]  ; then
     ZenithAngleDir=$Spec$ArConfig   #comment this out if using base directory.
