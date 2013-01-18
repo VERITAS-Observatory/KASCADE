@@ -47,7 +47,7 @@ echo Base: $Base
 
 if  [ -z "$6" ]
 then
- echo Fatal-Please supply all arguments Ex: ./GProcessAll V190 40_180Deg Noise3_5 ABCD  
+ echo Fatal-Please supply all arguments Ex: ./EProcessAll V190 40_180Deg Noise3_5 ABCD  
 
  exit
 fi
@@ -70,32 +70,32 @@ fi
 echo i start: $i
 echo end: $end
 
-GBase=$ABase'G'$2'2D'$3
-echo GBase: $GBase
+EBase=$ABase'E'$2'2D'$3
+echo EBase: $EBase
 
-GDir=$GBase'1234M2'$Base  #Add MDL15 to dir name. Needed by ksWeRock
-GDirOrig=$GBase'1234M2'$SeasonSpec$6
-echo GDir: $GDir
-echo GDirOrig: $GDirOrig
+EDir=$EBase'1234M2'$Base  #Add MDL15 to dir name. Needed by ksWeRock
+EDirOrig=$EBase'1234M2'$SeasonSpec$6
+echo EDir: $EDir
+echo EDirOrig: $EDirOrig
 
 
 
-cd $lcl'/gammas/'
+cd $lcl'/electrons/'
 pwd
-mkdir -pv $GDir
-if [ -d "$GDirOrig" ]; then
-    echo moving ./$GDirOrig'/*' to  './'$GDir'/'
-    mvCmd='mv -v ./'$GDirOrig'/*  ./'$GDir'/'
+mkdir -pv $EDir
+if [ -d "$EDirOrig" ]; then
+    echo moving ./$EDirOrig'/*' to  './'$EDir'/'
+    mvCmd='mv -v ./'$EDirOrig'/*  ./'$EDir'/'
     $mvCmd
-    rmdir -v $GDirOrig
+    rmdir -v $EDirOrig
 fi
 
 
-cd $lcl'/gammas/'$6
+cd $lcl'/electrons/'$6
 pwd
 
 
-ls | grep 1234M2 | grep vbf|grep $2'2D'$3 |xargs -n1 mv -v --target=$lcl'/gammas/'$GDir
+ls | grep 1234M2 | grep vbf|grep $2'2D'$3 |xargs -n1 mv -v --target=$lcl'/electrons/'$EDir
 
 
 
@@ -139,9 +139,9 @@ while test $i -le $end
        wbl=S2.0Wbl
     fi
 
-    VBFFile=$ABase'G'$5$2'2D'$wbl$3'1234M2.vbf'
+    VBFFile=$ABase'E'$5$2'2D'$wbl$3'1234M2.vbf'
 
-    sgeFile=$lcl'/'$Base'G'$2$wbl'.pbs'
+    sgeFile=$lcl'/'$Base'E'$2$wbl'.pbs'
     echo "#"!/bin/bash                                            >$sgeFile
     echo "#PBS -l walltime=10:00:00"                             >>$sgeFile
     if [ -n "$CARVER" ]; then
@@ -151,10 +151,10 @@ while test $i -le $end
      echo "#PBS -l mem=8GB"                                      >>$sgeFile
     fi
     echo cd $lcl'/../../veritas'                                 >>$sgeFile
-    echo './ksWeRock.scr '$GBase 98020 1234M2  \\                >>$sgeFile
-    echo $direction $Base ">"$lcl'/'$Base'G'$2$wbl'.log'         >>$sgeFile
+    echo './ksWeRock.scr '$EBase 98020 1234M2  \\                >>$sgeFile
+    echo $direction $Base ">"$lcl'/'$Base'E'$2$wbl'.log'         >>$sgeFile
     echo cd $lcl                                                 >>$sgeFile
-    echo mv  -v $GBase'1234M2D'$direction$Base'.vbf' $VBFFile    >>$sgeFile
+    echo mv  -v $EBase'1234M2D'$direction$Base'.vbf' $VBFFile    >>$sgeFile
 
     chmod 700 $sgeFile
     qsub -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
