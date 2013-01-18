@@ -21,17 +21,16 @@
 
 #GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
 #HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
-CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
+#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
 #GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
-
 #CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
+#HTARShowerVBFFilesToArchive=enabled     #needs $1 $2 $3 $4 $5 $6 $7 $8 
 
 #below need work!
-#SaveVBFFilesToArchive=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 
-#GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
+GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
 
 
 
@@ -203,8 +202,70 @@ function CheckList()
 } 
 #########################################################################
 
+function SubmitHtarToArchive()
+{
+  #$1 directory that holds directory we want to archive
+  #$2 Directory we want to archive
+
+  BaseDir=$1
+  ShwrDir=$2
 
 
+  local=$PWD
+  cd $BaseDir
+  if [ ! -e "$ShwrDir" ]; then
+      echo 'KSAuto: '$BaseDir'/'$ShwrDir' Does not exist. exit.'
+      exit
+  fi
+  cd $local
+
+  #build a submission .pbs file
+  sgeFile=$lcl'/'$ShwrDir'HTAR.pbs'
+  echo "#"PBS -q $QUEUE                                     >$sgeFile
+  echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
+  if [ -n "$HANSEN" ]; then
+    echo source /etc/profile                               >>$sgeFile
+    echo module load gcc/4.7.2                             >>$sgeFile
+  fi
+  echo cd $BaseDir                                         >>$sgeFile
+  echo htar -cvf  $HtarDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
+  echo '>'$lcl'/../simulations/veritas/'$ShwrDir'.log'     >>$sgeFile
+
+  chmod 700 $sgeFile
+  HTARLOG=$lcl'/../simulations/veritas/KSHTAR'$ZnAz'To.log'
+  qsub -V -e $ShwrDir'HTARTo.pbs.err' -o $ShwrDir'HTARTo.pbs.log' $sgeFile >$HTARLOG
+
+  #####################################################################
+  # We are now going to wait for the htar to finish.
+  #####################################################################
+
+  if [ -n "$HANSEN" ]; then
+   echo "KSAuto: htar to archive "$ShwrDir" job submission to Hansen "$QUEUE" queue complete."
+  fi
+  if [ -n "$CARVER" ]; then
+   echo "KSAuto: htar to archive "$ShwrDir" job submission to Carver cluster complete."
+  fi
+  date
+  echo "KSAuto: Sleeping until it finishes."
+  # Cleanup the log file to only have Hansen cluster pids in it
+ 
+  ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
+  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+
+  runsNotDone=1
+  while test $runsNotDone -eq 1 
+    do
+     sleep 60s
+     checkRunningJobs $ShowerMakeTE $ZnAz
+     let runsNotDone=$?
+    done
+  echo "KSAuto: HTAR of "$TeName" complete"
+
+  # And now cleanup: change protection
+  chmod 775 $HtarDir$ShwrDir'.tar'
+  cd $lcl
+}
+  ##########################################################################
 
 
 
@@ -218,7 +279,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
-  V190DirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  VDirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
   JobIDHost='cvrsvc'
   QUEUE=serial
   echo '***Carver Cluster***'
@@ -228,7 +289,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  V190DirBase=$SCRATCH'/simulations/veritas/'
+  VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='hansen-adm'
   QUEUE=physics
   #QUEUE=standby
@@ -374,18 +435,21 @@ while test $izn -lt $iznEnd
      fi
      
      if [ "$1" = "CR" ] ; then
-       V190DirP=$V190DirBase'/protons/V190' 
-       V190DirHe4=$V190DirBase'/he4/V190' 
+       V190DirP=$VDirBase'/protons/V190' 
+       V190DirHe4=$VDirBase'/he4/V190' 
        V190Dir=$V190DirP
        TeNameP=$2$PMT'P'$ZnAz$OffSetSpec
        TeNameHe4=$2$PMT'He4_'$ZnAz$OffSetSpec
        TeName=$TeNameP
-       ShowerPDir=$V190DirBase'/'$ParticleDir'/'$TeNameP$Threshold'1234M2'$2$8
-       ShowerHe4Dir=$V190DirBase'/'$ParticleDir'/'$TeNameHe4$Threshold'1234M2'$2$8
+       ShowerVBFProtonDir=$TeNameP$Threshold'1234M2'$2$8
+       ShowerPDir=$VDirBase'/protons/'$ShowerVBFProtonDir
+       ShowerVBFHe4Dir=$TeNameHe4$Threshold'1234M2'$2$8
+       ShowerHe4Dir=$VDirBase'/he4/'$ShowerVBFHe4Dir
      else
-       V190Dir=$V190DirBase'/'$ParticleDir'/V190'
+       V190Dir=$VDirBase'/'$ParticleDir'/V190'
        TeName=$2$PMT$1$ZnAz$OffSetSpec
-       ShowerDir=$V190DirBase'/'$ParticleDir'/'$TeName$Threshold'1234M2'$2$8
+       ShowerVBFDir=$TeName$Threshold'1234M2'$2$8
+       ShowerDir=$VDirBase'/'$ParticleDir'/'$ShowerVBFDir
      fi
    
      if [ -n "$HANSEN" ]; then
@@ -819,24 +883,29 @@ while test $izn -lt $iznEnd
      fi
      #########################################################################
 
-     if [ -n "$SaveVBFFilesToArchive" ]; then
-       echo '##########################################################'
-       echo '# SaveVBFFilesToArchive '
-       echo '##########################################################'
-       SVDir=$lcl'/../simulations/veritas/'
 
-       # Build archive directory name
-       GammaArchive=$HtarDir/gammas/
-       mkdir -vp $GammaArchive
-       cd $GammaArchive
-       VBFArchiveDir=$2$3$1$7'VBF'
-       mkdir -vp VBFArchiveDir 
-       cd $SVDir
-       mv -v $2$3$1'*'$ZnAz'Deg$OffSetSpec*1234M2.vbf' $GammaArchive'/'$VBFArchiveDir'/'       
-       echo "KSAuto: Saved all  "2$3$1'*'$ZnAz'Deg$OffSetSpec*1234M2.vbf files to '$VBFArchiveDir
-     fi      
 
+     if [ -n "$HTARShowerVBFFilesToArchive" ]; then
+       echo '##########################################################'
+       echo '# HTARShowerVBFFilesToArchive'
+       echo '##########################################################'
+         #In order to not have this task (KSAuto.scr) be killed because it
+         #runs too long, we have to submit this htar command to the cluster.
+   
+       cd $lcl'/../simulations/veritas/'
+       date
+       if [ "$1" = "CR" ] ; then
+	 SubmitHtarToArchive $VDirBase'/protons/'  $ShowerVBFProtonsDir
+         echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
+	 SubmitHtarToArchive $VDirBase'/he4/'  $ShowerVBFHe4Dir
+         echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
+       else
+	 SubmitHtarToArchive $VDirBase'/'$ParticleDir'/'  $ShowerVBFDir
+       fi
+    fi
      #########################################################################
+
+
      #Following only works for G so far!
      if [ -n "$GenerateZnAzVBFFile" ]; then
        echo '##########################################################'
@@ -844,6 +913,11 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
+       ProcessAll=$1'ProcessAll'
+       if [ ! -e "$ProcessAll" ]; then
+	   cp -v $KASCADEBASE'/scripts/'$ProcessAll .
+       fi
+
 
        if [ "$1" = "CR" ] ; then
          echo"CRProcessAll not working with KSAuto yet"
@@ -852,13 +926,13 @@ while test $izn -lt $iznEnd
        fi
 
        if [ "$1" = "G" ] || [ "$1" = "E" ] ; then
-         ./$1ProcessAll V190 $ZnAz $Threshold $2$PMT $7 $8 >$1ProcessAll$ZnAz'.log'
+         $SVDir'/'$ProcessAll V190 $ZnAz $Threshold $2$PMT $7 $8 >$ProcessAll$ZnAz'.log'
        fi
        date
 
        #Wait for it!
 
-       cat $1ProcessAll$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerProcessAll$ZnAz'.log'
+       cat $ProcessAll$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerProcessAll$ZnAz'.log'
 
        runsNotDone=1
         
@@ -869,9 +943,12 @@ while test $izn -lt $iznEnd
           let runsNotDone=$?
 	 done
        rm ksallVBF$ZnAz'.scr'
-       echo "KSAuto: '$1'ProcessAll VBF wobble shower file generation complete"
+       echo "KSAuto: "$ProcessAll" VBF wobble shower file generation complete"
       fi
      ########################################################################
+
+
+
 #For reference
 #$1 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
 #$2 ksProduction season spec: Ex: W or S
@@ -882,6 +959,9 @@ while test $izn -lt $iznEnd
 #$7 MDL file name for VBF files: Ex MDL12U
 #$8 Telescope 4 character spec: Ex: ABCD or wxyz
 #$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
+
+
+
 
 
      if [ -n "$Cleanup" ]; then
@@ -907,7 +987,7 @@ while test $izn -lt $iznEnd
     done
    izn=$((izn+1))
   done
- date
+date
 echo 'KSAuto: All done!--Good bye!'
 
 ###########################################################################
