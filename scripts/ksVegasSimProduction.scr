@@ -6,7 +6,7 @@
 #   than what VEGAS is set to in .bashrc (or equivalent)(optional)
 
 #Make simLaser file (even if it already exists, this is very fast, but worry 
-                     about dual processing on clusters)
+#                     about dual processing on clusters)
 
 #Stage1Laser=enable
 #Stage1Data=enable
