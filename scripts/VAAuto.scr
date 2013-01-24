@@ -1,0 +1,338 @@
+#!/bin/bash
+#This script is used to automate the generation and processing of the veritas 
+# KASCADE vbf files in 1:Noise levbels, LT and EA tables.
+# GAMMAS ONLY for now (some electron stuff but nowhere near ready for 
+# electrons)
+#It has some arguments listed below.
+#$1 ksProduction season spec: Ex: W or S
+#$2 telescope designation: W or V or U (Whipple, veritas, Upgrade)
+#$3 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
+#$4 MDL designation for VBF files: Ex MDL12U
+#$5 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
+#$6 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
+#$7 wbl for Noise test file Ex:  S2.0wbl or 0.0wbl
+#$8 Threshold: Ex 45mv or 50mv
+#$9 PedVar level we want to find ratios for
+# ************************************************************************
+# Within that loop we can do:         #"dm" below indicates dummy value needed
+
+FindBaseNoiseLevels=enabled
+#FindPedVarScalingValues=enabled
+#
+
+###########################################################################
+function checkRunningJobs()
+#$1 Job ID List
+#$2 Zn_Az
+
+{
+  RunningList=RunningList$2'.dat'
+  SingleRunList=singleRunList$2'dat'
+
+  if [ -s $RunningList ]; then
+      rm $RunningList
+  fi
+  {
+    while  read jobID;  do
+      qstat $jobID &>$SingleRunList
+      cat $SingleRunList | grep -v Unknown >>$RunningList
+    done
+  } <$1
+
+  rm $SingleRunList
+  if [ -s  $RunningList ]; then
+    rm $RunningList
+    return 1
+  else
+    rm $RunningList
+    return 0
+  fi
+}
+##########################################################################
+function  VegasStage1Stage2Process()
+{
+ ####################################################################
+ # Make up the job script file that will be submitted below
+ ####################################################################
+ BaseFile=$1
+ VBF=$2
+ PedVarOptionsFile=$3
+ 
+ sgeFile=$lcl'/'$BaseFile'.pbs'
+ echo "#"PBS -l walltime=30:00:00                 >$sgeFile
+ if [ -n "$CARVER" ]; then
+   echo "#"PBS -l pvmem=5gb                      >>$sgeFile
+ fi
+ if [ -n "$HANSEN" ]; then
+   echo source /etc/profile                      >>$sgeFile
+   echo module load gcc/4.7.2                    >>$sgeFile
+   echo "#"PBS -l mem=5gb                        >>$sgeFile
+ fi
+ echo cd $lcl                                    >>$sgeFile
+ echo $lcl'/'ksVegasSimProductionBase.scr  \\    >>$sgeFile
+ echo $VBF  $PedVarOptionsFile \\                >>$sgeFile
+ echo ' >'$lcl'/'$BaseFile'VBF.log'              >>$sgeFile
+ chmod 700 $sgeFile
+ CHECKLOG=$lcl'/Check'$BaseFile'.log'
+ qsub -q $QUEUE  -V -e $BaseFile'.err' -o $BaseFile'pbs.log' $sgeFile >$CHECKLOG
+ CLOG=C$ZnAz'.log'
+ cat $CHECKLOG | grep $JobIDHost >$CLOG
+ rm $CHECKLOG
+ echo "VAAuto: Sleeping until ksVegasSimProductionBase.scr finishes. "
+ runsNotDone=1
+ while test $runsNotDone -eq 1 
+ do
+   sleep 60s
+   checkRunningJobs $CLOG $ZnAz
+   let runsNotDone=$?
+ done
+ #rm $CLOG
+ #rm $sgeFile
+}
+##########################################################################
+function GetPedVars()
+{
+  RFile2=$1
+  PVFile=$2
+  #################################
+  # We now need to run root in batch mode and get list of pedvars
+  # and the max one
+  #################################
+  echo "{"                                                    >VAAuto.C
+  echo 'VARootIO io("'$RFile'", true);'                      >>VAAuto.C
+  echo 'io.loadTheRootFile();'                               >>VAAuto.C
+  echo 'VAQStatsData *q = io.loadTheQStatsData();'           >>VAAuto.C
+  echo 'std::ofstream ofs("PedVarBaseRatios.dat");'          >>VAAuto.C
+  echo 'std::vector< double > ped;'                          >>VAAuto.C
+  echo 'ped.Resize(4,0.0);'                                  >>VAAuto.C
+  echo 'ped.at(0)=q->getCameraAverageTraceVarTimeIndpt(0,7)' >>VAAuto.C
+  echo 'ped.at(1)=q->getCameraAverageTraceVarTimeIndpt(1,7)' >>VAAuto.C
+  echo 'ped.at(2)=q->getCameraAverageTraceVarTimeIndpt(2,7)' >>VAAuto.C
+  echo 'ped.at(3)=q->getCameraAverageTraceVarTimeIndpt(3,7)' >>VAAuto.C
+  echo 'double max= *max_element(ped.begin(),ped.end());'    >>VAAuto.C
+  echo 'ofs<<ped.at(0)<<" "<<ped.at(1)<<" ";'                >>VAAuto.C
+  echo '   <<ped.at(2)<<" "<<ped.at(3)<<" ";'                >>VAAuto.C
+  echo '   <<max<<std::endl;'                                >>VAAuto.C
+  echo 'io.closeTheRootFile();'                              >>VAAuto.C
+  echo '}'                                                   >>VAAuto.C
+
+ # ~/Switch.rootrcTo.rootrc_glenn.scr
+  root -q -b VAAuto.C  >VAAuto.C.log
+}
+######################################################################
+function LoadPVOpt()
+{
+  BaseRat=$1
+  PVBase=$2
+  PVTar=$3
+  NewRatioFile=$4
+  NewOptFile=$5
+  ############################################
+  #We have to do some foalingpoint arithmatic and some semi-fancy
+  #formatting, so lets do it in root
+  ############################################
+#  echo "{"                                                      >VAAuto.C
+#  echo '  std::string line;'                                   >>VAAuto.C
+#  echo '  std::ifstream iBR(\"'$BaseRat'\");'                  >>VAAuto.C
+#  echo '  std::getline(iBR,line);'                             >>VAAuto.C
+#  echo '  std::istringstream issBR(line);'                     >>VAAuto.C
+#  echo '  std::vector< double > oldRat;'                       >>VAAuto.C
+#  echo '  double Value;'                                       >>VAAuto.C
+#  echo '  for(int i=0;i<4;i++){'                                >>VAAuto.C
+#  echo '    issBR>>Value'                                      >>VAAuto.C
+#  echo '    oldRat.push_back(Value);'                          >>VAAuto.C
+#  echo '  }'                                                   >>VAAuto.C
+#  echo '  std::ifstream iPVB(\"'$PVBase'\");'                  >>VAAuto.C
+#  echo '  std::getline(iPVB,line);'                            >>VAAuto.C
+#  echo '  std::istringstream issPVB(line);'                    >>VAAuto.C
+#  echo '  std::vector< double > PVB;'                          >>VAAuto.C
+#  echo '  for(int i=0;i<4;i++){'                                >>VAAuto.C
+  #echo '    issPVB>>Value'                                     >>VAAuto.C
+  #echo '    PVB.push_back(Value);'                             >>VAAuto.C
+  #echo '  }'                                                   >>VAAuto.C
+  #echo '  std::ofstream oRF(\"'$NewRatioFile'\");'             >>VAAuto.C
+  #echo '  std::ofstream oOF(\"'$NewOptFile'\");'               >>VAAuto.C
+  #echo '  oOF<<\"IncreasePedVarOption='                        >>VAAuto.C
+  #echo '     <<\"\'-PaddingApp=PaddingCustom '                 >>VAAuto.C
+  #echo '     << -P_MultiPedvarScaling='                        >>VAAuto.C
+  #echo '  for(int i=0;i<4;i++){'                               >>VAAuto.C
+  #echo '    Value=oldRat.at(i)*'$PVTar'/PVB.at(i);'            >>VAAuto.C
+  #echo '    oOF<<i+1<<\"/\"<<Value;'                           >>VAAuto.C
+  #echo '    oRF<<Value<<\" \";'                                >>VAAuto.C
+  #echo '  }'                                                   >>VAAuto.C
+  #echo '  oOF<<'\"\'\"<<std::endl;                             >>VAAuto.C 
+  #echo '  oOF<<\"PedVarBase=\'PedVar'$PVTar'\"<<std::endl;'    >>VAAuto.C 
+  #echo '  oRF<<std::endl;'                                     >>VAAuto.C
+  #echo '}'                                                     >>VAAuto.C
+
+  ~/Switch.rootrcTo.rootrc_glenn.scr
+  root -q -b VAAuto.C  >VAAuto.C.log
+}
+###########################################################################
+#Main:
+
+lcl=$PWD
+PMT=$2
+WBL=$7
+
+source /etc/profile
+
+host=$(hostname)
+echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  JobIDHost='cvrsvc'
+  QUEUE=serial
+  VBFDir=$SCRATCH'/gammas/'$1$2$PMT$4'VBF'
+  echo '***Carver Cluster***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  VBFDir='/archive/fortress/group/veritas/simulations/gammas/'$1$PMT$3$4'VBF'
+  JobIDHost='hansen-adm'
+  QUEUE=physics
+  #QUEUE=standby
+  echo ***Hansen Cluster***
+fi
+
+
+#To find the Zn amd AZ combinations first put $5 and $6 into arrays
+#This is tricky. We save away the present Internal Filed Seperator and then
+# set IFS to a comma. We then use the -a option with the read command to 
+# read in our stings into arrays. Then we restore the IFS.
+
+SAVEIFS=$IFS
+IFS=, read -a Zenith <<< "$5"
+IFS=, read -a Azimuth <<< "$6"
+IFS=$SAVEIFS
+
+#Check if the is for 2D offsets, blank if not
+if [ "$3" = "G" ] || [ "$3" = "E" ]; then
+  OffSetSpec="2D"
+fi
+
+#now we loop
+
+#Zenith
+let izn=0
+let iznEnd=${#Zenith[@]}
+let iFilesNotFound=0
+while test $izn -lt $iznEnd
+  do
+
+   #Iterate through Azimuth
+   let kaz=0
+   let kazEnd=${#Azimuth[@]}
+   while test $kaz -lt $kazEnd
+    do
+     #Make   Zn_Az string
+     if test ${Azimuth[$kaz]} = "0"
+      then
+       ZnAz=${Zenith[$izn]}'Deg'
+     else
+       ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
+     fi
+# *****************************************************************************
+#  Now all the things we can do for a particular Zn_AZ
+# *****************************************************************************
+  
+     if [ -n "$FindBaseNoiseLevels" ]; then
+       echo '##########################################################'
+       echo '# FindBaseNoiseLevels '
+       echo '##########################################################'
+       echo 'VAAuto: Be sure to specify the shortest file you can (ZnAz,Wbl)'
+       cd $lcl
+       date
+
+       #Make sure ksVegasSimProduction.scr is set up correctly to get Base 
+       #noise
+       cp $KASCADEBASE/scripts/ksVegasSimProduction.scr ksVegasSimProductionBase.scr
+
+       #The standard ksVegasSimProduction.scr should have all options turned 
+       #off.  We just have to make sure only stages 1 and 2 get run
+       #??????Sample size:We will need to set integration window size if 
+       #different from 7?????? Not implimented yet.
+
+
+       #####################################################################
+       sed '/#Stage1Laser=enable/s/#Stage1Laser/Stage1Laser/g' \
+                                        < ksVegasSimProductionBase.scr >tmp1
+       sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'      <tmp1 >tmp2
+       sed '/#Stage2=enable/s/#Stage2/Stage2/g'                  <tmp2 >tmp1
+       sed '/Stage4=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+       sed '/Stage5=enable/s/Stage5/#Stage5/g' \
+                                         <tmp2 >ksVegasSimProductionBase.scr
+       rm tmp1
+       rm tmp2
+       ####################################################################
+       
+
+       #Generate  file names 
+       BaseFileName=$1$PMT$3$4$ZnAz'2D'$WBL$8
+       VBFFile=$BaseFileName'1234M2.vbf'
+       RootFile=$BaseFileName'1234M2.root'
+
+       echo "KSAuto: Submitting ksVegasSimProductionBase for " $lcl'/'$VBFFile 
+       echo "KSAuto: This submission takes a few minuts"
+
+       # Leave pedvar options file name (third argument) blank for no scaling.
+
+       VegasStage1Stage2Process $BaseFileName $lcl'/'$VBFFile 
+       GetPedVars $RootFile PVBase.dat
+
+       echo '********************************'
+       echo 'VAAuto: Base PedVar Levels and max: '
+       cat PVBase.dat 
+       echo '********************************'
+    fi
+
+     if [ -n "$FindPedVarScalingValues" ]; then
+       echo '##########################################################'
+       echo '# FindPedVarScalingValues '
+       echo '##########################################################'
+       #####################################################
+       # We will pick up the desired nopise level from $9
+       # we will find the Pedvar scaleing values in stage2 to give us this
+       # noise level.
+       # We use the ratio of the base noise to the desired noise and then
+       # iterate 3 times to correct. That should be enough
+       #####################################################
+       echo '1.0 1.0 1.0 1.0 1.0' >BaseRatios.dat
+
+       LoadPVOpt BaseRat.dat PVBase.dat $9 PV$9Set1Rat.dat PVOpt$9 
+       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFile PVOpt$9
+       GetPedVars $RootFile PV$9Set1.dat
+
+       LoadPVOpt PV$9Set1Rat.dat PV$9Set1.dat $9 PV$9Set2Rat.dat PVOpt$9
+       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFile PVOpt$9 
+       GetPedVars $RootFile PVOpt$9Set2.dat
+
+       LoadPVOpt PV$9Set2Rat.dat PV$9Set2.dat $9 PV$9Set3Rat.dat PVOpt$9
+       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFile PVOpt$9 
+       GetPedVars $RootFile PVOpt$9Set4.dat
+       
+       {
+	 read PV1 PV2 PV3 PV4 PVMax
+       }<PVOpt$9Set4.dat
+       echo 'VAAuto: For PedVar '$9 'we get:' $PV1 $PV2 $PV3 $PV4
+     fi
+     ################################################
+     #Should all be done now. Go on to next combo.
+     ################################################
+     date
+     kaz=$((kaz+1))
+    done
+   izn=$((izn+1))
+  done
+ date
+echo 'VAAuto: All done!--Good bye!'
+
+###########################################################################
+
+      

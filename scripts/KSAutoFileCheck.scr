@@ -1,4 +1,4 @@
-//-*-mode:c++; mode:font-lock;-*-
+#//-*-mode:c++; mode:font-lock;-*-
 #$1 filename with list of files to be checked 
 #$2 TeName value: ex: WVG10_315Deg2D
 #$3  Particle

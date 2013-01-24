@@ -28,20 +28,18 @@
 #GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
 #CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
 #HTARShowerVBFFilesToArchive=enabled     #needs $1 $2 $3 $4 $5 $6 $7 $8 
-
-#below need work!
 GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
 
+#DisableSleep=enabled            #Don't wait for files to finish. ususally use 
+                                #only when we have a a group of small runs of 
+                                #GenerateTeFiles and want to load up the 
+                                #cluster
 
 
 #Cleanup=enabled                #should only enable  this if 
                                 #"ExitOnTeCreationFailure" (below) is enabled
 #ExitOnTeCreationFailure=enabled  
 
-#DisableSleep=enabled           #Don't wait for files to finish. ususally use 
-                                #only when we have a a group of small runs of 
-                                #GenerateTeFiles and want to load up the 
-                                #cluster
 
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks not the running
@@ -124,17 +122,17 @@ function checkFilesExist()
   #checking this list for all files that should be there takes 5 - 10 min
   #thus , to insure we don't over run the 30 min time limit
   #we will have to submit the te file check and sleep until it finishes
-  echo 'KSAuto: Checking for all te files in: '$FileDir
+  echo 'KSAuto: Checking for all '$FileType' files in: '$FileDir
        
+  Result=$CheckListFiles'.Result'
+  rm $Result
   CheckList $CheckListFiles $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold
        
   date
   cd $lcl
-  Result=$CheckListFiles'.Result'
   if [ -s $Result ]; then
      cat  $Result
      iFilesNotFound=1
-     #rm $Result
      if [ -n "$ExitOnTeCreationFailure" ]; then
        echo 'KSAuto: Exiting on File check failure'
        echo 'KSAuto: Goodbye'
@@ -187,14 +185,14 @@ function CheckList()
   CLOG=$FileType'C'$ZnAz'.log'
   cat $CHECKLOG | grep $JobIDHost >$CLOG
   #rm $CHECKLOG
-  echo "KSAuto: Running CheckFile: Entries: " $EntryStart "-" $EntryEnd
+  echo "KSAuto: Running KSAutoFileCheck: Entries: " $EntryStart "-" $EntryEnd
   echo "KSAuto: Sleeping until CheckFile finishes. "
   runsNotDone=1
   while test $runsNotDone -eq 1 
     do
-      sleep 60s
-      checkRunningJobs $CLOG $ZnAz
-      let runsNotDone=$?
+     sleep 60s
+     checkRunningJobs $CLOG $ZnAz
+     let runsNotDone=$?
     done
   #rm $CLOG
   #rm $sgeFile
@@ -291,8 +289,8 @@ then
   HANSEN=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='hansen-adm'
-  QUEUE=physics
-  #QUEUE=standby
+  #QUEUE=physics
+  QUEUE=standby
   echo ***Hansen Cluster***
 fi
 
@@ -866,7 +864,7 @@ while test $izn -lt $iznEnd
          checkFilesExist $ShowerDir $TeName $1 'VBF' $EntryGEStart $EntryGEEnd $Threshold
          FilesMissing=$?
          if [ "$FilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All Te files present in '$TeName' directory'
+            echo 'KSAuto: All '$FileType' files present in '$ShowerDir
          fi
        fi
 

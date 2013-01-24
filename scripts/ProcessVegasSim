@@ -1,0 +1,59 @@
+#$1 List of data.vbf or pedvar.root files
+#$2 ksVegasSimProduction file name: 
+#       EX: ksVegasSimProduction7samples10.5.scr
+#$3 Identifying letter for Job name (ex A)
+#$4 Alternate VEGAS path (optional)
+
+host=$(hostname)
+echo host: $host
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  QUEUE=serial
+  echo '***Carver Cluster***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  QUEUE=physics
+  #QUEUE=standby
+  echo ***Hansen Cluster***
+fi
+
+lcl="$PWD"
+let i=0
+{
+  while read InputFile ; do
+      i=$((i+1))
+	BaseFileName=${InputFile##/*/}
+####################################################################
+# Make up the job script file that will be submitted below
+####################################################################
+      sgeFile=$lcl'/V'$3'Job'$i'.pbs'
+      echo "#"PBS -l walltime=30:00:00          >$sgeFile
+      if [ -n "$CARVER" ]; then
+	echo "#"PBS -l pvmem=5gb               >>$sgeFile
+      fi
+      if [ -n $HANSEN" ]; then
+        echo source /etc/profile               >>$sgeFile
+        echo module load gcc/4.5.1             >>$sgeFile
+	echo "#"PBS -l mem=5gb                 >>$sgeFile
+      fi
+      echo cd $lcl                             >>$sgeFile
+      echo $lcl'/'$2  \\                       >>$sgeFile
+      echo $InputFile' '  \\                   >>$sgeFile
+      if test -n $4
+      then
+        echo $4  \\                            >>$sgeFile
+      fi 
+
+      echo ' >'$lcl'/'$BaseFileName$3'.log'         >>$sgeFile
+      chmod 700 $sgeFile
+      qsub -q serial  -V -e 'W'$3$i'.err' -o 'W'$3$i'.log' $sgeFile
+done
+} <$1
+
+
