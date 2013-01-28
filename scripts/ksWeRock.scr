@@ -73,6 +73,16 @@ if [ ${Spec:1:1} = "U" ] ; then
 	dstDir=$dstDir'/veritas'
 fi
 
+if  [ ${Spec:2:1} = "E" ] ; then
+  ParticleType=electrons
+fi
+
+if  [ ${Spec:2:1} = "G" ] ; then
+  ParticleType=gammas
+fi
+
+
+
 echo dataDirBase: $dataDirBase
 cd $dataDirBase
 
@@ -127,14 +137,14 @@ fileSpec=$Spec
 echo fileSpec: $fileSpec
 AtmSpec=$ASpec
 
-if [ ${Spec:2:1} = "G" ]  ; then
+if [ ${Spec:2:1} = "G" ] || [ ${Spec:2:1} = "E" ]  ; then
     ZenithAngleDir=$Spec$ArConfig   #comment this out if using base directory.
     if [ -n "$DebugPrintEnable" ]; then
-        echo ZenithAngleDir: $dataDirBase/gammas/$ZenithAngleDir
-        echo find argument1: $dataDirBase/gammas/$ZenithAngleDir$TAG
+        echo ZenithAngleDir: $dataDirBase'/'$ParticleType'/'$ZenithAngleDir
+        echo find argument1: $dataDirBase'/'$ParticleType'/'$ZenithAngleDir$TAG
         echo find argument2: $fileSpec$ArConfig'GeV*.vbf'
     fi
-    find $dataDirBase/gammas/$ZenithAngleDir$TAG -name $fileSpec$ArConfig'GeV*.vbf'  >GList
+    find $dataDirBase'/'$ParticleType'/'$ZenithAngleDir$TAG -name $fileSpec$ArConfig'GeV*.vbf'  >GList
     gawk 'gsub(/.vbf/,"",$1)' GList >ShowerList
 
 fi

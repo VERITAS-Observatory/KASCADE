@@ -22,7 +22,7 @@ function Protons()
 #**********************************************************************
 {
     echo Protons: $parspec
-    WALLTIME=75:00:00
+
 #Veritas/Whipple set1/ksaom/kasall
 ######      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 43707 52265 ) 
@@ -164,7 +164,7 @@ function Helium4()
 #**********************************************************************
 {
     echo Helium4: $parspec
-    WALLTIME=50:00:00
+
 
 #Veritas/Whipple Set1/ksaom/kasall
 ######      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    
@@ -305,7 +305,7 @@ function CosmicRay()
     echo Cosmic Ray: $parspec 
     echo Protons: $protonParspec
     echo Helium4: $he4Parspec     
-    WALLTIME=75:00:00
+
 #Veritas/Whipple Set1/ksaom/kasall
 ######       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    
 pEnergy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 43707 52265 ) 
@@ -460,7 +460,7 @@ function Gammas()
 #**********************************************************************
 {
     echo Gammas: $parspec
-    WALLTIME=100:00:00
+
 
 #Veritas Set1/ksaom/kasall
 #Whipple Set1/kasaom/kasall starts at 84 GeV
@@ -583,7 +583,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
         do	
           if test $j -le 19  
           then
-            BuildAndSubmitHansenJobs $j 
+            #BuildAndSubmitHansenJobs $j 
+            BuildAndSubmitHansenJobsBy10 $j 
 	  else
 	    BuildAndSubmitHansenJobsSingly $j
           fi
@@ -641,7 +642,6 @@ function Electrons()
 #**********************************************************************
 {
     echo Electrons: $parspec
-    WALLTIME=100:00:00
 
 #Veritas Set1/ksaom/kasall
 #Whipple Set1/kasaom/kasall starts at 84 GeV
@@ -827,7 +827,7 @@ function BuildAndSubmitHansenJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"PBS -q $QUEUE                         >$sgeFile
- echo "#"PBS -l walltime=24:00:00             >>$sgeFile
+ echo "#"PBS -l walltime=$WALLTIME            >>$sgeFile
  echo source /etc/profile                     >>$sgeFile
  echo module load gcc/4.7.2                   >>$sgeFile
  echo lcl=$PBS_O_WORKDIR                      >>$sgeFile
@@ -837,6 +837,50 @@ function BuildAndSubmitHansenJobs
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
  chmod 700 $sgeFile
  qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+}
+##################################################################
+
+function BuildAndSubmitHansenJobsBy10()
+#**********************************************************************
+# Cause HANSEN cluster jobs to be submitted in groups of 10.
+#**********************************************************************
+{
+ stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}     
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
+ if [ $1 -le 19 ]; then
+   let Stepsize=${stepsize[$1]}
+ else
+   let Stepsize=10
+ fi
+ let i=showerStart
+ while test $i -le $showerEnd
+  do
+   let endShower=$i+$Stepsize-1
+   
+   if [ "$endShower" -gt "$showerEnd" ]; then
+     endShower=$showerEnd
+   fi
+   range=E$i'_'$endShower
+   sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
+   echo "#"PBS -q $QUEUE                               >$sgeFile
+   echo "#"PBS -l walltime=$WALLTIME                  >>$sgeFile
+   echo source /etc/profile                           >>$sgeFile
+   echo module load gcc/4.7.2                         >>$sgeFile
+   echo lcl=$PBS_O_WORKDIR                            >>$sgeFile
+   echo cd $lcl                                       >>$sgeFile
+   echo $ksScript $eGeV $pr $i  \\                    >>$sgeFile
+   echo $endShower $datadir $workingDir   \\          >>$sgeFile
+   echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log"  >>$sgeFile
+   chmod 700 $sgeFile
+   echo $e  $i  $endShower
+   qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+   let i=$i+$Stepsize
+  done
 }
 
 function BuildAndSubmitHansenJobsSingly 
@@ -859,7 +903,7 @@ function BuildAndSubmitHansenJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"PBS -q $QUEUE                                   >$sgeFile
-   echo "#"PBS -l walltime=24:00:00                       >>$sgeFile
+   echo "#"PBS -l walltime=$WALLTIME                      >>$sgeFile
    if test $1 -ge 19
      then
       echo "#PBS -l mem=10GB"                             >>$sgeFile
@@ -1220,6 +1264,7 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   CarverQueue=serial
+  WALLTIME=100:00:00
   echo ***Carver Cluster***
 fi
 
@@ -1229,7 +1274,9 @@ then
   HANSEN=enabled
   QUEUE1=physics
   QUEUE2=standby
-  QUEUE=$QUEUE1
+  QUEUE=$QUEUE2
+  #WALLTIME=100:00:00
+  WALLTIME=04:00:00
 fi
 
 hostString=${host:0:4}
@@ -1325,7 +1372,6 @@ user=$USER
 #*****************************************************************************
 let pspecset=0
 maxMem=240MB
-WALLTIME=20:00:00
 jobSpec=$1
 
 

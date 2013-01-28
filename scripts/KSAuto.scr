@@ -26,9 +26,9 @@
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
 #GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
-#CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
-#HTARShowerVBFFilesToArchive=enabled     #needs $1 $2 $3 $4 $5 $6 $7 $8 
-GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
+CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
+#GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
+#HTARShowerVBFFilesToArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 
 #DisableSleep=enabled            #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
@@ -227,10 +227,10 @@ function SubmitHtarToArchive()
   fi
   echo cd $BaseDir                                         >>$sgeFile
   echo htar -cvf  $HtarDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
-  echo '>'$lcl'/../simulations/veritas/'$ShwrDir'.log'     >>$sgeFile
+  echo '>'$local'/'$ShwrDir'.log'     >>$sgeFile
 
   chmod 700 $sgeFile
-  HTARLOG=$lcl'/../simulations/veritas/KSHTAR'$ZnAz'To.log'
+  HTARLOG=$local'/KSHTAR'$ZnAz'To.log'
   qsub -V -e $ShwrDir'HTARTo.pbs.err' -o $ShwrDir'HTARTo.pbs.log' $sgeFile >$HTARLOG
 
   #####################################################################
@@ -313,8 +313,8 @@ if [ "$1" = "G" ] || [ "$1" = "E" ]; then
 fi
 
 
-if [ ! -e "$lcl/TeFileCheck.scr" ]; then
-  cp -v $KASCADEBASE'/scripts/TeFileCheck.scr' $lcl
+if [ ! -e "$lcl/KSAutoFileCheck.scr" ]; then
+  cp -v $KASCADEBASE'/scripts/KSAutoFileCheck.scr' $lcl
 fi
 
 
@@ -881,29 +881,6 @@ while test $izn -lt $iznEnd
      fi
      #########################################################################
 
-
-
-     if [ -n "$HTARShowerVBFFilesToArchive" ]; then
-       echo '##########################################################'
-       echo '# HTARShowerVBFFilesToArchive'
-       echo '##########################################################'
-         #In order to not have this task (KSAuto.scr) be killed because it
-         #runs too long, we have to submit this htar command to the cluster.
-   
-       cd $lcl'/../simulations/veritas/'
-       date
-       if [ "$1" = "CR" ] ; then
-	 SubmitHtarToArchive $VDirBase'/protons/'  $ShowerVBFProtonsDir
-         echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarToArchive $VDirBase'/he4/'  $ShowerVBFHe4Dir
-         echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
-       else
-	 SubmitHtarToArchive $VDirBase'/'$ParticleDir'/'  $ShowerVBFDir
-       fi
-    fi
-     #########################################################################
-
-
      #Following only works for G so far!
      if [ -n "$GenerateZnAzVBFFile" ]; then
        echo '##########################################################'
@@ -944,6 +921,31 @@ while test $izn -lt $iznEnd
        echo "KSAuto: "$ProcessAll" VBF wobble shower file generation complete"
       fi
      ########################################################################
+
+
+     if [ -n "$HTARShowerVBFFilesToArchive" ]; then
+       echo '##########################################################'
+       echo '# HTARShowerVBFFilesToArchive'
+       echo '##########################################################'
+         #In order to not have this task (KSAuto.scr) be killed because it
+         #runs too long, we have to submit this htar command to the cluster.
+   
+       cd $lcl'/../simulations/veritas/'
+       date
+       if [ "$1" = "CR" ] ; then
+	 SubmitHtarToArchive $VDirBase'/protons/'  $ShowerVBFProtonsDir
+         echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
+	 SubmitHtarToArchive $VDirBase'/he4/'  $ShowerVBFHe4Dir
+         echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
+       else
+	ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
+
+        SubmitHtarToArchive $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir
+       fi
+    fi
+     #########################################################################
+
+
 
 
 
