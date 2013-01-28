@@ -13,12 +13,12 @@
 #$6 Zn_AZ; Example 20_180Deg or 30Deg
 
 
-
-#BulidRatiosTxtFile=enabled                   #needs $1 $2
-#DetermineMDL=enabled                         #needs $1 $2 $3
-BuildMDLAomeagaConfig=enabled                #needs $1 $2 dummy $4 $5
-ProductionMDLCR=enabled                      #needs $1 $2 dummy $4 $5 $6
-ProcessMDLCR=enabled                         #needs $1 $2 dummy $4 dummy $6
+                                      # dm=dummy
+#BulidRatiosTxtFile=enabled           #needs $1 $2
+#DetermineMDL=enabled                 #needs $1 $2 $3
+#BuildMDLAomeagaConfig=enabled        #needs $1 $2 dm $4 $5
+#ProductionMDLCR=enabled              #needs $1 $2 dm $4 $5 $6 :makes showerVBF
+ProcessMDLCR=enabled                 #needs $1 $2 dm $4 dm $6 :makes vbf, .root
 
  
 lcl=$PWD
@@ -35,26 +35,33 @@ else
   PMT='V'
 fi    
 
-MDLLast=MDL7U
+ZnAz=$6
+
+MDLLast=MDL10U
 
 
 ###########################################################################
 
 function checkRunningJobs()
 {
-  if [ -s checkRunners.dat ]; then
-      rm checkRunners.dat
+  RunningList=RunningList$2'.dat'
+  SingleRunList=singleRunList$2'dat'
+
+  if [ -s $RunningList ]; then
+      rm $RunningList
   fi
   {
     while  read jobID;  do
-      qstat $jobID &>checkJobRun.dat
-      cat checkJobRun.dat | grep -v Unknown >>checkRunners.dat
+      qstat $jobID &>$SingleRunList
+      cat $SingleRunList | grep -v Unknown >>$RunningList
     done
   } <$1
-  rm checkJobRun.dat
-  if [ -s checkRunners.dat ]; then
+
+  rm $SingleRunList
+  if [ -s  $RunningList ]; then
     return 1
   else
+      rm $RunningList
     return 0
   fi
 }
@@ -66,6 +73,30 @@ function checkRunningJobs()
 #next DetermineMDL step. Its assumed that all  MDL entries will be in the
 # .dat file
 #Needs $2 only
+host=$(hostname)
+echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  V190DirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  JobIDHost='cvrsvc'
+  QUEUE=serial
+  echo '***Carver Cluster***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  V190DirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
+  JobIDHost='hansen-adm'
+  QUEUE=physics
+  #QUEUE=standby
+  echo ***Hansen Cluster***
+fi
+
 if [ -n "$BulidRatiosTxtFile" ]; then
   echo '##########################################################'
   echo '# BulidRatiosTxtFile '
@@ -83,12 +114,13 @@ if [ -n "$BulidRatiosTxtFile" ]; then
          if [ "$MDL" != "$line" ]; then
            foundMDL="found"
          fi
-         if [  -n "$foundMDL" ]; then #We are at or after the MDL6 first instance
-	   if [ ${line:0:1} = "T" ]; then  #We only want lines That start with "T"
-            echo "$line" >>temp1.txt
-            fi
+ #We are at or after the MDL6 first instance
+	 if [ -n "$foundMDL" ]; then
+           if [ "${line:0:1}" = "T" ]; then
+             echo $line >>temp1.txt
+           fi
          fi
-        fi
+       fi
       done 
   } <$DatFile
   sed '/T1/s/T1/1/g' <temp1.txt >temp2.txt  #remove T's
@@ -204,27 +236,36 @@ if [ -n "$ProductionMDLCR" ]; then
   #echo 'MDLAuto: This takes about 10 min so be patient. '
   echo 'MDLAuto:  use "less MDLProcess.log" or qstat  to monitor progress.'
   cd $lcl
+  date
+  #make up our ksProduction designation
+  Spec='W'$PMT'CR'$6'50mv1234M2'$4
 
-
-  ./ksProduction.scr 'W'$PMT'CR'$6'50mv1234M2'$4 ksallVBF.scr >MDLProcess.log
+  ./ksProduction.scr $Spec ksallVBF.scr >MDLProcess$4'.log'
 
   ########################################################################
   # We are now going to wait for all of these to finish.
   ########################################################################
 
-  echo "MDLAuto: Submission of ksProduction to make shower VBF files on Carver cluster complete."
+  echo "MDLAuto: Submission of ksProduction to make shower VBF files on "
+  if [ -n "$HANSEN" ]; then
+    echo "MDLAuto: Hansen cluster for "$ZnAz" complete."
+  fi
+  if [ -n "$CARVER" ]; then
+    echo "MDLAuto: Carver cluster for "$ZnAz" complete."
+  fi
   echo "MDLAuto: Sleeping until they all finish. About 3 hrs"
   
       # Cleanup the log file to only have cCarver cluster pids in it
-  cat MDLProcess.log | grep cvrsvc >ShowerMakeVBF.log
+  cat MDLProcess$4'.log' | grep  $JobIDHost >ShowerMakeVBF$4'.log'
 
   let runsNotDone=1
   while test $runsNotDone -eq 1 
   do
-    sleep 60s
-    checkRunningJobs "ShowerMakeVBF.log"
+    sleep 300s
+    checkRunningJobs ShowerMakeVBF$4'.log'  $4
     let runsNotDone=$?
   done
+  echo "MDLAuto: Te file generation complete"
 #Should all be done now. Check that it worked(add that later)
 fi
 ###########################################################################
