@@ -84,20 +84,25 @@ MakeTGraphFromTTree(string filename)
 	j++;
       }
     }
-    if(k==0){
-      Rate[0]->SetTitle("Eff from Rate");
-      Rate[0]->GetXaxis()->SetTitle("Eff/T");
-      Rate[0]->GetYaxis()->SetTitle("Rate ");
-      Rate[0]->Draw("AP");
-    }
-    else{
+  }
+  int m=1;  //biggest: Needed for nice plots only. Fit results don't care
+  Rate[m]->SetTitle("Eff from Rate");
+  Rate[m]->GetXaxis()->SetTitle("Eff/T");
+  Rate[m]->GetYaxis()->SetTitle("Rate ");
+  Rate[m]->Draw("AP");
+  Rate[m]->Fit("pol1");
+  TF1 *fit = Rate[m]->GetFunction("pol1");
+  effIntercept.at(m)=fit->GetParameter(0);
+  effSlope.at(m)=fit->GetParameter(1);
+   
+  for(int k=0;k<4;k++){
+    if(k!=m){
       Rate[k]->Draw("P");
+      Rate[k]->Fit("pol1");
+      TF1 *fit = Rate[k]->GetFunction("pol1");
+      effIntercept.at(k)=fit->GetParameter(0);
+      effSlope.at(k)=fit->GetParameter(1);
     }
-    Rate[k]->Fit("pol1");
-    TF1 *fit = Rate[k]->GetFunction("pol1");
-    effIntercept.at(k)=fit->GetParameter(0);
-    effSlope.at(k)=fit->GetParameter(1);
-
   } 
 
 
