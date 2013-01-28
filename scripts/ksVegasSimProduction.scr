@@ -185,7 +185,8 @@ if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
 fi
 echo CutRootFileName: $CutRootFileName
 
-LookUpTableDir=$VEGAS/showerReconstruction2/tables/KASCADE
+#LookUpTableDir=$VEGAS/showerReconstruction2/tables/KASCADE
+LookUpTableDir=$VEGAS/../tables/
 
 if [ -n "$Stage4_2" ]; then
      echo RootFileName: $RootFileName
