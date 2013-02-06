@@ -20,12 +20,12 @@
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
 #GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
-#HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
+HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
 #CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
-#GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
+GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
 CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
 #HTARShowerVBFFilesFromArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 #GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
@@ -212,9 +212,9 @@ function SubmitHtarToArchive()
   
 
   local=$PWD
-  cd $SourceDi 
+  cd $SourceDir 
   if [ ! -e "$ShwrDir" ]; then
-      echo 'KSAuto: '$BaseDir'/'$ShwrDir' Does not exist. exit.'
+      echo 'KSAuto: '$SourceDir'/'$ShwrDir' Does not exist. Exiting.'
       cd $local
       exit
   fi
@@ -222,14 +222,14 @@ function SubmitHtarToArchive()
 
   #build a submission .pbs file
   sgeFile=$lcl'/'$ShwrDir'HTAR.pbs'
-  echo "#"PBS -q $QUEUE                                     >$sgeFile
-  echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
-  if [ -n "$HANSEN" ]; then
-    echo source /etc/profile                               >>$sgeFile
-    echo module load gcc/4.7.2                             >>$sgeFile
+  echo "#"PBS -q $QUEUE                                            >$sgeFile
+  echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
+  if [ -n "$HANSEN" ]; then  
+    echo source /etc/profile                                      >>$sgeFile
+    echo module load gcc/4.7.2                                    >>$sgeFile
   fi
-  echo cd $SourceDir                                         >>$sgeFile
-  echo htar -cvf  $HtarDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
+  echo cd $SourceDir                                              >>$sgeFile
+  echo htar -cvf  $DestinationDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
   echo '>'$local'/'$ShwrDir'.log'     >>$sgeFile
 
   chmod 700 $sgeFile
@@ -587,7 +587,7 @@ while test $izn -lt $iznEnd
        cd $lcl
        date
 
-       SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/'  $V190Dir $TeName
+       SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName
       
     fi
      #########################################################################
