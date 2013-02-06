@@ -27,10 +27,11 @@
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
 #GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
 CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
+#HTARShowerVBFFilesFromArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 #GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
 #HTARShowerVBFFilesToArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 
-#DisableSleep=enabled            #Don't wait for files to finish. ususally use 
+#DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
                                 #GenerateTeFiles and want to load up the 
                                 #cluster
@@ -205,14 +206,16 @@ function SubmitHtarToArchive()
   #$1 directory that holds directory we want to archive
   #$2 Directory we want to archive
 
-  BaseDir=$1
-  ShwrDir=$2
-
+  DestinationDir=$1    #Archive directory
+  SourceDir=$2         #Disk Base Directory
+  ShwrDir=$3           #filename (Directiory to archive)
+  
 
   local=$PWD
-  cd $BaseDir
+  cd $SourceDi 
   if [ ! -e "$ShwrDir" ]; then
       echo 'KSAuto: '$BaseDir'/'$ShwrDir' Does not exist. exit.'
+      cd $local
       exit
   fi
   cd $local
@@ -225,7 +228,7 @@ function SubmitHtarToArchive()
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
-  echo cd $BaseDir                                         >>$sgeFile
+  echo cd $SourceDir                                         >>$sgeFile
   echo htar -cvf  $HtarDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
   echo '>'$local'/'$ShwrDir'.log'     >>$sgeFile
 
@@ -242,6 +245,67 @@ function SubmitHtarToArchive()
   fi
   if [ -n "$CARVER" ]; then
    echo "KSAuto: htar to archive "$ShwrDir" job submission to Carver cluster complete."
+  fi
+  date
+  echo "KSAuto: Sleeping until it finishes."
+  # Cleanup the log file to only have Hansen cluster pids in it
+ 
+  ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
+  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+
+  runsNotDone=1
+  while test $runsNotDone -eq 1 
+    do
+     sleep 60s
+     checkRunningJobs $ShowerMakeTE $ZnAz
+     let runsNotDone=$?
+    done
+  echo "KSAuto: HTAR of "$TeName" complete"
+
+  # And now cleanup: change protection
+  chmod 775 $HtarDir$ShwrDir'.tar'
+  cd $lcl
+}
+#########################################################################
+
+function SubmitHtarFromArchive()
+{
+  #$1 Archive directory wqhere our tar file exists
+  #$2 Destination directory where we want to unTar into.
+  #$3 name of the Tar file we want to untar(without .tar extention).
+
+  local=$PWD
+
+  ArchiveDir=$1          #Archive direxctory
+  DestinationDir=$2      #Base Disk directory
+  Source=$3              #Base Tar file name
+  SourceTarFile=$3'.tar'
+
+  #build a submission .pbs file
+  sgeFile=$lcl'/'$Source'From.pbs'
+  echo "#"PBS -q $QUEUE                                     >$sgeFile
+  echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
+  if [ -n "$HANSEN" ]; then
+    echo source /etc/profile                               >>$sgeFile
+    echo module load gcc/4.7.2                             >>$sgeFile
+  fi
+  echo cd $DestinationDir                                  >>$sgeFile
+  echo htar -xvf  $ArchiveDir/$SourceTarFile  . \\         >>$sgeFile
+  echo '>'$local'/'$Source'.log'     >>$sgeFile
+
+  chmod 700 $sgeFile
+  HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
+  qsub -V -e $Source'HTARFrom.pbs.err' -o $Source'HTARFrom.pbs.log' $sgeFile >$HTARLOG
+
+  #####################################################################
+  # We are now going to wait for the htar to finish.
+  #####################################################################
+
+  if [ -n "$HANSEN" ]; then
+   echo "KSAuto: htar from archive "$ShwrDir" job submission to Hansen "$QUEUE" queue complete."
+  fi
+  if [ -n "$CARVER" ]; then
+   echo "KSAuto: htar from archive "$ShwrDir" job submission to Carver cluster complete."
   fi
   date
   echo "KSAuto: Sleeping until it finishes."
@@ -455,76 +519,17 @@ while test $izn -lt $iznEnd
      fi     
      # Carver HTAR just goes into base directory so don't define 
      # HtarDir       
-
+ 
 
      if [ -n "$HTARTeFilesFromArchive" ]; then
        echo '##########################################################'
-       echo '# HTARTeFilesFromArchive'
+       echo '# HTARSTeFilesFromArchive'
        echo '##########################################################'
          #In order to not have this task (KSAuto.scr) be killed because it
          #runs too long, we have to submit this htar command to the cluster.
-   
-     ###################################################################
-     # Brings in Htar files. If a directory already exists it just adds to it
-     # This is a way to add missing files
-     # This is also a way to bring in files for vbf file creation processing.
-     ###################################################################
-       cd $lcl
-       date
-
-       echo "KSAuto: htar "$TeName" from archive."
-
-       #build a submission .pbs file
-       sgeFile=$lcl'/'$TeName'HTARFrom.pbs'
-       echo "#"PBS -q $QUEUE                        >$sgeFile
-       echo "#"PBS -l walltime=04:00:00            >>$sgeFile
-       if [ -n "$HANSEN" ]; then
-          echo source /etc/profile                 >>$sgeFile
-          echo module load gcc/4.7.2               >>$sgeFile
-       fi
-       echo cd $V190Dir                            >>$sgeFile
-       echo htar -xvf   \\                         >>$sgeFile
-       echo $HtarDir$TeName'.tar' \\    >>$sgeFile
-       echo ./$TeName \\                           >>$sgeFile  
-       echo '>'$lcl'/'$TeName'HTAR.log'            >>$sgeFile
-       chmod 700 $sgeFile
-       #pwd
-       #echo lcl: $lcl
-       HTARLOG=$lcl'/KSHTAR'$ZnAz'From.log'
-       #echo HTARLOG: $HTARLOG
-       qsub -V -e $TeName'HTARFrom.pbs.err' -o $TeName'HTARFrom.pbs.log' $sgeFile >$HTARLOG
-      
-       #####################################################################
-       # We are now going to wait for the htar to finish.
-       #####################################################################
-
-       if [ -n "$HANSEN" ]; then
-         echo "KSAuto: htar from archive "$TeName" job submission to Hansen "$QUEUE" queue complete."
-       fi
-       if [ -n "$CARVER" ]; then
-         echo "KSAuto: htar from archive "$TeName" job submission to Carver cluster complete."
-       fi
-       date
-       echo "KSAuto: Sleeping until it finishes."
-       # Cleanup the log file to only have Hansen cluster pids in it
- 
-       ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
-       cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
-
-       runsNotDone=1
-       while test $runsNotDone -eq 1 
-	 do
-          sleep 60s
-	  checkRunningJobs $ShowerMakeTE $ZnAz
-          let runsNotDone=$?
-	 done
-       rm $sgeFile
-       echo "KSAuto: HTAR of "$TeName" complete"
-
-       # And now cleanup: change protection
-       chmod 775 $HtarDir$TeName'.tar'
-       cd $lcl
+       SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName 
      fi
+
 
      if [ -n "$CheckGeneratedTeFiles" ]; then
        echo '##########################################################'
@@ -533,7 +538,6 @@ while test $izn -lt $iznEnd
 
        cd $lcl
        date
-
 
        if [ "$1" = "CR" ] ; then
          checkFilesExist $V190Dir'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
@@ -571,7 +575,7 @@ while test $izn -lt $iznEnd
          fi
        fi
      fi
-
+   #########################################################################
 
      if [ -n "$HTARTeFilesToArchive" ]; then
        echo '##########################################################'
@@ -583,58 +587,11 @@ while test $izn -lt $iznEnd
        cd $lcl
        date
 
-       echo "KSAuto: htar "$TeName" to archive."
-
-       #build a submission .pbs file
-       sgeFile=$lcl'/'$TeName'HTAR.pbs'
-       echo "#"PBS -q $QUEUE                        >$sgeFile
-       echo "#"PBS -l walltime=04:00:00            >>$sgeFile
-       if [ -n "$HANSEN" ]; then
-          echo source /etc/profile                 >>$sgeFile
-          echo module load gcc/4.7.2               >>$sgeFile
-       fi
-       echo cd $V190Dir                            >>$sgeFile
-       echo htar -cvf   \\                         >>$sgeFile
-       echo $HtarDir$TeName'.tar' \\    >>$sgeFile
-       echo ./$TeName \\                           >>$sgeFile  
-       echo '>'$lcl'/'$TeName'HTAR.log'            >>$sgeFile
-       chmod 700 $sgeFile
-       #pwd
-       #echo lcl: $lcl
-       HTARLOG=$lcl'/KSHTAR'$ZnAz'To.log'
-       #echo HTARLOG: $HTARLOG
-       qsub -V -e $TeName'HTARTo.pbs.err' -o $TeName'HTARTo.pbs.log' $sgeFile >$HTARLOG
+       SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/'  $V190Dir $TeName
       
-       #####################################################################
-       # We are now going to wait for the htar to finish.
-       #####################################################################
+    fi
+     #########################################################################
 
-       if [ -n "$HANSEN" ]; then
-         echo "KSAuto: htar to archive "$TeName" job submission to Hansen "$QUEUE" queue complete."
-       fi
-       if [ -n "$CARVER" ]; then
-         echo "KSAuto: htar to archive "$TeName" job submission to Carver cluster complete."
-       fi
-       date
-       echo "KSAuto: Sleeping until it finishes."
-       # Cleanup the log file to only have Hansen cluster pids in it
- 
-       ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
-       cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
-
-       runsNotDone=1
-       while test $runsNotDone -eq 1 
-	 do
-          sleep 60s
-	  checkRunningJobs $ShowerMakeTE $ZnAz
-          let runsNotDone=$?
-	 done
-       echo "KSAuto: HTAR of "$TeName" complete"
-
-       # And now cleanup: change protection
-       chmod 775 $HtarDir$TeName'.tar'
-       cd $lcl
-     fi
 
      if [ -n "$CheckHTARTeFiles" ]; then
        echo '##########################################################'
@@ -881,6 +838,33 @@ while test $izn -lt $iznEnd
      fi
      #########################################################################
 
+
+     if [ -n "$HTARShowerVBFFilesFromArchive" ]; then
+       echo '##########################################################'
+       echo '# HTARShowerVBFFilesFromArchive'
+       echo '##########################################################'
+         #In order to not have this task (KSAuto.scr) be killed because it
+         #runs too long, we have to submit this htar command to the cluster.
+   
+       cd $lcl'/../simulations/veritas/'
+       date
+       if [ "$1" = "CR" ] ; then
+	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   
+         echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
+	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  
+         echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
+       else
+	ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
+
+        SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir 
+       fi
+    fi
+     #########################################################################
+  #$1 Archive directory wqhere our tar file exists
+  #$2 name of the Tar file we want to untar(without .tar extention).
+  #$3 Destination directory where we want to unTar into.
+
+
      #Following only works for G so far!
      if [ -n "$GenerateZnAzVBFFile" ]; then
        echo '##########################################################'
@@ -892,7 +876,7 @@ while test $izn -lt $iznEnd
        if [ ! -e "$ProcessAll" ]; then
 	   cp -v $KASCADEBASE'/scripts/'$ProcessAll .
        fi
-
+ 
 
        if [ "$1" = "CR" ] ; then
          echo"CRProcessAll not working with KSAuto yet"
@@ -933,14 +917,14 @@ while test $izn -lt $iznEnd
        cd $lcl'/../simulations/veritas/'
        date
        if [ "$1" = "CR" ] ; then
-	 SubmitHtarToArchive $VDirBase'/protons/'  $ShowerVBFProtonsDir
+	 SubmitHtarToArchive $HtarDir'/'$2$PMT'P'$7'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarToArchive $VDirBase'/he4/'  $ShowerVBFHe4Dir
+	 SubmitHtarToArchive $HtarDir'/'$2$PMT'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
 	ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
 
-        SubmitHtarToArchive $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir
+        SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir
        fi
     fi
      #########################################################################
