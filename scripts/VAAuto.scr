@@ -148,7 +148,7 @@ then
   CARVER=enabled
   JobIDHost='cvrsvc'
   QUEUE=serial
-  WALLTIME=30;00:00
+  WALLTIME=30:00:00
   ARCHIVE=$SCRATCH'/gammas/'
   VBFDir=$ARCHIVE$1$2$PMT$4'VBF'
   echo '***Carver Cluster***'
