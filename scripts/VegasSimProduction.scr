@@ -1,3 +1,4 @@
+#!/bin/bash
 #This runs first 5 Vegas stages on Kascade sim files;
 #It is the base version with only defualt things enabled.
 #$1 .vbf or .root  file to process.
@@ -8,14 +9,18 @@
 #Make simLaser file (even if it already exists, this is very fast, but worry 
 #                     about dual processing on clusters)
 
-#Stage1Laser=enable
-#Stage1Data=enable
-#Stage2=enable
+##Stage1Laser=enable
+Stage1Data=enable
+Stage2=enable
 
 #Stage4_2=enable
-#Stage5=enable
+##Stage5=enable
 
-
+echo Stage1Laser: $Stage1Laser
+echo Stage1Data:  $Stage1Data
+echo Stage2:      $Stage2 
+echo Stage4:      $Stage4
+echo Stage5:      $Stage5
 ##############################################################################
 #Configurable options:
 #Stage1:
@@ -23,6 +28,7 @@
  #KASCADE Sims assume there are no camera rotations.
  KASCADESimCameraRotationsOption='-AIFC_CameraRotation=1/0.0,2/0.0,3/0.0,4/0.0'
 
+echo KASCADESimCameraRotationsOption: $KASCADESimCameraRotationsOption
 #Stage2:
  #NumEventsToAnalyseOption='-G_NumEventsToAnalyse=240000'
  #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
@@ -38,6 +44,7 @@
  #CleanUpMethod='-CleanUpApp=CleanUpStd'
  #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
 
+ echo  Hillas2DOption: $Hillas2DOption
 #######################################################################
 #The following is an example of what should be in a seasons PedVarScaling file:
 # IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.1,3/1.24,4/1.02'  #4.97
@@ -46,9 +53,13 @@
 #######################################################################
 if [ -n "$2" ]; then
   if [ -s "$2" ]; then
-    source $2
+    echo Inlcude: $2
+    .  $2                   # "." acts as "#include" in C++
+    echo PedVarBase: $PedVarBase
+    echo IncreasePedVarOption: $IncreasePedVarOption
   fi
 fi
+
 
 #Stage4_2         
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
@@ -165,6 +176,7 @@ fi
 echo RootFileName: $RootFileName
 
 if [ -n "$Stage1Data" ]; then
+    echo Stage1Data: $Stage1Data
     $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
 	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
 	$MaxWindowWidthOption $KASCADESimCameraRotationsOption \
@@ -172,6 +184,7 @@ if [ -n "$Stage1Data" ]; then
 fi
 
 if [ -n "$Stage2" ]; then
+    echo Stage2: $Stage2
     $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
 	$BadPixelOption $NumEventsToAnalyseOption \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
@@ -189,6 +202,7 @@ echo CutRootFileName: $CutRootFileName
 LookUpTableDir=$VEGAS/../tables/
 
 if [ -n "$Stage4_2" ]; then
+     echo Stage4_2: $Stage4_2
      echo RootFileName: $RootFileName
      echo CutRootFileName: $CutRootFileName
      cp -v $RootFileName $CutRootFileName
@@ -200,6 +214,7 @@ if [ -n "$Stage4_2" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
+      echo Stage5: $Stage5
       makeShowerCutsFile
       if [ -n "$OutputFileNameExt" ]; then
         OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
