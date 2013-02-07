@@ -7,17 +7,19 @@
 #$1 ksProduction season spec: Ex: W or S
 #$2 telescope designation: W or V or U (Whipple, veritas, Upgrade)
 #$3 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
-#$4 MDL designation for VBF files: Ex MDL12U
+#$4 MDL designation for VBF files: Ex MDL10U
 #$5 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
 #$6 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
-#$7 wbl for Noise test file Ex:  S2.0wbl or 0.0wbl
+#$7 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
 #$8 Threshold: Ex 45mv or 50mv
-#$9 PedVar level we want to find ratios for
+#$9 PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
 # ************************************************************************
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
-FindBaseNoiseLevels=enabled
-#FindPedVarScalingValues=enabled
+#GenerateSimLaserFile=enabled
+#GetVBFFileFromArchive=enabled
+GenerateStage2Files=enabled
+#FindNoiseLevels=enabled
 #
 
 ###########################################################################
@@ -47,47 +49,6 @@ function checkRunningJobs()
     rm $RunningList
     return 0
   fi
-}
-##########################################################################
-function  VegasStage1Stage2Process()
-{
- ####################################################################
- # Make up the job script file that will be submitted below
- ####################################################################
- BaseFile=$1
- VBF=$2
- PedVarOptionsFile=$3
- 
- sgeFile=$lcl'/'$BaseFile'.pbs'
- echo "#"PBS -l walltime=30:00:00                 >$sgeFile
- if [ -n "$CARVER" ]; then
-   echo "#"PBS -l pvmem=5gb                      >>$sgeFile
- fi
- if [ -n "$HANSEN" ]; then
-   echo source /etc/profile                      >>$sgeFile
-   echo module load gcc/4.7.2                    >>$sgeFile
-   echo "#"PBS -l mem=5gb                        >>$sgeFile
- fi
- echo cd $lcl                                    >>$sgeFile
- echo $lcl'/'ksVegasSimProductionBase.scr  \\    >>$sgeFile
- echo $VBF  $PedVarOptionsFile \\                >>$sgeFile
- echo ' >'$lcl'/'$BaseFile'VBF.log'              >>$sgeFile
- chmod 700 $sgeFile
- CHECKLOG=$lcl'/Check'$BaseFile'.log'
- qsub -q $QUEUE  -V -e $BaseFile'.err' -o $BaseFile'pbs.log' $sgeFile >$CHECKLOG
- CLOG=C$ZnAz'.log'
- cat $CHECKLOG | grep $JobIDHost >$CLOG
- rm $CHECKLOG
- echo "VAAuto: Sleeping until ksVegasSimProductionBase.scr finishes. "
- runsNotDone=1
- while test $runsNotDone -eq 1 
- do
-   sleep 60s
-   checkRunningJobs $CLOG $ZnAz
-   let runsNotDone=$?
- done
- #rm $CLOG
- #rm $sgeFile
 }
 ##########################################################################
 function GetPedVars()
@@ -169,11 +130,12 @@ function LoadPVOpt()
   root -q -b VAAuto.C  >VAAuto.C.log
 }
 ###########################################################################
+
+
 #Main:
 
 lcl=$PWD
 PMT=$2
-WBL=$7
 
 source /etc/profile
 
@@ -186,7 +148,9 @@ then
   CARVER=enabled
   JobIDHost='cvrsvc'
   QUEUE=serial
-  VBFDir=$SCRATCH'/gammas/'$1$2$PMT$4'VBF'
+  WALLTIME=30;00:00
+  ARCHIVE=$SCRATCH'/gammas/'
+  VBFDir=$ARCHIVE$1$2$PMT$4'VBF'
   echo '***Carver Cluster***'
 fi
 
@@ -194,31 +158,90 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  VBFDir='/archive/fortress/group/veritas/simulations/gammas/'$1$PMT$3$4'VBF'
+  ARCHIVE=/archive/fortress/group/veritas/simulations/
+  VBFDir=$ARCHIVE'/gammas/'$1$PMT$3$4'VBF'
   JobIDHost='hansen-adm'
   QUEUE=physics
+  WALLTIME=30:00:00
   #QUEUE=standby
+  #WALLTIME=04:00:00
   echo ***Hansen Cluster***
 fi
 
 
-#To find the Zn amd AZ combinations first put $5 and $6 into arrays
-#This is tricky. We save away the present Internal Filed Seperator and then
-# set IFS to a comma. We then use the -a option with the read command to 
-# read in our stings into arrays. Then we restore the IFS.
+########################################################################
+#To find the Zn,AZ,Offset and Pedvar  combinations first put $5,$6,$7 and $9 
+#into arrays This is tricky. We save away the present Internal Filed Seperator
+#and then set IFS to a comma. We then use the -a option with the read command 
+#to read in our stings into arrays. Then we restore the IFS.
 
 SAVEIFS=$IFS
+
 IFS=, read -a Zenith <<< "$5"
 IFS=, read -a Azimuth <<< "$6"
+
+if [ $7 = "All" ]; then
+  WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+else  
+   IFS=, read -a WblOffset <<< "$7"
+fi
+
+if [ $9 = "All" ]; then
+  PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+else
+   if [ $9 = "Base" ]; then
+      PedVar=([0]=0 )
+   else
+      IFS=, read -a PedVar <<< "$9"
+   fi
+fi
 IFS=$SAVEIFS
+
+###########################################################################
 
 #Check if the is for 2D offsets, blank if not
 if [ "$3" = "G" ] || [ "$3" = "E" ]; then
   OffSetSpec="2D"
 fi
 
-#now we loop
+############################################################################
+# Sim Laser generation
+############################################################################
 
+if [ -n "$GenerateSimLaserFile" ]; then
+    echo '##########################################################'
+    echo '# GenerateSimLaserFile '
+    echo '##########################################################'
+    cd $lcl
+    date
+    ####################################################################
+    #Generate a sim laser file 
+    ####################################################################
+    #Make sure VegasSimProduction.scr is set up correctly to get simLaser  
+    cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionBase.scr
+
+    #####################################################################
+    sed '/#Stage1Laser=enable/s/#Stage1Laser/Stage1Laser/g' \
+                                        < VegasSimProductionBase.scr >tmp1
+    sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'      <tmp1 >tmp2
+    sed '/Stage2=enable/s/Stage2/#Stage2/g'                  <tmp2 >tmp1
+    sed '/Stage4=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+    sed '/Stage5=enable/s/Stage5/#Stage5/g' \
+                                         <tmp2 >VegasSimProductionBase.scr
+    rm tmp1
+    rm tmp2
+    ####################################################################
+       
+    echo "VAAuto: Running VegasSimProductionBase for simLaser generation"
+    echo "VAAuto: This takes a couple of minutes"
+    ./VegasSimProductionBase.scr  DummyFileName >$lcl'/SimLaserFile.log'
+    echo "VAAuto: simLaser.root generated"
+fi
+
+
+#############################################################################
+#now we loop over Zn,AZ WblOffset and PedVar
+#############################################################################
 #Zenith
 let izn=0
 let iznEnd=${#Zenith[@]}
@@ -226,7 +249,7 @@ let iFilesNotFound=0
 while test $izn -lt $iznEnd
   do
 
-   #Iterate through Azimuth
+   #Azimuth
    let kaz=0
    let kazEnd=${#Azimuth[@]}
    while test $kaz -lt $kazEnd
@@ -238,59 +261,122 @@ while test $izn -lt $iznEnd
      else
        ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
      fi
+     ####################################################################
+     # Iterate over WBLOffsets and PedVars
+     ####################################################################
+     #WblOffset
+     let iwbl=0
+     let iwblEnd=${#WblOffset[@]}
+     while test $iwbl -lt $iwblEnd
+        do
+         WBL=${WblOffset[$iwbl]}
+	 if [ "$WBL" !=  '0.0' ]; then
+	     WBLSPEC=S$WBL'Wbl'
+	 else
+	     WBLSPEC=$WBL'Wbl'
+	 fi
+         #Iterate through PedVars
+         let kpvar=0
+         let kpvarEnd=${#PedVar[@]}
+         while test $kpvar -lt $kpvarEnd
+           do
+             #Test for defaults
+            PV=${PedVar[$kpvar]} 
+	    echo PV:$PV
+	    if test "$PV" = "0"
+             then
+              PedVarFile=""
+              PedVarName=""
+             else
+              PedVarFile=Ped$PV
+              PedVarName=PedVar$PV
+             fi  
+   
 # *****************************************************************************
-#  Now all the things we can do for a particular Zn_AZ
+#  Now all the things we can do for a particular Zn,AZ,WblOffset and PedVar
 # *****************************************************************************
-  
-     if [ -n "$FindBaseNoiseLevels" ]; then
-       echo '##########################################################'
-       echo '# FindBaseNoiseLevels '
-       echo '##########################################################'
-       echo 'VAAuto: Be sure to specify the shortest file you can (ZnAz,Wbl)'
-       cd $lcl
-       date
+            #Generate  file names
+ 
+            BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
+            VBFFILE=$BaseFile'1234M2.vbf'
+   
+            ################################################################
+	    
+	    if [ -n "$GetVBFFileFromArchive" ]; then
+             echo '##########################################################'
+             echo '# GetVBFFileFromArchive'
+	     echo '##########################################################'
+	     cd $lcl
+	     date
+	     if [ ! -e "$VBFFILE" ]; then
+                hsi 'cd '$ARCHIVE$1$PMT$3$4'VBF; get '$VBFFILE';'
+             fi
+            fi
+            
+            ###############################################################
 
-       #Make sure ksVegasSimProduction.scr is set up correctly to get Base 
-       #noise
-       cp $KASCADEBASE/scripts/ksVegasSimProduction.scr ksVegasSimProductionBase.scr
 
-       #The standard ksVegasSimProduction.scr should have all options turned 
-       #off.  We just have to make sure only stages 1 and 2 get run
-       #??????Sample size:We will need to set integration window size if 
-       #different from 7?????? Not implimented yet.
+            if [ -n "$GenerateStage2Files" ]; then
+             echo '##########################################################'
+             echo '# GenerateStage2Files '
+	     echo '##########################################################'
+	     cd $lcl
+	     date
+             #Make sure VegasSimProduction.scr is set up correctly to get  
+             #Stage1 and Stage2
+             cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionBase.scr
 
-
-       #####################################################################
-       sed '/#Stage1Laser=enable/s/#Stage1Laser/Stage1Laser/g' \
-                                        < ksVegasSimProductionBase.scr >tmp1
-       sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'      <tmp1 >tmp2
-       sed '/#Stage2=enable/s/#Stage2/Stage2/g'                  <tmp2 >tmp1
-       sed '/Stage4=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
-       sed '/Stage5=enable/s/Stage5/#Stage5/g' \
-                                         <tmp2 >ksVegasSimProductionBase.scr
-       rm tmp1
-       rm tmp2
-       ####################################################################
+            #The standard VegasSimProduction.scr should have all options 
+            #turned off.  We just have to make sure only stages 1 and 2 get run
+            #??????Sample size:We will need to set integration window size if 
+            #different from 7?????? Not implimented yet.
+            ##################################################################
+            sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+                                        < VegasSimProductionBase.scr >tmp1
+            sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'   <tmp1 >tmp2
+            sed '/#Stage2=enable/s/#Stage2/Stage2/g'               <tmp2 >tmp1
+	    sed '/Stage4=enable/s/Stage4/#Stage4/g'                <tmp1 >tmp2
+	    sed '/Stage5=enable/s/Stage5/#Stage5/g' \
+                                         <tmp2 >VegasSimProductionBase.scr
+	    rm tmp1
+	    rm tmp2
+            #################################################################
        
+           echo "VAAuto: Submitt ing VegasSimProductionBase to '$QUEUE' queue for " $lcl'/'$VBFFILE 
+            sgeFile=$lcl'/'$PedVarFile$BaseFile'.pbs'
+            echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
+            if [ -n "$CARVER" ]; then
+              echo "#PBS -l pvmem=5GB"                      >>$sgeFile
+            fi
+            if [ -n "$HANSEN" ]; then
+              echo "#PBS -l mem=15GB"                       >>$sgeFile
+              echo source /etc/profile                      >>$sgeFile
+              echo module load gcc/4.7.2                    >>$sgeFile
+            fi
+            echo cd $lcl                                    >>$sgeFile
+            echo $lcl'/'VegasSimProductionBase.scr  \\      >>$sgeFile
+            echo $VBFFILE  $PedVarFile \\                   >>$sgeFile
+            echo ' >'$lcl'/'$PedVarFile$BaseFile'VBF.log'   >>$sgeFile
+            chmod 700 $sgeFile
+            qsub -q $QUEUE  -V -e $PedVarFile$BaseFile'.err' -o $PedVarFile$BaseFile'pbs.log' $sgeFile 
+           fi
+     ################################################
+     #Should all be done now. Go on to next combo.
+     ################################################
+          let kpvar=$kpvar+1
+         done
+        let iwbl=$iwbl+1
+       done
+      date
+      kaz=$((kaz+1))
+    done
+   izn=$((izn+1))
+  done
+ date
+echo 'VAAuto: All done!--Good bye!'
 
-       #Generate  file names 
-       BaseFileName=$1$PMT$3$4$ZnAz'2D'$WBL$8
-       VBFFile=$BaseFileName'1234M2.vbf'
-       RootFile=$BaseFileName'1234M2.root'
+###########################################################################
 
-       echo "KSAuto: Submitting ksVegasSimProductionBase for " $lcl'/'$VBFFile 
-       echo "KSAuto: This submission takes a few minuts"
-
-       # Leave pedvar options file name (third argument) blank for no scaling.
-
-       VegasStage1Stage2Process $BaseFileName $lcl'/'$VBFFile 
-       GetPedVars $RootFile PVBase.dat
-
-       echo '********************************'
-       echo 'VAAuto: Base PedVar Levels and max: '
-       cat PVBase.dat 
-       echo '********************************'
-    fi
 
      if [ -n "$FindPedVarScalingValues" ]; then
        echo '##########################################################'
@@ -306,15 +392,15 @@ while test $izn -lt $iznEnd
        echo '1.0 1.0 1.0 1.0 1.0' >BaseRatios.dat
 
        LoadPVOpt BaseRat.dat PVBase.dat $9 PV$9Set1Rat.dat PVOpt$9 
-       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFile PVOpt$9
+       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFILE PVOpt$9
        GetPedVars $RootFile PV$9Set1.dat
 
        LoadPVOpt PV$9Set1Rat.dat PV$9Set1.dat $9 PV$9Set2Rat.dat PVOpt$9
-       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFile PVOpt$9 
+       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFILE PVOpt$9 
        GetPedVars $RootFile PVOpt$9Set2.dat
 
        LoadPVOpt PV$9Set2Rat.dat PV$9Set2.dat $9 PV$9Set3Rat.dat PVOpt$9
-       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFile PVOpt$9 
+       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFILE PVOpt$9 
        GetPedVars $RootFile PVOpt$9Set4.dat
        
        {
@@ -322,17 +408,5 @@ while test $izn -lt $iznEnd
        }<PVOpt$9Set4.dat
        echo 'VAAuto: For PedVar '$9 'we get:' $PV1 $PV2 $PV3 $PV4
      fi
-     ################################################
-     #Should all be done now. Go on to next combo.
-     ################################################
-     date
-     kaz=$((kaz+1))
-    done
-   izn=$((izn+1))
-  done
- date
-echo 'VAAuto: All done!--Good bye!'
-
-###########################################################################
 
       
