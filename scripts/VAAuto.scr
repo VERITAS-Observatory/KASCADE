@@ -17,7 +17,7 @@
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
 #GenerateSimLaserFile=enabled
-#GetVBFFileFromArchive=enabled
+GetVBFFileFromArchive=enabled
 GenerateStage2Files=enabled
 #FindNoiseLevels=enabled
 #
@@ -218,26 +218,56 @@ if [ -n "$GenerateSimLaserFile" ]; then
     #Generate a sim laser file 
     ####################################################################
     #Make sure VegasSimProduction.scr is set up correctly to get simLaser  
-    cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionBase.scr
+    cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionLaser.scr
 
     #####################################################################
     sed '/#Stage1Laser=enable/s/#Stage1Laser/Stage1Laser/g' \
-                                        < VegasSimProductionBase.scr >tmp1
+                                        < VegasSimProductionLaser.scr >tmp1
     sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'      <tmp1 >tmp2
     sed '/Stage2=enable/s/Stage2/#Stage2/g'                  <tmp2 >tmp1
     sed '/Stage4=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
     sed '/Stage5=enable/s/Stage5/#Stage5/g' \
-                                         <tmp2 >VegasSimProductionBase.scr
+                                         <tmp2 >VegasSimProductionLaser.scr
     rm tmp1
     rm tmp2
     ####################################################################
        
-    echo "VAAuto: Running VegasSimProductionBase for simLaser generation"
+    echo "VAAuto: Running VegasSimProductionLaser for simLaser generation"
     echo "VAAuto: This takes a couple of minutes"
-    ./VegasSimProductionBase.scr  DummyFileName >$lcl'/SimLaserFile.log'
+    ./VegasSimProductionLaser.scr  DummyFileName >$lcl'/SimLaserFile.log'
     echo "VAAuto: simLaser.root generated"
 fi
+#############################################################################
 
+if [ -n "$GenerateStage2Files" ]; then
+    echo '##########################################################'
+    echo '# GenerateStage2Files '
+    echo '##########################################################'
+    cd $lcl
+    date
+    #Make sure VegasSimProduction.scr is set up correctly to get  
+    #Stage1 and Stage2
+    if [ ! -e "VegasSimProductionS1S2.scr" ]; then
+     cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionS1S2.scr
+
+     #The standard VegasSimProduction.scr should have all options 
+     #turned off.  We just have to make sure only stages 1 and 2 get run
+     #??????Sample size:We will need to set integration window size if 
+     #different from 7?????? Not implimented yet.
+     ##################################################################
+     sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+                                          < VegasSimProductionS1S2.scr >tmp1
+     sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+     sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+     sed '/Stage4=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
+     sed '/Stage5=enable/s/Stage5/#Stage5/g' \
+                                           <tmp2 >VegasSimProductionS1S2.scr
+     rm tmp1
+     rm tmp2
+    fi
+fi
+#################################################################
+ 
 
 #############################################################################
 #now we loop over Zn,AZ WblOffset and PedVar
@@ -322,27 +352,8 @@ while test $izn -lt $iznEnd
 	     echo '##########################################################'
 	     cd $lcl
 	     date
-             #Make sure VegasSimProduction.scr is set up correctly to get  
-             #Stage1 and Stage2
-             cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionBase.scr
-
-            #The standard VegasSimProduction.scr should have all options 
-            #turned off.  We just have to make sure only stages 1 and 2 get run
-            #??????Sample size:We will need to set integration window size if 
-            #different from 7?????? Not implimented yet.
-            ##################################################################
-            sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                        < VegasSimProductionBase.scr >tmp1
-            sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'   <tmp1 >tmp2
-            sed '/#Stage2=enable/s/#Stage2/Stage2/g'               <tmp2 >tmp1
-	    sed '/Stage4=enable/s/Stage4/#Stage4/g'                <tmp1 >tmp2
-	    sed '/Stage5=enable/s/Stage5/#Stage5/g' \
-                                         <tmp2 >VegasSimProductionBase.scr
-	    rm tmp1
-	    rm tmp2
-            #################################################################
-       
-           echo "VAAuto: Submitt ing VegasSimProductionBase to '$QUEUE' queue for " $lcl'/'$VBFFILE 
+      
+             echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
             sgeFile=$lcl'/'$PedVarFile$BaseFile'.pbs'
             echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
             if [ -n "$CARVER" ]; then
@@ -354,7 +365,7 @@ while test $izn -lt $iznEnd
               echo module load gcc/4.7.2                    >>$sgeFile
             fi
             echo cd $lcl                                    >>$sgeFile
-            echo $lcl'/'VegasSimProductionBase.scr  \\      >>$sgeFile
+            echo $lcl'/'VegasSimProductionS1S2.scr  \\      >>$sgeFile
             echo $VBFFILE  $PedVarFile \\                   >>$sgeFile
             echo ' >'$lcl'/'$PedVarFile$BaseFile'VBF.log'   >>$sgeFile
             chmod 700 $sgeFile
