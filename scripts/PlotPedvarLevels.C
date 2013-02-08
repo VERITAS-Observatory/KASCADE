@@ -2,15 +2,15 @@
 // CameraAverageTraceVarTime (Run SAvergae PedVar) and plots them. This is so 
 // that the user can determine which PeVar Lookupt Table to use.
 
-void PlotPedvarLevels(std::string fListFileName,int numSamples=7)
+void PlotPedvarLevels(std::string fListFileName,int numSamples=7,double minRange=.1, double maxRange=12.0)
 {
   std::cout<<"Pedvars are for NumSamples="<<numSamples<<std::endl;
  
-  TH1D* pedVarsT1= new TH1D("T1Pedvars","T1Pedvars",120, .1, 12.0);
-  TH1D* pedVarsT2= new TH1D("T2Pedvars","T2Pedvars",120, .1, 12.0);
-  TH1D* pedVarsT3= new TH1D("T3Pedvars","T3Pedvars",120, .1, 12.0);
-  TH1D* pedVarsT4= new TH1D("T4Pedvars","T4Pedvars",120, .1, 12.0);
-  TH1D* pedVarsAll= new TH1D("AllTelPedvars","AllTelPedvars",120, .1, 12.0);
+  TH1D* pedVarsT1= new TH1D("T1Pedvars","T1Pedvars",120, minRange, maxRange);
+  TH1D* pedVarsT2= new TH1D("T2Pedvars","T2Pedvars",120, minRange, maxRange);
+  TH1D* pedVarsT3= new TH1D("T3Pedvars","T3Pedvars",120, minRange, maxRange);
+  TH1D* pedVarsT4= new TH1D("T4Pedvars","T4Pedvars",120, minRange, maxRange);
+  TH1D* pedVarsAll= new TH1D("AllTelPedvars","AllTelPedvars",120, minRange, maxRange);
   pedVarsT1->SetDirectory(0);
   pedVarsT2->SetDirectory(0);
   pedVarsT3->SetDirectory(0);
