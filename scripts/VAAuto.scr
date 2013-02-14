@@ -17,11 +17,12 @@
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
 #GenerateSimLaserFile=enabled
-#GetVBFFileFromArchive=enabled
-#GenerateStage2Files=enabled
+GetVBFFileFromArchive=enabled
+GenerateStage2Files=enabled
 #CheckStage2Files=enabled
 #GenerateSubLTListFiles=enabled
 #GenerateSubLTConfigFiles=enabled
+#ProduceSubLookupTables=enabled
 #FindNoiseLevels=enabled
 #get
 
@@ -211,6 +212,14 @@ fi
 #Some defaults
 BinSizeForNoise=7
 HMode=H
+LTCUTSFILE=LookupTableStdCuts
+if [ $HMode = "HFit" ]; then
+  LTCUTSFILE=LookupTableHFitStdCuts
+fi
+if [ ! -e $LTCUTSFILE ]; then
+  cp $VEGAS/tables/$LTCUTSFILE .
+fi
+
 TelIDStr=0,1,2,3
 ZNStr=1,10,20,30,40,50,60,70
 ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
@@ -321,16 +330,6 @@ if [ -n "$CheckStage2Files" ]; then
 fi
 ############################################################################
 
-if [ -n "$GenerateSubLTListFiles" ]; then
-   echo '##########################################################'
-   echo '# GenerateSubLTListFiles'
-   echo '##########################################################'
-   cd $lcl
-   date
-   ListNames='SubLT'$1$BinSizeForNoise'Sample*Deg*noiseList'
-   rm $ListNames
-fi
-#############################################################################
 
 
 MissingListName='CheckPedvarMissingList'
@@ -447,7 +446,7 @@ while test $izn -lt $iznEnd
 	    # echo '##########################################################'
 	     cd $lcl
 	     date
-	     FileName=$PedVarName$VBFFile
+	     FileName=$PedVar$PV$VBFFILE
              #Check file exists
              if [  ! -e "$FileName" ]; then 
                 echo $FileName >>$MissingListName
@@ -455,19 +454,7 @@ while test $izn -lt $iznEnd
            fi        
            ###############################################################
 
-           if [ -n "$GenerateSubLTListFiles" ]; then
-            # echo '##########################################################'
-            # echo '# GenerateSubLTListFiles'
-	    # echo '##########################################################'
-	     cd $lcl
-	     Z=${Zenith[$izn]}
-	     ListName='SubLT'$1'7Sample'$Z'Deg'$PV'noiseList'
-	     FileName=$PedVarName$BaseFile'1234M2.root'
-	     echo $FileName >>$ListName
-           fi        
-           ###############################################################
 
- 
      ################################################
      #Should all be done now. Go on to next combo.
      ################################################
@@ -482,6 +469,17 @@ while test $izn -lt $iznEnd
  date
 echo 'VAAuto: All done!--Good bye!'
 ###########################################################################
+
+if [ -n "$GenerateSubLTListFiles" ]; then
+   echo '##########################################################'
+   echo '# GenerateSubLTListFiles'
+   echo '##########################################################'
+   cd $lcl
+   date
+   ListNames='SubLT'$1$BinSizeForNoise'Sample*Deg*noiseList'
+   rm $ListNames
+fi
+#############################################################################
 
 if [ -n "$GenerateSubLTConfigFiles" ]; then
    echo '##########################################################'
@@ -514,6 +512,22 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    sed '/LTM_WindowSizeForNoise/s/7/'$BinSizeForNoise'/g' <tmp1 >tmp2
    #Replace HillasBranchName argument
    sed '/HillasBranchName "H"/s/"H"/"'$HMode'"/g'    <tmp2 >config1.tmp
+fi
+########################################################################
+
+if [ -n "$ProduceSubLookupTables" ]; then
+   echo '##########################################################'
+   echo '# ProduceSubLookupTables'
+   echo '##########################################################'
+   cd $lcl
+   date
+fi  
+##############################################################################
+
+
+##################################################################################
+if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ] || \
+   [ -n "$ProduceSubLookupTables" ]; then
    #****************************************************************************
    #We make a seperate Sub LT config file for each of ZN, and  noise 
    #combination
@@ -537,42 +551,114 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    
    while test $izn -lt $iznEnd
      do
+       Z=${Zenith[$izn]}
        #Iterate through PedVars
        let kpvar=0
        while test $kpvar -lt $kpvarEnd
          do
            #Test for defaults
            PV=${PedVar[$kpvar]} 
-           #############################################################
-           #Now we need to "edit the new config file
-           #############################################################
-           #Figure out what the Zenith argument should look like
-           if test $izn -eq "0" 
-            then
-             Zn=${Zenith[izn]}','${Zenith[1]}
-            else
-             Zn=${Zenith[0]}','${Zenith[izn]}
-           fi
-           ZNLBL=${Zenith[izn]}
-	   #now replace Zenith argument and put in a tmp file
-           sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
-
-           ##############################################################
-           #Now do the same for the Noise but put in final file
-           if test $kpvar -eq "0" 
-            then
-	     Ns=${PedVar[$kpvar]}','${PedVar[1]}
-            else
-	     Ns=${PedVar[0]}','${PedVar[$kpvar]}
-           fi
-
-           NsLBL=${PedVar[$kpvar]}
            #Construct the Sub Lt Config File Name
-           ConfigName='SubLT'$1$BinSizeForNoise'Sample'$ZNLBL'Deg'$NsLBL'noise'$HMode'.config'
-           #now replace AbsoluteNoise  argument and put in a final file
-           sed '/Noise/s/'$NoiseStr'/'$Ns'/g'  <config2.tmp >$ConfigName
+           SUBLTBASE='SubLT'$1$BinSizeForNoise'Sample'$Z'Deg'$PV
+           ConfigName=$SUBLTBASE'noise'$HMode'.config'
+	   ListName=$SUBLTBASE'noiseList'
+
+           if [ -n "$GenerateSubLTListFiles" ]; then
+            # echo '##########################################################'
+            # echo '# GenerateSubLTListFiles'
+	    # echo '##########################################################'
+            #Azimuth
+            let kaz=0
+            let kazEnd=${#Azimuth[@]}
+            while test $kaz -lt $kazEnd
+             do
+              #Make   Zn_Az string
+              if test ${Azimuth[$kaz]} = "0"
+               then
+                ZnAz=$Z'Deg'
+               else
+                ZnAz=$Z'_'${Azimuth[$kaz]}'Deg'
+              fi
+              ####################################################################
+              # Iterate over WBLOffsets
+              ####################################################################
+              #WblOffset
+              let iwbl=0
+              let iwblEnd=${#WblOffset[@]}
+              while test $iwbl -lt $iwblEnd
+               do
+                WBL=${WblOffset[$iwbl]}
+	        if [ "$WBL" !=  '0.0' ]; then
+	          WBLSPEC=S$WBL'Wbl'
+	        else
+	          WBLSPEC=$WBL'Wbl'
+	        fi
+                BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
+
+	        cd $lcl
+	        FileName=$PedVar$PV$BaseFile'1234M2.root'
+	        echo $FileName >>$ListName
+               done
+              let iwbl=$iwbl+1
+             done
+            kaz=$((kaz+1))
+           fi        
+           ###############################################################
+
+           if [ -n "$GenerateSubLTConfigFiles" ]; then
+             #############################################################
+             #Now we need to "edit the new config file
+             #############################################################
+             #Figure out what the Zenith argument should look like
+             if test $izn -eq "0" 
+              then
+               Zn=${Zenith[izn]}','${Zenith[1]}
+              else
+               Zn=${Zenith[0]}','${Zenith[izn]}
+             fi
+	     #now replace Zenith argument and put in a tmp file
+             sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
+
+             ##############################################################
+             #Now do the same for the Noise but put in final file
+             if test $kpvar -eq "0" 
+              then
+	       Ns=${PedVar[$kpvar]}','${PedVar[1]}
+              else
+	       Ns=${PedVar[0]}','${PedVar[$kpvar]}
+             fi
+
+             #now replace AbsoluteNoise  argument and put in a final file
+             sed '/Noise/s/'$NoiseStr'/'$Ns'/g'  <config2.tmp >$ConfigName
 	
-           rm config2.tmp
+             rm config2.tmp
+           fi
+
+	   if [ -n "$ProduceSubLookupTables" ]; then
+             ####################################################################
+             # Make up the job script file that will be submitted below
+             ####################################################################
+	     sgeFile=$lcl'/'$SUBLTBASE'.pbs'
+             echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
+             if [ -n "$CARVER" ]; then
+               echo "#PBS -l pvmem=5GB"                  >>$sgeFile
+             fi
+             if [ -n "$HANSEN" ]; then
+               echo "#PBS -l mem=15GB"                   >>$sgeFile
+               echo source /etc/profile                  >>$sgeFile
+               echo module load gcc/4.7.2                >>$sgeFile
+             fi
+             echo cd $lcl                                >>$sgeFile
+             echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
+             echo -config $lcl'/'$ConfigFileName \\      >>$sgeFile
+             echo -cuts  $lcl'/'$LTCUTSFILE  \\          >>$sgeFile
+             echo  $lcl'/'$ListName   \\                 >>$sgeFile
+             echo  $lcl'/'$SUBLTBASE'.root'  \\          >>$sgeFile
+             echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
+             chmod 700 $sgeFile
+
+             qsub -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+            fi
 
            ################################################
            #Should all be done now. Go on to next combo.
