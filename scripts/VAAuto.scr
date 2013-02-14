@@ -17,10 +17,13 @@
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 
 #GenerateSimLaserFile=enabled
-GetVBFFileFromArchive=enabled
-GenerateStage2Files=enabled
+#GetVBFFileFromArchive=enabled
+#GenerateStage2Files=enabled
+#CheckStage2Files=enabled
+#GenerateSubLTListFiles=enabled
+#GenerateSubLTConfigFiles=enabled
 #FindNoiseLevels=enabled
-#
+#get
 
 ###########################################################################
 function checkRunningJobs()
@@ -204,6 +207,49 @@ if [ "$3" = "G" ] || [ "$3" = "E" ]; then
   OffSetSpec="2D"
 fi
 
+##########################################################################
+#Some defaults
+BinSizeForNoise=7
+HMode=H
+TelIDStr=0,1,2,3
+ZNStr=1,10,20,30,40,50,60,70
+ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
+
+#AzStr
+let kazEnd=${#Azimuth[@]}
+if test $kazEnd -eq "8"
+then 
+  AzStr=0,45,90,135,180,225,270,315
+else
+ let kaz=0
+ AzStr=${Azimuth[$kaz]}
+ kaz=$((kaz+1))
+ while test $kaz -lt $kazEnd
+  do
+    AzStr=$AzStr','${Azimuth[$kaz]}
+    kaz=$((kaz+1))
+  done
+fi
+
+#NoiseStr
+let kpvarEnd=${#PedVar[@]}
+if test $kpvarEnd -eq "9"
+then 
+ NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+else
+ let kpvar=0
+ NoiseStr=${PedVar[$kpvar]}
+ kpvar=$((kpvar+1))
+ while test $kpvar -lt $kpvarEnd
+  do
+   NoiseStr=$NoiseStr','${PedVar[$kpvar]}
+   kpvar=$((kpvar+1))
+  done
+fi
+    
+
+
+
 ############################################################################
 # Sim Laser generation
 ############################################################################
@@ -241,7 +287,7 @@ fi
 
 if [ -n "$GenerateStage2Files" ]; then
     echo '##########################################################'
-    echo '# GenerateStage2Files '
+    echo '# GenerateStage2Files'
     echo '##########################################################'
     cd $lcl
     date
@@ -266,7 +312,28 @@ if [ -n "$GenerateStage2Files" ]; then
      rm tmp2
     fi
 fi
-#################################################################
+############################################################################
+
+if [ -n "$CheckStage2Files" ]; then
+  echo '##########################################################'
+  echo '# CheckStage2Files'
+  echo '##########################################################'
+fi
+############################################################################
+
+if [ -n "$GenerateSubLTListFiles" ]; then
+   echo '##########################################################'
+   echo '# GenerateSubLTListFiles'
+   echo '##########################################################'
+   cd $lcl
+   date
+   ListNames='SubLT'$1$BinSizeForNoise'Sample*Deg*noiseList'
+   rm $ListNames
+fi
+#############################################################################
+
+
+MissingListName='CheckPedvarMissingList'
  
 
 #############################################################################
@@ -312,7 +379,6 @@ while test $izn -lt $iznEnd
            do
              #Test for defaults
             PV=${PedVar[$kpvar]} 
-	    echo PV:$PV
 	    if test "$PV" = "0"
              then
               PedVarFile=""
@@ -347,11 +413,12 @@ while test $izn -lt $iznEnd
 
 
             if [ -n "$GenerateStage2Files" ]; then
-             echo '##########################################################'
-             echo '# GenerateStage2Files '
-	     echo '##########################################################'
+             #echo '##########################################################'
+             #echo '# GenerateStage2Files '
+	     #echo '##########################################################'
 	     cd $lcl
 	     date
+	     echo PV:$PV
       
              echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
             sgeFile=$lcl'/'$PedVarFile$BaseFile'.pbs'
@@ -371,6 +438,36 @@ while test $izn -lt $iznEnd
             chmod 700 $sgeFile
             qsub -q $QUEUE  -V -e $PedVarFile$BaseFile'.err' -o $PedVarFile$BaseFile'pbs.log' $sgeFile 
            fi
+           ###############################################################
+
+
+           if [ -n "$CheckStage2Files" ]; then
+            # echo '##########################################################'
+            # echo '# CheckStage2Files'
+	    # echo '##########################################################'
+	     cd $lcl
+	     date
+	     FileName=$PedVarName$VBFFile
+             #Check file exists
+             if [  ! -e "$FileName" ]; then 
+                echo $FileName >>$MissingListName
+             fi
+           fi        
+           ###############################################################
+
+           if [ -n "$GenerateSubLTListFiles" ]; then
+            # echo '##########################################################'
+            # echo '# GenerateSubLTListFiles'
+	    # echo '##########################################################'
+	     cd $lcl
+	     Z=${Zenith[$izn]}
+	     ListName='SubLT'$1'7Sample'$Z'Deg'$PV'noiseList'
+	     FileName=$PedVarName$BaseFile'1234M2.root'
+	     echo $FileName >>$ListName
+           fi        
+           ###############################################################
+
+ 
      ################################################
      #Should all be done now. Go on to next combo.
      ################################################
@@ -378,46 +475,114 @@ while test $izn -lt $iznEnd
          done
         let iwbl=$iwbl+1
        done
-      date
       kaz=$((kaz+1))
     done
    izn=$((izn+1))
   done
  date
 echo 'VAAuto: All done!--Good bye!'
-
 ###########################################################################
 
+if [ -n "$GenerateSubLTConfigFiles" ]; then
+   echo '##########################################################'
+   echo '# GenerateSubLTConfigFiles'
+   echo '##########################################################'
+   cd $lcl
+   date
+   # *************************************************************************
+   # Generate template config file
+   # Change for KASCADE and Number of samples
+   # *************************************************************************
+   $VEGAS/showerReconstruction2/bin/produce_lookuptables -save_config_and_exit tmp1
+   sed '/CorePositionFractionalErrorCut/s/100/.25/g' <tmp1 >tmp2
+   sed '/CorePositionAbsoluteErrorCut/s/1000/20/g'   <tmp2 >tmp1
+   sed '/LTC_SimulationType/s/GrISU/KASCADE/g'       <tmp1 >tmp2
+   sed '/LTM_FillType "MEDIAN"/s/MEDIAN/MEAN/g'      <tmp2 >tmp1
+   sed '/LTM_WidthFillType " "/s/" "/"MEAN"/g'       <tmp1 >tmp2
+   sed '/LTM_LengthFillType " "/s/" "/"MEAN"/g'      <tmp2 >tmp1
+   sed '/LTM_EnergyFillType " "/s/" "/"MEAN"/g'      <tmp1 >tmp2
+   sed '/LTM_EaxisEnergyFillType " "/s/" "/"MEAN"/g' <tmp2 >tmp1
+   sed '/TelID        /s/TelID/TelID  '$TelIDStr'/g' <tmp1 >tmp2
+   sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <tmp2 >tmp1
+   sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g' <tmp1 >tmp2
+   sed '/Noise         /s/Noise/Noise '$NoiseStr'/g' <tmp2 >tmp1
+   sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <tmp1 >tmp2
+   sed '/Log10SizePerBin/s/0.04/0.07/g'              <tmp2 >tmp1
+   sed '/ImpDistUpperLimit/s/400/800/g'	             <tmp1 >tmp2
+   sed '/Log10EaxisEnergyUpperLimit/s/6/5/g'         <tmp2 >tmp1
+   #Set the number of samples for noise
+   sed '/LTM_WindowSizeForNoise/s/7/'$BinSizeForNoise'/g' <tmp1 >tmp2
+   #Replace HillasBranchName argument
+   sed '/HillasBranchName "H"/s/"H"/"'$HMode'"/g'    <tmp2 >config1.tmp
+   #****************************************************************************
+   #We make a seperate Sub LT config file for each of ZN, and  noise 
+   #combination
+   # *****************************************************************************
+   #now we loop over Zn and PedVar
+   #############################################################################
+   #Zenith
+   let izn=0
+   let iznEnd=${#Zenith[@]}
+   if test $iznEnd -lt "1" 
+   then
+       echo 'VAAuto: Fatal! Need at least 2 ZN values specified'
+       exit
+   fi
+   let kpvarEnd=${#PedVar[@]}
+   if test $kpvarEnd -lt "1"
+   then
+       echo 'VAAuto: Fatal! Need at least 2 PedVar values specified'
+       exit
+   fi
+   
+   while test $izn -lt $iznEnd
+     do
+       #Iterate through PedVars
+       let kpvar=0
+       while test $kpvar -lt $kpvarEnd
+         do
+           #Test for defaults
+           PV=${PedVar[$kpvar]} 
+           #############################################################
+           #Now we need to "edit the new config file
+           #############################################################
+           #Figure out what the Zenith argument should look like
+           if test $izn -eq "0" 
+            then
+             Zn=${Zenith[izn]}','${Zenith[1]}
+            else
+             Zn=${Zenith[0]}','${Zenith[izn]}
+           fi
+           ZNLBL=${Zenith[izn]}
+	   #now replace Zenith argument and put in a tmp file
+           sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
 
-     if [ -n "$FindPedVarScalingValues" ]; then
-       echo '##########################################################'
-       echo '# FindPedVarScalingValues '
-       echo '##########################################################'
-       #####################################################
-       # We will pick up the desired nopise level from $9
-       # we will find the Pedvar scaleing values in stage2 to give us this
-       # noise level.
-       # We use the ratio of the base noise to the desired noise and then
-       # iterate 3 times to correct. That should be enough
-       #####################################################
-       echo '1.0 1.0 1.0 1.0 1.0' >BaseRatios.dat
+           ##############################################################
+           #Now do the same for the Noise but put in final file
+           if test $kpvar -eq "0" 
+            then
+	     Ns=${PedVar[$kpvar]}','${PedVar[1]}
+            else
+	     Ns=${PedVar[0]}','${PedVar[$kpvar]}
+           fi
 
-       LoadPVOpt BaseRat.dat PVBase.dat $9 PV$9Set1Rat.dat PVOpt$9 
-       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFILE PVOpt$9
-       GetPedVars $RootFile PV$9Set1.dat
+           NsLBL=${PedVar[$kpvar]}
+           #Construct the Sub Lt Config File Name
+           ConfigName='SubLT'$1$BinSizeForNoise'Sample'$ZNLBL'Deg'$NsLBL'noise'$HMode'.config'
+           #now replace AbsoluteNoise  argument and put in a final file
+           sed '/Noise/s/'$NoiseStr'/'$Ns'/g'  <config2.tmp >$ConfigName
+	
+           rm config2.tmp
 
-       LoadPVOpt PV$9Set1Rat.dat PV$9Set1.dat $9 PV$9Set2Rat.dat PVOpt$9
-       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFILE PVOpt$9 
-       GetPedVars $RootFile PVOpt$9Set2.dat
+           ################################################
+           #Should all be done now. Go on to next combo.
+           ################################################
+           let kpvar=$kpvar+1
+         done
+       izn=$((izn+1))
+     done
+  date
+  echo 'VAAuto: All done!'
+fi
+#############################################################################
 
-       LoadPVOpt PV$9Set2Rat.dat PV$9Set2.dat $9 PV$9Set3Rat.dat PVOpt$9
-       VegasStage1Stage2Process $BaseFileName $VBFDir'/'$VBFFILE PVOpt$9 
-       GetPedVars $RootFile PVOpt$9Set4.dat
-       
-       {
-	 read PV1 PV2 PV3 PV4 PVMax
-       }<PVOpt$9Set4.dat
-       echo 'VAAuto: For PedVar '$9 'we get:' $PV1 $PV2 $PV3 $PV4
-     fi
-
-      
