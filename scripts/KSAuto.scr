@@ -6,7 +6,7 @@
 #$2 ksProduction season spec: Ex: W or S
 #$3 telescope designation: W or V or U (Whipple, veritas, Upgrade)
 #$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
-#$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
+#$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
 #$6 Threshold: Ex 45mv or 50mv
 #$7 MDL file name for VBF files: Ex MDL12U
 #$8 Telescope 4 character spec: Ex: ABCD or wxyz
@@ -18,14 +18,14 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 # Within that loop we can do:         #"dm" below indicates dummy value needed
-
+#(Note:Only set up to do one operation at a time. Some operations don't wait!)
 #GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
-HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
-#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5
+#HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
+#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5            WAITS
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
-GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 
+#GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 NO WAIT!
 CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
 #HTARShowerVBFFilesFromArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 #GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
@@ -210,9 +210,14 @@ function SubmitHtarToArchive()
   SourceDir=$2         #Disk Base Directory
   ShwrDir=$3           #filename (Directiory to archive)
   
+  echo DestinationDir: $DestinationDir
+  echo SourceDir: $SourceDir
+  echo ShwrDir: $ShwrDir
+
 
   local=$PWD
   cd $SourceDir 
+  pwd
   if [ ! -e "$ShwrDir" ]; then
       echo 'KSAuto: '$SourceDir'/'$ShwrDir' Does not exist. Exiting.'
       cd $local
@@ -307,21 +312,21 @@ function SubmitHtarFromArchive()
   if [ -n "$CARVER" ]; then
    echo "KSAuto: htar from archive "$ShwrDir" job submission to Carver cluster complete."
   fi
-  date
-  echo "KSAuto: Sleeping until it finishes."
-  # Cleanup the log file to only have Hansen cluster pids in it
- 
-  ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
-  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
-
-  runsNotDone=1
-  while test $runsNotDone -eq 1 
-    do
-     sleep 60s
-     checkRunningJobs $ShowerMakeTE $ZnAz
-     let runsNotDone=$?
-    done
-  echo "KSAuto: HTAR of "$TeName" complete"
+#  date
+#  echo "KSAuto: Sleeping until it finishes."
+#  # Cleanup the log file to only have Hansen cluster pids in it
+# 
+#  ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
+#  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+#
+#  runsNotDone=1
+#  while test $runsNotDone -eq 1 
+#    do
+#     sleep 60s
+#     checkRunningJobs $ShowerMakeTE $ZnAz
+#     let runsNotDone=$?
+#    done
+#  echo "KSAuto: HTAR of "$TeName" complete"
 
   # And now cleanup: change protection
   chmod 775 $HtarDir$ShwrDir'.tar'
@@ -368,7 +373,13 @@ Threshold=$6
 
 SAVEIFS=$IFS
 IFS=, read -a Zenith <<< "$4"
-IFS=, read -a Azimuth <<< "$5"
+
+if [ $5 = "All" ]; then
+  Azimuth=([0]=0,45,90,135,180,225,270,315)
+else  
+  IFS=, read -a Azimuth <<< "$5"
+fi
+
 IFS=$SAVEIFS
 
 #Check if the is for 2D offsets, blank if not
@@ -769,20 +780,20 @@ while test $izn -lt $iznEnd
          echo "KSAuto: Carver cluster for "$ZnAz" complete."
        fi
        date
-       echo "KSAuto: Sleeping until they all finish."
-       # Cleanup the log file to only have cluster pids in it
- 
-       cat KSProcess$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeVBF$ZnAz'.log'
-
-       runsNotDone=1
-        
-       while test $runsNotDone -eq 1 
-	 do
-          sleep 300s
-	  checkRunningJobs 'ShowerMakeVBF'$ZnAz'.log' $ZnAz
-          let runsNotDone=$?
-	 done
-       rm ksallVBF$ZnAz'.scr'
+#       echo "KSAuto: Sleeping until they all finish."
+#       # Cleanup the log file to only have cluster pids in it
+# 
+#       cat KSProcess$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeVBF$ZnAz'.log'
+#
+#       runsNotDone=1
+#        
+#       while test $runsNotDone -eq 1 
+#	 do
+#          sleep 300s
+#	  checkRunningJobs 'ShowerMakeVBF'$ZnAz'.log' $ZnAz
+#          let runsNotDone=$?
+#	 done
+#       rm ksallVBF$ZnAz'.scr'
        echo "KSAuto: VBF shower file generation complete"
       
        cd $lcl
@@ -891,17 +902,17 @@ while test $izn -lt $iznEnd
 
        #Wait for it!
 
-       cat $ProcessAll$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerProcessAll$ZnAz'.log'
+#       cat $ProcessAll$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerProcessAll$ZnAz'.log'
 
-       runsNotDone=1
+#       runsNotDone=1
         
-       while test $runsNotDone -eq 1 
-	 do
-          sleep 300s
-	  checkRunningJobs ShowerProcessAll$ZnAz'.log' $ZnAz
-          let runsNotDone=$?
-	 done
-       rm ksallVBF$ZnAz'.scr'
+#       while test $runsNotDone -eq 1 
+#	 do
+#          sleep 300s
+#	  checkRunningJobs ShowerProcessAll$ZnAz'.log' $ZnAz
+#          let runsNotDone=$?
+#	 done
+#       rm ksallVBF$ZnAz'.scr'
        echo "KSAuto: "$ProcessAll" VBF wobble shower file generation complete"
       fi
      ########################################################################
@@ -922,7 +933,7 @@ while test $izn -lt $iznEnd
 	 SubmitHtarToArchive $HtarDir'/'$2$PMT'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
-	ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
+        ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
 
         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir
        fi
