@@ -1,0 +1,64 @@
+#$1 List of data.cvbf flasher.cvbf
+#$2 VegasProduction file name: 
+#       EX: VegasProductionStdCuts.scr
+#$3 Identifying letter for Job name (ex A)
+#$4 Alternate VEGAS path (optional)
+
+lcl="$PWD"
+let i=0
+host=$(hostname)
+echo host: $host
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  QUEUE=physics
+  WALLTIME=30:00:00
+  #QUEUE=standby
+  #WALLTIME=04:00:00
+  echo ***Hansen Cluster***
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  QUEUE=serial
+  WALLTIME=30:00:00
+  echo '***Carver Cluster***'
+fi
+
+{
+  while read DataFile FlasherFile ; do
+      BaseFileName=${DataFile##/*/}
+####################################################################
+# Make up the job script file that will be submitted below
+####################################################################
+      sgeFile=$lcl'/'$BaseFileName$3'.pbs'
+      echo "#"PBS -q $QUEUE                     >$sgeFile
+      echo "#"PBS -l walltime=$WALLTIME         >>$sgeFile
+      if [ -n "$CARVER" ]; then
+        echo "#PBS -l nodes=1:ppn=1"            >>$sgeFile
+        echo "#PBS -l pvmem=20GB"                      >>$sgeFile
+      fi
+      if [ -n "$HANSEN" ]; then  
+        echo "#PBS -l mem=15GB"                       >>$sgeFile
+        echo source /etc/profile                      >>$sgeFile
+        echo module load gcc/4.7.2                    >>$sgeFile
+      fi
+      echo cd $lcl                             >>$sgeFile
+      echo $lcl'/'$2  \\                       >>$sgeFile
+      echo $DataFile' '  \\  >>$sgeFile
+      echo $FlasherFile' '  \\  >>$sgeFile
+      if test -n $4
+      then
+        echo $4  \\                            >>$sgeFile
+      fi 
+
+      echo ' >'$lcl'/'$BaseFileName$3'.log'         >>$sgeFile
+      chmod 700 $sgeFile
+      qsub   -V -e 'W'$3$BaseFileName'.err' -o 'W'$3$BaseFileName'.log' $sgeFile
+done
+} <$1
+
+

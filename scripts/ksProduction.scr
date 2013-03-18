@@ -1276,9 +1276,9 @@ then
   HANSEN=enabled
   QUEUE1=physics
   QUEUE2=standby
-  QUEUE=$QUEUE2
-  #WALLTIME=100:00:00
-  WALLTIME=04:00:00
+  QUEUE=$QUEUE1
+  WALLTIME=30:00:00
+  #WALLTIME=04:00:00
 fi
 
 hostString=${host:0:4}

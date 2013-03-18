@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #This runs first 5 vegas stages on normal file  files;
-#$1 .cvbf or .root file to process. (Ex. /VData/33619.cvbf)
-#$2 .cvbf Laser file           (Ex. /VData/33616.cvbf)
+#$1 .cvbf or .root file to process. (Ex. ./VData/33619.cvbf)
+#$2 .cvbf Laser or Flasher file           (Ex. ./VData/33616.cvbf)
 #$3 Vegas base dir path: Used when you want vegas from a different directory 
 #            than what VEGAS is set to in .bashrc (or equivalent)
 
@@ -58,7 +58,8 @@ Stage5=enable
   #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
   #Table=LookupTable6.85StdCutsDenyANY2.root
   #Table=LookupTable4.97StdCutsDenyT1T4.root
-  Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root  
+  #Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root  
+  Table=ltk_Jan2013_atm21_7samples_H_vegas250_alloffsets.root
 
   OverrideLTCheckOption='-OverrideLTCheck=1'
 ##############################################################################
@@ -157,7 +158,7 @@ CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
 
-LookUpTableDir=$VEGAS/../VegasTables
+LookUpTableDir=$VEGAS/../tables
 
 
 
