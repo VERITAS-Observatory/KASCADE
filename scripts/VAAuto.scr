@@ -19,14 +19,22 @@
 #GenerateSimLaserFile=enabled
 #GetVBFFileFromArchive=enabled
 #GenerateStage2Files=enabled
-CheckStage2Files=enabled
+#CheckStage2Files=enabled
 
-#HTARPedVarZnOffsetToArchive=enabled
+#HTARPedVarZnOffsetToArchive=enabled                   #No waiting
+#HTARPedVarZnOffsetFromArchive=enabled
+
 #GenerateSubLTListFiles=enabled
 #GenerateSubLTConfigFiles=enabled
-#ProduceSubLookupTables=enabled
+#ProduceSubLookupTables=enabled                        #No waiting
 #CombineSubLT=enable
 #BuildLTTree=enable
+
+#GenerateDispSubLTListFiles=enabled
+#GenerateDispSubLTConfigFiles=enabled
+#ProduceDispSubLookupTables=enabled
+CombineDispSubLT=enable
+#BuildDispLTTree=enable
 
 #FindNoiseLevels=enabled
 
@@ -140,7 +148,7 @@ function LoadPVOpt()
 ###########################################################################
 #########################################################################
 
-function SubmitHtarFilesToArchive()
+function SubmitHtarToArchive()
 {
   #$1 HTAR File Name (Includes Path)
   #$2 Disk Base Directory that has files we want to archive
@@ -168,7 +176,7 @@ function SubmitHtarFilesToArchive()
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
   echo cd $SourceDir                                              >>$sgeFile
-  echo htar -cvf  $Destination'  ./'"$FileSpec" \\                >>$sgeFile
+  echo htar -cvf  $Destination'  '"$FileSpec" \\                  >>$sgeFile
   echo '>'$lcl'/'$HTARFileName'.log'                              >>$sgeFile
 
   chmod 700 $sgeFile
@@ -186,26 +194,67 @@ function SubmitHtarFilesToArchive()
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Carver cluster complete."
   fi
   date
-  echo "VAAuto: Sleeping until it finishes."
-  # Cleanup the log file to only have Hansen cluster pids in it
- 
-  ShowerMakeTE='ShowerMakeTE'$HTARFileName'.log'
-  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+#  echo "VAAuto: Sleeping until it finishes."
+#  # Cleanup the log file to only have Hansen cluster pids in it
+# 
+#  ShowerMakeTE='ShowerMakeTE'$HTARFileName'.log'
+#  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
+#
+#  runsNotDone=1
+#  while test $runsNotDone -eq 1 
+#    do
+#     sleep 60s
+#     checkRunningJobs $ShowerMakeTE $HTARFileName
+#     let runsNotDone=$?
+#    done
+#  echo "VAAuto: HTAR of "$HTARFileName" complete"
 
-  runsNotDone=1
-  while test $runsNotDone -eq 1 
-    do
-     sleep 60s
-     checkRunningJobs $ShowerMakeTE $HTARFileName
-     let runsNotDone=$?
-    done
-  echo "VAAuto: HTAR of "$HTARFileName" complete"
-
-  # And now cleanup: change protection
-  chmod 775 $Destination
+#  # And now cleanup: change protection
+#  chmod 775 $Destination
   cd $lcl
 }
 #########################################################################
+function SubmitHtarFromArchive()
+{
+  #$1 Archive directory wqhere our tar file exists
+  #$2 Destination directory where we want to unTar into.
+  #$3 name of the Tar file we want to untar(without .tar extention).
+
+  local=$PWD
+
+  ArchiveDir=$1          #Archive direxctory
+  DestinationDir=$2      #Base Disk directory
+  Source=$3              #Base Tar file name
+  SourceTarFile=$3'.tar'
+
+  echo 'Src: '$ArchiveDir'/'$SourceTarFile 
+
+  #build a submission .pbs file
+  sgeFile=$lcl'/'$Source'From.pbs'
+  echo "#"PBS -q $QUEUE                                     >$sgeFile
+  echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
+  if [ -n "$HANSEN" ]; then
+    echo source /etc/profile                               >>$sgeFile
+    echo module load gcc/4.7.2                             >>$sgeFile
+  fi
+  echo cd $DestinationDir                                  >>$sgeFile
+  echo htar -xvf  $ArchiveDir'/'$SourceTarFile    \\       >>$sgeFile
+  echo '>'$local'/'$Source'.log'     >>$sgeFile
+
+  chmod 700 $sgeFile
+  HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
+  qsub -V -e $Source'HTARFrom.pbs.err' -o $Source'HTARFrom.pbs.log' $sgeFile >$HTARLOG
+
+  if [ -n "$HANSEN" ]; then
+   echo "KSAuto: htar from archive "$ShwrDir" job submission to Hansen "$QUEUE" queue complete."
+  fi
+  if [ -n "$CARVER" ]; then
+   echo "KSAuto: htar from archive "$ShwrDir" job submission to Carver cluster complete."
+  fi
+  # And now cleanup
+  cd $lcl
+}
+  ##########################################################################
 
 
 #Main:
@@ -284,6 +333,9 @@ else
 fi
 IFS=$SAVEIFS
 
+
+
+
 ###########################################################################
 
 #Check if the is for 2D offsets, blank if not
@@ -296,6 +348,14 @@ fi
 Samples=7
 HMode=H
 
+######################################
+#SubLT bin ave mode for length, width and EaxisEnergy tables:Mean or MEDIAN
+######################################
+#CFG_LW=MEAN
+CFG_LW=MEDIAN
+
+LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250_alloffsets'$CFG_LW'.root'
+
 LTCUTSFILE=$VEGAS'/../tables/LookupTableStdCuts'
 if [ $HMode = "HFit" ]; then
   LTCUTSFILE=$VEGAS'/../tables/LookupTableHFitStdCuts'
@@ -307,12 +367,22 @@ if [ -n "$ProduceSubLookupTables" ]; then
   fi
 fi
 
+DISPLTCUTSFILE=$VEGAS'/../tables/DispLookupTableStdCuts'
+if [ -n "$ProduceDispSubLookupTables" ]; then
+  if [ ! -e $DISPLTCUTSFILE ]; then
+     echo 'VAAuto: Fatal- Can not find file '$DISPLTCUTSFILE
+     exit
+  fi
+fi
+
 
 TelIDStr=0,1,2,3
 ZNStr=1,10,20,30,40,50,60,70
 ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
 AzStr=0,45,90,135,180,225,270,315
 NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+DTMWidthStr=0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.2,0.25,0.35
+DTMLengthStr=0.05,0.09,0.13,0.17,0.21,0.25,0.29,0.33,0.37,0.41,0.45,0.5,0.6,0.7,0.8
 
 #ZNStr
 let iznEnd=${#Zenith[@]}
@@ -369,9 +439,8 @@ if test $kpvarEnd -ne "9"
     kpvar=$((kpvar+1))
    done
 fi
-    
-LTFILENAME='ltk_20122013_atm21_'$Samples'samples_'$HMode'_vegas250_alloffsets.root'
 
+    
 
 ############################################################################
 # Sim Laser generation
@@ -447,168 +516,420 @@ if [ -n "$CheckStage2Files" ]; then
 fi
 ############################################################################
 
+if [ -n "$GenerateDispSubLTListFiles" ]; then
+   echo '##########################################################'
+   echo '# GenerateDispSubLTListFiles'
+   echo '##########################################################'
+   cd $lcl
+   date
+   DispListNames='DispSubLT'$1$Samples'Sample*List'
+   rm $DispListNames
+fi
+#############################################################################
+if [ -n "$GenerateDispSubLTConfigFiles" ]; then
+   echo '##########################################################'
+   echo '# GenerateDispSubLTConfigFiles'
+   echo '##########################################################'
+   cd $lcl
+   date
+   ConfigNames='DispSubLT'$1$Samples'Sample*Deg*noise'$HMode'.config'
+   rm $ConfigNames
+   # *************************************************************************
+   # Generate template config file for the Disp tables
+   # Change for KASCADE and Number of samples
+   # Note: No DTM_TelID(All tel tables look identicle)  or 
+   #       DTM_AbsoluteOffset (doesn't make sense for DTM) differences used
+   # *************************************************************************
+   $VEGAS/showerReconstruction2/bin/produceDispTables -save_config_and_exit tmp1
+   sed '/DTC_SimulationType/s/GrISU/KASCADE/g'                  <tmp1 >tmp2
+   sed '/DTM_FillType "MEDIAN"/s/MEDIAN/MEDIAN/g'               <tmp2 >tmp1
+   sed '/DTM_Azimuth      /s/Azimuth/Azimuth '$AzStr'/g'        <tmp2 >tmp1
+   sed '/DTM_Zenith         /s/Zenith/Zenith '$ZNStr'/g'        <tmp1 >tmp2
+   sed '/DTM_Noise         /s/Noise/Noise '$NoiseStr'/g'        <tmp2 >tmp1
+   sed '/DTM_Width         /s/Width/Width '$DTMWidthStr'/g'     <tmp2 >tmp1
+   sed '/DTM_Length         /s/Length/Length '$DTMLengthStr'/g' <tmp1 >tmp2
+   sed '/Log10SizePerBin/s/0.04/0.25/g'                         <tmp2 >tmp1
+   sed '/Log10SizeUpperLimit/s/5.5/6.0/g'                       <tmp1 >tmp2
+   sed '/RatioPerBin/s/0.05/1.0/g'                              <tmp2 >tmp1
+   #Set the number of samples for noise
+   sed '/DTM_WindowSizeForNoise/s/7/'$Samples'/g' <tmp1 >tmp2
+   #Replace HillasBranchName argument
+   sed '/HillasBranchName "H"/s/"H"/"'$HMode'"/g'    <tmp2 >config1.tmp
 
+   ###########################################################################
+   #Config settings not used:
+   #sed '/DTM_FillType "MEDIAN"/s/MEDIAN/MEAN/g'                 <tmp2 >tmp1
+   #sed '/GC_CorePositionFractionalErrorCut/s/100/.25/g'         <tmp1 >tmp2
+   #sed '/GC_CorePositionAbsoluteErrorCut/s/1000/20/g'           <tmp2 >tmp1
+   ###########################################################################
+   # Disp cut file DispLookupTableStdCuts should only have:
+   # -SizeLower=0/0
+   # -DistanceUpper=0/1.38
+   #-NTubesMin=0/5
+   ###########################################################################
+fi
+########################################################################
+
+if [ -n "$ProduceDispSubLookupTables" ]; then
+   echo '##########################################################'
+   echo '# ProduceDispSubLookupTables'
+   echo '##########################################################'
+   cd $lcl
+   date
+fi  
+##############################################################################
+##############################################################################
+if   [ -n "$CombineDispSubLT" ]; then
+   echo '##########################################################'
+   echo '# CombineDispSubLT'
+   echo '##########################################################'
+   cd $lcl
+   date
+   LTFILENAME='dt'$LTFILNAMEBASE
+   SubLTList='SubLTList'
+   if [ -e $lcl'/'$SubLTList ]; then
+     rm $lcl'/'$SubLTList
+   fi
+fi
+##############################################################################
+if [ -n "$BuildDispLTTree" ]; then
+   echo '##########################################################'
+   echo '# BuildDispLTTree'
+   echo '##########################################################'
+   cd $VEGAS/showerReconstruction2/macros
+   date
+   LTFILENAME='dt'$LTFILNAMEBASE
+   BUILDCONFIG='BuildDispTree'$Samples'Samples.config' 
+   $VEGAS/showerReconstruction2/bin/buildDispTree -save_config_and_exit tmp1
+
+   #**********************************************************************
+   #Modify for this Disp LT: we need at least 2 to change things
+   #**********************************************************************
+   let iznEnd=${#Zenith[@]}
+   let kazEnd=${#Azimuth[@]}
+   let kpvarEnd=${#PedVar[@]}
+
+   INFILE=tmp2
+   OUTFILE=tmp1
+
+   if [ ${#Azimuth[@]} -gt "1" ]; then
+     sed '/DTM_Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <$INFILE >$OUTFILE
+     TMPFILE=$INFILE
+     INFILE=$OUTFILE
+     OUTFILE=$TMPFILE
+   fi
+   
+   if [ ${#Zenith[@]} -gt "1" ]; then
+     sed '/DTM_Zenith         /s/Zenith/Zenith '$ZNStr'/g' <$INFILE >$OUTFILE
+     TMPFILE=$INFILE
+     INFILE=$OUTFILE
+     OUTFILE=$TMPFILE
+   fi
+   if [ ${#PedVar[@]} -gt "1" ]; then
+     sed '/DTM_Noise         /s/Noise/Noise '$NoiseStr'/g' <$INFILE >$OUTFILE
+     TMPFILE=$INFILE
+     INFILE=$OUTFILE
+     OUTFILE=$TMPFILE
+   fi
+   sed '/DTM_Width         /s/Width/Width '$DTMWidthStr'/g'    <$INFILE >$OUTFILE
+   sed '/DTM_Length        /s/Length/Length '$DTMLengthStr'/g' <$OUTFILE >$BUILDCONFIG
+
+   $$VEGAS/showerReconstruction2/bin/buildTree '-config='$BUILDCONFIG $LTFILENAME 
+fi
+
+#################################################################################
+
+########################################################################
+# Specail test for SubLTables (LT and Disp): We need at least 2 specs for Az and 
+# PedVar. This is a produce_lookuptable and produceDispTable "feature"
+########################################################################
+let kpvarEnd=${#PedVar[@]}
+let kazEnd=${#Azimuth[@]}
+let iznEnd=${#Zenith[@]}
+let iwblEnd=${#WblOffset[@]}
+if [ -n "$GenerateSubLTConfigFiles" ]     || [ -n "$GenerateSubLTListFiles" ] || \
+   [ -n "$ProduceSubLookupTables" ]       || [ -n "$ProduceDispSubLookupTables" ] || \
+   [ -n "$GenerateDispSubLTConfigFiles" ] || [ -n "$GenerateDispSubLTListFiles" ]; then
+   if test  $kazEnd -lt "1" 
+    then
+     echo 'VAAuto: Fatal! Need at least 2 Az values specified'
+     #Note we could also just remove the AZ line in the config file!
+     exit
+   fi
+   if test $kpvarEnd -lt "1"
+    then
+      echo 'VAAuto: Fatal! Need at least 2 PedVar values specified'
+     #Note we could also just remove the Noise line in the config file!
+      exit
+   fi
+   if test  $iznEnd -lt "1" 
+    then
+     echo 'VAAuto: Fatal! Need at least 2 Zn values specified'
+     #Note we could also just remove the Zn line in the config file!
+     exit
+   fi
+   if test $iwblEnd -lt "1"
+    then
+      echo 'VAAuto: Fatal! Need at least 2 Offset(Wbl) values specified'
+     #Note we could also just remove the Noise line in the config file!
+      exit
+   fi
+fi
+##########################################################################
 
 MissingListName='CheckPedvarMissingList'
  
+if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
+   [ -n "$CheckStage2Files" ]           || [ -n "$GenerateDispSubLTConfigFiles" ] || \
+   [ -n "$GenerateDispSubLTListFiles" ] || [ -n "$ProduceDispSubLookupTables" ]   || \
+   [ -n "$CombineDispSubLT" ]; then
+   
+ #############################################################################
+ #now we loop over Zn,AZ WblOffset and PedVar
+ #############################################################################
+ #Zenith
+ let izn=0
+ let iznEnd=${#Zenith[@]}
+ let iFilesNotFound=0
+ while test $izn -lt $iznEnd
+  do
 
-#############################################################################
-#now we loop over Zn,AZ WblOffset and PedVar
-#############################################################################
-#Zenith
-let izn=0
-let iznEnd=${#Zenith[@]}
-let iFilesNotFound=0
-while test $izn -lt $iznEnd
- do
+   #Azimuth
+   let kaz=0
+   let kazEnd=${#Azimuth[@]}
+   while test $kaz -lt $kazEnd
+    do
+     #Make   Zn_Az string
+     if test ${Azimuth[$kaz]} = "0"
+      then
+       ZnAz=${Zenith[$izn]}'Deg'
+     else
+       ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
+     fi
+     
+     #Construct the Disp Sub Lt Config File Name
+     DISPSUBLTBASE='DispSubLT'$1$Samples'Sample'$ZnAz
+     DispConfigName=$DISPSUBLTBASE$HMode'.config'
+     DispListName=$DISPSUBLTBASE'List'
+     DispSubLTFileName=$lcl'/'$DISPSUBLTBASE'.root'
+     #####################################################################
 
-  #Azimuth
-  let kaz=0
-  let kazEnd=${#Azimuth[@]}
-  while test $kaz -lt $kazEnd
-   do
-    #Make   Zn_Az string
-    if test ${Azimuth[$kaz]} = "0"
-     then
-      ZnAz=${Zenith[$izn]}'Deg'
-    else
-      ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
-    fi
-    ####################################################################
-    # Iterate over WBLOffsets and PedVars
-    ####################################################################
-    #WblOffset
-    let iwbl=0
-    let iwblEnd=${#WblOffset[@]}
-    while test $iwbl -lt $iwblEnd
-     do
-      WBL=${WblOffset[$iwbl]}
-      if [ "$WBL" !=  '0.0' ]; then
-       WBLSPEC=S$WBL'Wbl'
-      else
-       WBLSPEC=$WBL'Wbl'
-      fi
-      #Iterate through PedVars
-      let kpvar=0
-      let kpvarEnd=${#PedVar[@]}
-      while test $kpvar -lt $kpvarEnd
-       do
-        #Test for defaults
-        PV=${PedVar[$kpvar]} 
-        if test "$PV" = "0"
-         then
-          PedVarFile=""
-          PedVarName=""
+     if [ -n "$GenerateDispSubLTConfigFiles" ]; then
+       #############################################################
+       #Now we need to "edit the new config file
+       #############################################################
+       #Figure out what the Zenith argument should look like
+       if test $izn -eq "0" 
+        then
+         Zn=${Zenith[izn]}','${Zenith[1]}
         else
-          PedVarFile=Ped$PV
-          PedVarName=PedVar$PV
-        fi  
+         Zn=${Zenith[0]}','${Zenith[izn]}
+       fi
+       #now replace Zenith argument and put in a tmp file
+       sed '/DTM_Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
+
+       ############################
+       #Now do the same for the Azimuth but put in final file
+       ############################
+       if test $kaz -eq "0" 
+        then
+	  Az=${Azimuth[$kaz]},${Azimuth[1]}
+        else
+	  Az=${Azimuth[0]},${Azimuth[$kaz]}
+        fi
+        #now replace Offset argument and put in a final file
+        sed '/DTM_Azimuth/s/'$AzStr'/'$Az'/g'  <config2.tmp >$DispConfigName
+        rm config2.tmp
+     fi
+     #********************************************************************
+
+     if [ -n "$ProduceDispSubLookupTables" ]; then
+       ####################################################################
+       # Make up the job script file that will be submitted below
+       ####################################################################
+       sgeFile=$lcl'/'$DISPSUBLTBASE'.pbs'
+       echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
+       if [ -n "$CARVER" ]; then
+         echo "#PBS -l pvmem=15GB"                     >>$sgeFile
+       fi
+       if [ -n "$HANSEN" ]; then
+         echo "#PBS -l mem=15GB"                       >>$sgeFile
+         echo source /etc/profile                      >>$sgeFile
+         echo module load gcc/4.7.2                    >>$sgeFile
+       fi
+       echo cd $lcl                                    >>$sgeFile
+       echo $VEGAS/bin/produceDispTables \\            >>$sgeFile
+       echo -config $lcl'/'$DispConfigName \\          >>$sgeFile
+       echo -cuts $DISPLTCUTSFILE  \\                  >>$sgeFile
+       echo  $lcl'/'$DispListName   \\                 >>$sgeFile
+       echo  $DispSubLTFileName  \\                    >>$sgeFile
+       echo '>'$lcl'/'$DISPSUBLTBASE'.log'             >>$sgeFile
+       chmod 700 $sgeFile
+
+       qsub -q $QUEUE -V -e $DISPSUBLTBASE.qsub.err -o $DISPSUBLTBASE.qsub.log $sgeFile
+     fi
+     #*******************************************************************
+    
+     if [ -n "$CombineDispSubLT" ]; then
+       #*******************************************************************
+       # Create the List of Disp SubLT files to be combined
+       #******************************************************************
+       # But first check that each file does exixt. We may want to test deeper
+       # if this isn't enough later.
+       ###################################################################
+       if  [ ! -e "$DispSubLTFileName" ]; then
+         echo 'VAAuto: Fatal--Disp SubLT file '$DispSubLTFileName ' does not exist'
+         # exit
+       fi
+       echo $DispSubLTFileName >>$lcl'/'$SubLTList
+     fi
+     #******************************************************************
+
+     ####################################################################
+     # Iterate over WBLOffsets and PedVars
+     ####################################################################
+     #WblOffset
+     let iwbl=0
+     let iwblEnd=${#WblOffset[@]}
+     while test $iwbl -lt $iwblEnd
+      do
+       WBL=${WblOffset[$iwbl]}
+       if [ "$WBL" !=  '0.0' ]; then
+        WBLSPEC=S$WBL'Wbl'
+       else
+        WBLSPEC=$WBL'Wbl'
+       fi
+       #Iterate through PedVars
+       let kpvar=0
+        let kpvarEnd=${#PedVar[@]}
+       while test $kpvar -lt $kpvarEnd
+        do
+         #Test for defaults
+         PV=${PedVar[$kpvar]} 
+         if test "$PV" = "0"
+          then
+           PedVarFile=""
+           PedVarName=""
+         else
+           PedVarFile=Ped$PV
+           PedVarName=PedVar$PV
+         fi  
    
-# *****************************************************************************
-#  Now all the things we can do for a particular Zn,AZ,WblOffset and PedVar
-# *****************************************************************************
-        #Generate  file names
+         # ************************************************************************
+         #  Now all the things we can do for a particular Zn,AZ,WblOffset and PedVar
+         # ************************************************************************
+         #Generate  file names
  
-        BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
-        VBFFILE=$BaseFile'1234M2.vbf'
-   
-        ################################################################
-	    
-        if [ -n "$GetVBFFileFromArchive" ]; then
-         echo '##########################################################'
-         echo '# GetVBFFileFromArchive'
-         echo '##########################################################'
-	 cd $lcl
-	 date
-	 if [ ! -e "$VBFFILE" ]; then
-          hsi 'cd '$ARCHIVE$1$PMT$3$4'VBF; get '$VBFFILE';'
-         fi
-        fi
-            
-        ###############################################################
-
-
-        if [ -n "$GenerateStage2Files" ]; then
-         #echo '##########################################################'
-         #echo '# GenerateStage2Files '
- 	 #echo '##########################################################'
-	 cd $lcl
-	 date
-	 echo PV:$PV
-      
-         echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
-         sgeFile=$lcl'/'$PedVarFile$BaseFile'.pbs'
-         echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
-         if [ -n "$CARVER" ]; then
-          echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
-          echo "#PBS -l pvmem=20GB"                      >>$sgeFile
-           # or if above does not work:
-           #echo "#PBS -l nodes=1:ppn=1:bigmem"          >>$sgeFile
-           #echo "#PBS -l pvmem=44GB                     >>$sgeFile
-          fi
-         if [ -n "$HANSEN" ]; then
-          echo "#PBS -l mem=15GB"                       >>$sgeFile
-          echo source /etc/profile                      >>$sgeFile
-          echo module load gcc/4.7.2                    >>$sgeFile
-         fi
-         echo cd $lcl                                    >>$sgeFile
-         echo $lcl'/'VegasSimProductionS1S2.scr  \\      >>$sgeFile
-         echo $VBFFILE  $PedVarFile \\                   >>$sgeFile
-         echo ' >'$lcl'/'$PedVarFile$BaseFile'VBF.log'   >>$sgeFile
-         chmod 700 $sgeFile
-         qsub -q $QUEUE  -V -e $PedVarFile$BaseFile'.err' -o $PedVarFile$BaseFile'pbs.log' $sgeFile 
-        fi
-        ###############################################################
-
-
-        if [ -n "$CheckStage2Files" ]; then
-         # echo '##########################################################'
-         # echo '# CheckStage2Files'
-	 # echo '##########################################################'
-         cd $lcl
-	 #date
+         BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
 	 FileName='PedVar'$PV$BaseFile'1234M2.root'
-         #echo FileName: $FileName
-         #Check VARootIO can open and load file 
-	 ~/Switch.rootrcTo.rootrc_glenn.scr
-	 Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
-         #echo Arg: $Arg
-
-	 root -q -b -q $Arg >CheckStage2OK.log
-         {
-          read BAD
-          if [ $BAD -lt "15" ]; then
-	      #echo "VAAuto: Bad: "$BAD" file "$FileName
-              echo "Bad: "$FileName
-              if [ $BAD -eq "1" ]; then
-                 echo "VAAuto: VARootIO failed to open" 
-              fi
-	      if [ $BAD -eq "2" ]; then
-	         echo "VAAuto: VARootIO failed to load"
-	      fi
-	      if [ $BAD -eq "2" ]; then
-	         echo "VAAuto: VARootIO failed to find parameterizedEvntTree"
-	      fi
-	  #else
-          #    echo 'VAAuto: '$FileName' OK! numEvents:' $BAD
-	  fi 
-	 } <CheckStage2FileOK.Result
-	 rm CheckStage2FileOK.Result
-        fi
-        ###############################################################
+         VBFFILE=$BaseFile'1234M2.vbf'
+   
+         ################################################################
+	    
+         if [ -n "$GetVBFFileFromArchive" ]; then
+          echo '##########################################################'
+          echo '# GetVBFFileFromArchive'
+          echo '##########################################################'
+	  cd $lcl
+	  date
+	  if [ ! -e "$VBFFILE" ]; then
+           hsi 'cd '$ARCHIVE$1$PMT$3$4'VBF; get '$VBFFILE';'
+          fi
+         fi
+            
+         ###############################################################
 
 
-        ################################################
-        #should all be done now. Go on to next combo.
-        ##############################################
-        let kpvar=$kpvar+1
-       done
-      let iwbl=$iwbl+1
-     done
-    kaz=$((kaz+1))
-   done
-  izn=$((izn+1))
- done
+         if [ -n "$GenerateStage2Files" ]; then
+          #echo '##########################################################'
+          #echo '# GenerateStage2Files '
+ 	  #echo '##########################################################'
+	  cd $lcl
+	  date
+	  echo PV:$PV
+      
+          echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
+          sgeFile=$lcl'/'$PedVarFile$BaseFile'.pbs'
+          echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
+          if [ -n "$CARVER" ]; then
+           echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
+           echo "#PBS -l pvmem=20GB"                      >>$sgeFile
+            # or if above does not work:
+            #echo "#PBS -l nodes=1:ppn=1:bigmem"          >>$sgeFile
+            #echo "#PBS -l pvmem=44GB                     >>$sgeFile
+           fi
+          if [ -n "$HANSEN" ]; then
+           echo "#PBS -l mem=15GB"                       >>$sgeFile
+           echo source /etc/profile                      >>$sgeFile
+           echo module load gcc/4.7.2                    >>$sgeFile
+          fi
+          echo cd $lcl                                    >>$sgeFile
+          echo $lcl'/'VegasSimProductionS1S2.scr  \\      >>$sgeFile
+          echo $VBFFILE  $PedVarFile \\                   >>$sgeFile
+          echo ' >'$lcl'/'$PedVarFile$BaseFile'VBF.log'   >>$sgeFile
+          chmod 700 $sgeFile
+          qsub -q $QUEUE  -V -e $PedVarFile$BaseFile'.err' -o $PedVarFile$BaseFile'pbs.log' $sgeFile 
+         fi
+         ###############################################################
+
+
+         if [ -n "$CheckStage2Files" ]; then
+          # echo '##########################################################'
+          # echo '# CheckStage2Files'
+	  # echo '##########################################################'
+          cd $lcl
+
+          #Check VARootIO can open and load file 
+	  ~/Switch.rootrcTo.rootrc_glenn.scr
+	  Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
+          #echo Arg: $Arg 
+
+	  root -q -b -q $Arg >CheckStage2OK.log
+          {
+           read BAD
+           if [ $BAD -lt "15" ]; then
+	       #echo "VAAuto: Bad: "$BAD" file "$FileName
+               echo "Bad: "$FileName
+               if [ $BAD -eq "1" ]; then
+                  echo "VAAuto: VARootIO failed to open" 
+               fi
+	       if [ $BAD -eq "2" ]; then
+	          echo "VAAuto: VARootIO failed to load"
+	       fi
+	       if [ $BAD -eq "2" ]; then
+	          echo "VAAuto: VARootIO failed to find parameterizedEvntTree"
+	       fi
+	   #else
+           #    echo 'VAAuto: '$FileName' OK! numEvents:' $BAD
+	   fi 
+	  } <CheckStage2FileOK.Result
+	  rm CheckStage2FileOK.Result
+         fi
+         ###############################################################
+         
+         if [ -n "$GenerateDispSubLTListFiles" ]; then
+           # echo '##########################################################'
+           # echo '# GenerateDispSubLTListFiles'
+	   # echo '##########################################################'
+	   cd $lcl
+	   echo $FileName >>$DispListName
+         fi
+         #******************************************************************
+ 
+
+         ################################################
+         #should all be done now. Go on to next combo.
+         ##############################################
+         let kpvar=$kpvar+1
+        done
+       let iwbl=$iwbl+1
+      done
+     kaz=$((kaz+1))
+    done
+   izn=$((izn+1))
+  done
+fi
+
 ###########################################################################
 
 if [ -n "$GenerateSubLTListFiles" ]; then
@@ -628,7 +949,7 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   ConfigNames='SubLT'$1$Samples'Sample*Deg*noise'$HMode'.config'
+   ConfigNames='SubLT'$1$Samples'Sample*Deg*noise'$HMode$CFG_LW'.config'
    rm $ConfigNames
    # *************************************************************************
    # Generate template config file
@@ -638,11 +959,13 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    sed '/CorePositionFractionalErrorCut/s/100/.25/g' <tmp1 >tmp2
    sed '/CorePositionAbsoluteErrorCut/s/1000/20/g'   <tmp2 >tmp1
    sed '/LTC_SimulationType/s/GrISU/KASCADE/g'       <tmp1 >tmp2
-   sed '/LTM_FillType "MEDIAN"/s/MEDIAN/MEAN/g'      <tmp2 >tmp1
-   sed '/LTM_WidthFillType " "/s/" "/"MEAN"/g'       <tmp1 >tmp2
-   sed '/LTM_LengthFillType " "/s/" "/"MEAN"/g'      <tmp2 >tmp1
-   sed '/LTM_EnergyFillType " "/s/" "/"MEAN"/g'      <tmp1 >tmp2
-   sed '/LTM_EaxisEnergyFillType " "/s/" "/"MEAN"/g' <tmp2 >tmp1
+
+   sed '/LTM_FillType "MEDIAN"/s/MEDIAN/MEAN/g'           <tmp2 >tmp1
+   sed '/LTM_WidthFillType " "/s/" "/"'$CFG_LW'"/g'       <tmp1 >tmp2
+   sed '/LTM_LengthFillType " "/s/" "/"'$CFG_LW'"/g'      <tmp2 >tmp1
+   sed '/LTM_EaxisEnergyFillType " "/s/" "/"'$CFG_LW'"/g' <tmp1 >tmp2
+  
+   sed '/LTM_EnergyFillType " "/s/" "/"MEAN"/g'      <tmp2 >tmp1
    sed '/TelID        /s/TelID/TelID  '$TelIDStr'/g' <tmp1 >tmp2
    sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <tmp2 >tmp1
    sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g' <tmp1 >tmp2
@@ -665,7 +988,8 @@ if [ -n "$ProduceSubLookupTables" ]; then
    cd $lcl
    date
 fi  
-##############################################################################
+########################################################################
+
 if [ -n "$HTARPedVarZnOffsetToArchive" ]; then
    echo '##########################################################'
    echo '# HTARPedVarZnOffsetToArchive'
@@ -674,11 +998,33 @@ if [ -n "$HTARPedVarZnOffsetToArchive" ]; then
    date
 fi  
 ##############################################################################
+if [ -n "$HTARPedVarZnOffsetFromArchive" ]; then
+   echo '##########################################################'
+   echo '# HTARPedVarZnOffsetFromArchive'
+   echo '##########################################################'
+   cd $lcl
+   date
+fi  
+##############################################################################
+if   [ -n "$CombineSubLT" ]; then
+   echo '##########################################################'
+   echo '# CombineSubLT'
+   echo '##########################################################'
+   cd $lcl
+   date
+   LTFILENAME='lt'$LTFILENAMEBASE
+   SubLTList='SubLTList'
+   if [ -e $lcl'/'$SubLTList ]; then
+     rm $lcl'/'$SubLTList
+   fi
+fi
+##############################################################################
 if [ -n "$BuildLTTree" ]; then
    echo '##########################################################'
    echo '# BuildLTTree'
    echo '##########################################################'
    cd $VEGAS/showerReconstruction2/macros
+   LTFILENAME='lt'$LTFILENAMEBASE
    date
    BUILDCONFIG='BuildTree'$Samples'Samples.config' 
    $VEGAS/showerReconstruction2/bin/buildTree -save_config_and_exit tmp1
@@ -723,51 +1069,19 @@ if [ -n "$BuildLTTree" ]; then
 
    $VEGAS/showerReconstruction2/bin/buildTree '-config='$BUILDCONFIG $LTFILENAME 
 fi
-##############################################################################
-if   [ -n "$CombineSubLT" ]; then
-   echo '##########################################################'
-   echo '# CombineSubLT'
-   echo '##########################################################'
-   cd $lcl
-   date
-   SubLTList='SubLTList'
-   if [ -e $lcl'/'$SubLTList ]; then
-     rm $lcl'/'$SubLTList
-   fi
-fi
+
 #################################################################################
 
 
 ##################################################################################
-if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ] || \
-   [ -n "$ProduceSubLookupTables" ]   || [ -n "$HTARPedVarZnOffsetToArchive" ] || \
-   [ -n "$CombineSubLT" ]; then
+if [ -n "$GenerateSubLTConfigFiles" ]     || [ -n "$GenerateSubLTListFiles" ]      || \
+   [ -n "$ProduceSubLookupTables" ]       || [ -n "$HTARPedVarZnOffsetToArchive" ] || \
+   [ -n "$HTARPedVarZnOffsetFromArchive" ] || [ -n "$CombineSubLT" ]; then
    #****************************************************************************
    # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
    # combination
    # we loop over Zn and Offset 
    #############################################################################
-   ########################################################################
-   #Specail test for SubLT: We need at least 2 specis for Az and PedVar.
-   # This is a produce_lookuptable "feature"
-   ########################################################################
-   let kpvarEnd=${#PedVar[@]}
-   let kazEnd=${#Azimuth[@]}
-   if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ] || \
-      [ -n "$ProduceSubLookupTables" ]; then
-     if test  $kazEnd -lt "1" 
-      then
-       echo 'VAAuto: Fatal! Need at least 2 Az values specified'
-       #Note we could also just remove the AZ line in the config file!
-       exit
-     fi
-     if test $kpvarEnd -lt "1"
-      then
-        echo 'VAAuto: Fatal! Need at least 2 PedVar values specified'
-       #Note we could also just remove the Noise line in the config file!
-        exit
-     fi
-   fi
 
    #######################################################################
    #Zenith
@@ -796,9 +1110,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ] || \
            #Construct the Sub Lt Config File Name
            SUBLTBASE='SubLT'$1$Samples'Sample'$Z'Deg'$WBLSPEC
            #echo SUBLTBASE: $SUBLTBASE
-	   ConfigName=$SUBLTBASE'noise'$HMode'.config'
+	   ConfigName=$SUBLTBASE'noise'$HMode$CFG_LW'.config'
 	   ListName=$SUBLTBASE'noiseList'
-	   SubLTFileName=$lcl'/'$SUBLTBASE'.root'
+	   SubLTFileName=$lcl'/'$SUBLTBASE$CFG_LW'.root'
 
            #**********************************************************
            if [ -n "$GenerateSubLTConfigFiles" ]; then
@@ -829,16 +1143,29 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ] || \
            fi
            #********************************************************************
 
+
            if [ -n "$HTARPedVarZnOffsetToArchive" ]; then
              #*****************************************************************
              #For each of ZN Az, and  Offset combination we make a tar file of all
              #the files with that Zn Az and Offset and all  PedVar (9 files)
              ##################################################################
              # Make up Pedvar .tar file name
-	     PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'WblAllPedVarAllAz'$1$2$3$4'.tar'
-             PVFILESPEC='PedVar*'$1$2$3$4$Z'Deg2D'$WBLSPEC$8'1234M2.root PedVar*'$1$2$3$4$Z'_*Deg2D'$WBLSPEC$8'1234M2.root'
+	     PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$2$3$4'.tar'
+             PVFILESPEC='PedVar*'$1$2$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2.root'
               
-             SubmitHtarFilesToArchive $ARCHIVE$1$2$3$4'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
+             SubmitHtarToArchive $ARCHIVE$1$2$3$4'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
+           fi
+           #*********************************************************************
+
+           if [ -n "$HTARPedVarZnOffsetFromArchive" ]; then
+             #*****************************************************************
+             #For each of ZN Az, and  Offset combination we recover a tar file of all
+             #the files with that Zn Az and Offset and all  PedVar (9 files)
+             ##################################################################
+             # Make up Pedvar .tar file name
+	     PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$2$3$4
+
+             SubmitHtarFromArchive $ARCHIVE$1$2$3$4'PedVarS2/' $lcl $PedVarHTARFile 
            fi
            #*********************************************************************
 
@@ -882,7 +1209,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ] || \
              fi
              echo $SubLTFileName >>$lcl'/'$SubLTList
            fi
-           #******************************************************************
+           #*******************************************************************
+
 
            #Azimuth
            let kaz=0
@@ -929,7 +1257,7 @@ fi
 ###########################################################################
 
 #**********************************************************************
-if [ -n "$CombineSubLT" ]; then
+if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
    cd $VEGAS/showerReconstruction2/macros
    if [ ! -e "combineKASCADE_LT.C" ]; then
      cp $KASCADEBASE'/scripts/combineKASCADE_LT.C' .
@@ -944,7 +1272,7 @@ if [ -n "$CombineSubLT" ]; then
    Script='CombineSubLT.C'
    echo '{'                                                          >$Script
    echo '  combineFromList("'$lcl'/'$SubLTList'","'$LTFILENAME'");' >>$Script
-   echo '}'
+   echo '}'                                                         >>$Script
 
    echo "VAAuto: Running root batch command to Create LT file:"
    echo "VAAuto: "$LTFILENAME
@@ -953,35 +1281,6 @@ if [ -n "$CombineSubLT" ]; then
    root -b -q $Script '>'$lcl'/CombineSubLT.log'  
 fi
 
-#   #echo Arg $ARG
-#   ######################################################################
-#   # This may take awhile, so submit
-#   ######################################################################
-#   # Make up the job script file that will be submitted below
-#   ##################################################################
-#   sgeFile=$lcl'/'$SubLTList'.pbs'
-#   echo "#"PBS -l walltime=$WALLTIME                    >$sgeFile
-#   if [ -n "$CARVER" ]; then
-#     echo "#PBS -l pvmem=15GB"                         >>$sgeFile
-#   fi
-#   if [ -n "$HANSEN" ]; then
-#     echo "#PBS -l mem=15GB"                           >>$sgeFile
-#     echo source /etc/profile                          >>$sgeFile
-#     echo module load gcc/4.7.2                        >>$sgeFile
-#   fi
-#   echo cd $VEGAS'/showerReconstruction2/macros'       >>$sgeFile
-#   echo ~/Switch.rootrcTo.rootrc_showerReconstruction2 >>$sgeFile
-#   echo root -q -b  $Arg \\                            >>$sgeFile
-#   echo '>'$lcl'/combineKASCADE_LT.log'                >>$sgeFile
-#   echo ~/Switch.rootrcTo.rootrc_glenn.scr             >>$sgeFile
-#
-#   chmod 700 $sgeFile
-#   qsub -q $QUEUE -V -e $SubLTList.qsub.err -o $SubLTList.qsub.log  $sgeFile
-#
-#   echo "VAAuto: Submitted root batch command to Create LT file:"
-#   echo "VAAuto: "$LTFILENAME
-#   echo "VAAuto: Do less combineKASCADE_LT.log, then F to see when it  finishes!"
-#fi
-#**********************************************************************   
+#*********************************************************************   
 date
 echo 'VAAuto: All done!'

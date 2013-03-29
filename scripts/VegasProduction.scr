@@ -36,12 +36,9 @@ Stage5=enable
  #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
-  #FileBase="M82WstnsCutsDenyT1T4.root"  #Extention to put on the end of the 
-                                         #stages 4-5 ouput files.Differntiates
-                                         # between various cutfile posibilities
-  #FileBase="M82BensCutsDenyT1T4.root"   
-  FileBase="StdCuts.root"  
-
+  FileBase="StdCuts.root"         #Extention to put on the end of the 
+                                  #stages 4-5 ouput files.Differntiates
+                                  # between various cutfile posibilities
 
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
@@ -50,16 +47,13 @@ Stage5=enable
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
-  #QualityCuts='-cuts=QualityHrdCuts'
-  QualityCuts='-cuts=QualityStdCuts'
-  #QualityCuts='-cuts=QualityJWCuts'
 
-  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
-  #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
-  #Table=LookupTable6.85StdCutsDenyANY2.root
-  #Table=LookupTable4.97StdCutsDenyT1T4.root
+  QualityCuts='-cuts=QualityStdCuts'
+
+  Table=LookupTable
   #Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root  
-  Table=ltk_Jan2013_atm21_7samples_H_vegas250_alloffsets.root
+  #Table=ltk_Jan2013_atm21_7samples_H_vegas250_alloffsets.root
+
 
   OverrideLTCheckOption='-OverrideLTCheck=1'
 ##############################################################################
