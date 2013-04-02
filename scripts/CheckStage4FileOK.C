@@ -21,16 +21,16 @@ void CheckStage4FileOK(string fileName)
     os.close();
     return; 
   } 
- 
- //  TTree*  pfParameterisedEventTree = pfRootIO->loadTheParameterisedEventTree();
-  //if(!pfParameterisedEventTree)
-  // {
-  // badCode=3;
-  //ofstream os("CheckStage4FileOK.Result");
-  //os<<badCode<<endl;
-  //os.close();
-  //return; 
-  //}
+  //Probably want a ShowerData TTree check here.
+  TTree*  pfShowerDataTree = pfRootIO->loadTheShowerDataTree();
+  if(!pfShowwerDataTree)
+   {
+     badCode=3;
+     ofstream os("CheckStage4FileOK.Result");
+     os<<badCode<<endl;
+     os.close();
+     return; 
+   }
   
   TTree* pfSimulatedEventTree = pfRootIO->loadTheSimulationEventTree();
   if(!pfSimulatedEventTree)

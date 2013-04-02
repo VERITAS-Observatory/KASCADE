@@ -1,20 +1,25 @@
 #!/bin/bash
 #This runs first 5 Vegas stages on Kascade sim files;
 #It is the base version with only defualt things enabled.
-#$1 .vbf or .root  file to process.
-#$2 PedVarScaleing file to set noise(optional or dummy)
-#$3 Vegas base dir  path: Used when you want vegas from a different directory 
-#   than what VEGAS is set to in .bashrc (or equivalent)(optional)
+#$1 .vbf  file to process. Prior and post extentison will be added>
+#   The Stage1/stage2 root file name will be $1 with .vbf chasnged to .root
+#   and if $2(below) defines PedVarBase it will be appeneded to begining of file name.
+#   If FileBase is defined below the stage4/stage5 file will be the stage1/stage2 
+#   filename with $FileBase inserted before the .root
+#$2 PedVarScaleing file to set noise(file name  or "dummy"): May define "PedVarFile"
 
+#################################################################################
+# Note we use $VEGAS/bin  for  vegas programs.
+#################################################################################
 #Make simLaser file (even if it already exists, this is very fast, but worry 
 #                     about dual processing on clusters)
 
-##Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Laser=enable
+#Stage1Data=enable
+#Stage2=enable
 
 #Stage4_2=enable
-##Stage5=enable
+#Stage5=enable
 
 echo Stage1Laser: $Stage1Laser
 echo Stage1Data:  $Stage1Data
@@ -46,7 +51,7 @@ echo KASCADESimCameraRotationsOption: $KASCADESimCameraRotationsOption
 
  echo  Hillas2DOption: $Hillas2DOption
 #######################################################################
-#The following is an example of what should be in a seasons PedVarScaling file:
+#The following is an example of what should be in a seasons PedVarFile file:
 # IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.1,3/1.24,4/1.02'  #4.97
 # PedVarBase='PedVar4.97'
 # etc
@@ -65,7 +70,7 @@ fi
   #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
-  FileBase="StdCuts.root"  #Extension to put on the end of the stages 4-5 
+  FileBase=StdCuts            #Extension to put on the end of the stages 4-5 
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
@@ -85,13 +90,11 @@ fi
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   QualityCuts='-cuts=QualityStdCuts'
-  #QualityCuts='-cuts=QualityHrdCuts'
 
-  #Table=KLT_AllPedVarStdCutsDenyANY2Fall09.root
-  #Table=KLT_AllPedVarStdCutsFall09.root
-  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
   #Table=lt-newarray-050-4.root
-  Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root	
+  #"LookupTable" below should be replaced by actual name.
+  #  Actual table expected to be in directory: $VEGAS/../tables
+  Table=LookupTable
 
 #Stage5
  ShowerCutsBaseFile=ShowerCutsStd	  
@@ -142,13 +145,6 @@ function makeShowerCutsFile()
 }
 
 #############################################################################
-if [ -n "$3" ]; then
-    VEGASORIG=$VEGAS
-    VEGAS=$3
-    export VEGAS=$VEGAS
-    echo VEGAS: $VEGAS
-fi
-
 if [ -n "$Stage1Laser" ]; then
     echo Stage1Laser:$Stage1Laser
     $VEGAS/bin/vaStage1 -Stage1_RunMode=simLaser \
@@ -192,7 +188,7 @@ if [ -n "$Stage2" ]; then
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 
-CutRootFileName=${VBFFileName%".vbf"}$FileBase
+CutRootFileName=${VBFFileName%".vbf"}$FileBase'.root'
 if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
      CutRootFileName=$PedVarBase${CutRootFileName##*/}
 fi
@@ -223,9 +219,4 @@ if [ -n "$Stage5" ]; then
       
     $VEGAS/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
-fi
-
-if [ -n "$3" ]; then
-    VEGAS=$VEGASORIG
-    export VEGAS=$VEGAS
 fi
