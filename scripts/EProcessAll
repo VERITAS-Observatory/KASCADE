@@ -28,6 +28,7 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   QUEUE=serial
+  WALLTIME='10:00:00'
   echo '***Carver Cluster***'
 fi
 
@@ -36,8 +37,10 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
   QUEUE=physics
+  WALLTIME='30:00:00'
   #QUEUE=standby
-  echo ***Hansen Cluster***
+  #WALLTIME='04:00:00'
+  echo '***Hansen Cluster:'$QUEUE' queue ***'
 fi
 
 ABase=$4
@@ -47,7 +50,7 @@ echo Base: $Base
 
 if  [ -z "$6" ]
 then
- echo Fatal-Please supply all arguments Ex: ./EProcessAll V190 40_180Deg Noise3_5 ABCD  
+ echo Fatal-Please supply all arguments Ex: ./EProcessAll V190 40_180Deg Noise3_5 WXYZ  
 
  exit
 fi
@@ -143,7 +146,7 @@ while test $i -le $end
 
     sgeFile=$lcl'/'$Base'E'$2$wbl'.pbs'
     echo "#"!/bin/bash                                            >$sgeFile
-    echo "#PBS -l walltime=10:00:00"                             >>$sgeFile
+    echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
     if [ -n "$CARVER" ]; then
      echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
     fi

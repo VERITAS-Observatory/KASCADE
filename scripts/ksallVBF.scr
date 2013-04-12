@@ -136,14 +136,33 @@ TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
 
+PMTSpec=$TelSpec
+if [ "$TelSpec" != "U" ] && [ "$TelSpec" != "V" ] &&  
+   [ "$TelSpec" != "W" ]; then
+  echo "Fatal-Bad Telescope Spec: "$TelSpec
+  echo "Allowed values: U W V"
+  exit
+fi
 
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
    TelSpec='V'
    PMTSpec='U'
    ConfigTriggerSpec='V'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}
-else
-   PMTSpec=$TelSpec
+fi
+if [ "$TelSpec" = "V" ]; then 
+   TelSpec='V'
+   PMTSpec='V'
+   ConfigTriggerSpec='V'${TriggerSpec:1}
+   PrimarySpec='V'${PrimarySpec:1}
+fi
+
+if [ "$TelSpec" = "W" ]; then 
+   TelSpec='W'
+   PMTSpec='W'
+   ConfigTriggerSpec='W'${TriggerSpec:1}
+   PrimarySpec='W'${PrimarySpec:1}
+
 fi
 
 

@@ -4,7 +4,7 @@
 # ************************************************************************
 #$1 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
 #$2 ksProduction season spec: Ex: W or S
-#$3 telescope designation: W or V or U (Whipple, veritas, Upgrade)
+#$3 telescope designation: W, OA, NA or U (Whipple, OldArray,NewArray, Upgrade)
 #$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
 #$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
 #$6 Threshold: Ex 45mv or 50mv
@@ -19,9 +19,9 @@
 
 # Within that loop we can do:         #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
-#GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6 
+GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6          WAITS!
 #HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
-#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5            WAITS
+#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5            WAITS!
 #HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
 #CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
 #BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
@@ -29,7 +29,7 @@
 #CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
 #HTARShowerVBFFilesFromArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 #GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8
-HTARShowerVBFFilesToArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
+#HTARShowerVBFFilesToArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
 
 #DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
@@ -205,7 +205,7 @@ function SubmitHtarToArchive()
 {
   #$1 directory that holds directory we want to archive
   #$2 Directory we want to archive
-
+  #$3 filename (Directiory to archive)
   DestinationDir=$1    #Archive directory
   SourceDir=$2         #Disk Base Directory
   ShwrDir=$3           #filename (Directiory to archive)
@@ -275,7 +275,7 @@ function SubmitHtarToArchive()
 
 function SubmitHtarFromArchive()
 {
-  #$1 Archive directory wqhere our tar file exists
+  #$1 Archive directory where our tar file exists
   #$2 Destination directory where we want to unTar into.
   #$3 name of the Tar file we want to untar(without .tar extention).
 
@@ -348,7 +348,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
-  VDirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  VDirBase=$VERITASBASE'/simulations/veritas/'
   JobIDHost='cvrsvc'
   QUEUE=serial
   echo '***Carver Cluster***'
@@ -365,13 +365,26 @@ then
   echo ***Hansen Cluster***
 fi
 
+TELESPEC=$3
+if [ "$3" = "W" ]; then
+   PMT="W"
+fi
+if [ "$3" = "OA" ]; then
+   PMT="V"
+fi
+if [ "$3" = "NA" ]; then
+   PMT="V"
+fi
+if [ "$3" = "U" ]; then
+   PMT="U"
+fi
+
+Threshold=$6
+
 #To find the Zn amd AZ combinations first put $4 and $5 into arrays
 #This is tricky. We save away the present Internal Filed Seperator and then
 # set IFS to a comma. We then use the -a option with the read command to 
 # read in our stings into arrays. Then we restore the IFS.
-
-PMT=$3
-Threshold=$6
 
 SAVEIFS=$IFS
 IFS=, read -a Zenith <<< "$4"
@@ -444,7 +457,11 @@ while test $izn -lt $iznEnd
        sed '/AomegaEnable=enable/s/Aomega/#Aomega/g'             <tmp2 >tmp1
        sed '/ArrayTrigEnable=enable/s/Array/#Array/g'            <tmp1 >tmp2
        sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
-       sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'  <tmp1 >tmp2
+       if [ "$TELESPEC" = "OA" ]; then
+         sed '/Fall09ArrayPositionsEnable=enable/s/Fall/#Fall/g' <tmp1 >tmp2
+       else
+         sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'<tmp1 >tmp2
+       fi
        sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
        sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
@@ -687,16 +704,8 @@ while test $izn -lt $iznEnd
          ################################################################
          echo 'KSAuto: Setting ksAomegaV'$Threshold'('$8').config files to '$7'.dat values'
 
-	 if [ "$PMT" != "U" ]; then
-	    if [ - n "$CARVER" ]; then
-              PFile=/project/projectdirs/astrogfs/veritas_data/glenn/data/veritas/1FGLJ0515.9+1528/54008.root
-            else
-	      PFile=$SCRATCH'/simulations/veritas/54008StdCuts.root'
-            fi
-         else
-	   PFile=$lcl'/../simulations/veritas/'$9
-         fi
-
+	 PFile=$lcl'/../simulations/veritas/'$9
+ 
 	 {
 	     while read tel threshold noise eff gain 
 	       do
@@ -750,7 +759,11 @@ while test $izn -lt $iznEnd
        sed '/#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
        sed '/#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
        sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
-       sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'  <tmp1 >tmp2
+       if [ "$TELESPEC" = "OA" ]; then
+	 sed '/Fall09ArrayPositionsEnable=enable/s/Fall/#Fall/g'  <tmp1 >tmp2
+       else
+	 sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g' <tmp1 >tmp2
+       fi
        sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
        sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
