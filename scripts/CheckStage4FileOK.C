@@ -22,8 +22,8 @@ void CheckStage4FileOK(string fileName)
     return; 
   } 
   //Probably want a ShowerData TTree check here.
-  TTree*  pfShowerDataTree = pfRootIO->loadTheShowerDataTree();
-  if(!pfShowwerDataTree)
+  TTree*  pfShowerDataTree = pfRootIO->loadTheShowerEventTree();
+  if(!pfShowerDataTree)
    {
      badCode=3;
      ofstream os("CheckStage4FileOK.Result");
