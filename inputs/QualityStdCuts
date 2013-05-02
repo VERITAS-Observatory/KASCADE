@@ -138,7 +138,7 @@ Max3Upper
 Max4Lower 
 
 # VAHillasData upper fMax4 bound [digital counts]. Default 
-# value is 1e+09. Telescopes are identified such that 0==all 
+# value is 1e+09.  Telescopes are identified such that 0==all 
 # telescopes, 1==T1, 2==T2, 3==T3, 4==T4. For example to cut 
 # all events at >=1000 dc do -Max4Upper=0/1000 
 Max4Upper 
