@@ -145,25 +145,26 @@ if [ "$TelSpec" != "U" ] && [ "$TelSpec" != "V" ] &&
 fi
 
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
-   TelSpec='V'
+   TelS='V'
    PMTSpec='U'
    ConfigTriggerSpec='V'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}
 fi
 if [ "$TelSpec" = "V" ]; then 
-   TelSpec='V'
+   TelS='V'
    PMTSpec='V'
    ConfigTriggerSpec='V'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}
 fi
-
 if [ "$TelSpec" = "W" ]; then 
-   TelSpec='W'
+   TelS='W'
    PMTSpec='W'
    ConfigTriggerSpec='W'${TriggerSpec:1}
    PrimarySpec='W'${PrimarySpec:1}
 
 fi
+TelSpec=$TelS
+
 
 
 #########################
