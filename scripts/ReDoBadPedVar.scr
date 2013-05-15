@@ -1,9 +1,9 @@
 #$1 List of bad Pedvar files that need to be rerun
 # looks like: Bad: PedVar12.35WUGMDL10U10_270Deg2DS1.25Wbl45mv1234M2.root
 BadFile=$1
-  sed '1,5d' <$BadFile >tmp1
-  sed '$d' <tmp1 >tmp2
-  sed '$d' <tmp2 >tmp1
+  sed '1,6d' <$BadFile >tmp1
+#  sed '$d' <tmp1 >tmp2
+#  sed '$d' <tmp2 >tmp1
   sed '$d' <tmp1 >tmp2
   sed '$d' <tmp2 >tmp1
   sed '/Bad/s/U1Deg/U1_0Deg/g'    <tmp1     >tmp2
