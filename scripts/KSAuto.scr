@@ -17,19 +17,25 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-# Within that loop we can do:         #"dm" below indicates dummy value needed
+LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+                              #with ksProduction and only want to make
+                              #750 submission in queue at one time.Causes us to
+                              #wait
+
+# Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
-GenerateTeFiles=enabled                #needs $1 $2 $3 $4 $5 $6          WAITS!
-#HTARTeFilesFromArchive=enabled         #needs $1 $2 $3 $4 $5
-#CheckGeneratedTeFiles=enabled          #needs $1 $2 $3 $4 $5            WAITS!
-#HTARTeFilesToArchive=enabled           #needs $1 $2 $3 $4 $5
-#CheckHTARTeFiles=enabled               #needs $1 $2 $3 $4 $5
-#BuildMDLAomeagaConfig=enabled          #needs $1 $2 $3 $4 $5 $6 $7 $8 $9 
-#GenerateShowerVBFFiles=enabled         #needs $1 $2 $3 $4 $5 $6 $7 $8 NO WAIT!
-#CheckGeneratedShwrVBFFiles=enabled     #needs $1 $2 $3 $4 $5 $6 dm $8 
-#HTARShowerVBFFilesFromArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
-#GenerateZnAzVBFFile=enabled            #needs $1 $2 $3 $4 $5 $6 $7 $8  (576)
-#HTARShowerVBFFilesToArchive=enabled    #needs $1 $2 $3 $4 $5 $6 $7 $8 
+
+#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+#HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
+CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+#HTARTeFilesToArchive=enabled          # $1$2$3$4$5
+#CheckHTARTeFiles=enabled              # $1$2$3$4$5
+#BuildMDLAomeagaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
+#GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+#CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
+#HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
+#GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
+#HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
 
 #DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
@@ -55,10 +61,69 @@ EntryHe4End=44
 
 
 ###########################################################################
+function CheckQsubSubmissions()
+#$1  Max HTAR Qsubs active at one time
+#$2  Running qsub List File name
+{
+  #############################################################
+  # File RunningQsubListFile is a list of the names of the sgeFile.Done files 
+  # that will be generated when the various running .qsub jobs complete.
+  # Until the jobs complete the *.Done don't exist.  We count the not existing
+  # files. If less than $1 files don't exist  which means the jobs are still 
+  # active, we sleep for 60 seconds and try again. When a *.Done is  found to 
+  # exist it is removed from the RunningQsubListFile file and this function 
+  # returns so a new submission can be made. Other wise the code just sits 
+  # here sleeping for 60 sec between checks.
+  ################################################################
+  RunningQsubListFile=$2   
+  RunningQsubListTmp=$2'.tmp'
+  if [ ! -e "$RunningQsubListFile" ]; then  #empty (just starting up)
+     echo no $RunningQsubListFile
+     return
+  fi
+  if [ -e "$RunningQsubListTmp" ]; then
+      rm -v $RunningQsubListTmp
+  fi
+
+  #echo $2':'
+  #cat $2
+
+  let count=$1
+  while test "$count" -ge  $1 
+   do
+   let count=0
+   {
+    while read QsublogFile
+     do
+	if [ -e "$QsublogFile" ]; then
+	    rm $QsublogFile
+	else
+	    count=$((count+1))
+            #echo count During: $count
+	    echo $QsublogFile >>$RunningQsubListTmp
+        fi
+     done
+   }<$RunningQsubListFile
+
+   if [ -e "$RunningQsubListTmp" ]; then
+     cp $RunningQsubListTmp  $RunningQsubListFile
+     rm $RunningQsubListTmp
+   else
+     rm $RunningQsubListTmp
+     #echo empty count: $count
+   fi
+   #echo countAfter: $count
+
+   if [ $count -ge $1 ]; then       #We are full, wait a bit and try again
+     sleep 60
+   fi
+  done
+}
+####################################################################
+
 function checkRunningJobs()
 #$1 Job ID List
 #$2 Zn_Az
-
 {
   RunningList=RunningList$2'.dat'
   SingleRunList=singleRunList$2'dat'
@@ -83,6 +148,7 @@ function checkRunningJobs()
   fi
 }
 ###########################################################################
+
 function checkFilesExist()
 #$1 FileDir
 #$2 TeName
@@ -206,14 +272,26 @@ function SubmitHtarToArchive()
   #$1 directory that holds directory we want to archive
   #$2 Directory we want to archive
   #$3 filename (Directiory to archive)
+  #$4 List of files to look for to determine completion.
+  #$5 Max HTAR programs to run at a time
+
   DestinationDir=$1    #Archive directory
   SourceDir=$2         #Disk Base Directory
   ShwrDir=$3           #filename (Directiory to archive)
-  
+  QsubDoneList=$4
+  MaxHTARQsubs=$5
+
   echo DestinationDir: $DestinationDir
   echo SourceDir: $SourceDir
   echo ShwrDir: $ShwrDir
 
+  #################################
+  #Wait for romm for next file in queue
+  #################################
+  
+  if [  "$LimitSubmissions" ]; then
+    CheckQsubSubmissions  $MaxHTARQsubs  $QsubDoneList 
+  fi 
 
   local=$PWD
   cd $SourceDir 
@@ -225,8 +303,16 @@ function SubmitHtarToArchive()
   fi
   cd $local
 
+
   #build a submission .pbs file
-  sgeFile=$lcl'/'$ShwrDir'HTAR.pbs'
+  sgeFile=$ShwrDir'HTAR.pbs'
+  sgeDoneFile=$sgeFile'.Done'
+  if [  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
+      rm $sgeDoneFile
+  fi
+
+
+  sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
   if [ -n "$HANSEN" ]; then  
@@ -236,39 +322,18 @@ function SubmitHtarToArchive()
   echo cd $SourceDir                                              >>$sgeFile
   echo htar -cvf  $DestinationDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
   echo '>'$local'/'$ShwrDir'.log'     >>$sgeFile
+  if [ -n "$LimitSubmissions" ]; then
+    echo adding: $sgeDoneFile
+    echo $sgeDoneFile >>$QsubDoneList #add the next one
+    echo 'echo Done >'$sgeDoneFile                                >>$sgeFile
+  fi
 
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'To.log'
+
+
   qsub -V -e $ShwrDir'HTARTo.pbs.err' -o $ShwrDir'HTARTo.pbs.log' $sgeFile >$HTARLOG
 
-  #####################################################################
-  # We are now going to wait for the htar to finish.
-  #####################################################################
-
-  if [ -n "$HANSEN" ]; then
-   echo "KSAuto: htar to archive "$ShwrDir" job submission to Hansen "$QUEUE" queue complete."
-  fi
-  if [ -n "$CARVER" ]; then
-   echo "KSAuto: htar to archive "$ShwrDir" job submission to Carver cluster complete."
-  fi
-  date
-  echo "KSAuto: Sleeping until it finishes."
-  # Cleanup the log file to only have Hansen cluster pids in it
- 
-  ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
-  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
-
-  runsNotDone=1
-  while test $runsNotDone -eq 1 
-    do
-     sleep 60s
-     checkRunningJobs $ShowerMakeTE $ZnAz
-     let runsNotDone=$?
-    done
-  echo "KSAuto: HTAR of "$TeName" complete"
-
-  # And now cleanup: change protection
-  chmod 775 $HtarDir$ShwrDir'.tar'
   cd $lcl
 }
 #########################################################################
@@ -278,6 +343,8 @@ function SubmitHtarFromArchive()
   #$1 Archive directory where our tar file exists
   #$2 Destination directory where we want to unTar into.
   #$3 name of the Tar file we want to untar(without .tar extention).
+  #$4 List of files to look for to determine completion.
+  #$5 Max HTAR programs to run at a time
 
   local=$PWD
 
@@ -285,11 +352,27 @@ function SubmitHtarFromArchive()
   DestinationDir=$2      #Base Disk directory
   Source=$3              #Base Tar file name
   SourceTarFile=$3'.tar'
+  QsubDoneList=$4
+  MaxHTARQsubs=$5
 
   echo 'Src: '$ArchiveDir'/'$SourceTarFile 
 
+  #################################
+  #Wait for romm for next file in queue
+  #################################
+  
+  if [  "$LimitSubmissions" ]; then
+    CheckQsubSubmissions  $MaxHTARQsubs  $QsubDoneList 
+  fi 
+
   #build a submission .pbs file
-  sgeFile=$lcl'/'$Source'From.pbs'
+  sgeFile=$Source'From.pbs'
+  sgeDoneFile=$sgeFile'.Done'
+  if [  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
+      rm $sgeDoneFile
+  fi
+  
+  sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
   if [ -n "$HANSEN" ]; then
@@ -297,46 +380,56 @@ function SubmitHtarFromArchive()
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
   echo cd $DestinationDir                                  >>$sgeFile
-  echo htar -xvf  $ArchiveDir'/'$SourceTarFile  . \\         >>$sgeFile
+  echo htar -xvf  $ArchiveDir'/'$SourceTarFile  . \\       >>$sgeFile
   echo '>'$local'/'$Source'.log'     >>$sgeFile
+  if [ -n "$LimitSubmissions" ]; then
+    echo adding: $sgeDoneFile
+    echo $sgeDoneFile >>$QsubDoneList #add the next one
+    echo 'echo Done >'$sgeDoneFile                         >>$sgeFile
+  fi
 
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
   qsub -V -e $Source'HTARFrom.pbs.err' -o $Source'HTARFrom.pbs.log' $sgeFile >$HTARLOG
 
-  #####################################################################
-  # We are now going to wait for the htar to finish.
-  #####################################################################
-
-  if [ -n "$HANSEN" ]; then
-   echo "KSAuto: htar from archive "$ShwrDir" job submission to Hansen "$QUEUE" queue complete."
-  fi
-  if [ -n "$CARVER" ]; then
-   echo "KSAuto: htar from archive "$ShwrDir" job submission to Carver cluster complete."
-  fi
-#  date
-#  echo "KSAuto: Sleeping until it finishes."
-#  # Cleanup the log file to only have Hansen cluster pids in it
-# 
-#  ShowerMakeTE='ShowerMakeTE'$ZnAz'.log'
-#  cat $HTARLOG | grep $JobIDHost >$ShowerMakeTE
-#
-#  runsNotDone=1
-#  while test $runsNotDone -eq 1 
-#    do
-#     sleep 60s
-#     checkRunningJobs $ShowerMakeTE $ZnAz
-#     let runsNotDone=$?
-#    done
-#  echo "KSAuto: HTAR of "$TeName" complete"
-
-  # And now cleanup: change protection
-  chmod 775 $HtarDir$ShwrDir'.tar'
   cd $lcl
 }
-  ##########################################################################
+##########################################################################
 
+function SubmitQsubJobs()
+#################################################
+#$1  List of .qsub jobs to submit
+#$2  file with all the names of the *.qsub.Done files the submitted jobs will 
+#    write when they finish
+#$3  Maximum jobs to have running or waiting to run in the queue
+{
+  QsubList=$1
+  QsubDoneList=$2
+  MaxQsubs=$3
 
+  if [ -e "$QsubDoneList" ]; then
+    rm $QsubDoneList
+  fi
+
+  {
+    while read sgeFileFull
+      do
+        CheckQsubSubmissions  $MaxQsubs $QsubDoneList 
+                                     #Gets here when we can submit the next job
+        sgeFile=${sgeFileFull##*/}
+        echo $sgeFile
+        sgeDoneFile=$sgeFileFull'.Done'
+        if [ -e "$sgeDoneFile" ]; then
+          rm $sgeDoneFile
+        fi
+        echo adding: $sgeDoneFile
+	echo $sgeDoneFile >>$QsubDoneList #add the next one
+       
+       qsub -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+      done
+   }<$QsubList
+}
+############################################################################
 
 lcl=$PWD
 source /etc/profile
@@ -352,6 +445,10 @@ then
   JobIDHost='cvrsvc'
   QUEUE=serial
   echo '***Carver Cluster***'
+  if [ -e "$LimitSubmissions" ]; then
+    let MaxQsubs=750
+    let MaxHTARQsubs=9
+  fi
 fi
 
 hostString=${host:0:6}
@@ -363,7 +460,19 @@ then
   #QUEUE=physics
   QUEUE=standby
   echo ***Hansen Cluster***
+  if [ -e "$LimitSubmissions" ]; then
+     #let MaxQsubs=150
+     let MaxQsubs=50
+     let MaxHTARQsubs=9  fi
+  fi
 fi
+
+if [ -e "$LimitSubmissions" ]; then
+ echo "KSAuto: Overall qsub active submissions being limited to "$MaxQsubs 
+ echo "KSAuto: Overall HTAR active submissions being limited to "$MaxHTARQsubs
+fi
+
+#######################################################################
 
 TELESPEC=$3
 if [ "$3" = "W" ]; then
@@ -397,7 +506,7 @@ fi
 
 IFS=$SAVEIFS
 
-#Check if the is for 2D offsets, blank if not
+#Check if this is for 2D offsets, blank if not
 if [ "$1" = "G" ] || [ "$1" = "E" ]; then
   OffSetSpec="2D"
 fi
@@ -407,9 +516,27 @@ if [ ! -e "$lcl/KSAutoFileCheck.scr" ]; then
   cp -v $KASCADEBASE'/scripts/KSAutoFileCheck.scr' $lcl
 fi
 
+if [ -n "$LimitSubmissions" ]; then
+  if [ -n "$GenerateTeFiles" ] || [ -n "$GenerateShowerVBFFiles" ]; then
+    QsubFileNameList='KS'$2$PMT$1$'AutoqsubList'
+    if [ -e "$QsubFileNameList" ]; then
+	rm $QsubFileNameList
+    fi
+  fi
+ 
+  QsubLogs='Running'$2$PMT$1$'KASCADEQsubLogs.txt'
+  if [ -e "$QsubLogs" ]; then
+      rm $QsubLogs                     #Just some cleanup if previous run died.
+  fi
+  QsubHTARLogs=Running'HTARLogs.txt'
+  if [ -e "$QsubHTARLogs" ]; then
+      rm $QsubHTARLogs                #Just some cleanup if previous run died.
+  fi
+fi
 
 
 
+#########################################################################
 #now we loop
 
 #Zenith
@@ -474,40 +601,22 @@ while test $izn -lt $iznEnd
        echo "KSAuto: Submitting ksProduction for " $Spec 
        echo "KSAuto: This submission takes a few minuts"
 
-       ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' >KSProd$ZnAz'.log'
-
-       #####################################################################
-       # We are now going to wait for all of these to finish.
-       #####################################################################
-
-       echo "KSAuto: Submission of ksProduction to make shower TE files on "
-       if [ -n "$HANSEN" ]; then
-         echo "KSAuto: Hansen "$QUEUE" queue for "$ZnAz" complete."
-       fi
-       if [ -n "$CARVER" ]; then
-         echo "KSAuto: Carver cluster for "$ZnAz" complete."
-       fi
-       date
-
-       if [ -n "$DisableSleep" ]; then
-         echo 'SAuto: Done submission (but not generation) ' $ZnAz
+       if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
+                                            #wait until to submit more in our 
+                                            #list
+	   if [ -e $QsubFileNameList ]; then
+	      rm $QsubFileNameList
+           fi
+	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $QsubFileNameList
+                                  #Above will fill the list file 
+                                  # $QsubFileNameList with the names of the 
+                                  # .qsub files to run(but it won't run them)
+                                  #Below will run them with a max of $MaxQsubs
+                                  # in the queue at one time, submitting more 
+                                  # as it can
+           SubmitQsubJobs  $QsubFileNameList $QsubLogs $MaxQsubs
        else
-         echo "KSAuto: Sleeping until they all finish."
-         #Cleanup the log file to only have Hansen cluster pids in it
- 
-         cat KSProd$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeTE$ZnAz'.log'
-         rm KSProd$ZnAz'.log'
-         runsNotDone=1
-        
-         while test $runsNotDone -eq 1 
-	   do
-            sleep 300s
-	    checkRunningJobs 'ShowerMakeTE'$ZnAz'.log' $ZnAz
-            let runsNotDone=$?
-	   done
-           rm 'ShowerMakeTE'$ZnAz'.log'
-           rm ksallVBF$ZnAz'.scr'
-           echo "KSAuto: Te file generation complete"
+           ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr'
        fi
      fi
      #######################################################################
@@ -551,15 +660,26 @@ while test $izn -lt $iznEnd
      # HtarDir       
  
 
-     if [ -n "$HTARTeFilesFromArchive" ]; then
+     if [ -n "$HTARTFilesFromArchive" ]; then
        echo '##########################################################'
        echo '# HTARTeFilesFromArchive'
        echo '##########################################################'
-         #In order to not have this task (KSAuto.scr) be killed because it
-         #runs too long, we have to submit this htar command to the cluster.
-       SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName 
-     fi
+       #In order to not have this task (KSAuto.scr) be killed because it
+       #runs too long, we have to submit this htar command to the cluster.
+       ###############################################################
+       # Since the if QsubHTARLogs $MaxHTARQsubs variable are not defined 
+       #(ie are blank)  if LimitSubmissions is not enabled we really don't 
+       # need the following test but it does make things clearer
+       ################################################################
+       if [  "$LimitSubmissions" ]; then
 
+	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName $QsubHTARLogs $MaxHTARQsubs
+
+       else
+         SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName 
+       fi
+     fi
+     #####################################################################
 
      if [ -n "$CheckGeneratedTeFiles" ]; then
        echo '##########################################################'
@@ -611,15 +731,25 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
        echo '# HTARTeFilesToArchive'
        echo '##########################################################'
-         #In order to not have this task (KSAuto.scr) be killed because it
-         #runs too long, we have to submit this htar command to the cluster.
-   
        cd $lcl
        date
 
-       SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName
-      
-    fi
+       #In order to not have this task (KSAuto.scr) be killed because it
+       #runs too long, we have to submit this htar command to the cluster.
+       ###############################################################
+       # Since the if QsubHTARLogs $MaxHTARQsubs variable are not defined 
+       #(ie are blank)  if LimitSubmissions is not enabled we really don't 
+       # need the following test but it does make things clearer
+       ################################################################
+       if [  "$LimitSubmissions" ]; then
+
+         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName $QsubHTARLogs $MaxHTARQsubs
+
+       else 
+         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName 
+       fi
+
+     fi
      #########################################################################
 
 
@@ -781,36 +911,24 @@ while test $izn -lt $iznEnd
        #make up our ksProduction designation
        Spec=$ksProdSpec$8
 
-       './ksProduction.scr'  $Spec ksallVBF$ZnAz'.scr' >KSProcess$ZnAz'.log'
-
-       #####################################################################
-       # We are now going to wait for all of these to finish.
-       ### #################################################################
-
-       echo "KSAuto: Submission of ksProduction to make shower TE files on "
-       if [ -n "$HANSEN" ]; then
-         echo "KSAuto: Hansen "$QUEUE" queue for "$ZnAz" complete."
+       if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
+                                            #wait until to submit more in our 
+                                            #list
+	 if [ -e $QsubFileNameList ]; then
+	    rm $QsubFileNameList
+         fi
+	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList
+                                  #Above will fill the list file 
+                                  # $QsubFileNameList with the names of the 
+                                  # .qsub files to run(but it won't run them)
+                                  #Below will run them with a max of $MaxQsubs
+                                  # in the queue at one time, submitting more 
+                                  # as it can
+          SubmitQsubJobs  $QsubFileNameList $QsubLogs $MaxQsubs
+       else
+          ./ksProduction.scr  $Spec ksallVBF$ZnAz'.scr' 
        fi
-       if [ -n "$CARVER" ]; then
-         echo "KSAuto: Carver cluster for "$ZnAz" complete."
-       fi
-       date
-#       echo "KSAuto: Sleeping until they all finish."
-#       # Cleanup the log file to only have cluster pids in it
-# 
-#       cat KSProcess$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerMakeVBF$ZnAz'.log'
-#
-#       runsNotDone=1
-#        
-#       while test $runsNotDone -eq 1 
-#	 do
-#          sleep 300s
-#	  checkRunningJobs 'ShowerMakeVBF'$ZnAz'.log' $ZnAz
-#          let runsNotDone=$?
-#	 done
-#       rm ksallVBF$ZnAz'.scr'
        echo "KSAuto: VBF shower file generation complete"
-      
        cd $lcl
      fi
      #######################################################################
@@ -874,15 +992,19 @@ while test $izn -lt $iznEnd
    
        cd $lcl'/../simulations/veritas/'
        date
+       ###############################################################
+       # Note that the QsubHTARLogs and MaxHTARQsubs variables are not defined 
+       #(ie are blank) if LimitSubmissions is not enabled
+       ################################################################
        if [ "$1" = "CR" ] ; then
-	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   
+	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  
+	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
 	ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
 
-        SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir 
+        SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
      #########################################################################
@@ -939,18 +1061,22 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
          #In order to not have this task (KSAuto.scr) be killed because it
          #runs too long, we have to submit this htar command to the cluster.
+       ###############################################################
+       # Note that the QsubHTARLogs and MaxHTARQsubs variables are not defined 
+       #(ie are blank) if LimitSubmissions is not enabled
+       ################################################################
    
        cd $lcl'/../simulations/veritas/'
        date
        if [ "$1" = "CR" ] ; then
-	 SubmitHtarToArchive $HtarDir'/'$2$PMT'P'$7'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir
+	 SubmitHtarToArchive $HtarDir'/'$2$PMT'P'$7'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarToArchive $HtarDir'/'$2$PMT'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir
+	 SubmitHtarToArchive $HtarDir'/'$2$PMT'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
         ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
 
-        SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir
+        SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
      #########################################################################
@@ -968,7 +1094,7 @@ while test $izn -lt $iznEnd
 #$6 Threshold: Ex 45mv or 50mv
 #$7 MDL file name for VBF files: Ex MDL12U
 #$8 Telescope 4 character spec: Ex: ABCD or wxyz
-#$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
+    #$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
 
 
 
@@ -1001,5 +1127,6 @@ date
 echo 'KSAuto: All done!--Good bye!'
 
 ###########################################################################
+
 
       
