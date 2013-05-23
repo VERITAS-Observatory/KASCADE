@@ -46,7 +46,7 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 #---------------------------------------
 #GenerateSubLTListFiles=enabled                   #No waiting/no limit
 #GenerateSubLTConfigFiles=enabled                 #No waiting/no limit
-#ProduceSubLookupTables=enabled                   #No waiting/81 max
+ProduceSubLookupTables=enabled                   #No waiting/81 max
 #CombineSubLT=enable                              #No waiting/no limit
 #BuildLTTree=enable                               #No waiting/no limit
 #---------------------------------------
@@ -66,7 +66,7 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 #*Generate Stage4
 #---------------------------------------
 #GenerateStage4Files=enabled                       #See LimitSubmissions above
-CheckStage4Files=enabled                      
+#CheckStage4Files=enabled                      
 #--------------------------------------
 
 #HTARPedVarZnOffsetS4ToArchive=enabled             #See LimitSubmissions above
@@ -85,7 +85,7 @@ CheckStage4Files=enabled
 ###########################################################################
 function CheckQsubSubmissions()
 #$1  Max HTAR Qsubs active at one time
-#$2  Running qsubL List File name
+#$2  Running qsub List File name
 {
   #############################################################
   # File RunningHtarQsubLogs.txt is a list of the names of the qsub.log files that
@@ -474,7 +474,9 @@ CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
 
-LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250_alloffsets'
+#LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250_alloffsets'
+LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_050offset'
+
 DTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250_alloffsets'
 
 
@@ -483,11 +485,13 @@ if [ $HMode = "HFit" ]; then
 else
     LTCUTSFILE=$VEGAS'/../tables/LookupTable'
 fi
-if [ -n ${10} ]; then 
-    LTCUTSFILE=$LTCUTSFILE'StdCuts'
+
+if [ -n "${10}" ]; then 
+    LTCUTSFILE=$LTCUTSFILE{10}'Cuts'
 else
-    LTCUTSFILE=$LTCUTSFILE${10}'Cuts'
+    LTCUTSFILE=$LTCUTSFILE'StdCuts'
 fi
+
 
 
 if [ -n "$ProduceSubLookupTables" ]; then
@@ -653,7 +657,7 @@ if [ -n "$GenerateStage2Files" ]; then
                                           < VegasSimProductionS1S2.scr >tmp1
      sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
      sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-     sed '/Stage4=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
+     sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
      sed '/Stage5=enable/s/Stage5/#Stage5/g' \
                                            <tmp2 >VegasSimProductionS1S2.scr
      chmod 755 VegasSimProductionS1S2.scr
@@ -695,8 +699,8 @@ if [ -n "$GenerateStage4Files" ]; then
 
     FILEBASE=${10}'Cuts'
     LTFILENAME='lt'$LTFILENAMEBASE'.root'
-    sed '/FileBase=StdCuts/s/StdCuts/'$FILEBASE'/g'                  <tmp1 >tmp2
-    sed '/cuts=QualityStdCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g' <tmp2 >tmp1
+    sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
+    sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
     mv tmp2 VegasSimProductionS4.scr
     chmod 755  VegasSimProductionS4.scr
@@ -831,12 +835,13 @@ if [ -n "$GenerateSubLTConfigFiles" ]     || [ -n "$GenerateSubLTListFiles" ] ||
      #Note we could also just remove the Zn line in the config file!
      exit
    fi
-   if test $iwblEnd -lt "1"
-    then
-      echo 'VAAuto: Fatal! Need at least 2 Offset(Wbl) values specified'
-     #Note we could also just remove the Noise line in the config file!
-      exit
-   fi
+   #Allow one Offset(ie any number at all) (Comment out the following if then)
+   #if test $iwblEnd -lt "1"
+   # then
+   #   echo 'VAAuto: Fatal! Need at least 2 Offset(Wbl) values specified'
+   #  #Note we could also just remove the Noise line in the config file!
+   #   exit
+   #fi
 fi
 ##########################################################################
 
@@ -1110,12 +1115,12 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    sed '/LTM_LengthFillType " "/s/" "/"'$CFG_L'"/g'      <tmp2 >tmp1
    sed '/LTM_EaxisEnergyFillType " "/s/" "/"'$CFG_E'"/g' <tmp1 >tmp2
   
-   sed '/LTM_EnergyFillType " "/s/" "/"MEAN"/g'      <tmp2 >tmp1
-   sed '/TelID        /s/TelID/TelID  '$TelIDStr'/g' <tmp1 >tmp2
-   sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <tmp2 >tmp1
-   sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g' <tmp1 >tmp2
-   sed '/Noise         /s/Noise/Noise '$NoiseStr'/g' <tmp2 >tmp1
-   sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <tmp1 >tmp2
+   sed '/LTM_EnergyFillType " "/s/" "/"MEAN"/g'        <tmp2 >tmp1
+   sed '/TelID        /s/TelID/TelID  '$TelIDStr'/g'   <tmp1 >tmp2
+   sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g'   <tmp2 >tmp1
+   sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g'   <tmp1 >tmp2
+   sed '/Noise         /s/Noise/Noise '$NoiseStr'/g'   <tmp2 >tmp1
+   sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g'   <tmp1 >tmp2
    sed '/Log10SizePerBin/s/0.04/0.07/g'              <tmp2 >tmp1
    sed '/ImpDistUpperLimit/s/400/800/g'	             <tmp1 >tmp2
    sed '/Log10EaxisEnergyUpperLimit/s/6/5/g'         <tmp2 >tmp1
@@ -1308,14 +1313,20 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 
            ##############################################################
            #Now do the same for the Offset but put in final file
-	   if test $iwbl -eq "0" 
+           #If we only are doing one offset leavce AbsoluteOffset blank
+	   if test $iwblEnd -eq "1"   #Allows for only one WBl
+            then   
+               sed '/luteOffset/s/'$ABOStr'/   /g'  <config2.tmp >$ConfigName
+            else
+	      if test $iwbl -eq "0" 
 	       then
-	     W=${WblOffset[$iwbl]},${WblOffset[1]}
-	   else
-	     W=${WblOffset[0]},${WblOffset[$iwbl]}
-	   fi
+	         W=${WblOffset[$iwbl]},${WblOffset[1]}
+	       else
+	         W=${WblOffset[0]},${WblOffset[$iwbl]}
+	      fi
+              sed '/luteOffset/s/'$ABOStr'/'$W'/g'  <config2.tmp >$ConfigName
+             fi   
            #now replace Offset argument and put in a final file
-	   sed '/luteOffset/s/'$ABOStr'/'$W'/g'  <config2.tmp >$ConfigName
 	   rm config2.tmp
        fi
        #********************************************************************
@@ -1378,12 +1389,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	 sgeFile=$lcl'/'$SUBLTBASE'.pbs'
 	 echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
 	 if [ -n "$CARVER" ]; then
-	     echo "#PBS -l pvmem=15GB"                  >>$sgeFile
+	     echo "#PBS -l pvmem=24GB"               >>$sgeFile
 	 fi
 	 if [ -n "$HANSEN" ]; then
-	     echo "#PBS -l mem=15GB"                   >>$sgeFile
-	     echo source /etc/profile                  >>$sgeFile
-	     echo module load gcc/4.7.2                >>$sgeFile
+	     echo "#PBS -l mem=24GB"                 >>$sgeFile
+	     echo source /etc/profile                >>$sgeFile
+	     echo module load gcc/4.7.2              >>$sgeFile
 	 fi
 	 echo cd $lcl                                >>$sgeFile
 	 echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
@@ -1475,11 +1486,11 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
              # echo '# GenerateSubLTListFiles'
 	     # echo '##########################################################'
 	     cd $lcl
-             if [ -n ${10} ]; then
-                echo $PedVarS4FileName >>$ListName
-	     else
+             #if [ -n "${10}"]; then  
+             #  echo $PedVarS4FileName >>$ListName
+	     #else
 		 echo $PedVarS2FileName >>$ListName
-	     fi
+	     #fi
 	   fi
            #******************************************************************
 	   
@@ -1610,7 +1621,7 @@ if [ -n "$BuildLTTree" ]; then
    LTFILENAME='lt'$LTFILENAMEBASE'.root'
    date
    BUILDCONFIG='BuildTree'$Samples'Samples.config' 
-   $VEGAS/showerReconstruction2/bin/buildTree -save_config_and_exit tmp1
+   $VEGAS/showerReconstruction2/bin/buildLTTree -save_config_and_exit tmp1
 
    #**********************************************************************
    #Modify for this LT: except for TelID we need at least 2 to change things
@@ -1643,6 +1654,9 @@ if [ -n "$BuildLTTree" ]; then
      INFILE=$OUTFILE
      OUTFILE=$TMPFILE
    fi
+
+   #This should allow for single offset in which case the AbsoluteOFffset is left 
+   #blank in the buildTree config file.
    if [ ${#WblOffset[@]} -gt "1" ]; then
      sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <$INFILE >$OUTFILE
      TMPFILE=$INFILE
@@ -1651,7 +1665,7 @@ if [ -n "$BuildLTTree" ]; then
    fi
    mv $INFILE $BUILDCONFIG
 
-   $VEGAS/showerReconstruction2/bin/buildTree '-config='$BUILDCONFIG $LTFILENAME 
+   $VEGAS/showerReconstruction2/bin/buildLTTree '-config='$BUILDCONFIG $LTFILENAME 
 fi
 ##############################################################################
 
