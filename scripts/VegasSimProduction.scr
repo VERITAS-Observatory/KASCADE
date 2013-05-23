@@ -1,4 +1,4 @@
-#!/bin/bash
+VegasSim#!/bin/bash
 #This runs first 5 Vegas stages on Kascade sim files;
 #It is the base version with only defualt things enabled.
 #$1 .vbf  file to process. Prior and post extentison will be added>
@@ -24,7 +24,7 @@
 echo Stage1Laser: $Stage1Laser
 echo Stage1Data:  $Stage1Data
 echo Stage2:      $Stage2 
-echo Stage4:      $Stage4
+echo Stage4_2:    $Stage4_2
 echo Stage5:      $Stage5
 ##############################################################################
 #Configurable options:
@@ -89,22 +89,22 @@ fi
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
-  QualityCuts='-cuts=QualityStdCuts'
+  QualityCuts='QualityStdCuts'
 
-  #Table=lt-newarray-050-4.root
   #"LookupTable" below should be replaced by actual name.
   #  Actual table expected to be in directory: $VEGAS/../tables
   Table=LookupTable
 
 #Stage5
- ShowerCutsBaseFile=ShowerCutsStd	  
- #ShowerCutsBaseFile=ShowerCutsM1	  
+
+ ShowerCutsFile=ShowerStdCuts	  
+
   #Cuts file specification for testing of good events. Causes setting of 
   #CutMask flag in combined tree and/or removel of events is so specified (see
   # OutputTreeOptions below. 
   # For MLM this hould Have no theta2 cut
 
- ShowerCutsOption='-cuts=ShowerCutsFile'
+ ShowerCutsOption='-cuts='$ShowerCutsFile
 
 ###############################################
 #The SpecialCutsFile has lines indexed by file names of special run-specific 
@@ -204,7 +204,7 @@ if [ -n "$Stage4_2" ]; then
      cp -v $RootFileName $CutRootFileName
      echo ET: $LookUpTableDir/$Table
      $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table -OverrideLTCheck=1 \
-	$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
+	-cuts=$LookUpTableDir/$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
 	$SeparationAngleCutOption $CutRootFileName
 fi
@@ -217,6 +217,6 @@ if [ -n "$Stage5" ]; then
 	OutputFileNameOpt='-outputFile='$OutputFileName
       fi
       
-    $VEGAS/bin/vaStage5 	$ShowerCutsOption $OutputTreeOptions \
+    $VEGAS/bin/vaStage5 -cuts=$LookUpTableDir/$ShowerCuts $OutputTreeOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
 fi
