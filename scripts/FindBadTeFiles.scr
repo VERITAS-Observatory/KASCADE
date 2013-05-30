@@ -1,0 +1,85 @@
+#Script to find "short" Te files.Gammas only for now.Easy enought to extend.
+#
+#$1 Zn value to search Ex: 1 or 10 or 70
+#$2 Season/Array/Primary  Ex: WUG  SVGn SUG
+#   expects files to be in directories in gammas/V190/$2$1{D,_}* 
+#######################################################################
+# assume we start in 'V'
+#
+Zn=$1
+SAP=$2
+lcl=$PWD
+
+energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 43707 52265 )
+
+# ************************************************************************
+# Scheme is to use ls to get a listing of file size for each Te file at one 
+# of the energies and to find mean (Max?) and to flag anything more than 10% 
+# (20%?) less to an ouput file that ReDoMissingTefiles.scr can regen.
+# ************************************************************************
+
+# Loop over energies: start at above 1TeV
+let iStart=10
+#let iStart=23
+#let iStart=40
+let iEnd=44
+
+cd $lcl'/../simulations/veritas/gammas/V190'
+pwd
+
+let i=$iStart
+while test $i -le $iEnd 
+  do
+    E='GeV'${energy[$i]}'te.d'
+    rm g.tmp
+    ls -sl $SAP$Zn'D'*/*$E* >g.tmp
+    ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
+
+    # Now find mean of this file
+    let icount=0
+    let max=0
+    let sum=0
+    {
+      while read size a
+        do
+          icount=$((icount+1))
+          sum=$(($sum+$size))
+          if [ "$size" -gt "$max" ]; then
+             max=$size
+          fi
+        done
+     }<g.tmp
+    # *****************************************************
+    # use bc to do some math to find 70% of max
+    # *****************************************************
+    Mean=$(echo "$sum/$icount" | bc)
+    FracMax=$(echo ".70*$max" | bc)
+    FracMax=${FracMax%%.*}
+    FracMean=$(echo ".70*$Mean" | bc)
+    FracMean=${FracMean%%.*}
+    if [ "$FracMax" -lt "$FracMean" ]; then
+       Min=$FracMax
+       #echo FracMax
+    else
+       Min=$FracMean
+       #echo FracMean
+    fi
+
+    #echo $Zn $E $max $FracMax $Mean $FracMean $Min
+    {
+     while read size a b c d e f g h j
+      do
+       #echo $size $j
+       if [ "$Min" -gt "$size" ]; then
+        j=${j##*/}
+	echo File Not found: $j 
+        echo $Min $size 
+       fi 
+      done
+     }<g.tmp
+     i=$((i+1))
+  done
+cd $lcl
+
+
+
