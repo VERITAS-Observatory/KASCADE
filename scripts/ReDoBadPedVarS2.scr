@@ -1,0 +1,54 @@
+#$1 CheckS2.log type file from:
+# ./VAAutoG.scr W U G MDL10U All All All 45mv All >CheckS2.log
+# This files has a list of files that need to be rerun
+# the lines we need look like: 
+# Bad: PedVar12.35WUGMDL10U10_270Deg2DS1.25Wbl45mv1234M2.root
+##########################################################################
+
+echo Warning!!: Make sure VAAuto has correct GenerateStage2Files=enabled
+echo Warning!!: or GenerateStage2Files=enabled selected
+
+BadFile=$1
+
+##################################################################
+# Kep only the "Bad" lines in the file
+##################################################################
+
+grep Bad $BadFile >tmp1
+
+#################################################################
+# Parse the bad files names so we can resubmit them to VAAuto
+#################################################################
+
+#########################
+# fist add the _0 to 0 deg az file names in prep for latter 
+#########################
+
+  sed '/Bad/s/U1Deg/U1_0Deg/g'    <tmp1     >tmp2
+  sed '/Bad/s/U10Deg/U10_0Deg/g'  <tmp2     >tmp1
+  sed '/Bad/s/U20Deg/U20_0Deg/g'  <tmp1     >tmp2
+  sed '/Bad/s/U30Deg/U30_0Deg/g'  <tmp2     >tmp1
+  sed '/Bad/s/U40Deg/U40_0Deg/g'  <tmp1     >tmp2
+  sed '/Bad/s/U50Deg/U50_0Deg/g'  <tmp2     >tmp1
+  sed '/Bad/s/U60Deg/U60_0Deg/g'  <tmp1     >tmp2
+  sed '/Bad/s/U70Deg/U70_0Deg/g'  <tmp2     >tmp1
+
+
+#############################################################
+#Now seperate things and remover unwanted stuff
+#############################################################
+
+  sed '/Bad/s/Wbl45mv1234M2.root/ /g'  <tmp1     >tmp2
+  sed '/Bad/s/Deg2D/  /g'              <tmp2     >tmp1
+  sed '/Bad/s/_/  /g'                  <tmp1     >tmp2
+  sed '/Bad/s/WUGMDL10U/  /g'          <tmp2     >tmp1
+  sed '/Bad/s/S/ /g'                   <tmp1     >tmp2
+  sed '/Bad/s/Bad: PedVar/ /g'         <tmp2     >tmp1
+{  
+  while read PV ZN AZ OFF
+    do
+      ./VAAuto.scr W U G MDL10U $ZN $AZ $OFF 45mv $PV
+    done
+}<tmp1
+
+

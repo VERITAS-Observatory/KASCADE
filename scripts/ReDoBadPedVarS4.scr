@@ -1,0 +1,55 @@
+#$1 CheckS4.log type file from:
+# ./VAAutoG.scr W U G MDL10U All All All 45mv All UpgradeLoose >CheckS4UpgradeLoose.log
+# This files has a list of files that need to be rerun
+# the lines we need look like: 
+# Bad:PedVar7.64WUGMDL10U20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
+##########################################################################
+
+echo Warning!!: Before you run this make sure VAAuto has uncommented: GenerateStage4Files=enabled
+
+
+BadFile=$1
+
+##################################################################
+# Keep only the "Bad" lines in the file
+##################################################################
+
+grep Bad $BadFile >tmp1
+
+#################################################################
+# Parse the bad files names so we can resubmit them to VAAuto
+#################################################################
+
+#########################
+# fist add the _0 to 0 deg az file names in prep for latter 
+#########################
+
+  sed '/Bad/s/U1Deg/U1_0Deg/g'    <tmp1     >tmp2
+  sed '/Bad/s/U10Deg/U10_0Deg/g'  <tmp2     >tmp1
+  sed '/Bad/s/U20Deg/U20_0Deg/g'  <tmp1     >tmp2
+  sed '/Bad/s/U30Deg/U30_0Deg/g'  <tmp2     >tmp1
+  sed '/Bad/s/U40Deg/U40_0Deg/g'  <tmp1     >tmp2
+  sed '/Bad/s/U50Deg/U50_0Deg/g'  <tmp2     >tmp1
+  sed '/Bad/s/U60Deg/U60_0Deg/g'  <tmp1     >tmp2
+  sed '/Bad/s/U70Deg/U70_0Deg/g'  <tmp2     >tmp1
+
+
+#############################################################
+#Now seperate things and remove unwanted stuff
+#############################################################
+
+  sed '/Bad/s/Cuts.root/ /g'               <tmp1     >tmp2
+  sed '/Bad/s/Wbl45mv1234M2/ /g'       <tmp2     >tmp1
+  sed '/Bad/s/Deg2D/  /g'              <tmp1     >tmp2
+  sed '/Bad/s/_/  /g'                  <tmp2     >tmp1
+  sed '/Bad/s/WUGMDL10U/  /g'          <tmp1     >tmp2
+  sed '/Bad/s/S/ /g'                   <tmp2     >tmp1
+  sed '/Bad/s/Bad: PedVar/ /g'         <tmp1     >tmp2
+{  
+  while read PV ZN AZ OFF CUT
+    do
+#      ./VAAuto.scr W U G MDL10U $ZN $AZ $OFF 45mv $PV $CUT
+    done
+}<tmp2
+
+
