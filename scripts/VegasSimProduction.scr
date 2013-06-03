@@ -1,4 +1,4 @@
-VegasSim#!/bin/bash
+#!/bin/bash
 #This runs first 5 Vegas stages on Kascade sim files;
 #It is the base version with only defualt things enabled.
 #$1 .vbf  file to process. Prior and post extentison will be added>
