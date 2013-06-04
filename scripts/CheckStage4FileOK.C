@@ -41,7 +41,17 @@ void CheckStage4FileOK(string fileName)
     os.close();
     return; 
     }
-  
+ 
+ VARunHeader* pfRunHeader = pfRootIO->loadTheRunHeader();
+ if(!pfRunHeader)
+    {
+    badCode=5;
+    ofstream os("CheckStage4FileOK.Result");
+    os<<badCode<<endl;
+    os.close();
+    return; 
+    }
+ 
   int numEvents=pfSimulatedEventTree->GetEntries();
 
   pfRootIO->closeTheRootFile();
