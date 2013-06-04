@@ -25,7 +25,7 @@
 
 LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
                               #only want 9 at a time to run (limit for HTAR)
-                              # Or you want to generate S2 or S4 files asnd only make
+                              # Or you want to generate S2 or S4 files and only make
                               #750 submission in queue at one time
 
 #GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
@@ -46,7 +46,7 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 #---------------------------------------
 #GenerateSubLTListFiles=enabled                   #No waiting/no limit
 #GenerateSubLTConfigFiles=enabled                 #No waiting/no limit
-ProduceSubLookupTables=enabled                   #No waiting/81 max
+#ProduceSubLookupTables=enabled                   #No waiting/81 max
 #CombineSubLT=enable                              #No waiting/no limit
 #BuildLTTree=enable                               #No waiting/no limit
 #---------------------------------------
@@ -79,7 +79,7 @@ ProduceSubLookupTables=enabled                   #No waiting/81 max
 #GenerateEASubLTConfigFiles=enabled
 #ProduceEASubLookupTables=enabled
 #CombineEASubLT=enable
-#BuildEALTTree=enable
+BuildEALTTree=enable
 #---------------------------------------
 
 ###########################################################################
@@ -474,10 +474,10 @@ CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
 
-#LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250_alloffsets'
-LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_050offset'
+LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_alloffsets'
+#LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_050offset'
 
-DTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250_alloffsets'
+DTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_alloffsets'
 
 
 if [ $HMode = "HFit" ]; then
@@ -705,6 +705,11 @@ if [ -n "$GenerateStage4Files" ]; then
     mv tmp2 VegasSimProductionS4.scr
     chmod 755  VegasSimProductionS4.scr
     rm tmp2
+    #############################################################################
+    # Stage 4 only needs short time
+    #############################################################################
+    WALLTIME=04:00:00
+
 fi
 ############################################################################
 
@@ -1531,7 +1536,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	     root -q -b -q $Arg >CheckStage4OK.log
 	     {
 	       read BAD
-               if [ $BAD -lt "15" ]; then
+               if [ "$BAD" -lt "15" ]; then
 	        #echo "VAAuto: Bad: "$BAD" file "$FileName
 		   echo "Bad: "$PedVarS4FileName
 		   if [ $BAD -eq "1" ]; then
@@ -1739,7 +1744,7 @@ if [ -n "$BuildEALTTree" ]; then
    if [ ${#WblOffset[@]} -gt "1" ]; then
       StrOffset='-AbsoluteOffset='$ABOStr
    fi
-   $VEGAS/resultsExtractor/bin/buildTree \
+   $VEGAS/resultsExtractor/bin/buildEATree \
        $StrAz \
        $StrZn \
        $StrNoise \
