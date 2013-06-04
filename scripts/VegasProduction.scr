@@ -6,9 +6,9 @@
 #$3 Vegas base dir path: Used when you want vegas from a different directory 
 #            than what VEGAS is set to in .bashrc (or equivalent)
 
-#Stage1Laser=enable
-#Stage1Data=enable
-#Stage2=enable
+Stage1Laser=enable
+Stage1Data=enable
+Stage2=enable
 
 Stage4_2=enable
 Stage5=enable
@@ -36,12 +36,9 @@ Stage5=enable
  #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
-  #FileBase="M82WstnsCutsDenyT1T4.root"  #Extention to put on the end of the 
-                                         #stages 4-5 ouput files.Differntiates
-                                         # between various cutfile posibilities
-  #FileBase="M82BensCutsDenyT1T4.root"   
-  FileBase="UpgradeMediumCuts.root"  
-
+  FileBase="StdCuts.root"         #Extention to put on the end of the 
+                                  #stages 4-5 ouput files.Differntiates
+                                  # between various cutfile posibilities
 
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
@@ -49,23 +46,14 @@ Stage5=enable
   #SeperationAngleCutOption='-GC_SeparationCut=16'
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
-  TableDir=$VEGAS/../tables
 
-  #QualityCuts='-cuts=QualityHrdCuts'
-  QualityCuts='-cuts=$TableDir/QualityUpgradeMediumCuts'
-  #QualityCuts='-cuts=QualityJWCuts'
 
-  #Table=LT_4Tel_NoT1T4_v204_allOffsets_7samples.root
-  #Table=LT_4Tel_NoT1T4_v204_050offset_7samples.root
-  #Table=LookupTable6.85StdCutsDenyANY2.root
-  #Table=LookupTable4.97StdCutsDenyT1T4.root
+  QualityCuts='-cuts=QualityStdCuts'
+
+  Table=LookupTable
   #Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root  
-  #Table=lt_Oct2012_ua_ATM21_7samples_vegasv250rc4_allOffsets.root# corsika
-  #Table=ltk_Jan2013_atm21_7samples_H_vegas250_alloffsets.root #kaskade
-  #Table=Care_00deg_65deg_50MHz_200MHz_UpgradedArray.root #care
-  #Table=ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsetsMEDIAN.root
-  Table=ltk_Jan2013_ua_ATM21_7samples_H_vegas250rc5_050offset.root
-  #ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root
+  #Table=ltk_Jan2013_atm21_7samples_H_vegas250_alloffsets.root
+
 
   OverrideLTCheckOption='-OverrideLTCheck=1'
 ##############################################################################
@@ -164,22 +152,22 @@ CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
 
-
+LookUpTableDir=$VEGAS/../tables
 
 
 
 if [ -n "$Stage4_2" ]; then
 	echo copy stage2 root file:
 	cp -v $RootFileName $CutRootFileName
-	echo Table: $TableDir/$Table
-	echo Command: $VEGAS'/bin/vaStage4.2 -table='$TableDir/$Table \
+	echo Table: $LookUpTableDir/$Table
+	echo Command: $VEGAS'/bin/vaStage4.2 -table='$LookUpTableDir/$Table \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 
 
-	$VEGAS/bin/vaStage4.2 -table=$TableDir/$Table $OverrideLTCheckOption \
+	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table $OverrideLTCheckOption \
 	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
             $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
