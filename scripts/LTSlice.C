@@ -1,23 +1,29 @@
+#include <string>
+
 TH2F* VALTPlot::pfHisto=NULL;
 TH2F* VALTPlot::pfHisto=NULL;
 TFile* VALTPlot::pfFile=NULL;
 VALookupTable* VALTPlot::pfTable=NULL;
 
-void widthTest(string filename, string table, float impactDist,string option, 
-	       int color,string pname=" ")
+void widthTest(string filename, string table, float impactDist,string option,
+	       int color, string title=" ");
+
+
+void widthTest(string filename, string table, float impactDist,string option,
+	       int color, string title)
 {
   pfFile = new TFile(filename.c_str(), "read");
-  //  cout<<"file add: "<<pfFile<<endl;
+  cout<<"file add: "<<pfFile<<endl;
   TDirectory *pfDir = NULL;
   pfDir = (TDirectory*)pfFile->Get("tables");
   if(pfDir==NULL){
-    cerr<<"Couldn't get tables directory"<<endl;
+    cerr<<"Couldn't get tables directory: tables"<<endl;
     return;
   }
 
   pfTable = (VALookupTable*)pfDir->Get(table.c_str());
   if(pfTable==NULL){
-    cerr<<"unable to load table"<<endl;
+    cerr<<"unable to load table: "<<table<<endl;
     return;
   }
   pfHisto = pfTable->pfTableHistogram; 
@@ -34,23 +40,37 @@ void widthTest(string filename, string table, float impactDist,string option,
   double lowEdge    = pfHisto->GetXaxis()->GetBinLowEdge(1);
   double highEdge   = pfHisto->GetXaxis()->GetBinLowEdge(numBins);
   highEdge          = highEdge+ pfHisto->GetXaxis()->GetBinWidth(numBins);
-  TH1F* pSlice      = new TH1F("slice","slice",numBins,lowEdge,highEdge);
+  TH1F* pSlice      = new TH1F("slice",title.c_str(),numBins,lowEdge,highEdge);
 
   for(int i=1;i<=numBins;i++){
     double value=pfHisto->GetBinContent(i,impactDistBin);
     pSlice->SetBinContent(i,value);
   }
   pSlice->SetDirectory(0);
-  
-  ostringstream os;
-  os<<pname<<" at Impact Dist:"<<impactDist<<"m";
-  string ptit=os.str();
+  if (title!=" ") {
+    pSlice->SetTitle(title.c_str());
+  }
 
-  pSlice->SetTitle(ptit.c_str());
+
+  if( table.find("EaxisEnergy")!=std::string::npos) {
+    pSlice->GetXaxis()->SetTitle("log10(Energy(GeV))");
+    pSlice->GetYaxis()->SetTitle("log10(size)");
+  }
+  elseif( table.find("_Energy")!=std::string::npos) {
+    pSlice->GetXaxis()->SetTitle("log10(Size)");
+    pSlice->GetYaxis()->SetTitle("log10(Energy(GeV))");
+  }
+  else{
+    pSlice->GetXaxis()->SetTitle("log10(Size)");
+    pSlice->GetYaxis()->SetTitle("Degree");
+  }
+  
   if(option==" "){
+    pSlice->SetLineColor(color);
     pSlice->Draw();
   }
   else{
+    pSlice->SetLineColor(2);
     pSlice->SetLineColor(color);
     pSlice->Draw(option.c_str());
   }

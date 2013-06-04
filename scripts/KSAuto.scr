@@ -18,16 +18,16 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-                              #with ksProduction and only want to make
+MaxQsubsDefault=50            #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomeagaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
@@ -289,7 +289,7 @@ function SubmitHtarToArchive()
   #Wait for romm for next file in queue
   #################################
   
-  if [  "$LimitSubmissions" ]; then
+  if [ -n  "$LimitSubmissions" ]; then
     CheckQsubSubmissions  $MaxHTARQsubs  $QsubDoneList 
   fi 
 
@@ -307,7 +307,7 @@ function SubmitHtarToArchive()
   #build a submission .pbs file
   sgeFile=$ShwrDir'HTAR.pbs'
   sgeDoneFile=$sgeFile'.Done'
-  if [  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
+  if [ -n  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
       rm $sgeDoneFile
   fi
 
@@ -361,14 +361,14 @@ function SubmitHtarFromArchive()
   #Wait for romm for next file in queue
   #################################
   
-  if [  "$LimitSubmissions" ]; then
+  if [ -n  "$LimitSubmissions" ]; then
     CheckQsubSubmissions  $MaxHTARQsubs  $QsubDoneList 
   fi 
 
   #build a submission .pbs file
   sgeFile=$Source'From.pbs'
   sgeDoneFile=$sgeFile'.Done'
-  if [  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
+  if [ -n  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
       rm $sgeDoneFile
   fi
   
@@ -445,7 +445,7 @@ then
   JobIDHost='cvrsvc'
   QUEUE=serial
   echo '***Carver Cluster***'
-  if [ -e "$LimitSubmissions" ]; then
+  if [ -n "$LimitSubmissions" ]; then
     let MaxQsubs=750
     let MaxHTARQsubs=9
   fi
@@ -460,14 +460,16 @@ then
   #QUEUE=physics
   QUEUE=standby
   echo ***Hansen Cluster***
-  if [ -e "$LimitSubmissions" ]; then
+  if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
-     let MaxQsubs=50
-     let MaxHTARQsubs=9  fi
+     let MaxQsubs=$MaxQsubsDefault
+     let MaxHTARQsubs=9  
   fi
 fi
 
-if [ -e "$LimitSubmissions" ]; then
+
+
+if [ -n "$LimitSubmissions" ]; then
  echo "KSAuto: Overall qsub active submissions being limited to "$MaxQsubs 
  echo "KSAuto: Overall HTAR active submissions being limited to "$MaxHTARQsubs
 fi
@@ -517,20 +519,20 @@ if [ ! -e "$lcl/KSAutoFileCheck.scr" ]; then
 fi
 
 if [ -n "$LimitSubmissions" ]; then
+  QsubLogs='Running'$2$PMT$1$'KASCADEQsubLogs.txt'
+  QsubHTARLogs=Running'HTARLogs.txt'
   if [ -n "$GenerateTeFiles" ] || [ -n "$GenerateShowerVBFFiles" ]; then
     QsubFileNameList='KS'$2$PMT$1$'AutoqsubList'
     if [ -e "$QsubFileNameList" ]; then
 	rm $QsubFileNameList
     fi
-  fi
- 
-  QsubLogs='Running'$2$PMT$1$'KASCADEQsubLogs.txt'
-  if [ -e "$QsubLogs" ]; then
+    if [ -e "$QsubLogs" ]; then
       rm $QsubLogs                     #Just some cleanup if previous run died.
-  fi
-  QsubHTARLogs=Running'HTARLogs.txt'
-  if [ -e "$QsubHTARLogs" ]; then
+    fi
+  else
+    if [ -e "$QsubHTARLogs" ]; then
       rm $QsubHTARLogs                #Just some cleanup if previous run died.
+    fi
   fi
 fi
 
@@ -671,7 +673,7 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
-       if [  "$LimitSubmissions" ]; then
+       if [ -n "$LimitSubmissions" ]; then
 
 	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName $QsubHTARLogs $MaxHTARQsubs
 
@@ -741,7 +743,7 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
-       if [  "$LimitSubmissions" ]; then
+       if [ -n "$LimitSubmissions" ]; then
 
          SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $V190Dir $TeName $QsubHTARLogs $MaxHTARQsubs
 

@@ -60,6 +60,18 @@ while [ -z "$host" ];
 done
 echo Running on $host
 
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on a Carver node
+then
+  CARVER=enabled
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on a Hansen node
+then
+  HANSEN=enabled
+fi
+
 #########################################################################
 #Set up private working directory for this run. 
 #Keeps random number independent
@@ -109,6 +121,16 @@ cd workingScratch          #This is a  sub dir of the data dir (PBS)
 
 #create working directory.
 mkdir $dirID
+
+#######################################################################
+#Following is supposed to make running on hansen node more robust
+#######################################################################
+if [ -n "$HANSEN" ]; then
+  lfs setstripe -c 1 $dirID
+  lfs getstripe $dirID
+fi
+#######################################################################
+
 cd $dirID
 
 wrkdir="$PWD"
@@ -203,7 +225,7 @@ then
      else
        if test ! $TEnd = 10
        then
-          echo "ksallVBF: If Option 2 must contains Dector Array specs it must copntian 4 of them. (EX:BBAB)"
+          echo "ksallVBF: If Option 2 must contain Dector Array specs it must contain 4 of them. (EX:BBAB)"
           exit
        fi  
                                 #Parse the detector specs to find the 
@@ -605,6 +627,7 @@ while test $i -le $4
         echo MultOption: $MultOption
         echo  ShowerNameOptions: $ShowerNameOptions 
     fi
+
 #########################################################################
 #This is where we can specify an external mount position file
 #########################################################################

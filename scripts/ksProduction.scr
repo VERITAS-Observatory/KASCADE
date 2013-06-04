@@ -1,7 +1,8 @@
 #!/bin/bash
 #$0 ./kas02.scr
 #$1 Gets passed directly to ksallVBF.scr. Used here to specify what particle 
-#   types are to be processed. (G,P,He4_ or CR(causes P and He4_ , Or E for electrons)
+#   types are to be processed. (G,P,He4_ or CR(causes P and He4_ , Or E for 
+#   electrons)
 #   For ksallVBF (minimum:up to kasallVBF.scr calling ksTrigger:
 #     Atm-Telescope-Type-direction-threshold-arraytrigger specification 
 #     designation: 
@@ -12,8 +13,18 @@
 #   For ksallVBF through ksArrayTrigger append the telescope designations: 
 #     Like WVG20Deg2D50mv1234M2ABCD
 #$2 has which script to run:  ksallVBF.scr
-#        ksallVBF.scr is all Singing all dancing: ksKascade to ksArrayTrigger
-#*****************************************************************
+#        ksallVBF.scr is All-singing-all-dancing: ksKascade to ksArrayTrigger
+#$3 QsubFileNameList file:OPTIONAL: 
+:  If this argument is not defined:
+#   This script creats all the .pbs shower files as requested and then submits
+#   them to the appropiate queue itself. All of them.
+#  If this argument is defined this script creates all the .pbs job files and 
+#  then adds their names to the $QsubFileNameList file specified in this 
+#  argument. The calling program (usually KSAuto.scr) then will submit the 
+#  jobs in this file as it sees fit. (Used to keep the maximum allowable jobs 
+#  in the queue but not more tan the maximum).
+###########################################################################
+
 #Functions to define thigs for various particle specs
 
 function Protons()
@@ -38,8 +49,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=1180 860  627  457  333  243  177  129  94   69    50    37    27  20    15    11    8    6   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ -n "$ISIS" ]; then
-      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+   if [ -n "$ISIS" ]; then
+       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 #ksaomVBF ~12hr.
 	BuildIsisScriptList 1 1   9
 	BuildIsisScriptList 2 10 18 
@@ -72,27 +83,6 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
       fi
     fi
 
-
-
-#PDSF
-   if [ -n "$PDSF" ]; then
-     #**********************************************************************
-     #Submit in reverse order so the longest start first.
-     #**********************************************************************
-	    let iEntryStart=1
-	    let iEntryEnd=36	
-#	    let iEntryEnd=39
-#	    let iEntryEnd=36          #10% end
-
-
-	    let j=$iEntryEnd
-            while test $j -ge $iEntryStart
-            do	
-	       BuildAndSubmitPDSFJobArray $j 
-#	       BuildAndSubmitPDSFJobs $j 
-	       j=$((j-1))		
-	    done
-    fi
 #CARVER
    if [ -n "$CARVER" ]; then
     #**********************************************************************
@@ -152,7 +142,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
          let j=j-1		
        done
    fi
-
+   
 
 }
 #**********************************************************************
@@ -164,7 +154,6 @@ function Helium4()
 #**********************************************************************
 {
     echo Helium4: $parspec
-
 
 #Veritas/Whipple Set1/ksaom/kasall
 ######      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    
@@ -180,8 +169,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1)
 #          end=([1]=448  334  249  186  139  104  78   58   43   32    24    18    14  10    8     6     5    5   5   5   5   5   5    5    5    5    5    5    5    5    5    5    5    5    5    5     5     5     5     5     5     5)
 
-    if [ -n "$ISIS" ]; then
-      if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+   if [ -n "$ISIS" ]; then
+       if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 
 #set 1 kasaomVBF ~5 hr.
 	BuildIsisScriptList 1 6  25
@@ -215,27 +204,6 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
       fi
     fi
 
-
-#PDSF
-   if [ -n "$PDSF" ]; then
-            #**********************************************************************
-            #Submit in reverse order so the longest start first.
-            #**********************************************************************
-	    let iEntryStart=6   #Normal start
-#	    let iEntryEnd=30
-#	    let iEntryStart=1
-#	    let iEntryEnd=8
-#	    let iEntryEnd=42
-	    let iEntryEnd=36             #10%end
-
-	    let j=$iEntryEnd
-            while test $j -ge $iEntryStart
-            do	
-	       BuildAndSubmitPDSFJobArray $j
-#	       BuildAndSubmitPDSFJobs $j
-	       j=$((j-1))		
-            done
-    fi
 #CARVER
    if [ -n "$CARVER" ]; then
     #**********************************************************************
@@ -270,7 +238,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #	       j=$((j+1))		
 #            done
 
-    fi
+   fi
 #HANSEN
    if [ -n "$HANSEN" ]; then
      #**********************************************************************
@@ -292,8 +260,9 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
          let j=j-1		
        done
    fi
-#********************************************************************************
+#*****************************************************************************
 }
+
 #**********************************************************************
 
 
@@ -385,7 +354,7 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
         fi
         let j=j-1		
        done
-    fi
+   fi
 #********************************************************************************
 
 #HANSEN
@@ -447,8 +416,8 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
          fi
          let j=j-1		
       done
-  fi
-#********************************************************************************
+   fi
+#*****************************************************************************
 
 }
 #*********************************************************************
@@ -470,6 +439,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 
 #Small E-2.0
    end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10 )
+######      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32    33    34    35    36    37    38    39    40    41    42    43    44    45    46
 
 
 
@@ -483,9 +453,9 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     11    1     11)
 #	  end=([1]=1813 1399 1079 833  643  496  383  296  228  176   136   105   81  63    49    38    29   23  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    10    20    10    20)  
  
-    if [ -n "$ISIS" ]; then
-	if [ ${jobSpec:0:1} = "W" ] ; then
-          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+   if [ -n "$ISIS" ]; then
+       if [ ${jobSpec:0:1} = "W" ] ; then
+	   if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildIsisScriptList 1 11 12
 	    BuildIsisScriptList 2 13 14
 	    BuildIsisScriptList 3 15 16
@@ -525,7 +495,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 	    BuildIsisScriptList 1 1 44
           fi
 	fi
-    fi
+   fi
 
 
 #CARVER
@@ -564,7 +534,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #	       j=$((j+1))		
 #            done
 
-    fi
+   fi
 
 
 #HANSEN
@@ -590,50 +560,10 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
           fi
           let j=j-1		
         done
-    fi
+   fi
 #********************************************************************************
-
-
-#PDSF
-   if [ -n "$PDSF" ]; then
-     #**********************************************************************
-     #Submit in reverse order so the longest start first.
-     #**********************************************************************
-
-# *******************************************************************
-#Folowing for making te.d files on PDSF with our 500 GByte limitation
-#	    let iEntryStart=1      #Making te.d: First group: fits 500 Gbytes
-#	    let iEntryEnd=27       #Use BuildAndSubmitPDSFJobArray
-#
-#	    let iEntryStart=28     #Making te.d: second group: fits 500 Gbytes
-#	    let iEntryEnd=35       #Use BuildAndSubmitPDSFJobGroups @5 each
-#
-#	    let iEntryStart=36     #Making te.d: third group: fits 500 Gbytes
-#	    let iEntryEnd=39       #Use BuildAndSubmitPDSFJobGroups @5 each
-# 
-#	    let iEntryStart=40     #Making te.d: third group: fits 500 Gbytes
-#	    let iEntryEnd=44       #Use BuildAndSubmitPDSFJobGroups @5 each
-#                   or
-#	    let iEntryStart=40     #Making te.d: third groupSecond energy set: fits 500 Gbytes
-#	    let iEntryEnd=43       #Use BuildAndSubmitPDSFJobGroups @5 each
-# *********************************************************************
-
-           let iEntryStart=44
-	   let iEntryEnd=44
-
-#           let iEntryStart=1
-#	   let iEntryEnd=44
-	    let j=$iEntryEnd
-            while test $j -ge $iEntryStart
-            do	
-               #BuildAndSubmitPDSFJobGroups $j 5
-               BuildAndSubmitPDSFJobArray $j
-	       j=$((j-1))		
-            done
-    fi
-# ********************************************
-
 }
+
 #********************************************************************************
 
 function Electrons()
@@ -666,7 +596,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     11    1     11)
 #	  end=([1]=1813 1399 1079 833  643  496  383  296  228  176   136   105   81  63    49    38    29   23  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    10    20    10    20)  
  
-    if [ -n "$ISIS" ]; then
+   if [ -n "$ISIS" ]; then
 	if [ ${jobSpec:0:1} = "W" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	    BuildIsisScriptList 1 11 12
@@ -767,50 +697,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
         done
     fi
 #********************************************************************************
-
-
-#PDSF
-   if [ -n "$PDSF" ]; then
-     #**********************************************************************
-     #Submit in reverse order so the longest start first.
-     #**********************************************************************
-
-# *******************************************************************
-#Folowing for making te.d files on PDSF with our 500 GByte limitation
-#	    let iEntryStart=1      #Making te.d: First group: fits 500 Gbytes
-#	    let iEntryEnd=27       #Use BuildAndSubmitPDSFJobArray
-#
-#	    let iEntryStart=28     #Making te.d: second group: fits 500 Gbytes
-#	    let iEntryEnd=35       #Use BuildAndSubmitPDSFJobGroups @5 each
-#
-#	    let iEntryStart=36     #Making te.d: third group: fits 500 Gbytes
-#	    let iEntryEnd=39       #Use BuildAndSubmitPDSFJobGroups @5 each
-# 
-#	    let iEntryStart=40     #Making te.d: third group: fits 500 Gbytes
-#	    let iEntryEnd=44       #Use BuildAndSubmitPDSFJobGroups @5 each
-#                   or
-#	    let iEntryStart=40     #Making te.d: third groupSecond energy set: fits 500 Gbytes
-#	    let iEntryEnd=43       #Use BuildAndSubmitPDSFJobGroups @5 each
-# *********************************************************************
-
-           let iEntryStart=44
-	   let iEntryEnd=44
-
-#           let iEntryStart=1
-#	   let iEntryEnd=44
-	    let j=$iEntryEnd
-            while test $j -ge $iEntryStart
-            do	
-               #BuildAndSubmitPDSFJobGroups $j 5
-               BuildAndSubmitPDSFJobArray $j
-	       j=$((j-1))		
-            done
-    fi
-# ********************************************
-
 }
-#********************************************************************************
-#********************************************************************************
+
 
 function BuildAndSubmitHansenJobs
 #**********************************************************************
@@ -823,12 +711,21 @@ function BuildAndSubmitHansenJobs
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
  eGeV=${energy[$1]}     
+ let E=${eGeV%%.*}
+
  echo Entry:  $pr $eGeV $showerStart $showerEnd
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
- echo "#"PBS -q $QUEUE                         >$sgeFile
- echo "#"PBS -l walltime=$WALLTIME            >>$sgeFile
- echo "#PBS -l mem=10GB"                      >>$sgeFile
+ if [ "$E" -gt "20000" ]; then
+   echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
+   echo "#"PBS -l walltime=30:00:00            >>$sgeFile
+   echo "#PBS -l mem=30GB"                     >>$sgeFile
+   #echo "#PBS -l nodes=1:ppn=6"                >>$sgeFile
+ else
+   echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+   echo "#PBS -l nodes=1:ppn=6"               >>$sgeFile
+   echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+ fi
  echo source /etc/profile                     >>$sgeFile
  echo module load gcc/4.7.2                   >>$sgeFile
  echo lcl=$PBS_O_WORKDIR                      >>$sgeFile
@@ -837,7 +734,13 @@ function BuildAndSubmitHansenJobs
  echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
  chmod 700 $sgeFile
- qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+
+ if [ -n QsubFileNameList ]; then
+   echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
+   echo $sgeFile >>$QsubFileNameList
+ else
+   qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+ fi
 }
 ##################################################################
 
@@ -851,7 +754,9 @@ function BuildAndSubmitHansenJobsBy10()
  sub=${pr%%mv*}mv
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
- eGeV=${energy[$1]}     
+ eGeV=${energy[$1]}
+ let E=${eGeV%%.*}
+     
  echo Entry:  $pr $eGeV $showerStart $showerEnd
  if [ $1 -le 19 ]; then
    let Stepsize=${stepsize[$1]}
@@ -868,9 +773,17 @@ function BuildAndSubmitHansenJobsBy10()
    fi
    range=E$i'_'$endShower
    sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
-   echo "#"PBS -q $QUEUE                               >$sgeFile
-   echo "#"PBS -l walltime=$WALLTIME                  >>$sgeFile
-   echo "#PBS -l mem=10GB"                            >>$sgeFile
+   
+   if [ "$E" -gt "20000" ]; then
+     echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
+     echo "#"PBS -l walltime=30:00:00            >>$sgeFile
+     echo "#PBS -l mem=30GB"                     >>$sgeFile
+     #echo "#PBS -l nodes=1:ppn=6"                >>$sgeFile
+   else
+     echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+     echo "#PBS -l nodes=1:ppn=6"               >>$sgeFile
+     echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+   fi
    echo source /etc/profile                           >>$sgeFile
    echo module load gcc/4.7.2                         >>$sgeFile
    echo lcl=$PBS_O_WORKDIR                            >>$sgeFile
@@ -879,8 +792,13 @@ function BuildAndSubmitHansenJobsBy10()
    echo $endShower $datadir $workingDir   \\          >>$sgeFile
    echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log"  >>$sgeFile
    chmod 700 $sgeFile
-   echo $e  $i  $endShower
-   qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+   #echo $e  $i  $endShower
+   if [ -n QsubFileNameList ]; then
+    echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
+    echo $sgeFile >>$QsubFileNameList
+   else
+     qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+   fi
    let i=$i+$Stepsize
   done
 }
@@ -897,18 +815,24 @@ function BuildAndSubmitHansenJobsSingly
  sub=${pr%%mv*}mv
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
- eGeV=${energy[$1]}     
+ eGeV=${energy[$1]}
+ let E=${eGeV%%.*}
+     
  echo Entry:  $pr $eGeV $showerStart $showerEnd
 
  let i=showerStart
  while test $i -le $showerEnd
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
-   echo "#"PBS -q $QUEUE                                   >$sgeFile
-   echo "#"PBS -l walltime=$WALLTIME                      >>$sgeFile
-   if test $1 -ge 19
-     then
-      echo "#PBS -l mem=10GB"                             >>$sgeFile
+   if [ "$E" -gt "20000" ]; then
+     echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
+     echo "#"PBS -l walltime=30:00:00                     >>$sgeFile
+     echo "#PBS -l mem=30GB"                              >>$sgeFile
+     #echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+   else
+     echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
+     echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+     echo "#"PBS -l walltime=04:00:00                     >>$sgeFile
    fi
    echo source /etc/profile                               >>$sgeFile
    echo module load gcc/4.7.2                             >>$sgeFile
@@ -918,7 +842,12 @@ function BuildAndSubmitHansenJobsSingly
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   qsub -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+   if [ -n QsubFileNameList ]; then
+    echo 'echo Done >'$sgeFile'.Done'                     >>$sgeFile
+    echo $sgeFile >>$QsubFileNameList
+   else
+     qsub -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+   fi
    let i=i+1
   done
 }
@@ -948,8 +877,15 @@ function BuildAndSubmitCarverJobs
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
 
  chmod 700 $sgeFile
- qsub -q $CarverQueue -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+ if [ -n QsubFileNameList ]; then
+   echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
+   echo $sgeFile >>$QsubFileNameList
+ else
+   qsub -q $CarverQueue -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+ fi
 }
+#########################################################################
+
 
 function BuildAndSubmitCarverJobsSingly 
 #**********************************************************************
@@ -981,7 +917,12 @@ function BuildAndSubmitCarverJobsSingly
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   qsub -q $CarverQueue -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+   if [ -n QsubFileNameList ]; then
+     echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
+     echo $sgeFile >>$QsubFileNameList
+   else
+     qsub -q $CarverQueue -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+   fi
    let i=i+1
   done
 }
@@ -1108,117 +1049,16 @@ function BuildAndSubmitCarverJobArray
    echo $workingDir '>'\$LOGFILE                                >>$sgeFile
 
    chmod 700 $sgeFile
-   qsub -q $CarverQueue  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
+   if [ -n QsubFileNameList ]; then
+     echo 'echo Done >'$sgeFile'.Done'                          >>$sgeFile
+     echo $sgeFile >>$QsubFileNameList
+   else
+     qsub -q $CarverQueue  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
+   fi
    let k=kend+1
 
   done
 }
-
-
-function BuildAndSubmitPDSFJobs
-#**********************************************************************
-# Cause PDSF cluster jobs to be submitted.
-# Since we have lots and lots of nodes 1 job per shower
-#**********************************************************************
-{
- pr=$parspec
- sub=${pr%%mv*}mv
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- let i=$showerStart
- eGeV=${energy[$1]}
-
- echo Entry:  $pr $eGeV $showerStart $showerEnd
-
- while test $i -le $showerEnd
- do
-      sgeFile=$lcl'/K'$eGeV'd'$i$parspec.pbs
-      echo "#"!/bin/bash                                   >$sgeFile
-      echo cd $lcl                                        >>$sgeFile
-      echo $ksScript $eGeV $parspec  $i \\                >>$sgeFile
-      echo $i $datadir $workingDir                \\      >>$sgeFile
-      echo ">>"$lcl"/ksProduction_"$eGeV"d"$i"_"$pr".log" >>$sgeFile
-
-      chmod 700 $sgeFile
-      qsub  -V -e k$eGeV'd'$i.err -o k$eGeV'd'$i.log $sgeFile 
-      i=$((i+1))			#do next shower
- done
-}
-
-function BuildAndSubmitPDSFJobArray
-#**********************************************************************
-# Cause PDSF cluster jobs to be submitted using Job arrays.
-# Since we have lots and lots of nodes 1 job per shower
-#**********************************************************************
-{
- pr=$parspec
- sub=${pr%%mv*}mv
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- let i=$showerStart
- eGeV=${energy[$1]}
-      
- echo Entry:  $pr  $eGeV $showerStart $showerEnd
-
- sgeFile=$lcl'/K'$eGeV$parspec.pbs
- echo "#"!/bin/bash                                            >$sgeFile
- echo let i=\$SGE_TASK_ID                                     >>$sgeFile
- echo cd $lcl                                                 >>$sgeFile
- echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'\$i\'$parspec.log\' >>$sgeFile
- echo echo LOGFILE: \$LOGFILE                                 >>$sgeFile
- echo $ksScript $eGeV $parspec  \$i \$i $datadir \\           >>$sgeFile
- echo $workingDir  '>'\$LOGFILE                               >>$sgeFile
-
- chmod 700 $sgeFile
- qsub -t $showerStart':'$showerEnd  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
-}
-
-function BuildAndSubmitPDSFJobGroups
-#**********************************************************************
-# Cause PDSF cluster jobs to be submitted in groups of $3.
-# We have lots and lots of nodes but only 500 gbytes so submit
-# jobs in groups of $3 (like we do on other clusters)
-#**********************************************************************
-{
- pr=$parspec
- sub=${pr%%mv*}mv
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- let i=$showerStart
- eGeV=${energy[$1]}
-
-
- if [ -z $2 ]; then
-    let clusterSize=$showerEnd
- else
-    let clusterSize=$2
- fi
- echo Entry:  $1 $pr $eGeV $showerStart $showerEnd $clusterSize
-
- while test $i -le $showerEnd
- do
-   let clusterEnd=$((i+clusterSize-1))
-   if [ $clusterEnd -gt  $showerEnd ]; then
-     clusterEnd=$showerEnd
-   fi
-
-   sgeFile=$lcl'/K'$eGeV'd'$i"-"$clusterEnd$parspec.pbs
-   echo "#"!/bin/bash                                                       >$sgeFile
-   echo cd $lcl                                                            >>$sgeFile
-   echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'$i"-"$clusterEnd$parspec".log" >>$sgeFile
-   echo echo LOGFILE: \$LOGFILE                                            >>$sgeFile
-   echo $ksScript $eGeV $parspec  $i $clusterEnd $datadir $workingDir \\   >>$sgeFile
-   echo '>'\$LOGFILE                                                       >>$sgeFile
-
-   chmod 700 $sgeFile
-   qsub -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
- 
-
-   i=$((clusterEnd+1))			#do next shower
- done
-}
-
-
 
 function BuildIsisScriptList()
 #**********************************************************************
@@ -1274,18 +1114,14 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  QUEUE1=physics
-  QUEUE2=standby
-  QUEUE=$QUEUE1
+  QUEUEPHYSICS=physics
+  QUEUESTANDBY=standby
+  QUEUE=$QUEUEPHYSICS
   WALLTIME=30:00:00
   #WALLTIME=04:00:00
 fi
 
 hostString=${host:0:4}
-if test  "$hostString" = "pdsf"  #Are we running on PDSF
-then
-  PDSF=enabled
-fi
 if test  "$hostString" = "isis"  #Are we running on ISIS
 then
   ISIS=enabled
@@ -1321,7 +1157,13 @@ let lastJob=8
 if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
     let lastJob=1
 fi
+#####################################################################
 
+if [ -n "$3" ]; then   #See if optional  qsub file namer list file is defined
+  QsubFileNameList=$3  #if so we will not submit jobs to the cluster but
+fi                     # let the calling program do that by using this file
+
+#######################################
 
 #ISIS
 if [ -n "$ISIS" ]; then
