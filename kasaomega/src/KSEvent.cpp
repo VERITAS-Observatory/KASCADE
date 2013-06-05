@@ -304,6 +304,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
                                      gFADCBinSizeNS;	 
 	  double pedvar=1; //Default if not using relative pedvars.
 	  double nightSkyRate=pedvar*pedvar/pedvarNightSkyCoef;
+	  uint16_t winSizeDummy=winSize;   //This is stupid dummy variable
 	  if(pfDataIn->fUseRelativePedVars)
 	    {
 	      pedvar=0;
@@ -314,7 +315,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
 		  //for gain.
 		  // ******************************************************
 		  pedvar=pfPeds->getTraceVar(fFirstValidEventTime,fTel,chan,
-					     winSize)/gain;
+					     winSize,winSizeDummy)/gain;
 	          if(pedvar<1.0 || pedvar>15.0)
 		    {
 		      pedvar=0;
