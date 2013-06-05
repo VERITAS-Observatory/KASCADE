@@ -25,9 +25,9 @@ MaxQsubsDefault=50            #with ksProduction and only want to make
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomeagaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
@@ -692,13 +692,13 @@ while test $izn -lt $iznEnd
        date
 
        if [ "$1" = "CR" ] ; then
-         checkFilesExist $V190Dir'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
+         checkFilesExist $V190DirP'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameP' directory'
          fi
 
-         checkFilesExist $V190Dir'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Star $EntryHe4End $Threshold
+         checkFilesExist $V190DirHe4'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Start $EntryHe4End $Threshold
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
