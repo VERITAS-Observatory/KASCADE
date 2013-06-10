@@ -89,60 +89,23 @@ fi
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
+  CutsDir=$VEGAS/../tables
   QualityCuts='QualityStdCuts'
 
   #"LookupTable" below should be replaced by actual name.
   #  Actual table expected to be in directory: $VEGAS/../tables
+  TableDir=$VEGAS/../tables
   Table=LookupTable
 
 #Stage5
 
  ShowerCutsFile=ShowerStdCuts	  
 
-  #Cuts file specification for testing of good events. Causes setting of 
-  #CutMask flag in combined tree and/or removel of events is so specified (see
-  # OutputTreeOptions below. 
-  # For MLM this hould Have no theta2 cut
 
- ShowerCutsOption='-cuts='$ShowerCutsFile
+#OutputMethodOptions='-Method=combined -RemoveCutEvents=true'
+OutputMethodOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
+#OutputMethodOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
-###############################################
-#The SpecialCutsFile has lines indexed by file names of special run-specific 
-#additional cuts, like time during run cuts, or anything that is needed in 
-#addition to whats in the general cuts file. You can have multiple entries 
-#for the same run.
-#The makeShowerCutsFile function (see below) will copy the file specified in 
-#ShowerCutsBaseFile to the file with the name  'ShowerCutsFile' and then will 
-#append the run specific cut options from the file specified in 
-#SpecialCutsFile. It is the file 'ShowerCutsFile' that will be used in the 
-#-cuts option when stage5 is run. If there are no special run specific cuts 
-#then leave the following line commented out.
-################################################
-#SpecialCutsFile=SSSpecialCutsFile    
-
-#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-OutputTreeOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
-#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
-
-
-#############################################################################
-
-function makeShowerCutsFile()
-{
- if [ -e  $ShowerCutsBaseFile ] ; then
-
-   cp $ShowerCutsBaseFile ShowerCutsFile
-   if [ -n "$SpecialCutsFile" ] ; then
-    {
-      while read RunFile Opt OptValue; do
-        if [ "$RunFile" = "$RootFileName" ] ; then
-	    echo $Opt' '$OptValue >> ShowerCutsFile
-        fi  
-      done
-     } < $SpecialCutsFile
-   fi
- fi
-}
 
 #############################################################################
 if [ -n "$Stage1Laser" ]; then
@@ -194,17 +157,15 @@ if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
 fi
 echo CutRootFileName: $CutRootFileName
 
-#LookUpTableDir=$VEGAS/showerReconstruction2/tables/KASCADE
-LookUpTableDir=$VEGAS/../tables/
 
 if [ -n "$Stage4_2" ]; then
      echo Stage4_2: $Stage4_2
      echo RootFileName: $RootFileName
      echo CutRootFileName: $CutRootFileName
      cp -v $RootFileName $CutRootFileName
-     echo ET: $LookUpTableDir/$Table
-     $VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table -OverrideLTCheck=1 \
-	-cuts=$LookUpTableDir/$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
+     echo ET: $TableDir/$Table
+     $VEGAS/bin/vaStage4.2 -table=$TableDir/$Table -OverrideLTCheck=1 \
+	-cuts=$CutsDir/$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
 	$SeparationAngleCutOption $CutRootFileName
 fi
@@ -217,6 +178,6 @@ if [ -n "$Stage5" ]; then
 	OutputFileNameOpt='-outputFile='$OutputFileName
       fi
       
-    $VEGAS/bin/vaStage5 -cuts=$LookUpTableDir/$ShowerCuts $OutputTreeOptions \
+    $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCuts $OutputMethodOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
 fi

@@ -6,12 +6,12 @@
 #$3 Vegas base dir path: Used when you want vegas from a different directory 
 #            than what VEGAS is set to in .bashrc (or equivalent)
 
-Stage1Laser=enable
-Stage1Data=enable
-Stage2=enable
+#Stage1Laser=enable
+#Stage1Data=enable
+#Stage2=enable
 
-Stage4_2=enable
-Stage5=enable
+#Stage4_2=enable
+#Stage5=enable
 
 ##############################################################################
 #Configurable options:
@@ -36,71 +36,39 @@ Stage5=enable
  #Not used much anymore:CutTelescopeOption='-CutTelescope=3/1,4/1'  
                                   #To force removal of particular
                                   #telescopes when calculating shower paramters
-  FileBase="StdCuts.root"         #Extention to put on the end of the 
+  FileBase="StdCuts"         #Extention to put on the end of the 
                                   #stages 4-5 ouput files.Differntiates
                                   # between various cutfile posibilities
 
-  #DenyTelescopeOption='-TelCombosToDeny=ANY2'
+
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
   #SeperationAngleCutOption='-GC_SeparationCut=16'
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'
 
 
+  CutsDir=$VEGAS/../tables
+  QualityCuts=QualityStdCuts
 
-  QualityCuts='-cuts=QualityStdCuts'
-
+  TableDir=$VEGAS/../tables
   Table=LookupTable
-  #Table=ltk_20102011_atm21_7samples_H_vegas240_alloffsets.root  
-  #Table=ltk_Jan2013_atm21_7samples_H_vegas250_alloffsets.root
+
 
 
   OverrideLTCheckOption='-OverrideLTCheck=1'
 ##############################################################################
 
 #Stage5
-#ShowerCutsBaseFile=ShowerCutsHrd	  
-#ShowerCutsBaseFile=ShowerCutsM82Bens	  
-#ShowerCutsBaseFile=ShowerCutsM82Wstns	  
-ShowerCutsBaseFile=ShowerCutsStd	  
 
-#ShowerCutsBaseFile=ShowerCutsNK_10	  
-#ShowerCutsBaseFile=ShowerCutsJW	  
-  #File specfication for testing 
-            #for events to be used in SkyMap analysis(real and backgorund)
-            # in the combined tree for setting CutMask flag in combined tree 
-            #(all events are still included in the tree)
-            #Has no theta2 cut
-
-ShowerCutsOption='-cuts=ShowerCutsFile'
-#SpecialCutsFile=SSSpecialCutsFile
+  ShowerCuts=ShowerStdCuts	  
 
 
-#OutputTreeOptions='-Method=combined -RemoveCutEvents=true'
-OutputTreeOptions='-Method=combined'
-#OutputTreeOptions='-Method=stereo -RemoveCutEvents=true'
+  #OutputMethodOptions='-Method=combined -RemoveCutEvents=true'
+  OutputMethodOptions='-Method=combined'
+  #OutputMethodOptions='-Method=stereo -RemoveCutEvents=true'
 
 
 #############################################################################
-
-function makeShowerCutsFile()
-{
- if [ -e  $ShowerCutsBaseFile ] ; then
-
-   cp $ShowerCutsBaseFile ShowerCutsFile
-   if [ -n "$SpecialCutsFile" ] ; then
-    {
-      while read RunFile Opt OptValue; do
-        if [ "$RunFile" = "$RootFileName" ] ; then
-	    echo $Opt' '$OptValue >> ShowerCutsFile
-        fi  
-      done
-     } < $SpecialCutsFile
-   fi
- fi
-}
-
-
 
 #Now process the file:
 
@@ -147,37 +115,36 @@ if [ -n "$Stage2" ]; then
 fi
 
 
-CutRootFile=${VBFFileName%".cvbf"}$FileBase
+CutRootFile=${VBFFileName%".cvbf"}$FileBase'.root'
 CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName
 
-LookUpTableDir=$VEGAS/../tables
+
 
 
 
 if [ -n "$Stage4_2" ]; then
 	echo copy stage2 root file:
 	cp -v $RootFileName $CutRootFileName
-	echo Table: $LookUpTableDir/$Table
-	echo Command: $VEGAS'/bin/vaStage4.2 -table='$LookUpTableDir/$Table \
-	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
-            $SeperationAngleCutOption $WindowSizeOption \
+	echo Table: $TableDir/$Table
+	echo Command: $VEGAS'/bin/vaStage4.2 -table='$TableDir/$Table \
+	    '-cuts='$CutsDir'/'$QualityCuts $DenyTelescopeOption  \
+            $CutTelescopeOption  $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 
 
 	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table $OverrideLTCheckOption \
-	    $QualityCuts $DenyTelescopeOption  $CutTelescopeOption  \
-            $SeperationAngleCutOption $WindowSizeOption \
+	     '-cuts='$CutsDir'/'$QualityCuts $DenyTelescopeOption  \
+            $CutTelescopeOption $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
 	    $CutRootFileName
 fi
 
 if [ -n "$Stage5" ]; then
-    makeShowerCutsFile
-    $VEGAS/bin/vaStage5 $OutputTreeOptions -inputFile=$CutRootFileName \
-	$ShowerCutsOption
+    $VEGAS/bin/vaStage5 $OutputMethodOptions -inputFile=$CutRootFileName \
+	-cuts=$CutsDir'/'$ShowerCuts
 fi
 
 
