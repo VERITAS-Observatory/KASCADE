@@ -1,49 +1,125 @@
-
-#$1 is PSF sub_dir  Ex: V330 or V190
-#$2 Zn_AZ and threshold specification EX: 20Deg50mv  (if az=0) or 20_180Deg50mv
-#$3 Output file BaseName Ex: CrabA or Noise4 Noise3_5 etc.
+#!/bin/bash
+#CR (Proton + He4) Production version
+#This is for Carver or Hansen
+#$1 is PSF subdir  Ex: V330 or V190
+#$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
+#   20_180Deg
+#$3:Threshold spec ex 45mv or 50 mv
+#$4 Season:teleSpec: Ex WU or SV
+#$5: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
+#$6: Input Sub-dir: Ex: ABCD
+#$7: start direction Index. defualt is 0. 
+#$8: end direction Index. defualt is 8. 
 
 lcl=$PWD
-echo PSF Sub_dir: $1
-echo ZN_AzThreshold: $2
+echo lcl: $lcl
 
-if test -z $3 ;
+echo Argument1: $1
+echo Argument2: $2
+echo Argument3: $3
+echo Argument4: $4
+echo Argument5: $5
+echo Argument6: $6
+echo Argument7: $7
+echo Argument8: $8
+
+
+host=$(hostname)
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
- echo Fatal-Please supply all arguments Ex: ./Process V190 20Deg50mv Noise3_5
- exit
+  CARVER=enabled
+  QUEUE=serial
+  WALLTIME='10:00:00'
+  echo '***Carver Cluster***'
 fi
 
-VBFFile=$3'CR'$2'1234M2.vbf'
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  #QUEUE=physics
+  #WALLTIME='10:00:00'
+  QUEUE=standby
+  WALLTIME='04:00:00'
+q  echo '***Hansen Cluster:'$QUEUE' queue ***'
+fi
+
+ABase=$4
+SeasonSpec=${ABase:0:1}
+Base=$SeasonSpec$5
+echo Base: $Base
+
+if  [ -z "$6" ]
+then
+ echo Fatal-Please supply all arguments Ex: ./CRProcessAll V190 40_180Deg Noise3_5 ABCD exit
+fi
+
+direction=-1      #No wbl
+
+PBase=$ABase'P'$2$3
+echo PBase: $PBase
+PDir=$PBase'1234M2'$Base                #Add MDL15 to dir name. Needed by ksWeRock
+PDirOrig=$PBase'1234M2'$SeasonSpec$6 
+
+echo PDir: $PDir
+echo PDirOrig: $PDirOrig
+
+He4Base=$ABase'He4_'$2$3
+echo He4Base: $He4Base
+He4Dir=$He4Base'1234M2'$Base            #Add MDL15 to dir name. Needed by ksWeRock
+He4DirOrig=$He4Base'1234M2'$SeasonSpec$6 
+
+echo He4Dir: $He4Dir
+echo He4DirOrig: $He4DirOrig
+
+#################Find protons first ##################
+cd $lcl'/protons/'   #Find our input directory and put it in the right place
+pwd                     # with the right name.
+mkdir -pv $PDir
+if [ -d "$PDirOrig" ]; then
+    echo moving ./$PDirOrig'/*' to  './'$PDir'/'
+    mvCmd='mv -v ./'$PDirOrig'/*  ./'$PDir'/'
+    $mvCmd
+    rmdir -v $PDirOrig
+fi
+cd $lcl'/protons/'$6
+pwd
+ls | grep 1234M2 | grep vbf|grep $2$3 |xargs -n1 mv -v --target=$lcl'/protons/'$PDir
+
+########## Now He4 #################
+cd $lcl'/he4/'   #Find our input directory and put it in the right place
+pwd                     # with the right name.
+mkdir -pv $He4Dir
+if [ -d "$He4DirOrig" ]; then
+    echo moving ./$He4DirOrig'/*' to  './'$He4Dir'/'
+    mvCmd='mv -v ./'$He4DirOrig'/*  ./'$He4Dir'/'
+    $mvCmd
+    rmdir -v $He4DirOrig
+fi
+cd $lcl'/he4/'$6
+pwd
+ls | grep 1234M2 | grep vbf|grep $2$3 |xargs -n1 mv -v --target=$lcl'/he4/'$PDir
+
+VBFFile=$ABase'CR'$5$2$3'1234M2.vbf'
 echo Output File Name: $VBFFile
 
+sgeFile=$lcl'/'$Base'CR'$2$wbl'.pbs'
+echo "#"!/bin/bash                                             >$sgeFile
+echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
+if [ -n "$CARVER" ]; then
+  echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
+fi
+if [ -n "$HANSEN" ]; then
+  echo "#PBS -l mem=8GB"                                      >>$sgeFile
+fi
+echo cd $lcl'/../../veritas'                                  >>$sgeFile
+echo './ksWeRock.scr '$ABase'CR'$2$3 98020 1234M2 \\         >>$sgeFile
+echo $direction $Base ">"$lcl'/'$Base'CR'$2'.log'             >>$sgeFile
+echo cd $lcl                                                  >>$sgeFile
+echo mv  -v $ABase'CR'$2'1234M2'$3'.vbf' $VBFFile             >>$sgeFile
+#echo ./ksVegasSimProduction.scr $VBFFile \\                   >>$sgeFile
+#echo ">"$lcl'/'$VBFFile'.log'                                 >>$sgeFile
 
-cd $lcl'/protons'
-
-PDIR='WVP'$2'1234M2'
-mkdir -pv $PDIR
-ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target='./'$PDIR
-
-
-cd $lcl'/he4'
-HDIR='WVHe4_'$2'1234M2'
-mkdir -pv $HDIR
-ls | grep 1234M2 | grep vbf|grep $2 |xargs -n1 mv -v --target='./'$HDIR
-
-#cd $lcl'/../../veritas'
-cd $vert/veritas
-
-./ksWeRock.scr 'WVCR'$2 98020 1234M2
-
-cd $lcl
-mv  'WVCR'$2'1234M2.vbf' $VBFFile
-
-cd $lcl'/protons'
-mv $PDIR './'$1'/'$3$PDIR
-
-
-cd  $lcl'/he4'
-mv $HDIR './'$1'/'$3$HDIR
-
-cd $lcl
-./ksVegasSimProduction.scr $VBFFile
-
+chmod 700 $sgeFile
+qsub -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
