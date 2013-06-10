@@ -735,7 +735,7 @@ function BuildAndSubmitHansenJobs
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
  chmod 700 $sgeFile
 
- if [ -n QsubFileNameList ]; then
+ if [ -n "$QsubFileNameList" ]; then
    echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
    echo $sgeFile >>$QsubFileNameList
  else
@@ -793,7 +793,7 @@ function BuildAndSubmitHansenJobsBy10()
    echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log"  >>$sgeFile
    chmod 700 $sgeFile
    #echo $e  $i  $endShower
-   if [ -n QsubFileNameList ]; then
+   if [ -n "$QsubFileNameList" ]; then
     echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
@@ -842,7 +842,7 @@ function BuildAndSubmitHansenJobsSingly
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   if [ -n QsubFileNameList ]; then
+   if [ -n "$QsubFileNameList" ]; then
     echo 'echo Done >'$sgeFile'.Done'                     >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
@@ -877,7 +877,7 @@ function BuildAndSubmitCarverJobs
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
 
  chmod 700 $sgeFile
- if [ -n QsubFileNameList ]; then
+ if [ -n "$QsubFileNameList" ]; then
    echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
    echo $sgeFile >>$QsubFileNameList
  else
@@ -917,7 +917,7 @@ function BuildAndSubmitCarverJobsSingly
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   if [ -n QsubFileNameList ]; then
+   if [ -n "$QsubFileNameList" ]; then
      echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
@@ -1049,7 +1049,7 @@ function BuildAndSubmitCarverJobArray
    echo $workingDir '>'\$LOGFILE                                >>$sgeFile
 
    chmod 700 $sgeFile
-   if [ -n QsubFileNameList ]; then
+   if [ -n "$QsubFileNameList" ]; then
      echo 'echo Done >'$sgeFile'.Done'                          >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
