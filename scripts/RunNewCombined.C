@@ -1,4 +1,16 @@
 //-*-mode:c++; mode:font-lock;-*-
+// **********************************************************************************
+// This is the original RunCombined.C script modified to handle the new combined Tree 
+// sturcture (Vegas 2.4 or later).
+// *********************************************************************************
+// This produces all the values form either data or CR run files to makecomparions
+// for detector parameter optimiozation.
+// *********************************************************************************
+// Run the data and or CR .cvbf/ .vbf files through Vegas(2.4 or later) using 
+// whatever Quality and shower cuts and whatever LT you want. They don't matter.
+// This  script does not look at any of the shower values or the cuts results.
+// *********************************************************************************
+
 TH1F** pfR1Width;
 TH1F** pfR1Length;
 TH1F** pfR1Size;
@@ -13,7 +25,7 @@ TH1F**      pfAomegaSC;
 TProfile**  pfTheta2Bias;
 
 uint32_t fCombinedCutMask;
-
+double fLiveTimeSec;
 
 TCanvas* fC1;
 std::string pfRunNames[5];
@@ -22,35 +34,26 @@ bool fHaveSimBranch;
 
 //Stings for Combined tree.
 std::string fCTreeName="SelectedEvents/CombinedEventsTree";
-std::string fHBranch="Tel";
 std::string fPass2Cut=" ";
-
+std::vector< std::string > fHStr;
 
 //bool fSizeCut=true;
 //std::string fNumMinPixels="5";
 
 bool fSizeCut=false;
 std::string fNumMinPixels="3";
-
-std::string fTrigCut="(Tel1.fIsL2Triggered+Tel2.fIsL2Triggered+Tel3.fIsL2Triggered+Tel4.fIsL2Triggered>1)";
-
+std::string fTrigCut;
 std::string fPlotOption=" ";
+
+double fRunLengthSec=1200;
+//double fRunLengthSec=1800;
+
 
 bool useCutMask=false;
 //bool useCutMask=true;
 
-//bool normPeaks=false;
-bool normPeaks=true;                  //For Compare Runs
-
-//Strings for Cumulative tree.
-//std::string fCTreeName="CTree"
-//std::string fHBranch="HT";
-//std::string fTrigCut="(HT1.fIsL2Trigger+HT2.fIsL2Trigger+HT3.fIsL2Trigger>1)";
-
-
-
-
-
+bool normPeaks=false;
+//bool normPeaks=true;                  //For Compare Runs
 
 void CompareRuns(std::string* RunNames, int NumRuns, std::string* Tels);
 void CompareRunsPlot(std::string RunName, std::string Tel,int i);
@@ -59,6 +62,35 @@ void ScaleAndPlot(TH1F** pfDataHist, int fNumRuns,  bool fNormalizePeak,
 void FillShowerPlots(std::string* RunNames, int NumRuns);
 void PlotProfiles(TProfile** pfProfileHists, int fNumRuns, bool addLegend);
 
+void NormalizePeaks()
+{
+  normPeaks=true;
+  return;
+}
+
+void NormalizeArea()
+{
+  normPeaks=false;
+  return;
+}
+
+int RunCombinedInit(std::string& Tel)
+{
+  fHStr.clear();
+  fHStr.resize(4);
+  fHStr.at(0)="vfTels[0].pfHillasData";
+  fHStr.at(1)="vfTels[1].pfHillasData";
+  fHStr.at(2)="vfTels[2].pfHillasData";
+  fHStr.at(3)="vfTels[3].pfHillasData";
+  fTrigCut= "(" +fHStr.at(0) + ".fIsL2Triggered +" + 
+                 fHStr.at(1) + ".fIsL2Triggered +" +
+                 fHStr.at(2) + ".fIsL2Triggered +" + 
+                 fHStr.at(3) + ".fIsL2Triggered>1)";
+  std::istringstream iss(Tel);
+  int telIndex;
+  iss>>telIndex;
+  return telIndex-1;
+}
 
 
 
@@ -128,16 +160,18 @@ void ShowerCompare(std::string Run1Name, std::string Run2Name=" ",
 
 void  FillShowerPlots(std::string RunName, int fRun)
 {
+  RunCombinedInit();
+  
   TFile Run (RunName.c_str());
-  TTree* R1=(TTree*) Run.Get(fCTreeName.c_str());
-  if(R1==NULL)
+  TTree* CombinedEventsTree=(TTree*) Run.Get(fCTreeName.c_str());
+  if(CombinedEventsTree==NULL)
     {
-      std::cout<<"Not a Cumulative file!"<<std::endl;
+      std::cout<<"No CombinedEventsTree in file "<<RunName.c_str()<<std::endl;
       return;
     }
   VAShowerData* pfShower =new VAShowerData;
-  R1->SetBranchAddress("S",&pfShower);
-  if(R1->GetBranch("Sim")==NULL)
+  CombinedEventsTree->SetBranchAddress("S",&pfShower);
+  if(CombinedEventsTree->GetBranch("Sim")==NULL)
     {
       fHaveSimBranch=false;
     }
@@ -145,10 +179,10 @@ void  FillShowerPlots(std::string RunName, int fRun)
     {
       fHaveSimBranch=true;
       VAKascadeSimulationData* pfSim = new VAKascadeSimulationData;
-      R1->SetBranchAddress("Sim",&pfSim);
+      CombinedEventsTree->SetBranchAddress("Sim",&pfSim);
     }
 
-      R1->SetBranchAddress("Cutmask",&fCombinedCutMask);
+      CombinedEventsTree->SetBranchAddress("Cutmask",&fCombinedCutMask);
 
 
   Color_t fColor;
@@ -209,7 +243,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
   TH1F* pfMSW = new TH1F("pfMSW",title.c_str(),100,.4,3.0);
   pfMSW->SetXTitle("MSW(deg)");
   pfMSW->SetYTitle("#events");
-  R1->Draw(fMSWPlot.c_str(),cuts.c_str());
+  CombinedEventsTree->Draw(fMSWPlot.c_str(),cuts.c_str());
   pfMSW->SetDirectory(0);
   pfMSW->SetLineColor(fColor); 
   pfMeanScaledWidth[fRun] = pfMSW;
@@ -221,7 +255,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
   TH1F* pfMSL = new TH1F("pfMSL",title.c_str(),100,.4,3.0);
   pfMSL->SetXTitle("MSL(deg)");
   pfMSL->SetYTitle("#events");
-  R1->Draw(fMSLPlot.c_str(),cuts.c_str());
+  CombinedEventsTree->Draw(fMSLPlot.c_str(),cuts.c_str());
   pfMSL->SetDirectory(0);
   pfMSL->SetLineColor(fColor); 
   pfMeanScaledLength[fRun] = pfMSL;
@@ -240,11 +274,11 @@ void  FillShowerPlots(std::string RunName, int fRun)
       pfEBias->SetYTitle("<Log10(EReconsturcted/ETrue)>");
       
       // Start loop for filling
-      int fNumEntries=(int)R1->GetEntries();
+      int fNumEntries=(int)CombinedEventsTree->GetEntries();
       for(int i=0;i<fNumEntries;i++)
 	{
-	  R1->GetEntry(i);//Loads "S" data into pfShower. and "Sim" into pfSim
-	                  //and Cutmask
+	  CombinedEventsTree->GetEntry(i);//Loads "S" data into pfShower. and "Sim" 
+	                                  //into pfSim and Cutmask
 	  if(pfShower->fIsEnergy==1 )
 	    {
 	      if(useCutMask)
@@ -279,7 +313,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
       // Start loop for filling
       for(int i=0;i<fNumEntries;i++)
 	{
-	  R1->GetEntry(i);//Loads "S" data into pfShower. and "Sim" into pfSim
+	  CombinedEventsTree->GetEntry(i);//Loads "S" data into pfShower. and "Sim" into pfSim
       
 	  if(pfShower->fIsDirection==1)
 	    {
@@ -305,7 +339,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
                                                                    fLog10EMax);
       pfAO->SetXTitle("ln10(Energy(TeV))");
       pfAO->SetYTitle("M**2");
-      R1->Draw(fAomegaPlot.c_str(),fAOCuts.c_str(),"E1");
+      CombinedEventsTree->Draw(fAomegaPlot.c_str(),fAOCuts.c_str(),"E1");
       pfAO->SetDirectory(0);
       pfAO->SetLineColor(fColor); 
       pfAomega[fRun] = pfAO;
@@ -316,7 +350,7 @@ void  FillShowerPlots(std::string RunName, int fRun)
                                                                    fLog10EMax);
       pfAOSC->SetXTitle("ln10(Energy(TeV))");
       pfAOSC->SetYTitle("M**2");
-      R1->Draw(fAomegaSCPlot.c_str(),fAOSCCuts.c_str(),"E1");
+      CombinedEventsTree->Draw(fAomegaSCPlot.c_str(),fAOSCCuts.c_str(),"E1");
       pfAOSC->SetDirectory(0);
       pfAOSC->SetLineColor(fColor); 
       pfAomegaSC[fRun] = pfAOSC;
@@ -477,68 +511,71 @@ void DetermineTriggerRates(std::string RunName, std::string Tel,int fRun)
 //Total rate calculation
 // ********************************************************
 {
+  int telIndex= RunCombinedInit(Tel);   //defines fHStr and fTrigCut
   std::string cuts;
   std::string M2cuts;
   if(fSizeCut)
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " + fHBranch + Tel+ ".fSize>200 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels+ " && " + fTrigCut;
+      cuts = fHStr.at(telIndex)+".fIsL2Triggered && " +
+	     fHStr.at(telIndex)+".fSize>200 &&" +
+	     fHStr.at(telIndex)+".fPixelsInImage>="+fNumMinPixels+" && "+fTrigCut;
     }
   else
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>="+ fNumMinPixels + " && " + fTrigCut;
+      cuts = fHStr.at(telIndex)+".fIsL2Triggered && " +
+	     fHStr.at(telIndex)+".fGoodImage && " +
+	     fHStr.at(telIndex)+".fPixelsInImage>="+fNumMinPixels+" && "+fTrigCut;
     }
 
   TFile Run (RunName.c_str());
-  TTree* R1=(TTree*) Run.Get(fCTreeName.c_str());
-  if(R1->GetBranch("Sim")==NULL)
+  TTree* CombinedEventsTree=(TTree*) Run.Get(fCTreeName.c_str());
+ 
+  if(CombinedEventsTree->GetBranch("Sim")==NULL)
     {
       std::string fCuts=cuts;
       std::cout<<fCuts<<std::endl;
       TH1F* pInt = new TH1F("pInt","int rate",10,-2,2);
-      R1->Draw("S.fIsDirection>>pInt",fCuts.c_str());
-      std::cout<<"Trigger rate(Hz): for T"<<Tel<<": "
-	       <<pInt->GetEntries()/1200<<std::endl;
+      CombinedEventsTree->Draw("S.fIsDirection>>pInt",fCuts.c_str());
+      //std::cout<<"Run Trigger rate(Hz)(no deadtime correc tion): for T"<<Tel<<": "
+      //	       <<pInt->GetEntries()/fRunLengthSec<<std::endl;
+      std::cout<<"Live Trigger rate(Hz): for T"<<Tel<<": "
+	       <<pInt->GetEntries()/fLiveTimeSec<<std::endl;
     }
   else
     {
       VAKascadeSimulationData* pfSim = new VAKascadeSimulationData;
-      R1->SetBranchAddress("Sim",&pfSim);
+      CombinedEventsTree->SetBranchAddress("Sim",&pfSim);
       std::string fCuts="*Sim.fIntegralRatePerEventHz"; 
       fCuts="("+cuts+")"+fCuts;
       //fCuts="(Sim.fEnergyGeV==Sim.fEnergyGeV)"+fCuts;
       std::cout<<fCuts<<std::endl;
       TH1F* pInt = new TH1F("pInt","int rate",100,0,40000);
-      R1->Draw("Sim.fEnergyGeV>>pInt",fCuts.c_str());
-      cout<<"Trigger rate(Hz): for T"<<Tel<<": "<<pInt->Integral()<<endl;
+      CombinedEventsTree->Draw("Sim.fEnergyGeV>>pInt",fCuts.c_str());
+      cout<<"Live Trigger rate(Hz): for T"<<Tel<<": "<<pInt->Integral()<<endl;
     }
   
   // *******************************************************************
-  // Now M2 rates after cuts
-  //  std::string M2cuts="(Tel1.fSize>400&&Tel1.fPixelsInImage>=5 +"
-  // "Tel2.fSize>400&&Tel2.fPixelsInImage>=5 +"
-  // "Tel3.fSize>400&&Tel3.fPixelsInImage>=5 +"
-  // "Tel4.fSize>400&&Tel4.fPixelsInImage>=5)>1";
+  // Now M2 rates No cuts
   std::string M2cuts= "Sim.fEnergyGeV==Sim.fEnergyGeV";
-  if(R1->GetBranch("Sim")==NULL)
+  if(CombinedEventsTree->GetBranch("Sim")==NULL)
     {
-
-      std::cout<<M2cuts<<std::endl;
-      TH1F* pInt = new TH1F("pInt","int rate",10,-2,2);
-      R1->Draw("S.fIsDirection>>pInt",M2cuts.c_str());
-      std::cout<<"Overall Trigger rate(Hz): for T"<<Tel<<": "
-	       <<pInt->GetEntries()/1200<<std::endl;
+      int numEntries=CombinedEventsTree->GetEntries();
+      std::cout<<"Overall Live Trigger rate(Hz): for T"<<Tel<<": "
+	       <<numEntries/fLiveTimeSec<<std::endl;
+      //std::cout<<"Overall Trigger rate(Hz): for T"<<Tel<<": "
+      //	       <<numEntries/fRunLengthSec<<std::endl;
     }
   else
     {
       VAKascadeSimulationData* pfSim = new VAKascadeSimulationData;
-      R1->SetBranchAddress("Sim",&pfSim);
+      CombinedEventsTree->SetBranchAddress("Sim",&pfSim);
       std::string fCuts="*Sim.fIntegralRatePerEventHz"; 
       fCuts="(" + M2cuts + ")" + fCuts;
       //fCuts="(Sim.fEnergyGeV==Sim.fEnergyGeV)"+fCuts;
       std::cout<<fCuts<<std::endl;
       TH1F* pInt = new TH1F("pInt","int rate",100,0,40000);
-      R1->Draw("Sim.fEnergyGeV>>pInt",fCuts.c_str());
-      cout<<"Overall Trigger rate(Hz): "<<pInt->Integral()
+      CombinedEventsTree->Draw("Sim.fEnergyGeV>>pInt",fCuts.c_str());
+      cout<<"Overall Live Trigger rate(Hz): "<<pInt->Integral()
 	  <<endl;
     }
 
@@ -552,27 +589,50 @@ void DetermineTriggerRates(std::string RunName, std::string Tel,int fRun)
 
 void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
 {
+  int telIndex=RunCombinedInit(Tel);
   //CUTS  
   std::string cuts;
   if(fSizeCut)
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fSize>200 &&" + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels;
+      cuts =fHStr.at(telIndex)+".fIsL2Triggered && " +
+	    fHStr.at(telIndex)+".fGoodImage && " +
+            fHStr.at(telIndex)+".fSize>200 &&" + 
+            fHStr.at(telIndex)+".fPixelsInImage>=" + fNumMinPixels;
     }
   else
     {
-      cuts = fHBranch + Tel +".fIsL2Triggered && " +fHBranch + Tel + ".fGoodImage && " + fHBranch + Tel+ ".fPixelsInImage>=" + fNumMinPixels + " && " + fTrigCut;
+      cuts =fHStr.at(telIndex)+".fIsL2Triggered && " +
+            fHStr.at(telIndex)+".fGoodImage && " +
+            fHStr.at(telIndex)+".fPixelsInImage>="+fNumMinPixels+" && "+fTrigCut;
     }
 
 
 
-  TTree* R1=NULL;
+
+  TTree* CombinedEventsTree=NULL;
   TFile Run (RunName.c_str());
-  R1=(TTree*) Run.Get(fCTreeName.c_str());
-  if(R1==NULL){
+  CombinedEventsTree=(TTree*) Run.Get(fCTreeName.c_str());
+  if(CombinedEventsTree==NULL){
     std::cout<<"Could not find TTree "<<fCTreeName<<" in run file "<<RunName
 	     <<std::endl;
     std::cout<<"Aborting display"<<std::endl;
     return;
+  }
+  else{
+    int numEntries=CombinedEventsTree->GetEntries();
+    VAParameterisedEventData *combParData = new VAParameterisedEventData();
+    CombinedEventsTree->SetBranchAddress("P", &combParData);
+    CombinedEventsTree->GetEntry(numEntries-1);
+    for(int t=0;t<4;t++)
+      {
+	VAHillasData* hillasData = combParData->getHillasData(t);
+	if (hillasData == NULL) {
+	  continue;
+	}
+      }
+    fLiveTimeSec= hillasData->fLiveTime;
+    cout<<"Run Livetime: "<<fLiveTimeSec<<" sec"<<endl;
+    cout<<"All rates dead time corrected."<<endl;
   }
 
   Color_t fColor;
@@ -598,48 +658,48 @@ void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
   //Width plots
   std::string title = "Width";
   TH1F* pfWidth = new TH1F("pfWidth",title.c_str(),100,0.01,0.51);
-  std::string widthplot = fHBranch + Tel + ".fWidth >> pfWidth";
-  R1->Draw(widthplot.c_str(),cuts.c_str());
+  std::string widthplot =fHStr.at(telIndex)+ ".fWidth >> pfWidth";
+  CombinedEventsTree->Draw(widthplot.c_str(),cuts.c_str());
   pfWidth->SetDirectory(0);
   pfWidth->SetLineColor(fColor); 
   pfR1Width[fRun] = pfWidth;
 
   title = "Length";
   TH1F* pfLength = new TH1F("pfLength",title.c_str(),100,0.01,1.01);
-  std::string lengthplot = fHBranch + Tel + ".fLength >> pfLength";
-  R1->Draw(lengthplot.c_str(),cuts.c_str());
+  std::string lengthplot =fHStr.at(telIndex)+ ".fLength >> pfLength";
+  CombinedEventsTree->Draw(lengthplot.c_str(),cuts.c_str());
   pfLength->SetDirectory(0);
   pfLength->SetLineColor(fColor); 
   pfR1Length[fRun] =pfLength;
   
   title = "Size";
   TH1F* pfSize = new TH1F("pfSize",title.c_str(),100,1,2001);
-  std::string sizeplot = fHBranch + Tel + ".fSize >> pfSize";
-  R1->Draw(sizeplot.c_str(),cuts.c_str());
+  std::string sizeplot =fHStr.at(telIndex)+ ".fSize >> pfSize";
+  CombinedEventsTree->Draw(sizeplot.c_str(),cuts.c_str());
   pfSize->SetDirectory(0);
   pfSize->SetLineColor(fColor); 
   pfR1Size[fRun] =pfSize;
   
   title = "Max3";
   TH1F* pfMax3 = new TH1F("pfMax3",title.c_str(),100,1,201);
-  std::string max3plot = fHBranch + Tel + ".fMax3 >> pfMax3";
-  R1->Draw(max3plot.c_str(),cuts.c_str());
+  std::string max3plot =fHStr.at(telIndex)+ ".fMax3 >> pfMax3";
+  CombinedEventsTree->Draw(max3plot.c_str(),cuts.c_str());
   pfMax3->SetDirectory(0);
   pfMax3->SetLineColor(fColor); 
   pfR1Max3[fRun] =pfMax3;
 
   title = "LOverS";
   TH1F* pfLOverS = new TH1F("pfLOverS",title.c_str(),100,0,.001);
-  std::string LOverSplot = fHBranch + Tel + ".fLengthOverSize >> pfLOverS";
-  R1->Draw(LOverSplot.c_str(),cuts.c_str());
+  std::string LOverSplot =fHStr.at(telIndex)+ ".fLengthOverSize >> pfLOverS";
+  CombinedEventsTree->Draw(LOverSplot.c_str(),cuts.c_str());
   pfLOverS->SetDirectory(0);
   pfLOverS->SetLineColor(fColor); 
   pfR1LOverS[fRun] =pfLOverS;
 
   title = "NPixels";
   TH1F* pfNPixels = new TH1F("pfNPixels",title.c_str(),10,2,12);
-  std::string NPixelsplot = fHBranch + Tel + ".fPixelsInImage >> pfNPixels";
-  R1->Draw(NPixelsplot.c_str(),cuts.c_str());
+  std::string NPixelsplot =fHStr.at(telIndex)+ ".fPixelsInImage >> pfNPixels";
+  CombinedEventsTree->Draw(NPixelsplot.c_str(),cuts.c_str());
   pfNPixels->SetDirectory(0);
   pfNPixels->SetLineColor(fColor); 
   pfR1NPixels[fRun] =pfNPixels;

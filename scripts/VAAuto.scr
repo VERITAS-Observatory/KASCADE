@@ -66,7 +66,7 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 #*Generate Stage4
 #---------------------------------------
 #GenerateStage4Files=enabled                       #See LimitSubmissions above
-#CheckStage4Files=enabled                      
+CheckStage4Files=enabled                      
 #--------------------------------------
 
 #HTARPedVarZnOffsetS4ToArchive=enabled             #See LimitSubmissions above
@@ -79,7 +79,7 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 #GenerateEASubLTConfigFiles=enabled
 #ProduceEASubLookupTables=enabled
 #CombineEASubLT=enable
-BuildEALTTree=enable
+#BuildEALTTree=enable
 #---------------------------------------
 
 ###########################################################################
@@ -1539,7 +1539,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                if [ "$BAD" -lt "15" ]; then
 	        #echo "VAAuto: Bad: "$BAD" file "$FileName
 		   echo "Bad: "$PedVarS4FileName
-		   if [ $BAD -eq "1" ]; then
+		   echo "Reason: "$BAD
+                   if [ $BAD -eq "1" ]; then
 		       echo "VAAuto: VARootIO failed to open" 
 		   fi
 		   #if [ $BAD -eq "2" ]; then
