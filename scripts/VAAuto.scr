@@ -5,9 +5,12 @@
 # electrons)
 #It has some arguments listed below.
 #$1 ksProduction season spec: Ex: W or S
-#$2 telescope designation: W or V or U (Whipple, veritas, Upgrade)
+#$2 Array designation: W or OA or NA  or U (Whipple, OldArray,NewArray, Upgrade)
+#   This use is not consitent yet. For NA sometimes i use V and sometime NA. Fix this
+#   and rename bunches of files when we start on the oldarray. Note the U.NA.OA 
+#   extention also appears in argument $4
 #$3 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
-#$4 MDL designation for VBF files: Ex MDL10U
+#$4 MDL designation for VBF files: Ex MDL10U or MDL15NA
 #$5 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
 #$6 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
 #$7 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
@@ -24,9 +27,9 @@
 #GenerateSimLaserFile=enabled
 
 LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
-                              #only want 9 at a time to run (limit for HTAR)
+MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
-                              #750 submission in queue at one time
+                              #450 submission in queue at one time
 
 #GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
 
@@ -65,8 +68,8 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-#GenerateStage4Files=enabled                       #See LimitSubmissions above
-CheckStage4Files=enabled                      
+GenerateStage4Files=enabled                       #See LimitSubmissions above
+#CheckStage4Files=enabled                      
 #--------------------------------------
 
 #HTARPedVarZnOffsetS4ToArchive=enabled             #See LimitSubmissions above
@@ -379,7 +382,21 @@ function SubmitVegasSimProduction()
 #Main:
 
 lcl=$PWD
-PMT=$2
+if [ "$2" = "U" ]; then
+    PMT=$2
+fi
+if [ "$2" = "OA" ]; then
+    PMT="V"
+fi
+if [ "$2" = "NA" ]; then
+    PMT="V"
+fi
+if [ "$2" = "W" ]; then
+    PMT=$2
+fi
+
+
+
 
 source /etc/profile
 
@@ -394,7 +411,7 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
     QUEUE=serial
     WALLTIME=30:00:00
     ARCHIVE=/home/u/u15013/$4'/'
-    VBFDir=$ARCHIVE$1$2$PMT$4'VBF'
+    VBFDir=$ARCHIVE$1$PMT$3$4'VBF'     
     echo '***Carver Cluster***'
 fi
 
@@ -442,7 +459,16 @@ fi
 echo :Arg9: $9
 
 if [ $9 = "All" ]; then
-    PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+    if [ $2 = "U" ]; then
+      PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+    fi
+    if [ $2 = "NA" ]; then
+      PedVar=([0]=4.04 4.72 5.514 6.443 7.527 8.794 10.27 12.0
+    fi
+    if [ $2 = "OA" ]; then
+        echo 'VAAuto: Fatal- No PedVar settings defined for OldArray (Arg2: OA )'
+        exit
+    fi 
 else
     if [ $9 = "Base" ]; then
 	PedVar=([0]=0 )
@@ -517,12 +543,26 @@ if [ -n "$ProduceEASubLookupTables" ]; then
   fi
 fi
 
-
+#########################################
+#Default stringa for the config files.
+#########################################
 TelIDStr=0,1,2,3
 ZNStr=1,10,20,30,40,50,60,70
 ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
 AzStr=0,45,90,135,180,225,270,315
-NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+
+if [ $2 = "U" ]; then
+   NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+fi
+if [ $2 = "NA" ]; then
+   NoiseStr=4.04,4.72,5.51,6.44,7.53,8.79,10.27,12.00
+fi
+if [ $2 = "OA" ]; then
+   echo 'VAAuto: Fatal- No PedVar settings defined for OldArray (Arg2: OA )'
+   exit
+fi 
+
+
 DTMWidthStr=0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.2,0.25,0.35
 DTMLengthStr=0.05,0.09,0.13,0.17,0.21,0.25,0.29,0.33,0.37,0.41,0.45,0.5,0.6,0.7,0.8
 
@@ -593,7 +633,7 @@ if [ -n "$LimitSubmissions" ]; then
   fi
   if [ -n "$GenerateStage2Files" ] || [ -n "$GenerateStage4Files" ]; then
       QsubLogs='RunningVegasQsubLogs.txt'
-      let MaxQsubs=750
+      let MaxQsubs=$MaxQsubsDefault
       echo "VAAuto: Overall qsub active submissions being limited to " $MaxQsubs 
   fi
 
@@ -984,7 +1024,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
            PedVarFile=""
            PedVarName=""
          else
-           PedVarFile=Ped$PV
+           PedVarFile=Ped$2$PV
            PedVarName=PedVar$PV
          fi  
    
@@ -1343,10 +1383,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	 PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$2$3$4'.tar'
-	 PVFILESPEC='PedVar*'$1$2$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2.root'
+	 PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4'.tar'
+	 PVFILESPEC='PedVar*'$1$PMT$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2.root'
               
-	 SubmitHtarToArchive $ARCHIVE$1$2$3$4'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
+	 SubmitHtarToArchive $ARCHIVE$1$PMT$3$4'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
@@ -1356,9 +1396,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$2$3$4
+	   PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4
 
-	   SubmitHtarFromArchive $ARCHIVE$1$2$3$4'PedVarS2/' $lcl $PedVarHTARFile 
+	   SubmitHtarFromArchive $ARCHIVE$1$PMT$3$4'PedVarS2/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
 
@@ -1368,10 +1408,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$2$3$4${10}'Cuts.tar'
-	 PVFILESPEC='PedVar*'$1$2$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2'${10}'Cuts.root'
+	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts.tar'
+	 PVFILESPEC='PedVar*'$1$PMT$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2'${10}'Cuts.root'
               
-	 SubmitHtarToArchive $ARCHIVE$1$2$3$4'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
+	 SubmitHtarToArchive $ARCHIVE$1$PMT$3$4'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
@@ -1381,9 +1421,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$2$3$4${10}'Cuts'
+	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts'
 
-	   SubmitHtarFromArchive $ARCHIVE$1$2$3$4'PedVarS4/' $lcl $PedVarHTARFile 
+	   SubmitHtarFromArchive $ARCHIVE$1$PMT$3$4'PedVarS4/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
 
@@ -1477,7 +1517,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   do
            #Test for defaults
 	   PV=${PedVar[$kpvar]} 
-	   PedVarFile=Ped$PV
+	   PedVarFile=Ped$2$PV
 	   PedVarName=PedVar$PV
 	   BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
 	   PedVarS2FileName=$PedVarName$BaseFile'1234M2.root'
