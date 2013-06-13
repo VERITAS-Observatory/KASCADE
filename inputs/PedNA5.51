@@ -1,0 +1,2 @@
+IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.39464,2/1.38038,3/1.39058,4/1.37573'  #5.51
+PedVarBase='PedVar5.51'
