@@ -18,7 +18,7 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=500            #with ksProduction and only want to make
+MaxQsubsDefault=150           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
@@ -28,10 +28,10 @@ MaxQsubsDefault=500            #with ksProduction and only want to make
 #GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
-#HTARTeFilesToArchive=enabled          # $1$2$3$4$5
+HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomeagaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
-GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+#GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
@@ -603,7 +603,7 @@ while test $izn -lt $iznEnd
        echo "KSAuto: Submitting ksProduction for " $Spec 
        echo "KSAuto: This submission takes a few minuts"
 
-       if [ -n "$LimitSubmissions" ]; then     #We submit max number of jobs and 
+       if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
                                             #wait until to submit more in our 
                                             #list
 	   if [ -e $QsubFileNameList ]; then
@@ -692,13 +692,13 @@ while test $izn -lt $iznEnd
        date
 
        if [ "$1" = "CR" ] ; then
-         checkFilesExist $V190DirP'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
+         checkFilesExist $V190Dir'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameP' directory'
          fi
 
-         checkFilesExist $V190DirHe4'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Start $EntryHe4End $Threshold
+         checkFilesExist $V190Dir'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Star $EntryHe4End $Threshold
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
@@ -912,14 +912,13 @@ while test $izn -lt $iznEnd
        date
        #make up our ksProduction designation
        Spec=$ksProdSpec$8
-       
-       if [ -n "$LimitSubmissions" ]; then     #We submit max number of jobs and 
+
+       if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
                                             #wait until to submit more in our 
                                             #list
 	 if [ -e $QsubFileNameList ]; then
 	    rm $QsubFileNameList
          fi
-         echo QsubFileNameList: $QsubFileNameList
 	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList
                                   #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
