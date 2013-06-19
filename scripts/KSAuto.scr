@@ -28,11 +28,11 @@ MaxQsubsDefault=150           #with ksProduction and only want to make
 #GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
-HTARTeFilesToArchive=enabled          # $1$2$3$4$5
+#HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomeagaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
 #GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
-#CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
+CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
 #HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
@@ -157,6 +157,7 @@ function checkFilesExist()
 #$5 EntryStart
 #$6 EntryEnd
 #$7 Threshold speck (for file type VBF only)
+#$8 Alternate Dile Dirt (optional, used for ShowerVBF only)
 {
   #echo checkFilesExist:args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
  
@@ -168,16 +169,27 @@ function checkFilesExist()
   EntryStart=$5
   EntryEnd=$6
   Threshold=$7
+  FileDirAlt=$8
 
   #Check we actually got some files (ie made the Directory)
   if [ ! -d $FileDir ]; then
-    echo 'KSAuto: Directory '$FileDir' does not exist!'
-    echo 'KSAuto: Apparently no te files were generated!'
-    echo 'KSAuto: *************Exiting. Cluster failure?********'
-    cd $lcl
-    exit
+      echo 'KSAuto: Directory '$FileDir' does not exist!'
+      if [ -e  $8 ]; then
+	  if [ ! -d $FileDirAlt ]; then
+	      echo 'KSAuto: Alternate Directory '$FileDirAlt' does not exist!'
+	      echo 'KSAuto: Apparently no ' $4 ' files were generated!'
+	      echo 'KSAuto: *************Exiting. Cluster failure?********'
+	      exit
+	  else
+	      FileDir=$FileDirAlt
+	  fi
+      else
+	  echo 'KSAuto: Apparently no ' $4 ' files were generated!'
+	  echo 'KSAuto: *************Exiting. Cluster failure?********'
+	  exit
+     fi
   fi
-
+  
   #Get a list of the files into Check$ZnAz.txt
   CheckListFiles='Check'$ZnAz'.txt'
   echo CheckListFiles: $CheckListFiles
@@ -380,7 +392,8 @@ function SubmitHtarFromArchive()
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
   echo cd $DestinationDir                                  >>$sgeFile
-  echo htar -xvf  $ArchiveDir'/'$SourceTarFile  . \\       >>$sgeFile
+#  echo htar -xvf  $ArchiveDir'/'$SourceTarFile ./  \\      >>$sgeFile
+  echo htar -xvf  $ArchiveDir'/'$SourceTarFile   \\        >>$sgeFile
   echo '>'$local'/'$Source'.log'     >>$sgeFile
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
@@ -652,14 +665,17 @@ while test $izn -lt $iznEnd
        V190Dir=$VDirBase'/'$ParticleDir'/V190'
        TeName=$2$PMT$1$ZnAz$OffSetSpec
        ShowerVBFDir=$TeName$Threshold'1234M2'$2$8
+       ShowerVBFDirAlt=$TeName$Threshold'1234M2'$2$7
        ShowerDir=$VDirBase'/'$ParticleDir'/'$ShowerVBFDir
+       ShowerDirAlt=$VDirBase'/'$ParticleDir'/'$ShowerVBFDirAlt
      fi
    
      if [ -n "$HANSEN" ]; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
-     # Carver HTAR just goes into base directory so don't define 
-     # HtarDir       
+     if [ -n "$CARVER" ]; then
+         HtarDir='/home/u/u15013/'$7'/'
+     fi     
  
 
      if [ -n "$HTARTFilesFromArchive" ]; then
@@ -964,7 +980,7 @@ while test $izn -lt $iznEnd
 	    FilesMissing=1
          fi
        else
-         checkFilesExist $ShowerDir $TeName $1 'VBF' $EntryGEStart $EntryGEEnd $Threshold
+         checkFilesExist $ShowerDir $TeName $1 'VBF' $EntryGEStart $EntryGEEnd $Threshold $ShowerDirAlt
          FilesMissing=$?
          if [ "$FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All '$FileType' files present in '$ShowerDir
