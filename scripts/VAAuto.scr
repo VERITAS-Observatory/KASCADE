@@ -31,7 +31,7 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
 
-#GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
+GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
 
 #---------------------------------------
 #*Generate Stage 2 PedVar files
@@ -68,7 +68,7 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-GenerateStage4Files=enabled                       #See LimitSubmissions above
+#GenerateStage4Files=enabled                       #See LimitSubmissions above
 #CheckStage4Files=enabled                      
 #--------------------------------------
 
@@ -463,7 +463,7 @@ if [ $9 = "All" ]; then
       PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
     fi
     if [ $2 = "NA" ]; then
-      PedVar=([0]=4.04 4.72 5.514 6.443 7.527 8.794 10.27 12.0
+      PedVar=([0]=4.04 4.72 5.51 6.44 7.53 8.79 10.27 12.00)
     fi
     if [ $2 = "OA" ]; then
         echo 'VAAuto: Fatal- No PedVar settings defined for OldArray (Arg2: OA )'
@@ -1036,7 +1036,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
          BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
 	 FileName='PedVar'$PV$BaseFile'1234M2.root'
          VBFFILE=$BaseFile'1234M2.vbf'
-   
+         
          ################################################################
 	    
          if [ -n "$GetVBFFileFromArchive" ]; then
@@ -1045,6 +1045,8 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
           echo '##########################################################'
 	  cd $lcl
 	  date
+	  echo VBFFILE: $VBFFILE
+	  echo VBFDIR: $ARCHIVE$1$PMT$3$4'VBF'
 	  if [ ! -e "$VBFFILE" ]; then
            hsi 'cd '$ARCHIVE$1$PMT$3$4'VBF; get '$VBFFILE';'
           fi
