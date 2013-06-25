@@ -23,8 +23,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 
 # Loop over energies: start at above 1TeV
 #let iStart=10
-#let iStart=23
-let iStart=40
+let iStart=23
+#let iStart=40
 let iEnd=44
 
 cd $lcl'/../simulations/veritas/gammas/'
