@@ -11,13 +11,13 @@ grep "GenerateStage2Files=enabled" VAAuto.scr >g.tmp
 {
   read genS2Ena
   fchar=${genS2Ena:0:1}
-  if [ "$fchar" != "#" ]; then
+  if [ "$fchar" = "#" ]; then
     echo 'ReDoBadPedVarS2.scr: Fatal!!: VAAuto must have  GenerateStage2Files=enabled selected!'
     exit
   fi
 }<g.tmp
 
-rm g.tmp
+#rm g.tmp
 
 
 
@@ -69,16 +69,8 @@ grep Bad $BadFile >tmp1
 {  
   while read PV SEASON PMT PTYPE MDL ARRAYTYPE  ZN AZ OFF THRESH
     do
-      	echo $PV
- 	echo $SEASON
- 	echo $PMT
- 	echo $MDL
- 	echo $ARRAYTYPE
-	echo $ZN 
-	echo $AZ 
-	echo $OFF 
-	echo $THRESH
-      	echo ./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+      	echo Executing: ./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+	./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
     done
 }<tmp1
 
