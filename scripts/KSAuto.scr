@@ -174,7 +174,7 @@ function checkFilesExist()
   #Check we actually got some files (ie made the Directory)
   if [ ! -d $FileDir ]; then
       echo 'KSAuto: Directory '$FileDir' does not exist!'
-      if [ -e  $8 ]; then
+      if [ -e  "$8" ]; then
 	  if [ ! -d $FileDirAlt ]; then
 	      echo 'KSAuto: Alternate Directory '$FileDirAlt' does not exist!'
 	      echo 'KSAuto: Apparently no ' $4 ' files were generated!'
