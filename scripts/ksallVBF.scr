@@ -12,6 +12,7 @@
 # Threshold 45mv or 50mv
 # Tels in array  1234
 # Array trigger Multiplicity: M2
+# Array Type OA (old array), or NA (New Array), or UA (Upgrade Array)
 # ksTrigger source files any set of 4 letters lc or uc 
 #$3 Lowest flie id
 #$4 Highest file id.
@@ -140,49 +141,55 @@ echo Working Directory is $wrkdir
 ##################################################################
 #Parse the specification string
 jobSpec=$2
-AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2
-TelSpec=${jobSpec:1:1}                 #gets V from WVG20DegN0.5Deg50mv1234M2
+AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2NA
+TelSpec=${jobSpec:1:1}                 #gets V from WVG20DegN0.5Deg50mv1234M2OA
 
-PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2
+PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2UA
 PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives VG20Deg 
                                        #or UE20_180Deg
-ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234M2AAAB from 
-                                          #WVG20Deg2D50mv1234M2AAAB
+ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234OAM2AAAB from 
+                                          #WVG20Deg2D50mv1234M2NAAAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
-    ThresholdSpec=${jobSpec##*Deg}         #No Deg2D: gets 70mv1234M2ABBC from 
-                                           #CVG20DegN0.5Deg70mv1234M2ABBC
+    ThresholdSpec=${jobSpec##*Deg}         #No Deg2D: gets 70mv1234M2NAABBC from 
+                                           #CVG20DegN0.5Deg70mv1234M2UAABBC
 fi
 
 TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
-                                           #SVG20Deg2D50mv1234M2BBAB
+                                           #SVG20Deg2D50mv1234M2NABBAB
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
-ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
+ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2NABBAB
 
 PMTSpec=$TelSpec
 if [ "$TelSpec" != "U" ] && [ "$TelSpec" != "V" ] &&  
-   [ "$TelSpec" != "W" ]; then
+   [ "$TelSpec" != "W" ] && [ "$TelSpec" != "O" ]; then
   echo "Fatal-Bad Telescope Spec: "$TelSpec
   echo "Allowed values: U W V"
   exit
 fi
 
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
-   TelS='V'
+   TelS='U'
    PMTSpec='U'
    ConfigTriggerSpec='V'${TriggerSpec:1}
-   PrimarySpec='V'${PrimarySpec:1}
+   PrimarySpec='V'${PrimarySpec:1}       #strip off U and replace with V
 fi
 if [ "$TelSpec" = "V" ]; then 
    TelS='V'
    PMTSpec='V'
    ConfigTriggerSpec='V'${TriggerSpec:1}
-   PrimarySpec='V'${PrimarySpec:1}
+   PrimarySpec='V'${PrimarySpec:1}       #strip off V and replace with V
+fi
+if [ "$TelSpec" = "O" ]; then 
+   TelS='O'
+   PMTSpec='V'
+   ConfigTriggerSpec='O'${TriggerSpec:1}
+   PrimarySpec='V'${PrimarySpec:1}       #strip off O and replace with V
 fi
 if [ "$TelSpec" = "W" ]; then 
    TelS='W'
-   PMTSpec='W'
-   ConfigTriggerSpec='W'${TriggerSpec:1}
-   PrimarySpec='W'${PrimarySpec:1}
+   PMTSpec='W'                    
+q   ConfigTriggerSpec='W'${TriggerSpec:1}
+   PrimarySpec='W'${PrimarySpec:1}       #strip off W and replace with V
 
 fi
 TelSpec=$TelS
@@ -415,7 +422,7 @@ if [ -n "$Production" ]; then #Get 20_180:
   	TypeSpec=He4_
         ZNAZSpec=${ZNAZSpec##He4_}  #Remove He4_ from beginning
         ZNAZSpec=${ZNAZSpec%%Deg*}  #Strip Deg off end
-        TEDIR=$AtmSpec$PMTSpec$TypeSpec$ZNAZSpec'Deg'
+        TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
     else
        ZNAZSpec=${ZNAZSpec:1}     #remove  leading G,P,E     
        ZNAZSpec=${ZNAZSpec%%Deg*} #Strip of Trailing from DEG: 

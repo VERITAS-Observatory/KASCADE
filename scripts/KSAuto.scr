@@ -25,7 +25,7 @@ MaxQsubsDefault=90           #with ksProduction and only want to make
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
@@ -454,7 +454,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
-  VDirBase=$VERITASBASE'/simulations/veritas/'
+  VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cvrsvc'
   QUEUE=serial
   echo '***Carver Cluster***'
@@ -490,17 +490,17 @@ fi
 #######################################################################
 
 TELESPEC=$3
-if [ "$3" = "W" ]; then
+if [ "$3" = "W" ]; then   #Whipple telescope (not really implimented, place holder)
    PMT="W"
 fi
-if [ "$3" = "OA" ]; then
-   PMT="V"
+if [ "$3" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
+   PMT="O"                #with old V330 PSF)
 fi
-if [ "$3" = "NA" ]; then
-   PMT="V"
+if [ "$3" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
+   PMT="V"                #with new  V190 PSF)
 fi
-if [ "$3" = "U" ]; then
-   PMT="U"
+if [ "$3" = "U" ]; then    #Upgrade Veritas Array (after T1 move, New PMTs,
+   PMT="U"                 #with new  V190 PSF)
 fi
 
 Threshold=$6
@@ -613,7 +613,7 @@ while test $izn -lt $iznEnd
        rm tmp2
        ####################################################################
 
-       echo "KSAuto: Submitting ksProduction for " $Spec 
+       echo "KSAuto: Submitting ksProduction for " $ksProdSpec 
        echo "KSAuto: This submission takes a few minuts"
 
        if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
@@ -876,10 +876,10 @@ while test $izn -lt $iznEnd
 	     done
 	     }<$lcl'/'$7".dat"
 
-	 mv  -f T1.config ksAomegaV$Threshold$T1'.config'
-	 mv  -f T2.config ksAomegaV$Threshold$T2'.config'
-	 mv  -f T3.config ksAomegaV$Threshold$T3'.config'
-	 mv  -f T4.config ksAomegaV$Threshold$T4'.config'
+	 mv  -f T1.config ksAomega$PMT$Threshold$T1'.config'
+	 mv  -f T2.config ksAomega$PMT$Threshold$T2'.config'
+	 mv  -f T3.config ksAomega$PMT$Threshold$T3'.config'
+	 mv  -f T4.config ksAomega$PMT$Threshold$T4'.config'
 	 rm tmp1
          rm tmp2
          rm Base.config
