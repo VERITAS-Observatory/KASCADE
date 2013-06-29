@@ -15,7 +15,6 @@
 #$2 has which script to run:  ksallVBF.scr
 #        ksallVBF.scr is All-singing-all-dancing: ksKascade to ksArrayTrigger
 #$3 QsubFileNameList file:OPTIONAL: 
-:  If this argument is not defined:
 #   This script creats all the .pbs shower files as requested and then submits
 #   them to the appropiate queue itself. All of them.
 #  If this argument is defined this script creates all the .pbs job files and 
@@ -509,7 +508,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
            let iEntryStart=1   #498 jobs
 #           let iEntryStart=41   #498jobs
 #           let iEntryEnd=40
-           let iEntryEnd=44
+           let iEntryEnd=46
 
 #Reverse order (prefered)
 	   let j=$iEntryEnd
@@ -735,7 +734,7 @@ function BuildAndSubmitHansenJobs
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
  chmod 700 $sgeFile
 
- if [ -n "$QsubFileNameList" ]; then
+ if [ -n QsubFileNameList ]; then
    echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
    echo $sgeFile >>$QsubFileNameList
  else
@@ -793,7 +792,7 @@ function BuildAndSubmitHansenJobsBy10()
    echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log"  >>$sgeFile
    chmod 700 $sgeFile
    #echo $e  $i  $endShower
-   if [ -n "$QsubFileNameList" ]; then
+   if [ -n QsubFileNameList ]; then
     echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
@@ -842,7 +841,7 @@ function BuildAndSubmitHansenJobsSingly
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   if [ -n "$QsubFileNameList" ]; then
+   if [ -n QsubFileNameList ]; then
     echo 'echo Done >'$sgeFile'.Done'                     >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
@@ -869,6 +868,7 @@ function BuildAndSubmitCarverJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"!/bin/bash                            >$sgeFile
+ echo "#"PBS -q $CarverQueue                  >>$sgeFile
  echo "#"PBS -l walltime=12:00:00             >>$sgeFile
  #echo "#"PBS -l gres=gscratch%project         >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
@@ -877,11 +877,11 @@ function BuildAndSubmitCarverJobs
  echo ">>"$lcl"/ksProduction_"$eGeV$pr".log"  >>$sgeFile
 
  chmod 700 $sgeFile
- if [ -n "$QsubFileNameList" ]; then
+ if [ -n QsubFileNameList ]; then
    echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
    echo $sgeFile >>$QsubFileNameList
  else
-   qsub -q $CarverQueue -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+   qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
  fi
 }
 #########################################################################
@@ -906,8 +906,9 @@ function BuildAndSubmitCarverJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"!/bin/bash                                      >$sgeFile
+ echo "#"PBS -q $CarverQueue                              >>$sgeFile
    echo "#"PBS -l walltime=12:00:00                       >>$sgeFile
-  # echo "#"PBS -l gres=gscratch%project                   >>$sgeFile
+  # echo "#"PBS -l gres=gscratch%project                  >>$sgeFile
    if test $1 -ge 25
      then
       echo "#PBS -l pvmem=8GB"                            >>$sgeFile
@@ -917,11 +918,11 @@ function BuildAndSubmitCarverJobsSingly
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
    chmod 700 $sgeFile
-   if [ -n "$QsubFileNameList" ]; then
+   if [ -n QsubFileNameList ]; then
      echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
-     qsub -q $CarverQueue -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+     qsub  -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
    fi
    let i=i+1
   done
@@ -957,11 +958,11 @@ function BuildAndSubmitLargeCarverJobs
  let numNodes=numJobs/coresPerNode+1
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
- echo "#"PBS -S /bin/bash                             >$sgeFile
+ echo "#"PBS -S /bin/bash                            >$sgeFile
  echo "#"PBS -l walltime=4:00:00,pvmem=5gb          >>$sgeFile
- echo "#"PBS -l nodes=$numNodes                      >>$sgeFile
- #echo "#"PBS -l gres=gscratch%project                >>$sgeFile
- echo cd "$"PBS_O_WORKDIR                            >>$sgeFile
+ echo "#"PBS -l nodes=$numNodes                     >>$sgeFile
+ #echo "#"PBS -l gres=gscratch%project              >>$sgeFile
+ echo cd "$"PBS_O_WORKDIR                           >>$sgeFile
  
  let i=showerStart  
  let node=0
@@ -1049,7 +1050,7 @@ function BuildAndSubmitCarverJobArray
    echo $workingDir '>'\$LOGFILE                                >>$sgeFile
 
    chmod 700 $sgeFile
-   if [ -n "$QsubFileNameList" ]; then
+   if [ -n QsubFileNameList ]; then
      echo 'echo Done >'$sgeFile'.Done'                          >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
@@ -1190,7 +1191,7 @@ fi
 
 
 if [ -n "$CARVER" ]; then
-    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    dataDirBase=$SCRATCH'/simulations'
     echo Carver Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
@@ -1224,7 +1225,8 @@ if [ ${jobSpec:1:1} = "W" ]; then
    mkdir -vp $dataDirBase
 fi
 
-if [ ${jobSpec:1:1} = "V" ] || [ ${jobSpec:1:1} = "U" ]; then
+if [ ${jobSpec:1:1} = "V" ] || [ ${jobSpec:1:1} = "U" ] || 
+   [ ${jobSpec:1:1} = "O" ]; then
     dataDirBase=$dataDirBase'/veritas'
     mkdir -vp $dataDirBase
 fi

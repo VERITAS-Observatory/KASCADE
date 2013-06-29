@@ -31,7 +31,7 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
 
-GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
+#GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
 
 #---------------------------------------
 #*Generate Stage 2 PedVar files
@@ -382,21 +382,37 @@ function SubmitVegasSimProduction()
 #Main:
 
 lcl=$PWD
+
+
+###########################
+#Winter/Summer
+###########################
+if [ "$1" = "W" ]; then
+    LTATM="ATM21"
+fi
+if [ "$1" = "S" ]; then
+    LTATM="ATM22"
+fi
+
+############################
+# Array seaon
+############################
 if [ "$2" = "U" ]; then
     PMT=$2
+    LTSEASON="ua"
 fi
 if [ "$2" = "OA" ]; then
     PMT="V"
+    LTSEASON="oa"
 fi
 if [ "$2" = "NA" ]; then
     PMT="V"
+    LTSEASON="na"
 fi
 if [ "$2" = "W" ]; then
     PMT=$2
 fi
-
-
-
+############################
 
 source /etc/profile
 
@@ -435,6 +451,8 @@ fi
 #into arrays This is tricky. We save away the present Internal Filed Seperator
 #and then set IFS to a comma. We then use the -a option with the read command 
 #to read in our stings into arrays. Then we restore the IFS.
+#########################################################################
+
 
 SAVEIFS=$IFS
 
@@ -452,11 +470,22 @@ fi
 
 if [ $7 = "All" ]; then
     WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+    LTWbl="alloffsets"
 else  
     IFS=, read -a WblOffset <<< "$7"
+    let iwblEnd=${#WblOffset[@]}
+    if [ "$iwblEnd" -eq "1" ]; then
+	W=${WblOffset[0]}
+	if [ "$W" = "0.5" ]; then
+	    LTWbl="050offset"
+	else
+	    LTWbl=$W'offset'
+	fi
+    else
+	LTWbl="variousoffsets"
+    fi
 fi
 
-echo :Arg9: $9
 
 if [ $9 = "All" ]; then
     if [ $2 = "U" ]; then
@@ -500,11 +529,9 @@ CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
 
-LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_alloffsets'
-#LTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_050offset'
+LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250rc5_'$LTWbl
 
-DTFILENAMEBASE='k_Jan2013_ua_ATM21_'$Samples'samples_'$HMode'_vegas250rc5_alloffsets'
-
+DTFILENAMEBASE='k_Jan2013_'LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250rc5_'$LTWbl
 
 if [ $HMode = "HFit" ]; then
     LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
