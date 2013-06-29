@@ -18,7 +18,7 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=90           #with ksProduction and only want to make
+MaxQsubsDefault=100           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
@@ -115,7 +115,7 @@ function CheckQsubSubmissions()
    #echo countAfter: $count
 
    if [ $count -ge $1 ]; then       #We are full, wait a bit and try again
-     sleep 60
+     sleep 120
    fi
   done
 }
@@ -459,7 +459,8 @@ then
   QUEUE=serial
   echo '***Carver Cluster***'
   if [ -n "$LimitSubmissions" ]; then
-    let MaxQsubs=750
+    let MaxQsubs=$MaxQsubsDefault
+#    let MaxQsubs=750
     let MaxHTARQsubs=9
   fi
 fi
