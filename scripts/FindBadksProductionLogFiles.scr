@@ -1,0 +1,116 @@
+#Script to find "Unknow exception" Shower VBF  log files.Gammas only for now.
+#Easy enough to extend.
+#
+#$1 Zn value to search Ex: 1 or 10 or 70
+#$2 Season/Array/Primary  Ex: WUG  SVG SUG
+#$3 (Options sort off)Telescope 4 character spec: Ex: ABCD or wxyz 
+#   $3 is optional. If set it looks at ShowerVBF log files
+#   is left blank this scriop looks at TE log files.
+#   expects files to be in directories in gammas/$2$1{D,_}*$3 
+#######################################################################
+# assume we start in 'V'
+#
+function RemoveDuplicateStrings()
+{
+ FileIN=$1
+ FileOUT=$2
+
+ icount=1
+ {
+  while read StringToCheck
+   do
+     if [ "$icount" -eq "1" ]; then
+        echo $StringToCheck >$FileOUT
+        icount=2
+     else
+        GotItAlready=0
+        {
+          while read StringGot
+           do
+            if [ "$StringGot" = "$StringToCheck" ]; then
+              GotItAlready=1
+              break
+            fi    
+           done
+	}< $FileOUT
+        if [ "$GotItAlready" != "1" ]; then
+           echo $StringToCheck >> $FileOUT  
+        fi
+      fi
+    done
+ }<$FileIN
+}
+###########################################################################
+
+Zn=$1
+SAP=$2
+TELCONFIG=$3
+lcl=$PWD
+
+energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 43707 52265 )
+
+# ************************************************************************
+# Scheme is to use ls to get a listing of those log files with the
+# string "Unknown exception" in them. From these files names we regen the file
+# names needed to be rerun
+# ************************************************************************
+if [ -n "$3" ]; then              # look for Shower VBF log files (in SV)
+  cd ../simulations/veritas       # Otherwise look at Shower TE log files (V)
+  FileName="ksProduction*"$2"*1234M2"$3"*.log"
+else
+  FileName="ksProduction*"$2"*.log"
+fi
+#pwd
+#echo FileName: "$FileName"
+grep -H "Unknown exception" $FileName  >tmp0
+#echo tmp0:
+#cat tmp0
+
+
+cat tmp0 | grep "ksProduction_" >tmp1
+#echo tmp1:
+#cat tmp1
+
+#############################
+# Remove stuff
+sed '/ksProd/s/.log:Fatal--Unknown exception found./ /g' <tmp1 >tmp2
+sed '/ksProd/s/$3'E'/ E/g'                               <tmp2 >tmp1
+sed '/ksProd/s/$3/ /g'                                   <tmp1 >tmp2
+sed '/ksProd/s/ksProduction_/ks /g'                      <tmp2 >tmp1
+sed '/ks/s/d/ d/g'                                       <tmp1 >tmp2
+sed '/ks/s/'$2'/ '$2'/g'                                 <tmp2 >tmp1
+sed '/ks/s/'$3'/ /g'                                     <tmp1 >tmp2
+sed '/ks/s/ks/ /g'                                       <tmp2 >tmp1
+
+#echo tmp1:
+#cat tmp1
+
+#SUG70_270Deg2D45mv1234M2GeV3575.d18.vbf
+#ksProduction_43707d10SUG70_135Deg2D45mv1234M2ABCD.log:Fatal--Unknown exception found.
+rm tmp2
+RemoveDuplicateStrings tmp1 tmp2
+
+{
+  while read Energy A B
+   do
+     fCharB=${B:0:1}
+     if [ "$fCharB" = "E" ]; then
+        ShwrSpec=$A
+        end=${B##*_}
+        start=${B:1}
+        start=${start%%_*}
+        #echo $start $end
+
+        let i=$start
+        while test $i -le $end
+          do
+            echo 'File Not found: '$ShwrSpec'GeV'$Energy'.d'$i'.vbf'
+	    i=$((i+1))
+          done
+     else
+            echo 'File Not found: '$B'GeV'$Energy'.'$A'.vbf'
+
+     fi
+   done
+}<tmp2
+

@@ -563,6 +563,10 @@ while test $i -le $4
 	    echo VBFOutputFileName: $VBFFile
 	    echo j: $j ksAomegaConfig[j] ${ksAomegaConfig[$j]}
 	fi
+        if [ ! -e ${ksAomegaConfig[$j]} ]; then
+            echo ksallVBF--Fatal-- no such file ${ksAomegaConfig[$j]} 
+            exit
+        fi
 	$src/ksAomega -config=${ksAomegaConfig[$j]} \
 	    -RandomSeedFileName=ksAomega.ran \
 	    -VBFOutputFileName=$VBFFile  $tefile
