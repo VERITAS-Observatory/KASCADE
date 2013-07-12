@@ -16,9 +16,17 @@
 #Ex ./ksWeRock.scr SVG20Deg2D50mv 95021 123-M2 4
 #Ex../ksWeRock.scr UVCRA10Deg50mv 96010 1234M2 0 W230MDL1
 
+#PrintShowerVBFFileNames=enabled  #This enables in ksSumFiles printing of each
+                                  #Shower VBF filename before we open it.
+                                  #Used to find bad files
+
 CleanupEnable=enable
 DebugPrintEnable=enable
 
+
+
+
+##################################################################
 lcl="$PWD"
 
 inpDir=$KASCADEBASE'/inputs'
@@ -190,7 +198,16 @@ fi
 
 
 
-#EnableDebugPrintOption='-EnableDebugPrint'
+if [ -n "$PrintShowerVBFFileNames" ]; then
+
+   echo '###################################'
+   echo '# PrintShowerVBFFileNames enabled #'
+   echo '###################################'
+
+   EnableDebugPrintOption='-EnableDebugPrint'
+
+fi
+
 #This is normal version 
 
   OutputVBFFile=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf'
