@@ -184,16 +184,21 @@ int main(int argc, char** argv)
 	  fDistributeEnergy=true;
 	}
 
+
       bool fDebugPrintEnable=false;
       if(command_line.find("EnableDebugPrint",
 			   "Enables printing of the name of each run file as "
 			   "it is opened. Used to find bad files.")
-	 == VAOptions::FS_FOUND)
+	                   == VAOptions::FS_FOUND) 
 	{
+	  std::cout<<"ksSumFiles: EnableDebugPrint defined!"<<std::endl;
 	  fDebugPrintEnable=true;
 	}
-
+      else{
+	  std::cout<<"lsSumFiles: EnableDebugPrint NOT defined!"<<std::endl;
+      }
       
+
       std::string fRandomSeedFileName;
       if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
 				     "Ranlux seed file")
@@ -310,7 +315,11 @@ int main(int argc, char** argv)
 	  // allowing you random access.
 	  // **********************************************************
 	  std::string fVBFFileName=fInputFile + ".vbf";
-	  //std::cout<<"Get weights file:"<<fVBFFileName<<std::endl;
+	  if(fDebugPrintEnable)
+	    {
+	      std::cout<<"For Map:InputFile: "<<fVBFFileName<<std::endl;
+	    }
+	  
 	  VBankFileReader reader(fVBFFileName);
 	  
 	  // **************************************  *****************
