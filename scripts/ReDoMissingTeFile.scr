@@ -16,7 +16,8 @@ function setup()
      CarverQueue=serial
      QUEUE1=$CarverQueue
      QUEUE2=$CarverQueue
-     WALLTIME=100:00:00
+     WALLTIME=30:00:00
+     MEM=pvmem
      echo ***Carver Cluster***
   fi
 
@@ -28,13 +29,15 @@ function setup()
       QUEUE2=standby
       QUEUE=$QUEUE1
       WALLTIME=30:00:00
+      MEM=mem
       #WALLTIME=04:00:00
   fi
   
   echo hostString: $hostString
   
   if [ -n "$CARVER" ]; then
-    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    dataDirBase=$SCRATCH/simulations
+    #dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
     echo Carver Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
@@ -84,13 +87,13 @@ function BuildAndSubmitHansenJobsSingly()
  if [ "$E" -gt "20000" ]; then
    echo "#"PBS -q $QUEUE1                                >$sgeFile
    echo "#"PBS -l walltime=10:00:00                      >>$sgeFile
-#   echo "#PBS -l nodes=1:ppn=6"                          >>$sgeFile
-   echo "#PBS -l mem=35GB"                               >>$sgeFile
+#   echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+   echo "#PBS -l "$MEM"=30GB"                            >>$sgeFile
  else
    echo "#"PBS -q $QUEUE2                                >$sgeFile
    echo "#"PBS -l walltime=04:00:00                     >>$sgeFile
-   echo "#PBS -l mem=35GB"                              >>$sgeFile
-#   echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+   echo "#PBS -l "$MEM"=30GB"                           >>$sgeFile
+#   echo "#PBS -l nodes=1:ppn=6"                        >>$sgeFile
  fi
  echo source /etc/profile                               >>$sgeFile
  echo module load gcc/4.7.2                             >>$sgeFile
