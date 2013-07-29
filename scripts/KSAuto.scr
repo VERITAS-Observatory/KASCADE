@@ -17,8 +17,8 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=100           #with ksProduction and only want to make
+#LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+MaxQsubsDefault=300        #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
@@ -211,7 +211,7 @@ function checkFilesExist()
   cd $lcl
   if [ -s $Result ]; then
      cat  $Result
-     iFilesNotFound=1
+     iFilesNotFound=$(cat $Result | wc -l)
      if [ -n "$ExitOnTeCreationFailure" ]; then
        echo 'KSAuto: Exiting on File check failure'
        echo 'KSAuto: Goodbye'
@@ -333,7 +333,7 @@ function SubmitHtarToArchive()
   fi
   echo cd $SourceDir                                              >>$sgeFile
   echo htar -cvf  $DestinationDir'/'$ShwrDir'.tar  ./'$ShwrDir \\ >>$sgeFile
-  echo '>'$local'/'$ShwrDir'.log'     >>$sgeFile
+  echo '-Hverify=2 >'$local'/'$ShwrDir'.log'                      >>$sgeFile
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
     echo $sgeDoneFile >>$QsubDoneList #add the next one
@@ -660,10 +660,17 @@ while test $izn -lt $iznEnd
        TeNameP=$2$PMT'P'$ZnAz$OffSetSpec
        TeNameHe4=$2$PMT'He4_'$ZnAz$OffSetSpec
        TeName=$TeNameP
+
        ShowerVBFProtonDir=$TeNameP$Threshold'1234M2'$2$8
+       ShowerVBFProtonDirAlt=$TeNameP$Threshold'1234M2'$2$7
        ShowerPDir=$VDirBase'/protons/'$ShowerVBFProtonDir
-       ShowerVBFHe4Dir=$TeNameHe4$Threshold'1234M2'$2$8
+       ShowerPDirAlt=$VDirBase'/protons/'$ShowerVBFProtonDirAlt
+
+       ShowerVBFHe4Dir=$TeNameHe4reshold'1234M2'$2$8
+       ShowerVBFHe4DirAlt=$TeNameHe4$Threshold'1234M2'$2$7
        ShowerHe4Dir=$VDirBase'/he4/'$ShowerVBFHe4Dir
+       ShowerHe4DirAlt=$VDirBase'/he4/'$ShowerVBFHe4DirAlt
+
      else
        PSFDir=$VDirBase'/'$ParticleDir'/'$DirPSF
        TeName=$2$PMT$1$ZnAz$OffSetSpec
@@ -711,16 +718,16 @@ while test $izn -lt $iznEnd
        date
 
        if [ "$1" = "CR" ] ; then
-         checkFilesExist $PSFDir'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
+         checkFilesExist $PSFDirP'/'$TeNameP $TeNameP 'P' 'TE' $EntryPStart $EntryPEnd $Threshold
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All Te files present in '$TeNameP' directory'
+            echo 'KSAuto: All Required Te files present in '$TeNameP' directory'
          fi
 
-         checkFilesExist $PSFDir'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Star $EntryHe4End $Threshold
+         checkFilesExist $PSFDirHe4'/'$TeNameHe4 $TeNameHe4 'He4_' 'TE' $EntryHe4Start $EntryHe4End $Threshold
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
+            echo 'KSAuto: All  Required Te files present in '$TeNameHe4' directory'
          fi
 
 	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
@@ -731,7 +738,7 @@ while test $izn -lt $iznEnd
          checkFilesExist $PSFDir'/'$TeName $TeName $1 'TE' $EntryGEStart $EntryGEEnd $Threshold
          FilesMissing=$?
          if [ "$FilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All Te files present in '$TeName' directory'
+            echo 'KSAuto: All  Required Te files present in '$TeName' directory'
          fi
        fi
 
@@ -969,13 +976,13 @@ while test $izn -lt $iznEnd
          checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $Threshold
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All Te files present in '$TeNameP' directory'
+            echo 'KSAuto: All Required Shower VBF files present in '$TeNameP' directory'
          fi
 
          checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Star $EntryHe4End $Threshold
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All Te files present in '$TeNameHe4' directory'
+            echo 'KSAuto: All Required Shower VBF files present in '$TeNameHe4' directory'
          fi
 
 	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
@@ -986,7 +993,7 @@ while test $izn -lt $iznEnd
          checkFilesExist $ShowerDir $TeName $1 'VBF' $EntryGEStart $EntryGEEnd $Threshold $ShowerDirAlt
          FilesMissing=$?
          if [ "$FilesMissing" -ne "1" ]; then
-            echo 'KSAuto: All '$FileType' files present in '$ShowerDir
+            echo 'KSAuto: All Required '$FileType' files present in '$ShowerDir
          fi
        fi
 
@@ -1048,9 +1055,9 @@ while test $izn -lt $iznEnd
  
 
        if [ "$1" = "CR" ] ; then
-         echo"CRProcessAll not working with KSAuto yet"
+         #echo"CRProcessAll not working with KSAuto yet"
 	 exit
-	   #./CRProcessAll $DirPSF $ZnAz $Threshold $2$PMT $7 $8
+	  $SVDir'/'$ProcessAll $DirPSF $ZnAz $Threshold $2$PMT $7 $8 >$ProcessAll$ZnAz'.log'
        fi
 
        if [ "$1" = "G" ] || [ "$1" = "E" ] ; then
@@ -1058,20 +1065,7 @@ while test $izn -lt $iznEnd
        fi
        date
 
-       #Wait for it!
-
-#       cat $ProcessAll$ZnAz'.log' | grep $JobIDHost  |grep -v host >ShowerProcessAll$ZnAz'.log'
-
-#       runsNotDone=1
-        
-#       while test $runsNotDone -eq 1 
-#	 do
-#          sleep 300s
-#	  checkRunningJobs ShowerProcessAll$ZnAz'.log' $ZnAz
-#          let runsNotDone=$?
-#	 done
-#       rm ksallVBF$ZnAz'.scr'
-       echo "KSAuto: "$ProcessAll" VBF wobble shower file generation complete"
+       echo "KSAuto: "$ProcessAll" VBF file generation complete"
       fi
      ########################################################################
 
