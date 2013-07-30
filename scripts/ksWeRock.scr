@@ -39,8 +39,8 @@ fi
 host=$(hostname)
 echo host: $host
 
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+hostString=${host:0:1}
+if test  "$hostString" = "c"  #Are we running on Carver
 then
   CARVER=enabled
   echo ***Carver Cluster***
@@ -57,8 +57,8 @@ fi
 
 #CARVER
 if [ -n "$CARVER" ]; then
-    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
-    dstDir=/project/projectdirs/m1304/veritas_CM/simulations
+    dataDirBase=$lcl/../simulations
+    dstDir=$dataDirBase
 fi
 
 if [ -n "$HANSEN" ]; then
@@ -67,6 +67,11 @@ if [ -n "$HANSEN" ]; then
 fi
 
 if [ ${Spec:1:1} = "V" ] ; then
+	dataDirBase=$dataDirBase'/veritas'
+	dstDir=$dstDir'/veritas'
+fi
+
+if [ ${Spec:1:1} = "O" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
 	dstDir=$dstDir'/veritas'
 fi
