@@ -8,7 +8,7 @@
 #$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
 #$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
 #$6 Threshold: Ex 45mv or 50mv
-#$7 MDL file name for VBF files: Ex MDL12U
+#$7 MDL file name for VBF files: Ex MDL12U or for BuildMDLAomegaConfig MDL1 ($3 will be added when its made.)
 #$8 Telescope 4 character spec: Ex: ABCD or wxyz
 #$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
 #************************************************************************
@@ -17,7 +17,7 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-#LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+LimitSubmissions=enabled      #Enable if you want to generate Shower files 
 MaxQsubsDefault=300        #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
@@ -27,12 +27,12 @@ MaxQsubsDefault=300        #with ksProduction and only want to make
 
 #GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
-#BuildMDLAomeagaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
+#BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
 #GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
-#CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
+CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
 #HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
@@ -204,7 +204,10 @@ function checkFilesExist()
   echo 'KSAuto: Checking for all '$FileType' files in: '$FileDir
        
   Result=$CheckListFiles'.Result'
-  rm $Result
+  if [ -e "$Result" ]; then
+      rm $Result
+  fi
+  
   CheckList $CheckListFiles $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold
        
   date
@@ -666,7 +669,7 @@ while test $izn -lt $iznEnd
        ShowerPDir=$VDirBase'/protons/'$ShowerVBFProtonDir
        ShowerPDirAlt=$VDirBase'/protons/'$ShowerVBFProtonDirAlt
 
-       ShowerVBFHe4Dir=$TeNameHe4reshold'1234M2'$2$8
+       ShowerVBFHe4Dir=$TeNameHe4$Threshold'1234M2'$2$8
        ShowerVBFHe4DirAlt=$TeNameHe4$Threshold'1234M2'$2$7
        ShowerHe4Dir=$VDirBase'/he4/'$ShowerVBFHe4Dir
        ShowerHe4DirAlt=$VDirBase'/he4/'$ShowerVBFHe4DirAlt
@@ -835,9 +838,9 @@ while test $izn -lt $iznEnd
      fi
      ######################################################################
 
-     if [ -n "$BuildMDLAomeagaConfig" ]; then
+     if [ -n "$BuildMDLAomegaConfig" ]; then
 	 echo '##########################################################'
-	 echo '# BuildMDLAomeagaConfig '
+	 echo '# BuildMDLAomegaConfig '
 	 echo '##########################################################'
 	 echo 'KSAuto: Generating ksAomega config files from '$7'.dat'
 
@@ -973,13 +976,13 @@ while test $izn -lt $iznEnd
 
 
        if [ "$1" = "CR" ] ; then
-         checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $Threshold
+         checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $Threshold ShowerPDirAlt
          PFilesMissing=$?
          if [ "$PFilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Required Shower VBF files present in '$TeNameP' directory'
          fi
 
-         checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Star $EntryHe4End $Threshold
+         checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Start $EntryHe4End $Threshold ShowerHe4DirAlt
          He4FilesMissing=$?
          if [ "$He4FilesMissing" -ne "1" ]; then
             echo 'KSAuto: All Required Shower VBF files present in '$TeNameHe4' directory'
@@ -997,7 +1000,7 @@ while test $izn -lt $iznEnd
          fi
        fi
 
-       if [ "$FilesMissing" -eq "1" ]; then
+       if [ "$FilesMissing" = "1" ]; then
          echo 'KSAuto: '$iFilesNotFound' files not created.'
          if [ -n "$ExitOnTeCreationFailure" ]; then
            echo 'KSAuto: *************Missing files***********'
@@ -1056,7 +1059,7 @@ while test $izn -lt $iznEnd
 
        if [ "$1" = "CR" ] ; then
          #echo"CRProcessAll not working with KSAuto yet"
-	 exit
+	 #exit
 	  $SVDir'/'$ProcessAll $DirPSF $ZnAz $Threshold $2$PMT $7 $8 >$ProcessAll$ZnAz'.log'
        fi
 
