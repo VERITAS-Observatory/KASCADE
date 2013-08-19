@@ -23,7 +23,7 @@ BadFile=$1
 # Keep only the "Bad" lines in the file
 ##################################################################
 
-grep Bad $BadFile >redo4tmp1
+grep Bad $BadFile >S4tmp1
 
 #################################################################
 # Parse the bad files names so we can resubmit them to VAAuto
@@ -33,15 +33,17 @@ grep Bad $BadFile >redo4tmp1
 # fist add the _0 to 0 deg az file names in prep for latter 
 #########################
 
-  sed '/Bad/s/1Deg/1_0Deg/g'    <redo4tmp1   >redo4tmp2
-  sed '/Bad/s/10Deg/10_0Deg/g'  <redo4tmp2   >redo4tmp1
-  sed '/Bad/s/20Deg/20_0Deg/g'  <redo4tmp1   >redo4tmp2
-  sed '/Bad/s/30Deg/30_0Deg/g'  <redo4tmp2   >redo4tmp1
-  sed '/Bad/s/40Deg/40_0Deg/g'  <redo4tmp1   >redo4tmp2
-  sed '/Bad/s/50Deg/50_0Deg/g'  <redo4tmp2   >redo4tmp1
-  sed '/Bad/s/60Deg/60_0Deg/g'  <redo4tmp1   >redo4tmp2
-  sed '/Bad/s/70Deg/70_0Deg/g'  <redo4tmp2   >redo4tmp1
-
+  sed '/Bad/s/1Deg/1_0Deg/g'     <S4tmp1   >S4tmp2
+  sed '/Bad/s/10Deg/10_0Deg/g'   <S4tmp2   >S4tmp1
+  sed '/Bad/s/20Deg/20_0Deg/g'   <S4tmp1   >S4tmp2
+  sed '/Bad/s/30Deg/30_0Deg/g'   <S4tmp2   >S4tmp1
+  sed '/Bad/s/40Deg/40_0Deg/g'   <S4tmp1   >S4tmp2
+  sed '/Bad/s/50Deg/50_0Deg/g'   <S4tmp2   >S4tmp1
+  sed '/Bad/s/60Deg/60_0Deg/g'   <S4tmp1   >S4tmp2
+  sed '/Bad/s/70Deg/70_0Deg/g'   <S4tmp2   >S4tmp1  #Note : Screws up _270Deg here
+  sed '/Bad/s/270_0Deg/270Deg/g' <S4tmp1   >S4tmp2  #Note Fix it
+  cp S4tmp2 S4tmp1                                  #Next parts assumes we start with
+                                                    #S4tmp1
 
 #############################################################
 #Now seperate things and remove unwanted stuff
@@ -49,24 +51,25 @@ grep Bad $BadFile >redo4tmp1
 #############################################################
 #  7.64 W U G MDL10 U 20 270 0.0 45mv UpgradeLoose
 
-  sed '/Bad/s/Cuts.root/ /g'        <redo4tmp1   >redo4tmp2   #Remove "Cuts.root"
-  sed '/Bad/s/Soft/soft/g'          <redo4tmp2   >redo4tmp1   #Parse cuts type
-  sed '/Bad/s/1234M2/ /g'           <redo4tmp1   >redo4tmp2   #Parse cuts type
-  sed '/Bad/s/Wbl/ /g'              <redo4tmp2   >redo4tmp1   #Parse Threshold
-  sed '/Bad/s/Deg2DS/  /g'          <redo4tmp1   >redo4tmp2   #Parse Offset
-  sed '/Bad/s/Deg2D/  /g'           <redo4tmp2   >redo4tmp1   #Parse Special 0.0 Offset
-  sed '/Bad/s/_/  /g'               <redo4tmp1   >redo4tmp2   #Parse Az
-  sed '/Bad/s/MDL10U/ MDL10 U /g'   <redo4tmp2   >redo4tmp1   #MDL10, ArrayType, 
-  sed '/Bad/s/MDL15NA/ MDL15 NA /g' <redo4tmp1   >redo4tmp2   #Special for MDL15NA
-  sed '/Bad/s/W/ W /g'          <redo4tmp2   >redo4tmp1   #Seperate Pedvar and season
-  sed '/Bad/s/S/ S /g'          <redo4tmp1   >redo4tmp2   #Seperate Pedvar other season
-  sed '/Bad/s/soft/Soft/g'          <redo4tmp2   >redo4tmp1   #Parse cuts type
-  sed '/Bad/s/G/ G/g'               <redo4tmp1   >redo4tmp2   #Seperate PMT, part type
-  sed '/Bad/s/E/ E/g'               <redo4tmp2   >redo4tmp1   #Seperate PMT, part type
-  sed '/Bad/s/Bad: PedVar/ /g'      <redo4tmp1   >redo4tmp2   #Remove "Bad: PedVar"
+  sed '/Bad/s/Cuts.root/ /g'        <S4tmp1   >S4tmp2   #Remove "Cuts.root"
+  sed '/Bad/s/Soft/soft/g'          <S4tmp2   >S4tmp1   #Change capital on Soft
+  sed '/Bad/s/1234M2/ /g'           <S4tmp1   >S4tmp2   #Parse cuts type
+  sed '/Bad/s/Wbl/ /g'              <S4tmp2   >S4tmp1   #Parse Threshold
+  sed '/Bad/s/Deg2DS/  /g'          <S4tmp1   >S4tmp2   #Parse Offset
+  sed '/Bad/s/Deg2D/  /g'           <S4tmp2   >S4tmp1   #Parse Special 0.0 Offset
+  sed '/Bad/s/_/  /g'               <S4tmp1   >S4tmp2   #Parse Az
+  sed '/Bad/s/MDL10U/ MDL10 U /g'   <S4tmp2   >S4tmp1   #MDL10, ArrayType, 
+  sed '/Bad/s/MDL15NA/ MDL15 NA /g' <S4tmp1   >S4tmp2   #Special for MDL15NA
+  sed '/Bad/s/W/ W /g'          <S4tmp2   >S4tmp1   #Seperate Pedvar and season
+  sed '/Bad/s/S/ S /g'          <S4tmp1   >S4tmp2   #Seperate Pedvar other season
+  sed '/Bad/s/soft/Soft/g'          <S4tmp2   >S4tmp1   #Change capital on Soft
+  sed '/Bad/s/G/ G/g'               <S4tmp1   >S4tmp2   #Seperate PMT, part type
+  sed '/Bad/s/E/ E/g'               <S4tmp2   >S4tmp1   #Seperate PMT, part type
+  sed '/Bad/s/Bad: PedVar/ /g'      <S4tmp1   >S4tmp2   #Remove "Bad: PedVar"
 
 {  
-  while read PV SEASON PMT PTYPE MDL ARRAYTYPE  ZN AZ OFF THRESH CUT
+  #while read PV SEASON PMT PTYPE MDL ARRAYTYPE ZN AZ OFF THRESH CUT 
+   while read PV SEASON PMT PTYPE MDL ARRAYTYPE ZN AZ OFF THRESH CUT 
     do
 	echo "Season" $SEASON 
 	echo "Array" $ARRAYTYPE   
@@ -79,9 +82,10 @@ grep Bad $BadFile >redo4tmp1
 	echo "Thresh" $THRESH  
 	echo "PV" $PV  
 	echo "Cut" $CUT
+	echo "other" $OTHER
 	echo ./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT
-  	#./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT
+  	./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT
     done
-}<redo4tmp2
+}<S4tmp2
 
 

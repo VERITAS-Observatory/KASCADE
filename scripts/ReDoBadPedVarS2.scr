@@ -38,16 +38,17 @@ grep Bad $BadFile >S2tmp1
 # fist add the _0 to 0 deg az file names in prep for latter 
 #########################
 
-  sed '/Bad/s/1Deg/1_0Deg/g'    <S2tmp1     >S2tmp2
-  sed '/Bad/s/10Deg/10_0Deg/g'  <S2tmp2     >S2tmp1
-  sed '/Bad/s/20Deg/20_0Deg/g'  <S2tmp1     >S2tmp2
-  sed '/Bad/s/30Deg/30_0Deg/g'  <S2tmp2     >S2tmp1
-  sed '/Bad/s/40Deg/40_0Deg/g'  <S2tmp1     >S2tmp2
-  sed '/Bad/s/50Deg/50_0Deg/g'  <S2tmp2     >S2tmp1
-  sed '/Bad/s/60Deg/60_0Deg/g'  <S2tmp1     >S2tmp2
-  sed '/Bad/s/70Deg/70_0Deg/g'  <S2tmp2     >S2tmp1
-
-
+  sed '/Bad/s/1Deg/1_0Deg/g'     <S2tmp1     >S2tmp2
+  sed '/Bad/s/10Deg/10_0Deg/g'   <S2tmp2     >S2tmp1
+  sed '/Bad/s/20Deg/20_0Deg/g'   <S2tmp1     >S2tmp2
+  sed '/Bad/s/30Deg/30_0Deg/g'   <S2tmp2     >S2tmp1
+  sed '/Bad/s/40Deg/40_0Deg/g'   <S2tmp1     >S2tmp2
+  sed '/Bad/s/50Deg/50_0Deg/g'   <S2tmp2     >S2tmp1
+  sed '/Bad/s/60Deg/60_0Deg/g'   <S2tmp1     >S2tmp2
+  sed '/Bad/s/70Deg/70_0Deg/g'   <S2tmp2     >S2tmp1  #Note : Screws up _270Deg here
+  sed '/Bad/s/270_0Deg/270Deg/g' <S2tmp1     >S2tmp2  #Note Fix it
+  cp S2tmp2 S2tmp1                                    #Next parts assumes we start with
+                                                      #S2tmp1
 #############################################################
 #Now seperate things and remove unwanted stuff
 # Bad: PedVar12.35WUGMDL10U10_270Deg2DS1.25Wbl45mv1234M2.root
