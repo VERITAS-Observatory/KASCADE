@@ -29,8 +29,9 @@ function setup()
   if test  "$hostString" = "hansen"  #Are we running on Hansen
     then
       HANSEN=enabled
-      QUEUE1=physics
+      #QUEUE1=physics
       QUEUE2=standby
+      QUEUE1=$QUEUE2
       QUEUE=$QUEUE1
       WALLTIME=30:00:00
       #WALLTIME=04:00:00
@@ -120,7 +121,8 @@ let E=${eGeV%%.*}
  #Build the pbs file
  if [ "$E" -gt "20000" ]; then
    echo "#"PBS -q $QUEUE1                                >$sgeFile
-   echo "#"PBS -l walltime=10:00:00                      >>$sgeFile
+   #echo "#"PBS -l walltime=10:00:00                      >>$sgeFile
+   echo "#"PBS -l walltime=04:00:00                      >>$sgeFile
 #   echo "#PBS -l nodes=1:ppn=6"                          >>$sgeFile
    echo "#PBS -l mem=35GB"                               >>$sgeFile
  else

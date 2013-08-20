@@ -716,8 +716,10 @@ function BuildAndSubmitHansenJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  if [ "$E" -gt "20000" ]; then
-   echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
-   echo "#"PBS -l walltime=30:00:00            >>$sgeFile
+   echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+   echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+   #echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
+   #echo "#"PBS -l walltime=30:00:00            >>$sgeFile
    echo "#PBS -l mem=30GB"                     >>$sgeFile
    #echo "#PBS -l nodes=1:ppn=6"                >>$sgeFile
  else
@@ -775,8 +777,10 @@ function BuildAndSubmitHansenJobsBy10()
    sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
    
    if [ "$E" -gt "20000" ]; then
-     echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
-     echo "#"PBS -l walltime=30:00:00            >>$sgeFile
+     echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+     echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+     #echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
+     #echo "#"PBS -l walltime=30:00:00            >>$sgeFile
      echo "#PBS -l mem=30GB"                     >>$sgeFile
      #echo "#PBS -l nodes=1:ppn=6"                >>$sgeFile
    else
@@ -826,8 +830,10 @@ function BuildAndSubmitHansenJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    if [ "$E" -gt "20000" ]; then
-     echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
-     echo "#"PBS -l walltime=30:00:00                     >>$sgeFile
+     echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+     echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+     #echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
+     #echo "#"PBS -l walltime=30:00:00                     >>$sgeFile
      echo "#PBS -l mem=30GB"                              >>$sgeFile
      #echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
    else
