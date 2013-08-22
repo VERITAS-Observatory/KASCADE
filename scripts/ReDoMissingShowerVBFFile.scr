@@ -4,6 +4,7 @@
 #  Also works from "./FindBadShowerVBFFiles.scr 70 SUG ABCD >Check.log"
 #$2 Telescope ksAomega config: Ex ABCD  or wxyz
 #$3 Array season spec U or NA or OA
+#$4 Particle type Defauls to G  Optional P He4 
 #From this file we will make a list Missing or short/failed Shower VBF files
 
 
@@ -19,28 +20,28 @@ function setup()
      CarverQueue=serial
      QUEUE1=$CarverQueue
      QUEUE2=$CarverQueue
-     WALLTIME=100:00:00
+     WALLTIME1=30:00:00
+     WALLTIME2=30:00:00
+     MEMREQEST='pvmem=35GB'
      echo ***Carver Cluster***
-     echo Carver submission not yet implimented
-     exit
   fi
 
   hostString=${host:0:6}
   if test  "$hostString" = "hansen"  #Are we running on Hansen
     then
       HANSEN=enabled
-      #QUEUE1=physics
+      QUEUE1=physics
       QUEUE2=standby
-      QUEUE1=$QUEUE2
       QUEUE=$QUEUE1
-      WALLTIME=30:00:00
-      #WALLTIME=04:00:00
+      WALLTIME1=30:00:00
+      WALLTIME2=04:00:00
+      MEMREQEST='mem=35GB'
   fi
   
   echo hostString: $hostString
   
   if [ -n "$CARVER" ]; then
-    dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
+    dataDirBase=$lcl'/../simulations'
     echo Carver Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
@@ -56,7 +57,15 @@ function setup()
   dataDirBase=$dataDirBase'/veritas'
   mkdir -vp $dataDirBase
 
-  datadir=$dataDirBase'/gammas'
+  if [ "$PARTYPE" = "G" ]; then
+	datadir=$dataDirBase'/gammas'
+  fi
+  if [ "$PARTYPE" = "P" ]; then
+     datadir=$dataDirBase'/protons'
+  fi
+  if [ "$PARTYPE" = "He4" ]; then
+     datadir=$dataDirBase'/he4'
+  fi
 
   ####################################################################
   #Make sure ksallVBF.scr is set up correctly to generate Te files
@@ -121,15 +130,12 @@ let E=${eGeV%%.*}
  #Build the pbs file
  if [ "$E" -gt "20000" ]; then
    echo "#"PBS -q $QUEUE1                                >$sgeFile
-   #echo "#"PBS -l walltime=10:00:00                      >>$sgeFile
-   echo "#"PBS -l walltime=04:00:00                      >>$sgeFile
-#   echo "#PBS -l nodes=1:ppn=6"                          >>$sgeFile
-   echo "#PBS -l mem=35GB"                               >>$sgeFile
+   echo "#PBS -l walltime="$WALLTIME1                   >>$sgeFile
+   echo "#"PBS -l $MEMREQEST                            >>$sgeFile
  else
    echo "#"PBS -q $QUEUE2                                >$sgeFile
-   echo "#"PBS -l walltime=04:00:00                     >>$sgeFile
-   echo "#PBS -l mem=35GB"                              >>$sgeFile
-#   echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+   echo "#PBS -l walltime="$WALLYIME2                   >>$sgeFile
+   echo "#"PBS -l $MEMREQEST                            >>$sgeFile
  fi
  echo source /etc/profile                               >>$sgeFile
  echo module load gcc/4.7.2                             >>$sgeFile
@@ -163,6 +169,12 @@ fi
 CheckFile=$1
 TELCONFIG=$2
 TELESPEC=$3
+if [ !  -n "$4" ]; then
+   PARTYPE='G'
+else
+   PARTYPE=$4
+fi
+
 setup
 pwd 
 
