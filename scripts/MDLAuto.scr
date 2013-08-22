@@ -4,8 +4,10 @@
 # it has several part which will be added to as things go on.
 #It has some arguments listed below.
 # ************************************************************************
-#$1 MDL spec: Ex: MDL7   :Used to name .dat file that has MDL values (like MDL3.dat)
-#$2 String used to specify which ratios.dat file we are using Ex 20102012  or Upgrade 
+#$1 MDL spec: Ex: MDL7   :Used to name $Array.dat file that has MDL values (like MDL3$Array.dat)
+#$2 String used to specify which ratios.dat file we are using Ex "Upgrade" or
+#  "NewArray" or "OldArray0809 "
+ 
 #$3 Name of TTree capable Param file( Gain/F:Rate:PVar:Max3 ) 
 #   Ex: UpgradeParams.txt or V190Run63559G2.0.txt
 #$4 Telescope 4 character spec: Ex: ABCD or wxyz
@@ -14,11 +16,13 @@
 
 
                                       # dm=dummy
-#BulidRatiosTxtFile=enabled           #needs $1 $2
-#DetermineMDL=enabled                 #needs $1 $2 $3
+BulidRatiosTxtFile=enabled           #needs dm $2 
+DetermineMDL=enabled                #needs $1 $2 $3
 #BuildMDLAomeagaConfig=enabled        #needs $1 $2 dm $4 $5
 #ProductionMDLCR=enabled              #needs $1 $2 dm $4 $5 $6 :makes showerVBF
-ProcessMDLCR=enabled                 #needs $1 $2 dm $4 dm $6 :makes vbf, .root
+#ProcessMDLCR=enabled                 #needs $1 $2 dm $4 dm $6 :makes vbf, .root
+
+MDLLast=MDL12
 
  
 lcl=$PWD
@@ -26,19 +30,30 @@ lcl=$PWD
 # We are assumed to be in SV
 ###################################
 
-RatiosFileBase='V190'$2'Ratios'
-DatFile=$RatiosFileBase'.dat'
-TxtFile=$RatiosFileBase'.txt'
 if [ "$2" = "Upgrade" ]; then
   PMT='U'
-else
+  PSF='V190'
+  Array='U'
+fi
+if [ "$2" = "OldArray0809" ]; then
   PMT='V'
+  PSF='V330'
+  Array="OA"
+fi
+if [ "$2" = "NewArray" ]; then
+  PMT='V'
+  PSF='V190'
+  Array="NA"
 fi    
 
+RatiosFileBase=$PSF$2'Ratios'
+DatFile=$RatiosFileBase'.dat'
+TxtFile=$RatiosFileBase'.txt'
+
 ZnAz=$6
+MDLLast=$MDLLast$Array
 
-MDLLast=MDL10U
-
+echo MDLLast: $MDLLast
 
 ###########################################################################
 
@@ -80,7 +95,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
-  V190DirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  VDirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
   JobIDHost='cvrsvc'
   QUEUE=serial
   echo '***Carver Cluster***'
@@ -90,7 +105,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  V190DirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
+  VDirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
   JobIDHost='hansen-adm'
   QUEUE=physics
   #QUEUE=standby
@@ -108,13 +123,14 @@ if [ -n "$BulidRatiosTxtFile" ]; then
   {
     while read line
       do
-       #echo Line: "$line"
+       echo Line: "$line"
        if [ -n "$line" ]; then
          MDL=${line##*$MDLLast}          #See if the line the highest MDL in it.
          if [ "$MDL" != "$line" ]; then
            foundMDL="found"
+           echo foundMDL 
          fi
- #We are at or after the MDL6 first instance
+  #We are at or after the MDLLast first instance
 	 if [ -n "$foundMDL" ]; then
            if [ "${line:0:1}" = "T" ]; then
              echo $line >>temp1.txt
@@ -126,7 +142,8 @@ if [ -n "$BulidRatiosTxtFile" ]; then
   sed '/T1/s/T1/1/g' <temp1.txt >temp2.txt  #remove T's
   sed '/T2/s/T2/2/g' <temp2.txt >temp1.txt
   sed '/T3/s/T3/3/g' <temp1.txt >temp2.txt
-  sed '/T4/s/T4/4/g' <temp2.txt >$TxtFile
+  sed '/T4/s/T4/4/g' <temp2.txt >temp1.txt
+  sed '/,/s/,/ /g'   <temp1.txt >$TxtFile
 fi
 
 
@@ -137,10 +154,14 @@ if [ -n "$DetermineMDL" ]; then
   echo '# DetermineMDL '
   echo '##########################################################'
   # Using the determineParams.C root macro make the MDL parameter set
-  # Save to $1.dat file
+  # Save to $1$Array.dat file
   ################################################################
 
   cd $lcl
+
+  if [ !  -e "determineParameters.C" ]; then
+      cp -v $KASCADEBASE/scripts/determineParameters.C .
+  fi
 
   echo "{"                                                  >MDLAuto.rootscr
   echo "gROOT->ProcessLine(\".L determineParameters.C\");" >>MDLAuto.rootscr
@@ -159,12 +180,12 @@ if [ -n "$DetermineMDL" ]; then
   # Parse the root log file to make the MDL7 Ratioos.dat file entry
   #  Will be used to make the ksAomega confifg files.
   ############################################################
-  grep T1 MDLAuto.rootscr.log >$1.dat
-  grep T2 MDLAuto.rootscr.log >>$1.dat
-  grep T3 MDLAuto.rootscr.log >>$1.dat
-  grep T4 MDLAuto.rootscr.log >>$1.dat
+  grep T1 MDLAuto.rootscr.log >$1$Array.dat
+  grep T2 MDLAuto.rootscr.log >>$1$Array.dat
+  grep T3 MDLAuto.rootscr.log >>$1$Array.dat
+  grep T4 MDLAuto.rootscr.log >>$1$Array.dat
 
-  cat $1.dat
+  cat $1$Array.dat
 fi
 ######################################################################
 
