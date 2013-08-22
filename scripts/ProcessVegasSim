@@ -37,7 +37,7 @@ let i=0
       if [ -n "$CARVER" ]; then
 	echo "#"PBS -l pvmem=5gb               >>$sgeFile
       fi
-      if [ -n $HANSEN" ]; then
+      if [ -n "$HANSEN" ]; then
         echo source /etc/profile               >>$sgeFile
         echo module load gcc/4.5.1             >>$sgeFile
 	echo "#"PBS -l mem=5gb                 >>$sgeFile
