@@ -529,9 +529,9 @@ CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
 
-LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250rc5_'$LTWbl
+LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
 
-DTFILENAMEBASE='k_Jan2013_'LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250rc5_'$LTWbl
+DTFILENAMEBASE='k_Jan2013_'LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
 
 if [ $HMode = "HFit" ]; then
     LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
@@ -1111,20 +1111,21 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
 	  root -q -b -q $Arg >CheckStage2OK.log
           {
 	   read BAD
-           if [ $BAD -lt "15" ]; then
-	       #echo "VAAuto: Bad: "$BAD" file "$FileName
+           let suzBAD=$BAD
+	     if [ $suzBAD -lt "15" ]; then
+	       #echo "VAAuto: Bad: "$suzBAD" file "$FileName
                echo "Bad: "$FileName
-               if [ $BAD -eq "1" ]; then
+               if [ $suzBAD -eq "1" ]; then
                   echo "VAAuto: VARootIO failed to open" 
                fi
-	       #if [ $BAD -eq "2" ]; then
+	       #if [ $suzBAD -eq "2" ]; then
 	          #echo "VAAuto: VARootIO failed to load"
 	       #fi
-	       if [ $BAD -eq "2" ]; then
+	       if [ $suzBAD -eq "2" ]; then
 	          echo "VAAuto: VARootIO failed to find parameterizedEvntTree"
 	       fi
 	   #else
-           #    echo 'VAAuto: '$FileName' OK! numEvents:' $BAD
+           #    echo 'VAAuto: '$FileName' OK! numEvents:' $suzBAD
 	   fi 
 	  } <CheckStage2FileOK.Result
 	  rm CheckStage2FileOK.Result
@@ -1605,17 +1606,19 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	     root -q -b -q $Arg >CheckStage4OK.log
 	     {
 	       read BAD
-               if [ "$BAD" -lt "15" ]; then
-	        #echo "VAAuto: Bad: "$BAD" file "$FileName
+	       let suzBAD=$BAD
+
+               if [ "$suzBAD" -lt "15" ]; then
+	        #echo "VAAuto: Bad: "$suzBAD" file "$FileName
 		   echo "Bad: "$PedVarS4FileName
-		   echo "Reason: "$BAD
-                   if [ $BAD -eq "1" ]; then
+		   echo "Reason: "$suzBAD
+                   if [ $suzBAD -eq "1" ]; then
 		       echo "VAAuto: VARootIO failed to open" 
 		   fi
-		   #if [ $BAD -eq "2" ]; then
+		   #if [ $suzBAD -eq "2" ]; then
 		       #echo "VAAuto: VARootIO failed to load"
 		   #fi
-		   if [ $BAD -eq "3" ]; then
+		   if [ $suzBAD -eq "3" ]; then
 		       echo "VAAuto: VARootIO failed to find ShowerDataTree"
 		   fi
 	       fi 
