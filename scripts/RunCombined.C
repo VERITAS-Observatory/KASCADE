@@ -10,7 +10,9 @@
 // whatever Quality and shower cuts and whatever LT you want. They don't matter.
 // This  script does not look at any of the shower values or the cuts results.
 // *********************************************************************************
-
+//  This version is for the Old array where we need to:
+//  1:Remove T1T4 only events
+// *********************************************************************************
 TH1F** pfR1Width;
 TH1F** pfR1Length;
 TH1F** pfR1Size;
@@ -52,8 +54,11 @@ double fRunLengthSec=1200;
 bool useCutMask=false;
 //bool useCutMask=true;
 
-bool normPeaks=false;
-//bool normPeaks=true;                  //For Compare Runs
+bool fNormPeaks=false;
+//bool fNormPeaks=true;                  //For Compare Runs
+
+bool fOldArray=false;
+
 
 void CompareRuns(std::string* RunNames, int NumRuns, std::string* Tels);
 void CompareRunsPlot(std::string RunName, std::string Tel,int i);
@@ -61,18 +66,39 @@ void ScaleAndPlot(TH1F** pfDataHist, int fNumRuns,  bool fNormalizePeak,
 		  bool addLegend);
 void FillShowerPlots(std::string* RunNames, int NumRuns);
 void PlotProfiles(TProfile** pfProfileHists, int fNumRuns, bool addLegend);
+// **********************************************************************************
 
-void NormalizePeaks()
+void RunCombineUsage()
 {
-  normPeaks=true;
+  cout<<"RunCombined commands:"<<endl;
+  cout<<"       SetOldArray()          : Enable T1:T4 only cut"<<endl;
+  cout<<"       SetNormalizeByPeaks() : Normalize plots to match peak heights."<<endl;
+  cout<<"       SetNormalizeByAreas()  :Normalize plots to match areas "<<endl;
+  cout<<"       CompareTels(\"1234\",\"RunFileName1.root\",\"RunFileName2.root\")"<<endl;
+  cout<<"       CompareRuns(1,\"RunFileName1.root\",\"RunFileName2.root\",\"RunFileName3.root\",\"RunFileName4.root\")"<<endl;
+}
+
+  // *********************************************************************************
+
+void SetOldArray()
+{
+  fOldArray=true;
   return;
 }
 
-void NormalizeArea()
+void SetNormalizeByPeaks() 
 {
-  normPeaks=false;
+  fNormPeaks=true;
+ return;
+}
+
+void SetNormalizeByAreas()
+{
+  fNormPeaks=false;
   return;
 }
+// ****************************************************************************
+
 
 int RunCombinedInit(std::string& Tel)
 {
@@ -82,16 +108,28 @@ int RunCombinedInit(std::string& Tel)
   fHStr.at(1)="vfTels[1].pfHillasData";
   fHStr.at(2)="vfTels[2].pfHillasData";
   fHStr.at(3)="vfTels[3].pfHillasData";
+  // *************************************************************************
+  // Require that at least 2 tels trigger
+  // **************************************************************************
   fTrigCut= "(" +fHStr.at(0) + ".fIsL2Triggered +" + 
                  fHStr.at(1) + ".fIsL2Triggered +" +
                  fHStr.at(2) + ".fIsL2Triggered +" + 
                  fHStr.at(3) + ".fIsL2Triggered>1)";
+  // ***************************************************************************
+  // For Old Array also require that at we have atleast T2 and/or T3 in the trigger
+  // This results in us ignoring T1T4 only events.
+  // ****************************************************************************
+  if( fOldArray) {
+    fTrigCut += "&&(" +fHStr.at(1) + ".fIsL2Triggered +" +
+                      +fHStr.at(2) + ".fIsL2Triggered>0)";
+  }
+  // ***************************************************************************   
   std::istringstream iss(Tel);
   int telIndex;
   iss>>telIndex;
   return telIndex-1;
 }
-
+// ****************************************************************************
 
 
 void ShowerCompare(std::string Run1Name, std::string Run2Name=" ",
@@ -490,17 +528,17 @@ void CompareRuns(std::string* pfRunNames, int fNumRuns, std::string* pfTels)
   fC1->Divide(2,3);
   fC1->cd(1);
   fPlotOption=" ";
-  ScaleAndPlot(pfR1Width,fNumRuns,normPeaks,true);
+  ScaleAndPlot(pfR1Width,fNumRuns,fNormPeaks,true);
   fC1->cd(2);
-  ScaleAndPlot(pfR1Length,fNumRuns,normPeaks,false);
+  ScaleAndPlot(pfR1Length,fNumRuns,fNormPeaks,false);
   fC1->cd(3);
-  ScaleAndPlot(pfR1Size,fNumRuns,normPeaks,false);
+  ScaleAndPlot(pfR1Size,fNumRuns,fNormPeaks,false);
   fC1->cd(4);
-  ScaleAndPlot(pfR1Max3,fNumRuns,normPeaks,false);
+  ScaleAndPlot(pfR1Max3,fNumRuns,fNormPeaks,false);
   fC1->cd(5);
-  ScaleAndPlot(pfR1LOverS,fNumRuns,normPeaks,false);
+  ScaleAndPlot(pfR1LOverS,fNumRuns,fNormPeaks,false);
   fC1->cd(6);
-  ScaleAndPlot(pfR1NPixels,fNumRuns,normPeaks,false);
+  ScaleAndPlot(pfR1NPixels,fNumRuns,fNormPeaks,false);
 
 
   return;
@@ -620,14 +658,14 @@ void CompareRunsPlot(std::string RunName, std::string Tel,int fRun)
   }
   else{
     int numEntries=CombinedEventsTree->GetEntries();
-    VAParameterisedEventData *combParData = new VAParameterisedEventData();
+    VAParameterisedEventData* combParData = new VAParameterisedEventData();
     CombinedEventsTree->SetBranchAddress("P", &combParData);
     CombinedEventsTree->GetEntry(numEntries-1);
     for(int t=0;t<4;t++)
       {
-	VAHillasData* hillasData = combParData->getHillasData(t);
-	if (hillasData == NULL) {
-	  continue;
+	VAHillasData* hillasData = (VAHillasData*) combParData->getHillasData(t);
+        if (hillasData != NULL) {
+          break;
 	}
       }
     fLiveTimeSec= hillasData->fLiveTime;
