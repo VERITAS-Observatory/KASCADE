@@ -8,8 +8,8 @@
 #$4 Season:teleSpec: Ex WU or SV
 #$5: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
 #$6: Input Sub-dir: Ex: ABCD
-#$7: start direction Index. defualt is 0. 
-#$8: end direction Index. defualt is 8. 
+#$7: start direction Index. defualt is 0. !!!Ignored for CR
+#$8: end direction Index. defualt is 8.  !!!Ignored for CR
 
 lcl=$PWD
 echo lcl: $lcl
@@ -104,7 +104,7 @@ ls | grep 1234M2 | grep vbf|grep $2$3 |xargs -n1 mv -v --target=$lcl'/he4/'$PDir
 VBFFile=$ABase'CR'$5$2$3'1234M2.vbf'
 echo Output File Name: $VBFFile
 
-sgeFile=$lcl'/'$Base'CR'$2$wbl'.pbs'
+sgeFile=$lcl'/'$Base'CR'$2'.pbs'
 echo "#"!/bin/bash                                             >$sgeFile
 echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
 if [ -n "$CARVER" ]; then
