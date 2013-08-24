@@ -31,8 +31,8 @@ MaxQsubsDefault=300        #with ksProduction and only want to make
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
-#GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
-CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
+GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+#CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
 #HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
@@ -605,10 +605,13 @@ while test $izn -lt $iznEnd
        sed '/AomegaEnable=enable/s/Aomega/#Aomega/g'             <tmp2 >tmp1
        sed '/ArrayTrigEnable=enable/s/Array/#Array/g'            <tmp1 >tmp2
        sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+       echo TELESPEC: $TELESPEC
        if [ "$TELESPEC" = "OA" ]; then
-         sed '/Fall09ArrayPositionsEnable=enable/s/Fall/#Fall/g' <tmp1 >tmp2
+         echo Using OldArray tel positions
+         sed '/Fall09ArrayPositions=enable/s/Fall/#Fall/g' <tmp1 >tmp2
        else
-         sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g'<tmp1 >tmp2
+        echo Using NewArray tel Positions
+	sed '/#Fall09ArrayPositions=enable/s/#Fall/Fall/g' <tmp1 >tmp2
        fi
        sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
@@ -920,10 +923,13 @@ while test $izn -lt $iznEnd
        sed '/#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
        sed '/#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
        sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+       echo TELESPEC: $TELESPEC
        if [ "$TELESPEC" = "OA" ]; then
-	 sed '/Fall09ArrayPositionsEnable=enable/s/Fall/#Fall/g'  <tmp1 >tmp2
+	 echo using OldArray tell positions
+         sed '/Fall09ArrayPositions=enable/s/Fall/#Fall/g'  <tmp1 >tmp2
        else
-	 sed '/#Fall09ArrayPositionsEnable=enable/s/#Fall/Fall/g' <tmp1 >tmp2
+	 echo Using NewArray tel positions
+         sed '/#Fall09ArrayPositions=enable/s/#Fall/Fall/g' <tmp1 >tmp2
        fi
        sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
