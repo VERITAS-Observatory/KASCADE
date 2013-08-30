@@ -38,7 +38,7 @@ GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
 #HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
 
-#Cleanup=enabled                
+Cleanup=enabled                
 
 #DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
@@ -918,11 +918,14 @@ while test $izn -lt $iznEnd
          echo 'KSAuto:  Removing *.err,*.pbs and moving k*.log to ./log/' 
          rm *.err
          rm *.pbs
-         DATE=$(date +%F.%H.%M.%S)
+         mv *.log ./log/
 
+       	 #Following reduces file count so we don't exceed our file number quota
+         DATE=$(date +%F.%H.%M.%S)
          LogFile='simulationVeritasLogDir'$DATE.tar
-         tar -cvf ./log/$LogFile   k*.log #Don't want to move KAuto.log out of SV.
-         rm k*.log
+         tar -cvf $LogFile ./log/* >'simulationVeritasLogDir'$DATE.log
+         rm ./log/*
+	 cd ..
        fi
 
        ####################################################################
