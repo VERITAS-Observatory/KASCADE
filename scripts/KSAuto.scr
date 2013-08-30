@@ -12,13 +12,13 @@
 #$8 Telescope 4 character spec: Ex: ABCD or wxyz
 #$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
 #************************************************************************
-# We may want a function that makes sure all scripts are in place
+# We may want a function that makes sure all scripts are in placeeanup
 ##########################################################################
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=300        #with ksProduction and only want to make
+MaxQsubsDefault=400        #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
@@ -32,10 +32,13 @@ MaxQsubsDefault=300        #with ksProduction and only want to make
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
 GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+    #Note: can be run with Cleanup enabled(below)
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
 #HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
+
+#Cleanup=enabled                
 
 #DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
@@ -43,8 +46,6 @@ GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
                                 #cluster
 
 
-#Cleanup=enabled                #should only enable  this if 
-                                #"ExitOnTeCreationFailure" (below) is enabled
 #ExitOnTeCreationFailure=enabled  
 
 
@@ -910,6 +911,19 @@ while test $izn -lt $iznEnd
 
        cd $lcl'/../simulations/veritas/'
        date
+       if [ -n "$Cleanup" ]; then
+         echo '##########################################################'
+         echo '# GenerateShowerVBFFiles:Cleanup '
+         echo '##########################################################'
+         echo 'KSAuto:  Removing *.err,*.pbs and moving k*.log to ./log/' 
+         rm *.err
+         rm *.pbs
+         DATE=$(date +%F.%H.%M.%S)
+
+         LogFile='simulationVeritasLogDir'$DATE.tar
+         tar -cvf ./log/$LogFile   k*.log #Don't want to move KAuto.log out of SV.
+         rm k*.log
+       fi
 
        ####################################################################
        #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
@@ -1103,42 +1117,7 @@ while test $izn -lt $iznEnd
         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
-     #########################################################################
 
-
-
-
-
-#For reference
-#$1 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
-#$2 ksProduction season spec: Ex: W or S
-#$3 telescope designation: W or V or U (Whipple, veritas, Upgrade)
-#$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
-#$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315
-#$6 Threshold: Ex 45mv or 50mv
-#$7 MDL file name for VBF files: Ex MDL12U
-#$8 Telescope 4 character spec: Ex: ABCD or wxyz
-    #$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
-
-
-
-
-
-     if [ -n "$Cleanup" ]; then
-       echo '##########################################################'
-       echo '# Cleanup '
-       echo '##########################################################'
-       echo 'KSAuto:  Removing *.err,*.pbs and moving k*.log to ./log/' 
-       cd $lcl
-       date
-       rm *.err
-       rm *.pbs
-       mv k*.log ./log/   #Don't want to move KAuto.log out of V.
-       cd $PSFDir
-       echo 'KSAuto:  Removing directory '$TeName 
-       rm -rf $TeName
-       cd $lcl
-     fi
      #########################################################################
      #Should all be done now. Go on to next combo. This all could take a
      #couple of weeks or so
