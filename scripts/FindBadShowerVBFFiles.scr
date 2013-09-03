@@ -3,7 +3,7 @@
 #
 #$1 Zn value to search Ex: 1 or 10 or 70
 #$2 Season/Array/Primary  Ex: WUG  SVGn SUG
-#$3 Telescope 4 character spec: Ex: ABCD or wxyz 
+#$3 Telescope 4 character spec: Ex: ABCD or wxyz or MDL10U
 #   expects files to be in directories in gammas/$2$1{D,_}*$3 
 #######################################################################
 # assume we start in 'V'
@@ -27,13 +27,42 @@ let iStart=23
 #let iStart=40
 let iEnd=44
 
+MinLevel=.70
+
+
+
 cd $lcl'/../simulations/veritas/gammas/'
 pwd
+#First look for any 0 length files at low energies.
 
+let i=1
+iLast=$((iStart-1));
+while test $i -le $iLast 
+  do
+    E='GeV'${energy[$i]}'.d'
+    echo At E: $E
+    rm g.tmp
+    ls -sl $SAP$Zn'D'*1234M2*$TELCONFIG/*$E* >g.tmp
+    {
+     while read size a b c d e f g h j
+      do
+       #echo $size $j
+       if [ "$size" -eq "0" ]; then
+        j=${j##*/}
+	echo File Not found: $j 
+       fi 
+      done
+     }<g.tmp
+     i=$((i+1))
+  done
+
+#Now the higher energies
 let i=$iStart
+echo $i $iStart $iEnd
 while test $i -le $iEnd 
   do
     E='GeV'${energy[$i]}'.d'
+    echo At E: $E
     rm g.tmp
     ls -sl $SAP$Zn'D'*1234M2*$TELCONFIG/*$E* >g.tmp
     ls -sl $SAP$Zn'_'*1234M2*$TELCONFIG/*$E* >>g.tmp
@@ -53,12 +82,12 @@ while test $i -le $iEnd
         done
      }<g.tmp
     # *****************************************************
-    # use bc to do some math to find 70% of max
+    # use bc to do some math to find 65% of max
     # *****************************************************
     Mean=$(echo "$sum/$icount" | bc)
-    FracMax=$(echo ".70*$max" | bc)
+    FracMax=$(echo "$MinLevel*$max" | bc)
     FracMax=${FracMax%%.*}
-    FracMean=$(echo ".70*$Mean" | bc)
+    FracMean=$(echo "$MinLevel*$Mean" | bc)
     FracMean=${FracMean%%.*}
     if [ "$FracMax" -lt "$FracMean" ]; then
        Min=$FracMax
@@ -82,6 +111,8 @@ while test $i -le $iEnd
      }<g.tmp
      i=$((i+1))
   done
+
+
 cd $lcl
 
 
