@@ -1,4 +1,4 @@
-function checkForDownJobs()
+ function checkForDownJobs()
 {
   {
     while read jobID
@@ -10,8 +10,32 @@ function checkForDownJobs()
    }<gg.tmp
 }
 
-qstat -u sembrosk | grep R | xargs -n1 | grep hansen >g.tmp
-sed '/hansen/s/.hansen-a/ /g' <g.tmp >gg.tmp
+###############################################################
+# MAIN
+################################################################
+host=$(hostname)
+echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+then
+  CARVER=enabled
+  USER=u15013
+  JobIDHost='cvrsvc09'
+  echo '***Carver Cluster***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  USER=sembrosk
+  JobIDHost='hansen-a'
+  echo '***Hansen Cluster***'
+fi
+
+qstat -u $USER | grep R | xargs -n1 | grep $JobIDHost >g.tmp
+sed '/'$JobIDHost'/s/.'$JobIDHost'/ /g' <g.tmp >gg.tmp
 checkForDownJobs
 
 
