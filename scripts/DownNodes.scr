@@ -1,0 +1,17 @@
+function checkForDownJobs()
+{
+  {
+    while read jobID
+      do
+        checkjob $jobID >$jobID'.chk'
+        grep -H Down $jobID'.chk'
+        rm $jobID'.chk'
+      done
+   }<gg.tmp
+}
+
+qstat -u sembrosk | grep R | xargs -n1 | grep hansen >g.tmp
+sed '/hansen/s/.hansen-a/ /g' <g.tmp >gg.tmp
+checkForDownJobs
+
+
