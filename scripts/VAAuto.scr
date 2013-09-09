@@ -491,13 +491,9 @@ if [ $9 = "All" ]; then
     if [ $2 = "U" ]; then
       PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
     fi
-    if [ $2 = "NA" ]; then
+    if [ $2 = "NA" ] || [ $2 = "OA" ]; then
       PedVar=([0]=4.04 4.72 5.51 6.44 7.53 8.79 10.27 12.00)
     fi
-    if [ $2 = "OA" ]; then
-        echo 'VAAuto: Fatal- No PedVar settings defined for OldArray (Arg2: OA )'
-        exit
-    fi 
 else
     if [ $9 = "Base" ]; then
 	PedVar=([0]=0 )
@@ -581,13 +577,9 @@ AzStr=0,45,90,135,180,225,270,315
 if [ $2 = "U" ]; then
    NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
 fi
-if [ $2 = "NA" ]; then
+if [ $2 = "NA" ] || [ $2 = "OA" ]; then
    NoiseStr=4.04,4.72,5.51,6.44,7.53,8.79,10.27,12.00
 fi
-if [ $2 = "OA" ]; then
-   echo 'VAAuto: Fatal- No PedVar settings defined for OldArray (Arg2: OA )'
-   exit
-fi 
 
 
 DTMWidthStr=0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.2,0.25,0.35
