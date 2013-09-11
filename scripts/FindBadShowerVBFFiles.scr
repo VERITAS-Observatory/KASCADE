@@ -43,6 +43,7 @@ while test $i -le $iLast
     echo At E: $E
     rm g.tmp
     ls -sl $SAP$Zn'D'*1234M2*$TELCONFIG/*$E* >g.tmp
+    ls -sl $SAP$Zn'_'*1234M2*$TELCONFIG/*$E* >>g.tmp
     {
      while read size a b c d e f g h j
       do
