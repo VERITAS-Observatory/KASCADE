@@ -1,6 +1,5 @@
 #!/bin/bash
-#This script is used to automate the generation and processing of the veritas 
-# KASCADE vbf files in 1:Noise levbels, LT and EA tables.
+#This script is used to automate the generation and processing of the veritas # KASCADE vbf files in 1:Noise levbels, LT and EA tables.
 # GAMMAS ONLY for now (some electron stuff but nowhere near ready for 
 # electrons)
 #It has some arguments listed below.
@@ -398,11 +397,11 @@ fi
 # Array seaon
 ############################
 if [ "$2" = "U" ]; then
-    PMT=$2
+    PMT="U"
     LTSEASON="ua"
 fi
 if [ "$2" = "OA" ]; then
-    PMT="V"
+    PMT="O"
     LTSEASON="oa"
 fi
 if [ "$2" = "NA" ]; then
@@ -410,7 +409,7 @@ if [ "$2" = "NA" ]; then
     LTSEASON="na"
 fi
 if [ "$2" = "W" ]; then
-    PMT=$2
+    PMT="W"
 fi
 ############################
 
@@ -474,15 +473,12 @@ if [ $7 = "All" ]; then
 else  
     IFS=, read -a WblOffset <<< "$7"
     let iwblEnd=${#WblOffset[@]}
+    LTWbl="alloffsets"	
     if [ "$iwblEnd" -eq "1" ]; then
 	W=${WblOffset[0]}
 	if [ "$W" = "0.5" ]; then
 	    LTWbl="050offset"
-	else
-	    LTWbl=$W'offset'
 	fi
-    else
-	LTWbl="variousoffsets"
     fi
 fi
 
@@ -757,9 +753,15 @@ if [ -n "$GenerateStage4Files" ]; then
     cp $VEGAS/../tables/$QUALITYCUTSFILE .
 
     FILEBASE=${10}'Cuts'
-    LTFILENAME='lt'$LTFILENAMEBASE'.root'
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
+
+    LTFILENAME='lt'$LTFILENAMEBASE'.root'
+    LOOKUPTABLE=$VEGAS/../tables/$LTFILENAME
+    if [ ! -e "$LOOKUPTABLE"]; then
+       echo 'VAAuto: '$LOOKUPTABLE ' does not exist'
+       exit
+    fi
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
     mv tmp2 VegasSimProductionS4.scr
     chmod 755  VegasSimProductionS4.scr
