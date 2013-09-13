@@ -67,7 +67,7 @@ fi
 
 
 #Stage4_2         
-  #CutTelescopeOption='-CutTelescope=3/1,4/1' #Not used much anymore:  
+  #CutTelescopeOption='-CutTelescope=0/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
   FileBase=StdCuts            #Extension to put on the end of the stages 4-5 
