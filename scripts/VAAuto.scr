@@ -1,5 +1,6 @@
 #!/bin/bash
-#This script is used to automate the generation and processing of the veritas # KASCADE vbf files in 1:Noise levbels, LT and EA tables.
+#This script is used to automate the generation and processing of the veritas 
+# KASCADE vbf files in 1:Noise levbels, LT and EA tables.
 # GAMMAS ONLY for now (some electron stuff but nowhere near ready for 
 # electrons)
 #It has some arguments listed below.
@@ -19,6 +20,8 @@
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${10}Cuts
 #  For Stage4, filename would extention be:  ${10}Cuts.root ending
 #  For ShowerCuts, file used would be $VEGAS/../tables/Shower${10}Cuts 
+#${11} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
+#                  T2 or T3 or T4
 # ************************************************************************
 # Within that loop we can do:   
 
@@ -397,11 +400,11 @@ fi
 # Array seaon
 ############################
 if [ "$2" = "U" ]; then
-    PMT="U"
+    PMT=$2
     LTSEASON="ua"
 fi
 if [ "$2" = "OA" ]; then
-    PMT="O"
+    PMT="V"
     LTSEASON="oa"
 fi
 if [ "$2" = "NA" ]; then
@@ -409,7 +412,7 @@ if [ "$2" = "NA" ]; then
     LTSEASON="na"
 fi
 if [ "$2" = "W" ]; then
-    PMT="W"
+    PMT=$2
 fi
 ############################
 
@@ -473,12 +476,15 @@ if [ $7 = "All" ]; then
 else  
     IFS=, read -a WblOffset <<< "$7"
     let iwblEnd=${#WblOffset[@]}
-    LTWbl="alloffsets"	
     if [ "$iwblEnd" -eq "1" ]; then
 	W=${WblOffset[0]}
 	if [ "$W" = "0.5" ]; then
 	    LTWbl="050offset"
+	else
+	    LTWbl=$W'offset'
 	fi
+    else
+	LTWbl="variousoffsets"
     fi
 fi
 
@@ -637,6 +643,39 @@ if test $kpvarEnd -ne "9"
   done
 fi
 
+
+#See if optional CutTelelescope in use for GenerateStage4 or GenerateEA
+TelConfig=1234
+if [ -n "${11}" ]; then
+   T=${11}
+   TT=${T:1:0}
+   if [ "$TT" != "T" ]; then
+     echo 'VAuto: Bad CutTlescope option: '$T' Allowed values:T1 or T2 or T3 or T4'
+     exit
+   fi
+   let CutTel=${T:1:1}
+   if [ "$CutTel" -lt "1" ] ||  [ "$CutTel" -gt "4" ]; then
+     echo 'VAuto: Bad CutTlescope option: '$T' Allowed values:T1 or T2 or T3 or T4'
+     exit
+   fi
+   #Clear TelConfig and fill it correctly with out cut tel.
+   TelConfig=
+   if [ "$CutTel" != "1" ] ; then
+      TelConfig=1
+   fi
+   if [ "$CutTel" != "2" ] ; then
+      CutTel=$TelConfig'2'
+   fi
+   if [ "$CutTel" != "2" ] ; then
+      CutTel=$TelConfig'2'
+   fi
+   if [ "$CutTel" != "2" ] ; then
+      CutTel=$TelConfig'2'
+   fi
+   echo 'VAAuto: Array configuration: '$TelConfig'  No '${11}
+fi
+
+
 if [ -n "$LimitSubmissions" ]; then
   if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || 
      [ -n "$HTARPedVarZnOffsetS2FromArchive" ] ||
@@ -744,7 +783,15 @@ if [ -n "$GenerateStage4Files" ]; then
     sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'                   <tmp1 >tmp2
     sed '/Stage5=enable/s/Stage5/#Stage5/g'                    <tmp2 >tmp1
 
-    ####################################################################
+    ######################################################################
+    #  Check to see if we are to exclude a telescope from the stage4 analysis
+    ######################################################################
+    if [ -n "$CutTel" ]; then
+     sed '/CutTelescopeOption=/s/#CutTel/CutTel/g'              <tmp1 >tmp2
+     sed '/CutTelescopeOption=/s/=0/='$CutTel'/g'               <tmp2 >tmp1
+    fi
+
+    ######################################################################
     # We also need to set the quality cuts file and the file extention and the 
     # LT name
     ####################################################################
@@ -753,15 +800,9 @@ if [ -n "$GenerateStage4Files" ]; then
     cp $VEGAS/../tables/$QUALITYCUTSFILE .
 
     FILEBASE=${10}'Cuts'
+    LTFILENAME='lt'$LTFILENAMEBASE'.root'
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
-
-    LTFILENAME='lt'$LTFILENAMEBASE'.root'
-    LOOKUPTABLE=$VEGAS/../tables/$LTFILENAME
-    if [ ! -e "$LOOKUPTABLE"]; then
-       echo 'VAAuto: '$LOOKUPTABLE ' does not exist'
-       exit
-    fi
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
     mv tmp2 VegasSimProductionS4.scr
     chmod 755  VegasSimProductionS4.scr
@@ -1304,7 +1345,11 @@ if   [ -n "$CombineEASubLT" ]; then
    cd $lcl
    date
    EASPEC=EA
-   LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+   if [ -n "$CutTel"]; then
+       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.root'
+   else
+       LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+   fi
    SubLTList='EASubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
      rm $lcl'/'$SubLTList                #Remove any existing EA SUBLT List file
@@ -1432,8 +1477,15 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts.tar'
-	 PVFILESPEC='PedVar*'$1$PMT$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2'${10}'Cuts.root'
+	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts'
+	 if [ -n "${11}" }; then
+            PedVarHTARFile=$PedVarHTARFile$TelConfig
+         fi
+
+         PedVarHTARFile=$PedVarHTARFile'.tar'
+
+
+	 PVFILESPEC='PedVar*'$1$PMT$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8$TelConfig'M2'${10}'Cuts.root'
               
 	 SubmitHtarToArchive $ARCHIVE$1$PMT$3$4'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
@@ -1446,6 +1498,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          ##################################################################
          # Make up Pedvar .tar file name
 	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts'
+	   if [ -n "${11}" }; then
+              PedVarHTARFile=$PedVarHTARFile$TelConfig
+           fi
 
 	   SubmitHtarFromArchive $ARCHIVE$1$PMT$3$4'PedVarS4/' $lcl $PedVarHTARFile 
        fi
@@ -1545,7 +1600,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   PedVarName=PedVar$PV
 	   BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
 	   PedVarS2FileName=$PedVarName$BaseFile'1234M2.root'
-	   PedVarS4FileName=$PedVarName$BaseFile'1234M2'${10}'Cuts.root'
+	   PedVarS4FileName=$PedVarName$BaseFile$TelConfig'M2'${10}'Cuts.root'
 	   VBFFILE=$BaseFile'1234M2.vbf'
 
            #********************************************************************
@@ -1603,7 +1658,6 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	       let suzBAD=$BAD
 
                if [ "$suzBAD" -lt "15" ]; then
-	        #echo "VAAuto: Bad: "$suzBAD" file "$FileName
 		   echo "Bad: "$PedVarS4FileName
 		   echo "Reason: "$suzBAD
                    if [ $suzBAD -eq "1" ]; then
