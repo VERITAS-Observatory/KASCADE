@@ -516,7 +516,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
             do	
                if test $j -le 19
                 then
-                  BuildAndSubmitCarverJobs $j 
+#                  BuildAndSubmitCarverJobs $j 
+                  BuildAndSubmitCarverJobsBy10 $j 
 	        else
                   #BuildAndSubmitCarverJobs $j 
 	          BuildAndSubmitCarverJobsSingly $j
@@ -936,6 +937,59 @@ function BuildAndSubmitCarverJobsSingly
    let i=i+1
   done
 }
+function BuildAndSubmitCarverJobsBy10()
+#**********************************************************************
+# Cause Carver cluster jobs to be submitted in groups of 10.
+#**********************************************************************
+{
+ stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
+ pr=$parspec
+ sub=${pr%%mv*}mv
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}
+ let E=${eGeV%%.*}
+     
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
+ if [ $1 -le 19 ]; then
+   let Stepsize=${stepsize[$1]}
+ else
+   let Stepsize=1
+ fi
+ let i=showerStart
+ while test $i -le $showerEnd
+  do
+   let endShower=$i+$Stepsize-1
+   
+   if [ "$endShower" -gt "$showerEnd" ]; then
+     endShower=$showerEnd
+   fi
+   range=E$i'_'$endShower
+   sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
+
+   echo "#"!/bin/bash                                  >$sgeFile
+   echo "#"PBS -q $CarverQueue                        >>$sgeFile
+   echo "#"PBS -l walltime=12:00:00                   >>$sgeFile
+   if test $1 -ge 25
+     then
+      echo "#PBS -l pvmem=8GB"                        >>$sgeFile
+   fi   
+   echo cd $lcl                                       >>$sgeFile
+   echo $ksScript $eGeV $pr $i  \\                    >>$sgeFile
+   echo $endShower $datadir $workingDir   \\          >>$sgeFile
+   echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log"  >>$sgeFile
+   chmod 700 $sgeFile
+
+   if [ -n "$QsubFileNameList" ]; then
+    echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
+    echo $sgeFile >>$QsubFileNameList
+   else
+     qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+   fi
+   let i=$i+$Stepsize
+  done
+}
+#########################################################################
 
 function BuildAndSubmitLargeCarverJobs
 #**********************************************************************
