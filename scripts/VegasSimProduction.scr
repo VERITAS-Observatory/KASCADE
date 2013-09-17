@@ -119,7 +119,7 @@ fi
 #Now process the file:
 VBFFileName=$1
 File=${VBFFileName%".root"}'.root' #allow for .root or .vbf file names on input
-echo File: $File
+#echo File: $File
 echo VBFFileName: $VBFFileName
 
 if [ "$File" = "$VBFFileName" ]; then
@@ -155,6 +155,40 @@ CutRootFileName=${VBFFileName%".vbf"}$FileBase'.root'
 if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
      CutRootFileName=$PedVarBase${CutRootFileName##*/}
 fi
+#########################################################
+# If we are cutting out a telelscope change the Telconfig in the CutRootFile name
+#########################################################
+if [ -n "$CutTelescopeOption" ]; then
+  echo CutTelescopeOption: $CutTelescopeOption
+  CutStart=${CutRootFileName%%1234*}
+  if [ "$CutStart" = "$CutRootFileName" ]; then
+    echo Warning! Input root filename does not have Tel config of 1234. Check CutRootFileName
+  else
+    CutEnd=${CutRootFileName##*1234}
+    #Make Tel Config:get cut telescope
+    CutTelescope=${CutTelescopeOption##*=}
+    CutTel=${CutTelescope:0:1}
+    #build config
+    TelConfig=
+    if [ "$CutTel" != "1" ] ; then
+      TelConfig=1
+    fi
+    if [ "$CutTel" != "2" ] ; then
+    TelConfig=$TelConfig'2'
+    fi
+    if [ "$CutTel" != "3" ] ; then
+      TelConfig=$TelConfig'3'
+    fi
+    if [ "$CutTel" != "4" ] ; then
+      TelConfig=$TelConfig'4'
+    fi
+    #build name
+    CutRootFileName=${CutStart}${TelConfig}${CutEnd}
+  fi
+fi
+###########################################################
+    
+
 echo CutRootFileName: $CutRootFileName
 
 
