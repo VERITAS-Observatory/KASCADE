@@ -28,13 +28,12 @@
 #FindNoiseLevels=enabled
 #GenerateSimLaserFile=enabled
 
-LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
+#LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
 MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
 
 #GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
-
 #---------------------------------------
 #*Generate Stage 2 PedVar files
 #---------------------------------------
@@ -70,7 +69,7 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-#GenerateStage4Files=enabled                       #See LimitSubmissions above
+GenerateStage4Files=enabled                       #See LimitSubmissions above
 #CheckStage4Files=enabled                      
 #--------------------------------------
 
@@ -642,13 +641,13 @@ if test $kpvarEnd -ne "9"
     kpvar=$((kpvar+1))
   done
 fi
-
+###############################################################################
 
 #See if optional CutTelelescope in use for GenerateStage4 or GenerateEA
 TelConfig=1234
 if [ -n "${11}" ]; then
    T=${11}
-   TT=${T:1:0}
+   TT=${T:0:1}
    if [ "$TT" != "T" ]; then
      echo 'VAuto: Bad CutTlescope option: '$T' Allowed values:T1 or T2 or T3 or T4'
      exit
@@ -664,17 +663,17 @@ if [ -n "${11}" ]; then
       TelConfig=1
    fi
    if [ "$CutTel" != "2" ] ; then
-      CutTel=$TelConfig'2'
+      TelConfig=$TelConfig'2'
    fi
-   if [ "$CutTel" != "2" ] ; then
-      CutTel=$TelConfig'2'
+   if [ "$CutTel" != "3" ] ; then
+      TelConfig=$TelConfig'3'
    fi
-   if [ "$CutTel" != "2" ] ; then
-      CutTel=$TelConfig'2'
+   if [ "$CutTel" != "4" ] ; then
+      TelConfig=$TelConfig'4'
    fi
    echo 'VAAuto: Array configuration: '$TelConfig'  No '${11}
 fi
-
+###############################################################################
 
 if [ -n "$LimitSubmissions" ]; then
   if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || 
@@ -1636,7 +1635,15 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	    echo PV:$PV
 	    echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
 
-	    SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS4.scr $VBFFILE
+	    echo PedVarFile: $PedVarFile 
+	    echo BaseFile: $BaseFile 
+	    echo VBFFILE: $VBFFILE
+            ###################################################
+            # Note here that VeagsSimProductionS4.scr will generate the PedVar 
+            # Stage4 filename with the correct TelConfig
+            ###################################################
+
+            SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS4.scr $VBFFILE
 
 	   fi
            ###############################################################
