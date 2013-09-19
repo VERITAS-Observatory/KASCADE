@@ -528,7 +528,7 @@ CFG_E=MEAN
 
 LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
 
-DTFILENAMEBASE='k_Jan2013_'LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
+DTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
 
 if [ $HMode = "HFit" ]; then
     LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
