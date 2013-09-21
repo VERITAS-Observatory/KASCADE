@@ -105,11 +105,22 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  VDirBase='/scratch/lustreC/s/sembrosk/simulations/veritas/'
+  VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='hansen-adm'
   QUEUE=physics
   #QUEUE=standby
   echo ***Hansen Cluster***
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on Coates?
+then
+  HANSEN=enabled
+  VDirBase=$SCRATCH'/simulations/veritas/'
+  JobIDHost='coates-adm'
+  QUEUE=physics
+  #QUEUE=standby
+  echo ***Coates Cluster***
 fi
 
 if [ -n "$BulidRatiosTxtFile" ]; then
@@ -270,6 +281,9 @@ if [ -n "$ProductionMDLCR" ]; then
   echo "MDLAuto: Submission of ksProduction to make shower VBF files on "
   if [ -n "$HANSEN" ]; then
     echo "MDLAuto: Hansen cluster for "$ZnAz" complete."
+  fi
+  if [ -n "$COATES" ]; then
+    echo "MDLAuto: Coates cluster for "$ZnAz" complete."
   fi
   if [ -n "$CARVER" ]; then
     echo "MDLAuto: Carver cluster for "$ZnAz" complete."

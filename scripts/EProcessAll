@@ -1,4 +1,4 @@
-#This is for Carver or Hansen
+#This is for Carver or Hansen or Coates
 #$1 is PSF subdir  Ex: V330 or V190
 #$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
 #   20_180Deg
@@ -41,6 +41,17 @@ then
   #QUEUE=standby
   #WALLTIME='04:00:00'
   echo '***Hansen Cluster:'$QUEUE' queue ***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on Coates?
+then
+  COATES=enabled
+  QUEUE=physics
+  WALLTIME='30:00:00'
+  #QUEUE=standby
+  #WALLTIME='04:00:00'
+  echo '***Coates Cluster:'$QUEUE' queue ***'
 fi
 
 ABase=$4
@@ -150,7 +161,7 @@ while test $i -le $end
     if [ -n "$CARVER" ]; then
      echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
     fi
-    if [ -n "$HANSEN" ]; then
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
      echo "#PBS -l mem=8GB"                                      >>$sgeFile
     fi
     echo cd $lcl'/../../veritas'                                 >>$sgeFile

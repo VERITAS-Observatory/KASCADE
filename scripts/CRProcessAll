@@ -1,6 +1,6 @@
 #!/bin/bash
 #CR (Proton + He4) Production version
-#This is for Carver or Hansen
+#This is for Carver or Hansen or Coates
 #$1 is PSF subdir  Ex: V330 or V190
 #$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
 #   20_180Deg
@@ -42,7 +42,18 @@ then
   #WALLTIME='10:00:00'
   QUEUE=standby
   WALLTIME='04:00:00'
-q  echo '***Hansen Cluster:'$QUEUE' queue ***'
+  echo '***Hansen Cluster:'$QUEUE' queue ***'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on Coates?
+then
+  COATES=enabled
+  #QUEUE=physics
+  #WALLTIME='10:00:00'
+  QUEUE=standby
+  WALLTIME='04:00:00'
+  echo '***Coates Cluster:'$QUEUE' queue ***'
 fi
 
 ABase=$4
@@ -110,7 +121,7 @@ echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
 if [ -n "$CARVER" ]; then
   echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
 fi
-if [ -n "$HANSEN" ]; then
+if [ -n "$HANSEN" ] ||  [ -n "$COATES" ]; then
   echo "#PBS -l mem=8GB"                                      >>$sgeFile
 fi
 echo cd $lcl'/../../veritas'                                  >>$sgeFile
@@ -118,8 +129,6 @@ echo './ksWeRock.scr '$ABase'CR'$2$3 98020 1234M2 \\         >>$sgeFile
 echo $direction $Base ">"$lcl'/'$Base'CR'$2'.log'             >>$sgeFile
 echo cd $lcl                                                  >>$sgeFile
 echo mv  -v $ABase'CR'$2'1234M2'$3'.vbf' $VBFFile             >>$sgeFile
-#echo ./ksVegasSimProduction.scr $VBFFile \\                   >>$sgeFile
-#echo ">"$lcl'/'$VBFFile'.log'                                 >>$sgeFile
 
 chmod 700 $sgeFile
 qsub -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 

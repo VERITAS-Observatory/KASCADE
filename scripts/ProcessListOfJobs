@@ -18,6 +18,14 @@ then
   QUEUE=$QUEUE1
 fi
 
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on Coates?
+then
+  QUEUE1=physics
+  QUEUE2=standby
+  QUEUE=$QUEUE1
+fi
+
 {
   while read InputJob ; do
       qsub -q $QUEUE  -V -e $InputJob'.err' -o $InputJob'.log' $InputJob

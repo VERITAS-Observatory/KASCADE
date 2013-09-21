@@ -252,7 +252,7 @@ function SubmitHtarToArchive()
   sgeFile=$lcl'/'$HTARFileName'To.pbs'
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
-  if [ -n "$HANSEN" ]; then  
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
@@ -280,6 +280,10 @@ function SubmitHtarToArchive()
   if [ -n "$HANSEN" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Hansen "$QUEUE" queue complete."
   fi
+  if [ -n "$COATES" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Coates "$QUEUE" queue complete."
+  fi
+
   if [ -n "$CARVER" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Carver cluster complete."
   fi
@@ -312,7 +316,7 @@ function SubmitHtarFromArchive()
   sgeFile=$lcl'/'$Source'From.pbs'
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
-  if [ -n "$HANSEN" ]; then
+  if [ -n "$HANSEN" ]  || [ -n "$COATES" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
@@ -358,7 +362,7 @@ function SubmitVegasSimProduction()
     echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
     echo "#PBS -l pvmem=20GB"                      >>$sgeFile
   fi
-  if [ -n "$HANSEN" ]; then
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
     echo "#PBS -l mem=15GB"                       >>$sgeFile
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
@@ -444,6 +448,20 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
   #QUEUE=standby
   #WALLTIME=04:00:00
     echo ***Hansen Cluster***
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on Coates?
+    then
+    COATES=enabled
+    ARCHIVE=/archive/fortress/group/veritas/simulations/
+    VBFDir=$ARCHIVE'/gammas/'$1$PMT$3$4'VBF'
+    JobIDHost='coates-adm'
+    QUEUE=physics
+    WALLTIME=30:00:00
+  #QUEUE=standby
+  #WALLTIME=04:00:00
+    echo ***Coates Cluster***
 fi
 
 
@@ -1026,7 +1044,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
        if [ -n "$CARVER" ]; then
          echo "#PBS -l pvmem=15GB"                     >>$sgeFile
        fi
-       if [ -n "$HANSEN" ]; then
+       if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
          echo "#PBS -l mem=15GB"                       >>$sgeFile
          echo source /etc/profile                      >>$sgeFile
          echo module load gcc/4.7.2                    >>$sgeFile
@@ -1514,7 +1532,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	 if [ -n "$CARVER" ]; then
 	     echo "#PBS -l pvmem=24GB"               >>$sgeFile
 	 fi
-	 if [ -n "$HANSEN" ]; then
+	 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
 	     echo "#PBS -l mem=24GB"                 >>$sgeFile
 	     echo source /etc/profile                >>$sgeFile
 	     echo module load gcc/4.7.2              >>$sgeFile
@@ -1541,7 +1559,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	 if [ -n "$CARVER" ]; then
 	     echo "#PBS -l pvmem=15GB"                  >>$sgeFile
 	 fi
-	 if [ -n "$HANSEN" ]; then
+	 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
 	     echo "#PBS -l mem=15GB"                   >>$sgeFile
 	     echo source /etc/profile                  >>$sgeFile
 	     echo module load gcc/4.7.2                >>$sgeFile

@@ -32,6 +32,18 @@ function setup()
       MEM=mem
       #WALLTIME=04:00:00
   fi
+
+  hostString=${host:0:6}
+  if test  "$hostString" = "coates"  #Are we running on Coates?
+    then
+      OATES=enabled
+      QUEUE1=physics
+      QUEUE2=standby
+      QUEUE=$QUEUE1
+      WALLTIME=30:00:00
+      MEM=mem
+      #WALLTIME=04:00:00
+  fi
   
   echo hostString: $hostString
   
@@ -44,10 +56,17 @@ function setup()
   fi
 
   if [ -n "$HANSEN" ]; then
-    dataDirBase=$RCAC_SCRATCH'/simulations'
+    dataDirBase=$SCRATCH'/simulations'
     echo Hansen Data dir: $dataDirBase
     mkdir -vp $dataDirBase
-    workingDir=$RCAC_SCRATCH
+    workingDir=$SCRATCH
+  fi
+
+  if [ -n "$COATES" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Coates Data dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH
   fi
 
   dataDirBase=$dataDirBase'/veritas'
@@ -57,9 +76,9 @@ function setup()
 }
 #############################################################################
 
-function BuildAndSubmitHansenJobsSingly() 
+function BuildAndSubmitJobsSingly() 
 #**********************************************************************
-# Cause HANSEN serial jobs to be submitted.
+# Cause  serial jobs to be submitted.
 # This version submits 1 job per shower. Useful for high energies.
 #**********************************************************************
 #$1 energy in GeV
@@ -151,7 +170,7 @@ let count=0
          exit
        fi
        
-       BuildAndSubmitHansenJobsSingly $energy $showerID $pr  
+       BuildAndSubmitJobsSingly $energy $showerID $pr  
        count=$((count+1))
     done
 }<tmp2

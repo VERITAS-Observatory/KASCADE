@@ -53,6 +53,13 @@ then
   echo ***Hansen Cluster***
 fi
 
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on COATES?
+then
+  COATES=enabled
+  echo ***Coates Cluster***
+fi
+
 
 
 #CARVER
@@ -61,8 +68,8 @@ if [ -n "$CARVER" ]; then
     dstDir=$dataDirBase
 fi
 
-if [ -n "$HANSEN" ]; then
-    dataDirBase=$RCAC_SCRATCH'/simulations'
+if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+    dataDirBase=$SCRATCH'/simulations'
     dstDir=$dataDirBase
 fi
 

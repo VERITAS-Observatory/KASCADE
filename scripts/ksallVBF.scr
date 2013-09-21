@@ -73,6 +73,12 @@ then
   HANSEN=enabled
 fi
 
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on a Coates node?
+then
+  COATES=enabled
+fi
+
 #########################################################################
 #Set up private working directory for this run. 
 #Keeps random number independent

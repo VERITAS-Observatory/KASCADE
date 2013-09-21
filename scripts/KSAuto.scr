@@ -18,20 +18,20 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=400        #with ksProduction and only want to make
+MaxQsubsDefault=50           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
-GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+#GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
     #Note: can be run with Cleanup enabled(below)
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
@@ -253,7 +253,7 @@ function CheckList()
   sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
   echo "#"PBS -q $QUEUE                                          >$sgeFile
   echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
-  if [ -n "$HANSEN" ]; then
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
     echo source /etc/profile                                    >>$sgeFile
     echo module load gcc/4.7.2                                  >>$sgeFile
   fi
@@ -331,7 +331,7 @@ function SubmitHtarToArchive()
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
-  if [ -n "$HANSEN" ]; then  
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
@@ -391,7 +391,7 @@ function SubmitHtarFromArchive()
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
-  if [ -n "$HANSEN" ]; then
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
@@ -443,7 +443,8 @@ function SubmitQsubJobs()
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
        qsub -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-      done
+       sleep 10
+     done
    }<$QsubList
 }
 ############################################################################
@@ -478,6 +479,22 @@ then
   #QUEUE=physics
   QUEUE=standby
   echo ***Hansen Cluster***
+  if [ -n "$LimitSubmissions" ]; then
+     #let MaxQsubs=150
+     let MaxQsubs=$MaxQsubsDefault
+     let MaxHTARQsubs=9  
+  fi
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on coates
+ then                               
+  COATES=enabled
+  VDirBase=$SCRATCH'/simulations/veritas/'
+  JobIDHost='coates-adm'
+  #QUEUE=physics
+  QUEUE=standby
+  echo ***Coates Cluster***
   if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
      let MaxQsubs=$MaxQsubsDefault
@@ -687,7 +704,7 @@ while test $izn -lt $iznEnd
        ShowerDirAlt=$VDirBase'/'$ParticleDir'/'$ShowerVBFDirAlt
      fi
    
-     if [ -n "$HANSEN" ]; then
+     if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
      if [ -n "$CARVER" ]; then

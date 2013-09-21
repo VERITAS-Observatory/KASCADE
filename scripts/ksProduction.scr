@@ -1,6 +1,6 @@
 #!/bin/bash
 #$0 ./kas02.scr
-#$1 Gets passed directly to ksallVBF.scr. Used here to specify what particle 
+#$1 Gets passed directly to ksallVBF.scr. Used here to specify what partmemcle 
 #   types are to be processed. (G,P,He4_ or CR(causes P and He4_ , Or E for 
 #   electrons)
 #   For ksallVBF (minimum:up to kasallVBF.scr calling ksTrigger:
@@ -118,10 +118,10 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #            done
 
     fi
-#********************************************************************************
+#***************************************************************************
 
-#HANSEN
-   if [ -n "$HANSEN" ]; then
+#HANSEN-COATES 
+   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      #**********************************************************************
@@ -238,8 +238,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #            done
 
    fi
-#HANSEN
-   if [ -n "$HANSEN" ]; then
+#HANSEN-COATES
+   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      #**********************************************************************
@@ -356,8 +356,8 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
    fi
 #********************************************************************************
 
-#HANSEN
-   if [ -n "$HANSEN" ]; then
+#HANSEN-COATES
+   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      #**********************************************************************
@@ -516,8 +516,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
             do	
                if test $j -le 19
                 then
-#                  BuildAndSubmitCarverJobs $j 
-                  BuildAndSubmitCarverJobsBy10 $j 
+                  BuildAndSubmitCarverJobs $j 
 	        else
                   #BuildAndSubmitCarverJobs $j 
 	          BuildAndSubmitCarverJobsSingly $j
@@ -537,8 +536,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
    fi
 
 
-#HANSEN
-   if [ -n "$HANSEN" ]; then
+#HANSEN-COATES
+   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -675,8 +674,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #            done
 
     fi
-#HANSEN
-   if [ -n "$HANSEN" ]; then
+#HANSEN-COATES
+   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -702,7 +701,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 
 function BuildAndSubmitHansenJobs
 #**********************************************************************
-# Cause HANSEN cluster jobs to be submitted.
+# Cause HANSEN or COATES cluster jobs to be submitted.
 # This is the "all showers of one energy in sequence on one core"
 #**********************************************************************
 {
@@ -721,14 +720,11 @@ function BuildAndSubmitHansenJobs
    echo "#"PBS -l walltime=04:00:00           >>$sgeFile
    #echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
    #echo "#"PBS -l walltime=30:00:00            >>$sgeFile
-   echo "#PBS -l mem=30GB"                     >>$sgeFile
-   #echo "#PBS -l nodes=1:ppn=6"                >>$sgeFile
  else
    echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
-   echo "#PBS -l mem=30GB"                     >>$sgeFile
-   #echo "#PBS -l nodes=1:ppn=6"               >>$sgeFile
    echo "#"PBS -l walltime=04:00:00           >>$sgeFile
  fi
+ echo "#PBS -l " $MEMREQUEST                >>$sgeFile
  echo source /etc/profile                     >>$sgeFile
  echo module load gcc/4.7.2                   >>$sgeFile
  echo lcl=$PBS_O_WORKDIR                      >>$sgeFile
@@ -749,7 +745,7 @@ function BuildAndSubmitHansenJobs
 
 function BuildAndSubmitHansenJobsBy10()
 #**********************************************************************
-# Cause HANSEN cluster jobs to be submitted in groups of 10.
+# Cause HANSEN or COATES cluster jobs to be submitted in groups of 10.
 #**********************************************************************
 {
  stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
@@ -778,18 +774,15 @@ function BuildAndSubmitHansenJobsBy10()
    sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
    
    if [ "$E" -gt "20000" ]; then
-     echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
-     echo "#"PBS -l walltime=04:00:00           >>$sgeFile
-     #echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
-     #echo "#"PBS -l walltime=30:00:00            >>$sgeFile
-     echo "#PBS -l mem=30GB"                     >>$sgeFile
-     #echo "#PBS -l nodes=1:ppn=6"                >>$sgeFile
+     #echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+     #echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+     echo "#"PBS -q $QUEUEPHYSICS                 >$sgeFile
+     echo "#"PBS -l walltime=30:00:00            >>$sgeFile
    else
      echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
-     echo "#PBS -l mem=30GB"                     >>$sgeFile
-     #echo "#PBS -l nodes=1:ppn=6"               >>$sgeFile
      echo "#"PBS -l walltime=04:00:00           >>$sgeFile
    fi
+   echo "#PBS -l " $MEMREQUEST                        >>$sgeFile
    echo source /etc/profile                           >>$sgeFile
    echo module load gcc/4.7.2                         >>$sgeFile
    echo lcl=$PBS_O_WORKDIR                            >>$sgeFile
@@ -811,7 +804,7 @@ function BuildAndSubmitHansenJobsBy10()
 
 function BuildAndSubmitHansenJobsSingly 
 #**********************************************************************
-# Cause HANSEN serial jobs to be submitted.
+# Cause HANSEN or COATES  serial jobs to be submitted.
 # This version submits 1 job per shower. Useful for high energies.
 # Don't use for low energies. The queue manager whill probably chokes 
 # with too many jobs in the queue. Don't know what "too many" is yet.
@@ -831,18 +824,15 @@ function BuildAndSubmitHansenJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    if [ "$E" -gt "20000" ]; then
-     echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
-     echo "#"PBS -l walltime=04:00:00           >>$sgeFile
-     #echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
-     #echo "#"PBS -l walltime=30:00:00                     >>$sgeFile
-     echo "#PBS -l mem=30GB"                              >>$sgeFile
-     #echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+     #echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+     #echo "#"PBS -l walltime=04:00:00           >>$sgeFile
+     echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
+     echo "#"PBS -l walltime=30:00:00                     >>$sgeFile
    else
      echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
-     echo "#PBS -l mem=30GB"                     >>$sgeFile
-     #echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
      echo "#"PBS -l walltime=04:00:00                     >>$sgeFile
    fi
+   echo "#PBS -l " $MEMREQUEST                            >>$sgeFile
    echo source /etc/profile                               >>$sgeFile
    echo module load gcc/4.7.2                             >>$sgeFile
    echo lcl=$PBS_O_WORKDIR                                >>$sgeFile
@@ -921,7 +911,7 @@ function BuildAndSubmitCarverJobsSingly
   # echo "#"PBS -l gres=gscratch%project                  >>$sgeFile
    if test $1 -ge 25
      then
-      echo "#PBS -l pvmem=8GB"                            >>$sgeFile
+      echo "#PBS -l " $MEMREQUEST                         >>$sgeFile
    fi	
    echo cd $lcl                                           >>$sgeFile
    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
@@ -937,59 +927,6 @@ function BuildAndSubmitCarverJobsSingly
    let i=i+1
   done
 }
-function BuildAndSubmitCarverJobsBy10()
-#**********************************************************************
-# Cause Carver cluster jobs to be submitted in groups of 10.
-#**********************************************************************
-{
- stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
- pr=$parspec
- sub=${pr%%mv*}mv
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- eGeV=${energy[$1]}
- let E=${eGeV%%.*}
-     
- echo Entry:  $pr $eGeV $showerStart $showerEnd
- if [ $1 -le 19 ]; then
-   let Stepsize=${stepsize[$1]}
- else
-   let Stepsize=1
- fi
- let i=showerStart
- while test $i -le $showerEnd
-  do
-   let endShower=$i+$Stepsize-1
-   
-   if [ "$endShower" -gt "$showerEnd" ]; then
-     endShower=$showerEnd
-   fi
-   range=E$i'_'$endShower
-   sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
-
-   echo "#"!/bin/bash                                  >$sgeFile
-   echo "#"PBS -q $CarverQueue                        >>$sgeFile
-   echo "#"PBS -l walltime=12:00:00                   >>$sgeFile
-   if test $1 -ge 25
-     then
-      echo "#PBS -l pvmem=8GB"                        >>$sgeFile
-   fi   
-   echo cd $lcl                                       >>$sgeFile
-   echo $ksScript $eGeV $pr $i  \\                    >>$sgeFile
-   echo $endShower $datadir $workingDir   \\          >>$sgeFile
-   echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log"  >>$sgeFile
-   chmod 700 $sgeFile
-
-   if [ -n "$QsubFileNameList" ]; then
-    echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
-    echo $sgeFile >>$QsubFileNameList
-   else
-     qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
-   fi
-   let i=$i+$Stepsize
-  done
-}
-#########################################################################
 
 function BuildAndSubmitLargeCarverJobs
 #**********************************************************************
@@ -1022,7 +959,8 @@ function BuildAndSubmitLargeCarverJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"PBS -S /bin/bash                            >$sgeFile
- echo "#"PBS -l walltime=4:00:00,pvmem=5gb          >>$sgeFile
+ echo "#"PBS -l walltime=4:00:00                    >>$sgeFile
+ echo "#PBS -l " $MEMREQUEST                        >>$sgeFile
  echo "#"PBS -l nodes=$numNodes                     >>$sgeFile
  #echo "#"PBS -l gres=gscratch%project              >>$sgeFile
  echo cd "$"PBS_O_WORKDIR                           >>$sgeFile
@@ -1171,6 +1109,7 @@ then
   CARVER=enabled
   CarverQueue=serial
   WALLTIME=100:00:00
+  MEMREQUEST='pvmem=8GB'
   echo ***Carver Cluster***
 fi
 
@@ -1183,6 +1122,19 @@ then
   QUEUE=$QUEUEPHYSICS
   WALLTIME=30:00:00
   #WALLTIME=04:00:00
+  MEMREQUEST='mem=30GB'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on COATES
+then
+  COATES=enabled
+  QUEUEPHYSICS=physics
+  QUEUESTANDBY=standby
+  QUEUE=$QUEUEPHYSICS
+  WALLTIME=30:00:00
+  #WALLTIME=04:00:00
+  MEMREQUEST='mem=8GB'
 fi
 
 hostString=${host:0:4}
@@ -1261,10 +1213,18 @@ if [ -n "$CARVER" ]; then
 fi
 
 if [ -n "$HANSEN" ]; then
-    dataDirBase=$RCAC_SCRATCH'/simulations'
+    dataDirBase=$SCRATCH'/simulations'
     echo Hansen Data dir: $dataDirBase
     mkdir -vp $dataDirBase
-    workingDir=$RCAC_SCRATCH
+    workingDir=$SCRATCH
+
+fi
+
+if [ -n "$COATES" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Coates Data dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH
 
 fi
 
@@ -1302,7 +1262,7 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
 
-    if [ -n "$CARVER" ] || [ -n "$HANSEN" ]; then
+    if [ -n "$CARVER" ] || [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
        protonDatadir="$dataDirBase/protons"
@@ -1393,7 +1353,7 @@ if [ -n "$ISIS" ]; then
 fi
 
 
-#Nothing for CARVER,HANSEN
+#Nothing for CARVER,HANSEN,COATES
 
 
 ###########################################################################
