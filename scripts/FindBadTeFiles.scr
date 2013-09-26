@@ -2,6 +2,7 @@
 #
 #$1 Zn value to search Ex: 1 or 10 or 70
 #$2 Season/Array/Primary  Ex: WUG  SVGn SUG
+#$3 psf dIR eX: V330 or  V190
 #   expects files to be in directories in gammas/V190/$2$1{D,_}* 
 #######################################################################
 # assume we start in 'V'
@@ -9,6 +10,8 @@
 Zn=$1
 SAP=$2
 lcl=$PWD
+
+MinLevel=.70
 
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 43707 52265 )
 
@@ -24,9 +27,33 @@ let iStart=10
 #let iStart=40
 let iEnd=44
 
-cd $lcl'/../simulations/veritas/gammas/V190'
+cd $lcl'/../simulations/veritas/gammas/'$3
 pwd
+#First look for any 0 length files at low energies.
 
+let i=1
+iLast=$((iStart-1));
+while test $i -le $iLast 
+  do
+    E='GeV'${energy[$i]}'te.d'
+    echo At E: $E
+    rm g.tmp
+    ls -sl $SAP$Zn'D'*/*$E* >g.tmp
+    ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
+    {
+     while read size a b c d e f g h j
+      do
+       #echo $size $j
+       if [ "$size" -eq "0" ]; then
+        j=${j##*/}
+	echo File Not found: $j 
+       fi 
+      done
+     }<g.tmp
+     i=$((i+1))
+  done
+
+#Now the higher energies
 let i=$iStart
 while test $i -le $iEnd 
   do
@@ -53,11 +80,11 @@ while test $i -le $iEnd
     # use bc to do some math to find 70% of max
     # *****************************************************
     Mean=$(echo "$sum/$icount" | bc)
-    FracMax=$(echo ".70*$max" | bc)
+    FracMax=$(echo "$MinLevel*$max" | bc)
     FracMax=${FracMax%%.*}
-    FracMean=$(echo ".70*$Mean" | bc)
+    FracMean=$(echo "$MinLevel*$Mean" | bc)
     FracMean=${FracMean%%.*}
-    if [ "$FracMax" -lt "$FracMean" ]; then
+    if [ "$FracMax" -lt  "$FracMean" ]; then
        Min=$FracMax
        #echo FracMax
     else
