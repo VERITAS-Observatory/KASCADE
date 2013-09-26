@@ -16,7 +16,8 @@ function setup()
      CarverQueue=serial
      QUEUE1=$CarverQueue
      QUEUE2=$CarverQueue
-     WALLTIME=30:00:00
+     WALLTIMEH=30:00:00
+     WALLTIMEL=$WALLTIMEH
      MEM=pvmem
      echo ***Carver Cluster***
   fi
@@ -28,9 +29,9 @@ function setup()
       QUEUE1=physics
       QUEUE2=standby
       QUEUE=$QUEUE1
-      WALLTIME=30:00:00
+      WALLTIMEH=30:00:00
+      WALLTIMEL=04:00:00
       MEM=mem
-      #WALLTIME=04:00:00
   fi
 
   hostString=${host:0:6}
@@ -40,9 +41,9 @@ function setup()
       QUEUE1=physics
       QUEUE2=standby
       QUEUE=$QUEUE1
-      WALLTIME=30:00:00
+      WALLTIMEH=30:00:00
+      WALLTIMEL=04:00:00
       MEM=mem
-      #WALLTIME=04:00:00
   fi
   
   echo hostString: $hostString
@@ -105,14 +106,12 @@ function BuildAndSubmitJobsSingly()
  #Build the pbs file
  if [ "$E" -gt "20000" ]; then
    echo "#"PBS -q $QUEUE1                                >$sgeFile
-   echo "#"PBS -l walltime=10:00:00                      >>$sgeFile
-#   echo "#PBS -l nodes=1:ppn=6"                         >>$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEH                     >>$sgeFile
    echo "#PBS -l "$MEM"=30GB"                            >>$sgeFile
  else
    echo "#"PBS -q $QUEUE2                                >$sgeFile
-   echo "#"PBS -l walltime=04:00:00                     >>$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEL                   >>$sgeFile
    echo "#PBS -l "$MEM"=30GB"                           >>$sgeFile
-#   echo "#PBS -l nodes=1:ppn=6"                        >>$sgeFile
  fi
  echo source /etc/profile                               >>$sgeFile
  echo module load gcc/4.7.2                             >>$sgeFile
