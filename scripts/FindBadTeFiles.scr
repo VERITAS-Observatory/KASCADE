@@ -1,5 +1,13 @@
 #Script to find "short" Te files.Gammas only for now.Easy enought to extend.
-#
+#Scheme is to make 3 tests. 
+#A: Test for 0 length files. If any found stop until they are replaced
+#B: Test for files with log files where pe number don't agree(kslight out,
+#   ksPeSortMerge in, ksPeSortMerg out and ksTrigger in). If any of these fail
+#   quit so they can be remade before continuing.(Note: ksProduction*.log files
+#   must all be in V ./log/
+#C: List all files that seem more than 30% smaller than the mean for each 
+#   energy in length. These may be ok (especially after test B).
+#######################################################################
 #$1 Zn value to search Ex: 1 or 10 or 70
 #$2 Season/Array/Primary  Ex: WUG  SVGn SUG
 #$3 psf dIR eX: V330 or  V190
@@ -7,33 +15,170 @@
 #######################################################################
 # assume we start in 'V'
 #
+# ************************************************************************
+
+###############################################
+#Following function used by test B
+###############################################
+
+
+function LookForBadPeCounts()
+{
+ #$1 Log File name
+ #$2 Run File name 
+ #########################################################
+ #Writing out gets one more than it should if this file has a end-of-run-record
+ ##########################################################
+ LOGFILE=$1
+ RUNFILE=$2
+
+ #grep "KSPeFile-- Number of pes read" $LOGFILE >endofrunfile.tmp
+ #{
+ # while read a b
+ #  do
+ #    if [ "$a" = "KSPeFile--" ]; then
+ #        eorFile=2
+ #    fi
+ #  done
+ #}<endofrunfile.tmp
+
+ grep "Number of photons written out" $LOGFILE >kslitetxt.tmp
+ {
+  while read a b c e f g
+   do
+    if [ -n "$g" ]; then
+      good=1
+    else
+      echo File Not found: $RUNFILE
+      echo No pes from kslite
+      countbad=$((countbad+1))
+      return
+    fi
+      numpes=$g
+   done
+ }<kslitetxt.tmp
+
+ grep "ksPesortMerge: Number of PEs read in:" $LOGFILE >pesortIntxt.tmp
+ numfound=1
+ {
+  while read a b c e f g h
+   do
+     if [ ! -n "$h" ]; then
+       echo File Not found: $RUNFILE
+       echo No pes from pesort in.
+       countbad=$((countbad+1))
+       return
+     fi
+     numfound=$h
+   done
+ }<pesortIntxt.tmp
+
+ if [ "$numfound" != "$numpes" ]; then
+   echo File Not found: $RUNFILE
+   echo Sort read too few: $numfound 'Should be:' $numpes
+   countbad=$((countbad+1))
+   return
+ fi
+
+ grep "ksPeSortMerge: Successful Sort(I checked!)" $LOGFILE >pecheckok
+ {
+  while read a b c
+   do
+     if [ "$b" = "Successful" ]; then
+       good=1
+     fi
+   done
+ }<pecheckok
+
+ if [ ! -n "$good" ]; then
+   echo File Not found: $RUNFILE
+   echo Sort failed!
+   countbad=$((countbad+1))
+   return
+ fi
+
+ grep "ksPeSortMerge: Number of Sorted PEs written out:" $LOGFILE >sortout.tmp
+ {
+  while read a b c e f g h i
+   do
+     if [ ! -n "$i" ]; then
+       echo File Not found: $RUNFILE
+       echo No pes from pesort out
+       countbad=$((countbad+1))
+       return
+     fi
+     if [ -n "$eorFile" ]; then 
+       let j=$i
+       j=$((j-1))
+       i=$j
+     fi
+     numfound=$i
+   done
+ }<sortout.tmp
+ 
+ if [ "$numfound" != "$numpes" ]; then
+   echo File Not found: $RUNFILE
+   echo Sort wrote too few: $numfound 'Should be:' $numpes
+   countbad=$((countbad+1))
+   return
+ fi
+
+ grep "ksTrigger: KSPeFile reports Number of Pe" $LOGFILE >kstrigin.tmp
+ {
+  while read a b c e f g h i
+   do
+     if [ ! -n "$i" ]; then
+       echo File Not found: $RUNFILE
+       echo No pes from kstring in
+       countbad=$((countbad+1))
+       return
+     fi
+     numfound=$i
+   done
+ }<kstrigin.tmp
+
+ if [ "$numfound" != "$numpes" ]; then
+   echo File Not found: $RUNFILE
+   echo ksTrigger read too few: $numfound 'Should be:' $numpes
+   countbad=$((countbad+1))
+   return
+ fi
+
+}
+# ****************************************************************************
+
+#############################################################################
+
+# *************
+# Main code
+# *************
 Zn=$1
 SAP=$2
 lcl=$PWD
 
-MinLevel=.70
+if [ "$3" = "V330" ]; then
+   THRESH='50mv'
+else
+   THRESH='45mv'
+fi
+
 
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 43707 52265 )
 
-# ************************************************************************
-# Scheme is to use ls to get a listing of file size for each Te file at one 
-# of the energies and to find mean (Max?) and to flag anything more than 10% 
-# (20%?) less to an ouput file that ReDoMissingTefiles.scr can regen.
-# ************************************************************************
 
-# Loop over energies: start at above 1TeV
-let iStart=10
-#let iStart=23
-#let iStart=40
-let iEnd=44
 
 cd $lcl'/../simulations/veritas/gammas/'$3
 pwd
+
+# +++++++++++++++++++++++++++++++++
+# Test A: Search for 0 length files
+# +++++++++++++++++++++++++++++++++
 #First look for any 0 length files at low energies.
 
 let i=1
-iLast=$((iStart-1));
-while test $i -le $iLast 
+let iEnd=44
+let countbad=0
+while test $i -le $iEnd 
   do
     E='GeV'${energy[$i]}'te.d'
     echo At E: $E
@@ -47,11 +192,91 @@ while test $i -le $iLast
        if [ "$size" -eq "0" ]; then
         j=${j##*/}
 	echo File Not found: $j 
+        countbad=$((countbad+1))
        fi 
       done
-     }<g.tmp
-     i=$((i+1))
+    }<g.tmp
+    i=$((i+1))
   done
+if [ "$countbad" -gt "0" ]; then
+  echo $countbad Zero length files found. Fix them before continueing
+  exit
+else
+  echo No zero length files found.
+  echo Contiuing to test B: Number of Pe consitant in log file.
+fi
+##########################################################################
+
+
+
+# +++++++++++++++++++++++++++++++++++++++
+# Test B: Check log files to make sure total numbers of pes consistant in 4 
+# places and sort was sucessful
+# +++++++++++++++++++++++++++++++++++++++
+echo Pe check
+let indx=20
+iLast=$iEnd
+let countbad=0
+while test $indx -le $iLast 
+  do
+    ENERGY=${energy[$indx]}
+    E='GeV'$ENERGY'te.d'
+    echo At E: $E
+    ls $SAP$Zn'D'*/*$E* | xargs -n1 >tmp1
+    ls $SAP$Zn'_'*/*$E* | xargs -n1 >>tmp1
+    #cat tmp1
+
+    sed '/2D/s/te.d/  /g'    <tmp1  >tmp2
+    sed '/2D/s/Deg/  /g'     <tmp2  >tmp1
+    sed '/2D/s/'$SAP'/ /g'     <tmp1  >tmp2
+
+    #SOG20Deg2D/SOG20Deg2DGeV598te.d1
+    # 20 2D/ 20 2DGeV598 1
+    ##############################################################
+    #Read in the file we just created and cause the job to be submited
+    ##############################################################
+    LOGDIR=$lcl'/log/'
+ 
+    {  
+     while read a b ZNAZ c SHNUM
+      do
+       # ***********************
+       #make up the log file name
+       # ***********************
+       #echo $a $b  ZNAZ: $ZNAZ $c  SHNUM: $SHNUM
+       runfile=$SAP$ZNAZ'Deg2D'$E$SHNUM
+       logFile=$LOGDIR'/ksProduction_'$ENERGY'd'$SHNUM$SAP$ZNAZ'Deg2D'$THRESH'1234M2.log'
+          
+       if [ ! -e "$logFile" ]; then
+         echo No log file for $runfile
+       else
+         LookForBadPeCounts $logFile $runfile
+       fi
+      done
+    }<tmp2
+    indx=$((indx+1))
+  done
+if [ "$countbad" -gt "0" ]; then
+  echo $countbad Mismatches PE number in log files found. Fix them before continueing
+  exit
+else
+  echo All pes numbers in log files consistent and all sort sucessful
+  echo Contiuing to test c: FYI file length descrepencies
+fi
+#########################################################################
+
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++
+# Test C:  Scheme is to use ls to get a listing of file size for each Te file 
+# at one of the energies and to find mean (Max?) and to flag anything more 
+# than 30%?) less to an output file that ReDoMissingTefiles.scr can regen.
+# ************************************************************************
+# Loop over energies: start at above 1TeV
+let iStart=10
+let iEnd=44
+let countbad=0
+MinLevel=.70
 
 #Now the higher energies
 let i=$iStart
@@ -75,7 +300,7 @@ while test $i -le $iEnd
              max=$size
           fi
         done
-     }<g.tmp
+    }<g.tmp
     # *****************************************************
     # use bc to do some math to find 70% of max
     # *****************************************************
@@ -106,7 +331,6 @@ while test $i -le $iEnd
      }<g.tmp
      i=$((i+1))
   done
+
 cd $lcl
-
-
 
