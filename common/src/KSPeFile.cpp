@@ -83,7 +83,7 @@ bool KSPeFile::Create(std::string PeFileName)
   }
 #ifdef EnableFileStream
   pfOutFile=new std::ofstream(PeFileName.c_str(), 
-  			      std::ios::out | std::ios::binary);
+			      std::ios::out | std::ios::binary);
   if(pfOutFile->fail()){
     std::cout<<"KSPeFile--Failed to Open a new output Pe file"
 	     <<std::endl;
@@ -112,7 +112,6 @@ bool KSPeFile::Create(std::string PeFileName)
 }
 // ***************************************************************************
 
-
 bool KSPeFile::Open(std::string PeFileName)
 // ***************************************************************************
 //  Open for input an existing pe binary file.
@@ -139,7 +138,7 @@ bool KSPeFile::Open(std::string PeFileName)
 
 #ifdef EnableFileStream
   pfInFile=new std::ifstream(PeFileName.c_str(), 
-  			     std::ios::in | std::ios::binary);
+			     std::ios::in | std::ios::binary);
   if(pfInFile->fail()){
 #else
   pfInFile=open(PeFileName.c_str(),O_RDONLY);
@@ -167,6 +166,33 @@ void KSPeFile::Close()
   // Replace C++ Stlib  open for lower level c open. Do this for large file
   // support (Eliminates "File size limit exceeded" at 2.148 G bytes)
   // ********************************************************************
+  // We have a problem with not knowing if ksPeSortMerge or ksTrtigger have 
+  // read the Pe file all the way in.
+  // So on output we will add a end-of-run record with all values set to
+  // -1  (especially fSegmentID which is our flag)except fTime which will 
+  // have the number of pe's
+  // ******************************************************************** 
+  if(pfOutFile!=NULL){
+    KSPeData* pPeEnd=new KSPeData();
+    pPeEnd->fNx=-1;
+    pPeEnd->fNy=-1;
+    pPeEnd->fTime=fNumPe;
+    pPeEnd->fPhotonDl=-1;
+    pPeEnd->fPhotonDm=-1;
+    pPeEnd->fSegmentID=-1;   //This is the flag word. Says this is end-of-run
+    pPeEnd->fX=-1;
+    pPeEnd->fY=-1;
+    pPeEnd->fTrackType=-1;
+    pPeEnd->fLambda=-1;
+    pPeEnd->fEmissionAltitude=-1;
+
+    // Now write it
+    WritePe(pPeEnd);
+    fNumPe--;      //Don't want to count this extra one.
+  }
+ 
+  // Close things up!
+ 
 #ifdef EnableFileStream
   if(pfOutFile!=NULL){
     pfOutFile->clear();
@@ -188,12 +214,10 @@ void KSPeFile::Close()
     pfOutFile=-1;
     fSegmentHeadWritten=false;
     fPeHeadWritten=false;
-    //std::cout<<"KSPeFile: Number of Pe records written: "<<fNumPe<<std::endl;
   }
   if(pfInFile!=-1){
     close(pfInFile);
     pfInFile=-1;
-    //std::cout<<"KSPeFile: Number of Pe records read: "<<fNumPe<<std::endl;
   }
 #endif
 
@@ -204,7 +228,7 @@ void KSPeFile::Close()
 
 void KSPeFile::Delete()
 // ***************************************************************************
-//  Delete the input file useing lower level  c type system call "unlink"
+//  Delete the input file using lower level  c type system call "unlink"
 // ***************************************************************************
 {
 #ifdef EnableFileStream
@@ -214,7 +238,7 @@ void KSPeFile::Delete()
 #endif
     Close();                                  //Tidy up.
     int fResult=remove(fInFileName.c_str());  //Low level c file delete 
-                                                //command. 
+    //command. 
     if(fResult!=0){
       std::cout<<"KSPeFile: Failed to delete "<<fInFileName<<std::endl;
     }
@@ -266,7 +290,6 @@ void KSPeFile::WriteSegmentHead(KSSegmentHeadData* segHead)
 }
 // ***************************************************************************
 
-
 void KSPeFile::WritePeHead(KSPeHeadData* peHead)
 // ***************************************************************************
 // The the pe head data to the output file. Sould be the second thing written 
@@ -301,11 +324,11 @@ void KSPeFile::WritePeHead(KSPeHeadData* peHead)
   }
   else{
 #ifdef EnableFileStream
-   pfOutFile->write((char*)peHead, sizeof(KSPeHeadData));
+    pfOutFile->write((char*)peHead, sizeof(KSPeHeadData));
 #else
-   write(pfOutFile,(char*)peHead, sizeof(KSPeHeadData));
+    write(pfOutFile,(char*)peHead, sizeof(KSPeHeadData));
 #endif
-   fPeHeadWritten=true;
+    fPeHeadWritten=true;
   }
   return;
 }
@@ -355,7 +378,6 @@ void KSPeFile::WritePe(KSPeData* pe)
 }
 // ***************************************************************************
 
-
 bool KSPeFile::ReadSegmentHead(KSSegmentHeadData* segHead)
 // ***************************************************************************
 // Read segment head data from the input file. Sould be the first thing read.
@@ -387,19 +409,18 @@ bool KSPeFile::ReadSegmentHead(KSSegmentHeadData* segHead)
     pfInFile->read((char*)segHead, sizeof(KSSegmentHeadData));
     if(!pfInFile->good()){
 #else
-    int fReadFlag=read(pfInFile, (char*)segHead, sizeof(KSSegmentHeadData));
-    if(fReadFlag==-1){
+      int fReadFlag=read(pfInFile, (char*)segHead, sizeof(KSSegmentHeadData));
+      if(fReadFlag==-1){
 #endif
-      std::cout<<"KSPeFile--Failed to read Segment Header."
-	       <<std::endl;
-      exit(1);
+	std::cout<<"KSPeFile--Failed to read Segment Header."
+		 <<std::endl;
+	exit(1);
+      }
+      fSegmentHeadRead=true;
+      return true;
     }
-    fSegmentHeadRead=true;
-    return true;
-  }
 }
 // ***************************************************************************
-
 
 bool KSPeFile::ReadPeHead(KSPeHeadData* peHead)
 // ***************************************************************************
@@ -453,6 +474,15 @@ bool KSPeFile::ReadPe(KSPeData* pe)
 // Read pe data from the input file. The segment head and the pe head need 
 // to be read before and pe's are read
 // ***************************************************************************
+// We have a problem with not knowing if ksPeSrotMerge or ksTrigger have read 
+// the Pe (or pes)file all the way in.
+// So on output we will add a end-of-run record with all values set to
+// -1  (especially fSegementID which is our flag)except fTime which will 
+// have the number of pe's. 
+// On input we will look for fSegmentID to be -1 which whwen read we will 
+// declare an eof. If we find an eof without seeing a fSegementID = -1 record,
+// we will declate a fatal error.
+// ******************************************************************** 
 {
   // ********************************************************************
   // Replace C++ Stdlib  read for lower level c read. Do this for large file
@@ -480,16 +510,28 @@ bool KSPeFile::ReadPe(KSPeData* pe)
   else{
 #ifdef EnableFileStream
     pfInFile->read((char*)pe, sizeof(KSPeData));
-    if(pfInFile->eof()){
+    if(pfInFile->eof()) {
 #else
     int fReadFlag=read(pfInFile,(char*)pe, sizeof(KSPeData));
     if(fReadFlag==0){
 #endif
-      fFoundEOF=true;
+      // ************************************************************
+      // If we reach an eof then we haven't found the end-of-run record
+      // (which should be the last record in the file, just before eof)
+      // This is fatal 
+      // Normally we quit (never hit eof,see below) when we reach end-of-run 
+      // record
+      // ************************************************************
+      std::cout<<"KSPeFile--Fatal - No end-of-run record found before eof"
+	       <<std::endl;
+      std::cout<<"KSPeFile--Input File may be bad"<<std::endl;
+      std::cerr<<"KSPeFile--Fatal - No end-of-run record found before eof"
+	       <<std::endl;
+      std::cerr<<"KSPeFile--Input File is bad"<<std::endl;
+
+      fFoundError=true;
       return false;
     }
-
-
 #ifdef EnableFileStream
     if(!pfInFile->good()){
 #else
@@ -498,6 +540,24 @@ bool KSPeFile::ReadPe(KSPeData* pe)
       std::cout<<"KSPeFile--Failed to read Pe."
 	       <<std::endl;
       fFoundError=true;
+      return false;
+    }
+    // ***************************************************************
+    //was this the end of run record
+    // ***************************************************************
+    if(pe->fSegmentID==-1){    //This is the flag for end-of-run
+      //Check we read all pe's.
+      if(fNumPe != pe->fTime){
+	std::cout<<"KSPeFile--Fatal - Number of pes read: "<<fNumPe
+		 <<" does not match expected number: "<< pe->fTime
+		 <<" from End-of-run record"<<std::endl;
+	fFoundError=true;
+	return false;
+      }
+      std::cout<<"KSPeFile-- Number of pes read: "<<fNumPe
+	       <<" matches  expected number: "<< pe->fTime
+	       <<" from End-of-run record"<<std::endl;
+      fFoundEOF=true;
       return false;
     }
     fNumPe++;
