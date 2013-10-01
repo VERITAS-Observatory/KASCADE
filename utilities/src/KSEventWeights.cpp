@@ -42,11 +42,12 @@ const double gHe4IPhi     =  5.98e3;	       //Spectral Amplitude Helium
 					       //Units=/m**2/sec/sr/GeV
 
 //  New electron/positron flux parameters from HESS 2009
-//const double gElectronAlpha  = -3.9;
-const double gElectronAlpha  = -2.0;         //Better High E ststistics
+const double gElectronAlpha  = -3.9;
+//const double gElectronAlpha  = -2.0;         //Better High E ststistics
 const double gElectronIPhi   =  1.17e-7;     //Spectral Amplitude for electron
                                              //Units=/m**2/sec/GeV
-const double gPositronAlpha  = -2.0;         //Better High E ststistics
+//const double gPositronAlpha  = -2.0;         //Better High E ststistics
+const double gPositronAlpha  = -3.9;
 const double gPositronIPhi   =  1.17e-7;     //Spectral Amplitude for positrons
                                              //Units=/m**2/sec/GeV
 
