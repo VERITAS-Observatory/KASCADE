@@ -15,7 +15,7 @@
 #include "KSSegmentFile.h"
 
 // ************************************************************************
-//I found the way to do this at:
+//  I found the way to do this at:
 //  http://www.angelfire.com/country/aldev0/cpphowto/cpp_BinaryFileIO.html
 // ************************************************************************
 // The use of the low level c commands was to avoid 4.2 GByte file size limit
@@ -38,9 +38,13 @@ KSPeFile::KSPeFile()
 #ifdef EnableFileStream
   pfInFile=NULL;
   pfOutFile=NULL;
+  //std::cout<<"KSPeFile: EnableFileStream defined. Using stdLib ofstream i/o"
+  //	   <<std::endl;
 #else
   pfInFile=-1;
   pfOutFile=-1;
+  //std::cout<<"KSPeFile: EnableFileStream not defined. Using low level C file i/o"
+  //	   <<std::endl;
 #endif
   fSegmentHeadWritten=false;
   fSegmentHeadRead=false;
@@ -172,7 +176,13 @@ void KSPeFile::Close()
   // -1  (especially fSegmentID which is our flag)except fTime which will 
   // have the number of pe's
   // ******************************************************************** 
+  //std::cout<<"KSPeFile: Closing file: "<<std::endl;
+
+#ifdef EnableFileStream
   if(pfOutFile!=NULL){
+#else
+  if(pfOutFile!=-1){
+#endif
     KSPeData* pPeEnd=new KSPeData();
     pPeEnd->fNx=-1;
     pPeEnd->fNy=-1;
@@ -189,6 +199,8 @@ void KSPeFile::Close()
     // Now write it
     WritePe(pPeEnd);
     fNumPe--;      //Don't want to count this extra one.
+    //std::cout<<"KSPeFile: Writing end of run record. Num pes: "<<(long)fNumPe
+    //	     <<std::endl;
   }
  
   // Close things up!
@@ -548,15 +560,15 @@ bool KSPeFile::ReadPe(KSPeData* pe)
     if(pe->fSegmentID==-1){    //This is the flag for end-of-run
       //Check we read all pe's.
       if(fNumPe != pe->fTime){
-	std::cout<<"KSPeFile--Fatal - Number of pes read: "<<fNumPe
-		 <<" does not match expected number: "<< pe->fTime
+	std::cout<<"KSPeFile--Fatal - Number of pes read: "<<(long)fNumPe
+		 <<" does not match expected number: "<< (long)pe->fTime
 		 <<" from End-of-run record"<<std::endl;
 	fFoundError=true;
 	return false;
       }
-      std::cout<<"KSPeFile-- Number of pes read: "<<fNumPe
-	       <<" matches  expected number: "<< pe->fTime
-	       <<" from End-of-run record"<<std::endl;
+      //std::cout<<"KSPeFile-- Number of pes read: "<<(long)fNumPe
+      //	       <<" matches  expected number: "<< (long)pe->fTime
+      //	       <<" from End-of-run record"<<std::endl;
       fFoundEOF=true;
       return false;
     }
