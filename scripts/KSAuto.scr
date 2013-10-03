@@ -421,7 +421,7 @@ function SubmitQsubJobs()
 #$3  Maximum jobs to have running or waiting to run in the queue
 # Due to differences in memory requirments for Te and ShowerrVBF jobs we also
 # use the defined string MEMREQUEST. If exists is uaually has a value like
-#  MEMREQUEST=' -l mem=30GB '
+#  MEMREQUEST=' -l pvmem=30GB '
 {
   QsubList=$1
   QsubDoneList=$2
@@ -656,7 +656,7 @@ while test $izn -lt $iznEnd
 	      rm $QsubFileNameList
            fi
            if [ -n "$CARVER" ]; then
-	     MEMREQUEST=' -l mem=30GB '
+	     MEMREQUEST=' -l pvmem=30GB '
 	     echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
            fi
 	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $QsubFileNameList
@@ -999,7 +999,7 @@ while test $izn -lt $iznEnd
 	    rm $QsubFileNameList
          fi
          if [ -n "$CARVER" ]; then
-	   MEMREQUEST=' -l mem=8GB '
+	   MEMREQUEST=' -l pvmem=8GB '
 	   echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
          fi
 	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList
