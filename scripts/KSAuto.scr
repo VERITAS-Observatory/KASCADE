@@ -419,6 +419,9 @@ function SubmitQsubJobs()
 #$2  file with all the names of the *.qsub.Done files the submitted jobs will 
 #    write when they finish
 #$3  Maximum jobs to have running or waiting to run in the queue
+# Due to differences in memory requirments for Te and ShowerrVBF jobs we also
+# use the defined string MEMREQUEST. If exists is uaually has a value like
+#  MEMREQUEST=' -l mem=30GB '
 {
   QsubList=$1
   QsubDoneList=$2
@@ -442,9 +445,12 @@ function SubmitQsubJobs()
         echo adding: $sgeDoneFile
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
-       qsub -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-       sleep 10
-     done
+       qsub -V $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+       #For Hansen and Carver pause between submissions
+       if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+         sleep 10
+       fi
+      done
    }<$QsubList
 }
 ############################################################################
@@ -648,6 +654,10 @@ while test $izn -lt $iznEnd
                                             #list
 	   if [ -e $QsubFileNameList ]; then
 	      rm $QsubFileNameList
+           fi
+           if [ -n "$CARVER" ]; then
+	     MEMREQUEST=' -l mem=30GB '
+	     echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
            fi
 	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $QsubFileNameList
                                   #Above will fill the list file 
@@ -987,6 +997,10 @@ while test $izn -lt $iznEnd
                                             #list
 	 if [ -e $QsubFileNameList ]; then
 	    rm $QsubFileNameList
+         fi
+         if [ -n "$CARVER" ]; then
+	   MEMREQUEST=' -l mem=8GB '
+	   echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
          fi
 	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList
                                   #Above will fill the list file 
