@@ -25,20 +25,20 @@ MaxQsubsDefault=50           #with ksProduction and only want to make
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
-#GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
     #Note: can be run with Cleanup enabled(below)
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
 #HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
 
-Cleanup=enabled                
+#Cleanup=enabled                
 
 #DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
@@ -952,8 +952,9 @@ while test $izn -lt $iznEnd
          LogFile='simulationVeritasLogDir'$DATE.tar
          tar -cvf $LogFile ./log/* >'simulationVeritasLogDir'$DATE.log
          rm ./log/*
-	 cd ..
        fi
+
+       cd $lcl'/../simulations/veritas/'
 
        ####################################################################
        #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
@@ -986,8 +987,6 @@ while test $izn -lt $iznEnd
        ####################################################################
        echo 'KSAuto: Process ksAomega*.config: ' $8 ' through ksAomega and ksArrayTrig'
        echo 'KSLAuto:  use less KSProcess'$ZnAz'.log or qstat to monitor progress.'
-       cd $lcl'/../simulations/veritas/'
-
        date
        #make up our ksProduction designation
        Spec=$ksProdSpec$8
