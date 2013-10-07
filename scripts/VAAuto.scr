@@ -1217,7 +1217,7 @@ if [ -n "$GenerateSubLTListFiles" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   ListNames='SubLT'$1$Samples'Sample*Deg*noiseList'
+   ListNames='SubLT'$1$Samples'Sample*Deg*List'
    rm $ListNames
 fi
 #############################################################################
@@ -1661,7 +1661,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
             # Stage4 filename with the correct TelConfig
             ###################################################
 
-            SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS4.scr $VBFFILE
+	    SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS4.scr $VBFFILE
 
 	   fi
            ###############################################################
