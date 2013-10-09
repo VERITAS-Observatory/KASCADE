@@ -809,6 +809,14 @@ if [ -n "$GenerateStage4Files" ]; then
     fi
 
     ######################################################################
+    # If this is an Old Array run, enable the TelCombosToDeny=T1T4
+    ######################################################################
+    if  [ $2 = "OA" ]; then
+      sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmp1 >tmp2 
+      cp tmp2 tmp1
+    fi
+
+    ######################################################################
     # We also need to set the quality cuts file and the file extention and the 
     # LT name
     ####################################################################
@@ -828,7 +836,7 @@ if [ -n "$GenerateStage4Files" ]; then
     # Stage 4 only needs short time
     #############################################################################
     WALLTIME=04:00:00
-
+    
 fi
 ############################################################################
 
