@@ -34,6 +34,7 @@ MinLevel=.70
 cd $lcl'/../simulations/veritas/gammas/'
 pwd
 #First look for any 0 length files at low energies.
+echo TestA: Searching for 0 length files only at low Energies
 
 let i=1
 iLast=$((iStart-1));
@@ -58,8 +59,10 @@ while test $i -le $iLast
   done
 
 #Now the higher energies
+echo TestB: At higher energies search for $MinLevel or less files from mean size.
+
 let i=$iStart
-echo $i $iStart $iEnd
+#echo $i $iStart $iEnd
 while test $i -le $iEnd 
   do
     E='GeV'${energy[$i]}'.d'
