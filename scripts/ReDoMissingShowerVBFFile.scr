@@ -22,7 +22,7 @@ function setup()
      QUEUE2=$CarverQueue
      WALLTIME1=30:00:00
      WALLTIME2=30:00:00
-     MEMREQEST='pvmem=35GB'
+     MEMREQEST='pvmem=30GB'
      echo ***Carver Cluster***
   fi
 
@@ -35,7 +35,7 @@ function setup()
       QUEUE=$QUEUE1
       WALLTIME1=30:00:00
       WALLTIME2=04:00:00
-      MEMREQEST='mem=35GB'
+      MEMREQEST='mem=30GB'
   fi
 
   hostString=${host:0:6}
@@ -47,7 +47,7 @@ function setup()
       QUEUE=$QUEUE1
       WALLTIME1=30:00:00
       WALLTIME2=04:00:00
-      MEMREQEST='mem=35GB'
+      MEMREQEST='mem=20GB'
   fi
   
   echo hostString: $hostString
@@ -153,7 +153,7 @@ let E=${eGeV%%.*}
    echo "#"PBS -l $MEMREQEST                            >>$sgeFile
  else
    echo "#"PBS -q $QUEUE2                                >$sgeFile
-   echo "#PBS -l walltime="$WALLYIME2                   >>$sgeFile
+   echo "#PBS -l walltime="$WALLTIME2                   >>$sgeFile
    echo "#"PBS -l $MEMREQEST                            >>$sgeFile
  fi
  echo source /etc/profile                               >>$sgeFile
