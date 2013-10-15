@@ -52,13 +52,13 @@ GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks not the running
 #EntryGEEnd=44
-EntryGEEnd=46
+EntryGEEnd=47
 
 EntryPStart=1
-EntryPEnd=44
+EntryPEnd=45
 
 EntryHe4Start=5
-EntryHe4End=44
+EntryHe4End=45
 
 
 ###########################################################################
