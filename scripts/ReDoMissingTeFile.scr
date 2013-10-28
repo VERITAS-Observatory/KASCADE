@@ -8,7 +8,7 @@ function usage()
 {
  echo '***ReDoMissingTeFile usage:'
  echo '   $1: File with Missing Te Files in form: File Not found: SOG1_135Deg2DGeV36550te.d8'
- echo '   $2 Threshold: 45mv or 50mv'
+ echo '   $2: Threshold: 45mv or 50mv'
  echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log   50mv'
  echo '***'
 }
