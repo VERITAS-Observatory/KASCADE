@@ -16,6 +16,15 @@
 # assume we start in 'V'
 #
 # ************************************************************************
+ function usage()
+{
+  echo '***FindBadTeFiles usage:'
+  echo '   $1 Zn value to search Ex: 1 or 10 or 70'
+  echo '   $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
+  echo '   $3 psf dIR eX: V330 or  V190'
+  echo ' Ex:  ./FindbadTeFiles.scr 30 SOG V330'
+  echo '***'
+}
 
 ###############################################
 #Following function used by test B
@@ -152,6 +161,11 @@ function LookForBadPeCounts()
 # *************
 # Main code
 # *************
+if [  ! -n "$3" ]; then
+        usage
+        exit
+fi
+
 Zn=$1
 SAP=$2
 lcl=$PWD
