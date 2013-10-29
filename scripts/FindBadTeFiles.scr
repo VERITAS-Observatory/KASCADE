@@ -217,7 +217,7 @@ if [ "$countbad" -gt "0" ]; then
   exit
 else
   echo No zero length files found.
-  echo Contiuing to test B: Number of Pe consitant in log file.
+  echo Contiuing to test B: Number of Pe consistant in log file.
 fi
 ##########################################################################
 
