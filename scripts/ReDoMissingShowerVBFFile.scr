@@ -6,6 +6,16 @@
 #$3 Array season spec U or NA or OA
 #$4 Particle type Defauls to G  Optional P He4 
 #From this file we will make a list Missing or short/failed Shower VBF files
+function usage()
+{
+ echo '***ReDoMissingShowerVBFFile usage:'
+ echo '   $1: File with Missing ShowerVBF Files in form: File Not found: SOG1Deg2D50mv1234M2GeV36550.d2.vbf'
+ echo '   $2 Telescope ksAomega config: Ex ABCD  or wxyz'
+ echo '   $3 Array season spec U or NA or OA'
+ echo '   $4 Particle type Defauls to G  Optional P He4'
+ echo ' EX: ./ReDoMissingShowerVBFFile.scr CheckShowerVBFMDL8OAIJKL1_0-135From.log   IJKL OA G'
+ echo '***'
+}
 
 
 function setup()
@@ -179,10 +189,9 @@ let E=${eGeV%%.*}
 ####################
 #Start of main code
 ####################
-if [ ! -n "$3" ]; then
-   echo Missing arguments:
-   echo Ex:> ./ReDoMissingShowerVBFFile.scr  FileNotfoundFile  ABCD OA
-   exit
+if [  ! -n "$2" ]; then
+        usage
+        exit
 fi
 
 CheckFile=$1
