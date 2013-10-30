@@ -6,6 +6,26 @@
 #$3 Telescope 4 character spec: Ex: ABCD or wxyz or MDL10U
 #   expects files to be in directories in gammas/$2$1{D,_}*$3 
 #######################################################################
+
+ function usage()
+{
+  echo '***FindBadShowerVBFFiles usage:'
+  echo '   $1 Zn value to search Ex: 1 or 10 or 70'
+  echo '   $2 $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
+  echo '   $3 Telescope 4 character spec: Ex: ABCD or wxyz or MDL10U'
+  echo ' Ex:  ./FindBadShowerVBFFiles.scr  30 SOG EFGH'
+  echo '***'
+}
+
+# *************
+# Main code
+# *************
+if [  ! -n "$3" ]; then
+        usage
+        exit
+fi
+
+
 # assume we start in 'V'
 #
 Zn=$1
