@@ -1,4 +1,4 @@
-#This is for Carver or Hansen or Coates
+#This is for Carver or Hansen
 #$1 is PSF subdir  Ex: V330 or V190
 #$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
 #   20_180Deg
@@ -8,6 +8,34 @@
 #$6: Input Sub-dir: Ex: ABCD
 #$7: start direction Index. defualt is 0. 
 #$8: end direction Index. defualt is 8. 
+#####################################################################
+
+function usage()
+{
+  echo '***GProcessAll usage:'
+  echo '   $1 is PSF subdir  Ex: V330 or V190'
+  echo '   $2:Zn_AZ and threshold specification EX: 20Deg  20_180Deg'
+  echo '   $3:Threshold spec ex 45mv or 50mv'
+  echo '   $4 Season:teleSpec: Ex WU or SV SO'
+  echo '   $5: Output file BaseName Ex: CrabA or Noise4 or MDL15NA'
+  echo '   $6: Input Sub-dir: Ex: ABCD'
+  echo '   $7: start direction Index. defualt is 0.(=0.0deg)'
+  echo '   $8: end direction Index. defualt is 8.(=2.0deg)'
+  echo ' Ex:  ./GProcessAll V330 1_225Deg 50mv SO MDL8OA IJKL 1 1'
+  echo '***'
+}
+
+#####################################################################
+#Main script
+##############
+
+if [  ! -n "$6" ]; then
+        usage
+        exit
+fi
+
+
+
 
 lcl=$PWD
 echo lcl: $lcl
@@ -29,6 +57,7 @@ then
   CARVER=enabled
   QUEUE=serial
   WALLTIME='10:00:00'
+  MEMREQUEST='pvmem=8GB'
   echo '***Carver Cluster***'
 fi
 
@@ -36,25 +65,25 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  QUEUE=physics
-  WALLTIME='30:00:00'
-  #QUEUE=standby
-  #WALLTIME='04:00:00'
+  #QUEUE=physics
+  #WALLTIME='30:00:00'
+  QUEUE=standby
+  WALLTIME='04:00:00'
+  MEMREQUEST='mem=8GB'
   echo '***Hansen Cluster:'$QUEUE' queue ***'
 fi
 
 hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on Coates?
+if test  "$hostString" = "coates"  #Are we running on Hansen
 then
   COATES=enabled
-  QUEUE=physics
-  WALLTIME='30:00:00'
-  #QUEUE=standby
-  #WALLTIME='04:00:00'
+  #QUEUE=physics
+  #WALLTIME='30:00:00'
+  QUEUE=standby
+  WALLTIME='04:00:00'
+  MEMREQUEST='mem=8GB'
   echo '***Coates Cluster:'$QUEUE' queue ***'
 fi
-
-
 
 ABase=$4
 SeasonSpec=${ABase:0:1}
@@ -159,18 +188,15 @@ while test $i -le $end
 
     sgeFile=$lcl'/'$Base'G'$2$wbl'.pbs'
     echo "#"!/bin/bash                                            >$sgeFile
-    echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
-    if [ -n "$CARVER" ]; then
-     echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
-    fi
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-     echo "#PBS -l mem=8GB"                                      >>$sgeFile
-    fi
+    echo "#PBS -l walltime="$WALLTIME                            >>$sgeFile
+    echo "#PBS -l "$MEMREQUEST                                    >>$sgeFile
+    echo date                                                    >>$sgeFile
     echo cd $lcl'/../../veritas'                                 >>$sgeFile
     echo './ksWeRock.scr '$GBase 98020 1234M2  \\                >>$sgeFile
     echo $direction $Base ">"$lcl'/'$Base'G'$2$wbl'.log'         >>$sgeFile
     echo cd $lcl                                                 >>$sgeFile
     echo mv  -v $GBase'1234M2D'$direction$Base'.vbf' $VBFFile    >>$sgeFile
+    echo date                                                    >>$sgeFile
 
     chmod 700 $sgeFile
     qsub -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
