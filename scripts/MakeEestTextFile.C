@@ -398,15 +398,15 @@ double GetTrueDistToShowerMax_KM(int telID,VAShowerData* pfShower,
   // ****Get reconstructed direction
   //double showerEl_Rad=pfShower->fDirectionElevation_Rad;
   //double showerEl_Deg= showerEl_Rad * RadToDeg;
-  //double showerZN_Rad=(90. - showerEl_Deg) * DegToRad;
+  //double showerZn_Rad=(90. - showerEl_Deg) * DegToRad;
   //double showerAz_Rad =pfShower->fDirectionAzimuth_Rad;
   // ****
   
   // ****Use True direction:
-  double showerZN_Deg=pfSim->fPrimaryZenithDeg;
+  double showerZn_Deg=pfSim->fPrimaryZenithDeg;
   double showerAz_Rad=pfSim->fPrimaryAzimuthDeg*DegToRad;
-  double showerEL_Rad=(90. - showerZn_Deg) * DegToRad;
-  double showerZN_Rad=showerZn_Deg * DegToRad;
+  double showerEl_Rad=(90. - showerZn_Deg) * DegToRad;
+  double showerZn_Rad=showerZn_Deg * DegToRad;
   // ****
 
 
@@ -416,12 +416,12 @@ double GetTrueDistToShowerMax_KM(int telID,VAShowerData* pfShower,
   // For emission altitude Correct for observatory altitude and divide by sin(elev)
   // Note ithis is averager emission altitude, not showermax!!!
   // **************************************************************************
-  double emissionDistToCore=(pfSim->fEmissionAltitudeM-pfSim->fCoreElevationMASL)/sin(showerEL_Rad);
+  double emissionDistToCore=(pfSim->fEmissionAltitudeM-pfSim->fCoreElevationMASL)/sin(showerEl_Rad);
   
   vector <double> B(3,0);
-  B.at(0) = (sin(showerZN_Rad) * sin(showerAz_Rad))*emissionDistToCore;   //X East
-  B.at(1) = (sin(showerZN_Rad) * cos(showerAz_Rad))*emissionDistToCore;   //Y North
-  B.at(2) =  cos(showerZN_Rad) * emissionDistToCore;                      //Z Up
+  B.at(0) = (sin(showerZn_Rad) * sin(showerAz_Rad))*emissionDistToCore;   //X East
+  B.at(1) = (sin(showerZn_Rad) * cos(showerAz_Rad))*emissionDistToCore;   //Y North
+  B.at(2) =  cos(showerZn_Rad) * emissionDistToCore;                      //Z Up
 
   vector <double> C(3,0);
   C.at(0)=A.at(0)+B.at(0);
