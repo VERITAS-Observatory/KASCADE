@@ -396,21 +396,26 @@ double GetTrueDistToShowerMax_KM(int telID,VAShowerData* pfShower,
   // *********************************************************
 
   // ****Get reconstructed direction
-  //double showerEl_Deg=pfShower->fDirectionElevation_Rad * RadToDeg;
+  //double showerEl_Rad=pfShower->fDirectionElevation_Rad;
+  //double showerEl_Deg= showerEl_Rad * RadToDeg;
+  //double showerZN_Rad=(90. - showerEl_Deg) * DegToRad;
   //double showerAz_Rad =pfShower->fDirectionAzimuth_Rad;
   // ****
   
   // ****Use True direction:
   double showerZN_Deg=pfSim->fPrimaryZenithDeg;
   double showerAz_Rad=pfSim->fPrimaryAzimuthDeg*DegToRad;
-  // ****
-
   double showerEL_Rad=(90. - showerZn_Deg) * DegToRad;
   double showerZN_Rad=showerZn_Deg * DegToRad;
+  // ****
 
- 
+
+  // **************************************************************************
   // Make up unit vector in this direction
-  // Get emission altitude Correct for observatory altitude and divide by sin(elev)
+  // Get distance from showerMax to core loc on ground
+  // For emission altitude Correct for observatory altitude and divide by sin(elev)
+  // Note ithis is averager emission altitude, not showermax!!!
+  // **************************************************************************
   double emissionDistToCore=(pfSim->fEmissionAltitudeM-pfSim->fCoreElevationMASL)/sin(showerEL_Rad);
   
   vector <double> B(3,0);
