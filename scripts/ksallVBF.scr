@@ -164,13 +164,10 @@ TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 
 MoonSpec=${ThresholdSpec:0:1}              #See if moon filter specified
-echo ThresholdSpec,MoonSpec: $ThresholdSpec  $MoonSpec
 if [ "$MoonSpec" = "M" ]; then
     MoonFilterEnable=enable
-    echo T:1:  ${ThresholdSpec:1}
-    ThresholdSpec=${ThresholdSpec#M}    #strip off the leading M
+    ThresholdSpec=${ThresholdSpec:1}    #strip off the leading M
     MOON=M                          #$MOON is blank if moonfilter not specified
-    echo ThresholdSpec,MOON: $ThresholdSpec $MOON
 fi
 
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2NABBAB
@@ -381,17 +378,17 @@ $src/randomCreateRanluxSeed -s $seed -o ksArrayTrigger.ran
 ########################################################################
 #Set up base name of shower files. 
 #Note it includes data path
-ShwrTe=$5'/'$AtmSpec$TriggerSpec'GeV'$1'te'
-SingleShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec'GeV'$1
+ShwrTe=$5'/'$AtmSpec$TriggerSpec$MOON'GeV'$1'te'
+SingleShwr=$5'/'$AtmSpec$TriggerSpec$MOON$ThreshSpec'GeV'$1
 #MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
 echo ShwrTe: $ShwrTe
 
 if [ -n "$VBFOutputToDetectorSpecDir" ];
  then
   mkdir -p $5'/'$DetectArraySpec
-  MultShwr=$5'/'$DetectArraySpec'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+  MultShwr=$5'/'$DetectArraySpec'/'$AtmSpec$TriggerSpec$MOON$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
  else
-  MultShwr=$5'/'$AtmSpec$TriggerSpec$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
+  MultShwr=$5'/'$AtmSpec$TriggerSpec$MOON$ThreshSpec$ArrayConfig'M'$ArrayMult'GeV'$1
 fi
 
 echo MultShwr: $MultShwr
