@@ -545,9 +545,9 @@ fi
 
 #Check if this is for 2D offsets, blank if not
 if [ "$1" = "G" ] || [ "$1" = "E" ]; then
-  OffSetSpec="2D"
+ WblFilterSpec="2D"
 fi
-OffSetSpec=$OffSetSpec$MOON    #Add the M if needed or all could even be blank
+WblFilterSpec=$WblFilterSpec$MOON    #Add the M if needed or all could even be blank
 
 #To find the Zn amd AZ combinations first put $4 and $5 into arrays
 #This is tricky. We save away the present Internal Filed Seperator and then
@@ -617,7 +617,7 @@ while test $izn -lt $iznEnd
 #  Now all the things we can do for a particular Zn_AZ
 # *****************************************************************************
      #make up our ksProduction designation
-     ksProdSpec=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'
+     ksProdSpec=$2$PMT$1$ZnAz$WblFilterSpec$Threshold'1234M2'
   
      if [ -n "$GenerateTeFiles" ]; then
        echo '##########################################################'
@@ -650,8 +650,7 @@ while test $izn -lt $iznEnd
        sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
        sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
-       sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
-       sed '/MoonFilterEnable=enable/s/Moon/#Moon/g' <tmp2 >ksallVBF$ZnAz'.scr'
+       sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >ksallVBF$ZnAz'.scr'
        rm tmp1
        rm tmp2
        ####################################################################
@@ -683,7 +682,7 @@ while test $izn -lt $iznEnd
      fi
      #######################################################################
  
-     TeName=$2$PMT$1$ZnAz$OffSetSpec
+     TeName=$2$PMT$1$ZnAz$WblFilterSpec
      if [ "$1" = "G" ] ; then
            ParticleDir='gammas'
      fi
@@ -701,8 +700,8 @@ while test $izn -lt $iznEnd
        PSFDirP=$VDirBase'/protons/'$DirPSF 
        PSFDirHe4=$VDirBase'/he4/'$DirPSF 
        PSFDir=$PSFDirP
-       TeNameP=$2$PMT'P'$ZnAz$OffSetSpec
-       TeNameHe4=$2$PMT'He4_'$ZnAz$OffSetSpec
+       TeNameP=$2$PMT'P'$ZnAz$WblFilterSpec
+       TeNameHe4=$2$PMT'He4_'$ZnAz$WblFilterSpec
        TeName=$TeNameP
 
        ShowerVBFProtonDir=$TeNameP$Threshold'1234M2'$2$8
@@ -717,7 +716,7 @@ while test $izn -lt $iznEnd
 
      else
        PSFDir=$VDirBase'/'$ParticleDir'/'$DirPSF
-       TeName=$2$PMT$1$ZnAz$OffSetSpec
+       TeName=$2$PMT$1$ZnAz$WblFilterSpec
        ShowerVBFDir=$TeName$Threshold'1234M2'$2$8
        ShowerVBFDirAlt=$TeName$Threshold'1234M2'$2$7
        ShowerDir=$VDirBase'/'$ParticleDir'/'$ShowerVBFDir
@@ -745,10 +744,10 @@ while test $izn -lt $iznEnd
        ################################################################
        if [ -n "$LimitSubmissions" ]; then
 
-	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
 
        else
-         SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $PSFDir $TeName 
+         SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
      fi
      #####################################################################
@@ -815,10 +814,10 @@ while test $izn -lt $iznEnd
        ################################################################
        if [ -n "$LimitSubmissions" ]; then
 
-         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
 
        else 
-         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$OffSetSpec'TE/' $PSFDir $TeName 
+         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
 
      fi
@@ -989,9 +988,7 @@ while test $izn -lt $iznEnd
        sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
        sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
-       sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
-       sed '/MoonFilterEnable=enable/s/Moon/#Moon/g'   \
-                                                   <tmp2 >ksallVBF$ZnAz'.scr'
+       sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >ksallVBF$ZnAz'.scr'
        rm tmp1
        rm tmp2
        ####################################################################
@@ -1096,7 +1093,7 @@ while test $izn -lt $iznEnd
 	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
-	ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
+	ShowerMDLDir=$2$PMT$1$ZnAz$WblFilterSpec$Threshold'1234M2'$2$7
 
         SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
@@ -1155,7 +1152,7 @@ while test $izn -lt $iznEnd
 	 SubmitHtarToArchive $HtarDir'/'$2$PMT'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
-        ShowerMDLDir=$2$PMT$1$ZnAz$OffSetSpec$Threshold'1234M2'$2$7
+        ShowerMDLDir=$2$PMT$1$ZnAz$WblFilterSpec$Threshold'1234M2'$2$7
 
         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
