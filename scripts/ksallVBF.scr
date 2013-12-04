@@ -37,8 +37,6 @@ DebugPrintEnable=enable
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
                                    # $5$Detectorspec:
                                    # Ex: .../simulations/veritas/protonsABCD
-#MoonFilterEnable=enable           #Enable moon filter us in kaslite. Veritas
-                                   #telescopes only.
 
 echo "**********************************************************************"
 echo "**********************************************************************"
@@ -156,13 +154,22 @@ PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives VG20Deg
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234OAM2AAAB from 
                                           #WVG20Deg2D50mv1234M2NAAAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
-    ThresholdSpec=${jobSpec##*Deg}         #No Deg2D: gets 70mv1234M2NAABBC from 
-                                           #CVG20DegN0.5Deg70mv1234M2UAABBC
-fi
+    ThresholdSpec=${jobSpec##*Deg}        #No Deg2D: gets 70mv1234M2NAABBC 
+                                          #from WVG20Deg2D70mv1234M2NAAAAB
+fi                                        #Or M50mv1234M2EFGH if moon filter 
+                                          #run
 
 TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
-                                           #SVG20Deg2D50mv1234M2NABBAB
+                                           #SVG20Deg2DM50mv1234M2NABBAB
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
+
+MoonSpec=${ThresholdSpec:0:1}              #See if moon filter specified
+if [ "$MoonSpec" = "M" ]; then
+    MoonFilterEnable=enable
+    ThresholdSpec=${ThresholdSpec:1}#strip off the M
+    MOON=M                          #$MOON is blank if moonfilter not specified
+fi
+
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2NABBAB
 
 PMTSpec=$TelSpec
@@ -223,6 +230,12 @@ if [ -n "$DebugPrintEnable" ]; then
   echo PrimarySpec: $PrimarySpec
   echo TelSpec: $TelSpec
   echo PMTSpec: $PMTSpec
+  echo MOON: $MOON
+  if [ -n "$MoonFilterEnabled" ]; then
+     echo MoonFilter Processing: Enabled!
+  else
+     echo MoonFilter Processing: Not Enabled!
+  fi   
 fi
   
 if test "$ThresholdSpec" != "$ArrayConfigSpec" 
@@ -432,14 +445,14 @@ if [ -n "$Production" ]; then #Get 20_180:
   	TypeSpec=He4_
         ZNAZSpec=${ZNAZSpec##He4_}  #Remove He4_ from beginning
         ZNAZSpec=${ZNAZSpec%%Deg*}  #Strip Deg off end
-        TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
+        TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'$MOON
     else
        ZNAZSpec=${ZNAZSpec:1}     #remove  leading G,P,E     
        ZNAZSpec=${ZNAZSpec%%Deg*} #Strip of Trailing from DEG: 
        if [ $TypeSpec = "P" ]; then
-         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'
+         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'$MOON
        else
-         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg2D'  #E and G
+         TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg2D'$MOON  #E and G
        fi
     fi
     echo ZN_AZ: $ZNAZSpec

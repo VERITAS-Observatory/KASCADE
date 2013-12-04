@@ -7,7 +7,7 @@
 #$3 telescope designation: W, OA, NA or U (Whipple, OldArray,NewArray, Upgrade)
 #$4 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70
 #$5 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
-#$6 Threshold: Ex 45mv or 50mv
+#$6 (Moon filter. opt) and Threshold: Ex 45mv or 50mv or M50mv of M25mv
 #$7 MDL file name for VBF files: Ex MDL12U or for BuildMDLAomegaConfig MDL1 ($3 will be added when its made.)
 #$8 Telescope 4 character spec: Ex: ABCD or wxyz
 #$9 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
@@ -518,22 +518,36 @@ fi
 #######################################################################
 
 TELESPEC=$3
-DirPSF=V190
-if [ "$3" = "W" ]; then   #Whipple telescope (not really implimented, place holder)
-   PMT="W"
+
+if [ "$TELESPEC" = "W" ]; then   #Whipple telescope (not really implimented, 
+   PMT="W"                       #place holder)
+   DirPSF=V190
 fi
-if [ "$3" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
-   PMT="O"                #with old V330 PSF)
+if [ "TELESPEC" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
+   PMT="O"                      #with old V330 PSF)
    DirPSF=V330
 fi
-if [ "$3" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
-   PMT="V"                #with new  V190 PSF)
+if [ "TELESPEC" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
+   PMT="V"                      #with new  V190 PSF)
+   DirPSF=V190
 fi
-if [ "$3" = "U" ]; then    #Upgrade Veritas Array (after T1 move, New PMTs,
-   PMT="U"                 #with new  V190 PSF)
+if [ "$TELESPEC" = "U" ]; then #Upgrade Veritas Array (after T1 move, New PMTs,
+   PMT="U"                     #with new  V190 PSF)
+   DirPSF=V190
 fi
 
 Threshold=$6
+MoonFilterSpec=${Threshold:0:1}  #Get leading M if there is one
+if [ "$MoonSpec" = "M" ];then    #Moon filter else $MOON is blank.
+   MOON=M
+   Threshold=${Threshold:1}      #Strip off the M
+fi
+
+#Check if this is for 2D offsets, blank if not
+if [ "$1" = "G" ] || [ "$1" = "E" ]; then
+  OffSetSpec="2D"
+fi
+OffSetSpec=$OffSetSpec$MOON    #Add the M if needed or all could even be blank
 
 #To find the Zn amd AZ combinations first put $4 and $5 into arrays
 #This is tricky. We save away the present Internal Filed Seperator and then
@@ -551,10 +565,6 @@ fi
 
 IFS=$SAVEIFS
 
-#Check if this is for 2D offsets, blank if not
-if [ "$1" = "G" ] || [ "$1" = "E" ]; then
-  OffSetSpec="2D"
-fi
 
 
 if [ ! -e "$lcl/KSAutoFileCheck.scr" ]; then
