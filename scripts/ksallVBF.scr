@@ -164,10 +164,12 @@ TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 
 MoonSpec=${ThresholdSpec:0:1}              #See if moon filter specified
+echo ThresholdSpec,MoonSpec: $ThresholdSpec  $MoonSpec
 if [ "$MoonSpec" = "M" ]; then
     MoonFilterEnable=enable
     ThresholdSpec=${ThresholdSpec:1}#strip off the M
     MOON=M                          #$MOON is blank if moonfilter not specified
+    echo ThresholdSpec,MOON: $ThresholdSpec $MOON
 fi
 
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2NABBAB
