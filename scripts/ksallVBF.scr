@@ -167,7 +167,8 @@ MoonSpec=${ThresholdSpec:0:1}              #See if moon filter specified
 echo ThresholdSpec,MoonSpec: $ThresholdSpec  $MoonSpec
 if [ "$MoonSpec" = "M" ]; then
     MoonFilterEnable=enable
-    ThresholdSpec=${ThresholdSpec:1}#strip off the M
+    echo T:1:  ${ThresholdSpec:1}
+    ThresholdSpec=${ThresholdSpec#M}    #strip off the leading M
     MOON=M                          #$MOON is blank if moonfilter not specified
     echo ThresholdSpec,MOON: $ThresholdSpec $MOON
 fi
