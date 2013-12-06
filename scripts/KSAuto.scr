@@ -18,7 +18,7 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=50           #with ksProduction and only want to make
+MaxQsubsDefault=150           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
@@ -27,11 +27,11 @@ MaxQsubsDefault=50           #with ksProduction and only want to make
 
 #GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
-GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
+#GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
     #Note: can be run with Cleanup enabled(below)
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
@@ -48,17 +48,23 @@ GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
 
 #ExitOnTeCreationFailure=enabled  
 
-
+############################################################
+# Foe the Check files match shower entry numberes to those used in ksProduction.scr
+############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks not the running
-#EntryGEEnd=44
 EntryGEEnd=47
-
 EntryPStart=1
 EntryPEnd=45
-
 EntryHe4Start=5
 EntryHe4End=45
+if [ "$1" = "CR" ]; then
+  EntryPEnd=42
+  EntryHe4End=42
+fi
+#############################################################
+
+
 
 
 ###########################################################################
@@ -538,7 +544,8 @@ fi
 
 Threshold=$6
 MoonFilterSpec=${Threshold:0:1}  #Get leading M if there is one
-if [ "$MoonSpec" = "M" ];then    #Moon filter else $MOON is blank.
+
+if [ "$MoonFilterSpec" = "M" ];then    #Moon filter else $MOON is blank.
    MOON=M
    Threshold=${Threshold:1}      #Strip off the M
 fi
