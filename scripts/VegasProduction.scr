@@ -6,6 +6,8 @@
 #$3 Vegas base dir path: Used when you want vegas from a different directory 
 #            than what VEGAS is set to in .bashrc (or equivalent)
 
+lcl=$PWD
+
 #Stage1Laser=enable
 #Stage1Data=enable
 #Stage2=enable
