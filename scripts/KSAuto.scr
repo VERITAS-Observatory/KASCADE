@@ -1,4 +1,10 @@
 #!/bin/bash
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# UNDER CONSTRUTION: Gradulally changeing from WV,SV to WN,SN (for consistancy)
+# fixed for:
+#  HTARTeFilesFromArchive
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
 #This script is used to automate the generation of the veritas Te files
 #It has some arguments listed below.
 # ************************************************************************
@@ -528,18 +534,22 @@ TELESPEC=$3
 if [ "$TELESPEC" = "W" ]; then   #Whipple telescope (not really implimented, 
    PMT="W"                       #place holder)
    DirPSF=V190
+   TELCONFIG=W
 fi
 if [ "TELESPEC" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
    PMT="O"                      #with old V330 PSF)
+   TELCONFIG=O
    DirPSF=V330
 fi
-if [ "TELESPEC" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
+if [ "$TELESPEC" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
    PMT="V"                      #with new  V190 PSF)
    DirPSF=V190
+   TELCONFIG=N
 fi
 if [ "$TELESPEC" = "U" ]; then #Upgrade Veritas Array (after T1 move, New PMTs,
    PMT="U"                     #with new  V190 PSF)
    DirPSF=V190
+   TELCONFIG=U
 fi
 
 Threshold=$6
@@ -821,10 +831,12 @@ while test $izn -lt $iznEnd
        ################################################################
        if [ -n "$LimitSubmissions" ]; then
 
-         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+         #SubmitHtarToArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarToArchive $HtarDir'/'$2$TELCONFIG$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
 
        else 
-         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName 
+#         SubmitHtarToArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName 
+         SubmitHtarToArchive $HtarDir'/'$2$TELCONFIG$1$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
 
      fi
