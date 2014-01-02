@@ -236,7 +236,7 @@ while test $indx -le $iLast
     echo At E: $E
     ls $SAP$Zn'D'*/*$E* | xargs -n1 >tmp1
     ls $SAP$Zn'_'*/*$E* | xargs -n1 >>tmp1
-    cat tmp1
+    #cat tmp1
 
     sed '/2D/s/te.d/  /g'    <tmp1  >tmp2
     sed '/2D/s/Deg/  /g'     <tmp2  >tmp1
