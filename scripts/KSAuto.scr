@@ -2,6 +2,7 @@
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # UNDER CONSTRUTION: Gradulally changeing from WV,SV to WN,SN (for consistancy)
 # fixed for:
+#  HTARTeFilesToArchive 
 #  HTARTeFilesFromArchive
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -23,7 +24,7 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+#LimitSubmissions=enabled      #Enable if you want to generate Shower files 
 MaxQsubsDefault=150           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
@@ -33,8 +34,8 @@ MaxQsubsDefault=150           #with ksProduction and only want to make
 
 #GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
-#HTARTeFilesToArchive=enabled          # $1$2$3$4$5
+#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
 #GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
@@ -761,10 +762,10 @@ while test $izn -lt $iznEnd
        ################################################################
        if [ -n "$LimitSubmissions" ]; then
 
-	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarFromArchive $HtarDir'/'$2$TELCONFIG$1$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
 
        else
-         SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$WblFilterSpec'TE/' $PSFDir $TeName 
+         SubmitHtarFromArchive $HtarDir'/'$2$TELCONFIG$1$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
      fi
      #####################################################################
