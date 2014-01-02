@@ -11,6 +11,7 @@
 #$1 Zn value to search Ex: 1 or 10 or 70
 #$2 Season/Array/Primary  Ex: WUG  SVGn SUG
 #$3 psf dIR eX: V330 or  V190
+#$4 threshold Ex: 50mv  or M50mv or 45mv
 #   expects files to be in directories in gammas/V190/$2$1{D,_}* 
 #######################################################################
 # assume we start in 'V'
@@ -22,7 +23,8 @@
   echo '   $1 Zn value to search Ex: 1 or 10 or 70'
   echo '   $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
   echo '   $3 psf dIR eX: V330 or  V190'
-  echo ' Ex:  ./FindbadTeFiles.scr 30 SOG V330'
+  echo '   $4 threshold Ex: 50mv  or M50mv or 45mv'
+  echo ' Ex:  ./FindbadTeFiles.scr 30 SOG V330 50mv'
   echo '***'
 }
 
@@ -161,27 +163,23 @@ function LookForBadPeCounts()
 # *************
 # Main code
 # *************
-if [  ! -n "$3" ]; then
+if [  ! -n "$4" ]; then
         usage
         exit
 fi
 
 Zn=$1
 SAP=$2
+PSF=$3
+THRESH=$4
 lcl=$PWD
-
-if [ "$3" = "V330" ]; then
-   THRESH='50mv'
-else
-   THRESH='45mv'
-fi
 
 
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 )
 
 
 
-cd $lcl'/../simulations/veritas/gammas/'$3
+cd $lcl'/../simulations/veritas/gammas/'$PSF
 pwd
 
 # +++++++++++++++++++++++++++++++++
@@ -238,7 +236,7 @@ while test $indx -le $iLast
     echo At E: $E
     ls $SAP$Zn'D'*/*$E* | xargs -n1 >tmp1
     ls $SAP$Zn'_'*/*$E* | xargs -n1 >>tmp1
-    #cat tmp1
+    cat tmp1
 
     sed '/2D/s/te.d/  /g'    <tmp1  >tmp2
     sed '/2D/s/Deg/  /g'     <tmp2  >tmp1
@@ -254,17 +252,19 @@ while test $indx -le $iLast
     {  
      while read a b ZNAZ c SHNUM
       do
-       # ***********************
-       #make up the log file name
-       # ***********************
-       #echo $a $b  ZNAZ: $ZNAZ $c  SHNUM: $SHNUM
-       runfile=$SAP$ZNAZ'Deg2D'$E$SHNUM
-       logFile=$LOGDIR'/ksProduction_'$ENERGY'd'$SHNUM$SAP$ZNAZ'Deg2D'$THRESH'1234M2.log'
+       if [ -n "$SHNUM" ]; then
+	# ***********************
+       	#make up the log file name
+       	# ***********************
+       	#echo $a $b  ZNAZ: $ZNAZ $c  SHNUM: $SHNUM
+       	runfile=$SAP$ZNAZ'Deg2D'$E$SHNUM
+       	logFile=$LOGDIR'/ksProduction_'$ENERGY'd'$SHNUM$SAP$ZNAZ'Deg2D'$THRESH'1234M2.log'
           
-       if [ ! -e "$logFile" ]; then
-         echo No log file for $runfile
-       else
-         LookForBadPeCounts $logFile $runfile
+       	if [ ! -e "$logFile" ]; then
+       	  echo No log file $logFile for $runfile
+       	else
+       	  LookForBadPeCounts $logFile $runfile
+       	fi
        fi
       done
     }<tmp2
@@ -300,7 +300,6 @@ while test $i -le $iEnd
     rm g.tmp
     ls -sl $SAP$Zn'D'*/*$E* >g.tmp
     ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
-
     # Now find mean of this file
     let icount=0
     let max=0
