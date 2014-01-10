@@ -22,6 +22,8 @@
 #  argument. The calling program (usually KSAuto.scr) then will submit the 
 #  jobs in this file as it sees fit. (Used to keep the maximum allowable jobs 
 #  in the queue but not more tan the maximum).
+#$4 EntryStart: For Gammas and E  only for now. Default is 1.
+#$5 EntryEnd:   For Gammas and E only for now. Default is G=47,E=44
 ###########################################################################
 
 #Functions to define thigs for various particle specs
@@ -451,7 +453,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #       energy=([1]=21.9 26.2 31.3 37.4 44.7 53.5 64.0 76.5 91.5 109.4 130.8 156.4 187 223.6 267.4 319.8 382  457 547 654 782 935 1118 1337 1599 1912 2286 2734 3269 3909 4675 5590 6685 7994 9559 11430 13669 16346 19546 23374 23374 27951 27951)
 #        start=([1]=1    1    1    1    1    1    1    1    1    1     1     1     1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     11    1     11)
 #	  end=([1]=1813 1399 1079 833  643  496  383  296  228  176   136   105   81  63    49    38    29   23  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    10    20    10    20)  
- 
+
    if [ -n "$ISIS" ]; then
        if [ ${jobSpec:0:1} = "W" ] ; then
 	   if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
@@ -500,16 +502,9 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #CARVER
    if [ -n "$CARVER" ]; then
     #**********************************************************************
-    #Submit in reverse order so the longest start first.
+    # Submit in reverse order so the longest start first.
+    # iEntryStart and iEntryEnd set in main
     #**********************************************************************
-#           let iEntryStart=19
-#           let iEntryEnd=19
-
-           let iEntryStart=1   #498 jobs
-#           let iEntryStart=41   #498jobs
-#           let iEntryEnd=40
-           let iEntryEnd=47
-
 #Reverse order (prefered)
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
@@ -524,28 +519,15 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
                let j=j-1		
             done
 
-#normal order
-#	   let j=$iEntryStart
-#           while test $j -le $iEntryEnd
-#            do	
-#               BuildAndSubmitCarverJobs $j 
-#	       #BuildAndSubmitLargeCarverJobs $j
-#	       j=$((j+1))		
-#            done
-
    fi
 
 
 #HANSEN-COATES
    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
     #**********************************************************************
-    #Submit in reverse order so the longest start first.
+    # Submit in reverse order so the longest start first.
+    # iEntryStart and iEntryEnd set in main
     #**********************************************************************
-      let iEntryStart=1
-#      let iEntryEnd=44
-#       let iEntryStart=45
-       let iEntryEnd=47
-
       #Reverse order (prefered)
       let j=$iEntryEnd
       while test $j -ge $iEntryStart
@@ -643,14 +625,11 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 #CARVER
    if [ -n "$CARVER" ]; then
     #**********************************************************************
-    #Submit in reverse order so the longest start first.
+    # Submit in reverse order so the longest start first.
+    # iEntryStart and iEntryEnd set in main
     #**********************************************************************
 
-           let iEntryStart=1
-#           let iEntryEnd=44
-	   let iEntryEnd=44
-
-#Reverse order (prefered)
+    #Reverse order (prefered)
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
@@ -663,26 +642,15 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 	       fi
                let j=j-1		
             done
-
-#normal order
-#	   let j=$iEntryStart
-#           while test $j -le $iEntryEnd
-#            do	
-#               BuildAndSubmitCarverJobs $j 
-#	       #BuildAndSubmitLargeCarverJobs $j
-#	       j=$((j+1))		
-#            done
-
     fi
+
 #HANSEN-COATES
    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
     #**********************************************************************
-    #Submit in reverse order so the longest start first.
+    # Submit in reverse order so the longest start first.
+    # iEntryStart and iEntryEnd set in main
     #**********************************************************************
-      let iEntryStart=1
-      let iEntryEnd=44
-
-      #Reverse order (prefered)
+    #Reverse order (prefered)
       let j=$iEntryEnd
       while test $j -ge $iEntryStart
         do	
@@ -1101,7 +1069,7 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   CarverQueue=serial
-  WALLTIME=100:00:00
+  WALLTIME=30:00:00
   MEMREQUEST='pvmem=8GB'
   echo ***Carver Cluster***
 fi
@@ -1288,6 +1256,16 @@ if [ ${jobSpec:2:1} = "E" ] ; then
     parspec=$1 
     datadir="$dataDirBase/electrons"
     mkdir -vp $datadir
+    if [ -n "$4" ]; then
+	let iEntryStart=$4
+    else
+        let iEntryStart=1
+    fi
+    if [ -n "$5" ]; then
+	let iEntryEnd=$5
+    else
+        let iEntryEnd=44
+    fi
     Electrons
     let pspecset=1;
 fi
@@ -1312,6 +1290,16 @@ if [ ${jobSpec:2:1} = "G" ]; then
     parspec=$1
     datadir="$dataDirBase/gammas"
     mkdir -vp $datadir 
+    if [ -n "$4" ]; then
+	let iEntryStart=$4
+    else
+        let iEntryStart=1
+    fi
+    if [ -n "$5" ]; then
+	let iEntryEnd=$5
+    else
+        let iEntryEnd=47
+    fi
     Gammas
     let pspecset=1;
 fi

@@ -24,18 +24,18 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-#LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=150           #with ksProduction and only want to make
+LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+MaxQsubsDefault=750           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
-HTARTeFilesToArchive=enabled          # $1$2$3$4$5
+#HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
 #GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
@@ -59,8 +59,9 @@ HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 # Foe the Check files match shower entry numberes to those used in ksProduction.scr
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
-                        #This for the checks not the running
-EntryGEEnd=47
+                        #This for the checks and for TE gen only for now.
+#EntryGEEnd=47
+EntryGEEnd=44
 EntryPStart=1
 EntryPEnd=45
 EntryHe4Start=5
@@ -563,7 +564,10 @@ fi
 #Check if this is for 2D offsets, blank if not
 if [ "$1" = "G" ] || [ "$1" = "E" ]; then
  WblFilterSpec="2D"
+ EnergyStart=$EntryGEStart
+ EnergyEnd=$EntryGEEnd
 fi
+
 WblFilterSpec=$WblFilterSpec$MOON    #Add the M if needed or all could even be blank
 
 #To find the Zn amd AZ combinations first put $4 and $5 into arrays
@@ -672,7 +676,8 @@ while test $izn -lt $iznEnd
        rm tmp2
        ####################################################################
 
-       echo "KSAuto: Submitting ksProduction for " $ksProdSpec 
+       echo "KSAuto: Submitting ksProduction for " $ksProdSpec" Energy entries "$EnergyStart" to "$EnergyEnd
+ 
        echo "KSAuto: This submission takes a few minuts"
 
        if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
@@ -685,7 +690,7 @@ while test $izn -lt $iznEnd
 	     MEMREQUEST=' -l pvmem=30GB '
 	     echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
            fi
-	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $QsubFileNameList
+	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $QsubFileNameList $EnergyStart $EnergyEnd
                                   #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
@@ -1011,8 +1016,8 @@ while test $izn -lt $iznEnd
        rm tmp1
        rm tmp2
        ####################################################################
+       echo "KSAuto: Submitting ksProduction with Energy entries "$EnergyStart" to "$EnergyEnd
        echo 'KSAuto: Process ksAomega*.config: ' $8 ' through ksAomega and ksArrayTrig'
-       echo 'KSLAuto:  use less KSProcess'$ZnAz'.log or qstat to monitor progress.'
        date
        #make up our ksProduction designation
        Spec=$ksProdSpec$8
@@ -1027,7 +1032,7 @@ while test $izn -lt $iznEnd
 	   MEMREQUEST=' -l pvmem=8GB '
 	   echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
          fi
-	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList
+	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList $EnergyStart $EnergyEnd
                                   #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
