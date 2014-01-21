@@ -1,3 +1,4 @@
+#!/bin/bash
 #This is the setup script for running the KASCADE simulations.
 #It should be run from that you want (or does) contin the veritas (V) and
 #simulations/veritas (SV)subdirectories
@@ -37,14 +38,16 @@ cp -v ksProduction.scr $lcl
 cp -v KSAutoFileCheck.scr $lcl
 cp -v DownNodes.scr $lcl
 cp -v FindBad*.scr $lcl
-cp -v RedoMissing*.scr $lcl
+cp -v ReDoMissing*.scr $lcl
 cp -v RemoveQueue.scr $lcl
 cp -v ksWeRock.scr $lcl
 cp -v ksallVBF.scr $lcl
 
 
-lcl=$PWD
 cd $SCRATCH/simulations/veritas
+lcl=$PWD
+
+cd $KASCADEBASE/scripts
 cp -v VAAuto.scr $lcl
 cp -v CRProcessAll $lcl
 cp -v GProcessAll $lcl
