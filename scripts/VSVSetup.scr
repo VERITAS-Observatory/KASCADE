@@ -11,7 +11,7 @@ mkdir -vp log
 mkdir -vp workingScratch
 mkdir -vp gammas
 mkdir -vp protons
-mkdir -vp electorns
+mkdir -vp electrons
 mkdir -vp he4
 cd gammas
 mkdir -vp V190
