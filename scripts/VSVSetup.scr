@@ -29,7 +29,7 @@ mkdir -vp log
 mkdir -vp workingScratch
 
 
-V
+cd $SCRATCH/veritas
 lcl=$PWD
 cd $KASCADEBASE/scripts
 cp -v KSAuto.scr $lcl
@@ -42,8 +42,9 @@ cp -v RemoveQueue.scr $lcl
 cp -v ksWeRock.scr $lcl
 cp -v ksallVBF.scr $lcl
 
-SV
+
 lcl=$PWD
+cd $SCRATCH/simulations/veritas
 cp -v VAAuto.scr $lcl
 cp -v CRProcessAll $lcl
 cp -v GProcessAll $lcl
