@@ -63,4 +63,4 @@ cp -v Ped* $lcl
 cp -v MDL15NA.dat $lcl
 
 cd $SCRATCH
-mkdir -vp workingScratch
+mkdir -vp  workingScratch
