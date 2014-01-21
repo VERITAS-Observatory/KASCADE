@@ -1,0 +1,66 @@
+#This is the setup script for running the KASCADE simulations.
+#It should be run from that you want (or does) contin the veritas (V) and
+#simulations/veritas (SV)subdirectories
+#################################################################
+lcl=$PWD
+mkdir -vp simulations
+cd simulations
+mkdir -vp veritas
+cd veritas
+mkdir -vp log
+mkdir -vp workingScratch
+mkdir -vp gammas
+mkdir -vp protons
+mkdir -vp electorns
+mkdir -vp he4
+cd gammas
+mkdir -vp V190
+cd ../protons
+mkdir -vp V190
+cd ../electrons
+mkdir -vp V190
+cd ../he4
+mkdir -vp V190
+
+cd $lcl
+mkdir -vp veritas
+cd veritas
+mkdir -vp log
+mkdir -vp workingScratch
+
+
+V
+lcl=$PWD
+cd $KASCADEBASE/scripts
+cp -v KSAuto.scr $lcl
+cp -v ksProduction.scr $lcl
+cp -v KSAutoFileCheck.scr $lcl
+cp -v DownNodes.scr $lcl
+cp -v FindBad*.scr $lcl
+cp -v RedoMissing*.scr $lcl
+cp -v RemoveQueue.scr $lcl
+cp -v ksWeRock.scr $lcl
+cp -v ksallVBF.scr $lcl
+
+SV
+lcl=$PWD
+cp -v VAAuto.scr $lcl
+cp -v CRProcessAll $lcl
+cp -v GProcessAll $lcl
+cp -v KSAuto.scr $lcl
+cp -v MDLAuto.scr $lcl
+cp -v PlotPedvarLevels.C $lcl
+cp -v ProcessListOfJobs $lcl
+cp -v ProcessVegasSim $lcl
+cp -v RemoveQueue.scr $lcl
+cp -v RunCombined.C $lcl
+cp -v VegasSimProduction.scr $lcl
+cp -v determineParameters.C $lcl
+cp -v ksProduction.scr $lcl
+
+cd $KASCADEBASE/inputs
+cp -v Ped* $lcl
+cp -v MDL15NA.dat $lcl
+
+cd $SCRATCH
+mkdir -vp workingScratch
