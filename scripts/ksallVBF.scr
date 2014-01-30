@@ -77,6 +77,12 @@ then
   COATES=enabled
 fi
 
+hostString=${host:0:1}
+if test  "$hostString" = "f"  #Are we running on a  Fusion node?
+then
+  FUSION=enabled
+fi
+
 #########################################################################
 #Set up private working directory for this run. 
 #Keeps random number independent
