@@ -25,16 +25,16 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=750           #with ksProduction and only want to make
+MaxQsubsDefault=200           #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
@@ -60,8 +60,9 @@ GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
-#EntryGEEnd=47
-EntryGEEnd=44
+#EntryGEEnd=39
+EntryGEEnd=47
+#EntryGEEnd=44
 EntryPStart=1
 EntryPEnd=45
 EntryHe4Start=5
@@ -265,7 +266,9 @@ function CheckList()
 
   #build a submission .pbs file
   sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
-  echo "#"PBS -q $QUEUE                                          >$sgeFile
+  if [ ! -n "$FUSION" ]; then
+      echo "#"PBS -q $QUEUE                                          >$sgeFile
+  fi
   echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
     echo source /etc/profile                                    >>$sgeFile
@@ -459,8 +462,8 @@ function SubmitQsubJobs()
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
        qsub -V $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-       #For Hansen and Carver pause between submissions
-       if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+       #For Hansen pause between submissions
+       if [ -n "$HANSEN" ] ; then
          sleep 10
        fi
       done
@@ -507,7 +510,7 @@ fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "coates"  #Are we running on coates
- then                               
+ then
   COATES=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='coates-adm'
@@ -518,6 +521,27 @@ if test  "$hostString" = "coates"  #Are we running on coates
      #let MaxQsubs=150
      let MaxQsubs=$MaxQsubsDefault
      let MaxHTARQsubs=9  
+  fi
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "flogin"  #Are we running on ANL fusion?
+ then                               
+  ##############################################################
+  # Fusion has no Archive so none of the HTAR using options are viable  
+  ############################################################## 
+  echo ***ANL Fusion Cluster***
+  if [ -n "$HTARTeFilesFromArchive" ] || [ -n "$HTARTeFilesToArchive" ]  || [ -n "$CheckHTARTeFiles" ]  || [ -n "$HTARShowerVBFFilesFromArchiv" ]e  || [ -n "$HTARShowerVBFFilesToArchive" ]; then
+    echo KSAuto: Fatal-Fusion has no Archive so none of the HTAR using options are viable
+    exit
+  fi
+  FUSION=enabled
+  VDirBase=$SCRATCH'/simulations/veritas/'
+  JobIDHost='fmgt2'
+  #No queue specification necessary for Fusion. It figures it out.
+  if [ -n "$LimitSubmissions" ]; then
+     let MaxQsubs=$MaxQsubsDefault
+     #No Archive for fusion.
   fi
 fi
 

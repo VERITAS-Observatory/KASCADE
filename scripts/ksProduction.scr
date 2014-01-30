@@ -85,15 +85,15 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
     fi
 
 #CARVER
-   if [ -n "$CARVER" ]; then
+   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
 
-#           let iEntryStart=1
-#           let iEntryEnd=45
-           let iEntryStart=23
-           let iEntryEnd=23
+           let iEntryStart=1
+           let iEntryEnd=45
+#           let iEntryStart=23
+#           let iEntryEnd=23
 
 #Reverse order (prefered)
 	   let j=$iEntryEnd
@@ -101,24 +101,12 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
             do	
                if test $j -le 19
                 then
-                  BuildAndSubmitCarverJobs $j 
+                  BuildAndSubmitJobs $j 
 	        else
-                  #BuildAndSubmitLargeCarverJobs $j
-                  #BuildAndSubmitCarverJobs $j 
-	          BuildAndSubmitCarverJobsSingly $j
+ 	          BuildAndSubmitJobsSingly $j
                fi
                let j=j-1		
             done
-
-#normal order
-#	   let j=$iEntryStart
-#           while test $j -le $iEntryEnd
-#            do	
-#               BuildAndSubmitCarverJobs $j 
-#	       #BuildAndSubmitLargeCarverJobs $j
-#	       j=$((j+1))		
-#            done
-
     fi
 #***************************************************************************
 
@@ -206,40 +194,27 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
     fi
 
 #CARVER
-   if [ -n "$CARVER" ]; then
+   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
 
            let iEntryStart=1
            let iEntryEnd=45
-
-
 #Reverse order (prefered)
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
                if test $j -le 19
                 then
-                  BuildAndSubmitCarverJobs $j 
+                  BuildAndSubmitJobs $j 
 	        else
-                  #BuildAndSubmitLargeCarverJobs $j
-                  #BuildAndSubmitCarverJobs $j 
-	          BuildAndSubmitCarverJobsSingly $j
+	          BuildAndSubmitJobsSingly $j
                fi
                let j=j-1		
             done
-
-#normal order
-#	   let j=$iEntryStart
-#           while test $j -le $iEntryEnd
-#            do	
-#               BuildAndSubmitCarverJobs $j 
-#	       #BuildAndSubmitLargeCarverJobs $j
-#	       j=$((j+1))		
-#            done
-
    fi
+
 #HANSEN-COATES
    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
@@ -295,7 +270,7 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
 
 
 #CARVER
-   if [ -n "$CARVER" ]; then
+   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -328,11 +303,9 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
        
           if test $j -le 19
            then
-            BuildAndSubmitCarverJobs $j 
+            BuildAndSubmitJobs $j 
 	   else
-            #BuildAndSubmitLargeCarverJobs $j
-            #BuildAndSubmitCarverJobs $j 
-	    BuildAndSubmitCarverJobsSingly $j
+	    BuildAndSubmitJobsSingly $j
           fi
  	fi      
           
@@ -346,17 +319,15 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
        
           if test $j -le 19
            then
-            BuildAndSubmitCarverJobs $j 
+            BuildAndSubmitJobs $j 
 	   else
-            #BuildAndSubmitLargeCarverJobs $j
-            #BuildAndSubmitCarverJobs $j 
-	    BuildAndSubmitCarverJobsSingly $j
+	    BuildAndSubmitJobsSingly $j
           fi
         fi
         let j=j-1		
        done
    fi
-#********************************************************************************
+#***************************************************************************
 
 #HANSEN-COATES
    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
@@ -418,8 +389,6 @@ he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 20
          let j=j-1		
       done
    fi
-#*****************************************************************************
-
 }
 #*********************************************************************
 
@@ -430,7 +399,6 @@ function Gammas()
 #**********************************************************************
 {
     echo Gammas: $parspec
-
 
 #Veritas Set1/ksaom/kasall
 #Whipple Set1/kasaom/kasall starts at 84 GeV
@@ -500,7 +468,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 
 
 #CARVER
-   if [ -n "$CARVER" ]; then
+   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     # Submit in reverse order so the longest start first.
     # iEntryStart and iEntryEnd set in main
@@ -511,10 +479,9 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
             do	
                if test $j -le 19
                 then
-                  BuildAndSubmitCarverJobs $j 
+                  BuildAndSubmitJobs $j 
 	        else
-                  #BuildAndSubmitCarverJobs $j 
-	          BuildAndSubmitCarverJobsSingly $j
+	          BuildAndSubmitJobsSingly $j
                fi
                let j=j-1		
             done
@@ -534,7 +501,6 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
         do	
           if test $j -le 19  
           then
-            #BuildAndSubmitHansenJobs $j 
             BuildAndSubmitHansenJobsBy10 $j 
 	  else
 	    BuildAndSubmitHansenJobsSingly $j
@@ -542,7 +508,6 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
           let j=j-1		
         done
    fi
-#********************************************************************************
 }
 
 #********************************************************************************
@@ -623,7 +588,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 
 
 #CARVER
-   if [ -n "$CARVER" ]; then
+   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     # Submit in reverse order so the longest start first.
     # iEntryStart and iEntryEnd set in main
@@ -635,10 +600,9 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
             do	
                if test $j -le 19
                 then
-                  BuildAndSubmitCarverJobs $j 
+                  BuildAndSubmitJobs $j 
 	        else
-                  #BuildAndSubmitLargeCarverJobs $j
-                  BuildAndSubmitCarverJobs $j 
+                  BuildAndSubmitJobs $j 
 	       fi
                let j=j-1		
             done
@@ -817,11 +781,11 @@ function BuildAndSubmitHansenJobsSingly
 }
 #**********************************************************************
 
-function BuildAndSubmitCarverJobs
+function BuildAndSubmitJobs
 #**********************************************************************
-# Cause Carver cluster jobs to be submitted.
+# Cause  cluster jobs to be submitted.
 # This is the "all showers of one energy in sequence on one core"
-# This is a standard way to submit Carver jobs
+# This is a standard way to submit jobs
 #**********************************************************************
 {
  pr=$parspec
@@ -832,9 +796,10 @@ function BuildAndSubmitCarverJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"!/bin/bash                            >$sgeFile
- echo "#"PBS -q $CarverQueue                  >>$sgeFile
- echo "#"PBS -l walltime=12:00:00             >>$sgeFile
- #echo "#"PBS -l gres=gscratch%project         >>$sgeFile
+ if [ ! -n "$FUSION" ]; then
+       echo "#"PBS -q $QUEUE                  >>$sgeFile
+ fi
+ echo "#"PBS -l walltime=$WALLTIME            >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
  echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
@@ -851,11 +816,11 @@ function BuildAndSubmitCarverJobs
 #########################################################################
 
 
-function BuildAndSubmitCarverJobsSingly 
+function BuildAndSubmitJobsSingly 
 #**********************************************************************
-# Cause Carver serial jobs to be submitted.
+# Cause serial jobs to be submitted.
 # This version submits 1 job per shower. 
-# This is standard way to submit to Carver
+# This is standard way to submit
 #**********************************************************************
 {
  pr=$parspec
@@ -869,12 +834,13 @@ function BuildAndSubmitCarverJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"!/bin/bash                                      >$sgeFile
- echo "#"PBS -q $CarverQueue                              >>$sgeFile
-   echo "#"PBS -l walltime=12:00:00                       >>$sgeFile
-  # echo "#"PBS -l gres=gscratch%project                  >>$sgeFile
-   if test $1 -ge 25
-     then
-      echo "#PBS -l " $MEMREQUEST                         >>$sgeFile
+   echo "#"PBS -l walltime=$WALLTIME                      >>$sgeFile
+   if [ ! -n "$FUSION" ]; then
+       echo "#"PBS -q $QUEUE                              >>$sgeFile
+       if test $1 -ge 25
+         then
+          echo "#PBS -l " $MEMREQUEST                     >>$sgeFile
+       fi
    fi	
    echo cd $lcl                                           >>$sgeFile
    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
@@ -891,89 +857,14 @@ function BuildAndSubmitCarverJobsSingly
   done
 }
 
-function BuildAndSubmitLargeCarverJobs
+function BuildAndSubmitJobArray
 #**********************************************************************
-#  This routine never used. Outdated due to disapearance of Magellan
-# *********************************************************************
-# Cause Carver multi-node cloud jobs to be submitted.
-# Since we have lots and lots of nodes 1 job per shower
-# This version attempts to run n(<8) jobs per node leaving the rest of the 
-# nodes empty. This reduces I/O conflicts and greatly speeds processing
-#**********************************************************************
-{
- pr=$parspec
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- eGeV=${energy[$1]}        
- echo Entry: $1  $pr $eGeV $showerStart $showerEnd
-
- #*****************************************************************
- # This is like a job arry submission limited to a max of
- #  n jobs per node
- # Purpose is to not overload the  IO of a node (conisting of 8 cores(cpus))
- # which can slow things down by an order of magnitude or more for the
- # large files
- #*****************************************************************
-
- let coresPerNode=3
- let numJobs=(showerEnd-showerStart+1)
- let numNodes=numJobs/coresPerNode+1
-
- sgeFile=$lcl'/K'$eGeV$pr.pbs
- echo "#"PBS -S /bin/bash                            >$sgeFile
- echo "#"PBS -l walltime=4:00:00                    >>$sgeFile
- echo "#PBS -l " $MEMREQUEST                        >>$sgeFile
- echo "#"PBS -l nodes=$numNodes                     >>$sgeFile
- #echo "#"PBS -l gres=gscratch%project              >>$sgeFile
- echo cd "$"PBS_O_WORKDIR                           >>$sgeFile
- 
- let i=showerStart  
- let node=0
- while test $node -lt $numNodes 
-  do
-   let k=1
-   while test $k -le $coresPerNode
-    do
-     if test $i -le $showerEnd
-      then
-       magFile=Mag$eGeV$pr'd'$i.scr
-       echo "#"!/bin/bash                                      >$magFile
-       echo "#"PBS -l walltime=48:00:00                       >>$magFile
-       echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$magFile
-       echo ">>"$lcl"/ksProduction_"$eGeV"d"$i"_"$pr".log "   >>$magFile
- 
-       chmod 700 $magFile
-
-       echo pbsdsh -n $node $lcl'/'$magFile' &'        >>$sgeFile
-     fi
-     let i=i+1
-     let k=k+1
-   done
-   let node=node+1
- done
- echo wait                                           >>$sgeFile
-
- chmod 700 $sgeFile
-# ************************************************************************
-# Note submission is to the regular Carver queue. We are limited here to
-# having 150 "submissions" run at a time.  However it usually takes hours/days 
-# before any of the submitted jobs actually run, so the limit of 8 is never 
-# even approached. Because of the difficulty of ever geting the jobs to run,
-# even after waiting days in the queue, this isn't a particulay good way to 
-# run things..
-# ************************************************************************
- qsub -q reg_small  -V -e k$eGeV$pr'd'$showerStart.err -o k$eGeV$pr'd'$showerStart.log $sgeFile
-}
-
-
-
-function BuildAndSubmitCarverJobArray
-#**********************************************************************
+# Not used: kept for reference
 # Cause Carver cluster jobs to be submitted using Job arrays.
 # Since we have lots and lots of nodes 1 job per shower
 # Need to limit number in each job array submission to 1024
-# We don't use this since the Carver queue manager probably can't handle lots of 
-# short jobs. This is just here for future reference.
+# We don't use this since the Carver queue manager probably can't handle lots 
+# of short jobs. This is just here for future reference.
 #**********************************************************************
 {
  pr=$parspec
@@ -1016,7 +907,7 @@ function BuildAndSubmitCarverJobArray
      echo 'echo Done >'$sgeFile'.Done'                          >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
-     qsub -q $CarverQueue  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
+     qsub -q $QUEUE  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
    fi
    let k=kend+1
 
@@ -1068,7 +959,7 @@ hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
-  CarverQueue=serial
+  QUEUE=serial
   WALLTIME=30:00:00
   MEMREQUEST='pvmem=8GB'
   echo ***Carver Cluster***
@@ -1096,6 +987,14 @@ then
   WALLTIME=30:00:00
   #WALLTIME=04:00:00
   MEMREQUEST='mem=8GB'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
+then
+  FUSION=enabled
+  # queue is determined by pbs.
+  WALLTIME=30:00:00
 fi
 
 hostString=${host:0:4}
@@ -1178,7 +1077,6 @@ if [ -n "$HANSEN" ]; then
     echo Hansen Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
-
 fi
 
 if [ -n "$COATES" ]; then
@@ -1186,7 +1084,13 @@ if [ -n "$COATES" ]; then
     echo Coates Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+fi
 
+if [ -n "$FUSION" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Fusion Data dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir='/scratch'
 fi
 
 user=$USER
@@ -1223,7 +1127,8 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
 
-    if [ -n "$CARVER" ] || [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+    if [ -n "$CARVER" ] || [ -n "$HANSEN" ] || [ -n "$COATES" ] ||
+       [ -n "$FUSION" ]; then
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
        protonDatadir="$dataDirBase/protons"
