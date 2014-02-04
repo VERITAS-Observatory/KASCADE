@@ -192,6 +192,7 @@ if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
    PSFDir='V190'
    ConfigTriggerSpec='V'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}       #strip off U and replace with V
+   AOmThreshSpec='U'
 fi
 if [ "$TelSpec" = "V" ]; then 
    TelS='V'
@@ -199,6 +200,7 @@ if [ "$TelSpec" = "V" ]; then
    PSFDir='V190'
    ConfigTriggerSpec='V'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}       #strip off V and replace with V
+   AOmThreshSpec='N'
 fi
 if [ "$TelSpec" = "O" ]; then 
    TelS='O'
@@ -206,6 +208,7 @@ if [ "$TelSpec" = "O" ]; then
    PSFDir='V330'
    ConfigTriggerSpec='O'${TriggerSpec:1}
    PrimarySpec='V'${PrimarySpec:1}       #strip off O and replace with V
+   AOmThreshSpec='O'
 fi
 if [ "$TelSpec" = "W" ]; then 
    TelS='W'
@@ -213,7 +216,7 @@ if [ "$TelSpec" = "W" ]; then
    PSFDir='V190'
    ConfigTriggerSpec='W'${TriggerSpec:1}
    PrimarySpec='W'${PrimarySpec:1}       #strip off W and replace with V
-
+   AOmThreshSpec='W'
 fi
 TelSpec=$TelS
 
@@ -331,17 +334,20 @@ fi
 
 ################################################################
 #Now the different ksAomega config file links
+AOmThreshSpec=$AOmThreshSpec$ThreshSpec #Gives final threshold spec of N50mv 
+                                        #ksAomega*.config
+echo AOmThreshSpec: $AOmThreshSpec
 if test $dcount -gt "0"
 then
     let i=0
     while test $i -lt $dcount
     do
-        ksAomegaConfig[$i]=ksAomega$ThresholdSpec${dspec[$i]}'.config'
+        ksAomegaConfig[$i]=ksAomega$AOmThreshSpec${dspec[$i]}'.config'
         ln -s $inpDir/${ksAomegaConfig[$i]} ${ksAomegaConfig[$i]}
         i=$((i+1))
     done
 else
-    ksAomegaConfig[0]=ksAomega$ThresholdSpec'.config'
+    ksAomegaConfig[0]=ksAomega$AOmThreshSpec'.config'
     ln -s $inpDir/${ksAomegaConfig[0]} ${ksAomegaConfig[0]}
     if [ -n "$DebugPrintEnable" ]; then
          echo ksAomegaConfig[0] ${ksAomegaConfig[0]}
