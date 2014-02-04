@@ -25,7 +25,7 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=200           #with ksProduction and only want to make
+MaxQsubsDefault=50            #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
@@ -60,8 +60,8 @@ CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
-#EntryGEEnd=39
-EntryGEEnd=47
+EntryGEEnd=20
+#EntryGEEnd=47
 #EntryGEEnd=44
 EntryPStart=1
 EntryPEnd=45
@@ -951,7 +951,7 @@ while test $izn -lt $iznEnd
          ################################################################
          #Read in the $7.txt file and set params
          ################################################################
-         echo 'KSAuto: Setting ksAomegaV'$Threshold'('$8').config files to '$7'.dat values'
+         echo 'KSAuto: Setting ksAomega'$TELCONFIG$Threshold'('$8').config files to '$7'.dat values'
 
 	 PFile=$lcl'/../simulations/veritas/'$9
  
@@ -977,10 +977,10 @@ while test $izn -lt $iznEnd
 	     done
 	     }<$lcl'/'$7".dat"
 
-	 mv  -f T1.config ksAomega$PMT$Threshold$T1'.config'
-	 mv  -f T2.config ksAomega$PMT$Threshold$T2'.config'
-	 mv  -f T3.config ksAomega$PMT$Threshold$T3'.config'
-	 mv  -f T4.config ksAomega$PMT$Threshold$T4'.config'
+	 mv  -f T1.config ksAomega$TELCONFIG$Threshold$T1'.config'
+	 mv  -f T2.config ksAomega$TELCONFIG$Threshold$T2'.config'
+	 mv  -f T3.config ksAomega$TELCONFIG$Threshold$T3'.config'
+	 mv  -f T4.config ksAomega$TELCONFIG$Threshold$T4'.config'
 	 rm tmp1
          rm tmp2
          rm Base.config
