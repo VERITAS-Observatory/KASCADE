@@ -4,6 +4,8 @@
 # fixed for:
 #  HTARTeFilesToArchive 
 #  HTARTeFilesFromArchive
+#  HTARShowerVBFFilesToArchive
+$  HTARShowerVBFFilesFromArchive
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 #This script is used to automate the generation of the veritas Te files
@@ -24,7 +26,7 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+#LimitSubmissions=enabled      #Enable if you want to generate Shower files 
 MaxQsubsDefault=50            #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
@@ -34,7 +36,7 @@ MaxQsubsDefault=50            #with ksProduction and only want to make
 
 #GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
-CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
+#CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
@@ -43,7 +45,7 @@ CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
-#HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
+HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
 
 #Cleanup=enabled                
 
@@ -60,9 +62,8 @@ CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
-EntryGEEnd=20
-#EntryGEEnd=47
-#EntryGEEnd=44
+EntryGEEnd=47
+
 EntryPStart=1
 EntryPEnd=45
 EntryHe4Start=5
@@ -1136,14 +1137,14 @@ while test $izn -lt $iznEnd
        #(ie are blank) if LimitSubmissions is not enabled
        ################################################################
        if [ "$1" = "CR" ] ; then
-	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   $QsubHTARLogs $MaxHTARQsubs
+	SubmitHtarFromArchive $HtarDir'/'$2$TELCONFIG$1$7'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarFromArchive $HtarDir'/'$2$TELCONFIG$1$7'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
-	ShowerMDLDir=$2$PMT$1$ZnAz$WblFilterSpec$Threshold'1234M2'$2$7
+	ShowerMDLDir=$2$TELCONFIG$1$ZnAz$WblFilterSpec$Threshold'1234M2'$2$7
 
-        SubmitHtarFromArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
+        SubmitHtarFromArchive $HtarDir'/'$2$TELCONFIG$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
      #########################################################################
@@ -1195,14 +1196,14 @@ while test $izn -lt $iznEnd
        cd $lcl'/../simulations/veritas/'
        date
        if [ "$1" = "CR" ] ; then
-	 SubmitHtarToArchive $HtarDir'/'$2$PMT'P'$7'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarToArchive $HtarDir'/'$2$TELCONGIG'P'$7'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarToArchive $HtarDir'/'$2$PMT'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarToArchive $HtarDir'/'$2$TELCONFIG'He4'$7'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
         ShowerMDLDir=$2$PMT$1$ZnAz$WblFilterSpec$Threshold'1234M2'$2$7
 
-        SubmitHtarToArchive $HtarDir'/'$2$PMT$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
+        SubmitHtarToArchive $HtarDir'/'$2$TELCONFIG$1$7'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
 
