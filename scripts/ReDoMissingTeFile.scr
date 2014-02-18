@@ -83,6 +83,27 @@ function setup()
   mkdir -vp $dataDirBase
 
   datadir=$dataDirBase'/gammas'
+  
+  ####################################################################
+  # Bring in ksallVBF and make sure its set up right
+  cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBFReDoTE.scr
+  sed '/#KascadeEnable=enable/s/#Kascade/Kascade/g' <ksallVBFReDoTE.scr >tmp1
+  sed '/#LightEnable=enable/s/#Light/Light/g'                     <tmp1 >tmp2
+  sed '/#PeSortMergeEnable=enable/s/#PeSort/PeSort/g'             <tmp2 >tmp1
+  sed '/#TriggerEnable=enable/s/#Trigger/Trigger/g'               <tmp1 >tmp2
+  sed '/AomegaEnable=enable/s/Aomega/#Aomega/g'                   <tmp2 >tmp1
+  sed '/ArrayTrigEnable=enable/s/Array/#Array/g'                  <tmp1 >tmp2
+  sed '/#Production=enable/s/#Production/Production/g'            <tmp2 >tmp1
+  sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'         <tmp1 >tmp2
+  sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'               <tmp2 >tmp1
+  sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'                <tmp1 >tmp2
+  sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'          <tmp2 \
+                                                           >ksallVBFReDoTE.scr
+  rm tmp1
+  rm tmp2
+  ####################################################################
+ 
+
 }
 #############################################################################
 
@@ -110,36 +131,30 @@ function BuildAndSubmitJobsSingly()
  parspec=$pr$THR'1234M2'
 
  echo Entry:  $parspec $eGeV $showerID
- #Make up the .pbs file name
+ 
+#Make up the .pbs file name
  sgeFile=$lcl'/K'$eGeV'd'$showerID$pr.pbs
 
  #Build the pbs file
  if [ "$E" -gt "20000" ]; then
-   echo "#"PBS -q $QUEUE1                                >$sgeFile
-   echo "#"PBS -l walltime=$WALLTIMEH                     >>$sgeFile
-   echo "#PBS -l "$MEM"=30GB"                            >>$sgeFile
+   echo "#"PBS -q $QUEUE1                                      >$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEH                         >>$sgeFile
+   echo "#PBS -l "$MEM"=30GB"                                 >>$sgeFile
  else
-   echo "#"PBS -q $QUEUE2                                >$sgeFile
-   echo "#"PBS -l walltime=$WALLTIMEL                   >>$sgeFile
-   echo "#PBS -l "$MEM"=30GB"                           >>$sgeFile
+   echo "#"PBS -q $QUEUE2                                      >$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEL                         >>$sgeFile
+   echo "#PBS -l "$MEM"=30GB"                                 >>$sgeFile
  fi
- echo source /etc/profile                               >>$sgeFile
- echo module load gcc/4.7.2                             >>$sgeFile
- echo $lcl'/ksallVBF.scr '$eGeV $parspec $showerID \\   >>$sgeFile
- echo $showerID $datadir $workingDir \\                 >>$sgeFile
+ echo source /etc/profile                                     >>$sgeFile
+ echo module load gcc/4.7.2                                   >>$sgeFile
+ echo $lcl'/ksallVBFReDoTE.scr '$eGeV $parspec $showerID \\   >>$sgeFile
+ echo $showerID $datadir $workingDir \\                       >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$parspec".log" >>$sgeFile
 
  chmod 700 $sgeFile
  
- #if [ -n QsubFileNameList ]; then
- #   echo 'echo Done >'$sgeFile'.Done'                     >>$sgeFile
- #   echo $sgeFile >>$QsubFileNameList
- #  else
-  
+ #Submit the pbs file
  qsub -V -e k$eGeV'd'$showerID$parspec.err -o k$eGeV'd'$showerID$parspec.log $sgeFile 
-
- #  fi
-
 }
 #**********************************************************************
 
