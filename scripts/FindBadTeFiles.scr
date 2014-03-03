@@ -24,7 +24,11 @@
   echo '   $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
   echo '   $3 psf dIR eX: V330 or  V190'
   echo '   $4 threshold Ex: 50mv  or M50mv or 45mv'
-  echo ' Ex:  ./FindbadTeFiles.scr 30 SOG V330 50mv'
+  echo '   $5 Az.(optional Default is all Az. Only 1 Az allowed)Ex: 0 or 225 
+  echo ' Ex:  ./FindbadTeFiles.scr 30 SOG V330 50mv '
+  echo '                   or maybe'
+  echo ' Ex:  ./FindbadTeFiles.scr 10 WVG V190 50mv 0'
+
   echo '***'
 }
 
@@ -174,6 +178,7 @@ PSF=$3
 THRESH=$4
 lcl=$PWD
 
+Az=$5   #may be blank which defaults to all Az
 
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 )
 
@@ -195,8 +200,17 @@ while test $i -le $iEnd
     E='GeV'${energy[$i]}'te.d'
     echo At E: $E
     rm g.tmp
-    ls -sl $SAP$Zn'D'*/*$E* >g.tmp
-    ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
+    if [ -n "$Az" ]; then
+      if [ "$Az" = "0" ]; then
+	 ls -sl $SAP$Zn'D'*/*$E* >g.tmp
+      else
+         ls -sl $SAP$Zn'_'$Az*/*$E* >g.tmp
+      fi
+    
+    else
+      ls -sl $SAP$Zn'D'*/*$E* >g.tmp
+      ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
+    fi
     {
      while read size a b c d e f g h j
       do
@@ -234,8 +248,17 @@ while test $indx -le $iLast
     ENERGY=${energy[$indx]}
     E='GeV'$ENERGY'te.d'
     echo At E: $E
-    ls $SAP$Zn'D'*/*$E* | xargs -n1 >tmp1
-    ls $SAP$Zn'_'*/*$E* | xargs -n1 >>tmp1
+    if [ -n "$Az" ]; then
+      if [ "$Az" = "0" ]; then
+	 ls $SAP$Zn'D'*/*$E* | xargs -n1 >tmp1
+      else
+         ls $SAP$Zn'_'$Az*/*$E* | xargs -n1 >tmp1
+      fi
+    
+    else
+      ls $SAP$Zn'D'*/*$E* | xargs -n1 >tmp1
+      ls $SAP$Zn'_'*/*$E* | xargs -n1 >>tmp1
+    fi
     #cat tmp1
 
     sed '/2D/s/te.d/  /g'    <tmp1  >tmp2
@@ -298,8 +321,18 @@ while test $i -le $iEnd
   do
     E='GeV'${energy[$i]}'te.d'
     rm g.tmp
-    ls -sl $SAP$Zn'D'*/*$E* >g.tmp
-    ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
+    if [ -n "$Az" ]; then
+      if [ "$Az" = "0" ]; then
+	 ls -sl $SAP$Zn'D'*/*$E* >g.tmp
+      else
+         ls -sl $SAP$Zn'_'$Az*/*$E* >g.tmp
+      fi
+    
+    else
+      ls -sl $SAP$Zn'D'*/*$E* >g.tmp
+      ls -sl $SAP$Zn'_'*/*$E* >>g.tmp
+    fi
+
     # Now find mean of this file
     let icount=0
     let max=0
