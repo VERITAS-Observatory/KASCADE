@@ -136,10 +136,10 @@ mkdir $dirID
 #######################################################################
 #Following is supposed to make running on hansen node more robust
 #######################################################################
-if [ -n "$HANSEN" ]; then
-  lfs setstripe -c 1 $dirID
-  lfs getstripe $dirID
-fi
+#if [ -n "$HANSEN" ]; then
+#  lfs setstripe -c 1 $dirID
+#  lfs getstripe $dirID
+#fi
 #######################################################################
 
 cd $dirID
