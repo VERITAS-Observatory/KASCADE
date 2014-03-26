@@ -609,7 +609,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
                 then
                   BuildAndSubmitJobs $j 
 	        else
-                  BuildAndSubmitJobs $j 
+                  BuildAndSubmitJobsSingly $j 
 	       fi
                let j=j-1		
             done
