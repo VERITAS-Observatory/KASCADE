@@ -782,7 +782,7 @@ function BuildAndSubmitHansenJobsByNode()
     do
       echo $ksScript $eGeV $pr $i  \\                  >>$sgeFile
       echo $i $datadir $workingDir   \\                >>$sgeFile
-      echo ">>"$lcl"/ksProduction_"$eGeV$pr'd'$i".log" \&  >>$sgeFile
+      echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log" \&  >>$sgeFile
       i=$((i+1))
     done
    echo wait                                           >>$sgeFile  
