@@ -26,7 +26,7 @@
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-#LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+LimitSubmissions=enabled      #Enable if you want to generate Shower files 
 MaxQsubsDefault=200            #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
@@ -34,7 +34,7 @@ MaxQsubsDefault=200            #with ksProduction and only want to make
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled               # $1$2$3$4$5$6 #See LimitSubmissions
+GenerateTeFiles=enabled               # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
@@ -45,7 +45,7 @@ MaxQsubsDefault=200            #with ksProduction and only want to make
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
 #HTARShowerVBFFilesFromArchive=enabled # $1$2$3$4$5$6$7$8 
 #GenerateZnAzVBFFile=enabled           # $1$2$3$4$5$6$7$8  (576)
-HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
+#HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8 
 
 #Cleanup=enabled                
 
@@ -62,7 +62,7 @@ HTARShowerVBFFilesToArchive=enabled   # $1$2$3$4$5$6$7$8
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
-EntryGEEnd=47
+EntryGEEnd=45
 
 EntryPStart=1
 EntryPEnd=45
@@ -622,6 +622,7 @@ if [ -n "$LimitSubmissions" ]; then
   QsubHTARLogs=Running'HTARLogs.txt'
   if [ -n "$GenerateTeFiles" ] || [ -n "$GenerateShowerVBFFiles" ]; then
     QsubFileNameList='KS'$2$PMT$1$'AutoqsubList'
+    echo QsubFileNameList: $QsubFileNameList
     if [ -e "$QsubFileNameList" ]; then
 	rm $QsubFileNameList
     fi
@@ -673,6 +674,8 @@ while test $izn -lt $iznEnd
        cd $lcl
        date
 
+       Sort='Sort'
+
        ####################################################################
        #Make sure ksallVBF.scr is set up correctly to generate Te files
        ####################################################################
@@ -715,7 +718,7 @@ while test $izn -lt $iznEnd
 	     MEMREQUEST=' -l pvmem=30GB '
 	     echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
            fi
-	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $QsubFileNameList $EnergyStart $EnergyEnd
+	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EnergyStart $EnergyEnd
                                   #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
@@ -1044,6 +1047,9 @@ while test $izn -lt $iznEnd
        echo "KSAuto: Submitting ksProduction with Energy entries "$EnergyStart" to "$EnergyEnd
        echo 'KSAuto: Process ksAomega*.config: ' $8 ' through ksAomega and ksArrayTrig'
        date
+       
+       NoSort='NoSort'
+
        #make up our ksProduction designation
        Spec=$ksProdSpec$8
 
@@ -1057,7 +1063,7 @@ while test $izn -lt $iznEnd
 	   MEMREQUEST=' -l pvmem=8GB '
 	   echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
          fi
-	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $QsubFileNameList $EnergyStart $EnergyEnd
+	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EnergyStart $EnergyEnd
                                   #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
