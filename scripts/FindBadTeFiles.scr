@@ -21,7 +21,7 @@
 {
   echo '***FindBadTeFiles usage:'
   echo '   $1 Zn value to search Ex: 1 or 10 or 70'
-  echo '   $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
+  echo '   $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG  WUE'
   echo '   $3 psf dIR eX: V330 or  V190'
   echo '   $4 threshold Ex: 50mv  or M50mv or 45mv'
   echo '   $5 Az.(optional Default is all Az. Only 1 Az allowed)Ex: 0 or 225 '
@@ -182,9 +182,15 @@ Az=$5   #may be blank which defaults to all Az
 
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 )
 
+ParticleType=${SAP:2:1}
+if [ "$ParticleType" = "G" ]; then
+  cd $lcl'/../simulations/veritas/gammas/'$PSF
+else
+  if [ "$ParticleType" = "E" ]; then
+    cd $lcl'/../simulations/veritas/electrons/'$PSF
+  fi
+fi
 
-
-cd $lcl'/../simulations/veritas/gammas/'$PSF
 pwd
 
 # +++++++++++++++++++++++++++++++++
