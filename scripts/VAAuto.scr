@@ -28,7 +28,7 @@
 #FindNoiseLevels=enabled
 #GenerateSimLaserFile=enabled
 
-#LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
+LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
 MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
@@ -37,7 +37,7 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
 #---------------------------------------
 #*Generate Stage 2 PedVar files
 #---------------------------------------
-#GenerateStage2Files=enabled                      #See LimitSubmissions above
+GenerateStage2Files=enabled                      #See LimitSubmissions above
 #CheckStage2Files=enabled                         #No waiting/no limit
 #--------------------------------------
 
@@ -69,7 +69,7 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-GenerateStage4Files=enabled                       #See LimitSubmissions above
+#GenerateStage4Files=enabled                       #See LimitSubmissions above
 #CheckStage4Files=enabled                      
 #--------------------------------------
 
@@ -407,7 +407,7 @@ if [ "$2" = "U" ]; then
     LTSEASON="ua"
 fi
 if [ "$2" = "OA" ]; then
-    PMT="V"
+    PMT="OA"
     LTSEASON="oa"
 fi
 if [ "$2" = "NA" ]; then
@@ -498,15 +498,15 @@ else
 	if [ "$W" = "0.5" ]; then
 	    LTWbl="050offset"
 	else
-	    LTWbl=$W'offset'
+	    LTWbl="alloffsets"     #Logic here needs work but this will work for now
 	fi
     else
-	LTWbl="variousoffsets"
+	LTWbl="alloffsets"
     fi
 fi
 
 
-if [ $9 = "All" ]; then
+if [[ $9 = "All" ]]; then
     if [ $2 = "U" ]; then
       PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
     fi
@@ -514,7 +514,7 @@ if [ $9 = "All" ]; then
       PedVar=([0]=4.04 4.72 5.51 6.44 7.53 8.79 10.27 12.00)
     fi
 else
-    if [ $9 = "Base" ]; then
+    if [[ $9 = "Base" ]]; then
 	PedVar=([0]=0 )
     else
 	IFS=, read -a PedVar <<< "$9"
@@ -1502,8 +1502,13 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
+	 if [ ! -d "$ARCHIVE$1$PMT$3$4'PedVarS4'" ]; then  #Check Archive Directory exists 
+	     echo $ARCHIVE$1$PMT$3$4'PedVarS4' ;
+	     hsi 'cd '$ARCHIVE'; mkdir '$1$PMT$3$4'PedVarS4;'
+	     echo $ARCHIVE$1$PMT$3$4'PedVarS4' ;
+	 fi
 	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts'
-	 if [ -n "${11}" }; then
+	 if [ -n "${11}" ]; then
             PedVarHTARFile=$PedVarHTARFile$TelConfig
          fi
 

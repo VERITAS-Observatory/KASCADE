@@ -24,7 +24,7 @@
   echo '   $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
   echo '   $3 psf dIR eX: V330 or  V190'
   echo '   $4 threshold Ex: 50mv  or M50mv or 45mv'
-  echo '   $5 Az.(optional Default is all Az. Only 1 Az allowed)Ex: 0 or 225 
+  echo '   $5 Az.(optional Default is all Az. Only 1 Az allowed)Ex: 0 or 225 '
   echo ' Ex:  ./FindbadTeFiles.scr 30 SOG V330 50mv '
   echo '                   or maybe'
   echo ' Ex:  ./FindbadTeFiles.scr 10 WVG V190 50mv 0'

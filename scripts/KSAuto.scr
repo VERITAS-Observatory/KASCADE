@@ -5,7 +5,7 @@
 #  HTARTeFilesToArchive 
 #  HTARTeFilesFromArchive
 #  HTARShowerVBFFilesToArchive
-$  HTARShowerVBFFilesFromArchive
+#  HTARShowerVBFFilesFromArchive
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 #This script is used to automate the generation of the veritas Te files
@@ -27,19 +27,19 @@ $  HTARShowerVBFFilesFromArchive
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 #LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=50            #with ksProduction and only want to make
+MaxQsubsDefault=200            #with ksProduction and only want to make
                               #750 submission in queue at one time.Causes us to
                               #wait
 
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled                # $1$2$3$4$5$6 #See LimitSubmissions
+#GenerateTeFiles=enabled               # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
 #HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
-#BuildMDLAomegaConfig=enabled         # $1$2$3$4$5$6$7$8$9 
+#BuildMDLAomegaConfig=enabled          # $1$2$3$4$5$6$7$8$9 
 #GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
     #Note: can be run with Cleanup enabled(below)
 #CheckGeneratedShwrVBFFiles=enabled    # $1$2$3$4$5$6dm$8 
