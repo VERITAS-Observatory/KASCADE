@@ -2,14 +2,16 @@
 #  ./KSAuto.scr G S U 1 0,45,90,135,180 45mv MDL10U ABCD 64954StdCuts.root 
 #       >Check.log  with "CheckGeneratedTeFiles=enabled" enabled.
 #$2 Threshold: 45mv or 50mv 
-#From this file we will make a list Missing Te file
+##From this file we will make a list Missing Te file
+#$3  Particle type  "G" or :"E"
 
 function usage()
 {
  echo '***ReDoMissingTeFile usage:'
  echo '   $1: File with Missing Te Files in form: File Not found: SOG1_135Deg2DGeV36550te.d8'
  echo '   $2: Threshold: 45mv or 50mv'
- echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log   50mv'
+ echo '   $3: Particle type  "G" or :"E" Defaults to G
+ echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log   50mv E'
  echo '***'
 }
 
@@ -82,8 +84,14 @@ function setup()
   dataDirBase=$dataDirBase'/veritas'
   mkdir -vp $dataDirBase
 
-  datadir=$dataDirBase'/gammas'
-  
+  if [ "$ParticleType" = "G" ]; then
+     datadir=$dataDirBase'/gammas'
+  else
+     if [ "$ParticleType" = "E" ]; then
+        datadir=$dataDirBase'/electrons'
+     fi
+   fi
+
   ####################################################################
   # Bring in ksallVBF and make sure its set up right
   cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBFReDoTE.scr
@@ -156,16 +164,23 @@ function BuildAndSubmitJobsSingly()
  #Submit the pbs file
  qsub -V -e k$eGeV'd'$showerID$parspec.err -o k$eGeV'd'$showerID$parspec.log $sgeFile 
 }
-#**********************************************************************
 
+#**********************************************************************
+#Main program
+########################################################################
 if [  ! -n "$2" ]; then
 	usage
 	exit
 fi
 
-
 CheckFile=$1
 THR=$2
+
+if [ -n "$3" ]; then
+  ParticleType=$3
+else
+  ParticleType='G'
+fi
 
 
 
