@@ -34,10 +34,10 @@ MaxQsubsDefault=400            #with ksProduction and only want to make
 # Within that loop we can do:          #"dm" below indicates dummy value needed
 #(Note:Only set up to do one operation at a time. Some operations don't wait!)
 
-#GenerateTeFiles=enabled               # $1$2$3$4$5$6 #See LimitSubmissions
+GenerateTeFiles=enabled               # $1$2$3$4$5$6 #See LimitSubmissions
 #HTARTeFilesFromArchive=enabled        # $1$2$3$4$5
 #CheckGeneratedTeFiles=enabled         # $1$2$3$4$5            WAITS!
-HTARTeFilesToArchive=enabled          # $1$2$3$4$5
+#HTARTeFilesToArchive=enabled          # $1$2$3$4$5
 #CheckHTARTeFiles=enabled              # $1$2$3$4$5
 #BuildMDLAomegaConfig=enabled          # $1$2$3$4$5$6$7$8$9 
 #GenerateShowerVBFFiles=enabled        # $1$2$3$4$5$6$7$8 #See LimitSubmissions
@@ -715,7 +715,8 @@ while test $izn -lt $iznEnd
 	      rm $QsubFileNameList
            fi
            if [ -n "$CARVER" ]; then
-	     MEMREQUEST=' -l pvmem=30GB '
+	     #MEMREQUEST=' -l pvmem=30GB '
+	     MEMREQUEST=' -l pvmem=8GB '
 	     echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
            fi
 	   ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EnergyStart $EnergyEnd
