@@ -1,4 +1,4 @@
-#Script to find "short" Shower VBF  files.Gammas only for now.
+#Script to find "short" Shower VBF  files.Electrosn and Gammas only for now.
 #Easy enought to extend.
 #
 #$1 Zn value to search Ex: 1 or 10 or 70
@@ -11,7 +11,7 @@
 {
   echo '***FindBadShowerVBFFiles usage:'
   echo '   $1 Zn value to search Ex: 1 or 10 or 70'
-  echo '   $2 $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG'
+  echo '   $2 $2 Season/Array/Primary  Ex: WUG  SVGn SUG SOG WUE'
   echo '   $3 Telescope 4 character spec: Ex: ABCD or wxyz or MDL10U'
   echo ' Ex:  ./FindBadShowerVBFFiles.scr  30 SOG EFGH'
   echo '***'
@@ -31,6 +31,7 @@ fi
 Zn=$1
 SAP=$2
 TELCONFIG=$3
+
 lcl=$PWD
 
 energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 )
@@ -41,6 +42,16 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
 # less to an ouput file that ReDoMissingShowerVBFfiles.scr can regen.
 # ************************************************************************
 
+ParticleType=${SAP:2:1}
+if [ "$ParticleType" = "G" ]; then
+  cd $lcl'/../simulations/veritas/gammas/'
+else
+  if [ "$ParticleType" = "E" ]; then
+    cd $lcl'/../simulations/veritas/electrons/'
+  fi
+fi
+
+
 # Loop over energies: start at above 1TeV
 #let iStart=10
 let iStart=23
@@ -49,9 +60,6 @@ let iEnd=45
 
 MinLevel=.70
 
-
-
-cd $lcl'/../simulations/veritas/gammas/'
 pwd
 #First look for any 0 length files at low energies.
 echo TestA: Searching for 0 length files only at low Energies
