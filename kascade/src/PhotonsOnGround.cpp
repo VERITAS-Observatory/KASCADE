@@ -2,10 +2,13 @@
 
 
 //-*-mode:c++; mode:font-lock;-*-
+//28 April 2014 MPK
+// adapted from SegmentDisplay.cpp
+//lots of code copied from ksPeSortMerge.cpp
 
 
 //Written by:
-// G.H.SembroskiMary Kertzman
+// G.H.Sembroski& Mary Kertzman
 //DePauw Univ.
 //West LafayettGreencastle, In. 46135
 //kertzman@depauw.edu
@@ -13,6 +16,7 @@
 
 // 07/12/2011
 
+//comments from SegmentDisplay
 //Notes to myself for code improvements:
 //-Currently can only handle showers inclined in NS plane, i.e. az = 0 or 180
 //-Should automate plot limits based on obs altitude in header file
@@ -30,8 +34,11 @@
 #include <sstream>
 #include <cmath>
 
+//Remember to include every root command you use!!!
+
 #include "TApplication.h"
 #include "TLine.h"
+#include "TMarker.h"
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TBox.h"
@@ -40,9 +47,11 @@
 #include "TText.h"
 
 #include "KSSegmentFile.h"
-#include "KSSegmentDataClasses.h"
+#include "KSSegmentDataClasses.h"6
 #include "KSAzElRADecXY.h"
 #include "KSCommon.h"
+#include "KSPeFile.h"
+#include "KSPeDataClasses.h"
 
 #include <map>
 
@@ -67,26 +76,62 @@ int main(int argc, char** argv)
  //Open the input seg file and read in the seg header
   // ------------------------------------------------------------------------  
 
-string SegFileName = "seg.d1";    
-  std::cout<<"SegmentDisplay: Input Segment File: "<<SegFileName<<std::endl;
+string PeFileName = "pe.d1";    
+  std::cout<<"PhotonsOnGround: Input Pe File: "<<PeFileName<<std::endl;
       
-  KSSegmentFile*     pfSegFile;
-  KSSegmentHeadData* pfSegmentHead;
-  KSSegmentData*     pfSegment;
-  pfSegmentHead= new KSSegmentHeadData ;
-  pfSegFile=new KSSegmentFile();
-  pfSegFile->Open(SegFileName.c_str());
-  pfSegFile->ReadSegmentHead(pfSegmentHead);
-  pfSegmentHead->PrintSegmentHead();
+    KSSegmentHeadData* pfSegmentHead;
+    pfSegmentHead= new KSSegmentHeadData ;
+    KSPeHeadData* pfPeHead;
+    pfPeHead= new KSPeHeadData;
+    KSPeFile* pfPeFile;
+    pfPeFile = new KSPeFile;
 
-  pfSegment=new KSSegmentData;
+  pfPeFile->Open(PeFileName.c_str());
+
+ if(pfPeFile==NULL)    {
+      std::cout<<"PhotonsOnGround:Failed to open Input Pe File: "<<PeFileName
+	       <<std::endl;
+      return 1;
+    }
+  bool goodread=pfPeFile->ReadSegmentHead(pfSegmentHead);
+  if(!goodread)
+    {
+      std::cout<<"PhotonsOnGround: Failed to read Segment Header from Pe File"
+	       <<std::endl;
+      return 1;
+    }
+  
+  pfSegmentHead->PrintSegmentHead();
+  
+  goodread=pfPeFile->ReadPeHead(pfPeHead);
+  if(!goodread)
+    {
+      std::cout<<"PhotonsOcGround: Failed to read Pe Header from Pe File"
+	       <<std::endl;
+      return 1;
+    }
+  
+  pfPeHead->PrintPeHead();
+  //the following are needed to determine the x and y ground position
+  // of the photon
+  double XAreaWidth=pfPeHead->fXAreaWidthM; 
+  double YAreaWidth=pfPeHead->fYAreaWidthM;
+  double XCoreOffset=pfPeHead->fXCoreOffsetM;
+  double YCoreOffset=pfPeHead->fYCoreOffsetM;  
+
+  KSPeData* pfPe;
+  pfPe= new KSPeData;
+
+  //done with file set up stuff; on to setting up the graphics.
+  // At this point the segheader and peheader have been read it,
+  // and the next read on the input file will be a pe data record. 
 
   //Set up color map so that each particle type draws in its ouwn color
   map<int,int> particlecolor;
   particlecolor[1]=1;     //gamma
   particlecolor[2]=632;   //positron
   particlecolor[3]=416;   //electron
-  particlecolor[4]=618;   //muon +
+  particlecolor[4]=618;   //muon +6
   particlecolor[5]=434;   //muon -
   particlecolor[6]=396;   //pi 0
   particlecolor[7]=894;   //pi +
@@ -123,7 +168,7 @@ string SegFileName = "seg.d1";
 
 
 
-  //Set up the canvas(make it square) and its coordinate range in meters
+  //Set up the canvas(make it square) and its coordinate range in (meters?)
   double_t w=600;
   double_t h=700;
   TCanvas *Mycanvas = new TCanvas("Mycanvas"," ",(int)w,(int)h);
@@ -138,42 +183,32 @@ string SegFileName = "seg.d1";
   //TPad* yzpad = (TPad*)(Mycanvas->GetPrimitive("Mycanvas_2"));
 
   //specifically creat sub pads so that I can control their size
-  TPad* xzpad = new TPad("xzpad","subpad for xzplot",0.01,0.01,0.5,0.85);
-  TPad* yzpad = new TPad("yzpad","subpad for yzplot",0.5,0.01,0.99,0.85);
+  TPad* groundpad = new TPad("groundpad","subpad for pes on ground",0.01,0.01,0.99,0.85);
   TPad* toppad = new TPad("toppad","subpad for titles",0.01,0.85,0.99,0.99);
 
-  xzpad->SetBorderMode(0);
-  yzpad->SetBorderMode(0);
+  groundpad->SetBorderMode(0);
   toppad->SetBorderMode(0);
 
-  xzpad->Draw();
-  yzpad->Draw();
+  groundpad->Draw();
   toppad->Draw();
 
 
-  //default limits of xz  plot for vertical showers
-  float xz_xmin=-4681;
-  float xz_xmax=4681;
-  float xz_ymin=1275;
-  float xz_ymax=20000;
-  //default limits of yz plot for vertical showers
-  float yz_xmin=-4681;
-  float yz_xmax=4681;
-  float yz_ymin=1275;
-  float yz_ymax=20000;
-  //Get initial direction from segment header
+  //default limits for photons on ground plot (meters)
+  float xmin=-300;
+  float xmax=300;
+  float ymin=-300;
+  float ymax=300;
 
+
+
+  
+//2_17_2014 convert the initial direction cosines to elevation and azimuth. Doing this two ways...my brut force wa y and with the classes/methods from kascade. 
+  //get the intial particle direction from the segment header
   double dli = pfSegmentHead->fDlInitial;
   double dmi = pfSegmentHead->fDmInitial;
   double dni = pfSegmentHead->fDnInitial;
 
-  double incident_direction_degrees;
-  string incident_direction;
-
-cout<<" dli= "<<dli<<" dmi= "<<dmi<<" dni= "<<dni<<endl;
-  
-//2_17_2014 convert the initial direction cosines to elevation and azimuth. Doing this two ways...my brut force wa y and with the classes/methods from kascade. 
- double incident_zenith_degrees;
+double incident_zenith_degrees;
  double incident_azimuth_degrees;
  double thetax_degrees;
  thetax_degrees=atan2(dmi,dli)*57.28578;
@@ -197,38 +232,14 @@ incident_zenith_degrees=acos(dni)*57.29578;
  cout<<" From slalib we get zenith = "<<zn<<" and azimuth = "<<az<<endl;
 
 
-//if shower is inclined in the NS plane, change the limits of the yz plot.
-  //need to do something similar for the xz plot for E/W inclined showers
-  //probably shoudl worry about random angles too!
 
-  
-  //from North  
-  //  if (dmi > 0.005){  
-  //yz_xmin=-9364;
-  //yz_xmax=0;
-  //cout<<" ymin= "<<yz_ymin<<"  ymax= "<<yz_ymax<<endl;
-  //incident_direction = "North";
-  //incident_direction_degrees = asin(dmi)*57.29578;
-  //}
-  //from South
-  //if(dmi < -0.005){  
-  //yz_xmin=0;
-  //yz_xmax=9364;
-  //}
+  groundpad->Range(xmin,ymin,xmax,ymax);
 
-
-  // xzpad->Range(-3256,1275,3256,20000);
-  //yzpad->Range(-6492,1275,0,20000);
-  xzpad->Range(xz_xmin,xz_ymin,xz_xmax,xz_ymax);
-  yzpad->Range(yz_xmin,yz_ymin,yz_xmax,yz_ymax);
 
 
  
   //OKay, done with setting up the canvas and pads.
   //Now lets draw some boxes and add some text
-  //  xzpad->SetBorderMode(1);
-  //  xzpad->SetBorderSize(5);
-
   //title and information box at the top of plot
 
   toppad->cd();
@@ -253,7 +264,7 @@ incident_zenith_degrees=acos(dni)*57.29578;
   string id=os.str();
   TPaveText* ptop=new TPaveText(0.3,0.02,0.7,0.96);
   TText *t0=ptop->AddText("Purdue/DePauw KASCADE Air Shower Simulation");
-  TText *t0a=ptop->AddText("Particle Tracks");
+  TText *t0a=ptop->AddText("Photons on the Ground");
   TText *t1=ptop->AddText(ptitle.c_str());
   TText *t2=ptop->AddText(direction.c_str());
   TText *t3=ptop->AddText(id.c_str());
@@ -288,75 +299,75 @@ incident_zenith_degrees=acos(dni)*57.29578;
   ptop_left->Draw();
 
 
-  xzpad->cd();
-  TBox *bxz = new TBox(xz_xmin,xz_ymin,xz_xmax,xz_ymax);
+  groundpad->cd();
+  TBox *bxz = new TBox(xmin,ymin,xmax,ymax);
   bxz->SetLineColor(1);
   bxz->SetLineWidth(3);
   bxz->SetFillStyle(0);
   bxz->Draw();
 
-  MakeAndPlotLabels(xz_xmin,xz_ymin,xz_xmax,xz_ymax,"Looking North");
+  MakeAndPlotLabels(xmin,ymin,xmax,ymax," ");
 
 
 
-  yzpad->cd();
-  TBox *byz = new TBox(yz_xmin,yz_ymin,yz_xmax,yz_ymax);
-  byz->SetLineColor(1);
-  byz->SetLineWidth(3);
-  byz->SetFillStyle(0);
-  byz->Draw();
-
-  MakeAndPlotLabels(yz_xmin,yz_ymin,yz_xmax,yz_ymax,"Looking East");
-    //  xzpad->Update();
-    //yzpad->Update();  
+  //finally ready to read in pe's
+  //  //skipping the first    200000 photons
+  //
+  //  int k=0;
+  
+  //  while(k<200000) {
+  //  k++;
+  //  bool goodread=pfPeFile->ReadPe(pfPe);
+      
+  //  }
 
   int i=0;
-  
-  //       while(i<5000) {
-     while (1){
+  int pcount = 0;
+  int icount=0;
+  int jcount=0;
+  cout<<" number of photons read in units of 1000 "<<endl;
+  //  while(i<200000) {
+	while (1){
       i++;
-      bool goodread=pfSegFile->ReadSegment(pfSegment);
-      
+      icount++;
+      bool goodread=pfPeFile->ReadPe(pfPe);
+      if(icount%1000 == 0) {
+	jcount++;
+	cout<<jcount<<" "<<flush;
+      }
       if(goodread){
-	  double XStart=pfSegment->fXStart;
-	  double YStart=pfSegment->fYStart;
-	  double HStart=pfSegment->fHStart;
-	  double DlStart=pfSegment->fDlStart; //Initial x,y direction cosigns of segment
-	  double DmStart=pfSegment->fDmStart;
-	  //double EndTime=pfSegment->fEndTime; //relative time(ns) at end of 
-	                                        //segment.
-	  double HEnd=pfSegment->fHEnd;   //final altitude of segment
-	  //double DlEnd=pfSegment->fDlEnd;  //final direction cosigns of segment.
-	  //double DmEnd=pfSegment->fDmEnd;
-	  //double Gamma=pfSegment->fGamma;  //gamma at middle of segment.
-	  double Spec=pfSegment->nspec;
+	int Nx=pfPe->fNx;
+	int Ny=pfPe->fNy;
+	double Time=pfPe->fTime;
+	double PhotonDl=pfPe->fPhotonDl;
+	double PhotonDm=pfPe->fPhotonDm;
+	int SegId=pfPe->fSegmentID;
+	double X=pfPe->fX;
+	double Y=pfPe->fY;
+	int nSpec=pfPe->fTrackType;
+	int Lambda=pfPe->fLambda;
+	double EmissionAlt=pfPe->fEmissionAltitude;
 
-	  // find x and z from the starting positions and the direction cosines
-	  //first need to get dn from the other two
-	  double DnStart=sqrt(1-DmStart*DmStart-DlStart*DlStart);
-	    double SegLength=(HStart-HEnd)/DnStart;
-	    double XEnd=XStart+SegLength*DlStart;
-	    double YEnd=YStart+SegLength*DmStart;
-	    // std::cout<<"HStart"<<HStart<<"  HEnd "<<HEnd<<" Dl "<<DlStart<<" Dm " <<DmStart<<" Dn "<<DnStart<<" seglength "<<SegLength <<endl;
-	    
-	    
+	double XRelCore = X + Nx*XAreaWidth - XCoreOffset;
+	double YRelCore = Y + Ny*YAreaWidth - YCoreOffset;
+	//debug prints
+	if(pcount<=5){
+	  pcount++;
+	  cout<<"fX: "<<pfPe->fX<<endl;
+	cout<<"X: "<<X<<" Nx: "<<Nx<<"X offset: "<<XCoreOffset<<endl;
+	cout<<"XRelCore: "<<XRelCore<<endl;
+}
+       	if (Nx > -25 && Nx < 25 && Ny > -25 && Ny < 25) {
 	    int pcolor=1;
-	    //draw segments in xz plane
-	    //    Mycanvas->cd(1);
-	    xzpad->cd();
-	    TLine*  xz = new TLine(XStart,HStart,XEnd,HEnd);
-	    pcolor=particlecolor[(int)Spec];
-	    xz->SetLineColor(pcolor);
-	    xz->Draw();
-	    //	    Mycanvas->Update();
+	    //Plot the photons on the ground
 
-	    //draw segments in the yz plane
-	    //Mycanvas->cd(2);
-	    yzpad->cd();
-	    TLine*  yz = new TLine(YStart,HStart,YEnd,HEnd);
-	    pcolor=particlecolor[(int)Spec];
-	    yz->SetLineColor(pcolor);
-	    yz->Draw();
+	    groundpad->cd();
+	    int markertype=1;
+	    TMarker*  plotpe = new TMarker(XRelCore,YRelCore,markertype);
+	    pcolor=particlecolor[nSpec];
+	    plotpe->SetMarkerColor(pcolor);
+	    plotpe->Draw();
+	    //	    Mycanvas->Update();
 
 
 	    Mycanvas->cd();
@@ -364,20 +375,20 @@ incident_zenith_degrees=acos(dni)*57.29578;
 	    Mycanvas->SetLineWidth(3);
 	    //update the canvas so the lines draw.Not sure if thsi is necessary
 	    Mycanvas->Update();
-
+	}
 
 
       }
       else{
-	std::cout<<"Done reading segments"<<endl;
+	std::cout<<"Done reading pefile"<<endl;
 	break;
       } 
   }
-  pfSegFile->Close();
-  std::cout<<"SegmentDisplay: KSSegmentFile reports Number of Segements "
-	"read: "<<(long)pfSegFile->getNumSegments()<<endl;
+  pfPeFile->Close();
+  std::cout<<"PhotonsOnGround: KSPeFile reports Number of Photons "
+	"read: "<<(long)pfPeFile->getNumPes()<<endl;
   std::cout<<"Finished plotting; hit control c to exit"<<endl; 
-	Mycanvas->Print("myplot.ps");  
+	Mycanvas->Print("my_pe_plot.ps");  
   mainApp.Run();  
 return 0;
 }
@@ -407,12 +418,12 @@ void MakeAndPlotLabels(float xmin,float ymin,float xmax,float ymax, string lookD
   l2x->Draw();
 
   ostringstream os3;
-  os3<<"altitude= "<<ymin<<" m";
+  os3<<ymin<<" m";
   string label3=os3.str();
   TPaveLabel* l3x = new TPaveLabel(0.01,0.03,0.41,0.055,label3.c_str(),"NDC");
   l3x->SetTextAlign(12);
   l3x->SetBorderSize(0);
-  l3x->Draw();
+  //  l3x->Draw();
 
   ostringstream os4;
   os4<<ymax<<" m";
@@ -426,6 +437,38 @@ void MakeAndPlotLabels(float xmin,float ymin,float xmax,float ymax, string lookD
   l5x->SetTextAlign(12);
   l5x->SetBorderSize(0);
   l5x->Draw();
+
+  ostringstream osN;
+  osN<<"N";
+  string labelN = osN.str();
+  TPaveLabel* lN = new TPaveLabel(0.48,0.95,0.52,0.99,labelN.c_str(),"NDC");
+  lN->SetTextAlign(23);
+  lN->SetBorderSize(0);
+  lN->Draw();
+
+  ostringstream osS;
+  osS<<"S";
+  string labelS=osS.str();
+  TPaveLabel* lS = new TPaveLabel(0.48,0.01,0.52,0.05,labelS.c_str(),"NDC");
+  lS->SetTextAlign(21);
+  lS->SetBorderSize(0);
+  lS->Draw();
+
+  ostringstream osE;
+  osE<<"E";
+  string labelE=osE.str();
+  TPaveLabel* lE = new TPaveLabel(0.95,0.48,0.99,0.52,labelE.c_str(),"NDC");
+  lE->SetTextAlign(32);
+  lE->SetBorderSize(0);
+  lE->Draw();
+
+  ostringstream osW;
+  osW<<"W";
+  string labelW=osW.str();
+  TPaveLabel* lW = new TPaveLabel(0.01,0.48,0.05,0.52,labelW.c_str(),"NDC");
+  lW->SetTextAlign(12);
+  lW->SetBorderSize(0);
+  lW->Draw();
 
   return;
 }
