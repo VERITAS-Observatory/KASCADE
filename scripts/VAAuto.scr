@@ -5,18 +5,19 @@
 # electrons)
 #It has some arguments listed below.
 #$1 ksProduction season spec: Ex: W or S
-#$2 Array designation: W or OA or NA  or U (Whipple, OldArray,NewArray, Upgrade)
+#$2 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, UpgradeArray)
 #   This use is not consitent yet. For NA sometimes i use V and sometime NA. Fix this
-#   and rename bunches of files when we start on the oldarray. Note the U.NA.OA 
+#   and rename bunches of files when we start on the oldarray. Note the UA.NA.OA 
 #   extention also appears in argument $4
 #$3 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
-#$4 MDL designation for VBF files: Ex MDL10U or MDL15NA
+#$4 MDL designation for VBF files: Ex MDL10UA or MDL15NA
 #$5 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
 #$6 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
 #$7 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
 #$8 Threshold: Ex 45mv or 50mv
 #$9 PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
 #${10} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
+#      Default for LTCutsFile is LookUpTableStdCuts
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${10}Cuts
 #  For Stage4, filename would extention be:  ${10}Cuts.root ending
 #  For ShowerCuts, file used would be $VEGAS/../tables/Shower${10}Cuts 
@@ -26,10 +27,9 @@
 # Within that loop we can do:   
 
 #FindNoiseLevels=enabled
-#GenerateSimLaserFile=enabled
 
 LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
-MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
+MaxQsubsDefault=250           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
 
@@ -37,11 +37,12 @@ MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
 #---------------------------------------
 #*Generate Stage 2 PedVar files
 #---------------------------------------
-GenerateStage2Files=enabled                      #See LimitSubmissions above
+#GenerateSimLaserFile=enabled
+#GenerateStage2Files=enabled                      #See LimitSubmissions above
 #CheckStage2Files=enabled                         #No waiting/no limit
 #--------------------------------------
 
-#HTARPedVarZnOffsetS2ToArchive=enabled            #See LimitSubmissions above
+HTARPedVarZnOffsetS2ToArchive=enabled            #See LimitSubmissions above
 #HTARPedVarZnOffsetS2FromArchive=enabled          #See LimitSubmissions above
 
 
@@ -50,8 +51,8 @@ GenerateStage2Files=enabled                      #See LimitSubmissions above
 #---------------------------------------
 #GenerateSubLTListFiles=enabled                   #No waiting/no limit
 #GenerateSubLTConfigFiles=enabled                 #No waiting/no limit
-#ProduceSubLookupTables=enabled                   #No waiting/81 max
-#CombineSubLT=enable                              #No waiting/no limit
+#ProduceSubLookupTables=enabled         #No waiting/81 max. Check ${10} usually blank
+#CombineSubLT=enable                    #No waiting/no limit Check ${10} usually blank
 #BuildLTTree=enable                               #No waiting/no limit
 #---------------------------------------
 
@@ -345,6 +346,16 @@ function SubmitHtarFromArchive()
 function SubmitVegasSimProduction()
 {
   FilePedVar=$1
+  if [ "$FilePedVar" = "NONE" ]; then
+      FilePedVar=""
+  else
+     if [ ! -e "$lcl"/"$FilePedVar" ]; then
+	  echo 'VAAUTO: SubmitVegasSimProduction requires file ' $lcl'/'$FilePedVar
+          echo 'VAAuto: Fatal! File does not exist.'
+          exit
+     fi
+  fi
+
   FileBase=$2
   VEGASScript=$3
   FileVBF=$4
@@ -402,8 +413,8 @@ fi
 ############################
 # Array seaon
 ############################
-if [ "$2" = "U" ]; then
-    PMT=$2
+if [ "$2" = "UA" ]; then
+    PMT="U"
     LTSEASON="ua"
 fi
 if [ "$2" = "OA" ]; then
@@ -507,7 +518,7 @@ fi
 
 
 if [[ $9 = "All" ]]; then
-    if [ $2 = "U" ]; then
+    if [ $2 = "UA" ]; then
       PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
     fi
     if [ $2 = "NA" ] || [ $2 = "OA" ]; then
@@ -543,10 +554,13 @@ HMode=H
 CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
+if [ "$3" = "E" ]; then
+    PARTICALTYPE="Electrons_"
+fi 
 
-LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
+LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$PARTICALTYPE$LTWbl
 
-DTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$LTWbl
+DTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$PARTICALTYPE$LTWbl
 
 if [ $HMode = "HFit" ]; then
     LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
@@ -555,7 +569,7 @@ else
 fi
 
 if [ -n "${10}" ]; then 
-    LTCUTSFILE=$LTCUTSFILE{10}'Cuts'
+    LTCUTSFILE=$LTCUTSFILE${10}'Cuts'
 else
     LTCUTSFILE=$LTCUTSFILE'StdCuts'
 fi
@@ -593,7 +607,7 @@ ZNStr=1,10,20,30,40,50,60,70
 ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
 AzStr=0,45,90,135,180,225,270,315
 
-if [ $2 = "U" ]; then
+if [ $2 = "UA" ]; then
    NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
 fi
 if [ $2 = "NA" ] || [ $2 = "OA" ]; then
@@ -702,7 +716,7 @@ if [ -n "$LimitSubmissions" ]; then
       let MaxHTARQsubs=9
       echo "VAAuto: HTAR qsub active submissions being limited to " $MaxHTARQsubs 
   fi
-  if [ -n "$GenerateStage2Files" ] || [ -n "$GenerateStage4Files" ]; then
+  if [ -n "$GenerateSimLaserFile" ] || [ -n "$GenerateStage2Files" ] || [ -n "$GenerateStage4Files" ]; then
       QsubLogs='RunningVegasQsubLogs.txt'
       let MaxQsubs=$MaxQsubsDefault
       echo "VAAuto: Overall qsub active submissions being limited to " $MaxQsubs 
@@ -775,6 +789,12 @@ if [ -n "$GenerateStage2Files" ]; then
      
      rm tmp1
      rm tmp2
+    fi
+    #############################################################################
+    # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
+    #############################################################################
+    if [ -n "$CARVER" ]; then
+	WALLTIME=06:00:00
     fi
 fi
 ############################################################################
@@ -1108,7 +1128,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
          PV=${PedVar[$kpvar]} 
          if test "$PV" = "0"
           then
-           PedVarFile=""
+           PedVarFile="NONE"
            PedVarName=""
          else
            PedVarFile=Ped$2$PV
@@ -1188,6 +1208,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
            #    echo 'VAAuto: '$FileName' OK! numEvents:' $suzBAD
 	   fi 
 	  } <CheckStage2FileOK.Result
+	  #echo 'VAAuto: '$FileName' OK! numEvents:' $suzBAD
 	  rm CheckStage2FileOK.Result
          fi
          ###############################################################
@@ -1213,6 +1234,10 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
      done
      kaz=$((kaz+1))
    done
+   if [ -n "$CheckStage2Files" ]; then
+     echo 'VAAuto: PedVar files: '$1$PMT$3' Zn:  '${Zenith[$izn]}' AZ: '$6', offset: '$7', pedv: '$9' Check complete.'
+   fi
+ 
    izn=$((izn+1))
  done
 fi
