@@ -42,7 +42,7 @@ MaxQsubsDefault=250           #only want 9 at a time to run (limit for HTAR)
 #CheckStage2Files=enabled                         #No waiting/no limit
 #--------------------------------------
 
-HTARPedVarZnOffsetS2ToArchive=enabled            #See LimitSubmissions above
+#HTARPedVarZnOffsetS2ToArchive=enabled            #See LimitSubmissions above
 #HTARPedVarZnOffsetS2FromArchive=enabled          #See LimitSubmissions above
 
 
@@ -70,7 +70,7 @@ HTARPedVarZnOffsetS2ToArchive=enabled            #See LimitSubmissions above
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-#GenerateStage4Files=enabled                       #See LimitSubmissions above
+GenerateStage4Files=enabled                       #See LimitSubmissions above
 #CheckStage4Files=enabled                      
 #--------------------------------------
 
@@ -369,12 +369,11 @@ function SubmitVegasSimProduction()
   echo 
   sgeFile=$lcl'/'$FilePedVar$FileBase'.pbs'
   echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
+  echo "#PBS -l "$MEMREQUEST"                      >>$sgeFile
   if [ -n "$CARVER" ]; then
     echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
-    echo "#PBS -l pvmem=20GB"                      >>$sgeFile
   fi
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-    echo "#PBS -l mem=15GB"                       >>$sgeFile
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
   fi
@@ -395,7 +394,17 @@ function SubmitVegasSimProduction()
 }
 ################################################################################### 
 
-#Main:
+GetUniqueNumber()
+{
+  #use combo of process id ($$)and number of nanosec(date +%N) since last 
+  #second tick to get unique value. (least count is micro sec at best)
+  let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+}
+####################################################################################
+
+
+
+#Main Program:
 
 lcl=$PWD
 
@@ -444,6 +453,7 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
     WALLTIME=30:00:00
     ARCHIVE=/home/u/u15013/$4'/'
     VBFDir=$ARCHIVE$1$PMT$3$4'VBF'     
+    MEMREQUEST='pvmem=15GB'
     echo '***Carver Cluster***'
 fi
 
@@ -456,6 +466,7 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
     JobIDHost='hansen-adm'
     QUEUE=physics
     WALLTIME=30:00:00
+    MEMREQUEST='mem=15GB'
   #QUEUE=standby
   #WALLTIME=04:00:00
     echo ***Hansen Cluster***
@@ -470,6 +481,7 @@ if test  "$hostString" = "coates"  #Are we running on Coates?
     JobIDHost='coates-adm'
     QUEUE=physics
     WALLTIME=30:00:00
+    MEMREQUEST='mem=15GB'
   #QUEUE=standby
   #WALLTIME=04:00:00
     echo ***Coates Cluster***
@@ -712,12 +724,14 @@ if [ -n "$LimitSubmissions" ]; then
      [ -n "$HTARPedVarZnOffsetS2FromArchive" ] ||
      [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || 
      [ -n "$HTARPedVarZnOffsetS4FromArchive" ]; then
-      QsubLogs='RunningHtarQsubLogs.txt'
+      GetUniqueNumber
+      QsubLogs='RunningHtarQsubLogs'$UNIQUE'.txt'
       let MaxHTARQsubs=9
       echo "VAAuto: HTAR qsub active submissions being limited to " $MaxHTARQsubs 
   fi
   if [ -n "$GenerateSimLaserFile" ] || [ -n "$GenerateStage2Files" ] || [ -n "$GenerateStage4Files" ]; then
-      QsubLogs='RunningVegasQsubLogs.txt'
+      GetUniqueNumber
+      QsubLogs='RunningVegasQsubLogs'$UNIQUE'.txt'
       let MaxQsubs=$MaxQsubsDefault
       echo "VAAuto: Overall qsub active submissions being limited to " $MaxQsubs 
   fi
@@ -793,8 +807,11 @@ if [ -n "$GenerateStage2Files" ]; then
     #############################################################################
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
     #############################################################################
+    WALLTIME=06:00:00
     if [ -n "$CARVER" ]; then
-	WALLTIME=06:00:00
+	MEMREQUEST="pvmem=8GB"
+    else
+	MEMREQUEST="mem=8GB"
     fi
 fi
 ############################################################################
@@ -856,6 +873,12 @@ if [ -n "$GenerateStage4Files" ]; then
     # Stage 4 only needs short time
     #############################################################################
     WALLTIME=04:00:00
+   if [ -n "$CARVER" ]; then
+       MEMREQUEST="pvmem=8GB"
+   else
+       MEMREQUEST="mem=8GB"
+   fi
+
     
 fi
 ############################################################################
@@ -1069,11 +1092,10 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
        ####################################################################
        sgeFile=$lcl'/'$DISPSUBLTBASE'.pbs'
        echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
+       echo "#PBS -l "$MEMREQUEST                      >>$sgeFile
        if [ -n "$CARVER" ]; then
-         echo "#PBS -l pvmem=15GB"                     >>$sgeFile
        fi
        if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-         echo "#PBS -l mem=15GB"                       >>$sgeFile
          echo source /etc/profile                      >>$sgeFile
          echo module load gcc/4.7.2                    >>$sgeFile
        fi
@@ -1346,6 +1368,11 @@ if [ -n "$ProduceSubLookupTables" ]; then
    echo '# ProduceSubLookupTables'
    echo '##########################################################'
    cd $lcl
+   if [ -n "$CARVER" ]; then
+       MEMREQUEST="pvmem=24GB"
+   else
+       MEMREQUEST="mem=24GB"
+   fi
    date
 fi  
 ########################################################################
@@ -1567,11 +1594,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          ####################################################################
 	 sgeFile=$lcl'/'$SUBLTBASE'.pbs'
 	 echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
-	 if [ -n "$CARVER" ]; then
-	     echo "#PBS -l pvmem=24GB"               >>$sgeFile
-	 fi
+         echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
 	 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-	     echo "#PBS -l mem=24GB"                 >>$sgeFile
 	     echo source /etc/profile                >>$sgeFile
 	     echo module load gcc/4.7.2              >>$sgeFile
 	 fi
@@ -1594,11 +1618,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          ####################################################################
 	 sgeFile=$lcl'/'$SUBLTBASE'.pbs'
 	 echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
-	 if [ -n "$CARVER" ]; then
-	     echo "#PBS -l pvmem=15GB"                  >>$sgeFile
-	 fi
+	 echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
 	 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-	     echo "#PBS -l mem=15GB"                   >>$sgeFile
 	     echo source /etc/profile                  >>$sgeFile
 	     echo module load gcc/4.7.2                >>$sgeFile
 	 fi
