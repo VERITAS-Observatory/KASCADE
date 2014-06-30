@@ -1,8 +1,8 @@
 #$1 CheckS2.log type file from:
-# ./VAAutoG.scr W U G MDL10U All All All 45mv All >CheckS2.log
+# ./VAAutoG.scr W UA G MDL10UA All All All 45mv All >CheckS2.log
 # This files has a list of files that need to be rerun
 # the lines we need look like: 
-# Bad: PedVar12.35WUGMDL10U10_270Deg2DS1.25Wbl45mv1234M2.root
+# Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
 ##########################################################################
 
 echo Warning!!: Make sure VAAuto has GenerateStage2Files=enabled
@@ -51,16 +51,16 @@ grep Bad $BadFile >S2tmp1
                                                       #S2tmp1
 #############################################################
 #Now seperate things and remove unwanted stuff
-# Bad: PedVar12.35WUGMDL10U10_270Deg2DS1.25Wbl45mv1234M2.root
+# Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
 #############################################################
-#This gets a little tricky so that we can use this generally for NA and U
+#This gets a little tricky so that we can use this generally for NA and UA
 #############################################################
   sed '/Bad/s/1234M2.root/ /g'        <S2tmp1     >S2tmp2   #Remove "1234M2.root"
   sed '/Bad/s/Wbl/ /g'                <S2tmp2     >S2tmp1   #parse out 45mv or 50mv
   sed '/Bad/s/Deg2DS/  /g'            <S2tmp1     >S2tmp2   #parse out offset
   sed '/Bad/s/Deg2D/  /g'             <S2tmp2     >S2tmp1   #Special for 0.0 deg offset
   sed '/Bad/s/_/  /g'                 <S2tmp1     >S2tmp2   #Parse out aZ
-  sed '/Bad/s/MDL10U/ MDL10 U /g'     <S2tmp2     >S2tmp1   #MDL10, ArrayType, 
+  sed '/Bad/s/MDL10UA/ MDL10 UA /g'     <S2tmp2     >S2tmp1   #MDL10, ArrayType, 
   sed '/Bad/s/MDL15NA/ MDL15 NA /g'   <S2tmp1     >S2tmp2   #Special for MDL15NA
   sed '/Bad/s/W/ W /g'                <S2tmp2     >S2tmp1   #Seperate Pedvar and season
   sed '/Bad/s/S/ S /g'                <S2tmp1     >S2tmp2   #Seperate Pedvar other season

@@ -1,8 +1,8 @@
 #$1 CheckS4.log type file from:
-# ./VAAutoG.scr W U G MDL10U All All All 45mv All UpgradeLoose >CheckS4UpgradeLoose.log
+# ./VAAutoG.scr W UA G MDL10UA All All All 45mv All UpgradeLoose >CheckS4UpgradeLoose.log
 # This files has a list of files that need to be rerun
 # the lines we need look like: 
-# Bad:PedVar7.64WUGMDL10U20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
+# Bad:PedVar7.64WUGMDL10UA20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
 ##########################################################################
 
 grep "GenerateStage4Files=enabled" VAAuto.scr >redoS4g.tmp
@@ -47,9 +47,9 @@ grep Bad $BadFile >S4tmp1
 
 #############################################################
 #Now seperate things and remove unwanted stuff
-# Bad:PedVar7.64WUGMDL10U20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
+# Bad:PedVar7.64WUGMDL10UA20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
 #############################################################
-#  7.64 W U G MDL10 U 20 270 0.0 45mv UpgradeLoose
+#  7.64 W UA G MDL10UA 20 270 0.0 45mv UpgradeLoose
 
   sed '/Bad/s/Cuts.root/ /g'        <S4tmp1   >S4tmp2   #Remove "Cuts.root"
   sed '/Bad/s/Soft/soft/g'          <S4tmp2   >S4tmp1   #Change capital on Soft
@@ -58,7 +58,7 @@ grep Bad $BadFile >S4tmp1
   sed '/Bad/s/Deg2DS/  /g'          <S4tmp1   >S4tmp2   #Parse Offset
   sed '/Bad/s/Deg2D/  /g'           <S4tmp2   >S4tmp1   #Parse Special 0.0 Offset
   sed '/Bad/s/_/  /g'               <S4tmp1   >S4tmp2   #Parse Az
-  sed '/Bad/s/MDL10U/ MDL10 U /g'   <S4tmp2   >S4tmp1   #MDL10, ArrayType, 
+  sed '/Bad/s/MDL10UA/ MDL10 UA /g'   <S4tmp2   >S4tmp1   #MDL10, ArrayType, 
   sed '/Bad/s/MDL15NA/ MDL15 NA /g' <S4tmp1   >S4tmp2   #Special for MDL15NA
   sed '/Bad/s/W/ W /g'          <S4tmp2   >S4tmp1   #Seperate Pedvar and season
   sed '/Bad/s/S/ S /g'          <S4tmp1   >S4tmp2   #Seperate Pedvar other season
