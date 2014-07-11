@@ -53,7 +53,8 @@ MaxQsubsDefault=250           #only want 9 at a time to run (limit for HTAR)
 #GenerateSubLTConfigFiles=enabled                 #No waiting/no limit
 #ProduceSubLookupTables=enabled         #No waiting/81 max. Check ${10} usually blank
 #CombineSubLT=enable                    #No waiting/no limit Check ${10} usually blank
-#BuildLTTree=enable                               #No waiting/no limit
+#BuildLTTree=enable
+CheckLT=enable
 #---------------------------------------
 
 #---------------------------------------
@@ -70,7 +71,7 @@ MaxQsubsDefault=250           #only want 9 at a time to run (limit for HTAR)
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-GenerateStage4Files=enabled                       #See LimitSubmissions above
+#GenerateStage4Files=enabled                       #See LimitSubmissions above
 #CheckStage4Files=enabled                      
 #--------------------------------------
 
@@ -1206,10 +1207,11 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
           #Check VARootIO can open and load file 
 	  #~/Switch.rootrcTo.rootrc_glenn.scr
 	  Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
-          #echo Arg: $Arg 
+          echo Arg: $Arg 
 
 	  root -q -b -q $Arg >CheckStage2OK.log
-          {
+          sleep 5
+	  {
 	   read BAD
            let suzBAD=$BAD
 	     if [ $suzBAD -lt "15" ]; then
@@ -1954,7 +1956,42 @@ if [ -n "$BuildEALTTree" ]; then
        $StrOffset \
        $LTFILENAME
 fi
+# ***********************************************************************
 
+if [ -n "$CheckLT" ]; then
+   echo '##########################################################'
+   echo '# CheckLT'
+   echo '##########################################################'
+   LCL=$PWD
+   cd $VEGAS/showerReconstruction2/macros
+   LTFILENAME='lt'$LTFILENAMEBASE'.root'
+   LTDiagFileName='lt'$LTFILENAMEBASE'.diag'
+   date
+   #############################################################################
+   # Make up a script to run on root batch mode
+   #############################################################################
+   Script='CheckLT.C'
+   echo '{'                                                          >$Script
+   echo '  ltValidator2("'$LTFILENAME'");'                          >>$Script
+   echo '}'                                                         >>$Script
+
+   echo "VAAuto: Running root batch command to Check  LT file:"
+   echo "VAAuto: "$LTFILENAME
+
+   ~/Switch.rootrcTo.rootrc_showerReconstruction2
+   rm $LTDiagFileName
+   
+   root -b -q $Script '>'$lcl'/CheckLT.log'  
+   
+   if [ -e  "$LTDiagFileName" ]; then
+       cat  $LTDiagFileName >>$lcl'/CheckLT.log'
+   fi
+
+   ~/Switch.rootrcTo.rootrc_glenn.scr
+   cd $LCL
+fi
+
+   
 #################################################################################
 
 #*********************************************************************   
