@@ -609,7 +609,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
                 then
                   BuildAndSubmitJobs $j 
 	        else
-                  BuildAndSubmitJobsSingly $j 
+                  BuildAndSubmitJobs $j 
 	       fi
                let j=j-1		
             done
@@ -817,16 +817,13 @@ function BuildAndSubmitHansenJobsSingly
  while test $i -le $showerEnd
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
-   if [ "$E" -gt "20000" ]; then
-     #echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
-     #echo "#"PBS -l walltime=$WALLTIMESTANDBY             >>$sgeFile
+   if [ "$E" -gt "10000" ] && [ -n "$Sort" ]; then
      echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
      echo "#"PBS -l walltime=$WALLTIMEPHYSICS             >>$sgeFile
    else
      echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
      echo "#"PBS -l walltime=$WALLTIMESTANDBY             >>$sgeFile
    fi
-
    echo source /etc/profile                               >>$sgeFile
    echo module load gcc/4.7.2                             >>$sgeFile
    echo lcl=$PBS_O_WORKDIR                                >>$sgeFile
