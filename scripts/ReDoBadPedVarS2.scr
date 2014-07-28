@@ -5,6 +5,21 @@
 # Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
 ##########################################################################
 
+function usage()
+{
+  echo '***ReDoBadPedVarS2 usage:'
+  echo '   $1: File with Bad/Missing Stage 2 PedVar Files in form:' 
+  echo '           Bad: PedVar14.49WUEMDL10UA10_90Deg2DS2.0Wbl45mv1234M2.root'
+  echo ' EX: ./ReDoBadPedVarS2.scr CheckStage2Deg1-50AllElectrons.log'
+  echo ' Note1: Works for Gammas and Electrons'
+  echo ' Note2: Make sure VAAuto.scr has GenerateStage2Files=enabled'
+}
+
+if [ ! -n "$1" ]; then
+  usage
+  exit
+fi
+
 echo Warning!!: Make sure VAAuto has GenerateStage2Files=enabled
 
 grep "GenerateStage2Files=enabled" VAAuto.scr >redog.tmp
