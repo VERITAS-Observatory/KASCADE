@@ -24,12 +24,35 @@
 #${11} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
 #                  T2 or T3 or T4
 # ************************************************************************
+function usage()
+{
+  echo '***VAAuto.scr usage:'
+  echo ' $1: Season specicifaction Winter is ATM21 Summer is ATM22: Ex: W or S'
+  echo ' $2: Array Cofig: Whipple,OldArray,NewArray,UpgradeArray:   Ex: W or OA or NA or UA'
+  echo ' $3: Particle Type spec: Ex: G or P or He4_ or CR or E'
+  echo ' $4: Kascde Detector Model for VBF files: Ex MDL10UA or MDL15NA or MDL8OA'
+  echo ' $5: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
+  echo ' $6: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
+  echo ' $7: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
+  echo ' $8: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
+  echo ' $9: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
+  echo ' ${10}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
+  echo ' ${11}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
+  echo
+  echo ' EX: ./VAAuto.scr W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
+}
+
+
+
+
+
+
 # Within that loop we can do:   
 
 #FindNoiseLevels=enabled
 
 LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
-MaxQsubsDefault=250           #only want 9 at a time to run (limit for HTAR)
+MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
 
@@ -54,7 +77,7 @@ MaxQsubsDefault=250           #only want 9 at a time to run (limit for HTAR)
 #ProduceSubLookupTables=enabled         #No waiting/81 max. Check ${10} usually blank
 #CombineSubLT=enable                    #No waiting/no limit Check ${10} usually blank
 #BuildLTTree=enable
-CheckLT=enable
+#CheckLT=enable
 #---------------------------------------
 
 #---------------------------------------
@@ -71,7 +94,7 @@ CheckLT=enable
 #---------------------------------------
 #*Generate Stage4
 #---------------------------------------
-#GenerateStage4Files=enabled                       #See LimitSubmissions above
+GenerateStage4Files=enabled                       #See LimitSubmissions above
 #CheckStage4Files=enabled                      
 #--------------------------------------
 
@@ -85,10 +108,30 @@ CheckLT=enable
 #GenerateEASubLTConfigFiles=enabled
 #ProduceEASubLookupTables=enabled
 #CombineEASubLT=enable
-#BuildEALTTree=enable
+#BuildEA=enable
+#CheckEA=enable:Warning!!This doesn't work yet.
 #---------------------------------------
 
 ###########################################################################
+function usage()
+{
+  echo '***VAAuto.scr usage:'
+  echo ' $1: Season specicifaction Winter is ATM21 Summer is ATM22: Ex: W or S'
+  echo ' $2: Array Cofig: Whipple,OldArray,NewArray,UpgradeArray:   Ex: W or OA or NA or UA'
+  echo ' $3: Particle Type spec: Ex: G or P or He4_ or CR or E'
+  echo ' $4: Kascde Detector Model for VBF files: Ex MDL10UA or MDL15NA or MDL8OA'
+  echo ' $5: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
+  echo ' $6: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
+  echo ' $7: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
+  echo ' $8: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
+  echo ' $9: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
+  echo ' ${10}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
+  echo ' ${11}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
+  echo
+  echo ' EX: ./VAAuto.scr W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
+}
+#############################################################################
+
 function CheckQsubSubmissions()
 #$1  Max HTAR Qsubs active at one time
 #$2  Running qsub List File name
@@ -361,7 +404,7 @@ function SubmitVegasSimProduction()
   VEGASScript=$3
   FileVBF=$4
   if [ -n "$LimitSubmissions" ]; then
-    VEGASDoneLog=$FileBase'Done.log'     
+    VEGASDoneLog=$FilePedVar$FileBase'Done.log'     
     if [ -e "$VEGASDoneLog" ]; then              #Max queue jobs are active 
 	 rm $VEGASDoneLog
     fi
@@ -406,6 +449,12 @@ GetUniqueNumber()
 
 
 #Main Program:
+
+if [ ! -n "$1" ]; then
+  usage
+  exit
+fi
+
 
 lcl=$PWD
 
@@ -595,7 +644,6 @@ if [ -n "$ProduceSubLookupTables" ]; then
 	exit
     fi
 fi
-
 DISPLTCUTSFILE=$VEGAS'/../tables/DispLookupTableStdCuts'
 if [ -n "$ProduceDispSubLookupTables" ]; then
     if [ ! -e $DISPLTCUTSFILE ]; then
@@ -808,7 +856,7 @@ if [ -n "$GenerateStage2Files" ]; then
     #############################################################################
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
     #############################################################################
-    WALLTIME=06:00:00
+    WALLTIME=15:00:00
     if [ -n "$CARVER" ]; then
 	MEMREQUEST="pvmem=8GB"
     else
@@ -1777,6 +1825,11 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
    if [ ! -e "combineKASCADE_LT.C" ]; then
        cp $KASCADEBASE'/scripts/combineKASCADE_LT.C' .
    fi
+
+   if [ -e "$LTFILENAME" ]; then
+       rm -v $LTFILENAME
+   fi
+
    ###########################################################################
    #This file is loaded by the rootlogon.C in showerReconstruction2/macros
 
@@ -1926,15 +1979,19 @@ fi
 #################################################################################
 
 
-if [ -n "$BuildEALTTree" ]; then
+if [ -n "$BuildEA" ]; then
    echo '##########################################################'
-   echo '# BuildEALTTree'
+   echo '# BuildEA'
    echo '##########################################################'
-   cd $VEGAS/resultsExtractor/macros
-   LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+   EASPEC=EA
+   if [ -n "$CutTel"]; then
+       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.root'
+   else
+       LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+   fi
    date
    #**********************************************************************
-   #Modify for this LT: except for TelID we need at least 2 to change things
+   #Modify for this EA: except for TelID we need at least 2 to change things
    #**********************************************************************
 
    if [ ${#Azimuth[@]} -gt "1" ]; then
@@ -1948,6 +2005,13 @@ if [ -n "$BuildEALTTree" ]; then
    fi
    if [ ${#WblOffset[@]} -gt "1" ]; then
       StrOffset='-AbsoluteOffset='$ABOStr
+   fi
+
+   cd $VEGAS/resultsExtractor/macros
+
+   if [ ! -e "$LTFILENAME" ]; then
+      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$LTFILENAME 'does not exist!'
+      exit
    fi
    $VEGAS/resultsExtractor/bin/buildEATree \
        $StrAz \
@@ -1985,6 +2049,50 @@ if [ -n "$CheckLT" ]; then
    
    if [ -e  "$LTDiagFileName" ]; then
        cat  $LTDiagFileName >>$lcl'/CheckLT.log'
+   fi
+
+   ~/Switch.rootrcTo.rootrc_glenn.scr
+   cd $LCL
+fi
+# ***********************************************************************
+
+if [ -n "$CheckEA" ]; then
+   echo '##########################################################'
+   echo '# CheckEA'
+   echo '##########################################################'
+   LCL=$PWD
+
+   if [ -n "$CutTel"]; then
+       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.root'
+       LTDiagFileName='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.diag'
+   else
+       LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+        LTDiagFileName='ea'$LTFILENAMEBASE'_'${10}'Cuts.diag'
+   fi
+   date
+   #############################################################################
+   # Make up a script to run on root batch mode
+   #############################################################################
+   cd $VEGAS/resultsExtractor/macros
+   Script='CheckEA.C'
+   echo '{'                                                          >$Script
+   echo '  eaValidator("'$LTFILENAME'");'                          >>$Script
+   echo '}'                                                         >>$Script
+
+   if [ ! -e "$LTFILENAME" ]; then
+      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$LTFILENAME 'does not exist!'
+      exit
+   fi
+   echo "VAAuto: Running root batch command to Check EA file:"
+   echo "VAAuto: "$LTFILENAME
+
+   ~/Switch.rootrcTo.rootrc_resultsExtractor.scr
+   rm $LTDiagFileName
+   
+   root -b -q $Script '>'$lcl'/CheckEA.log'  
+   
+   if [ -e  "$LTDiagFileName" ]; then
+       cat  $LTDiagFileName >>$lcl'/CheckEA.log'
    fi
 
    ~/Switch.rootrcTo.rootrc_glenn.scr
