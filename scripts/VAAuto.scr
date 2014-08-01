@@ -24,29 +24,6 @@
 #${11} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
 #                  T2 or T3 or T4
 # ************************************************************************
-function usage()
-{
-  echo '***VAAuto.scr usage:'
-  echo ' $1: Season specicifaction Winter is ATM21 Summer is ATM22: Ex: W or S'
-  echo ' $2: Array Cofig: Whipple,OldArray,NewArray,UpgradeArray:   Ex: W or OA or NA or UA'
-  echo ' $3: Particle Type spec: Ex: G or P or He4_ or CR or E'
-  echo ' $4: Kascde Detector Model for VBF files: Ex MDL10UA or MDL15NA or MDL8OA'
-  echo ' $5: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
-  echo ' $6: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
-  echo ' $7: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
-  echo ' $8: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
-  echo ' $9: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
-  echo ' ${10}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
-  echo ' ${11}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
-  echo
-  echo ' EX: ./VAAuto.scr W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
-}
-
-
-
-
-
-
 # Within that loop we can do:   
 
 #FindNoiseLevels=enabled
