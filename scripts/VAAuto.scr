@@ -4,24 +4,25 @@
 # GAMMAS ONLY for now (some electron stuff but nowhere near ready for 
 # electrons)
 #It has some arguments listed below.
-#$1 ksProduction season spec: Ex: W or S
-#$2 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, UpgradeArray)
+#$1: Command. Do "VAAuto.scr ListCommands" for a list!
+#$2 ksProduction season spec: Ex: W or S
+#$3 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, UpgradeArray)
 #   This use is not consitent yet. For NA sometimes i use V and sometime NA. Fix this
 #   and rename bunches of files when we start on the oldarray. Note the UA.NA.OA 
 #   extention also appears in argument $4
-#$3 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
-#$4 MDL designation for VBF files: Ex MDL10UA or MDL15NA
-#$5 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
-#$6 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
-#$7 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
-#$8 Threshold: Ex 45mv or 50mv
-#$9 PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
-#${10} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
+#$4 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
+#$5 MDL designation for VBF files: Ex MDL10UA or MDL15NA
+#$6 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
+#$7 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
+#$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
+#$9 Threshold: Ex 45mv or 50mv
+#${10} PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
+#${11} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
-#  For Quality cuts , file used would be $VEGAS/../tables/Quality${10}Cuts
-#  For Stage4, filename would extention be:  ${10}Cuts.root ending
-#  For ShowerCuts, file used would be $VEGAS/../tables/Shower${10}Cuts 
-#${11} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
+#  For Quality cuts , file used would be $VEGAS/../tables/Quality${11}Cuts
+#  For Stage4, filename would extention be:  ${11}Cuts.root ending
+#  For ShowerCuts, file used would be $VEGAS/../tables/Shower${11}Cuts 
+#${12} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
 #                  T2 or T3 or T4
 # ************************************************************************
 # Within that loop we can do:   
@@ -32,80 +33,97 @@ LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR job
 MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
                               # Or you want to generate S2 or S4 files and only make
                               #450 submission in queue at one time
+###################################################################################
+function commandEnable()
+{
+  if [ "$1" = "ListCommands" ]; then
+    usage
+    echo '***VAAuto Valid Commands:'
+    echo '    #------------------------        #------------------------'
+    echo '    #  Stage 2 PedVar files          # Lookup Tables'
+    echo '    #  Uses arguments $1-${10}       # Uses Argument $1-${10}'
+    echo '    #------------------------        #------------------------'
+    echo '    GetVBFFileFromArchive            GenerateSubLTListFiles'
+    echo '    GenerateSimLaserFile             GenerateSubLTConfigFiles'
+    echo '    GenerateStage2Files              ProduceSubLookupTables'  
+    echo '    CheckStage2Files                 CombineSubLT'     
+    echo '    HTARPedVarZnOffsetS2ToArchive    BuildLTTree'
+    echo '    HTARPedVarZnOffsetS2FromArchive  CheckLT'
+    echo
+    echo '    #------------------------        #------------------------'
+    echo '    # Disp Lookup Tables             # Stage4'
+    echo '    # Uses arguments $1-${10}        # Uses Argument $1-${11} ${12} Optional'
+    echo '    #------------------------        #------------------------'
+    echo '    GenerateDispSubLTListFiles       GenerateStage4Files'
+    echo '    GenerateDispSubLTConfigFiles     CheckStage4Files'
+    echo '    ProduceDispSubLookupTables       HTARPedVarZnOffsetS4ToArchive'
+    echo '    CombineDispSubLT                 HTARPedVarZnOffsetS4FromArchive'
+    echo '    BuildDispLTTree'
+    echo
+    echo '    #------------------------'
+    echo '    # EA Tables'
+    echo '    # Uses Argument $1-${11}'
+    echo '    #------------------------'
+    echo '    GenerateEASubLTListFiles'
+    echo '    GenerateEASubLTConfigFiles'
+    echo '    ProduceEASubLookupTables'
+    echo '    CombineBuildEALT'
+    echo '    CheckEA'
+    exit
+  else
+    if [ "$1" = "GetVBFFileFromArchive" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateSimLaserFile" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateStage2Files" ]; then eval $1=enable; return 0; fi;  
+    if [ "$1" = "CheckStage2Files" ]; then eval $1=enable; return 0; fi;     
+    if [ "$1" = "HTARPedVarZnOffsetS2ToArchive" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "HTARPedVarZnOffsetS2FromArchive" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateSubLTListFiles" ]; then eval $1=enable; return 0; fi;         
+    if [ "$1" = "GenerateSubLTConfigFiles" ]; then eval $1=enable; return 0; fi;       
+    if [ "$1" = "ProduceSubLookupTables" ]; then eval $1=enable; return 0; fi;         
+    if [ "$1" = "CombineSubLT" ]; then eval $1=enable; return 0; fi;                    
+    if [ "$1" = "BuildLTTree" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "CheckLT" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateDispSubLTListFiles" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateDispSubLTConfigFiles" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "ProduceDispSubLookupTables" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "CombineDispSubLT" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "BuildDispLTTree" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateStage4Files" ]; then eval $1=enable; return 0; fi;             
+    if [ "$1" = "CheckStage4Files" ]; then eval $1=enable; return 0; fi;                      
+    if [ "$1" = "HTARPedVarZnOffsetS4ToArchive" ]; then eval $1=enable; return 0; fi;  
+    if [ "$1" = "HTARPedVarZnOffsetS4FromArchive" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateEASubLTListFiles" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateEASubLTConfigFiles" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "ProduceEASubLookupTables" ]; then eval $1=enable; return 0; fi;
 
-#GetVBFFileFromArchive=enabled  #Flag that causes check for VBF exitance if needed
-#---------------------------------------
-#*Generate Stage 2 PedVar files
-#---------------------------------------
-#GenerateSimLaserFile=enabled
-#GenerateStage2Files=enabled                      #See LimitSubmissions above
-#CheckStage2Files=enabled                         #No waiting/no limit
-#--------------------------------------
+    if [ "$1" = "CombineBuildEALT" ]; then eval $1=enable; return 0; fi;
+    #if [ "$1" = "CombineEASubLT" ]; then eval $1=enable; return 0; fi;
+    #if [ "$1" = "BuildEA" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "CheckEA" ]; then eval $1=enable; return 0; fi;
+    echo ' VAAuto: Invalid Command: '$1
+    echo ' VAAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
+    exit
+  fi
+}
+################################################################################
 
-#HTARPedVarZnOffsetS2ToArchive=enabled            #See LimitSubmissions above
-#HTARPedVarZnOffsetS2FromArchive=enabled          #See LimitSubmissions above
-
-
-#---------------------------------------
-#*Generate Lookup tables
-#---------------------------------------
-#GenerateSubLTListFiles=enabled                   #No waiting/no limit
-#GenerateSubLTConfigFiles=enabled                 #No waiting/no limit
-#ProduceSubLookupTables=enabled         #No waiting/81 max. Check ${10} usually blank
-#CombineSubLT=enable                    #No waiting/no limit Check ${10} usually blank
-#BuildLTTree=enable
-#CheckLT=enable
-#---------------------------------------
-
-#---------------------------------------
-#*Generate Disp Tables
-#---------------------------------------
-#GenerateDispSubLTListFiles=enabled
-#GenerateDispSubLTConfigFiles=enabled
-#ProduceDispSubLookupTables=enabled
-#CombineDispSubLT=enable
-#BuildDispLTTree=enable
-#---------------------------------------
-
-
-#---------------------------------------
-#*Generate Stage4
-#---------------------------------------
-GenerateStage4Files=enabled                       #See LimitSubmissions above
-#CheckStage4Files=enabled                      
-#--------------------------------------
-
-#HTARPedVarZnOffsetS4ToArchive=enabled             #See LimitSubmissions above
-#HTARPedVarZnOffsetS4FromArchive=enabled           #See LimitSubmissions above
-
-#--------------------------------------
-#*Generate EA Tables
-#-------------------------------------
-#GenerateEASubLTListFiles=enabled
-#GenerateEASubLTConfigFiles=enabled
-#ProduceEASubLookupTables=enabled
-#CombineEASubLT=enable
-#BuildEA=enable
-#CheckEA=enable:Warning!!This doesn't work yet.
-#---------------------------------------
-
-###########################################################################
 function usage()
 {
   echo '***VAAuto.scr usage:'
-  echo ' $1: Season specicifaction Winter is ATM21 Summer is ATM22: Ex: W or S'
-  echo ' $2: Array Cofig: Whipple,OldArray,NewArray,UpgradeArray:   Ex: W or OA or NA or UA'
-  echo ' $3: Particle Type spec: Ex: G or P or He4_ or CR or E'
-  echo ' $4: Kascde Detector Model for VBF files: Ex MDL10UA or MDL15NA or MDL8OA'
-  echo ' $5: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
-  echo ' $6: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
-  echo ' $7: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
-  echo ' $8: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
-  echo ' $9: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
-  echo ' ${10}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
-  echo ' ${11}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
+  echo ' $1: Command. Do "VAAuto.scr ListCommands" for a list!'
+  echo ' $2: Season specicifaction Winter is ATM21 Summer is ATM22: Ex: W or S'
+  echo ' $3: Array Cofig: Whipple,OldArray,NewArray,UpgradeArray:   Ex: W or OA or NA or UA'
+  echo ' $4: Particle Type spec: Ex: G or P or He4_ or CR or E'
+  echo ' $5: Kascade Detector Model for VBF files: Ex MDL10UA or MDL15NA or MDL8OA'
+  echo ' $6: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
+  echo ' $7: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
+  echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
+  echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
+  echo ' ${10}: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
+  echo ' ${11}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
+  echo ' ${12}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
-  echo ' EX: ./VAAuto.scr W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
+  echo ' EX: ./VAAuto.scr GenerateStage4Files W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
 }
 #############################################################################
 
@@ -432,37 +450,52 @@ if [ ! -n "$1" ]; then
   exit
 fi
 
+commandEnable $1   #This will enable the specified command or exit if its not a 
+                   #known command.
 
 lcl=$PWD
+SPECSEA=$2
+SPECCFG=$3
+SPECPART=$4
+SPECMDL=$5
+SPECZN=$6
+SPECAZ=$7
+SPECWBL=$8
+SPECTHR=$9
+SPECPV=${10}
+CUTTYPE=${11}
+TELCUT=${12}
+
+
 
 
 ###########################
 #Winter/Summer
 ###########################
-if [ "$1" = "W" ]; then
+if [ "$SPECSEA" = "W" ]; then
     LTATM="ATM21"
 fi
-if [ "$1" = "S" ]; then
+if [ "$SPECSEA" = "S" ]; then
     LTATM="ATM22"
 fi
 
 ############################
 # Array seaon
 ############################
-if [ "$2" = "UA" ]; then
+if [ "$SPECCFG" = "UA" ]; then
     PMT="U"
     LTSEASON="ua"
 fi
-if [ "$2" = "OA" ]; then
+if [ "$SPECCFG" = "OA" ]; then
     PMT="OA"
     LTSEASON="oa"
 fi
-if [ "$2" = "NA" ]; then
+if [ "$SPECCFG" = "NA" ]; then
     PMT="V"
     LTSEASON="na"
 fi
-if [ "$2" = "W" ]; then
-    PMT=$2
+if [ "$SPECCFG" = "W" ]; then
+    PMT=$SPECCFG
 fi
 ############################
 
@@ -478,8 +511,8 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
     JobIDHost='cvrsvc'
     QUEUE=serial
     WALLTIME=30:00:00
-    ARCHIVE=/home/u/u15013/$4'/'
-    VBFDir=$ARCHIVE$1$PMT$3$4'VBF'     
+    ARCHIVE=/home/u/u15013/$SPECMDL'/'
+    VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
     MEMREQUEST='pvmem=15GB'
     echo '***Carver Cluster***'
 fi
@@ -489,7 +522,7 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
     then
     HANSEN=enabled
     ARCHIVE=/archive/fortress/group/veritas/simulations/
-    VBFDir=$ARCHIVE'/gammas/'$1$PMT$3$4'VBF'
+    VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
     JobIDHost='hansen-adm'
     QUEUE=physics
     WALLTIME=30:00:00
@@ -504,7 +537,7 @@ if test  "$hostString" = "coates"  #Are we running on Coates?
     then
     COATES=enabled
     ARCHIVE=/archive/fortress/group/veritas/simulations/
-    VBFDir=$ARCHIVE'/gammas/'$1$PMT$3$4'VBF'
+    VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
     JobIDHost='coates-adm'
     QUEUE=physics
     WALLTIME=30:00:00
@@ -516,7 +549,7 @@ fi
 
 
 ########################################################################
-#To find the Zn,AZ,Offset and Pedvar  combinations first put $5,$6,$7 and $9 
+#To find the Zn,AZ,Offset and Pedvar  combinations first put $SPECZN,$SPECAZ,$SPECWBL and $SPECPV 
 #into arrays This is tricky. We save away the present Internal Filed Seperator
 #and then set IFS to a comma. We then use the -a option with the read command 
 #to read in our stings into arrays. Then we restore the IFS.
@@ -525,23 +558,23 @@ fi
 
 SAVEIFS=$IFS
 
-if [ $5 = "All" ]; then
+if [ $SPECZN = "All" ]; then
     Zenith=([0]=1 10 20 30 40 50 60 70)
 else  
-    IFS=, read -a Zenith <<< "$5"
+    IFS=, read -a Zenith <<< "$SPECZN"
 fi
 
-if [ $6 = "All" ]; then
+if [ $SPECAZ = "All" ]; then
     Azimuth=([0]=0 45 90 135 180 225 270 315)
 else  
-    IFS=, read -a Azimuth <<< "$6"
+    IFS=, read -a Azimuth <<< "$SPECAZ"
 fi
 
-if [ $7 = "All" ]; then
+if [ $SPECWBL = "All" ]; then
     WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
     LTWbl="alloffsets"
 else  
-    IFS=, read -a WblOffset <<< "$7"
+    IFS=, read -a WblOffset <<< "$SPECWBL"
     let iwblEnd=${#WblOffset[@]}
     if [ "$iwblEnd" -eq "1" ]; then
 	W=${WblOffset[0]}
@@ -556,18 +589,18 @@ else
 fi
 
 
-if [[ $9 = "All" ]]; then
-    if [ $2 = "UA" ]; then
+if [[ $SPECPV = "All" ]]; then
+    if [ $SPECCFG = "UA" ]; then
       PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
     fi
-    if [ $2 = "NA" ] || [ $2 = "OA" ]; then
+    if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
       PedVar=([0]=4.04 4.72 5.51 6.44 7.53 8.79 10.27 12.00)
     fi
 else
-    if [[ $9 = "Base" ]]; then
+    if [[ $SPECPV = "Base" ]]; then
 	PedVar=([0]=0 )
     else
-	IFS=, read -a PedVar <<< "$9"
+	IFS=, read -a PedVar <<< "$SPECPV"
     fi
 fi
 IFS=$SAVEIFS
@@ -578,7 +611,7 @@ IFS=$SAVEIFS
 ###########################################################################
 
 #Check if the is for 2D offsets, blank if not
-if [ "$3" = "G" ] || [ "$3" = "E" ]; then
+if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ]; then
     OffSetSpec="2D"
 fi
 
@@ -593,7 +626,7 @@ HMode=H
 CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
-if [ "$3" = "E" ]; then
+if [ "$SPECPART" = "E" ]; then
     PARTICALTYPE="Electrons_"
 fi 
 
@@ -607,8 +640,8 @@ else
     LTCUTSFILE=$VEGAS'/../tables/LookupTable'
 fi
 
-if [ -n "${10}" ]; then 
-    LTCUTSFILE=$LTCUTSFILE${10}'Cuts'
+if [ -n "$CUTTYPE" ]; then 
+    LTCUTSFILE=$LTCUTSFILE$CUTTYPE'Cuts'
 else
     LTCUTSFILE=$LTCUTSFILE'StdCuts'
 fi
@@ -629,7 +662,7 @@ if [ -n "$ProduceDispSubLookupTables" ]; then
     fi
 fi
 
-EACUTSFILE=$VEGAS'/../tables/Shower'$Samples'Sample'${10}'Cuts'
+EACUTSFILE=$VEGAS'/../tables/Shower'$Samples'Sample'$CUTTYPE'Cuts'
 if [ -n "$ProduceEASubLookupTables" ]; then
   if [ ! -e $EACUTSFILE ]; then
      echo 'VAAuto: Fatal- Can not find file: '$EACUTSFILE
@@ -645,10 +678,10 @@ ZNStr=1,10,20,30,40,50,60,70
 ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
 AzStr=0,45,90,135,180,225,270,315
 
-if [ $2 = "UA" ]; then
+if [ $SPECCFG = "UA" ]; then
    NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
 fi
-if [ $2 = "NA" ] || [ $2 = "OA" ]; then
+if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
    NoiseStr=4.04,4.72,5.51,6.44,7.53,8.79,10.27,12.00
 fi
 
@@ -715,11 +748,12 @@ fi
 
 #See if optional CutTelelescope in use for GenerateStage4 or GenerateEA
 TelConfig=1234
-if [ -n "${11}" ]; then
-   T=${11}
+
+if [ -n "$TELCUT" ]; then
+   T=$TELCUT
    TT=${T:0:1}
    if [ "$TT" != "T" ]; then
-     echo 'VAuto: Bad CutTlescope option: '$T' Allowed values:T1 or T2 or T3 or T4'
+     echo 'VAuto: Bad CutTelscope option: '$T' Allowed values:T1 or T2 or T3 or T4'
      exit
    fi
    let CutTel=${T:1:1}
@@ -741,7 +775,7 @@ if [ -n "${11}" ]; then
    if [ "$CutTel" != "4" ] ; then
       TelConfig=$TelConfig'4'
    fi
-   echo 'VAAuto: Array configuration: '$TelConfig'  No '${11}
+   echo 'VAAuto: Array configuration: '$TelConfig'  No '$TELCUT
 fi
 ###############################################################################
 
@@ -874,7 +908,7 @@ if [ -n "$GenerateStage4Files" ]; then
     ######################################################################
     # If this is an Old Array run, enable the TelCombosToDeny=T1T4
     ######################################################################
-    if  [ $2 = "OA" ]; then
+    if  [ $SPECCFG = "OA" ]; then
       sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmp1 >tmp2 
       cp tmp2 tmp1
     fi
@@ -884,10 +918,10 @@ if [ -n "$GenerateStage4Files" ]; then
     # LT name
     ####################################################################
 
-    QUALITYCUTSFILE=Quality${10}'Cuts'
+    QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
     cp $VEGAS/../tables/$QUALITYCUTSFILE .
 
-    FILEBASE=${10}'Cuts'
+    FILEBASE=$CUTTYPE'Cuts'
     LTFILENAME='lt'$LTFILENAMEBASE'.root'
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
@@ -936,7 +970,7 @@ if [ -n "$GenerateDispSubLTListFiles" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   DispListNames='DispSubLT'$1$Samples'Sample*'$HMode'List'
+   DispListNames='DispSubLT'$SPECSEA$Samples'Sample*'$HMode'List'
    rm $DispListNames
 fi
 #############################################################################
@@ -946,7 +980,7 @@ if [ -n "$GenerateDispSubLTConfigFiles" ]; then
     echo '##########################################################'
     cd $lcl
     date
-    ConfigNames='DispSubLT'$1$Samples'Sample*Deg*noise'$HMode'.config'
+    ConfigNames='DispSubLT'$SPECSEA$Samples'Sample*Deg*noise'$HMode'.config'
     rm $ConfigNames
    # *************************************************************************
    # Generate template config file for the Disp tables
@@ -1077,7 +1111,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
      fi
      
      #Construct the Disp Sub Lt Config File Name
-     DISPSUBLTBASE='DispSubLT'$1$Samples'Sample'$ZnAz
+     DISPSUBLTBASE='DispSubLT'$SPECSEA$Samples'Sample'$ZnAz
      DispConfigName=$DISPSUBLTBASE$HMode'.config'
      DispListName=$DISPSUBLTBASE$HMode'List'
      DispSubLTFileName=$lcl'/'$DISPSUBLTBASE'.root'
@@ -1177,7 +1211,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
            PedVarFile="NONE"
            PedVarName=""
          else
-           PedVarFile=Ped$2$PV
+           PedVarFile=Ped$SPECCFG$PV
            PedVarName=PedVar$PV
          fi  
    
@@ -1186,7 +1220,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
          # ************************************************************************
          #Generate  file names
  
-         BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
+         BaseFile=$SPECSEA$PMT$SPECPART$SPECMDL$ZnAz'2D'$WBLSPEC$SPECTHR
 	 FileName='PedVar'$PV$BaseFile'1234M2.root'
          VBFFILE=$BaseFile'1234M2.vbf'
          
@@ -1199,9 +1233,9 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
 	  cd $lcl
 	  date
 	  echo VBFFILE: $VBFFILE
-	  echo VBFDIR: $ARCHIVE$1$PMT$3$4'VBF'
+	  echo VBFDIR: $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
 	  if [ ! -e "$VBFFILE" ]; then
-           hsi 'cd '$ARCHIVE$1$PMT$3$4'VBF; get '$VBFFILE';'
+           hsi 'cd '$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF; get '$VBFFILE';'
           fi
          fi
             
@@ -1282,7 +1316,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
      kaz=$((kaz+1))
    done
    if [ -n "$CheckStage2Files" ]; then
-     echo 'VAAuto: PedVar files: '$1$PMT$3' Zn:  '${Zenith[$izn]}' AZ: '$6', offset: '$7', pedv: '$9' Check complete.'
+     echo 'VAAuto: PedVar files: '$SPECSEA$PMT$SPECPART' Zn:  '${Zenith[$izn]}' AZ: '$SPECAZ', offset: '$SPECWBL', pedv: '$SPECPV' Check complete.'
    fi
  
    izn=$((izn+1))
@@ -1297,7 +1331,7 @@ if [ -n "$GenerateSubLTListFiles" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   ListNames='SubLT'$1$Samples'Sample*Deg*List'
+   ListNames='SubLT'$SPECSEA$Samples'Sample*Deg*List'
    rm $ListNames
 fi
 #############################################################################
@@ -1345,7 +1379,7 @@ if [ -n "$GenerateEASubLTListFiles" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   ListNames='EASubLT'$1$Samples'Sample*Deg*List'
+   ListNames='EASubLT'$SPECSEA$Samples'Sample*Deg*List'
    rm $ListNames
    EASPEC=EA
 fi
@@ -1440,17 +1474,20 @@ if   [ -n "$CombineSubLT" ]; then
    fi
 fi
 ##############################################################################
-if   [ -n "$CombineEASubLT" ]; then
+#if   [ -n "$CombineEASubLT" ]; then
+#   echo '##########################################################'
+#   echo '# CombineEASubLT'
+if   [ -n "$CombineBuildEALT" ]; then
    echo '##########################################################'
-   echo '# CombineEASubLT'
+   echo '# CombineBuildEALT'
    echo '##########################################################'
    cd $lcl
    date
    EASPEC=EA
    if [ -n "$CutTel"]; then
-       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.root'
+       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.root'
    else
-       LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+       LTFILENAME='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.root'
    fi
    SubLTList='EASubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -1469,7 +1506,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
    [ -n "$GenerateStage4Files" ]      || [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || \
    [ -n "$CheckStage4Files" ]         || [ -n "$HTARPedVarZnOffsetS4FromArchive" ] || \
    [ -n "$GenerateEASubLTListFiles" ] || [ -n "$GenerateEASubLTConfigFiles" ]      || \
-   [ -n "$ProduceEASubLookupTables" ] || [ -n "$CombineEASubLT" ] ; then
+   [ -n "$ProduceEASubLookupTables" ] || [ -n "$CombineBuildEALT" ] ; then
+#   [ -n "$ProduceEASubLookupTables" ] || [ -n "$CombineEASubLT" ] ; then
 
 #****************************************************************************
    # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
@@ -1505,7 +1543,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
        fi                            #let user know things are running
 
        #Construct the Sub Lt or  EASubLT Config File Name
-       SUBLTBASE=$EASPEC'SubLT'$1$Samples'Sample'$Z'Deg'$WBLSPEC${10}
+       SUBLTBASE=$EASPEC'SubLT'$SPECSEA$Samples'Sample'$Z'Deg'$WBLSPEC$CUTTYPE
        #echo SUBLTBASE: $SUBLTBASE
        ConfigName=$SUBLTBASE$HMode'.config'
        ListName=$SUBLTBASE'List'
@@ -1554,10 +1592,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	 PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4'.tar'
-	 PVFILESPEC='PedVar*'$1$PMT$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8'1234M2.root'
+	 PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
+	 PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR'1234M2.root'
               
-	 SubmitHtarToArchive $ARCHIVE$1$PMT$3$4'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
+	 SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
@@ -1567,9 +1605,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4
+	   PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
 
-	   SubmitHtarFromArchive $ARCHIVE$1$PMT$3$4'PedVarS2/' $lcl $PedVarHTARFile 
+	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
 
@@ -1579,22 +1617,22 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	 if [ ! -d "$ARCHIVE$1$PMT$3$4'PedVarS4'" ]; then  #Check Archive Directory exists 
-	     echo $ARCHIVE$1$PMT$3$4'PedVarS4' ;
-	     hsi 'cd '$ARCHIVE'; mkdir '$1$PMT$3$4'PedVarS4;'
-	     echo $ARCHIVE$1$PMT$3$4'PedVarS4' ;
+	 if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then  #Check Archive Directory exists 
+	     echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
+	     hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
+	     echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
 	 fi
-	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts'
-	 if [ -n "${11}" ]; then
+	 PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	 if [ -n "$TELCUT" ]; then
             PedVarHTARFile=$PedVarHTARFile$TelConfig
          fi
 
          PedVarHTARFile=$PedVarHTARFile'.tar'
 
 
-	 PVFILESPEC='PedVar*'$1$PMT$3$4$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$8$TelConfig'M2'${10}'Cuts.root'
+	 PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
               
-	 SubmitHtarToArchive $ARCHIVE$1$PMT$3$4'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
+	 SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
@@ -1604,12 +1642,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$1$PMT$3$4${10}'Cuts'
-	   if [ -n "${11}" }; then
+	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	   if [ -n "$TELCUT" }; then
               PedVarHTARFile=$PedVarHTARFile$TelConfig
            fi
 
-	   SubmitHtarFromArchive $ARCHIVE$1$PMT$3$4'PedVarS4/' $lcl $PedVarHTARFile 
+	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
 
@@ -1662,7 +1700,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
        #*******************************************************************
 
 
-       if [ -n "$CombineSubLT" ] || [ -n "$CombineEASubLT" ] ; then
+#       if [ -n "$CombineSubLT" ] || [ -n "$CombineEASubLT" ] ; then
+       if [ -n "$CombineSubLT" ] || [ -n "$CombineBuildEALT" ] ; then
          #*******************************************************************
          # Create the List of all SubLT files to be combined
          #******************************************************************
@@ -1697,11 +1736,11 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   do
            #Test for defaults
 	   PV=${PedVar[$kpvar]} 
-	   PedVarFile=Ped$2$PV
+	   PedVarFile=Ped$SPECCFG$PV
 	   PedVarName=PedVar$PV
-	   BaseFile=$1$PMT$3$4$ZnAz'2D'$WBLSPEC$8
+	   BaseFile=$SPECSEA$PMT$SPECPART$SPECMDL$ZnAz'2D'$WBLSPEC$SPECTHR
 	   PedVarS2FileName=$PedVarName$BaseFile'1234M2.root'
-	   PedVarS4FileName=$PedVarName$BaseFile$TelConfig'M2'${10}'Cuts.root'
+	   PedVarS4FileName=$PedVarName$BaseFile$TelConfig'M2'$CUTTYPE'Cuts.root'
 	   VBFFILE=$BaseFile'1234M2.vbf'
 
            #********************************************************************
@@ -1711,7 +1750,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
              # echo '# GenerateSubLTListFiles'
 	     # echo '##########################################################'
 	     cd $lcl
-             #if [ -n "${10}"]; then  
+             #if [ -n "$CUTTYPE"]; then  
              #  echo $PedVarS4FileName >>$ListName
 	     #else
 		 echo $PedVarS2FileName >>$ListName
@@ -1827,7 +1866,8 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 fi
 #**********************************************************************
 
-if [ -n "$CombineEASubLT" ]; then
+#if [ -n "$CombineEASubLT" ]; then
+if [ -n "$CombineBuildEALT" ]; then
     cd $VEGAS/resultsExtractor/macros
    if [ ! -e "combineEAKascade.C" ]; then
        cp $KASCADEBASE'/scripts/combineEAKascade.C' .
@@ -1956,15 +1996,16 @@ fi
 #################################################################################
 
 
-if [ -n "$BuildEA" ]; then
-   echo '##########################################################'
-   echo '# BuildEA'
-   echo '##########################################################'
+#if [ -n "$BuildEA" ]; then
+if [ -n "$CombineBuildEALT" ]; then
+   #echo '##########################################################'
+   #echo '# BuildEA'
+   #echo '##########################################################'
    EASPEC=EA
    if [ -n "$CutTel"]; then
-       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.root'
+       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.root'
    else
-       LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
+       LTFILENAME='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.root'
    fi
    date
    #**********************************************************************
@@ -2040,23 +2081,23 @@ if [ -n "$CheckEA" ]; then
    LCL=$PWD
 
    if [ -n "$CutTel"]; then
-       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.root'
-       LTDiagFileName='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'${10}'Cuts.diag'
+       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.root'
+       LTDiagFileName='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.diag'
    else
-       LTFILENAME='ea'$LTFILENAMEBASE'_'${10}'Cuts.root'
-        LTDiagFileName='ea'$LTFILENAMEBASE'_'${10}'Cuts.diag'
+       LTFILENAME='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.root'
+        LTDiagFileName='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.diag'
    fi
    date
    #############################################################################
    # Make up a script to run on root batch mode
    #############################################################################
-   cd $VEGAS/resultsExtractor/macros
+   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
    Script='CheckEA.C'
    echo '{'                                                          >$Script
-   echo '  eaValidator("'$LTFILENAME'");'                          >>$Script
+   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$LTFILENAME'");'  >>$Script
    echo '}'                                                         >>$Script
 
-   if [ ! -e "$LTFILENAME" ]; then
+   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$LTFILENAME" ]; then
       echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$LTFILENAME 'does not exist!'
       exit
    fi

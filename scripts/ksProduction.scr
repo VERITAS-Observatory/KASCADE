@@ -88,8 +88,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
       fi
     fi
 
-#CARVER
-   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
+#EDISON,CARVER,FUSION
+   if [ -n "$EDISON" ] || [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -197,8 +197,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
       fi
     fi
 
-#CARVER
-   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
+#EDISON,CARVER,FUSION
+   if [ -n "$EDISON" ] || [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
@@ -256,32 +256,31 @@ function CosmicRay()
     echo Helium4: $he4Parspec     
 
 #Veritas/Whipple Set1/ksaom/kasall
-######       1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    45
-pEnergy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 ) 
- pStart=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1     1) 
-   pEnd=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5)
+######       1    2    3     4     5    6    7    8    9    10   11     12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    45
+pEnergy=([1]=20   23.9 28.6  34.2  40.9 48.9 58.5 69.9 83.6 100  119.6  143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 ) 
+ pStart=([1]=1    1    1     1     1    1    1    1    1    1    1      1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1     1) 
+   pEnd=([1]=2764 2014 1468  1070  780  568  414  302  220  160  118    86  62  46    34    24    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    20    20    10    10)
 
-#10%
-#   pEnd=([1]=139  101  74   54   39   29   21   16   11   8   6     5   4   3     2     2     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1 )
+#MDL
+#   pEnd=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5)
 
-######         1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    45
-he4Energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 ) 
- he4Start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1     1) 
-   he4End=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5)
+######         1     2    3    4    5    6    7     8     9     10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    45
+he4Energy=([1]=20    23.9 28.6 34.2 40.9 48.9 58.5  69.9  83.6  100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 ) 
+ he4Start=([1]=1     1    1    1    1    1    1     1     1     1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1     1) 
+   he4End=([1]=1038  774  578  430  321  240  180   134   100   74  56    41  32  24    20    20    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    10     10     10     10)
 
-#10%
-#   he4End=([1]=52   39   29   22   17   12   9    7    5    4   3     3   2   2     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1 )  
+#MDL
+#   he4End=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5)
 
-
-#CARVER
-   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
+#EDISON,CARVER,FUSION
+   if [ -n "$EDISON" ] || [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
-      let iPEntryStart=1
-      let iHe4EntryStart=5  #Normal start for helium
-      let iPEntryEnd=42
-      let iHe4EntryEnd=42          #36 is 10% end
+      #let iPEntryStart=1
+      #let iHe4EntryStart=5  #Normal start for helium
+      #let iPEntryEnd=42
+      #let iHe4EntryEnd=42          #36 is 10% end
 
       let iEntryEnd=$iPEntryEnd
       if test $iPEntryEnd -lt $iHe4EntryEnd 
@@ -469,8 +468,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
    fi
 
 
-#CARVER
-   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
+#EDISON,CARVER,FUSION
+   if [ -n "$EDISON" ] || [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     # Submit in reverse order so the longest start first.
     # iEntryStart and iEntryEnd set in main
@@ -594,8 +593,8 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
     fi
 
 
-#CARVER
-   if [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
+#EDISON,CARVER,FUSION
+   if [ -n "$EDISON" ] || [ -n "$CARVER" ] || [ -n "$FUSION" ]; then
     #**********************************************************************
     # Submit in reverse order so the longest start first.
     # iEntryStart and iEntryEnd set in main
@@ -609,7 +608,7 @@ energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5
                 then
                   BuildAndSubmitJobs $j 
 	        else
-                  BuildAndSubmitJobs $j 
+                  BuildAndSubmitJobsSingly $j 
 	       fi
                let j=j-1		
             done
@@ -682,7 +681,7 @@ function BuildAndSubmitHansenJobs
    echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
    echo $sgeFile >>$QsubFileNameList
  else
-   qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+   qsub$QSUBEXT -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
  fi
 }
 ##################################################################
@@ -732,7 +731,7 @@ function BuildAndSubmitHansenJobsBy10()
     echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
-     qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+     qsub$QSUBEXT -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
    fi
    let i=$i+$Stepsize
   done
@@ -792,7 +791,7 @@ function BuildAndSubmitHansenJobsByNode()
     echo 'echo Done >'$sgeFile'.Done'                 >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
-     qsub -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+     qsub$QSUBEXT -V -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
    fi
   done
 }
@@ -817,13 +816,16 @@ function BuildAndSubmitHansenJobsSingly
  while test $i -le $showerEnd
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
-   if [ "$E" -gt "10000" ] && [ -n "$Sort" ]; then
+   if [ "$E" -gt "20000" ]; then
+     #echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
+     #echo "#"PBS -l walltime=$WALLTIMESTANDBY             >>$sgeFile
      echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
      echo "#"PBS -l walltime=$WALLTIMEPHYSICS             >>$sgeFile
    else
      echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
      echo "#"PBS -l walltime=$WALLTIMESTANDBY             >>$sgeFile
    fi
+
    echo source /etc/profile                               >>$sgeFile
    echo module load gcc/4.7.2                             >>$sgeFile
    echo lcl=$PBS_O_WORKDIR                                >>$sgeFile
@@ -836,7 +838,7 @@ function BuildAndSubmitHansenJobsSingly
     echo 'echo Done >'$sgeFile'.Done'                     >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
    else
-     qsub -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+     qsub$QSUBEXT -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
    fi
    let i=i+1
   done
@@ -858,10 +860,17 @@ function BuildAndSubmitJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  echo "#"!/bin/bash                            >$sgeFile
- if [ ! -n "$FUSION" ]; then
-       echo "#"PBS -q $QUEUE                  >>$sgeFile
- fi
+
  echo "#"PBS -l walltime=$WALLTIME            >>$sgeFile
+ echo "#"PBS -l $MEMREQUEST                   >>$sgeFile
+ if [ ! -n "$FUSION" ]; then
+   echo "#"PBS -q $QUEUE                      >>$sgeFile
+ fi
+ if [ -n "$EDISON" ]; then
+   echo "#"PBS -A mpccc                       >>$sgeFile
+ fi
+
+
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
  echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
@@ -872,7 +881,7 @@ function BuildAndSubmitJobs
    echo 'echo Done >'$sgeFile'.Done'          >>$sgeFile
    echo $sgeFile >>$QsubFileNameList
  else
-   qsub -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
+   qsub$QSUBEXT -V -e k$eGeV$pr.err -o k$eGeV$pr.log $sgeFile 
  fi
 }
 #########################################################################
@@ -897,13 +906,13 @@ function BuildAndSubmitJobsSingly
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    echo "#"!/bin/bash                                      >$sgeFile
    echo "#"PBS -l walltime=$WALLTIME                      >>$sgeFile
+   echo "#PBS -l " $MEMREQUEST                            >>$sgeFile
    if [ ! -n "$FUSION" ]; then
        echo "#"PBS -q $QUEUE                              >>$sgeFile
-       if test $1 -ge 25
-         then
-          echo "#PBS -l " $MEMREQUEST                     >>$sgeFile
-       fi
    fi	
+   if [ -n "$EDISON" ]; then
+     echo "#"PBS -A mpccc                                 >>$sgeFile
+   fi
    echo cd $lcl                                           >>$sgeFile
    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
@@ -913,7 +922,7 @@ function BuildAndSubmitJobsSingly
      echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
-     qsub  -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
+     qsub$QSUBEXT  -V -e k$eGeV'd'$i$pr.err -o k$eGeV'd'$i$pr.log $sgeFile 
    fi
    let i=i+1
   done
@@ -969,7 +978,7 @@ function BuildAndSubmitJobArray
      echo 'echo Done >'$sgeFile'.Done'                          >>$sgeFile
      echo $sgeFile >>$QsubFileNameList
    else
-     qsub -q $QUEUE  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
+     qsub$QSUBEXT -q $QUEUE  -t $k'-'$kend  -V -e k$eGeV.err -o k$eGeV.log $sgeFile 
    fi
    let k=kend+1
 
@@ -1016,6 +1025,17 @@ lcl="$PWD"
 
 host=$(hostname)
 echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "edison"  #Are we running on Edison
+then
+  EDISON=enabled
+  QUEUE=serial
+  WALLTIME=10:00:00
+  MEMREQUEST='vmem=4GB'
+  QSUBEXT=.serial
+  echo ***Edison Cluster***
+fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
@@ -1125,6 +1145,13 @@ fi
 
 
 
+if [ -n "$EDISON" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Edison Data Dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH
+fi
+
 if [ -n "$CARVER" ]; then
     dataDirBase=$SCRATCH'/simulations'
     echo Carver Data Dir: $dataDirBase
@@ -1194,7 +1221,7 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
                                         #WWCR20DegN0.3Deg50mv1234M2
 
     if [ -n "$CARVER" ] || [ -n "$HANSEN" ] || [ -n "$COATES" ] ||
-       [ -n "$FUSION" ]; then
+       [ -n "$EDISON" ] || [ -n "$FUSION" ]; then
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
        protonDatadir="$dataDirBase/protons"
@@ -1207,7 +1234,32 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
        echo CR:He4 Dir: $he4Datadir
        mkdir -vp  $he4Datadir
  
+       if [ -n "$5" ]; then
+	let iPEntryStart=$5
+       else
+        let iPEntryStart=1
+       fi
+
+       if [ -n "$6" ]; then
+	let iPEntryEnd=$6
+       else
+        let iPEntryEnd=45
+       fi
+
+       if [ -n "$7" ]; then
+	let iHe4EntryStart=$7
+       else
+        let iHe4EntryStart=5
+       fi
+
+       if [ -n "$8" ]; then
+	let iHe4EntryEnd=$8
+       else
+        let iHe4EntryEnd=45
+       fi
+      
        CosmicRay
+      
        let pspecset=1;
     else
        parspec=$AtmSpec$TelSpec'P'$spec   #gives SVP20DegN0.3Deg50mv1234M2ABCD
@@ -1223,7 +1275,7 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     fi
 fi
 
-if [ ${jobSpec:2:1} = "E" ] ; then 
+if [ ${jobSpec:2:1} = "E" ]; then 
     parspec=$1 
     datadir="$dataDirBase/electrons"
     mkdir -vp $datadir
@@ -1305,7 +1357,7 @@ if [ -n "$ISIS" ]; then
 fi
 
 
-#Nothing for CARVER,HANSEN,COATES
+#Nothing for EDISON,CARVER,HANSEN,COATES
 
 
 ###########################################################################
