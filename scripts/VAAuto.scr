@@ -127,6 +127,119 @@ function usage()
 }
 #############################################################################
 
+##############################################################################
+
+function GetOptionValue()
+#$1 Cuts file name
+#$2 Option whose value we need to find
+{
+  OptionString=$2
+  #echo 'Cuts File Name: '$1' Opt: '$OptionString
+  {
+    while read Opt OptionValue;
+     do
+      if  [ "$OptionString" = "$Opt" ]; then
+         return
+      fi
+     done
+   }<$1
+}
+##############################################################################      	
+
+function GenerateEAFileName()
+#$1 Cuts Ex: UpgradeSoft  or OldArrayMedium
+#$2 Season EX: W (Winter)  or S (Summer)
+#$3 Offset id: Ex; All or 050
+#$4 Method: Ex: std or hfit or disp
+#$5 TelConfig: Ex: 1234(ignored) 123X or X234 or 1X34 or 1X3X or etc.
+#$6 Particle type: Blank if gamma otherwise: Ex: Electrons or CosmicRays
+{
+  Cuts=$1
+  SimModel=Jan2013
+  a=${Cuts:0:1}
+  if [ "$a" = "U" ]; then
+     array=V6_PMTUpgrade
+     DetectorModelID=MDL10UA
+  fi
+  if [ "$a" = "N" ]; then
+     array=V5_T1Move
+     DetectorModelID=MDL15NA
+  fi
+  if [ "$a" = "O" ]; then
+     array=V4_OldArray
+     DetectorModelID=MDL8OA
+  fi
+
+  if [ "$2" = "W" ]; then
+    SeasonID='21'
+  fi
+  if [ "$2" = "S" ]; then
+    SeasonID='22'
+  fi
+  echo SeasonID: $SeasonID 'for ' $2
+  offsetID=$3
+
+  #############################
+  # Make up quality factor file name
+  #############################
+  tbl=$VEGAS'/../tables/'
+  GetOptionValue $tbl'Quality'$Cuts'Cuts'  SizeLower  #sets OptionValue
+  sizeCut=${OptionValue:2}                       #Drop "0/"
+
+  telescopeCut=t2                                #Multiplicity (2 tels trigger, OA ?)
+  method=$4
+  
+  GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  MeanScaledWidthUpper  #sets OptionValue
+  
+  MSWUpperCut=${OptionValue/./p}             #Tricky way to replace a "." with a "p"
+
+  GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  MeanScaledLengthUpper  #sets OptionValue
+  MSLUpperCut=${OptionValue/./p}
+  
+  GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  MaxHeightLower  #sets OptionValue
+  if [ "$OptionValue" != "-100" ]; then           #check if not used
+      MaxHeightLowerCut=${OptionValue/./p}     #will remain undefined if not used
+  fi
+
+
+  GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  ThetaSquareUpper
+  ThetaSquareUpperCut=${OptionValue/./p}
+
+  TelConfiguration=$5
+  if [ "$5" != "1234" ]; then
+     TELCONFIGURATION=$5
+  fi   
+
+  ###################################################
+  # Ready to build file name
+  ###################################################
+#  ea_[array]_ATM[SeasonID]_[SimulationTool]_[SimulationToolVersion]_
+# [DetectorModelID]_[Primary]_vegasv250rc5_7sam_[offsetID]off_
+# s[sizeCut][telescopeCut]_[method]_MSW[MSW upper cut]_MSL[MSL upper cut]_
+# MH[Max height lower cut]_ThetaSq[Theta square upper cut]_LZA.root
+
+  EAFILENAME='ea_'$array'_ATM'$SeasonID'_KASCADE_'$DetectorModelID'_'
+  if  [ -e "$6" ]; then
+     EAFILENAME=$EAFILENAME$6'_'
+  fi
+
+  EAFILENAME=$EAFILENAME'vegasv250rc5_'
+  EAFILENAME=$EAFILENAME'7sam_'$offsetID'off_s'$sizeCut$telescopeCut'_'$method'_MSW'
+  EAFILENAME=$EAFILENAME$MSWUpperCut'_MSL'$MSLUpperCut'_'
+
+  if [ -e "$MaxHeightLowerCut" ]; then
+    EAFILENAME=$EAFILENAME'MH'$MaxHeightLowerCut'_'
+  fi
+ 
+  EAFILENAME=$EAFILENAME'ThetaSq'$ThetaSquareUpperCut'_'
+  if [ -E "$TELCONFIGURATION" [; then
+    EAFILENAME=$EAFILENAME'T'$TELCONFIGURATION'_'
+  fi
+  EAFILENAME=$EAFILENAME'LZA.root'
+  return
+}
+##################################################################################
+
 function CheckQsubSubmissions()
 #$1  Max HTAR Qsubs active at one time
 #$2  Running qsub List File name
@@ -388,7 +501,7 @@ function SubmitVegasSimProduction()
   if [ "$FilePedVar" = "NONE" ]; then
       FilePedVar=""
   else
-     if [ ! -e "$lcl"/"$FilePedVar" ]; then
+     if [ !OptionValue -e "$lcl"/"$FilePedVar" ]; then
 	  echo 'VAAUTO: SubmitVegasSimProduction requires file ' $lcl'/'$FilePedVar
           echo 'VAAuto: Fatal! File does not exist.'
           exit
@@ -573,11 +686,18 @@ fi
 if [ $SPECWBL = "All" ]; then
     WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
     LTWbl="alloffsets"
+    OFFSETID=All
 else  
     IFS=, read -a WblOffset <<< "$SPECWBL"
     let iwblEnd=${#WblOffset[@]}
     if [ "$iwblEnd" -eq "1" ]; then
 	W=${WblOffset[0]}
+        OFFSETID=${W:0:1}${W:2:1}
+        if [ "${#W}" = "3" ]; then
+	    OFFSETID=$OFFSETID'0'
+        else
+	    OFFSETID=$OFFSETID${W:3:1}
+        fi
 	if [ "$W" = "0.5" ]; then
 	    LTWbl="050offset"
 	else
@@ -627,12 +747,12 @@ CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
 if [ "$SPECPART" = "E" ]; then
-    PARTICALTYPE="Electrons_"
+    PARTICLETYPE="Electrons_"
 fi 
 
-LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$PARTICALTYPE$LTWbl
+LTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$PARTICLETYPE$LTWbl
 
-DTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$PARTICALTYPE$LTWbl
+DTFILENAMEBASE='k_Jan2013_'$LTSEASON'_'$LTATM'_'$Samples'samples_'$HMode'_vegas250_'$PARTICLETYPE$LTWbl
 
 if [ $HMode = "HFit" ]; then
     LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
@@ -770,15 +890,23 @@ if [ -n "$TELCUT" ]; then
    TelConfig=
    if [ "$CutTel" != "1" ] ; then
       TelConfig=1
+   else
+      TelConfig=X
    fi
    if [ "$CutTel" != "2" ] ; then
       TelConfig=$TelConfig'2'
+   else
+      TelConfig=$TelConfig'X'
    fi
    if [ "$CutTel" != "3" ] ; then
       TelConfig=$TelConfig'3'
+   else
+      TelConfig=$TelConfig'X'
    fi
    if [ "$CutTel" != "4" ] ; then
       TelConfig=$TelConfig'4'
+   else
+      TelConfig=$TelConfig'X'
    fi
    echo 'VAAuto: Array configuration: '$TelConfig'  No '$TELCUT
 fi
@@ -1258,7 +1386,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
           echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
 	  SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS1S2.scr $VBFFILE
 
-        fi
+	 fi
          ###############################################################
 
 
@@ -1266,51 +1394,51 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
           # echo '##########################################################'
           # echo '# CheckStage2Files'
 	  # echo '##########################################################'
-          cd $lcl
-
+	   cd $lcl
+	     
           #Check VARootIO can open and load file 
-	  ~/Switch.rootrcTo.rootrc_glenn.scr
-	  Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
-          echo Arg: $Arg 
+	   ~/Switch.rootrcTo.rootrc_glenn.scr
+	   Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
+	   echo Arg: $Arg 
 
-	  if [ -e  "CheckStage2FileOK.Result" ]; then
-             rm "CheckStage2FileOK.Result"
-          fi
-	  let TimeWaited=0
+	   if [ -e  "CheckStage2FileOK.Result" ]; then
+	       rm "CheckStage2FileOK.Result"
+	   fi
+	   let TimeWaited=0
 
-	  root -q -b -q $Arg  >CheckStage2OK.log
+	   root -q -b -q $Arg  >CheckStage2OK.log
 
-	  if [ !  -e  "CheckStage2FileOK.Result" ]; then
-	    echo 'VAAuto: root CheckStage2FileOK.C failed to produce CheckStage2FileOK.Result'
-	    echo 'VAAuto: Check to see if another VAAuto is running: ps aux' 
-            echo "Bad: "$FileName
-	    cat CheckStage2OK.log
-          else
+	   if [ !  -e  "CheckStage2FileOK.Result" ]; then
+	       echo 'VAAuto: root CheckStage2FileOK.C failed to produce CheckStage2FileOK.Result'
+	       echo 'VAAuto: Check to see if another VAAuto is running: ps aux'
+	       echo "Bad: "$FileName
+	       cat CheckStage2OK.log
+	   else
 
-	    {
-	       read BAD
-	       let suzBAD=$BAD
-	       if [ $suzBAD -lt "0" ]; then
-		 echo "Bad: "$FileName
-		 if [ $suzBAD -eq "-1" ]; then
-                  echo "VAAuto: VARootIO failed to open" 
-		 fi
-		 if [ $suzBAD -eq "-2" ]; then
-	          echo "VAAuto: VARootIO failed to load"
-		 fi
-		 if [ $suzBAD -eq "-3" ]; then
-	          echo "VAAuto: VARootIO failed to find ParameterisedEventTree"
-		 fi
-		 if [ $suzBAD -eq "-4" ]; then
-	          echo "VAAuto: VARootIO failed to find SimulatedEventTree"
-		 fi
-		 if [ $suzBAD -eq "-5" ]; then
-	          echo "VAAuto: Too few events ( <20 )  in ParameterisedEventTree"
-		 fi
-	       fi 
-	    } <CheckStage2FileOK.Result
-	    rm CheckStage2FileOK.Result
-	  fi
+	       {
+		   read BAD
+		   let suzBAD=$BAD
+		   if [ $suzBAD -lt "0" ]; then
+		       echo "Bad: "$FileName
+		       if [ $suzBAD -eq "-1" ]; then
+			   echo "VAAuto: VARootIO failed to open" 
+		       fi
+		       if [ $suzBAD -eq "-2" ]; then
+			   echo "VAAuto: VARootIO failed to load"
+		       fi
+		       if [ $suzBAD -eq "-3" ]; then
+			   echo "VAAuto: VARootIO failed to find ParameterisedEventTree"
+		       fi
+		       if [ $suzBAD -eq "-4" ]; then
+			   echo "VAAuto: VARootIO failed to find SimulatedEventTree"
+		       fi
+		       if [ $suzBAD -eq "-5" ]; then
+			   echo "VAAuto: Too few events ( <20 )  in ParameterisedEventTree"
+		       fi
+		   fi 
+	       } <CheckStage2FileOK.Result
+	       rm CheckStage2FileOK.Result
+	   fi
 	 fi
          ###############################################################
   
@@ -1320,8 +1448,8 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
            # echo '##########################################################'
            # echo '# GenerateDispSubLTListFiles'
 	   # echo '##########################################################'
-	   cd $lcl
-	   echo $FileName >>$DispListName
+	     cd $lcl
+	     echo $FileName >>$DispListName
          fi
          #******************************************************************
  
@@ -1338,7 +1466,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
    if [ -n "$CheckStage2Files" ]; then
      echo 'VAAuto: PedVar files: '$SPECSEA$PMT$SPECPART' Zn:  '${Zenith[$izn]}' AZ: '$SPECAZ', offset: '$SPECWBL', pedv: '$SPECPV' Check complete.'
    fi
- 
+   
    izn=$((izn+1))
  done
 fi
@@ -1498,9 +1626,7 @@ if   [ -n "$CombineSubLT" ]; then
    fi
 fi
 ##############################################################################
-#if   [ -n "$CombineEASubLT" ]; then
-#   echo '##########################################################'
-#   echo '# CombineEASubLT'
+
 if   [ -n "$CombineBuildEALT" ]; then
    echo '##########################################################'
    echo '# CombineBuildEALT'
@@ -1508,11 +1634,8 @@ if   [ -n "$CombineBuildEALT" ]; then
    cd $lcl
    date
    EASPEC=EA
-   if [ -n "$CutTel"]; then
-       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.root'
-   else
-       LTFILENAME='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.root'
-   fi
+   GenerateEAFileName $CUTTYPE $SPECSEA $OFFSETID  'std' $TelConfig  $PARTICLETYPE
+
    SubLTList='EASubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
      rm $lcl'/'$SubLTList                #Remove any existing EA SUBLT List file
@@ -1725,7 +1848,6 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
        #*******************************************************************
 
 
-#       if [ -n "$CombineSubLT" ] || [ -n "$CombineEASubLT" ] ; then
        if [ -n "$CombineSubLT" ] || [ -n "$CombineBuildEALT" ] ; then
          #*******************************************************************
          # Create the List of all SubLT files to be combined
@@ -1891,9 +2013,8 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 fi
 #**********************************************************************
 
-#if [ -n "$CombineEASubLT" ]; then
 if [ -n "$CombineBuildEALT" ]; then
-    cd $VEGAS/resultsExtractor/macros
+   cd $VEGAS/resultsExtractor/macros
    if [ ! -e "combineEAKascade.C" ]; then
        cp $KASCADEBASE'/scripts/combineEAKascade.C' .
    fi
@@ -1907,11 +2028,11 @@ if [ -n "$CombineBuildEALT" ]; then
    #############################################################################
    Script='CombineEASubLT.C'
    echo '{'                                                             >$Script
-   echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$LTFILENAME'");' >>$Script
+   echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$EAFILENAME'");' >>$Script
    echo '}'                                                            >>$Script
 
    echo "VAAuto: Running root batch command to Create EA file:"
-   echo "VAAuto: "$LTFILENAME
+   echo "VAAuto: "$EAFILENAME
    echo "VAAuto: Do: less CombineEASubLT.log;  then shift-F to see when it  finishes!"
 
    root -b -q $Script '>'$lcl'/CombineEASubLT.log'  
@@ -2021,17 +2142,12 @@ fi
 #################################################################################
 
 
-#if [ -n "$BuildEA" ]; then
 if [ -n "$CombineBuildEALT" ]; then
    #echo '##########################################################'
    #echo '# BuildEA'
    #echo '##########################################################'
    EASPEC=EA
-   if [ -n "$CutTel"]; then
-       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.root'
-   else
-       LTFILENAME='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.root'
-   fi
+
    date
    #**********************************************************************
    #Modify for this EA: except for TelID we need at least 2 to change things
@@ -2052,8 +2168,8 @@ if [ -n "$CombineBuildEALT" ]; then
 
    cd $VEGAS/resultsExtractor/macros
 
-   if [ ! -e "$LTFILENAME" ]; then
-      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$LTFILENAME 'does not exist!'
+   if [ ! -e "$EAFILENAME" ]; then
+      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
       exit
    fi
    $VEGAS/resultsExtractor/bin/buildEATree \
@@ -2061,7 +2177,7 @@ if [ -n "$CombineBuildEALT" ]; then
        $StrZn \
        $StrNoise \
        $StrOffset \
-       $LTFILENAME
+       $EAFILENAME
 fi
 # ***********************************************************************
 
@@ -2105,13 +2221,9 @@ if [ -n "$CheckEA" ]; then
    echo '##########################################################'
    LCL=$PWD
 
-   if [ -n "$CutTel"]; then
-       LTFILENAME='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.root'
-       LTDiagFileName='ea'$LTFILENAMEBASE'_Tels'$TelConfig'_'$CUTTYPE'Cuts.diag'
-   else
-       LTFILENAME='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.root'
-        LTDiagFileName='ea'$LTFILENAMEBASE'_'$CUTTYPE'Cuts.diag'
-   fi
+   GenerateEAFileName $CUTTYPE $SPECSEA $OFFSETID  'std' $TelConfig  $PARTICLETYPE
+  
+   EADIAGFILENAME=${EAFILENAME/root/diag}
    date
    #############################################################################
    # Make up a script to run on root batch mode
@@ -2119,23 +2231,23 @@ if [ -n "$CheckEA" ]; then
    cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
    Script='CheckEA.C'
    echo '{'                                                          >$Script
-   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$LTFILENAME'");'  >>$Script
+   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'  >>$Script
    echo '}'                                                         >>$Script
 
-   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$LTFILENAME" ]; then
-      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$LTFILENAME 'does not exist!'
+   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
+      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
       exit
    fi
    echo "VAAuto: Running root batch command to Check EA file:"
-   echo "VAAuto: "$LTFILENAME
+   echo "VAAuto: "$EAFILENAME
 
    ~/Switch.rootrcTo.rootrc_resultsExtractor.scr
-   rm $LTDiagFileName
+   rm $EADIAGFILENAME
    
    root -b -q $Script '>'$lcl'/CheckEA.log'  
    
-   if [ -e  "$LTDiagFileName" ]; then
-       cat  $LTDiagFileName >>$lcl'/CheckEA.log'
+   if [ -e  "$EADIAGFILENAME" ]; then
+       cat  $EADIAGFILENAME >>$lcl'/CheckEA.log'
    fi
 
    ~/Switch.rootrcTo.rootrc_glenn.scr
