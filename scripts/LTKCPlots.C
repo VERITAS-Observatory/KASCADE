@@ -1,47 +1,37 @@
-void LTKCPlots(string pltType)
+void LTKCPlots(string pltType, string Zn="20", string Az="180")
 {
-  string ltk7e2_0  = "ltk_20102011_atm21_7samples_vegas240_alloffsets_E-2.0.root";
-  string ltk12 = "ltk_20102011_atm21_12samples_vegas240_alloffsets.root";
-  string ltc12V240atm22  = "lt_Nov2010_na_ATM22_12samples_vegasv240rc1_allOffsets.root";
-  //string ltc7V240  ="lt_Nov2010_na_ATM21_7samples_vegasv240rc1.root";
-  string LTKW20_180S05N5_5T0_7Sample_base = 
-                       "_TelID_0_Azimuth_180_Zenith_20_Noise_5.5_AbsoluteOffset_0.5";
-  string LTKW20_180S05N5_5T0_12Sample_base = 
-                       "_TelID_0_Azimuth_180_Zenith_20_Noise_5.88_AbsoluteOffset_0.5";
-  string LTCW20_180Off05N5_77T0_base = 
-                        "_TelID_0_Azimuth_180_Zenith_20_Noise_5.77";
-  string LTKW20_180S05N5_5T0="LookupTable_"+pltType+LTKW20_180S05N5_5T0_7Sample_base;
-  string LTKW20_180S05N5_88T0=
-                            "LookupTable_"+pltType+LTKW20_180S05N5_5T0_12Sample_base;
-  string LTCW20_180Off05N5_77T0 = "LookupTable_"+pltType+LTCW20_180Off05N5_77T0_base;
+  string ltkFileName  = "ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root";
+  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
+
+  string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+                                                  "_Noise_5.55_AbsoluteOffset_0.5";
+  string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+                                                  "_Noise_5.21_AbsoluteOffset_0.5";
+
+  string LTK_LT="LookupTable_"+pltType+LTK_base;
+  string LTC_LT="LookupTable_"+pltType+LTC_base;
   
-  widthTest(ltk7e2_0.c_str(),LTKW20_180S05N5_5T0.c_str(),50," ",1);
+  widthTest(ltkFileName.c_str(),LTK_LT.c_str(),50," ",1);
   c1->Clear();
   c1->Divide(2,2);
   c1->cd(1);
-  widthTest(ltk7e2_0.c_str(),LTKW20_180S05N5_5T0.c_str(),50," ",1,pltType.c_str());
-  widthTest(ltc12V240atm22.c_str(),LTCW20_180Off05N5_77T0.c_str(),50,"same",3,pltType.c_str());
-  widthTest(ltk12.c_str(),LTKW20_180S05N5_88T0.c_str(),50,"same",2,pltType.c_str());
+  widthTest(ltkFileName.c_str(),LTK_LT.c_str(),50," ",1, pltType.c_str());
+  widthTest(ltcFileName.c_str(),LTC_LT.c_str(),50,"same", 2, pltType.c_str());
 
   c1->cd(2);
-  widthTest(ltk7e2_0.c_str(),LTKW20_180S05N5_5T0.c_str(),75," ",1,pltType.c_str());
-  widthTest(ltc12V240atm22.c_str(),LTCW20_180Off05N5_77T0.c_str(),75,"same",3,
-	                                                          pltType.c_str());
-  widthTest(ltk12.c_str(),LTKW20_180S05N5_88T0.c_str(),75,"same",2,pltType.c_str());
+  widthTest(ltkFileName.c_str(),LTK_LT.c_str(),75," ",1, pltType.c_str());
+  widthTest(ltcFileName.c_str(),LTC_LT.c_str(),75,"same", 2, pltType.c_str());
 
   c1->cd(3);
-  widthTest(ltk7e2_0.c_str(),LTKW20_180S05N5_5T0.c_str(),100," ",1,pltType.c_str());
-  widthTest(ltc12V240atm22.c_str(),LTCW20_180Off05N5_77T0.c_str(),100,"same",3,pltType.c_str());
-  widthTest(ltk12.c_str(),LTKW20_180S05N5_88T0.c_str(),100,"same",2,pltType.c_str());
+  widthTest(ltkFileName.c_str(),LTK_LT.c_str(),100," ",1, pltType.c_str());
+  widthTest(ltcFileName.c_str(),LTC_LT.c_str(),100,"same", 2, pltType.c_str());
 
   c1->cd(4);
-  widthTest(ltk7e2_0.c_str(),LTKW20_180S05N5_5T0.c_str(),150," ",1,pltType.c_str());
-  widthTest(ltc12V240atm22.c_str(),LTCW20_180Off05N5_77T0.c_str(),150,"same",3,pltType.c_str());
-  widthTest(ltk12.c_str(),LTKW20_180S05N5_88T0.c_str(),150,"same",2,pltType.c_str());
+  widthTest(ltkFileName.c_str(),LTK_LT.c_str(),150," ", 1, pltType.c_str());
+  widthTest(ltcFileName.c_str(),LTC_LT.c_str(),150,"same", 2, pltType.c_str());
  
-  cout<<"Black: "<<ltk7e2_0<<endl;
-  cout<<"Red: "<<ltk12<<endl;
-  cout<<"Green: "<<ltc12V240atm22<<endl;
+  cout<<"Black: "<<ltkFileName<<endl;
+  cout<<"Red: "<<ltcFileName<<endl;
 
  return;
 }

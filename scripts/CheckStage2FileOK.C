@@ -1,53 +1,67 @@
 void CheckStage2FileOK(string fileName)
 {
-  ofstream os("CheckStage2FileOK.Result");
   VARootIO* pfRootIO = new VARootIO(fileName.c_str(), true);//open for read only
-  int badCode=0;  
-  os<<badCode<<endl;
-  os.close();
   if(!pfRootIO) {
-    badCode=1;
+    int badCode=-1;
     ofstream os("CheckStage2FileOK.Result");
     os<<badCode<<endl;
     os.close();
+    cout<<"BadCode"<<badCode<<endl;
     return; 
   }
-
-  pfRootIO->loadTheRootFile();
+  
+  pfRootIO->loadTheRootFile(); 
   if(!pfRootIO->IsOpen()){
-    badCode=2;
+    int badCode=-2;
     ofstream os("CheckStage2FileOK.Result");
     os<<badCode<<endl;
     os.close();
+    cout<<"BadCode"<<badCode<<endl;
     return; 
   } 
+  
   TTree*  pfParameterisedEventTree = pfRootIO->loadTheParameterisedEventTree();
   if(!pfParameterisedEventTree)
     {
-    badCode=3;
-    ofstream os("CheckStage2FileOK.Result");
-    os<<badCode<<endl;
-    os.close();
-    return; 
+      int badCode=-3;
+      ofstream os("CheckStage2FileOK.Result");
+      os<<badCode<<endl;
+      os.close();
+      cout<<"BadCode"<<badCode<<endl;
+      return; 
     }
+  
   TTree* pfSimulatedEventTree = pfRootIO->loadTheSimulationEventTree();
   if(!pfSimulatedEventTree)
     {
-    badCode=4;
-    ofstream os("CheckStage2FileOK.Result");
-    os<<badCode<<endl;
-    os.close();
-    return; 
+      int badCode=-4;
+      ofstream os("CheckStage2FileOK.Result");
+      os<<badCode<<endl;
+      os.close();
+      cout<<"BadCode"<<badCode<<endl;
+      return; 
     }
+  
   int numEvents=pfParameterisedEventTree->GetEntries();
-
+  if ( numEvents < 16)
+    {
+      int badCode=-5;
+      ofstream os("CheckStage2FileOK.Result");
+      os<<badCode<<endl;
+      os.close();
+      cout<<"BadCode"<<badCode<<endl;
+      return; 
+    }
+  
   pfRootIO->closeTheRootFile();
   if(pfRootIO!=NULL){
     delete pfRootIO;
   }    
-  badCode=numEvents;
+  
+  int goodCode=numEvents;
   ofstream os("CheckStage2FileOK.Result");
-  os<<badCode<<endl;
+  os<<goodCode<<endl;
   os.close();
+  cout<<"goodCode"<<goodCode<<endl;
   return; 
 }
