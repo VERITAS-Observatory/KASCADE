@@ -20,7 +20,7 @@
 #${11} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${11}Cuts
-#  For Stage4, filename would extention be:  ${11}Cuts.root ending
+#  For Stage4, filename would extention be:  ${11}Cuts ending
 #  For ShowerCuts, file used would be $VEGAS/../tables/Shower${11}Cuts 
 #${12} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
 #                  T2 or T3 or T4
@@ -705,17 +705,22 @@ fi
 
 #ABOStr
 let iwblEnd=${#WblOffset[@]}
-if test $iwblEnd -ne "9"
- then
-  let iwbl=0
-  ABOStr=${WblOffset[$iwbl]}
-  iwbl=$((iwbl+1))
-  while test $iwbl -lt $iwblEnd
-    do
-     ABOStr=$ABOStr','${WblOffset[$iwbl]}
-     iwbl=$((iwbl+1))
-  done
+if [ "$LTWbl" = "050offset" ]; then
+    ABOStr=" "
+else
+  if test $iwblEnd -ne "9"
+   then
+    let iwbl=0
+    ABOStr=${WblOffset[$iwbl]}
+    iwbl=$((iwbl+1))
+    while test $iwbl -lt $iwblEnd
+      do
+       ABOStr=$ABOStr','${WblOffset[$iwbl]}
+       iwbl=$((iwbl+1))
+      done
+   fi
 fi
+
 
 #AzStr
 let kazEnd=${#Azimuth[@]}
@@ -1264,34 +1269,49 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
           cd $lcl
 
           #Check VARootIO can open and load file 
-	  #~/Switch.rootrcTo.rootrc_glenn.scr
+	  ~/Switch.rootrcTo.rootrc_glenn.scr
 	  Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
           echo Arg: $Arg 
 
-	  root -q -b -q $Arg >CheckStage2OK.log
-          sleep 5
-	  {
-	   read BAD
-           let suzBAD=$BAD
-	     if [ $suzBAD -lt "15" ]; then
-	       #echo "VAAuto: Bad: "$suzBAD" file "$FileName
-               echo "Bad: "$FileName
-               if [ $suzBAD -eq "1" ]; then
+	  if [ -e  "CheckStage2FileOK.Result" ]; then
+             rm "CheckStage2FileOK.Result"
+          fi
+	  let TimeWaited=0
+
+	  root -q -b -q $Arg  >CheckStage2OK.log
+
+	  if [ !  -e  "CheckStage2FileOK.Result" ]; then
+	    echo 'VAAuto: root CheckStage2FileOK.C failed to produce CheckStage2FileOK.Result'
+	    echo 'VAAuto: Check to see if another VAAuto is running: ps aux' 
+            echo "Bad: "$FileName
+	    cat CheckStage2OK.log
+          else
+
+	    {
+	       read BAD
+	       let suzBAD=$BAD
+	       if [ $suzBAD -lt "0" ]; then
+		 echo "Bad: "$FileName
+		 if [ $suzBAD -eq "-1" ]; then
                   echo "VAAuto: VARootIO failed to open" 
-               fi
-	       #if [ $suzBAD -eq "2" ]; then
-	          #echo "VAAuto: VARootIO failed to load"
-	       #fi
-	       if [ $suzBAD -eq "2" ]; then
-	          echo "VAAuto: VARootIO failed to find parameterizedEvntTree"
-	       fi
-	   #else
-           #    echo 'VAAuto: '$FileName' OK! numEvents:' $suzBAD
-	   fi 
-	  } <CheckStage2FileOK.Result
-	  #echo 'VAAuto: '$FileName' OK! numEvents:' $suzBAD
-	  rm CheckStage2FileOK.Result
-         fi
+		 fi
+		 if [ $suzBAD -eq "-2" ]; then
+	          echo "VAAuto: VARootIO failed to load"
+		 fi
+		 if [ $suzBAD -eq "-3" ]; then
+	          echo "VAAuto: VARootIO failed to find ParameterisedEventTree"
+		 fi
+		 if [ $suzBAD -eq "-4" ]; then
+	          echo "VAAuto: VARootIO failed to find SimulatedEventTree"
+		 fi
+		 if [ $suzBAD -eq "-5" ]; then
+	          echo "VAAuto: Too few events ( <20 )  in ParameterisedEventTree"
+		 fi
+	       fi 
+	    } <CheckStage2FileOK.Result
+	    rm CheckStage2FileOK.Result
+	  fi
+	 fi
          ###############################################################
   
 
@@ -1361,7 +1381,11 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g'   <tmp2 >tmp1
    sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g'   <tmp1 >tmp2
    sed '/Noise         /s/Noise/Noise '$NoiseStr'/g'   <tmp2 >tmp1
-   sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g'   <tmp1 >tmp2
+   if [ "$LTWbl" != "050offset" ]; then
+      sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g'   <tmp1 >tmp2
+   else
+      cp tmp1 tmp2
+   fi
    sed '/Log10SizePerBin/s/0.04/0.07/g'              <tmp2 >tmp1
    sed '/ImpDistUpperLimit/s/400/800/g'	             <tmp1 >tmp2
    sed '/Log10EaxisEnergyUpperLimit/s/6/5/g'         <tmp2 >tmp1
@@ -1568,10 +1592,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
            ##############################################################
            #Now do the same for the Offset but put in final file
            #If we only are doing one offset leavce AbsoluteOffset blank
-	   if test $iwblEnd -eq "1"   #Allows for only one WBl
+	   if test $iwblEnd -ne "1"   #Allows for only one WBl
             then   
-               sed '/luteOffset/s/'$ABOStr'/   /g'  <config2.tmp >$ConfigName
-            else
 	      if test $iwbl -eq "0" 
 	       then
 	         W=${WblOffset[$iwbl]},${WblOffset[1]}
@@ -1579,7 +1601,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	         W=${WblOffset[0]},${WblOffset[$iwbl]}
 	      fi
               sed '/luteOffset/s/'$ABOStr'/'$W'/g'  <config2.tmp >$ConfigName
-             fi   
+            else
+              cp config2.tmp $ConfigName
+              #   sed '/luteOffset/s/'$ABOStr'/   /g'  <config2.tmp >$ConfigName
+           fi   
            #now replace Offset argument and put in a final file
 	   rm config2.tmp
        fi
