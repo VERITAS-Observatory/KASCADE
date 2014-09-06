@@ -1,0 +1,15 @@
+#!/bin/bash
+#$1 List of PedVar files to rename
+#Change MDL10U to MDL10UA in files
+
+{
+ while read input
+  do
+     Start=${input%%MDL*}
+     End=${input##*MDL10U}
+     output=$Start'MDL10UA'$End
+     #echo $input' -> '$output
+     mv -v $input $output
+  done
+}<$1
+
