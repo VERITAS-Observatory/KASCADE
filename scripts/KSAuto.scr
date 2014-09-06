@@ -38,6 +38,7 @@ EntryGEEnd=45
 
 EntryPStart=1
 EntryPEnd=45
+
 EntryHe4Start=5
 EntryHe4End=45
 if [ "$1" = "CR" ]; then
@@ -52,13 +53,13 @@ function commandEnable()
     echo '***KSAuto.scr Valid Commands:'
     echo '    #------------------------      #------------------------ '  
     echo '    # KASCADE ksTrigger TE Files   # VBF Shower File Generation'
-    echo '    #  Uses arguments $1-$7        # Uses arguments $1-${10}'  
+    echo '    #  Uses arguments $1-$7(*=$8)  # Uses arguments $1-${10}'  
     echo '    #------------------------      #------------------------ '
     echo '    GenerateTeFiles                BuildMDLAomegaConfig'
-    echo '    HTARTeFilesFromArchive         GenerateShowerVBFFiles'
+    echo '    HTARTeFilesFromArchive*        GenerateShowerVBFFiles'
     echo '    CheckGeneratedTeFiles          CheckGeneratedShwrVBFFiles'
-    echo '    HTARTeFilesToArchive           HTARShowerVBFFilesFromArchive'
-    echo '    CheckHTARTeFiles               HTARShowerVBFFilesToArchive'
+    echo '    HTARTeFilesToArchive*          HTARShowerVBFFilesFromArchive'
+    echo '    CheckHTARTeFiles(inoperative)  HTARShowerVBFFilesToArchive'
     echo
     echo '    #------------------------'
     echo '    # VBF files'
@@ -201,7 +202,7 @@ function checkFilesExist()
 #$5 EntryStart
 #$6 EntryEnd
 #$7 Threshold speck (for file type VBF only)
-#$8 Alternate Dile Dirt (optional, used for ShowerVBF only)
+#$8 Alternate File Dir (optional, used for ShowerVBF only)
 {
   #echo checkFilesExist:args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
  
@@ -234,15 +235,17 @@ function checkFilesExist()
      fi
   fi
   
-  #Get a list of the files into Check$ZnAz.txt
+  #We no long use a List but let the KSAutoFileCheckOK.scr script generate 
+  #its own list to check
+        ##Get a list of the files into Check$ZnAz.txt
+  #But we do need a file name for the results.
   CheckListFiles='Check'$ZnAz'.txt'
   echo CheckListFiles: $CheckListFiles
 
-  cd $FileDir
-  ls |xargs -n1 >$lcl'/'$CheckListFiles
+  #ls |xargs -n1 >$lcl'/'$CheckListFiles
   cd $lcl
 
-  #checking this list for all files that should be there takes 5 - 10 min
+  #checking this directory  for all files that should be there takes 5 - 10 min
   #thus , to insure we don't over run the 30 min time limit
   #we will have to submit the te file check and sleep until it finishes
   echo 'KSAuto: Checking for all '$FileType' files in: '$FileDir
@@ -252,7 +255,7 @@ function checkFilesExist()
       rm $Result
   fi
   
-  CheckList $CheckListFiles $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold
+  CheckList $CheckListFiles $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold $FileDir
        
   date
   cd $lcl
@@ -274,23 +277,23 @@ function checkFilesExist()
 
 function CheckList()
 
-#$1 is list of files to match
-#$2 is base name of all files.
-#$3 Particle type (P He4 G or E)
+#$1 File name (with .Results added  to save bad files names in
+#$2 is base name of all files.ex: WVG10_315Deg2D
+#$3 Particle type (P He4_ G or E)
 #$4 File Type ( TE or VBF)
 #$5 EntryStart
 #$6 EntryEnd
-#$7 Threshold (45mv needed only for FileType= VBF)
-{
+#$7 Threshold  VBF only Ex: 45mv or 50mv (needed only for FileType= VBF)
+#$8 File Dir
   #echo CheckkList:Args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
-  FileList=$1
+{  FileList=$1
   TeName=$2
   Particle=$3
   FileType=$4
   EntryStart=$5
   EntryEnd=$6
   Threshold=$7
-
+  FILEDIR=$8
   if [ -n "$CheckByPBS" ]; then
     #build a submission .pbs file
     sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
@@ -298,7 +301,7 @@ function CheckList()
       echo "#"PBS -q $QUEUE                                        >$sgeFile
     fi
     echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
-    echo "#PBS -l " $MEMREQUEST                                   >>$sgeFile
+    echo "#PBS " $MEMREQUEST                                   >>$sgeFile
     if [ -n "$EDISON" ]; then
       echo "#"PBS -A mpccc                                        >>$sgeFile
     fi
@@ -309,7 +312,8 @@ function CheckList()
     fi
     echo cd $lcl                                                  >>$sgeFile
     echo $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName \\     >>$sgeFile
-    echo $Particle $FileType $EntryStart $EntryEnd $Threshold     >>$sgeFile
+    echo $Particle $FileType $EntryStart $EntryEnd $Threshold \\  >>$sgeFile
+    echo $FILEDIR
     chmod 700 $sgeFile
 
     qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
@@ -335,7 +339,7 @@ function CheckList()
    cd $lcl
    echo "KSAuto: Running KSAutoFileCheck interactivly: Entries: " $EntryStart "-" $EntryEnd
 
-   $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold
+   $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold  $FILEDIR
    return
   fi
 } 
@@ -349,15 +353,15 @@ function SubmitHtarToArchive()
   #$4 List of files to look for to determine completion.
   #$5 Max HTAR programs to run at a time
 
-  DestinationDir=$1    #Archive directory
+  Dst=$1    #Archive directory
   SourceDir=$2         #Disk Base Directory
-  ShwrDir=$3           #filename (Directiory to archive)
+  ShDr=$3           #filename (Directiory to archive)
   QsubDoneList=$4
   MaxHTARQsubs=$5
 
-  echo DestinationDir: $DestinationDir
+  echo Dst: $Dst
   echo SourceDir: $SourceDir
-  echo ShwrDir: $ShwrDir
+  echo ShDr: $ShDr
 
   #################################
   #Wait for romm for next file in queue
@@ -370,8 +374,8 @@ function SubmitHtarToArchive()
   local=$PWD
   cd $SourceDir 
   pwd
-  if [ ! -e "$ShwrDir" ]; then
-      echo 'KSAuto: '$SourceDir'/'$ShwrDir' Does not exist. Exiting.'
+  if [ ! -e "$ShDr" ]; then
+      echo 'KSAuto: '$SourceDir'/'$ShDr' Does not exist. Exiting.'
       cd $local
       exit
   fi
@@ -379,17 +383,16 @@ function SubmitHtarToArchive()
 
 
   #build a submission .pbs file
-  sgeFile=$ShwrDir'HTAR.pbs'
+  sgeFile=$ShDr'HTAR.pbs'
   sgeDoneFile=$sgeFile'.Done'
   if [ -n  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
       rm $sgeDoneFile
   fi
 
-
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
-  echo "#PBS -l " $MEMREQUEST                                     >>$sgeFile
+  echo "#PBS " $MEMREQUEST                                        >>$sgeFile
   if [ -n "$EDISON" ]; then
    echo "#"PBS -A mpccc                                           >>$sgeFile
   fi
@@ -398,7 +401,13 @@ function SubmitHtarToArchive()
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
   echo cd $SourceDir                                              >>$sgeFile
-  echo htar -cvf  $DestinationDir'/'$ShwrDir'.tar  ./'$ShwrDir    >>$sgeFile
+  if [ -n "$EDISON" ]; then
+    echo 'tar -cvf '$ShDr'.tar   ./'$ShDr                         >>$sgeFile
+    echo 'hsi "firewall -on; put '$ShDr'.tar : '$Dst'/'$ShDr'.tar "' >>$sgeFile
+    echo 'rm '$ShDr'.tar'                                         >>$sgeFile
+  else
+     echo htar -cvf  $Dst'/'$ShDr'.tar  ./'$ShDr                  >>$sgeFile
+  fi
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
     echo $sgeDoneFile >>$QsubDoneList #add the next one
@@ -409,7 +418,7 @@ function SubmitHtarToArchive()
   HTARLOG=$local'/KSHTAR'$ZnAz'To.log'
 
 
-  qsub$QSUBEXT -V -e $ShwrDir'HTARTo.pbs.err' -o $ShwrDir'HTARTo.pbs.log' $sgeFile >$HTARLOG
+  qsub$QSUBEXT -V -e $ShDr'HTARTo.pbs.err' -o $ShDr'HTARTo.pbs.log' $sgeFile >$HTARLOG
 
   cd $lcl
 }
@@ -426,7 +435,7 @@ function SubmitHtarFromArchive()
   local=$PWD
 
   ArchiveDir=$1          #Archive direxctory
-  DestinationDir=$2      #Base Disk directory
+  DstDir=$2      #Base Disk directory
   Source=$3              #Base Tar file name
   SourceTarFile=$3'.tar'
   QsubDoneList=$4
@@ -452,7 +461,7 @@ function SubmitHtarFromArchive()
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
-  echo "#PBS -l " $MEMREQUEST                              >>$sgeFile
+  echo "#PBS " $MEMREQUEST                                 >>$sgeFile
   if [ -n "$EDISON" ]; then
    echo "#"PBS -A mpccc                                    >>$sgeFile
   fi
@@ -460,7 +469,7 @@ function SubmitHtarFromArchive()
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
-  echo cd $DestinationDir                                  >>$sgeFile
+  echo cd $DstDir                                          >>$sgeFile
 #  echo htar -xvf  $ArchiveDir'/'$SourceTarFile ./  \\     >>$sgeFile
   echo htar -xvf  $ArchiveDir'/'$SourceTarFile   \\        >>$sgeFile
   echo '>'$local'/'$Source'.log'                           >>$sgeFile
@@ -823,17 +832,15 @@ while test $izn -lt $iznEnd
 
 
 	   if [ "$SPECPART" = "CR" ]; then
-		./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
-
-	   else
-                ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EnergyStart $EnergyEnd
-                                  #Above will fill the list file 
+             ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
+           else
+             ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EnergyStart $EnergyEnd
+           fi                     #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
                                   #Below will run them with a max of $MaxQsubs
                                   # in the queue at one time, submitting more 
                                   # as it can
-           fi
           
            SubmitQsubJobs  $QsubFileNameList $QsubLogs $MaxQsubs
        
@@ -903,12 +910,37 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
+       if [ -n "$EDISON" ]; then
+	 MEMREQUEST=' -l vmem=8GB '
+	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
+       fi
+       if [ -n "$CARVER" ]; then
+	  #MEMREQUEST=' -l pvmem=30GB '
+	  MEMREQUEST=' -l pvmem=8GB '
+	  echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
+       fi
        if [ -n "$LimitSubmissions" ]; then
-
-	 SubmitHtarFromArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+         ########################################
+         # Now for CR do P and He4
+         ########################################
+         if [ "$SPECPART" = "CR" ] ; then
+           SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirP $TeNameP $QsubHTARLogs $MaxHTARQsubs
+           SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
+         else
+           ############################
+           # Only G or E or P or He4
+           # P or He4 dest is "CR" directory
+           ############################
+           if [ "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
+             SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+           else
+             SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+           fi
+         fi
+	   SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
 
        else
-         SubmitHtarFromArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
+         SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
      fi
      #####################################################################
@@ -973,14 +1005,37 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
+       if [ -n "$EDISON" ]; then
+	 MEMREQUEST=' -l vmem=8GB '
+	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
+       fi
+       if [ -n "$CARVER" ]; then
+	 #MEMREQUEST=' -l pvmem=30GB '
+	 MEMREQUEST=' -l pvmem=8GB '
+	 echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
+       fi
        if [ -n "$LimitSubmissions" ]; then
+	  QLOGS=$QsubHTARLogs         
+          MQSUBS=$MaxHTARQsubs
+          #Othersiwe they are blank.
+       fi
 
-         #SubmitHtarToArchive $HtarDir'/'$SPECSEA$PMT$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
-         SubmitHtarToArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
-
-       else 
-#         SubmitHtarToArchive $HtarDir'/'$SPECSEA$PMT$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
-         SubmitHtarToArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
+       ########################################
+       # Now for CR do P and He4
+       ########################################
+       if [ "$SPECPART" = "CR" ] ; then
+         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirP $TeNameP $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
+       else
+         ############################
+         # Only G or E or P or He4
+         # P or He4 dest is "CR" directory
+         ############################
+         if [ "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
+              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+         else
+              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+         fi
        fi
 
      fi
@@ -996,6 +1051,11 @@ while test $izn -lt $iznEnd
        ###############################################
        #Only good for gammas and electrons
        ########################################
+       #####################################
+       echo 'Due to changes in CheckList this command is inoperative.'
+       echo 'Sorry!'
+       exit
+
 
        #Get a list of the files into CheckTe.txt
        TEDIR=$HtarDir$TeName'.tar'
@@ -1258,14 +1318,14 @@ while test $izn -lt $iznEnd
        #(ie are blank) if LimitSubmissions is not enabled
        ################################################################
        if [ "$SPECPART" = "CR" ] ; then
-	SubmitHtarFromArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   $QsubHTARLogs $MaxHTARQsubs
+	SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarFromArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
 	ShowerMDLDir=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
 
-        SubmitHtarFromArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
+        SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
      #########################################################################
@@ -1317,14 +1377,14 @@ while test $izn -lt $iznEnd
        cd $lcl'/../simulations/veritas/'
        date
        if [ "$SPECPART" = "CR" ] ; then
-	 SubmitHtarToArchive $HtarDir'/'$SPECSEA$TELCONGIG'P'$SPECMDL'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarToArchive $HtarDir$SPECSEA$TELCONGIG'P'$SPECMDL'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarToArchive $HtarDir'/'$SPECSEA$TELCONFIG'He4'$SPECMDL'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
+	 SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG'He4'$SPECMDL'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
        else
         ShowerMDLDir=$SPECSEA$PMT$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
 
-        SubmitHtarToArchive $HtarDir'/'$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
+        SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
 

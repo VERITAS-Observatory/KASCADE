@@ -1,0 +1,43 @@
+#!/bin/bash
+# This function loads the energy, start,end arrays for the VERITAS KASCADE 
+# shower specifications.
+#$1: Particle type: EX. G or E or P or He4_
+#$2: Use to enable special MDL CR spec: Ex: Blank or MDL
+##########################################################################
+# Can be used in scripts like ksProduction.scr, KSAutoFileCheck.scr, KSAuto.scr
+#Include in files with: "source DefineShowers.scr"
+#Defines arrays "energy", "start", "end"
+
+function DefineShowers()
+{
+echo 'DefineShowers:Type: ' $1 ' Special flag: '$2
+Particle=$1
+
+
+#The following arrays came from ksProduction.scr for CR
+energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 )
+ start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1     1) 
+
+if [ "$Particle" = "G" ] || [  "$Particle" = "E" ]; then
+
+   end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    20    10    10    10)
+fi
+
+if [ "$Particle" = "P" ]; then
+  if [ -n "$2" ]; then
+   #MDL 
+   end=([1]=1382 1007 734   535   390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5)
+  else
+   end=([1]=2764 2014 1468  1070  780  568  414  302  220  160 118   86  62  46    34    24    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    20    20    10    10)
+  fi
+fi
+
+if [ "$Particle" = "He4_" ]; then
+  if [ -n "$2" ]; then
+   #MDL 
+   end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5 )
+  else
+   end=([1]=1038 774  578  430  321  240  180  134  100  74  56    41  32  24    20    20    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    10    10    10    10)
+  fi
+fi
+}
