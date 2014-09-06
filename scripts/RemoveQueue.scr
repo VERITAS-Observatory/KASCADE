@@ -2,22 +2,12 @@
 #$1 start entry
 #$2 end entry
 #$3 = "[]" or not.
-let start=$1
+let i=$1
 let end=$2
+source ~/.bashrc.ext
 
-if [ -e "RemoveQueue.tmp" ]; then
-   rm RemoveQueue.tmp
-fi
-
-qstat -u $USER | grep $USER >RemoveQueue.tmp
-
-{
- while read JobID Rest
-   do
-    JobID=${JobID%%.*}
-    let JOBID=$JobID
-    if [ "$JOBID" -ge "$start" ] && [ "$JOBID" -le "$end" ]; then
-      qdel $JOBID
-    fi
-   done
-}<RemoveQueue.tmp
+while test $i -le $end
+ do
+  qdel $i$3
+  let i=i+1
+done
