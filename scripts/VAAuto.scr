@@ -594,7 +594,7 @@ function SubmitVegasSimProduction()
 }
 ################################################################################### 
 
-GetUniqueNumber()
+function GetUniqueNumber()
 {
   #use combo of process id ($$)and number of nanosec(date +%N) since last 
   #second tick to get unique value. (least count is micro sec at best)
