@@ -85,8 +85,8 @@ grep Bad $BadFile >S2tmp1
 {  
   while read PV SEASON PMT PTYPE MDL ARRAYTYPE  ZN AZ OFF THRESH
     do
-      	echo Executing: ./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
-	./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+      	echo Executing: ./VAAuto.scr GenerateStage2Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+	./VAAuto.scr GenerateStage2Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
     done
 }<S2tmp1
 
