@@ -865,11 +865,6 @@ function BuildAndSubmitJobs
  if [ ! -n "$FUSION" ]; then
    echo "#"PBS -q $QUEUE                      >>$sgeFile
  fi
- if [ -n "$EDISON" ]; then
-   echo "#"PBS -A mpccc                       >>$sgeFile
- fi
-
-
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
  echo $showerEnd $datadir $workingDir   \\    >>$sgeFile
@@ -909,9 +904,6 @@ function BuildAndSubmitJobsSingly
    if [ ! -n "$FUSION" ]; then
        echo "#"PBS -q $QUEUE                              >>$sgeFile
    fi	
-   if [ -n "$EDISON" ]; then
-     echo "#"PBS -A mpccc                                 >>$sgeFile
-   fi
    echo cd $lcl                                           >>$sgeFile
    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile

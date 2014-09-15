@@ -17,8 +17,8 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=200            #with ksProduction and only want to make
-                              #750 submission in queue at one time.Causes us to
+MaxQsubsDefault=900          #with ksProduction and only want to make
+                              #475 submission in queue at one time.Causes us to
                               #wait
 #Cleanup=enabled                
 
@@ -30,17 +30,20 @@ MaxQsubsDefault=200            #with ksProduction and only want to make
 #ExitOnTeCreationFailure=enabled  
 
 ############################################################
-# Force the Check files to  match shower entry numberes to those used in ksProduction.scr
+# Force the Check files to match shower entry numberes to those used in ksProduction.scr
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
 EntryGEEnd=45
 
 EntryPStart=1
-EntryPEnd=45
+#EntryPEnd=45
+EntryPEnd=28
 
 EntryHe4Start=5
-EntryHe4End=45
+#EntryHe4End=45
+EntryHe4End=29
+
 if [ "$1" = "CR" ]; then
   EntryPEnd=45
   EntryHe4End=45
@@ -302,9 +305,6 @@ function CheckList()
     fi
     echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
     echo "#PBS " $MEMREQUEST                                   >>$sgeFile
-    if [ -n "$EDISON" ]; then
-      echo "#"PBS -A mpccc                                        >>$sgeFile
-    fi
 
     if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
       echo source /etc/profile                                    >>$sgeFile
@@ -313,7 +313,7 @@ function CheckList()
     echo cd $lcl                                                  >>$sgeFile
     echo $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName \\     >>$sgeFile
     echo $Particle $FileType $EntryStart $EntryEnd $Threshold \\  >>$sgeFile
-    echo $FILEDIR
+    echo $FILEDIR                                                 >>$sgeFile
     chmod 700 $sgeFile
 
     qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
@@ -393,9 +393,6 @@ function SubmitHtarToArchive()
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
   echo "#PBS " $MEMREQUEST                                        >>$sgeFile
-  if [ -n "$EDISON" ]; then
-   echo "#"PBS -A mpccc                                           >>$sgeFile
-  fi
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
@@ -462,9 +459,6 @@ function SubmitHtarFromArchive()
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
   echo "#PBS " $MEMREQUEST                                 >>$sgeFile
-  if [ -n "$EDISON" ]; then
-   echo "#"PBS -A mpccc                                    >>$sgeFile
-  fi
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
@@ -528,6 +522,13 @@ function SubmitQsubJobs()
    }<$QsubList
 }
 ###########################################################################
+function GetUniqueNumber()
+{
+  #use combo of process id ($$)and number of nanosec(date +%N) since last 
+  #second tick to get unique value. (least count is micro sec at best)
+  let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+}
+####################################################################################
 
 
 ############################################################################
@@ -724,10 +725,11 @@ if [ ! -e "$lcl/KSAutoFileCheck.scr" ]; then
 fi
 
 if [ -n "$LimitSubmissions" ]; then
-  QsubLogs='Running'$SPECSEA$PMT$SPECPART$'KASCADEQsubLogs.txt'
-  QsubHTARLogs=Running'HTARLogs.txt'
+  GetUniqueNumber
+  QsubLogs='Running'$SPECSEA$PMT$SPECPART$UNIQUE'KASCADEQsubLogs.txt'
+  QsubHTARLogs='Running'$UNIQUE'HTARLogs.txt'
   if [ -n "$GenerateTeFiles" ] || [ -n "$GenerateShowerVBFFiles" ]; then
-    QsubFileNameList='KS'$SPECSEA$PMT$SPECPART$'AutoqsubList'
+    QsubFileNameList='KS'$SPECSEA$PMT$SPECPART$UNIQUE'AutoqsubList'
     echo QsubFileNameList: $QsubFileNameList
     if [ -e "$QsubFileNameList" ]; then
 	rm $QsubFileNameList
@@ -1084,7 +1086,7 @@ while test $izn -lt $iznEnd
        #we will have to submit the te file check and sleep until it finishes
        echo 'KSAuto: Checking for all te files in: '$TEDIR
        
-       CheckList $CheckTeFile $TeName $SPECPART $EntryGEStart $EntryGEEnd
+       CheckList $CheckTeFile $TeName $SPECPART $EntryGEStart $EntryGEEnd $TEDIR
        
        date
        cd $lcl

@@ -180,9 +180,6 @@ function BuildAndSubmitJobsSingly()
    echo "#"PBS -q $QUEUE2                                      >$sgeFile
    echo "#"PBS -l walltime=$WALLTIMEL                         >>$sgeFile
  fi
- if [ -n "$EDISON" ]; then
-   echo "#"PBS -A mpccc                                       >>$sgeFile
- fi
  echo "#PBS "$MEMREQUEST                                      >>$sgeFile
  if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
    echo source /etc/profile                                   >>$sgeFile
