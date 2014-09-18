@@ -37,12 +37,12 @@ EntryGEStart=1          #Gammas and Electrons
 EntryGEEnd=45
 
 EntryPStart=1
-#EntryPEnd=45
-EntryPEnd=21
+EntryPEnd=45
+#EntryPEnd=21
 
 EntryHe4Start=5
-#EntryHe4End=45
-EntryHe4End=21
+EntryHe4End=45
+#EntryHe4End=21
 
 if [ "$1" = "CR" ]; then
   EntryPEnd=45
