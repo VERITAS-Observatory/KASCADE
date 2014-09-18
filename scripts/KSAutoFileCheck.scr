@@ -1,15 +1,122 @@
-#//-*-mode:c++; mode:font-lock;-*-
-#$1 filename with list of files to be checked 
+#!/bin/bash
+# Check for files existance and non 0 length
+#$1 filename (after addin .Result) with list of files that failed the check
+#                      Prefaced  by "File Not found:"
 #$2 TeName value: ex: WVG10_315Deg2D
-#$3  Particle
+#$3 Particle: Ex: G or E or P or He4_
 #$4 File Type ( TE or VBF )
-#$5  EntryStart:ex usually 1
-#$6  EntryEnd:  ex 45 or maybe 47
-#$7 Thershold (45mv needed only for filetype = VBF)
-#This script looks in the $1 file to see if the expected File Type files are 
-#there. This usually takes about 5 to 10 min. So it probably needs to be run
-# by a qsub command... sigh.....
+#$5 EntryStart:ex usually 1
+#$6 EntryEnd:  ex 45 or maybe 47
+#$7 VBF only: Threshold Ex. 45mv or 50mv  or M45mv. Needed for VBF filename.
+#$8 File directory name. (includes full path)
+#     
 ########################################################################
+
+MinLevel=.3   #VBF minimum file size to be happy with.
+
+
+function LookForBadPeCounts()
+{
+ #$1 Log File name
+ #########################################################
+ #Writing out gets one more than it should if this file has a end-of-run-record
+ ##########################################################
+ LOGFILE=$1
+
+ grep "Number of photons written out" $LOGFILE >kslitetxt.tmp
+ {
+  while read a b c e f g
+   do
+    if [ !  -n "$g" ]; then
+      Found=0
+      echo Failed 1
+      return
+    fi
+    numpes=$g
+   done
+ }<kslitetxt.tmp
+
+ grep "ksPesortMerge: Number of PEs read in:" $LOGFILE >pesortIntxt.tmp
+ numfound=1
+ {
+  while read a b c e f g h
+   do
+     if [ ! -n "$h" ]; then
+       Found=0
+       echo Failed 2
+       return
+     fi
+     numfound=$h
+   done
+ }<pesortIntxt.tmp
+
+ if [ "$numfound" != "$numpes" ]; then
+   Found=0
+   echo Failed 2.1
+   retrun
+ fi
+
+ grep "ksPeSortMerge: Successful Sort(I checked!)" $LOGFILE >pecheckok
+ {
+  while read a b c
+   do
+     if [ "$b" != "Successful" ]; then
+       Found=0
+      echo Failed 3
+       return
+     fi
+   done
+ }<pecheckok
+
+ grep "ksPeSortMerge: Number of Sorted PEs written out:" $LOGFILE >sortout.tmp
+ {
+  while read a b c e f g h i
+   do
+     if [ ! -n "$i" ]; then
+       Found=0
+       echo Failed 4
+       return
+     fi
+     if [ -n "$eorFile" ]; then 
+       let j=$i
+       j=$((j-1))
+       i=$j
+     fi
+     numfound=$i
+   done
+ }<sortout.tmp
+ 
+ if [ "$numfound" != "$numpes" ]; then
+   Found=0
+   echo Failed 5
+   return
+ fi
+
+ grep "ksTrigger: KSPeFile reports Number of Pe" $LOGFILE >kstrigin.tmp
+ {
+  while read a b c e f g h i
+   do
+     if [ ! -n "$i" ]; then
+       Found=0
+       echo Failed 6
+       return
+     fi
+     numfound=$i
+   done
+ }<kstrigin.tmp
+
+ if [ "$numfound" != "$numpes" ]; then
+   Found==0
+   echo Failed 7
+   return
+ fi
+}
+# ****************************************************************************
+
+##########################
+#  Main Code
+##########################
+
 
 #echo KSAutoFileCheck:args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
 
@@ -20,80 +127,171 @@ FileType=$4
 let iEntryStart=$5
 let iEntryEnd=$6
 Threshold=$7
+FileDir=$8
 
-
-#The following arrays came from ksProduction.scr for CR
-energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 25560 30565 30565 36550 43707 52265 ) 
-start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     11    1     11    1     1    1) 
-
-if [ "$Particle" = "G" ] || [  "$Particle" = "E" ]; then
-
-end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    10    20    10    20    10    10    10)
-
+lcl=$PWD
+LOGDIR=$lcl'/log/'
+if [ "$FileType" = "TE" ]; then
+  mv ksProduction_*.log $LOGDIR  #For the PE Count test
 fi
 
-if [ "$Particle" = "P" ]; then
+PSF=V190             #until we do Old Array!!! We will need another argument
+#PSF=V330 
+SAP=$2
+ZNAZ=${SAP#*$Particle}
+ZNAZ=${ZNAZ%%Deg*}
 
-end=([1]=1382 1007 734  535  390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5    5)
-
+# Get the energy start end arrays for the shower specifications.
+if [ "$Particle" = "P" ] ||[ "$Particle" = "He4_" ] ||[ "$Particle" = "G" ] ||[ "$Particle" = "E" ]; then
+   if [ ! -e DefineShowers.scr ]; then
+      cp $KASCADEBASE/scripts/DefineShowers.scr .
+   fi
+   echo 'KSAutoFileCheck: Testing particle type: ' $Particle 
+   source DefineShowers.scr
+   DefineShowers $Particle
+else
+   echo 'KSAutoFileCheck: Unknown Particle type specified: ' $Particle
+   exit
 fi
 
-if [ "$Particle" = "He4" ]; then
+cd $FileDir
 
-end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5    5 )
-
-fi
-
-
-let iFilesNotFound=0;
-
-let j=$iEntryStart
-echo 'KSAutoFileCheck: Searching  for '$FileType' files in '$FileList
+let jIndex=$iEntryStart
+echo 'KSAutoFileCheck: Searching  for '$FileType' files in dir' $FileDir
 if [ -e $FileList'.Result' ]; then
      rm $FileList'.Result'
 fi
-#echo j,iEntryEnd:  $j $iEntryEnd
+#echo j,iEntryEnd:  $jIndex $iEntryEnd
 
-while test $j -le $iEntryEnd
+while test $jIndex -le $iEntryEnd
   do      
-   let iShStart=${start[$j]}
-   let iShEnd=${end[$j]}
-   e=${energy[$j]}
+   let iShStart=${start[$jIndex]}
+   let iShEnd=${end[$jIndex]}
+   ENERGY=${energy[$jIndex]}
 
-   let k=$iShStart
-   #echo k,iShEnd: $k $iShEnd
+   let kIndex=$iShStart
+   #echo j,k,iShEnd,e: $jIndex $kIndex $iShEnd $ENERGY
 
-   while test $k -le $iShEnd
+   #For VBF file size check
+   let icount[$jIndex]=0
+   let max[$jIndex]=0
+   let sum[$jIndex]=0
+   while test $kIndex -le $iShEnd
      do
       #Make up the file name
       #echo before namegens:FileType: $FileType
 	
       if [ "$FileType" = "TE" ]; then
-        NameFile=$TeName'GeV'$e'te.d'$k
+        NameFile=$TeName'GeV'$ENERGY'te.d'$kIndex
         #echo Looking for: $NameFile
       fi
       if [ "$FileType" = "VBF" ]; then
-        NameFile=$TeName$Threshold'1234M2GeV'$e'.d'$k'.vbf'
+        NameFile=$TeName$Threshold'1234M2GeV'$ENERGY'.d'$kIndex'.vbf'
       fi
       
-      Found=0
-      {
-       while read FileName
-         do
-	   if [ "$NameFile" = "$FileName" ]; then
-             Found=1
-             #echo Found: $FileName
-             break
-           fi
-         done
-      }<$FileList
+      Found=1
+      ##################################
+      #Check 1: (-s) Checks: does file exist and have non-0 length
+      ##################################
+      if [ -s "$NameFile" ]; then
+	if [ "$FileType" = "TE" ]; then
+	  ################################
+	  #Check 2 for TE: Check log files to make sure total 
+	  #        numbers of pes consistant in 4 
+	  #         places and sort was sucessful
+	  ##################################
+          # Only check for entry index greater than 20
+          if [ "$jIndex" -gt "20" ]; then
+            logFile=$LOGDIR'/ksProduction_'$ENERGY'd'$kIndex$SAP$Threshold'1234M2.log'
+            if [ ! -e "$logFile" ]; then
+       	      echo No log file $logFile for $NameFile
+       	    else
+       	      LookForBadPeCounts $logFile
+       	    fi
+          fi
+        fi
+	if [ "$FileType" = "VBF" ] && [ "$ENEGRY" -gt "1000" ] ; then      
+          ################################
+          # Test ShowerVBF file size is at least 30% of average shower size
+          # at this energy.  Start at enegies above 1000 GeV
+          ################################
+          # Collect info for ShowervBf files at this energy
+	  ls -sl $NameFile >tmp
+          {
+            read size theRest
+            icount[$jIndex]='expr ${icount[$jIndex]} + 1'
+            sum[$jIndex]='expr ${sum[$jIndex]} + $size'
+            if [ "$size" -gt "${max[$jIndex]}" ]; then
+              max[$jIndex]=$size
+            fi
+          }<tmp
+           #############################################
+           # A furthor test here of the Shower VBF file could be
+           # just opening it. If the file had not oundergone a  "finish"
+           # this would fail
+           #############################################
+        fi
+      else
+         Found=0
+      fi
+      
       if [ "$Found" = "0" ]; then
-        #echo 'File Not found: '$NameFile
         echo 'File Not found: '$NameFile >>$FileList'.Result'
       fi
-      let k=k+1
+      let kIndex=kIndex+1
      done
-   let j=j+1
+   let jIndex=jIndex+1
   done
 
+###############################################
+# If this is a ShowerVBF test we need to finish the size test
+###############################################
+if [ "$FileType" = "VBF" ]; then
+  let jIndex=$iEntryStart
+  while test $jIndex -le $iEntryEnd
+   do      
+    ENERGY=${energy[$jIndex]}
+    if [ "$ENERGY" -gt "1000" ]; then # Limit lowest energy
+      # *****************************************************
+      # use bc to do some math to find $MinLevel of max
+      # *****************************************************
+      Mean=$(echo "$sum{[$Jindex]}/${icount[$Jindex]}" | bc)
+      FracMax=$(echo "$MinLevel*${max[$Jindex]}" | bc)
+      FracMax=${FracMax%%.*}
+      FracMean=$(echo "$MinLevel*$Mean" | bc)
+      FracMean=${FracMean%%.*}
+      if [ "$FracMax" -lt "$FracMean" ]; then
+        Min=$FracMax
+        #echo FracMax
+      else
+        Min=$FracMean
+        #echo FracMean
+      fi
+
+      let iShStart=${start[$jIndex]}
+      let iShEnd=${end[$jIndex]}
+      let kIndex=$iShStart      
+      while test $kIndex -le $iShEnd
+        do
+         #Make up the file name
+         NameFile=$TeName$Threshold'1234M2GeV'$ENERGY'.d'$kIndex'.vbf'
+         if [ -s "$NameFile" ]; then #Make sure we havent already 
+                                     #dumped this one
+          ls -sl $NameFile >tmp
+          {   
+           read size theRest
+           if [ "$Min" -gt "$size" ]; then
+              echo 'File Not found: '$NameFile >>$FileList'.Result'
+              echo $Min $size  >>$FileList'.Result'
+           fi
+          }<tmp
+         fi 
+         let kIndex=kIndex+1
+        done
+    fi
+    let jIndex=jIndex+1
+   done
+fi
+
+cd $lcl
 #############################################################################
