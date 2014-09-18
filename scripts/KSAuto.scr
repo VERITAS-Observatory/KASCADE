@@ -38,11 +38,11 @@ EntryGEEnd=45
 
 EntryPStart=1
 #EntryPEnd=45
-EntryPEnd=28
+EntryPEnd=21
 
 EntryHe4Start=5
 #EntryHe4End=45
-EntryHe4End=29
+EntryHe4End=21
 
 if [ "$1" = "CR" ]; then
   EntryPEnd=45
@@ -970,7 +970,7 @@ while test $izn -lt $iznEnd
 
 	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
          then
-	    FilesMissing=1
+	    let FilesMissing=1
          fi
        else
          checkFilesExist $PSFDir'/'$TeName $TeName $SPECPART 'TE' $EntryGEStart $EntryGEEnd $Threshold
