@@ -150,16 +150,16 @@ function GenerateEAFileName()
   SimModel=Jan2013
   a=${Cuts:0:1}
   if [ "$a" = "U" ]; then
-     array=V6_PMTUpgrade
-     DetectorModelID=MDL10UA
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
   fi
   if [ "$a" = "N" ]; then
-     array=V5_T1Move
-     DetectorModelID=MDL15NA
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
   fi
   if [ "$a" = "O" ]; then
-     array=V4_OldArray
-     DetectorModelID=MDL8OA
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
   fi
 
   if [ "$2" = "W" ]; then
@@ -178,24 +178,24 @@ function GenerateEAFileName()
   GetOptionValue $tbl'Quality'$Cuts'Cuts'  SizeLower  #sets OptionValue
   sizeCut=${OptionValue:2}                       #Drop "0/"
 
-  telescopeCut=t2                                #Multiplicity (2 tels trigger, OA ?)
+  telescopeMultiplicity=t2                #Multiplicity (2 tels trigger, OA ?)
   method=$4
   
   GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  MeanScaledWidthUpper  #sets OptionValue
   
-  MSWUpperCut=${OptionValue/./p}             #Tricky way to replace a "." with a "p"
+  MSWUpperCut=$OptionValue            #Tricky way to replace a "." with a "p"
 
   GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  MeanScaledLengthUpper  #sets OptionValue
-  MSLUpperCut=${OptionValue/./p}
+  MSLUpperCut=$OptionValue
   
   GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  MaxHeightLower  #sets OptionValue
   if [ "$OptionValue" != "-100" ]; then           #check if not used
-      MaxHeightLowerCut=${OptionValue/./p}     #will remain undefined if not used
+      MaxHeightLowerCut=$OptionValue     #will remain undefined if not used
   fi
 
 
   GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  ThetaSquareUpper
-  ThetaSquareUpperCut=${OptionValue/./p}
+  ThetaSquareUpperCut=$OptionValue
 
   TelConfiguration=$5
   if [ "$5" != "1234" ]; then
@@ -205,18 +205,23 @@ function GenerateEAFileName()
   ###################################################
   # Ready to build file name (from OAWG 2.5 wiki page)
   ###################################################
-#  ea_[array]_ATM[SeasonID]_[SimulationTool]_[SimulationToolVersion]_
+# ea_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_vegasv250rc5_
+# 7sam_[offsetID]off_s[sizeCut]t[telescopeMultiplicity]_[method]_MSW[MSW upper cut]_
+# MSL[MSL upper cut]_MH[Max height lower cut]_ThetaSq[Theta square upper cut]_LZA.root
+
+# ea_[array]_ATM[SeasonID]_[SimulationTool]_[SimulationToolVersion]_
 # [DetectorModelID]_[Primary]_vegasv250rc5_7sam_[offsetID]off_
 # s[sizeCut][telescopeCut]_[method]_MSW[MSW upper cut]_MSL[MSL upper cut]_
 # MH[Max height lower cut]_ThetaSq[Theta square upper cut]_LZA.root
 
-  EAFILENAME='ea_'$array'_ATM'$SeasonID'_KASCADE_'$DetectorModelID'_'
-  if  [ -n "$6" ]; then
+
+  EAFILENAME='ea_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_'
+  if  [ -n "$6" ]; then                             #PrimaryType
      EAFILENAME=$EAFILENAME$6'_'
   fi
 
-  EAFILENAME=$EAFILENAME'vegasv250rc5_'
-  EAFILENAME=$EAFILENAME'7sam_'$offsetID'off_s'$sizeCut$telescopeCut'_'$method'_MSW'
+  EAFILENAME=$EAFILENAME'vegasv250rc5_7sam_'$offsetID'off_'
+  EAFILENAME=$EAFILENAME's'$sizeCut$telescopeMultiplicity'_'$method'_MSW'
   EAFILENAME=$EAFILENAME$MSWUpperCut'_MSL'$MSLUpperCut'_'
 
   if [ -n "$MaxHeightLowerCut" ]; then
@@ -241,16 +246,16 @@ function GenerateLTFileName()
 {
   a=$1
   if [ "$a" = "UA" ]; then
-     array=V6_PMTUpgrade
-     DetectorModelID=MDL10UA
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
   fi
   if [ "$a" = "NA" ]; then
-     array=V5_T1Move
-     DetectorModelID=MDL15NA
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
   fi
   if [ "$a" = "OA" ]; then
-     array=V4_OldArray
-     DetectorModelID=MDL8OA
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
   fi
 
   if [ "$2" = "W" ]; then
@@ -268,7 +273,7 @@ function GenerateLTFileName()
   tbl=$VEGAS'/../tables/'
   GetOptionValue $tbl'LookupTableStdCuts'  DistanceUpper   #sets OptionValue
   distCut=${OptionValue:2}                       #Drop "0/"
-  distCut=${distCut/./p}                         #Convert "." to "p". Not sure why
+  #leave in decimal points.   #distCut=${distCut/./p}#Convert "." to "p". Not sure why
 
   method=$4
   
@@ -276,17 +281,15 @@ function GenerateLTFileName()
   ###################################################
   # Ready to build file name (From OAWG 2.5 wiki page)
   ###################################################
-#  lt_[array]_ATM[SeasonID]_[SimulationTool]_[SimulationToolVersion]_
-# [DetectorModelID]_[Primary]_vegasv250rc5_7sam_[offsetID]off_
-# d[distCut]_[method]_LZA.root
+# lt_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_vegasv250rc5_
+# 7sam_[offsetID]off_[method]_d[distCut]_LZA.root
 
-  LTFILENAME='lt_'$array'_ATM'$SeasonID'_KASCADE_'$DetectorModelID'_'
-  if  [ -n "$5" ]; then
+  LTFILENAME='lt_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_'
+  if  [ -n "$5" ]; then                                        #PrimaryType
      LTFILENAME=$LTFILENAME$5'_'
   fi
 
-  LTFILENAME=$LTFILENAME'vegasv250rc5_'
-  LTFILENAME=$LTFILENAME'7sam_'$offsetID'off_'$method'_d'$distCut'_'
+  LTFILENAME=$LTFILENAME'vegasv250rc5_7sam_'$offsetID'off_'$method'_d'$distCut'_'
   LTFILENAME=$LTFILENAME'LZA.root'
   return
 }
@@ -594,7 +597,7 @@ function SubmitVegasSimProduction()
 }
 ################################################################################### 
 
-function GetUniqueNumber()
+GetUniqueNumber()
 {
   #use combo of process id ($$)and number of nanosec(date +%N) since last 
   #second tick to get unique value. (least count is micro sec at best)
@@ -1986,7 +1989,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	       root -q -b -q $Arg >CheckStage4OK.log
 	       {
 		   read BAD
-		   let suzBAD=$BAD
+		   let suzBAD="$BAD"
 		   
 		   if [ "$suzBAD" -lt "15" ]; then
 		       echo "Bad: "$PedVarS4FileName
