@@ -210,7 +210,8 @@ while test $jIndex -le $iEntryEnd
        	    fi
           fi
         fi
-	if [ "$FileType" = "VBF" ] && [ "$ENEGRY" -gt "1000" ] ; then      
+	let E=${ENERGY%%.*}
+        if [ "$FileType" = "VBF" ] && [ $E -gt "1000" ] ; then      
           ################################
           # Test ShowerVBF file size is at least 30% of average shower size
           # at this energy.  Start at enegies above 1000 GeV
@@ -219,12 +220,15 @@ while test $jIndex -le $iEntryEnd
 	  ls -sl $NameFile >tmp
           {
             read size theRest
-            icount[$jIndex]='expr ${icount[$jIndex]} + 1'
-            sum[$jIndex]='expr ${sum[$jIndex]} + $size'
+            let ic=icount[$jIndex]
+            let ic=ic+1
+            icount[$jIndex]=$ic
+            let sm=sum[$jIndex]+$size
+            sum[$jIndex]=$sm
             if [ "$size" -gt "${max[$jIndex]}" ]; then
               max[$jIndex]=$size
             fi
-          }<tmp
+           }<tmp
            #############################################
            # A furthor test here of the Shower VBF file could be
            # just opening it. If the file had not oundergone a  "finish"
@@ -251,20 +255,26 @@ if [ "$FileType" = "VBF" ]; then
   while test $jIndex -le $iEntryEnd
    do      
     ENERGY=${energy[$jIndex]}
-    if [ "$ENERGY" -gt "1000" ]; then # Limit lowest energy
+    let E=${ENERGY%%.*}
+    let ic=${icount[$jIndex]}
+    if [ $E -gt "1000" ] && [ $ic -gt "0" ]; then # Limit lowest energy
       # *****************************************************
       # use bc to do some math to find $MinLevel of max
       # *****************************************************
-      Mean=$(echo "$sum{[$Jindex]}/${icount[$Jindex]}" | bc)
-      FracMax=$(echo "$MinLevel*${max[$Jindex]}" | bc)
-      FracMax=${FracMax%%.*}
-      FracMean=$(echo "$MinLevel*$Mean" | bc)
-      FracMean=${FracMean%%.*}
+      
+      Mean=$(echo "${sum[$jIndex]}/${icount[$jIndex]}" | bc)
+      Fmax=$(echo "$MinLevel*${max[$jIndex]}" | bc)
+      Fmax=${Fmax%%.*}
+      let FracMax=$Fmax
+      
+      Fmean=$(echo "$MinLevel*$Mean" | bc)
+      Fmean=${Fmean%%.*}
+      let FracMean=$Fmean
       if [ "$FracMax" -lt "$FracMean" ]; then
-        Min=$FracMax
+        let Min=$FracMax
         #echo FracMax
       else
-        Min=$FracMean
+        let Min=$FracMean
         #echo FracMean
       fi
 
@@ -279,8 +289,9 @@ if [ "$FileType" = "VBF" ]; then
                                      #dumped this one
           ls -sl $NameFile >tmp
           {   
-           read size theRest
-           if [ "$Min" -gt "$size" ]; then
+           read Size theRest
+           let size=$Size
+           if [ $Min -gt "$size" ]; then
               echo 'File Not found: '$NameFile >>$FileList'.Result'
               echo $Min $size  >>$FileList'.Result'
            fi
