@@ -230,7 +230,7 @@ function GenerateEAFileName()
  
   EAFILENAME=$EAFILENAME'ThetaSq'$ThetaSquareUpperCut'_'
 
-  if [ -n "$TELCONFIGURATION" [; then
+  if [ -n "$TELCONFIGURATION" ]; then
     EAFILENAME=$EAFILENAME'T'$TELCONFIGURATION'_'
   fi
   EAFILENAME=$EAFILENAME'LZA.root'
