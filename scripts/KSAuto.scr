@@ -536,7 +536,7 @@ function GetUniqueNumber()
 ############################################################################
 if [ ! -n "$1" ]; then
   usage
-  exit
+  commandEnable "ListCommands"   #List all commands and exits
 fi
 
 commandEnable $1   #This will enable the specified command or exit if its not a 
