@@ -1,0 +1,44 @@
+#!/bin/bash
+#$1 List file of  files to distribute
+
+#Assumes List file entries have full path name.
+
+
+
+LISTFILE=$1
+lcl=$PWD
+
+{
+  while read LTDIRFILE
+   do
+     LTDIR=${LTDIRFILE%/*}
+     LTDIR=$LTDIR'/'
+     LTFILE=${LTDIRFILE##/*/}
+
+     cd $LTDIR
+     pwd
+     echo LTFILE: $LTFILE 
+   
+# To Carver tables
+     cp -v $LTFILE $VEGAS/../tables
+
+# to Edison tables
+     cp -v $LTFILE $TOOLSDIR/../veritas_E/tables/ 
+
+#To Carver archive
+     hsi 'cd tables; put '$LTFILE';'
+
+#To purdue tables.
+     scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/group/veritas/apps/tables/
+    # scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
+
+#to purdue archvie
+     #~/Purdue/hsi.kshGLN " cd /archive/fortress/group/veritas/tables/; pwd; put $LTFILE ; "
+
+# To UCLA archive
+     bbftp -u bbftp -p 12 -S -V -e " put  $LTFILE /veritas/upload/OAWG/tables/v250/" gamma1.astro.ucla.edu
+     cd $lcl
+   done
+}<$LISTFILE
+
+
