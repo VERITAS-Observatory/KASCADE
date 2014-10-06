@@ -20,27 +20,10 @@ if [ ! -n "$1" ]; then
   exit
 fi
 
-echo Warning!!: Make sure VAAuto has GenerateStage2Files=enabled
-
-grep "GenerateStage2Files=enabled" VAAuto.scr >redog.tmp
-{
-  read genS2Ena
-  fchar=${genS2Ena:0:1}
-  if [ "$fchar" = "#" ]; then
-    echo 'ReDoBadPedVarS2.scr: Fatal!!: VAAuto must have  GenerateStage2Files=enabled selected!'
-    exit
-  fi
-}<redog.tmp
-
-#rm redog.tmp
-
-
-
-
 BadFile=$1
 
 ##################################################################
-# Kep only the "Bad" lines in the file
+# Keep only the "Bad" lines in the file
 ##################################################################
 
 grep Bad $BadFile >S2tmp1
@@ -75,8 +58,9 @@ grep Bad $BadFile >S2tmp1
   sed '/Bad/s/Deg2DS/  /g'            <S2tmp1     >S2tmp2   #parse out offset
   sed '/Bad/s/Deg2D/  /g'             <S2tmp2     >S2tmp1   #Special for 0.0 deg offset
   sed '/Bad/s/_/  /g'                 <S2tmp1     >S2tmp2   #Parse out aZ
-  sed '/Bad/s/MDL10UA/ MDL10 UA /g'     <S2tmp2     >S2tmp1   #MDL10, ArrayType, 
+  sed '/Bad/s/MDL10UA/ MDL10 UA /g'   <S2tmp2     >S2tmp1   #Special for MDL10UA 
   sed '/Bad/s/MDL15NA/ MDL15 NA /g'   <S2tmp1     >S2tmp2   #Special for MDL15NA
+  sed '/Bad/s/MDL8OA/ MDL8 OA /g'     <S2tmp1     >S2tmp2   #Special for MDL8OA
   sed '/Bad/s/W/ W /g'                <S2tmp2     >S2tmp1   #Seperate Pedvar and season
   sed '/Bad/s/S/ S /g'                <S2tmp1     >S2tmp2   #Seperate Pedvar other season
   sed '/Bad/s/G/ G/g'                 <S2tmp2     >S2tmp1   #Seperate PMT, part type
