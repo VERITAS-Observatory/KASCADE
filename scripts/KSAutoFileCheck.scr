@@ -13,6 +13,9 @@
 ########################################################################
 
 MinLevel=.3   #VBF minimum file size to be happy with.
+if [ "$3" = "P" ] ||  [ "$3" = "He4_" ]; then
+  MinLevel=.1
+fi
 
 
 function LookForBadPeCounts()
@@ -183,11 +186,11 @@ while test $jIndex -le $iEntryEnd
 	
       if [ "$FileType" = "TE" ]; then
         NameFile=$TeName'GeV'$ENERGY'te.d'$kIndex
-        #echo Looking for: $NameFile
       fi
       if [ "$FileType" = "VBF" ]; then
         NameFile=$TeName$Threshold'1234M2GeV'$ENERGY'.d'$kIndex'.vbf'
       fi
+      #echo Looking for: $NameFile
       
       Found=1
       ##################################
@@ -210,8 +213,11 @@ while test $jIndex -le $iEntryEnd
        	    fi
           fi
         fi
-	let E=${ENERGY%%.*}
-        if [ "$FileType" = "VBF" ] && [ $E -gt "1000" ] ; then      
+        
+	eInt=${ENERGY%%.*}
+        eLimit="1000"
+	#echo eInt: $eInt eLimit: $eLimit
+	if [ "$FileType" = "VBF" ] && [ "$eInt" -gt "$eLimit" ] ; then      
           ################################
           # Test ShowerVBF file size is at least 30% of average shower size
           # at this energy.  Start at enegies above 1000 GeV
@@ -220,15 +226,12 @@ while test $jIndex -le $iEntryEnd
 	  ls -sl $NameFile >tmp
           {
             read size theRest
-            let ic=icount[$jIndex]
-            let ic=ic+1
-            icount[$jIndex]=$ic
-            let sm=sum[$jIndex]+$size
-            sum[$jIndex]=$sm
+            icount[$jIndex]=$(( ${icount[$jIndex]} + 1))
+            sum[$jIndex]=$(( ${sum[$jIndex]} + $size ))
             if [ "$size" -gt "${max[$jIndex]}" ]; then
               max[$jIndex]=$size
             fi
-           }<tmp
+          }<tmp
            #############################################
            # A furthor test here of the Shower VBF file could be
            # just opening it. If the file had not oundergone a  "finish"
@@ -255,26 +258,27 @@ if [ "$FileType" = "VBF" ]; then
   while test $jIndex -le $iEntryEnd
    do      
     ENERGY=${energy[$jIndex]}
-    let E=${ENERGY%%.*}
-    let ic=${icount[$jIndex]}
-    if [ $E -gt "1000" ] && [ $ic -gt "0" ]; then # Limit lowest energy
+    eInt=${ENERGY%%.*}
+    eLimit="1000"
+    if [ "$eInt" -gt "$eLimit" ]; then # Limit lowest energy
       # *****************************************************
       # use bc to do some math to find $MinLevel of max
-      # *****************************************************
-      
+      # **************************************************
+      #echo eInt: $eInt eLimit $eLimit sum: ${sum[$jIndex]} icount: ${icount[$jIndex]}
       Mean=$(echo "${sum[$jIndex]}/${icount[$jIndex]}" | bc)
-      Fmax=$(echo "$MinLevel*${max[$jIndex]}" | bc)
-      Fmax=${Fmax%%.*}
-      let FracMax=$Fmax
-      
-      Fmean=$(echo "$MinLevel*$Mean" | bc)
-      Fmean=${Fmean%%.*}
-      let FracMean=$Fmean
+      FracMax=$(echo "$MinLevel*${max[$jIndex]}" | bc)
+      FracMax=${FracMax%%.*}
+      FracMean=$(echo "$MinLevel*$Mean" | bc)
+      FracMean=${FracMean%%.*}
+      if [ ! -n $FracMax ] || [ ! -n $FracMean ]; then
+        echo Fatal-No Max or Mean: energy: $ENERGY  FracMax: $FracMax  FracMean: $FracMean
+        exit
+      fi
       if [ "$FracMax" -lt "$FracMean" ]; then
-        let Min=$FracMax
+        Min=$FracMax
         #echo FracMax
       else
-        let Min=$FracMean
+        Min=$FracMean
         #echo FracMean
       fi
 
@@ -290,10 +294,11 @@ if [ "$FileType" = "VBF" ]; then
           ls -sl $NameFile >tmp
           {   
            read Size theRest
-           let size=$Size
-           if [ $Min -gt "$size" ]; then
+           let min="$Min"
+	   let size="$Size"
+	   if [ "$min" -gt "$size" ]; then
               echo 'File Not found: '$NameFile >>$FileList'.Result'
-              echo $Min $size  >>$FileList'.Result'
+              echo $Mean $Min $size  >>$FileList'.Result'
            fi
           }<tmp
          fi 

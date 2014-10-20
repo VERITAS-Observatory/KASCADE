@@ -21,8 +21,23 @@ function usage()
 function setup()
 {
   lcl=$PWD
-
   host=$(hostname)
+
+  hostString=${host:0:6}
+  if test  "$hostString" = "edison"  #Are we running on Edison
+   then
+    EDISON=enabled
+    EdisonQueue=serial
+    QUEUE1=$EdisonQueue
+    QUEUE2=$EdisonQueue
+    WALLTIME1=30:00:00
+    WALLTIME2=$WALLTIME1
+    MEMREQEST='vmem=8GB '
+    QSUBEXT='.serial'
+    echo '***Edison Cluster***'
+  fi
+
+
   hostString=${host:0:6}
   if test  "$hostString" = "cvrsvc"  #Are we running on Carver
     then
@@ -30,6 +45,7 @@ function setup()
      CarverQueue=serial
      QUEUE1=$CarverQueue
      QUEUE2=$CarverQueue
+     QUEUE=$QUEUE1
      WALLTIME1=30:00:00
      WALLTIME2=30:00:00
      MEMREQEST='pvmem=30GB'
@@ -62,7 +78,7 @@ function setup()
   
   echo hostString: $hostString
   
-  if [ -n "$CARVER" ]; then
+  if [ -n "$CARVER" ] || [ -n "$EDISON" ]; then
     dataDirBase=$lcl'/../simulations'
     echo Carver Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
@@ -185,7 +201,7 @@ let E=${eGeV%%.*}
  #   echo $sgeFile >>$QsubFileNameList
  #  else
   
- qsub -V -e k$eGeV'd'$showerID$SHWRSPEC.err -o k$eGeV'd'$showerID$SHWRSPEC.log $sgeFile 
+ qsub$QSUBEXT -V -e k$eGeV'd'$showerID$SHWRSPEC.err -o k$eGeV'd'$showerID$SHWRSPEC.log $sgeFile 
 
  #  fi
 
