@@ -1,12 +1,12 @@
 #!/bin/bash
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # UNDER CONSTRUTION: Gradulally changeing from WV,SV to WN,SN (for consistancy)
 # fixed for:
 #  HTARTeFilesToArchive 
 #  HTARTeFilesFromArchive
 #  HTARShowerVBFFilesToArchive
 #  HTARShowerVBFFilesFromArchive
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 #This script is used to automate the generation of the veritas Te files
 #************************************************************************
@@ -17,7 +17,7 @@
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=900          #with ksProduction and only want to make
+MaxQsubsDefault=200           #with ksProduction and only want to make
                               #475 submission in queue at one time.Causes us to
                               #wait
 #Cleanup=enabled                
@@ -38,16 +38,19 @@ EntryGEEnd=45
 
 EntryPStart=1
 EntryPEnd=45
-#EntryPEnd=21
+#EntryPEnd=21       #715GeV
+#EntryPEnd=32       #5112GeV
 
 EntryHe4Start=5
 EntryHe4End=45
-#EntryHe4End=21
+#EntryHe4End=21     #715GeV
+#EntryHe4End=32     #5112 GeV
 
-if [ "$1" = "CR" ]; then
-  EntryPEnd=45
-  EntryHe4End=45
+if [ "$2" = "CR" ]; then
+  echo EntryPEnd: $EntryPEnd
+  echo EntryHe4End: $EntryHe4End
 fi
+
 #############################################################
 function commandEnable()
 {
@@ -83,8 +86,8 @@ function commandEnable()
     if [ "$1" = "HTARShowerVBFFilesFromArchive" ]; then eval $1=enable; return 0; fi;       
     if [ "$1" = "HTARShowerVBFFilesToArchive" ]; then eval $1=enable; return 0; fi;  
     if [ "$1" = "GenerateZnAzVBFFile" ]; then eval $1=enable; return 0; fi;
-    echo ' VAAuto: Invalid Command: '$1
-    echo ' VAAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
+    echo ' KSAuto: Invalid Command: '$1
+    echo ' KSAuto: Do "./KSAuto ListCommands" for a list of valid commands.'
     exit
   fi
 }
@@ -970,7 +973,7 @@ while test $izn -lt $iznEnd
 
 	 if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
          then
-	    let FilesMissing=1
+	    FilesMissing="1"
          fi
        else
          checkFilesExist $PSFDir'/'$TeName $TeName $SPECPART 'TE' $EntryGEStart $EntryGEEnd $Threshold
@@ -980,7 +983,7 @@ while test $izn -lt $iznEnd
          fi
        fi
 
-       if [ "$FilesMissing" -eq "1" ]; then
+       if [ "$FilesMissing" == "1" ]; then
          echo 'KSAuto: '$iFilesNotFound' files not created.'
          if [ -n "$ExitOnTeCreationFailure" ]; then
            echo 'KSAuto: *************Missing files***********'
@@ -1240,8 +1243,11 @@ while test $izn -lt $iznEnd
 	   MEMREQUEST=' -l pvmem=8GB '
 	   echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
          fi
-	 ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EnergyStart $EnergyEnd
-                                  #Above will fill the list file 
+	 if [ "$SPECPART" = "CR" ]; then
+             ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
+         else
+             ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EnergyStart $EnergyEnd
+         fi                     #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
                                   #Below will run them with a max of $MaxQsubs
