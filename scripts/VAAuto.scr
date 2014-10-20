@@ -651,7 +651,7 @@ if [ "$SPECCFG" = "UA" ]; then
     LTSEASON="ua"
 fi
 if [ "$SPECCFG" = "OA" ]; then
-    PMT="OA"
+    PMT="O"
     LTSEASON="oa"
 fi
 if [ "$SPECCFG" = "NA" ]; then
@@ -941,22 +941,22 @@ if [ -n "$TELCUT" ]; then
    if [ "$CutTel" != "1" ] ; then
       TelConfig=1
    else
-      TelConfig=X
+      TelConfig='-'
    fi
    if [ "$CutTel" != "2" ] ; then
       TelConfig=$TelConfig'2'
    else
-      TelConfig=$TelConfig'X'
+      TelConfig=$TelConfig'-'
    fi
    if [ "$CutTel" != "3" ] ; then
       TelConfig=$TelConfig'3'
    else
-      TelConfig=$TelConfig'X'
+      TelConfig=$TelConfig'-'
    fi
    if [ "$CutTel" != "4" ] ; then
       TelConfig=$TelConfig'4'
    else
-      TelConfig=$TelConfig'X'
+      TelConfig=$TelConfig'-'
    fi
    echo 'VAAuto: Array configuration: '$TelConfig'  No '$TELCUT
 fi
@@ -2027,7 +2027,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     if [ ! -e "combineKASCADE_LT.C" ]; then
 	cp $KASCADEBASE'/scripts/combineKASCADE_LT.C' .
     fi
-    
+   
     if [ -e "$LTFILENAME" ]; then
 	rm -v $LTFILENAME
     fi
@@ -2048,7 +2048,29 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     echo "VAAuto: "$LTFILENAME
     echo "VAAuto: Do: less CombineSubLT.log;  then shift-F to see when it  finishes!"
     
-    root -b -q $Script '>'$lcl'/CombineSubLT.log'  
+    if [ -n "$CombineSubLT" ]; then
+	root -b -q $Script '>'$lcl'/CombineSubLT.log'
+    fi
+    if  [ -n "$CombineDispSubLT" ]; then
+	#The combine Disp takes too long to run interactivly, so submit it.
+        #build a submission .pbs file
+	sgeFile=$lcl'/CmbDisp.pbs'
+	 echo "#"PBS -q $QUEUE                                           >$sgeFile
+	 echo "#"PBS -l walltime=04:00:00                               >>$sgeFile
+	 echo "#PBS -l "$MEMREQUEST                                     >>$sgeFile
+	 if [ -n "$CARVER" ]; then
+	     echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
+	 fi
+	 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
+	     echo source /etc/profile                                   >>$sgeFile
+	     echo module load gcc/4.7.2                                 >>$sgeFile
+	 fi
+	 echo cd $VEGAS/showerReconstruction2/macros                    >>$sgeFile
+	 echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
+    
+	 chmod 700 $sgeFile
+	 qsub -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
+    fi
 fi
 #**********************************************************************
 
