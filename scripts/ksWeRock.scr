@@ -39,8 +39,15 @@ fi
 host=$(hostname)
 echo host: $host
 
-hostString=${host:0:1}
-if test  "$hostString" = "c"  #Are we running on Carver
+hostString=${host:0:3}
+if test  "$hostString" = "nid"  #Are we running on Edison
+then
+  EDISON=enabled
+  echo ***Edison Cluster***
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   echo ***Carver Cluster***
@@ -61,6 +68,12 @@ then
 fi
 
 
+
+#EDISON
+if [ -n "$EDISON" ]; then
+    dataDirBase=$lcl/../simulations
+    dstDir=$dataDirBase
+fi
 
 #CARVER
 if [ -n "$CARVER" ]; then

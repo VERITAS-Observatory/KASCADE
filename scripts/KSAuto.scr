@@ -50,6 +50,15 @@ if [ "$2" = "CR" ]; then
   echo EntryPEnd: $EntryPEnd
   echo EntryHe4End: $EntryHe4End
 fi
+if [ "$2" = "P" ]; then
+ EntryGEStart=$EntryPStart
+ EntryGEEnd=$EntryPEnd
+fi
+if [ "$2" = "He4_" ]; then
+ EntryGEStart=$EntryHe4Start
+ EntryGEEnd=$EntryHe4End
+fi
+
 
 #############################################################
 function commandEnable()
@@ -1347,13 +1356,20 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
        echo '# GenerateZnAzVBFFile '
        echo '##########################################################'
+       KSWEROCK=$lcl'/ksWeRock.scr'
+       if [ ! -e "$KSWEROCK" ]; then	
+	   cp -v $KASCADEBASE'/scripts/ksWeRock.scr' .
+       fi
+
+
+
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
        ProcessAll=$SPECPART'ProcessAll'
        if [ ! -e "$ProcessAll" ]; then
 	   cp -v $KASCADEBASE'/scripts/'$ProcessAll .
        fi
- 
+
 
        if [ "$SPECPART" = "CR" ] ; then
          #echo"CRProcessAll not working with KSAuto yet"
