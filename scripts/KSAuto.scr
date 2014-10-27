@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # UNDER CONSTRUTION: Gradulally changeing from WV,SV to WN,SN (for consistancy)
@@ -33,8 +34,11 @@ MaxQsubsDefault=200           #with ksProduction and only want to make
 # Force the Check files to match shower entry numberes to those used in ksProduction.scr
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
+#EntryGEStart=43 #36550GeV
                         #This for the checks and for TE gen only for now.
 EntryGEEnd=45
+#EntryGEEnd=43 #36550GeV
+
 
 EntryPStart=1
 EntryPEnd=45
@@ -50,15 +54,6 @@ if [ "$2" = "CR" ]; then
   echo EntryPEnd: $EntryPEnd
   echo EntryHe4End: $EntryHe4End
 fi
-if [ "$2" = "P" ]; then
- EntryGEStart=$EntryPStart
- EntryGEEnd=$EntryPEnd
-fi
-if [ "$2" = "He4_" ]; then
- EntryGEStart=$EntryHe4Start
- EntryGEEnd=$EntryHe4End
-fi
-
 
 #############################################################
 function commandEnable()
@@ -672,10 +667,12 @@ if [ "$TELESPEC" = "W" ]; then   #Whipple telescope (not really implimented,
    DirPSF=V190
    TELCONFIG=W
 fi
-if [ "TELESPEC" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
+if [ "$TELESPEC" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
    PMT="O"                      #with old V330 PSF)
    TELCONFIG=O
    DirPSF=V330
+   echo TELCONFIG:B: $TELCONFIG
+
 fi
 if [ "$TELESPEC" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
    PMT="V"                      #with new  V190 PSF)
@@ -720,7 +717,11 @@ WblFilterSpec=$WblFilterSpec$MOON    #Add the M if needed or all could even be b
 # read in our stings into arrays. Then we restore the IFS.
 
 SAVEIFS=$IFS
-IFS=, read -a Zenith <<< "$SPECZN"
+if [ $SPECZN = "All" ]; then
+    Zenith=([0]=1 10 20 30 40 50 60 70)
+else  
+    IFS=, read -a Zenith <<< "$SPECZN"
+fi
 
 if [ $SPECAZ = "All" ]; then
   Azimuth=([0]=0 45 90 135 180 225 270 315)
@@ -905,6 +906,10 @@ while test $izn -lt $iznEnd
        ShowerDirAlt=$VDirBase'/'$ParticleDir'/'$ShowerVBFDirAlt
      fi
    
+     echo TeName:A:  $TeName ZnAz: $ZnAz
+
+
+
      if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
@@ -951,8 +956,6 @@ while test $izn -lt $iznEnd
              SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
            fi
          fi
-	   SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
-
        else
          SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
@@ -1356,20 +1359,13 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
        echo '# GenerateZnAzVBFFile '
        echo '##########################################################'
-       KSWEROCK=$lcl'/ksWeRock.scr'
-       if [ ! -e "$KSWEROCK" ]; then	
-	   cp -v $KASCADEBASE'/scripts/ksWeRock.scr' .
-       fi
-
-
-
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
        ProcessAll=$SPECPART'ProcessAll'
        if [ ! -e "$ProcessAll" ]; then
 	   cp -v $KASCADEBASE'/scripts/'$ProcessAll .
        fi
-
+ 
 
        if [ "$SPECPART" = "CR" ] ; then
          #echo"CRProcessAll not working with KSAuto yet"
