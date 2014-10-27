@@ -684,6 +684,11 @@ if [ "$TELESPEC" = "UA" ]; then #Upgrade Veritas Array (after T1 move, New PMTs,
    DirPSF=V190
    TELCONFIG=U
 fi
+if  [ ! -n "$TELCONFIG" ]; then
+   echo ' KSAuto: Illegal Array Specification: ' $TELESPEC 'Can be OA or NA or UA only.'
+   exit
+fi
+
 
 Threshold=$SPECTHR
 MoonFilterSpec=${Threshold:0:1}  #Get leading M if there is one
