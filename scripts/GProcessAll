@@ -65,10 +65,10 @@ hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
-  #QUEUE=physics
-  #WALLTIME='30:00:00'
-  QUEUE=standby
-  WALLTIME='04:00:00'
+  QUEUE=physics
+  WALLTIME='30:00:00'
+  #QUEUE=standby
+  #WALLTIME='04:00:00'
   MEMREQUEST='mem=8GB'
   echo '***Hansen Cluster:'$QUEUE' queue ***'
 fi
