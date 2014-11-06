@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # UNDER CONSTRUTION: Gradulally changeing from WV,SV to WN,SN (for consistancy)
@@ -34,8 +33,9 @@ MaxQsubsDefault=200           #with ksProduction and only want to make
 # Force the Check files to match shower entry numberes to those used in ksProduction.scr
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
-#EntryGEStart=43 #36550GeV
                         #This for the checks and for TE gen only for now.
+#EntryGEStart=43 #36550GeV
+
 EntryGEEnd=45
 #EntryGEEnd=43 #36550GeV
 
@@ -44,16 +44,27 @@ EntryPStart=1
 EntryPEnd=45
 #EntryPEnd=21       #715GeV
 #EntryPEnd=32       #5112GeV
+#EntryPEnd=35       #8741GeV
 
 EntryHe4Start=5
 EntryHe4End=45
 #EntryHe4End=21     #715GeV
 #EntryHe4End=32     #5112 GeV
+#EntryHe4End=35     #8741 GeV
 
 if [ "$2" = "CR" ]; then
   echo EntryPEnd: $EntryPEnd
   echo EntryHe4End: $EntryHe4End
 fi
+if [ "$2" = "P" ]; then
+ EntryGEStart=$EntryPStart
+ EntryGEEnd=$EntryPEnd
+fi
+if [ "$2" = "He4_" ]; then
+ EntryGEStart=$EntryHe4Start
+ EntryGEEnd=$EntryHe4End
+fi
+
 
 #############################################################
 function commandEnable()
@@ -354,22 +365,23 @@ function CheckList()
 
 function SubmitHtarToArchive()
 {
-  #$1 directory that holds directory we want to archive
-  #$2 Directory we want to archive
-  #$3 filename (Directiory to archive)
-  #$4 List of files to look for to determine completion.
-  #$5 Max HTAR programs to run at a time
+  #$1 directory that holds directory we want to archive to
+  #$2 Directory we want to archive from
+  #$3 Specific Shower directory we want to archive)
+  #$4 Alternate  Specific Shower directory we want to archive
+  #$5 List of files to look for to determine completion.
+  #$6 Max HTAR programs to run at a time
 
   Dst=$1    #Archive directory
   SourceDir=$2         #Disk Base Directory
   ShDr=$3           #filename (Directiory to archive)
-  QsubDoneList=$4
-  MaxHTARQsubs=$5
-
+  QsubDoneList=$5
+  MaxHTARQsubs=$6
+  ALTSHDR=$4
   echo Dst: $Dst
   echo SourceDir: $SourceDir
   echo ShDr: $ShDr
-
+  echo ALTSHDR: $ALTSHDR
   #################################
   #Wait for romm for next file in queue
   #################################
@@ -382,9 +394,20 @@ function SubmitHtarToArchive()
   cd $SourceDir 
   pwd
   if [ ! -e "$ShDr" ]; then
-      echo 'KSAuto: '$SourceDir'/'$ShDr' Does not exist. Exiting.'
+    echo 'KSAuto: '$SourceDir'/'$ShDr' Does not exist'
+    if [ -n $4 ]; then
+      if [ -e "$ALTSHDR" ]; then
+        ShDr=$ALTSHDR
+        echo 'KSAuto: Switching to '$SourceDir'/'$ShDr
+      else
+        echo 'KSAuto: '$SourceDir'/'$ShDr' Also does not exist. Exciting'
+        cd $local
+        exit
+        fi
+    else
       cd $local
       exit
+    fi
   fi
   cd $local
 
@@ -398,7 +421,7 @@ function SubmitHtarToArchive()
 
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                            >$sgeFile
-  echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
+  echo "#"PBS -l walltime=06:00:00                                >>$sgeFile
   echo "#PBS " $MEMREQUEST                                        >>$sgeFile
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
     echo source /etc/profile                                      >>$sgeFile
@@ -464,7 +487,7 @@ function SubmitHtarFromArchive()
   
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                     >$sgeFile
-  echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
+  echo "#"PBS -l walltime=06:00:00                         >>$sgeFile
   echo "#PBS " $MEMREQUEST                                 >>$sgeFile
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
     echo source /etc/profile                               >>$sgeFile
@@ -671,8 +694,6 @@ if [ "$TELESPEC" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
    PMT="O"                      #with old V330 PSF)
    TELCONFIG=O
    DirPSF=V330
-   echo TELCONFIG:B: $TELCONFIG
-
 fi
 if [ "$TELESPEC" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
    PMT="V"                      #with new  V190 PSF)
@@ -684,10 +705,12 @@ if [ "$TELESPEC" = "UA" ]; then #Upgrade Veritas Array (after T1 move, New PMTs,
    DirPSF=V190
    TELCONFIG=U
 fi
+
 if  [ ! -n "$TELCONFIG" ]; then
-   echo ' KSAuto: Illegal Array Specification: ' $TELESPEC 'Can be OA or NA or UA only.'
-   exit
+ echo ' KSAuto: Illegal Array Specification: ' $TELESPEC 'Can be OA or NA or UA only.'
+ exit
 fi
+
 
 
 Threshold=$SPECTHR
@@ -704,10 +727,12 @@ if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ]; then
  EnergyStart=$EntryGEStart
  EnergyEnd=$EntryGEEnd
 fi
+
 if [ "$SPECPART" = "P" ]; then 
  EnergyStart=$EntryPStart     #CR hadled seperatly in GenerateTE
  EnergyEnd=$EntryPEnd
 fi
+
 if  [ "$SPECPART" = "He4_" ]; then
  EnergyStart=$EntryHe4Start     #CR hadled seperatly in GenerateTE
  EnergyEnd=$EntryHe4End
@@ -723,10 +748,11 @@ WblFilterSpec=$WblFilterSpec$MOON    #Add the M if needed or all could even be b
 
 SAVEIFS=$IFS
 if [ $SPECZN = "All" ]; then
-    Zenith=([0]=1 10 20 30 40 50 60 70)
+  Zenith=([0]=1 10 20 30 40 50 60 70)
 else  
-    IFS=, read -a Zenith <<< "$SPECZN"
+  IFS=, read -a Zenith <<< "$SPECZN"
 fi
+
 
 if [ $SPECAZ = "All" ]; then
   Azimuth=([0]=0 45 90 135 180 225 270 315)
@@ -909,12 +935,9 @@ while test $izn -lt $iznEnd
        ShowerVBFDirAlt=$TeName$Threshold'1234M2'$SPECSEA$SPECMDL
        ShowerDir=$VDirBase'/'$ParticleDir'/'$ShowerVBFDir
        ShowerDirAlt=$VDirBase'/'$ParticleDir'/'$ShowerVBFDirAlt
+
      fi
    
-     echo TeName:A:  $TeName ZnAz: $ZnAz
-
-
-
      if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
@@ -961,6 +984,8 @@ while test $izn -lt $iznEnd
              SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
            fi
          fi
+	   SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+
        else
          SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
        fi
@@ -1043,20 +1068,21 @@ while test $izn -lt $iznEnd
        fi
 
        ########################################
-       # Now for CR do P and He4
+       # Now for CR do P and He4 
        ########################################
        if [ "$SPECPART" = "CR" ] ; then
-         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirP $TeNameP $QsubHTARLogs $MaxHTARQsubs
-         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
+         #Note:TeNameP used second time (arg $4) for Alt loc (cause something has to go there!)
+         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirP $TeNameP $TeNameP $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirHe4 $TeNameHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
        else
          ############################
          # Only G or E or P or He4
          # P or He4 dest is "CR" directory
          ############################
          if [ "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
-              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/' $PSFDir $TeName $TeName $QsubHTARLogs $MaxHTARQsubs
          else
-              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $TeName $QsubHTARLogs $MaxHTARQsubs
          fi
        fi
 
@@ -1342,15 +1368,19 @@ while test $izn -lt $iznEnd
        # Note that the QsubHTARLogs and MaxHTARQsubs variables are not defined 
        #(ie are blank) if LimitSubmissions is not enabled
        ################################################################
+
+       ArchiveSrc=$HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/'
+
        if [ "$SPECPART" = "CR" ] ; then
-	SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/protons/' $ShowerVBFProtonsDir   $QsubHTARLogs $MaxHTARQsubs
-         echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarFromArchive $ArchiveSrc $VDirBase'/protons/' $ShowerVBFProtonDir   $QsubHTARLogs $MaxHTARQsubs
+         echo "KSAuto: htar " $ShowerVBFProtonDir" to archive complete."
+	 SubmitHtarFromArchive $ArchiveSrc $VDirBase'/he4/' $ShowerVBFHe4Dir  $QsubHTARLogs $MaxHTARQsubs
          echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
+
        else
 	ShowerMDLDir=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
+        SubmitHtarFromArchive $ArchiveSrc $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
 
-        SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/'$ParticleDir'/' $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
      #########################################################################
@@ -1364,13 +1394,20 @@ while test $izn -lt $iznEnd
        echo '##########################################################'
        echo '# GenerateZnAzVBFFile '
        echo '##########################################################'
+       KSWEROCK=$lcl'/ksWeRock.scr'
+       if [ ! -e "$KSWEROCK" ]; then	
+	   cp -v $KASCADEBASE'/scripts/ksWeRock.scr' .
+       fi
+
+
+
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
        ProcessAll=$SPECPART'ProcessAll'
        if [ ! -e "$ProcessAll" ]; then
 	   cp -v $KASCADEBASE'/scripts/'$ProcessAll .
        fi
- 
+
 
        if [ "$SPECPART" = "CR" ] ; then
          #echo"CRProcessAll not working with KSAuto yet"
@@ -1401,15 +1438,19 @@ while test $izn -lt $iznEnd
    
        cd $lcl'/../simulations/veritas/'
        date
+       ArchiveDst=$HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/'
+
        if [ "$SPECPART" = "CR" ] ; then
-	 SubmitHtarToArchive $HtarDir$SPECSEA$TELCONGIG'P'$SPECMDL'VBFShowers/' $VDirBase'/protons/'  $ShowerVBFProtonsDir $QsubHTARLogs $MaxHTARQsubs
-         echo "KSAuto: htar " $ShowerVBFProtonsDir" to archive complete."
-	 SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG'He4'$SPECMDL'VBFShowers/' $VDirBase'/he4/'  $ShowerVBFHe4Dir $QsubHTARLogs $MaxHTARQsubs
-         echo "KSAuto: htar "$ShowerVBFHe4Dir" to archive complete."
+         SubmitHtarToArchive $ArchiveDst $VDirBase'/protons/' $ShowerVBFProtonDir $ShowerVBFProtonDirAlt $QsubHTARLogs $MaxHTARQsubs
+         echo 'KSAuto: Submission of htar ' $ShowerVBFProtonDir 'or' $ShowerVBFProtonDirAlt 'to archive complete.'
+
+	 SubmitHtarToArchive $ArchiveDst $VDirBase'/he4/' $ShowerVBFHe4Dir $ShowerVBFHe4DirAlt $QsubHTARLogs $MaxHTARQsubs 
+         echo 'KSAuto:  Submission of htar ' $ShowerVBFHe4Dir 'or' $ShowerVBFHe4DirAlt 'to archive complete.'
+
        else
         ShowerMDLDir=$SPECSEA$PMT$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
+        SubmitHtarToArchive $ArchiveDst $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
 
-        SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/' $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
        fi
     fi
 
