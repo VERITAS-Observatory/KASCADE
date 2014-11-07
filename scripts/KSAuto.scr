@@ -421,7 +421,7 @@ function SubmitHtarToArchive()
 
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                            >$sgeFile
-  echo "#"PBS -l walltime=06:00:00                                >>$sgeFile
+  echo "#"PBS -l walltime=$WALLTIME                               >>$sgeFile
   echo "#PBS " $MEMREQUEST                                        >>$sgeFile
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
     echo source /etc/profile                                      >>$sgeFile
@@ -487,7 +487,7 @@ function SubmitHtarFromArchive()
   
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                     >$sgeFile
-  echo "#"PBS -l walltime=06:00:00                         >>$sgeFile
+  echo "#"PBS -l walltime=$WALLTIME                         >>$sgeFile
   echo "#PBS " $MEMREQUEST                                 >>$sgeFile
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
     echo source /etc/profile                               >>$sgeFile
@@ -598,6 +598,7 @@ then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cvrsvc'
   QUEUE=serial
+  WALLTIME=20:00:00
   echo '***Carver Cluster***'
   if [ -n "$LimitSubmissions" ]; then
     let MaxQsubs=$MaxQsubsDefault
@@ -613,6 +614,7 @@ then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='edison'
   QUEUE=serial
+  WALLTIME=20:00:00
   QSUBEXT='.serial'
   echo '***Edison Cluster***'
   if [ -n "$LimitSubmissions" ]; then
@@ -629,6 +631,7 @@ then
   JobIDHost='hansen-adm'
   #QUEUE=physics
   QUEUE=standby
+  WALLTIME=04:00:00
   echo ***Hansen Cluster***
   if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
@@ -645,6 +648,7 @@ if test  "$hostString" = "coates"  #Are we running on coates
   JobIDHost='coates-adm'
   #QUEUE=physics
   QUEUE=standby
+  WALLTIME=04:00:00
   echo ***Coates Cluster***
   if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
