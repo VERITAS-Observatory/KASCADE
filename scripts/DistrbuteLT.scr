@@ -1,0 +1,58 @@
+#!/bin/bash
+#$1 List file of  files to distribute
+
+#Assumes List file entries have full path name.
+CARVER=enabled
+EDISON=enabled
+UCLA=enabled
+PURDUE=Enabled
+
+
+LISTFILE=$1
+lcl=$PWD
+
+{
+  while read LTDIRFILE
+   do
+     LTDIR=${LTDIRFILE%/*}
+     if [ -n "$LTDIR" ]; then
+	 LTDIR=$LTDIR'/'
+	 cd $LTDIR
+     fi
+     
+     LTFILE=${LTDIRFILE##/*/}
+
+     pwd
+     echo LTFILE: $LTFILE 
+   
+     if [ -n "$CARVER" ]; then
+	 echo  To Carver ../tables: 
+         cp -v $LTFILE $VEGAS/../tables
+         echo To Carver tables archive:
+         hsi 'cd tables; put '$LTFILE';'
+     fi
+
+     if [ -n "$EDISON" ]; then
+         echo To Edison ../tables:
+         cp -v $LTFILE $TOOLSDIR/../veritas_E/tables/ 
+     fi
+
+     if [ -n "$PURDUE" ]; then
+         echo To purdue ../tables:
+         #scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/depot/veritas/apps/tables/
+         scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/group/veritas/apps/tables/
+         echo To Purdue Archive:
+         scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
+     fi
+
+     if [ -n "$UCLA" ]; then
+         echo To UCLA archive:
+         bbftp -u bbftp -p 12 -S -V -e " put  $LTFILE /veritas/upload/OAWG/tables/v250/" gamma1.astro.ucla.edu
+     fi
+     cd $lcl
+   done
+}<$LISTFILE
+
+
+
+
