@@ -227,6 +227,7 @@ while test $jIndex -le $iEntryEnd
           {
             read size theRest
             icount[$jIndex]=$(( ${icount[$jIndex]} + 1))
+            #echo jIndex: $jIndex icount: ${icount[$jIndex]}
             sum[$jIndex]=$(( ${sum[$jIndex]} + $size ))
             if [ "$size" -gt "${max[$jIndex]}" ]; then
               max[$jIndex]=$size
@@ -260,12 +261,12 @@ if [ "$FileType" = "VBF" ]; then
     ENERGY=${energy[$jIndex]}
     eInt=${ENERGY%%.*}
     eLimit="1000"
-    if [ "${icount[$jIndex]}" -eq "0" ]; then
-       echo 'Fatal - No files for energy: ' $ENERGY
-       exit
-    fi
 
     if [ "$eInt" -gt "$eLimit" ]; then # Limit lowest energy
+      if [ "${icount[$jIndex]}" -eq "0" ]; then
+       	echo 'KSAutoFileCheck - Fatal - No files for energy: ' $ENERGY 'in directory' $FileDir
+        exit
+      fi
       # *****************************************************
       # use bc to do some math to find $MinLevel of max
       # **************************************************
