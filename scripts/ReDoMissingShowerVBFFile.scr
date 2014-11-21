@@ -30,11 +30,12 @@ function setup()
     EdisonQueue=serial
     QUEUE1=$EdisonQueue
     QUEUE2=$EdisonQueue
-    WALLTIME1=30:00:00
+    WALLTIME1=03:00:00
+    #WALLTIME1=03:00:00
     WALLTIME2=$WALLTIME1
     MEMREQEST='vmem=8GB '
     QSUBEXT='.serial'
-    SUBMITLIMIT=200
+    SUBMITLIMIT=175
     echo '***Edison Cluster***'
   fi
 
@@ -86,7 +87,7 @@ function setup()
   
   if [ -n "$CARVER" ] || [ -n "$EDISON" ]; then
     dataDirBase=$lcl'/../simulations'
-    echo Carver Data Dir: $dataDirBase
+    echo Carver/Edison Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
   fi
@@ -123,6 +124,13 @@ function setup()
   if [ "$PARTYPE" = "He4_" ]; then
      datadir=$dataDirBase'/he4'
   fi
+
+  if [ ! -n "$datadir" ]; then
+     echo ReDoMissingShowerVBFFile - Bad particle spec: $PARTYPE ':Allowable are G or E or P or He4_'
+     exit
+  fi
+
+
 
   ####################################################################
   #Make sure ksallVBF.scr is set up correctly to generate Te files
