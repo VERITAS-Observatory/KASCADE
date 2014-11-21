@@ -1,12 +1,35 @@
-void LTKCPlots(string pltType, string Zn="20", string Az="180")
+void LTKCPlots(string pltType, string Zn="20", string Az="180", string kNoise="5.51", string cNoise="5.71",string offSet="0.5")
 {
-  string ltkFileName  = "ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root";
-  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
+  //string ltkFileName  = "ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root";
+  //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
+
+  //  string ltkFileName  = "lt_V6_PMTUpgrade_ATM21_KASCADE_MDL10UA_vegasv250rc5_7sam_Alloff_std_d1p43_LZA.root";
+  //  string ltcFileName  = "lt_V6_PMTUpgrade_ATM21_KASCADE_MDL10UA_vegasv250rc5_7sam_050off_std_d1p43_LZA.root";
+
+  //string ltkFileName  = "$VEGAS/../tables/lt_MDL15NA_V5_T1Move_ATM21_KASCADE__vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
+  //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_na_ATM21_7samples_vegasv250rc5_allOffsets_LZA_v1.root";
+
+  //string ltkFileName  = "lt_MDL8OA_V4_OldArray_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
+  //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_oa_ATM22_7samples_vegasv250rc5_allOffsets_LZA.root";
+
+  //string ltkFileName  = "lt_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
+  //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_oa_ATM21_7samples_vegasv250rc5_allOffsets_LZA.root";
+
+  string ltkFileName  = "lt_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_std_d1.43_LZA.root";
+  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_oa_ATM21_7samples_vegasv250rc5_050wobb_LZA.root";
+
+
+  //string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+  //                                    "_Noise_" + kNoise + "_AbsoluteOffset_" + offSet;
+  //string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+  //                                    "_Noise_" + cNoise + "_AbsoluteOffset_" + offSet;
 
   string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
-                                                  "_Noise_5.55_AbsoluteOffset_0.5";
+    "_Noise_" + kNoise;
   string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
-                                                  "_Noise_5.21_AbsoluteOffset_0.5";
+    "_Noise_" + cNoise;
+
+
 
   string LTK_LT="LookupTable_"+pltType+LTK_base;
   string LTC_LT="LookupTable_"+pltType+LTC_base;
