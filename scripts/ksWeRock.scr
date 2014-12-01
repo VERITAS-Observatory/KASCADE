@@ -47,13 +47,6 @@ then
 fi
 
 hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
-then
-  CARVER=enabled
-  echo ***Carver Cluster***
-fi
-
-hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
@@ -67,7 +60,20 @@ then
   echo ***Coates Cluster***
 fi
 
+# ************************************************************************
+# CARVER cluster check obviously must be done after COATS cluster scheck!!!**
+# ************************************************************************
+hostString=${host:0:1}
+if test  "$hostString" = "c"  #Are we running on Carver
+then
+  CARVER=enabled
+  echo ***Carver Cluster***
+fi
 
+if [ ! -n "$COATS" ] && [ ! -n "$HANSEN" ] && [ ! -n "$CARVER" ] && [ ! -n "$EDISON" ]; then
+  echo ksWeRock: Fatal- Unknown host machine: $Host   
+  exit
+fi 
 
 #EDISON
 if [ -n "$EDISON" ]; then
