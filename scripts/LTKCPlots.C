@@ -1,4 +1,4 @@
-void LTKCPlots(string pltType, string Zn="20", string Az="180", string kNoise="5.51", string cNoise="5.71",string offSet="0.5")
+void LTKCPlots(string pltType, string Zn="20", string Az="180", string kNoise="5.51", string cNoise="5.28",string offSet="0.5")
 {
   //string ltkFileName  = "ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root";
   //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
@@ -15,20 +15,28 @@ void LTKCPlots(string pltType, string Zn="20", string Az="180", string kNoise="5
   //string ltkFileName  = "lt_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
   //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_oa_ATM21_7samples_vegasv250rc5_allOffsets_LZA.root";
 
-  string ltkFileName  = "lt_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_std_d1.43_LZA.root";
-  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_oa_ATM21_7samples_vegasv250rc5_050wobb_LZA.root";
+  // WOG 050 offset
+  //string ltkFileName  = "lt_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_std_d1.43_LZA.root";
+  //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_oa_ATM21_7samples_vegasv250rc5_050wobb_LZA.root";
+
+  //SNG All Offset
+  string ltkFileName  = "lt_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
+  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_na_ATM22_7samples_vegasv250rc5_allOffsets_LZA.root";
 
 
-  //string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
-  //                                    "_Noise_" + kNoise + "_AbsoluteOffset_" + offSet;
-  //string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
-  //                                    "_Noise_" + cNoise + "_AbsoluteOffset_" + offSet;
+  if (offSet != "050" ) {
+    string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+      "_Noise_" + kNoise + "_AbsoluteOffset_" + offSet;
+    string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+      "_Noise_" + cNoise + "_AbsoluteOffset_" + offSet;
 
-  string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
-    "_Noise_" + kNoise;
-  string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
-    "_Noise_" + cNoise;
-
+  }
+  else{
+    string LTK_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+      "_Noise_" + kNoise;
+    string LTC_base = "_TelID_0_Azimuth_" + Az +"_Zenith_" + Zn + 
+      "_Noise_" + cNoise;
+  }
 
 
   string LTK_LT="LookupTable_"+pltType+LTK_base;
