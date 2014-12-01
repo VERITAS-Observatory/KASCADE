@@ -475,7 +475,7 @@ function SubmitHtarToArchive()
 
   HTARpbsLog=$HTARFileName'HTARTo.pbs.log'
   HTARLOG=$lcl'/VAHTARTo.log'
-  qsub -V -e $HTARFileName'To.pbs.err' -o HTARpbsLog $sgeFile >$HTARLOG
+  qsub$QSUBEXT -V -e $HTARFileName'To.pbs.err' -o HTARpbsLog $sgeFile >$HTARLOG
 
   #####################################################################
   # We are now going to wait for the htar to finish.
@@ -490,6 +490,10 @@ function SubmitHtarToArchive()
 
   if [ -n "$CARVER" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Carver cluster complete."
+  fi
+
+  if [ -n "$EDISON" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Edison cluster complete."
   fi
   date
   cd $lcl
@@ -539,7 +543,7 @@ function SubmitHtarFromArchive()
   chmod 700 $sgeFile
   HTARpbsLog=$Source'HTARFrom.pbs.log'
   HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
-  qsub -V -e $Source'HTARFrom.pbs.err' -o $HTARpbsLog $sgeFile >$HTARLOG
+  qsub$QSUBEXT -V -e $Source'HTARFrom.pbs.err' -o $HTARpbsLog $sgeFile >$HTARLOG
 
   # And now cleanup
   cd $lcl
@@ -593,7 +597,7 @@ function SubmitVegasSimProduction()
   fi
 
   chmod 700 $sgeFile
-  qsub -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
+  qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
 }
 ################################################################################### 
 
@@ -667,6 +671,20 @@ source /etc/profile
 
 host=$(hostname)
 echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "edison"  #Are we running on Edison
+then
+  EDISON=enabled
+  JobIDHost='edison'
+  QUEUE=serial
+  QSUBEXT='.serial'
+  ARCHIVE=/home/u/u15013/$SPECMDL'/'
+  WALLTIME=30:00:00
+  VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
+  MEMREQUEST='vmem=8GB'
+  echo '***Edison Cluster***'
+fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
@@ -1352,7 +1370,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
        echo '>'$lcl'/'$DISPSUBLTBASE'.log'             >>$sgeFile
        chmod 700 $sgeFile
 
-       qsub -q $QUEUE -V -e $DISPSUBLTBASE.qsub.err -o $DISPSUBLTBASE.qsub.log $sgeFile
+       qsub$QSUBEXT -q $QUEUE -V -e $DISPSUBLTBASE.qsub.err -o $DISPSUBLTBASE.qsub.log $sgeFile
      fi
      #*******************************************************************
     
@@ -1628,10 +1646,12 @@ if [ -n "$ProduceSubLookupTables" ]; then
    echo '# ProduceSubLookupTables'
    echo '##########################################################'
    cd $lcl
+   MEMREQUEST="mem=24GB"
    if [ -n "$CARVER" ]; then
        MEMREQUEST="pvmem=24GB"
-   else
-       MEMREQUEST="mem=24GB"
+   fi
+   if [ -n "$EDISON" ]; then
+       MEMREQUEST="vmem=24GB"
    fi
    date
 fi  
@@ -1869,7 +1889,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
 	   chmod 700 $sgeFile
 	   
-	   qsub -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+	   qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
@@ -1893,7 +1913,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
 	   chmod 700 $sgeFile
 	   
-	   qsub -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+	   qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
@@ -2069,7 +2089,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 	 echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
     
 	 chmod 700 $sgeFile
-	 qsub -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
+	 qsub$QSUBEXT -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
     fi
 fi
 #**********************************************************************
