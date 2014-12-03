@@ -1086,7 +1086,11 @@ if [ -n "$GenerateStage4Files" ]; then
     date
     #Make sure VegasSimProduction.scr is set up correctly to get  
     #Stage4
-    cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionS4.scr
+
+    GetUniqueNumber
+    VSProdFile=VegasSimProductionS4.$UNIQUE'.scr'
+
+    cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
 
     ###################################################################
     #The standard VegasSimProduction.scr should have all options 
@@ -1095,7 +1099,7 @@ if [ -n "$GenerateStage4Files" ]; then
     #different from 7.
     ##################################################################
     sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                          <VegasSimProductionS4.scr  >tmp1
+                                          < $VSProdFile  >tmp1
     sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
     sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
     sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'                   <tmp1 >tmp2
@@ -1130,8 +1134,8 @@ if [ -n "$GenerateStage4Files" ]; then
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-    mv tmp2 VegasSimProductionS4.scr
-    chmod 755  VegasSimProductionS4.scr
+    mv tmp2 $VSProdFile
+    chmod 755  $VSProdFile
     rm tmp2
     #############################################################################
     # Stage 4 only needs short time
@@ -1992,7 +1996,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
             # Stage4 filename with the correct TelConfig
             ###################################################
 
-	       SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS4.scr $VBFFILE
+	       SubmitVegasSimProduction $PedVarFile $BaseFile $VSProdFile $VBFFILE
 		   
 	   fi
            ###############################################################
