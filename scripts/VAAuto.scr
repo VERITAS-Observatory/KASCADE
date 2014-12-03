@@ -20,7 +20,9 @@
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${11}Cuts
 #  For Stage4, filename would extention be:  ${11}Cuts ending
 #  For ShowerCuts, file used would be $VEGAS/../tables/Shower${11}Cuts 
-#${12} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1  or 
+#${12} (Optional unless ${13} is specified also.) Specifes Type of offset LT 
+#      table to use for S4 and EA gen. Ex. All or 050
+#${13} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1 or 
 #                  T2 or T3 or T4
 # ************************************************************************
 
@@ -48,7 +50,7 @@ function commandEnable()
     echo
     echo '    #------------------------        #------------------------'
     echo '    # Disp Lookup Tables             # Stage4'
-    echo '    # Uses arguments $1-${10}        # Uses Argument $1-${11} ${12} Optional'
+    echo '    # Uses arguments $1-${10}        # Uses Arguments $1-${12}; ${13} Optional'
     echo '    #------------------------        #------------------------'
     echo '    GenerateDispSubLTListFiles       GenerateStage4Files'
     echo '    GenerateDispSubLTConfigFiles     CheckStage4Files'
@@ -59,7 +61,7 @@ function commandEnable()
     echo
     echo '    #------------------------'
     echo '    # EA Tables'
-    echo '    # Uses Argument $1-${11}'
+    echo '    # Uses Argument $1-${12}'
     echo '    #------------------------'
     echo '    GenerateEASubLTListAndConfigFiles'
     echo '    ProduceEASubLookupTables'
@@ -113,7 +115,8 @@ function usage()
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
   echo ' ${10}: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
   echo ' ${11}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
-  echo ' ${12}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
+  echo ' ${12}: Specifes Type of offset LT table to use. Ex. All or 050'  
+  echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
   echo ' EX: ./VAAuto.scr GenerateStage4Files W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
 }
@@ -632,9 +635,8 @@ SPECWBL=$8
 SPECTHR=$9
 SPECPV=${10}
 CUTTYPE=${11}
-TELCUT=${12}
-
-
+LTWBL=${12}
+TELCUT=${13}
 
 
 ###########################
@@ -754,27 +756,26 @@ fi
 
 if [ $SPECWBL = "All" ]; then
     WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
-    LTWbl="alloffsets"
-    OFFSETID=All
 else  
     IFS=, read -a WblOffset <<< "$SPECWBL"
     let iwblEnd=${#WblOffset[@]}
-    if [ "$iwblEnd" -eq "1" ]; then
-	W=${WblOffset[0]}
-        OFFSETID=${W:0:1}${W:2:1}
-        if [ "${#W}" = "3" ]; then
-	    OFFSETID=$OFFSETID'0'
-        else
-	    OFFSETID=$OFFSETID${W:3:1}
-        fi
-	if [ "$W" = "0.5" ]; then
-	    LTWbl="050offset"
-	else
-	    LTWbl="alloffsets"     #Logic here needs work but this will work for now
-	fi
-    else
-	LTWbl="alloffsets"
-    fi
+#    if [ "$iwblEnd" -eq "1" ]; then   #This code activated if only one offset
+#	W=${WblOffset[0]}             #specified in command line
+#        OFFSETID=${W:0:1}${W:2:1}
+#        if [ "${#W}" = "3" ]; then
+#	    OFFSETID=$OFFSETID'0'
+#        else
+#	    OFFSETID=$OFFSETID${W:3:1}  #This has problems and I think 
+#                                        #OFFSETID is used only with EA tables
+#        fi                              #and should be fixed.
+#	if [ "$W" = "0.5" ]; then
+#	    LTWbl="050"
+#	else
+#	    LTWbl="All"     #Logic here needs work but this will work for now
+#	fi                  #If offset is 0.5 then LT 050off table is always 
+#    else                    # used. Otherwise the Alloff table is used.
+#	LTWbl="All"         #I think this is ok as 050 table is the same as the
+#    fi                      #0.5deg entry in Alloff table.
 fi
 
 
@@ -893,7 +894,7 @@ fi
 
 #ABOStr
 let iwblEnd=${#WblOffset[@]}
-if [ "$LTWbl" = "050offset" ]; then
+if [ "$LTWBL" = "050" ]; then
     ABOStr=" "
 else
   if test $iwblEnd -ne "9"
@@ -1125,7 +1126,7 @@ if [ -n "$GenerateStage4Files" ]; then
     cp $VEGAS/../tables/$QUALITYCUTSFILE .
 
     FILEBASE=$CUTTYPE'Cuts'
-    GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
@@ -1235,7 +1236,7 @@ if   [ -n "$CombineDispSubLT" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
    LTFILENAME=dt${LTFILENAME#lt}           #Convert to a dt filename
    SubLTList='SubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -1582,7 +1583,7 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g'   <tmp2 >tmp1
    sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g'   <tmp1 >tmp2
    sed '/Noise         /s/Noise/Noise '$NoiseStr'/g'   <tmp2 >tmp1
-   if [ "$LTWbl" != "050offset" ]; then
+   if [ "$LTWBL" != "050" ]; then
       sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g'   <tmp1 >tmp2
    else
       cp tmp1 tmp2
@@ -1617,7 +1618,7 @@ if [ -n "$GenerateEASubLTListAndConfigFiles" ]; then
    sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g'    <tmp1 >tmp2
    sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g'    <tmp2 >tmp1
    sed '/Noise         /s/Noise/Noise '$NoiseStr'/g'    <tmp1 >tmp2
-   if [ "$LTWbl" != "050offset" ]; then
+   if [ "$LTWBL" != "050" ]; then
       sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <tmp2 >config1.tmp
    else
       cp tmp2 config1.tmp
@@ -1687,7 +1688,7 @@ if   [ -n "$CombineSubLT" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
 
    SubLTList='SubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -1703,7 +1704,7 @@ if   [ -n "$CombineBuildCheckEALT" ]; then
    cd $lcl
    date
    EASPEC=EA
-   GenerateEAFileName $CUTTYPE $SPECSEA $OFFSETID  'std' $TelConfig  $PARTICLETYPE
+   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $PARTICLETYPE
 
    SubLTList='EASubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -2124,7 +2125,7 @@ if [ -n "$BuildLTTree" ]; then
     echo '##########################################################'
     echo '# BuildLTTree'
     echo '##########################################################'
-    GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
     
     cd $VEGAS/showerReconstruction2/macros
     date
@@ -2183,7 +2184,7 @@ if [ -n "$BuildDispLTTree" ]; then
     echo '##########################################################'
     cd $VEGAS/showerReconstruction2/macros
     date
-    GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
     LTFILENAME='dt'${LTFILENAME#lt}                 #Convert to a dt filename
 
     BUILDCONFIG='BuildDispTree'$Samples'Samples.config' 
@@ -2305,7 +2306,7 @@ if [ -n "$CheckLT" ]; then
    echo '##########################################################'
    LCL=$PWD
    cd $VEGAS/showerReconstruction2/macros
-   GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
    LTDiagFileName=${LTFILENAME%.root}'.diag'
 
    date
@@ -2340,7 +2341,7 @@ if [ -n "$CheckDispLT" ]; then
    echo '##########################################################'
    LCL=$PWD
    cd $VEGAS/showerReconstruction2/macros
-   GenerateLTFileName $SPECCFG $SPECSEA $OFFSETID  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
   
    DTFILENAME=dt${LTFILENAME#lt}           #Convert to a dt filename
    DTDiagFileName=${DTFILENAME%.root}'.diag'
@@ -2376,7 +2377,7 @@ if [ -n "$CheckBuildCheckEALT" ]; then
    echo '##########################################################'
    LCL=$PWD
 
-   GenerateEAFileName $CUTTYPE $SPECSEA $OFFSETID  'std' $TelConfig  $PARTICLETYPE
+   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $PARTICLETYPE
   
    EADIAGFILENAME=${EAFILENAME/root/diag}
    date

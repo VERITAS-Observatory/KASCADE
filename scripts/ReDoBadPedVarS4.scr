@@ -1,23 +1,33 @@
-#$1 CheckS4.log type file from:
-# ./VAAutoG.scr W UA G MDL10UA All All All 45mv All UpgradeLoose >CheckS4UpgradeLoose.log
+#$1 CheckS4.log type file
 # This files has a list of files that need to be rerun
 # the lines we need look like: 
 # Bad:PedVar7.64WUGMDL10UA20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
+#$2 LT type specification: Ex All or 050
 ##########################################################################
-
-grep "GenerateStage4Files=enabled" VAAuto.scr >redoS4g.tmp
+function usage()
 {
-  read genS4Ena
-  fchar=${genS4Ena:0:1}
-  if [ "$fchar" = "#" ]; then
-    echo 'ReDoBadPedVarS4.scr: Fatal!!: VAAuto must have  GenerateStage4Files=enabled selected!'
-    exit
-  fi
-}<redoS4g.tmp
+  echo '***ReDoBadPedVarS4 usage:'
+  echo '   $1: File with Bad/Missing Stage 2 PedVar Files in form:' 
+  echo '      Bad: PedVar14.49WUEMDL10UA10_90Deg2DS2.0Wbl45mv1234M2.root'
+  echo '   $2: LT file offset specification: EX: All or 050'
+  echo '      Note1: Works for Gammas and Electrons'
+  echo '      EX: ./ReDoBadPedVarS4.scr CheckStage2Deg1-50AllElectrons.log'
+}
 
-rm redoS4g.tmp
+
+######################################
+# main 
+#####################################
+if [ ! -n "$2" ]; then
+  usage
+  exit
+fi
+
 
 BadFile=$1
+LTWBL=$2
+
+echo LTWBL: $LTWBL
 
 ##################################################################
 # Keep only the "Bad" lines in the file
@@ -68,23 +78,10 @@ grep Bad $BadFile >S4tmp1
   sed '/Bad/s/Bad: PedVar/ /g'      <S4tmp1   >S4tmp2   #Remove "Bad: PedVar"
 
 {  
-  #while read PV SEASON PMT PTYPE MDL ARRAYTYPE ZN AZ OFF THRESH CUT 
    while read PV SEASON PMT PTYPE MDL ARRAYTYPE ZN AZ OFF THRESH CUT 
     do
-	echo "Season" $SEASON 
-	echo "Array" $ARRAYTYPE   
-	echo "Ptype" $PTYPE  
-	echo "MDL" $MDL 
-	echo "Array" $ARRAYTYPE  
-	echo "ZN" $ZN  
-	echo "AZ" $AZ  
-	echo "Off" $OFF  
-	echo "Thresh" $THRESH  
-	echo "PV" $PV  
-	echo "Cut" $CUT
-	echo "other" $OTHER
-	echo ./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT
-  	./VAAuto.scr $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT
+	echo Executing: ./VAAuto.scr GenerateStage4Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT $LTWBL
+  	./VAAuto.scr GenerateStage4Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT $LTWBL 
     done
 }<S4tmp2
 
