@@ -243,7 +243,7 @@ echo cd $lcl'/../../veritas'                                  >>$sgeFile
 echo './ksWeRock.scr '$ABase'CR'$2$3 98020 1234M2 \\          >>$sgeFile
 echo $direction $Base ">"$lcl'/'$Base'CR'$2'.log'             >>$sgeFile
 echo cd $lcl                                                  >>$sgeFile
-echo mv  -v $ABase'CR'$2$3'1234M2'$5'.vbf' $VBFFILENAME       >>$sgeFile
+echo mv  -v $ABase'CR'$2$3'1234M2'$Base'.vbf' $VBFFILENAME       >>$sgeFile
 
 chmod 700 $sgeFile
 qsub$QSUBEXT -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
