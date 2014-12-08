@@ -269,6 +269,8 @@ function GenerateLTFileName()
   fi
   echo SeasonID: $SeasonID 'for ' $2
   offsetID=$3
+  echo offsetID: $offsetID
+
 
   #############################
   # LookuptableCuts file name
@@ -294,6 +296,7 @@ function GenerateLTFileName()
 
   LTFILENAME=$LTFILENAME'vegasv250rc5_7sam_'$offsetID'off_'$method'_d'$distCut'_'
   LTFILENAME=$LTFILENAME'LZA.root'
+  echo LTFILENAME: $LTFILENAME
   return
 }
 ##################################################################################
