@@ -26,8 +26,12 @@
 #  argument. The calling program (usually KSAuto.scr) then will submit the 
 #  jobs in this file as it sees fit. (Used to keep the maximum allowable jobs 
 #  in the queue but not more tan the maximum).
-#$5 EntryStart: For Gammas and E  only for now. Default is 1.
-#$6 EntryEnd:   For Gammas and E only for now. Default is G=45,E=44
+#$5 EntryStart: Default is G,E,P=1.
+#$6 EntryEnd:   Default is G=45,E=44,P=45
+#$7 EntryStart for HE4_: Default=5
+#$8 EntryEnd for He4_: Default is 45
+#$9 Not used yet but probably for DefineShowers special flag (MDL) 
+
 ###########################################################################
 
 #Functions to define thigs for various particle specs
