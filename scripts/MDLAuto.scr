@@ -1,103 +1,492 @@
 #!/bin/bash
-#This script is used to automate the generation of the MDL7 (best guess)
-#ksAomega config files from the V190*Ratios.dat files (in SV).
-# it has several part which will be added to as things go on.
-#It has some arguments listed below.
 # ************************************************************************
-#$1 MDL spec: Ex: MDL7   :Used to name $Array.dat file that has MDL values (like MDL3$Array.dat)
-#$2 String used to specify which ratios.dat file we are using Ex "Upgrade" or
-#  "NewArray" or "OldArray0809 "
- 
-#$3 Name of TTree capable Param file( Gain/F:Rate:PVar:Max3 ) 
-#   Ex: UpgradeParams.txt or V190Run63559G2.0.txt
-#$4 Telescope 4 character spec: Ex: ABCD or wxyz
-#$5 Reference real data Stage2 or later root file(in lcl dir): Ex: 63559.root
-#$6 Zn_AZ; Example 20_180Deg or 30Deg
+# This script is used to automate the generation of the 
+# ksAomega config files from the V190*Ratios.dat files (in SV).
+# ************************************************************************
+#See "funciton usage" for argument definitions
 
+LimitSubmissions=enabled      #Enable if you want to generate Shower files 
+                              #with ksProduction and only want to make
+                              #475 submission in queue at one time.Causes us to
+                              #wait
+#All CR energies
+EntryPStart=1
+EntryPEnd=45
+EntryHe4Start=5
+EntryHe4End=45
 
-                                      # dm=dummy
-BulidRatiosTxtFile=enabled           #needs dm $2 
-DetermineMDL=enabled                #needs $1 $2 $3
-#BuildMDLAomeagaConfig=enabled        #needs $1 $2 dm $4 $5
-#ProductionMDLCR=enabled              #needs $1 $2 dm $4 $5 $6 :makes showerVBF
-#ProcessMDLCR=enabled                 #needs $1 $2 dm $4 dm $6 :makes vbf, .root
+#FAST MDL setting
+#EntryPStart=1
+#EntryPEnd=42
+#EntryHe4Start=5
+#EntryHe4End=42
 
-MDLLast=MDL12
-
- 
-lcl=$PWD
-###################################
-# We are assumed to be in SV
-###################################
-
-if [ "$2" = "Upgrade" ]; then
-  PMT='U'
-  PSF='V190'
-  Array='U'
-fi
-if [ "$2" = "OldArray0809" ]; then
-  PMT='V'
-  PSF='V330'
-  Array="OA"
-fi
-if [ "$2" = "NewArray" ]; then
-  PMT='V'
-  PSF='V190'
-  Array="NA"
-fi    
-
-RatiosFileBase=$PSF$2'Ratios'
-DatFile=$RatiosFileBase'.dat'
-TxtFile=$RatiosFileBase'.txt'
-
-ZnAz=$6
-MDLLast=$MDLLast$Array
-
-echo MDLLast: $MDLLast
-
-###########################################################################
-
-function checkRunningJobs()
+###################################################################################
+function commandEnable()
 {
-  RunningList=RunningList$2'.dat'
-  SingleRunList=singleRunList$2'dat'
-
-  if [ -s $RunningList ]; then
-      rm $RunningList
-  fi
-  {
-    while  read jobID;  do
-      qstat $jobID &>$SingleRunList
-      cat $SingleRunList | grep -v Unknown >>$RunningList
-    done
-  } <$1
-
-  rm $SingleRunList
-  if [ -s  $RunningList ]; then
-    return 1
+  if [ "$1" = "ListCommands" ]; then
+    usage
+    echo '***VAAuto Valid Commands:'
+    echo '    #------------------------           #------------------------'
+    echo '    # Generation of Cosmic Ray          # Generate Cosmic Ray Sim'
+    echo '    # Model (MDL) Shower VBF file       # Stage5 file'
+    echo '    #------------------------           #------------------------'        
+    echo '    BuildRatiosTxtFile                  GenerateCosmicRayStage5Combined'
+    echo '    ProduceModelFile'
+    echo '    BuildModelAomegaConfig'
+    echo '    ProduceModelCosmicRayShowerVBFs'
+    echo '    GenerateCosmicRayVBF'
+    echo
+    echo '    #------------------------'
+    echo '    # Generate Data Stage5 file'
+    echo '    #------------------------'
+    echo '    GenerateDataStage5Combined'
+    echo
+    exit
   else
-      rm $RunningList
-    return 0
+    if [ "$1" = "BuildRatiosTxtFile" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "ProduceModelFile" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "BuildModelAomegaConfig" ]; then eval $1=enable; return 0; fi;  
+    if [ "$1" = "ProduceModelCosmicRayShowerVBFs" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateCosmicRayVBF" ]; then eval $1=enable; return 0; fi;
+
+    if [ "$1" = "GenerateCosmicRayStage5Combined" ]; then eval $1=enable; return 0; fi;
+
+    if [ "$1" = "GenerateDataStage5Combined" ]; then eval $1=enable; return 0; fi;
+
+    echo ' MDLAuto: Invalid Command: '$1
+    echo ' MDLAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
+    exit
   fi
 }
-############################################################################
+################################################################################
+function usage()
+{
+  echo '***MDLAuto.scr usage for simulation processing:'
+  echo ' $1: Command. Do "MDLAuto.scr ListCommands" for a list!'
+  echo ' $2: Last Detector Model Config name in Telescope Model Parameter file  '
+  echo '      to use for MDL file generation.  Ex: MDL5O or MDL14N or MDL9U'  
+  echo ' $3: ArraySpec:OldArray, NewArray, UpgradeArray. Ex: OA, NA or UA'
+  echo ' $4: TTree capable Telescope Data Parameters file we are trying to match.'
+  echo '      ( Gain/F:Rate:PVar:Max3 ) Ex: UpgradeParams.txt or Run63559.txt'
+  echo ' $5: Telescpe Model Configuration file to be used to make ksAomega config'
+  echo '      file. Example: MDL10UA.dat or MDL15NA.dat or MDL8OA.dat'
+  echo ' $6: Tele-Detector Config(ksAomega*.config): Ex:  ABCD or wxyz'
+  echo ' $7: Reference real data Stage2 or later root file(in lcl dir): Ex: 66594.root'
+  echo ' $8: Zn_AZ.  Ex: 20_180Deg or 30Deg'
+  echo ' $9: List of PedVar values: Ex: 4.73,5.55 or  6.51 or "All" or "Base"'
+  echo 
+  echo ' Ex: ./MDLAuto.scr GenerateCosmicRayStage5Combined MDL10UA UA Run64954.txt MDL15NA.dat ABCD  64954.root 20_180Deg 6.51'
+  echo
+  echo '***MDLAuto.scr usage for Data run processing:'
+  echo ' $1: Command. Do "MDLAuto.scr ListCommands" for a list!'
+  echo ' $2: .cvbf data file name. Ex: 64954.cvbf'
+  echo ' $3: .cvbf Flasher ref file name. Ex: 64951.cvbf'
+  echo ' $4: ArraySpec:OldArray, NewArray, UpgradeArray. Ex: OA, NA or UA'
+  echo  
+  echo ' Ex:./MDLAuto.scr GenerateDataStage5Combined 64954.cvbf 64951.cvbf UA'
+  echo
+}
+#############################################################################
+
+function SubmitVegasProduction()
+#$1 Data file
+#$2 Flasher file
+#$3 VegasProduction script
+{
+    DataFile=$1
+    FlasherFile=$2
+    VEGASScript=$3
+    
+    ####################################################################
+    # Make up the job script file that will be submitted below
+    ####################################################################
+    sgeFile=$lcl'/'$DataFile'S5.pbs'
+    echo "#"PBS -l walltime=04:00:00                   >$sgeFile
+    echo "#"PBS -l walltime=$WALLTIME                 >$sgeFile
+    echo "#PBS -l "$MEMREQUEST                       >>$sgeFile
+    if [ -n "$CARVER" ]; then
+      echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
+    fi
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+      echo source /etc/profile                       >>$sgeFile
+      echo module load gcc/4.7.2                     >>$sgeFile
+    fi
+    echo cd $lcl                                     >>$sgeFile
+    echo ls -al $lcl'/'$VEGASScript                  >>$sgeFile
+    echo $lcl'/'$VEGASScript  \\                     >>$sgeFile
+    echo $lcl'/'$DataFile' '  \\                            >>$sgeFile
+    echo $lcl'/'$FlasherFile' '  \\                         >>$sgeFile
+    echo ' >'$lcl'/'$DataFile'S5.log'                >>$sgeFile
+
+    chmod 775 $sgeFile 
+    chmod 775 $VEGASScript
+    echo qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile
+    qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
+}
+###############################################################################
+
+function SubmitVegasSimProduction()
+{
+  FilePedVar=$1
+  if [ "$FilePedVar" = "NONE" ]; then
+      FilePedVar=""
+  else
+     if [ ! -e "$lcl"/"$FilePedVar" ]; then
+	  echo 'VAAUTO: SubmitVegasSimProduction requires file ' $lcl'/'$FilePedVar
+          echo 'VAAuto: Fatal! File does not exist.'
+          exit
+     fi
+  fi
+
+  FileBase=$2
+  VEGASScript=$3
+  FileVBF=$4
+  if [ -n "$LimitSubmissions" ]; then
+    VEGASDoneLog=$FilePedVar$FileBase'Done.log'     
+    if [ -e "$VEGASDoneLog" ]; then              #Max queue jobs are active 
+	 rm $VEGASDoneLog
+    fi
+  fi
+  
+  echo 
+  sgeFile=$lcl'/'$FilePedVar$FileBase'.pbs'
+  echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
+  echo "#PBS -l "$MEMREQUEST                      >>$sgeFile
+  if [ -n "$CARVER" ]; then
+    echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
+  fi
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+    echo source /etc/profile                      >>$sgeFile
+    echo module load gcc/4.7.2                    >>$sgeFile
+  fi
+  echo cd $lcl                                    >>$sgeFile
+  echo $lcl'/'$VEGASScript  \\                    >>$sgeFile
+  echo $FileVBF  $FilePedVar \\                   >>$sgeFile
+  echo ' >'$lcl'/'$FilePedVar$FileBase'VBF.log'   >>$sgeFile
+  if [ -n "$LimitSubmissions" ]; then
+     echo 'echo Done >'$lcl'/'$VEGASDoneLog       >>$sgeFile
+  fi
+  if [ -n "$LimitSubmissions" ]; then
+     CheckQsubSubmissions  $MaxQsubs $QsubLogs   #This will wait 
+     echo $VEGASDoneLog >>$QsubLogs #add the next one
+  fi
+
+  chmod 700 $sgeFile
+  qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
+}
+
+function SubmitQsubJobs()
+#################################################
+#$1  List of .qsub jobs to submit
+#$2  file with all the names of the *.qsub.Done files the submitted jobs will 
+#    write when they finish
+#$3  Maximum jobs to have running or waiting to run in the queue
+# Due to differences in memory requirments for Te and ShowerrVBF jobs we also
+# use the defined string MEMREQUEST. If exists is uaually has a value like
+#  MEMREQUEST=' -l pvmem=30GB '
+{
+  QsubList=$1
+  QsubDoneList=$2
+  MaxQsubs=$3
+
+  if [ -e "$QsubDoneList" ]; then
+    rm $QsubDoneList
+  fi
+
+  {
+    while read sgeFileFull
+      do
+        CheckQsubSubmissions  $MaxQsubs $QsubDoneList 
+                                     #Gets here when we can submit the next job
+        sgeFile=${sgeFileFull##*/}
+        echo $sgeFile
+        sgeDoneFile=$sgeFileFull'.Done'
+        if [ -e "$sgeDoneFile" ]; then
+          rm $sgeDoneFile
+        fi
+        echo adding: $sgeDoneFile
+	echo $sgeDoneFile >>$QsubDoneList #add the next one
+       
+       qsub$QSUBEXT -V $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+       #For Hansen pause between submissions
+       if [ -n "$HANSEN" ] ; then
+         sleep 10
+       fi
+      done
+   }<$QsubList
+}
+###########################################################################
+
+function CheckQsubSubmissions()
+#$1  Max HTAR Qsubs active at one time
+#$2  Running qsub List File name
+{
+  #############################################################
+  # File RunningQsubListFile is a list of the names of the sgeFile.Done files 
+  # that will be generated when the various running .qsub jobs complete.
+  # Until the jobs complete the *.Done don't exist.  We count the not existing
+  # files. If less than $1 files don't exist  which means the jobs are still 
+  # active, we sleep for 60 seconds and try again. When a *.Done is  found to 
+  # exist it is removed from the RunningQsubListFile file and this function 
+  # returns so a new submission can be made. Other wise the code just sits 
+  # here sleeping for 60 sec between checks.
+  ################################################################
+  RunningQsubListFile=$2   
+  RunningQsubListTmp=$2'.tmp'
+  if [ ! -e "$RunningQsubListFile" ]; then  #empty (just starting up)
+     echo no $RunningQsubListFile
+     return
+  fi
+  if [ -e "$RunningQsubListTmp" ]; then
+      rm -v $RunningQsubListTmp
+  fi
+
+  #echo $2':'
+  #cat $2
+
+  let count=$1
+  while test "$count" -ge  $1 
+   do
+   let count=0
+   {
+    while read QsublogFile
+     do
+	if [ -e "$QsublogFile" ]; then
+	    rm $QsublogFile
+	else
+	    count=$((count+1))
+            #echo count During: $count
+	    echo $QsublogFile >>$RunningQsubListTmp
+        fi
+     done
+   }<$RunningQsubListFile
+
+   if [ -e "$RunningQsubListTmp" ]; then
+     cp $RunningQsubListTmp  $RunningQsubListFile
+     rm $RunningQsubListTmp
+   else
+     rm $RunningQsubListTmp
+     #echo empty count: $count
+   fi
+   #echo countAfter: $count
+
+   if [ $count -ge $1 ]; then       #We are full, wait a bit and try again
+     sleep 120
+   fi
+  done
+}
+####################################################################
+
+function GetUniqueNumber()
+{
+  #use combo of process id ($$)and number of nanosec(date +%N) since last 
+  #second tick to get unique value. (least count is micro sec at best)
+  let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+}
+####################################################################################
+
+function GenerateVBFName()
+#$1 Particle type: SPECPART: G or E or P or He4_ or CR
+#$2 Array  EX: UA or NA or OA
+#$3 Season EX: W (Winter)  or S (Summer)
+#$4 Zenith angle (Deg)
+#$5 Azimuth angle (Deg)
+#$6 Offset angle 
+{
+  #Primay Type:
+  a=$1
+  if [ "$a" = "P" ]; then
+	PRIMARY=proton
+  fi
+  if [ "$a" = "He4_" ]; then
+	PRIMARY=He4
+  fi
+  if [ "$a" = "G" ]; then
+	PRIMARY=gamma
+  fi
+  if [ "$a" = "E" ]; then
+	PRIMARY=electron
+  fi
+  if [ "$a" = "CR" ]; then
+	PRIMARY=cosmicRay
+  fi
+  if [ ! -n "$PRIMARY" ]; then
+     echo Invalid Primary Particle type: $a
+     exit
+  fi
+
+  #Array type sapecification
+  a=$2
+  if [ "$a" = "UA" ]; then
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
+  fi
+  if [ "$a" = "NA" ]; then
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
+  fi
+  if [ "$a" = "OA" ]; then
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
+  fi
+  if [ ! -n "$Epoch" ]; then
+     echo Invalid array specification: $a
+     exit
+  fi
+
+  #winter/summ season atm spec
+  a=$3
+  if [ "$a" = "W" ]; then
+    SeasonID='21'
+  fi
+  if [ "$a" = "S" ]; then
+    SeasonID='22'
+  fi
+  if [ ! -n "$SeasonID" ]; then
+     echo Invalid winter/summer specification: $a
+     exit
+  fi 
+  #echo SeasonID: $SeasonID 'for ' $3
+
+  zenith=$4
+  azimuth=$5
+  if [ -n "$6" ]; then
+     offsetID=$6
+  fi
+
+  ###################################################
+  # Ready to build VBF file name (From OAWG 2.5 wiki page)
+  ###################################################
+  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
+  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
+
+  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
+  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
+  if [ -n "$offsetID" ]; then
+      VBFFILENAME=$VBFFILENAME'_'$offsetID'wobb'
+  fi
+  VBFFILENAME=$VBFFILENAME'.vbf'
+return
+}
+##############################################################################
+
+function GetOptionValue()
+#$1 Cuts file name
+#$2 Option whose value we need to find
+{
+  OptionString=$2
+  #echo 'Cuts File Name: '$1' Opt: '$OptionString
+  {
+    while read Opt OptionValue;
+     do
+      if  [ "$OptionString" = "$Opt" ]; then
+         return
+      fi
+     done
+   }<$1
+}
+##############################################################################      	
+
+##################################################################################
+function GenerateLTFileName()
+#$1 Array  EX: UA or NA or OA
+#$2 Season EX: W (Winter)  or S (Summer)
+#$3 Offset id: Ex; All or 050
+#$4 Method: Ex: std or hfit or disp
+#$5 Particle type: Blank if gamma otherwise: Ex: Electrons or CosmicRays
+{
+  a=$1
+  if [ "$a" = "UA" ]; then
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
+  fi
+  if [ "$a" = "NA" ]; then
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
+  fi
+  if [ "$a" = "OA" ]; then
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
+  fi
+
+  if [ "$2" = "W" ]; then
+    SeasonID='21'
+  fi
+  if [ "$2" = "S" ]; then
+    SeasonID='22'
+  fi
+  echo SeasonID: $SeasonID 'for ' $2
+  offsetID=$3
+  echo offsetID: $offsetID
 
 
-############################################################################
-#Bulid the Ratios.Txt File from the Ratios.dat file for use as input to the 
-#next DetermineMDL step. Its assumed that all  MDL entries will be in the
-# .dat file
-#Needs $2 only
+  #############################
+  # LookuptableCuts file name
+  #############################
+  tbl=$VEGAS'/../tables/'
+  GetOptionValue $tbl'LookupTableStdCuts'  DistanceUpper   #sets OptionValue
+  distCut=${OptionValue:2}                       #Drop "0/"
+  #leave in decimal points.   #distCut=${distCut/./p}#Convert "." to "p". Not sure why
+
+  method=$4
+  
+
+  ###################################################
+  # Ready to build file name (From OAWG 2.5 wiki page)
+  ###################################################
+# lt_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_vegasv250rc5_
+# 7sam_[offsetID]off_[method]_d[distCut]_LZA.root
+
+  LTFILENAME='lt_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_'
+  if  [ -n "$5" ]; then                                        #PrimaryType
+     LTFILENAME=$LTFILENAME$5'_'
+  fi
+
+  LTFILENAME=$LTFILENAME'vegasv250rc5_7sam_'$offsetID'off_'$method'_d'$distCut'_'
+  LTFILENAME=$LTFILENAME'LZA.root'
+  echo LTFILENAME: $LTFILENAME
+  return
+}
+##################################################################################
+
+
+#############################
+# Main
+#############################
+if [ ! -n "$1" ]; then
+  commandEnable "ListCommands"   #List all commands and exits
+fi
+
+commandEnable $1   #This will enable the specified command or exit if its not a 
+                   #known command.
+ 
+lcl=$PWD
+
 host=$(hostname)
 echo host: $host
+
+hostString=${host:0:6}
+if test  "$hostString" = "edison"  #Are we running on Edison
+then
+  EDISON=enabled
+  VDirBase=$SCRATCH'/simulations/veritas/'
+  JobIDHost='edison'
+  QUEUE=serial
+  QSUBEXT='.serial'
+  MEMREQUEST=' vmem=8GB '
+  MaxQsubs=175  
+  echo '***Edison Cluster***'
+fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
-  VDirBase='/project/projectdirs/m1304/veritas_CM/simulations/veritas/'
+  VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cvrsvc'
   QUEUE=serial
+  MEMREQUEST=' pvmem=8GB '
   echo '***Carver Cluster***'
 fi
 
@@ -123,13 +512,101 @@ then
   echo ***Coates Cluster***
 fi
 
-if [ -n "$BulidRatiosTxtFile" ]; then
+###################################
+# We are assumed to be in directory which has all files.
+###################################
+if [ ! -n "$GenerateDataStage5Combined" ]; then
+    MDLLast=$2
+    echo MDLLast: $MDLLast
+    ARRAYDEF=$3
+else
+    DATAFILE=$2
+    FLASHERFILE=$3
+    ARRAYDEF=$4
+fi
+
+if [ "$ARRAYDEF" = "UA" ]; then
+  PMT='U'
+  PSF='V190'
+  ARRAY='UA'
+  ArrayName="UpgradeArray"
+  THRESH=45mv
+  CUTTYPE=UpgradeMedium
+fi
+
+if [ "$ARRAYDEF" = "OA" ]; then
+  PMT='O'
+  PSF='V330'
+  ARRAY="OA"
+  ArrayName=OldArray
+  THRESH=50mv
+  CUTTYPE=OldArrayMedium
+fi
+
+if [ "$ARRAYDEF" = "NA" ]; then
+  PMT='N'
+  PSF='V190'
+  ARRAY="NA"
+  ArrayName="NewArray"
+  THRESH=50mv
+  CUTTYPE=NewArrayMedium
+fi    
+
+RatiosFileBase=$PSF$ArrayName'Ratios'
+DatFile=$RatiosFileBase'.dat' #Main *Ratios.dat file
+TxtFile=$RatiosFileBase'.txt' #Temporay file into which we will put all test MDL info.
+
+REFPARMS=$4
+MDLFILE=$5
+TCONFIG=$6
+REFDATAFILE=$7
+
+ZnAz=$8
+zn_az=${ZnAz%%Deg}
+ZN=${zn_az%%_*}
+if [ "$ZN" = "$zn_az" ]; then
+  AZ=0
+else
+  AZ=${zn_az##*_}
+fi
+
+SPECPV=$9
+SAVEIFS=$IFS
+if [[ $SPECPV = "All" ]]; then
+    if [ $ARRAY = "UA" ]; then
+      PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+    fi
+    if [ $ARRAY = "NA" ] || [ $ARRAY = "OA" ]; then
+      PedVar=([0]=4.04 4.72 5.51 6.44 7.53 8.79 10.27 12.00)
+    fi
+else
+    if [[ $SPECPV = "Base" ]]; then
+	PedVar=([0]=0 )
+    else
+	IFS=, read -a PedVar <<< "$SPECPV"
+    fi
+fi
+IFS=$SAVEIFS
+
+MaxQsubs=475  
+
+############################################################################
+#Bulid the Ratios.txt File from the Ratios.dat file for use as input to the 
+#next DetermineMDL step. Its assumed that all MDL entries will be in the
+# .dat file
+#Needs $3 only
+
+if [ -n "$BuildRatiosTxtFile" ]; then
   echo '##########################################################'
-  echo '# BulidRatiosTxtFile '
+  echo '# BuildRatiosTxtFile '
   echo '##########################################################'
 
   cd $lcl
 
+  # Datfile is arrrainged in reverse sequecn with 4 lines of data per trial model
+  # with the first one being usually the highest and which we specify as $2
+
+  #Setup to read this file in as a TTree.
   echo "t/I:T/F:N:Eff:G:R:PVar:S:NumPix:Max3_50:Max3:LRatio" >temp1.txt
   {
     while read line
@@ -157,15 +634,16 @@ if [ -n "$BulidRatiosTxtFile" ]; then
   sed '/,/s/,/ /g'   <temp1.txt >$TxtFile
 fi
 
-
-
+# *********************************************************************************
+# The following is a sperate command in case we want to edit the .txt file before we
+# find the Telescope Model  values.
 ######################################################################
-if [ -n "$DetermineMDL" ]; then
+if [ -n "$ProduceModelFile" ]; then
   echo '##########################################################'
-  echo '# DetermineMDL '
+  echo '# ProduceModelFile '
   echo '##########################################################'
-  # Using the determineParams.C root macro make the MDL parameter set
-  # Save to $1$Array.dat file
+  # Using the determineParams.C root macro to make the MDL parameter set
+  # Save to MDLDat  file
   ################################################################
 
   cd $lcl
@@ -174,45 +652,44 @@ if [ -n "$DetermineMDL" ]; then
       cp -v $KASCADEBASE/scripts/determineParameters.C .
   fi
 
-  echo "{"                                                  >MDLAuto.rootscr
-  echo "gROOT->ProcessLine(\".L determineParameters.C\");" >>MDLAuto.rootscr
-  echo "determineParameters(\""$TxtFile"\",\""$3"\");"     >>MDLAuto.rootscr
-  echo "}"                                                 >>MDLAuto.rootscr
+  echo "{"                                                        >MDLAuto.rootscr
+  echo "gROOT->ProcessLine(\".L determineParameters.C\");"       >>MDLAuto.rootscr
+  echo "determineParameters(\""$TxtFile"\",\""$REFPARMS"\");"     >>MDLAuto.rootscr
+  echo "}"                                                       >>MDLAuto.rootscr
 
   ~/Switch.rootrcTo.rootrc_glenn.scr
   root -q -b MDLAuto.rootscr  >MDLAuto.rootscr.log
 
   echo
   echo
-  echo "MDLAuto: "$1" parameters found and placed in "$1".dat:"
+  echo "MDLAuto: Telescope Model Parameters found and placed in "$MDLFILE
   echo
 
   ############################################################
-  # Parse the root log file to make the MDL7 Ratioos.dat file entry
+  # Parse the root log file to make the Ratioos.dat file entry
   #  Will be used to make the ksAomega confifg files.
   ############################################################
-  grep T1 MDLAuto.rootscr.log >$1$Array.dat
-  grep T2 MDLAuto.rootscr.log >>$1$Array.dat
-  grep T3 MDLAuto.rootscr.log >>$1$Array.dat
-  grep T4 MDLAuto.rootscr.log >>$1$Array.dat
+  grep T1 MDLAuto.rootscr.log >$MDLFILE
+  grep T2 MDLAuto.rootscr.log >>$MDLFILE
+  grep T3 MDLAuto.rootscr.log >>$MDLFILE
+  grep T4 MDLAuto.rootscr.log >>$MDLFILE
 
-  cat $1$Array.dat
+  cat $MDLFILE
 fi
 ######################################################################
 
-if [ -n "$BuildMDLAomeagaConfig" ]; then
+if [ -n "$BuildMDLAomegaConfig" ]; then
   echo '##########################################################'
-  echo '# BuildMDLAomeagaConfig '
+  echo '# BuildMDLAomegaConfig '
   echo '##########################################################'
-  echo 'MDLAuto: Generating ksAomega config files from '$1'.dat'
+  echo 'MDLAuto: Generating ksAomega config files from '$MDLFILE
 
   cd $KASCADEBASE/inputs
 
-  tConfig=$4
-  T1=${tConfig:0:1}
-  T2=${tConfig:1:1}
-  T3=${tConfig:2:1}
-  T4=${tConfig:3:1}
+  T1=${TCONFIG:0:1}
+  T2=${TCONFIG:1:1}
+  T3=${TCONFIG:2:1}
+  T4=${TCONFIG:3:1}
   ../bin/ksAomega -save_config_and_exit=Base.config
 
   ##############################################################
@@ -220,27 +697,23 @@ if [ -n "$BuildMDLAomeagaConfig" ]; then
   ##############################################################
  
   ################################################################
-  #Read in the $1.txt file and set params
+  #Read in the $2.txt file and set params
   ################################################################
-  echo 'MDLAuto: Setting ksAomegaV50('$4').config files to '$1'.dat values'
+  echo 'MDLAuto: Setting ksAomegaV50('$TCONFIG').config files to' $MDLFILE' values'
 
-  if [ "$2" != "Upgrade" ]; then
-     PFile=/project/projectdirs/astrogfs/veritas_data/glenn/data/veritas/1FGLJ0515.9+1528/54008.root
-  else
-     PFile=$lcl'/'$5
-  fi
-{
+  PFile=$lcl'/'$REFDATAFILE
+  {
    while read tel threshold noise eff gain 
     do
-    sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config  >tmp1.config
-    sed '/NoiseRate/s/12.5/'$noise'/g'                <tmp1.config  >tmp2.config
+    sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config >tmp1.config
+    sed '/NoiseRate/s/12.5/'$noise'/g'                <tmp1.config >tmp2.config
     sed '/Efficiency/s/1/'$eff'/g'                    <tmp2.config >tmp1.config
     sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmp1.config >tmp2.config
     sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2.config >tmp1.config
     sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1.config >tmp2.config
     sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2.config >tmp1.config
     sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1.config >tmp2.config
-    if [ "$2" = "Upgrade" ]; then
+    if [ "$array" = "UA" ]; then
       sed '/SinglePeRiseTimeNS/s/0/1.7/g'             <tmp2.config >tmp1.config
       sed '/SinglePeFallTimeNS/s/0/4.75/g'            <tmp1.config >tmp2.config
     else
@@ -249,7 +722,7 @@ if [ -n "$BuildMDLAomeagaConfig" ]; then
     fi
     sed '5 a \#This is special for tel '$tel'.'   tmp2.config >$tel'.config'    
    done
-  }<$lcl'/'$1".dat"
+  }<$lcl'/'$MDLFILE
 
   mv  T1.config ksAomegaV50mv$T1'.config'
   mv  T2.config ksAomegaV50mv$T2'.config'
@@ -259,20 +732,79 @@ if [ -n "$BuildMDLAomeagaConfig" ]; then
 fi
 ############################################################################
 
-
-if [ -n "$ProductionMDLCR" ]; then
+#**************************************************************************
+# Process all the CR TE files for this Zn/AZ through ksAomega and ksArrayTrigger
+# using the MDLFILE parameters. This in prep for running them though CRProcessAll
+#***************************************************************************
+if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
   echo '##########################################################'
-  echo '# ProductionMDLCR '
+  echo '# ProduceModelCosmicRayShowerVBFs '
   echo '##########################################################'
-  echo 'MDLAuto: Process ksAomega*.config: ' $4 ' through ksAomega and ksArrayTrig'
+  echo 'MDLAuto: Process ksAomega*.config: ' $TCONFIG ' through ksAomega and ksArrayTrig'
   #echo 'MDLAuto: This takes about 10 min so be patient. '
   echo 'MDLAuto:  use "less MDLProcess.log" or qstat  to monitor progress.'
   cd $lcl
   date
-  #make up our ksProduction designation
-  Spec='W'$PMT'CR'$6'50mv1234M2'$4
 
-  ./ksProduction.scr $Spec ksallVBF.scr >MDLProcess$4'.log'
+  ####################################################################
+  #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
+  ####################################################################
+  cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF$ZnAz'.scr'
+  sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
+                                                <ksallVBF$ZnAz'.scr' >tmp1
+  sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
+  sed '/PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
+  sed '/TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
+  sed '/#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
+  sed '/#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
+  sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+  echo Array: $ARRAY
+  if [ "$ARRAY" = "OA" ]; then
+    echo using OldArray tell positions
+    sed '/Fall09ArrayPositions=enable/s/Fall/#Fall/g'  <tmp1 >tmp2
+  else
+    echo Using NewArray tel positions
+    sed '/#Fall09ArrayPositions=enable/s/#Fall/Fall/g' <tmp1 >tmp2
+  fi
+  sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
+  sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
+  sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
+  sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >ksallVBF$ZnAz'.scr'
+  rm tmp1
+  rm tmp2
+  ####################################################################
+
+  #make up our ksProduction designation
+  Spec='W'$PMT'CR'$ZnAz'50mv1234M2'$TCONFIG
+        
+  NoSort='NoSort'
+
+  if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
+                                            #wait until to submit more in our 
+                                            #list
+    GetUniqueNumber
+    QsubFileNameList='KSW$PMT$CR$UNIQUE'AutoqsubList'
+    echo QsubFileNameList: $QsubFileNameList
+    if [ -e $QsubFileNameList ]; then
+	rm $QsubFileNameList
+    fi
+    if [ -n "$EDISON" ]; then
+	MEMREQUEST=' vmem=8GB '
+	echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
+    fi
+    if [ -n "$CARVER" ]; then
+	MEMREQUEST=' pvmem=8GB '
+	echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
+    fi
+
+    ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
+                                   #Above will fill the list file 
+                                  # $QsubFileNameList with the names of the 
+                                  # .qsub files to run(but it won't run them)
+                                  #Below will run them with a max of $MaxQsubs
+                                  # in the queue at one time, submitting more 
+                                  # as it can
+    SubmitQsubJobs  $QsubFileNameList $QsubLogs $MaxQsubs
 
   ########################################################################
   # We are now going to wait for all of these to finish.
@@ -288,34 +820,195 @@ if [ -n "$ProductionMDLCR" ]; then
   if [ -n "$CARVER" ]; then
     echo "MDLAuto: Carver cluster for "$ZnAz" complete."
   fi
-  echo "MDLAuto: Sleeping until they all finish. About 3 hrs"
-  
-      # Cleanup the log file to only have cCarver cluster pids in it
-  cat MDLProcess$4'.log' | grep  $JobIDHost >ShowerMakeVBF$4'.log'
-
-  let runsNotDone=1
-  while test $runsNotDone -eq 1 
-  do
-    sleep 300s
-    checkRunningJobs ShowerMakeVBF$4'.log'  $4
-    let runsNotDone=$?
-  done
-  echo "MDLAuto: Te file generation complete"
-#Should all be done now. Check that it worked(add that later)
 fi
 ###########################################################################
 
-if [ -n "$ProcessMDLCR" ]; then
+if [ -n "$GenerateCosmicRayVBF" ]; then
   echo '##########################################################'
-  echo '# ProcessMDLCR '
+  echo '# GenerateCosmicRayVBF '
   echo '##########################################################'
-  echo 'MDLAuto: Process '$4'through ksWeRock and VEGAS 1,2,4,5'
+  echo 'MDLAuto: Process '$TCONFIG'through ksWeRock '
 
   #########################################################################
-  #Now run these showers through CRProcessAllC to make VBF files and 
-  # process through stage5.
+  #Now run these showers through CRProcessAlC to make ther VBF file
   #########################################################################
   cd $lcl
-   ./CRProcessAllC V190 $6'50mv'  W$1 $4 $PMT
+   ./CRProcessAll V190 $ZnAz'50mv'  W$ARRAY $TCONFIG $PMT
+  echo' MDLAUTO: Did not do stage5. Have not codded it up yet!'
+fi 
+############################################################################
+
+
+if [ -n "$GenerateCosmicRayStage5Combined" ]; then
+  echo '##########################################################'
+  echo '# GenerateCosmicRayStage5Combined '
+  echo '##########################################################'
+  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ
+  BaseFileName=${VBFFILENAME%%.vbf}
+  echo 
+
+
+  #Setup VegasSimProduction to generate S5 combined Tree.
+  GetUniqueNumber
+  VSProdFile=VegasSimProductionS5.$UNIQUE'.scr'
+  cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
+  ###################################################################
+  #The standard VegasSimProduction.scr should have all options 
+  #turned off.  We just have to make sure only stages 1-5 gets run
+  #Sample size:We would  need to set integration window size if 
+  #different from 7.
+  ##################################################################
+  sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+                                          < $VSProdFile  >tmp1
+  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'              <tmp1 >tmp2
+  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmp2 >tmp1
+
+  ######################################################################
+  # If this is an Old Array run, enable the TelCombosToDeny=T1T4
+  ######################################################################
+  if  [ $ARRAY = "OA" ]; then
+      sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmp1 >tmp2 
+      cp tmp2 tmp1
+  fi
+
+  ######################################################################
+  # We also need to set the quality and shower cuts files. These are kind of 
+  # arbitrary since we make our own cuts from the combined tree when plotting.
+  ####################################################################
+  QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
+  SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
+  FILEBASE=$CUTTYPE'Cuts'
+  cp $VEGAS/../tables/$QUALITYCUTSFILE .
+
+  GetUniqueNumber
+  QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
+
+  # We do need to set an LT name:Use winter; standard method; gamma ray LT.
+  GenerateLTFileName $ARRAY 'W'  'All'  'std' 
+  
+  ###############################################################################
+  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
+  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
+  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
+  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  #################################################################################
+  # And set Method to combined for stage5
+  # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
+  # output methods with RemoveCutEvents and the remove the single # from the combined 
+  # one without a RemoveCutEvents.
+  #################################################################################
+  sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+  sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+
+  mv tmp1 $VSProdFile
+  chmod 755  $VSProdFile
+  rm tmp2
+
+  #OK! We are ready to run.  Nedd to submit since this will take more than 4 hours. 
+  echo "MDLAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME       
+
+  WALLTIME=20:00:00
+  
+
+  #Iterate through PedVars
+  let kpvar=0
+  let kpvarEnd=${#PedVar[@]}
+  while test $kpvar -lt $kpvarEnd
+    do
+      #Test for defaults
+      PV=${PedVar[$kpvar]} 
+      if test "$PV" = "0"
+        then
+          PedVarFile="NONE"
+      else
+          PedVarFile=Ped$ARRAY$PV
+      fi  
+      ###################################################
+      # Note here that VeagsSimProductionS5.scr will generate the PedVar 
+      # Stage4 filename with the correct TelConfig
+      ###################################################
+
+      echo Command: SubmitVegasSimProduction $PedVarFile $BaseFileName $VSProdFile $VBFFILENAME
+      SubmitVegasSimProduction $PedVarFile $BaseFileName $VSProdFile $VBFFILENAME
+      let kpvar=$kpvar+1
+    done
+fi
+# ******************************************************************************
+
+if [ -n "$GenerateDataStage5Combined" ]; then
+  echo '##########################################################'
+  echo '# GenerateDataStage5Combined '
+  echo '##########################################################'
+
+  DFILE=$lcl'/'$DATAFILE
+  if [ ! -e "$DFILE" ]; then
+     echo MDLAuto:--Fatal- File  $DFILE 'does not exist.'
+     ls -al $DFILE
+     exit
+  fi
+  FFILE=$lcl'/'$FLASHERFILE
+  if [ ! -e "$FFILE" ]; then
+     echo MDLAuto:--Fatal- Flasher File  $FFILE 'does not exist.'
+     exit
+  fi
+
+
+
+  #Setup VegasProduction to generate S5 combined Tree.
+  GetUniqueNumber
+  VSProdFile=VegasProductionS5.$UNIQUE'.scr'
+  cp $KASCADEBASE/scripts/VegasProduction.scr $VSProdFile
+
+  ###################################################################
+  #The standard VegasProduction.scr should have all options 
+  #turned off.  We just have to make sure only stages 1-5 gets run
+  #Sample size:We would  need to set integration window size if 
+  #different from 7.
+  ##################################################################
+  sed '/#Stage1Laser=enable/s/#Stage1Laser/Stage1Laser/g' \
+                                          < $VSProdFile  >tmp1
+  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'              <tmp1 >tmp2
+  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmp2 >tmp1
+
+  QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
+  SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
+  FILEBASE=$CUTTYPE'Cuts'
+  cp $VEGAS/../tables/$QUALITYCUTSFILE .
+
+  # We do need to set an LT name:Use winter; standard method; gamma ray LT.
+  GenerateLTFileName $ARRAY 'W'  'All'  'std' 
+  
+  GetUniqueNumber
+  QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
+
+  ###############################################################################
+  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
+  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
+  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
+  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  #################################################################################
+  # And set Method to combined for stage5
+  # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
+  # output methods with RemoveCutEvents and the remove the single # from the combined 
+  # one without a RemoveCutEvents.
+  #################################################################################
+  sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+  sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+
+  mv tmp1 $VSProdFile
+  chmod 755 $VSProdFile
+  rm tmp2
+
+  #OK! We are ready to run.  Nedd to submit since this will take more than 4 hours. 
+  echo "MDLAuto: Submitting VegasProductionS5 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME       
+  WALLTIME=20:00:00
+  
+  echo Command: SubmitVegasProduction  $DATAFILE $FLASHERFILE $VSProdFile
+  SubmitVegasProduction $DATAFILE $FLASHERFILE $VSProdFile
 fi
 
+echo 'MDLAuto:  Done!'
