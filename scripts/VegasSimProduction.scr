@@ -103,7 +103,7 @@ fi
 
 
 #OutputMethodOptions='-Method=combined -RemoveCutEvents=true'
-OutputMethodOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
+#OutputMethodOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
 #OutputMethodOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
 
