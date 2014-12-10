@@ -1,5 +1,9 @@
 #!/bin/bash
-
+# *******************************************************************************
+# This is a generic VegasProduction.scr. Be very careful before messing with it!
+#  It is used by MDLAuto and is expected to be of a certain configuration (which
+#  MDLAuto.scr  modifies with sed commands!)
+#******************************************************************************
 #This runs first 5 vegas stages on normal file  files;
 #$1 .cvbf or .root file to process. (Ex. ./VData/33619.cvbf)
 #$2 .cvbf Laser or Flasher file           (Ex. ./VData/33616.cvbf)
@@ -137,7 +141,7 @@ if [ -n "$Stage4_2" ]; then
 	    $CutRootFileName
 
 
-	$VEGAS/bin/vaStage4.2 -table=$LookUpTableDir/$Table $OverrideLTCheckOption \
+	$VEGAS/bin/vaStage4.2 -table=$TableDir/$Table $OverrideLTCheckOption \
 	     '-cuts='$CutsDir'/'$QualityCuts $DenyTelescopeOption  \
             $CutTelescopeOption $SeperationAngleCutOption $WindowSizeOption \
 	    -save_config=vaStage4.2.config  \
