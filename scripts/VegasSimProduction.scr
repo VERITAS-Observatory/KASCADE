@@ -130,7 +130,7 @@ fi
 RootFileName=${VBFFileName%".vbf"}'.root'   #This will include any path.
 
 if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
-     RootFileName=$PedVarBase${RootFileName##*/}
+     RootFileName=$PedVarBase'_'${RootFileName##*/}
 fi
 echo RootFileName: $RootFileName
 
@@ -153,7 +153,7 @@ fi
 
 CutRootFileName=${VBFFileName%".vbf"}$FileBase'.root'
 if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
-     CutRootFileName=$PedVarBase${CutRootFileName##*/}
+     CutRootFileName=$PedVarBase'_'${CutRootFileName##*/}
 fi
 #########################################################
 # If we are cutting out a telelscope change the Telconfig in the CutRootFile name
