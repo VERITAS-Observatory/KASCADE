@@ -989,7 +989,7 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
   sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
   sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  sed '/ShowerCuts=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
   #################################################################################
   # And set Method to combined for stage5
   # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
