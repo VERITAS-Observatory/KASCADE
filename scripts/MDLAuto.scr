@@ -75,7 +75,8 @@ function usage()
   echo ' $7: Reference real data Stage2 or later root file(in lcl dir): Ex: 66594.root'
   echo ' $8: Zn_AZ.  Ex: 20_180Deg or 30Deg'
   echo ' $9: List of PedVar values: Ex: 4.73,5.55 or  6.51 or "All" or "Base"'
-  echo 
+  echo ' ${10}: Stage4/5 Cuts Ex: UpgradeLoose or NewArrayHard or OldArraySoft'
+  echo
   echo ' Ex: ./MDLAuto.scr GenerateCosmicRayStage5Combined MDL10UA UA Run64954.txt MDL15NA.dat ABCD  64954.root 20_180Deg 6.51'
   echo
   echo '***MDLAuto.scr usage for Data run processing:'
@@ -83,8 +84,9 @@ function usage()
   echo ' $2: .cvbf data file name. Ex: 64954.cvbf'
   echo ' $3: .cvbf Flasher ref file name. Ex: 64951.cvbf'
   echo ' $4: ArraySpec:OldArray, NewArray, UpgradeArray. Ex: OA, NA or UA'
+  echo ' $5: Stage4/5 Cuts Ex: UpgradeLoose or or NewArrayHard or OldArraySoft'
   echo  
-  echo ' Ex:./MDLAuto.scr GenerateDataStage5Combined 64954.cvbf 64951.cvbf UA'
+  echo ' Ex:./MDLAuto.scr GenerateDataStage5Combined 64954.cvbf 64951.cvbf UA UpgradeMedium'
   echo
 }
 #############################################################################
@@ -519,10 +521,12 @@ if [ ! -n "$GenerateDataStage5Combined" ]; then
     MDLLast=$2
     echo MDLLast: $MDLLast
     ARRAYDEF=$3
+    CUTTYPE=${10}
 else
     DATAFILE=$2
     FLASHERFILE=$3
     ARRAYDEF=$4
+    CUTTYPE=$5
 fi
 
 if [ "$ARRAYDEF" = "UA" ]; then
@@ -531,7 +535,6 @@ if [ "$ARRAYDEF" = "UA" ]; then
   ARRAY='UA'
   ArrayName="UpgradeArray"
   THRESH=45mv
-  CUTTYPE=UpgradeMedium
 fi
 
 if [ "$ARRAYDEF" = "OA" ]; then
@@ -540,7 +543,6 @@ if [ "$ARRAYDEF" = "OA" ]; then
   ARRAY="OA"
   ArrayName=OldArray
   THRESH=50mv
-  CUTTYPE=OldArrayMedium
 fi
 
 if [ "$ARRAYDEF" = "NA" ]; then
@@ -549,7 +551,6 @@ if [ "$ARRAYDEF" = "NA" ]; then
   ARRAY="NA"
   ArrayName="NewArray"
   THRESH=50mv
-  CUTTYPE=NewArrayMedium
 fi    
 
 RatiosFileBase=$PSF$ArrayName'Ratios'
@@ -843,7 +844,7 @@ if [ -n "$GenerateCosmicRayStage5Combined" ]; then
   echo '##########################################################'
   echo '# GenerateCosmicRayStage5Combined '
   echo '##########################################################'
-  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ    #Note: No Offset spec for CR
+  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ    #Note No Offset spec for CR
   BaseFileName=${VBFFILENAME%%.vbf}
   echo 
 
@@ -990,7 +991,7 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
   sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
   sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  sed '/ShowerCuts=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
   #################################################################################
   # And set Method to combined for stage5
   # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 

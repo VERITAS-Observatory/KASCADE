@@ -1139,8 +1139,11 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     date
     #Make sure VegasSimProduction.scr is set up correctly to get  
     #Stage1 and Stage2
-    if [ ! -e "VegasSimProductionS1S2.scr" ]; then
-     cp $KASCADEBASE/scripts/VegasSimProduction.scr VegasSimProductionS1S2.scr
+    GetUniqueNumber
+    VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
+
+    if [ ! -e "$VSProdFile" ]; then
+     cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
 
      #The standard VegasSimProduction.scr should have all options 
      #turned off.  We just have to make sure only stages 1 and 2 get run
@@ -1148,13 +1151,13 @@ if [ -n "$GenerateStage2FromVBF" ]; then
      #different from 7?????? Not implimented yet.
      ##################################################################
      sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                          < VegasSimProductionS1S2.scr >tmp1
+                                          < $VSProdFile >tmp1
      sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
      sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
      sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
      sed '/Stage5=enable/s/Stage5/#Stage5/g' \
-                                           <tmp2 >VegasSimProductionS1S2.scr
-     chmod 755 VegasSimProductionS1S2.scr
+                                           <tmp2 >$VSProdFile
+     chmod 755 $VSProdFile
      
      rm tmp1
      rm tmp2
@@ -1612,7 +1615,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 	  echo PedVarFile: $PedVarFile
       
           echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-	  SubmitVegasSimProduction $PedVarFile $BaseFileS2 VegasSimProductionS1S2.scr $VBFFILENAME
+	  SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
 
 	 fi
          ###############################################################
