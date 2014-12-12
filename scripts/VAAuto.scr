@@ -43,57 +43,62 @@ function commandEnable()
     echo '    #------------------------        #------------------------'
     echo '    GetVBFFileFromArchive            GenerateSubLTListFiles'
     echo '    GenerateSimLaserFile             GenerateSubLTConfigFiles'
-    echo '    GenerateStage2Files              ProduceSubLookupTables'  
+    echo '    GenerateStage2FromVBF            ProduceSubLookupTables'  
     echo '    CheckStage2Files                 CombineSubLT'     
     echo '    HTARPedVarZnOffsetS2ToArchive    BuildLTTree'
     echo '    HTARPedVarZnOffsetS2FromArchive  CheckLT'
     echo
     echo '    #------------------------        #------------------------'
     echo '    # Disp Lookup Tables             # Stage4'
-    echo '    # Uses arguments $1-${10}        # Uses Arguments $1-${12}; ${13} Optional'
+    echo '    # Uses arguments $1-${10}        # Uses Arguments $1-${12};${13}Optional'
     echo '    #------------------------        #------------------------'
-    echo '    GenerateDispSubLTListFiles       GenerateStage4Files'
+    echo '    GenerateDispSubLTListFiles       GenerateStage4FromStage2'
     echo '    GenerateDispSubLTConfigFiles     CheckStage4Files'
     echo '    ProduceDispSubLookupTables       HTARPedVarZnOffsetS4ToArchive'
     echo '    CombineDispSubLT                 HTARPedVarZnOffsetS4FromArchive'
     echo '    BuildDispLTTree'
     echo '    CheckDispLT'
     echo
-    echo '    #------------------------'
-    echo '    # EA Tables'
-    echo '    # Uses Argument $1-${12}'
-    echo '    #------------------------'
-    echo '    GenerateEASubLTListAndConfigFiles'
+    echo '    #------------------------           #------------------------'
+    echo '    # EA Tables                         # Stage5'
+    echo '    # Uses Argument $1-${12}            # Uses Arguments $1-${12}'
+    echo '    #------------------------           #------------------------'
+    echo '    GenerateEASubLTListAndConfigFiles   GenerateStage5CombinedFromStage4' 
     echo '    ProduceEASubLookupTables'
     echo '    CombineBuildCheckEALT'
     exit
   else
     if [ "$1" = "GetVBFFileFromArchive" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "GenerateSimLaserFile" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "GenerateStage2Files" ]; then eval $1=enable; return 0; fi;  
+    if [ "$1" = "GenerateStage2FromVBF" ]; then eval $1=enable; return 0; fi;  
     if [ "$1" = "CheckStage2Files" ]; then eval $1=enable; return 0; fi;     
     if [ "$1" = "HTARPedVarZnOffsetS2ToArchive" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "HTARPedVarZnOffsetS2FromArchive" ]; then eval $1=enable; return 0; fi;
+
     if [ "$1" = "GenerateSubLTListFiles" ]; then eval $1=enable; return 0; fi;         
     if [ "$1" = "GenerateSubLTConfigFiles" ]; then eval $1=enable; return 0; fi;       
     if [ "$1" = "ProduceSubLookupTables" ]; then eval $1=enable; return 0; fi;         
-    if [ "$1" = "CombineSubLT" ]; then eval $1=enable; return 0; fi;                    
+    if [ "$1" = "CombineSubLT" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "BuildLTTree" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CheckLT" ]; then eval $1=enable; return 0; fi;
+
     if [ "$1" = "GenerateDispSubLTListFiles" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "GenerateDispSubLTConfigFiles" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "ProduceDispSubLookupTables" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CombineDispSubLT" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "BuildDispLTTree" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CheckDispLT" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "GenerateStage4Files" ]; then eval $1=enable; return 0; fi;             
-    if [ "$1" = "CheckStage4Files" ]; then eval $1=enable; return 0; fi;                      
+
+    if [ "$1" = "GenerateStage4FromStage2" ]; then eval $1=enable; return 0; fi; 
+    if [ "$1" = "CheckStage4Files" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "HTARPedVarZnOffsetS4ToArchive" ]; then eval $1=enable; return 0; fi;  
     if [ "$1" = "HTARPedVarZnOffsetS4FromArchive" ]; then eval $1=enable; return 0; fi;
+
     if [ "$1" = "GenerateEASubLTListAndConfigFiles" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "ProduceEASubLookupTables" ]; then eval $1=enable; return 0; fi;
-
     if [ "$1" = "CombineBuildCheckEALT" ]; then eval $1=enable; return 0; fi;
+
+    if [ "$1" = "GenerateStage5CombinedFromStage4" ]; then eval $1=enable; return 0; fi;
     echo ' VAAuto: Invalid Command: '$1
     echo ' VAAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
     exit
@@ -118,7 +123,7 @@ function usage()
   echo ' ${12}: Specifes Type of offset LT table to use. Ex. All or 050'  
   echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
-  echo ' EX: ./VAAuto.scr GenerateStage4Files W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
+  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
 }
 #############################################################################
 
@@ -139,7 +144,93 @@ function GetOptionValue()
      done
    }<$1
 }
-##############################################################################      	
+##############################################################################      
+
+function GenerateVBFName()
+#$1 Particle type: SPECPART: G or E or P or He4_ or CR
+#$2 Array  EX: UA or NA or OA
+#$3 Season EX: W (Winter)  or S (Summer)
+#$4 Zenith angle (Deg)
+#$5 Azimuth angle (Deg)
+#$6 Offset angle 
+{
+  #Primay Type:
+  a=$1
+  if [ "$a" = "P" ]; then
+	PRIMARY=proton
+  fi
+  if [ "$a" = "He4_" ]; then
+	PRIMARY=He4
+  fi
+  if [ "$a" = "G" ]; then
+	PRIMARY=gamma
+  fi
+  if [ "$a" = "E" ]; then
+	PRIMARY=electron
+  fi
+  if [ "$a" = "CR" ]; then
+	PRIMARY=cosmicRay
+  fi
+  if [ ! -n "$PRIMARY" ]; then
+     echo Invalid Primary Particle type: $a
+     exit
+  fi
+
+  #Array type sapecification
+  a=$2
+  if [ "$a" = "UA" ]; then
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
+  fi
+  if [ "$a" = "NA" ]; then
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
+  fi
+  if [ "$a" = "OA" ]; then
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
+  fi
+  if [ ! -n "$Epoch" ]; then
+     echo Invalid array specification: $a
+     exit
+  fi
+
+  #winter/summ season atm spec
+  a=$3
+  if [ "$a" = "W" ]; then
+    SeasonID='21'
+  fi
+  if [ "$a" = "S" ]; then
+    SeasonID='22'
+  fi
+  if [ ! -n "$SeasonID" ]; then
+     echo Invalid winter/summer specification: $a
+     exit
+  fi 
+  #echo SeasonID: $SeasonID 'for ' $3
+
+  zenith=$4
+  azimuth=$5
+  if [ -n "$6" ]; then
+     offsetID=$6
+  fi
+
+  ###################################################
+  # Ready to build VBF file name (From OAWG 2.5 wiki page)
+  ###################################################
+  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
+  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
+
+  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
+  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
+  if [ -n "$offsetID" ]; then
+      VBFFILENAME=$VBFFILENAME'_'$offsetID'wobb'
+  fi
+  VBFFILENAME=$VBFFILENAME'.vbf'
+return
+}
+##############################################################################
+	
 
 function GenerateEAFileName()
 #$1 Cuts Ex: UpgradeSoft  or OldArrayMedium
@@ -620,8 +711,7 @@ GetUniqueNumber()
 #Main Program:
 
 if [ ! -n "$1" ]; then
-  usage
-  commandEnable "ListCommands"   #List all commands and exits
+  commandEnable "ListCommands"   #List all commands and exits 
 fi
 
 commandEnable $1   #This will enable the specified command or exit if its not a 
@@ -994,7 +1084,7 @@ if [ -n "$LimitSubmissions" ]; then
       let MaxHTARQsubs=9
       echo "VAAuto: HTAR qsub active submissions being limited to " $MaxHTARQsubs 
   fi
-  if [ -n "$GenerateSimLaserFile" ] || [ -n "$GenerateStage2Files" ] || [ -n "$GenerateStage4Files" ]; then
+  if [ -n "$GenerateSimLaserFile" ] || [ -n "$GenerateStage2FromVBF" ] || [ -n "$GenerateStage4FromStage2" ] || [ -n "$GenerateStage5CombinedFromStage4" ]; then
       GetUniqueNumber
       QsubLogs='RunningVegasQsubLogs'$UNIQUE'.txt'
       let MaxQsubs=$MaxQsubsDefault
@@ -1041,9 +1131,9 @@ if [ -n "$GenerateSimLaserFile" ]; then
 fi
 #############################################################################
 
-if [ -n "$GenerateStage2Files" ]; then
+if [ -n "$GenerateStage2FromVBF" ]; then
     echo '##########################################################'
-    echo '# GenerateStage2Files'
+    echo '# GenerateStage2FromVBF'
     echo '##########################################################'
     cd $lcl
     date
@@ -1081,9 +1171,9 @@ if [ -n "$GenerateStage2Files" ]; then
 fi
 ############################################################################
 
-if [ -n "$GenerateStage4Files" ]; then
+if [ -n "$GenerateStage4FromStage2" ]; then
     echo '##########################################################'
-    echo '# GenerateStage4Files'
+    echo '# GenerateStage4FromStage2'
     echo '##########################################################'
     cd $lcl
     date
@@ -1151,6 +1241,62 @@ if [ -n "$GenerateStage4Files" ]; then
    fi
 
     
+fi
+############################################################################
+
+if [ -n "$GenerateStage5CombinedFromStage4" ]; then
+    echo '##########################################################'
+    echo '# GenerateStage5CombinedFromStage4'
+    echo '##########################################################'
+    cd $lcl
+    date
+    #Make sure VegasSimProduction.scr is set up correctly to get  
+    #Stage5 combined tree
+
+    GetUniqueNumber
+    VSProdFile=VegasSimProductionS5.$UNIQUE'.scr'
+    echo VSProdFile: $VSProdFile
+
+    cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
+
+    ###################################################################
+    #The standard VegasSimProduction.scr should have all options 
+    #turned off.  We just have to make sure only stage 1 gets run
+    #Sample size:We will need to set integration window size if 
+    #different from 7.
+    ##################################################################
+    sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+                                          < $VSProdFile  >tmp1
+    sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
+    sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
+    sed '/Stage4_2=enable/s/Stage4_2/#Stage4_2/g'              <tmp1 >tmp2
+    sed '/#Stage5=enable/s/#Stage5/Stage5/g'                   <tmp2 >tmp1
+
+    SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
+    FILEBASE=$CUTTYPE'Cuts'
+    cp $VEGAS/../tables/$SHOWERCUTSFILE  .
+    echo SHOWERCUTSFILE: $SHOWERCUTSFILE
+    echo FILEBASE: $FILEBASE
+
+    GetUniqueNumber
+    QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
+
+    ###############################################################################
+    sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
+    sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'           <tmp2 >tmp1
+    #################################################################################
+    # And set Method to combined for stage5
+    # All OutputMethodOptions start out disabled (#). Disable a second time (#->##)
+    # all output methods with RemoveCutEvents and the remove the single # from the 
+    # combined one without a RemoveCutEvents.
+    #################################################################################
+    sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+    sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+
+    mv tmp1 $VSProdFile
+    chmod 755 $VSProdFile
+    rm tmp2
+
 fi
 ############################################################################
 
@@ -1294,7 +1440,7 @@ fi
 
 MissingListName='CheckPedvarMissingList'
  
-if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
+if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
    [ -n "$CheckStage2Files" ]           || [ -n "$GenerateDispSubLTConfigFiles" ] || \
    [ -n "$GenerateDispSubLTListFiles" ] || [ -n "$ProduceDispSubLookupTables" ]   || \
    [ -n "$CombineDispSubLT" ]; then
@@ -1315,11 +1461,13 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
    while test $kaz -lt $kazEnd
     do
      #Make   Zn_Az string
-     if test ${Azimuth[$kaz]} = "0"
+     AZ=${Azimuth[$kaz]}
+     ZN=${Zenith[$izn]}
+     if test $AZ = "0"
       then
-       ZnAz=${Zenith[$izn]}'Deg'
+       ZnAz=$ZN'Deg'
      else
-       ZnAz=${Zenith[$izn]}'_'${Azimuth[$kaz]}'Deg'
+       ZnAz=$ZN'_'$AZ'Deg'
      fi
      
      #Construct the Disp Sub Lt Config File Name
@@ -1411,10 +1559,9 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
        else
         WBLSPEC=$WBL'Wbl'
        fi
-
-       BaseFile=$SPECSEA$PMT$SPECPART$SPECMDL$ZnAz'2D'$WBLSPEC$SPECTHR
-       VBFFILE=$BaseFile'1234M2.vbf'
-
+ 
+       GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+       BaseFileS2=${VBFFILENAME%%.vbf}
        ################################################################
 	    
        if [ -n "$GetVBFFileFromArchive" ]; then
@@ -1423,10 +1570,10 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
          echo '##########################################################'
 	 cd $lcl
 	 date
-	 echo VBFFILE: $VBFFILE
+	 echo VBFFILENAME: $VBFFILENAME
 	 echo VBFDIR: $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-	 if [ ! -e  "$VBFFILE" ]; then
-           hsi 'cd '$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF; get '$VBFFILE';'
+	 if [ ! -e  "$VBFFILENAME" ]; then
+           hsi 'cd '$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF; get '$VBFFILENAME';'
          fi
        fi
             
@@ -1453,19 +1600,19 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2Files" ] || \
          # ************************************************************************
          #Generate  file names
  
-	 FileName='PedVar'$PV$BaseFile'1234M2.root'
+         FileName=$PedVarFile$BaseFileS2'.root'
          
 
-         if [ -n "$GenerateStage2Files" ]; then
+         if [ -n "$GenerateStage2FromVBF" ]; then
           #echo '##########################################################'
-          #echo '# GenerateStage2Files '
+          #echo '# GenerateStage2FromVBF '
  	  #echo '##########################################################'
 	  cd $lcl
 	  date
-	  echo PV:$PV
+	  echo PedVarFile: $PedVarFile
       
-          echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
-	  SubmitVegasSimProduction $PedVarFile $BaseFile VegasSimProductionS1S2.scr $VBFFILE
+          echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
+	  SubmitVegasSimProduction $PedVarFile $BaseFileS2 VegasSimProductionS1S2.scr $VBFFILENAME
 
 	 fi
          ###############################################################
@@ -1727,10 +1874,11 @@ fi
 if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]          || \
    [ -n "$ProduceSubLookupTables" ]   || [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || \
    [ -n "$CombineSubLT" ]             || [ -n "$HTARPedVarZnOffsetS2FromArchive" ] || \
-   [ -n "$GenerateStage4Files" ]      || [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || \
+   [ -n "$GenerateStage4FromStage2" ] || [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || \
    [ -n "$CheckStage4Files" ]         || [ -n "$HTARPedVarZnOffsetS4FromArchive" ] || \
+   [ -n "$GenerateStage5CombinedFromStage4" ]  || [ -n "$CombineBuildCheckEALT" ]  || \
    [ -n "$GenerateEASubLTListAndConfigFiles" ] || \
-   [ -n "$ProduceEASubLookupTables" ] || [ -n "$CombineBuildCheckEALT" ] ; then
+   [ -n "$ProduceEASubLookupTables" ] ; then
 
 #****************************************************************************
    # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
@@ -1744,8 +1892,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
    let iznEnd=${#Zenith[@]}
    while test $izn -lt $iznEnd
     do
-     Z=${Zenith[$izn]}
-     #echo izn: $izn' Z: '$Z
+     ZN=${Zenith[$izn]}
+     #echo izn: $izn' ZN: '$ZN
 
      ####################################################################
      # Iterate over WBL Offsets
@@ -1946,25 +2094,25 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
        while test $kaz -lt $kazEnd
 	do
          #Make   Zn_Az string
-	 if test ${Azimuth[$kaz]} = "0"
+	 AZ=${Azimuth[$kaz]}
+         if test $AZ = "0"
 	     then
-	     ZnAz=$Z'Deg'
+	     ZnAz=$ZN'Deg'
 	 else
-	     ZnAz=$Z'_'${Azimuth[$kaz]}'Deg'
+	     ZnAz=$ZN'_'$AZ'Deg'
 	 fi
-	 
+	 GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+	 BaseFileS2=${VBFFILENAME%%.vbf}
+         BaseFileS4S5=$BaseFileS2$TelConfig$CUTTYPE'Cuts'
          #Iterate through PedVars
 	 let kpvar=0
 	 while test $kpvar -lt $kpvarEnd
-	  do
-           #Test for defaults
-	   PV=${PedVar[$kpvar]} 
+	  do   PV=${PedVar[$kpvar]} 
 	   PedVarFile=Ped$SPECCFG$PV
 	   PedVarName=PedVar$PV
-	   BaseFile=$SPECSEA$PMT$SPECPART$SPECMDL$ZnAz'2D'$WBLSPEC$SPECTHR
-	   PedVarS2FileName=$PedVarName$BaseFile'1234M2.root'
-	   PedVarS4FileName=$PedVarName$BaseFile$TelConfig'M2'$CUTTYPE'Cuts.root'
-	   VBFFILE=$BaseFile'1234M2.vbf'
+
+	   PedVarS2FileName=$PedVarName$BaseFileS2'.root'
+	   PedVarS4FileName=$PedVarName$BaseFileS4S5'.root'
 	   #********************************************************************
 	   
 	   if [ -n "$GenerateSubLTListFiles" ]; then
@@ -1982,26 +2130,59 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   fi
            #******************************************************************
 
-	   if [ -n "$GenerateStage4Files" ]; then
+	   if [ -n "$GenerateStage4FromStage2" ]; then
             #echo '##########################################################'
-            #echo '# GenerateStage4Files ' 	    
+            #echo '# GenerateStage4FromStage2 ' 	    
             #echo '##########################################################'
-	       cd $lcl
-	       date
-	       echo PV:$PV
-	       echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILE 
+	      cd $lcl
+	      date
+	      echo PV:$PV
+	      echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
 	       
-	       echo PedVarFile: $PedVarFile 
-	       echo BaseFile: $BaseFile 
-	       echo VBFFILE: $VBFFILE
-            ###################################################
-            # Note here that VeagsSimProductionS4.scr will generate the PedVar 
-            # Stage4 filename with the correct TelConfig
-            ###################################################
+	      echo PedVarFile: $PedVarFile 
+	      echo BaseFileS2: $BaseFileS2 
+	      echo VBFFILENAME: $VBFFILENAME
+              ###################################################
+              # Note here that VeagsSimProductionS4.scr will generate the PedVar 
+              # Stage4 filename with the correct TelConfig and cuts
+              # the VSProdFile has that info added to it with sed commands.
+              ###################################################
 
-	       SubmitVegasSimProduction $PedVarFile $BaseFile $VSProdFile $VBFFILE
+	      SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+           fi
+           ###############################################################
+
+	   if [ -n "$GenerateStage5CombinedFromStage4" ]; then
+              #echo '##########################################################'
+              #echo '# GenerateStage5CombinedFromStage4 ' 	    
+              #echo '##########################################################'
+	      cd $lcl
+	      date
+	      echo PV:$PV
+              # OK! We are ready to run.  Need to submit since this will take more 
+              # than 1 hours or we have many to run in parallel 
+              WALLTIME=20:00:00
+              if [ -n "$CARVER" ]; then
+                MEMREQUEST="pvmem=8GB"
+              else
+                MEMREQUEST="mem=8GB"
+              fi
+
+	      echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for ' $lcl'/'$VBFFILENAME 
+	       
+	      echo PedVarFile: $PedVarFile 
+	      echo BaseFileS2: $BaseFileS2 
+	      echo VBFFILENAME: $VBFFILENAME
+              ###################################################
+              # Note here that VeagsSimProductionS5.scr will generate the PedVar 
+              # Stage4 filename with the correct TelConfig and Cuts. 
+              # the VSProdFile has that info added to it with sed commands.
+              ###################################################
+            
+	      SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
 		   
 	   fi
+
            ###############################################################
 	   
 	   if [ -n "$CheckStage4Files" ]; then
@@ -2378,7 +2559,7 @@ if [ -n "$CheckDispLT" ]; then
 fi
 # ***********************************************************************
 
-if [ -n "$CheckBuildCheckEALT" ]; then
+if [ -n "$CombineBuildCheckEALT" ]; then
    echo '##########################################################'
    echo '# CheckEA'
    echo '##########################################################'

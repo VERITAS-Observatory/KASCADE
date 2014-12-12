@@ -843,7 +843,7 @@ if [ -n "$GenerateCosmicRayStage5Combined" ]; then
   echo '##########################################################'
   echo '# GenerateCosmicRayStage5Combined '
   echo '##########################################################'
-  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ
+  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ    #Note: No Offset spec for CR
   BaseFileName=${VBFFILENAME%%.vbf}
   echo 
 
@@ -975,9 +975,10 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmp2 >tmp1
 
   QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
-  SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
-  FILEBASE=$CUTTYPE'Cuts'
   cp $VEGAS/../tables/$QUALITYCUTSFILE .
+  SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
+  cp $VEGAS/../tables/$SHOWERCUTSFILE .
+  FILEBASE=$CUTTYPE'Cuts'
 
   # We do need to set an LT name:Use winter; standard method; gamma ray LT.
   GenerateLTFileName $ARRAY 'W'  'All'  'std' 
@@ -989,7 +990,7 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
   sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
   sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-  sed '/ShowerCuts=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
   #################################################################################
   # And set Method to combined for stage5
   # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
