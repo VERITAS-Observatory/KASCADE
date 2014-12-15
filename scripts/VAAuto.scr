@@ -15,13 +15,13 @@
 #$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
-#${11} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
+#${11} Specifes Type of offset LT or DT table to use or make for LT, DT,S4 
+       and EA gen. Ex. All or 050
+#${12} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
-#  For Quality cuts , file used would be $VEGAS/../tables/Quality${11}Cuts
-#  For Stage4, filename would extention be:  ${11}Cuts ending
-#  For ShowerCuts, file used would be $VEGAS/../tables/Shower${11}Cuts 
-#${12} (Optional unless ${13} is specified also.) Specifes Type of offset LT 
-#      table to use for S4 and EA gen. Ex. All or 050
+#  For Quality cuts , file used would be $VEGAS/../tables/Quality${12}Cuts
+#  For Stage4, filename would extention be:  ${12}Cuts ending
+#  For ShowerCuts, file used would be $VEGAS/../tables/Shower${12}Cuts 
 #${13} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1 or 
 #                  T2 or T3 or T4
 # ************************************************************************
@@ -39,7 +39,7 @@ function commandEnable()
     echo '***VAAuto Valid Commands:'
     echo '    #------------------------        #------------------------'
     echo '    #  Stage 2 PedVar files          # Lookup Tables'
-    echo '    #  Uses arguments $1-${10}       # Uses Argument $1-${10}'
+    echo '    #  Uses arguments $1-${10}       # Uses Argument $1-${11}'
     echo '    #------------------------        #------------------------'
     echo '    GetVBFFileFromArchive            GenerateSubLTListFiles'
     echo '    GenerateSimLaserFile             GenerateSubLTConfigFiles'
@@ -50,7 +50,7 @@ function commandEnable()
     echo
     echo '    #------------------------        #------------------------'
     echo '    # Disp Lookup Tables             # Stage4'
-    echo '    # Uses arguments $1-${10}        # Uses Arguments $1-${12};${13}Optional'
+    echo '    # Uses arguments $1-${11}        # Uses Arguments $1-${12};${13}Optional'
     echo '    #------------------------        #------------------------'
     echo '    GenerateDispSubLTListFiles       GenerateStage4FromStage2'
     echo '    GenerateDispSubLTConfigFiles     CheckStage4Files'
@@ -119,11 +119,12 @@ function usage()
   echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
   echo ' ${10}: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
-  echo ' ${11}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
-  echo ' ${12}: Specifes Type of offset LT table to use. Ex. All or 050'  
+  echo ' ${11}: Specifes Type of offset LT table to use. Ex. All or 050'  
+  echo ' ${12}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
   echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
-  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All UpgradeSoft'
+  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All All UpgradeSoft'
+  echo
 }
 #############################################################################
 
@@ -664,7 +665,7 @@ function SubmitVegasSimProduction()
   VEGASScript=$3
   FileVBF=$4
   if [ -n "$LimitSubmissions" ]; then
-    VEGASDoneLog=$FilePedVar$FileBase'Done.log'     
+    VEGASDoneLog=$FilePedVar'_'$FileBase'Done.log'     
     if [ -e "$VEGASDoneLog" ]; then              #Max queue jobs are active 
 	 rm $VEGASDoneLog
     fi
@@ -684,7 +685,7 @@ function SubmitVegasSimProduction()
   echo cd $lcl                                    >>$sgeFile
   echo $lcl'/'$VEGASScript  \\                    >>$sgeFile
   echo $FileVBF  $FilePedVar \\                   >>$sgeFile
-  echo ' >'$lcl'/'$FilePedVar$FileBase'VBF.log'   >>$sgeFile
+  echo ' >'$lcl'/'$FilePedVar'_'$FileBase'VBF.log'   >>$sgeFile
   if [ -n "$LimitSubmissions" ]; then
      echo 'echo Done >'$lcl'/'$VEGASDoneLog       >>$sgeFile
   fi
@@ -727,8 +728,8 @@ SPECAZ=$7
 SPECWBL=$8
 SPECTHR=$9
 SPECPV=${10}
-CUTTYPE=${11}
-LTWBL=${12}
+LTWBL=${11}
+CUTTYPE=${12}
 TELCUT=${13}
 
 
