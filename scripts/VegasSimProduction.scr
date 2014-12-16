@@ -206,12 +206,12 @@ fi
 
 if [ -n "$Stage5" ]; then
       echo Stage5: $Stage5
-      makeShowerCutsFile
+
       if [ -n "$OutputFileNameExt" ]; then
         OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
 	OutputFileNameOpt='-outputFile='$OutputFileName
       fi
       
-    $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCuts $OutputMethodOptions \
+    $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCutsFile $OutputMethodOptions \
          -inputFile=$CutRootFileName $OutputFileNameOpt
 fi
