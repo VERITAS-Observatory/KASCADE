@@ -5,9 +5,9 @@
 #It has some arguments listed below.
 #$1: Command. Do "VAAuto.scr ListCommands" for a list!
 #$2 ksProduction season spec: Ex: W or S
-#$3 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, UpgradeArray)
-#   This use is not consitent yet. For NA sometimes I use V and sometime NA.
-#   Note the UA.NA.OA extention also appears in argument $5
+#$3 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, 
+#   UpgradeArray) 
+#  Note the UA.NA.OA extention also appears in argument $5
 #$4 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
 #$5 MDL designation for VBF files: Ex MDL10UA or MDL15NA
 #$6 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
@@ -16,7 +16,7 @@
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
 #${11} Specifes Type of offset LT or DT table to use or make for LT, DT,S4 
-       and EA gen. Ex. All or 050
+#       and EA gen. Ex. All or 050
 #${12} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${12}Cuts
@@ -27,10 +27,10 @@
 # ************************************************************************
 
 #FindNoiseLevels=enabled
-LimitSubmissions=enabled      #Enable if you want to submit more that 9 HTAR jobs but 
-MaxQsubsDefault=450           #only want 9 at a time to run (limit for HTAR)
-                              # Or you want to generate S2 or S4 files and only make
-                              #450 submission in queue at one time
+LimitSubmissions=enabled # Enable if you want to submit more that 9 HTAR
+MaxQsubsDefault=150      # jobs but only want 9 at a time to run (limit for 
+                         # HTAR) Or you want to generate S2 or S4 files and 
+                         # only make 450 submission in queue at one time
 ###################################################################################
 function commandEnable()
 {
@@ -2107,7 +2107,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	 fi
 	 GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
 	 BaseFileS2=${VBFFILENAME%%.vbf}
-         BaseFileS4S5=$BaseFileS2$TelConfig$CUTTYPE'Cuts'
+         BaseFileS4S5=$BaseFileS2$CUTTYPE'Cuts'
          #Iterate through PedVars
 	 let kpvar=0
 	 while test $kpvar -lt $kpvarEnd
@@ -2115,8 +2115,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   PedVarFile=Ped$SPECCFG$PV
 	   PedVarName=PedVar$PV
 
-	   PedVarS2FileName=$PedVarName$BaseFileS2'.root'
-	   PedVarS4FileName=$PedVarName$BaseFileS4S5'.root'
+	   PedVarS2FileName=$PedVarName'_'$BaseFileS2'.root'
+	   PedVarS4FileName=$PedVarName'_'$BaseFileS4S5'.root'
 	   #********************************************************************
 	   
 	   if [ -n "$GenerateSubLTListFiles" ]; then
