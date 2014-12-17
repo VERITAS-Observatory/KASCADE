@@ -15,8 +15,9 @@
 #$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
-#${11} Specifes Type of offset LT or DT table to use or make for LT, DT,S4 
-#       and EA gen. Ex. All or 050
+#${11} Specifes Type of LT or DT table to use or make for LT,DT (Ex All or 050)
+#      for S4 and EA gen add prticletype src of LT Ex. AllG or AllE or 050G or 050E. 
+#      O50 and All default to Gamma type LT.
 #${12} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${12}Cuts
@@ -119,11 +120,11 @@ function usage()
   echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
   echo ' ${10}: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
-  echo ' ${11}: Specifes Type of offset LT table to use. Ex. All or 050'  
+  echo ' ${11}: Specifes Type of LT table to use. Ex. All or 050 or ALLE or AllG(same as All)'  
   echo ' ${12}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
   echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
-  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All All UpgradeSoft'
+  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All AllE UpgradeSoft'
   echo
 }
 #############################################################################
@@ -213,7 +214,7 @@ function GenerateVBFName()
   zenith=$4
   azimuth=$5
   if [ -n "$6" ]; then
-     offsetID=$6
+     VBFoffsetID=$6
   fi
 
   ###################################################
@@ -224,8 +225,8 @@ function GenerateVBFName()
 
   VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
   VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
-  if [ -n "$offsetID" ]; then
-      VBFFILENAME=$VBFFILENAME'_'$offsetID'wobb'
+  if [ -n "$VBFoffsetID" ]; then
+      VBFFILENAME=$VBFFILENAME'_'$VBFoffsetID'wobb'
   fi
   VBFFILENAME=$VBFFILENAME'.vbf'
 return
@@ -287,7 +288,6 @@ function GenerateEAFileName()
   if [ "$OptionValue" != "-100" ]; then           #check if not used
       MaxHeightLowerCut=$OptionValue     #will remain undefined if not used
   fi
-
 
   GetOptionValue  $tbl'Shower7Sample'$Cuts'Cuts'  ThetaSquareUpper
   ThetaSquareUpperCut=$OptionValue
@@ -733,6 +733,8 @@ CUTTYPE=${12}
 TELCUT=${13}
 
 
+
+
 ###########################
 #Winter/Summer
 ###########################
@@ -762,6 +764,16 @@ if [ "$SPECCFG" = "W" ]; then
     PMT=$SPECCFG
 fi
 ############################
+len=${#LTWBL}
+if [ "$len" != "3" ]; then
+   PART=${LTWBL:3:1}
+   LTWBL=${LTWBL:0:3}
+   if [ "$PART" = "E" ]; then
+     LTPARTTYPE=Electrons
+     echo LTPARTTYPE for LT: $LTPARTTYPE
+   fi
+fi
+
 
 source /etc/profile
 
@@ -910,9 +922,6 @@ HMode=H
 CFG_L=MEDIAN
 CFG_W=MEAN
 CFG_E=MEAN
-if [ "$SPECPART" = "E" ]; then
-    PARTICLETYPE="Electrons_"
-fi 
 
 if [ $HMode = "HFit" ]; then
     LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
@@ -1227,7 +1236,7 @@ if [ -n "$GenerateStage4FromStage2" ]; then
     cp $VEGAS/../tables/$QUALITYCUTSFILE .
 
     FILEBASE=$CUTTYPE'Cuts'
-    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
@@ -1393,7 +1402,7 @@ if   [ -n "$CombineDispSubLT" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
    LTFILENAME=dt${LTFILENAME#lt}           #Convert to a dt filename
    SubLTList='SubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -1564,7 +1573,11 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         WBLSPEC=$WBL'Wbl'
        fi
  
-       GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+       if [ "$SPECPART" = "CR" ]; then
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ #No wbl for CR
+       else
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+       fi
        BaseFileS2=${VBFFILENAME%%.vbf}
        ################################################################
 	    
@@ -1846,7 +1859,7 @@ if   [ -n "$CombineSubLT" ]; then
    echo '##########################################################'
    cd $lcl
    date
-   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
 
    SubLTList='SubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -1862,7 +1875,7 @@ if   [ -n "$CombineBuildCheckEALT" ]; then
    cd $lcl
    date
    EASPEC=EA
-   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $PARTICLETYPE
+   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $LTPARTTYPE
 
    SubLTList='EASubLTList'
    if [ -e $lcl'/'$SubLTList ]; then
@@ -1914,12 +1927,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   WBLSPEC=$WBL'Wbl'
        fi
        if [ -n "$CheckStage4Files" ]; then
-	   echo $Z':' $WBLSPEC >&2   #Print to stderr during operation to 
+	   echo $ZN':' $WBLSPEC >&2   #Print to stderr during operation to 
        fi                            #let user know things are running
 
        #Construct the Sub Lt or  EASubLT Config File Name. 
        #EASPEC is only defined for EA gens.
-       SUBLTBASE=$EASPEC'SubLT'$SPECSEA$Samples'Sample'$Z'Deg'$WBLSPEC$CUTTYPE
+       SUBLTBASE=$EASPEC'SubLT'$SPECSEA$Samples'Sample'$ZN'Deg'$WBLSPEC$CUTTYPE
 
        ConfigName=$SUBLTBASE$HMode'.config'
        ListName=$SUBLTBASE'List'
@@ -1970,8 +1983,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         #the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	   PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
-	   PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR'1234M2.root'
+	   PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
+	   PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR'1234M2.root'
               
 	   SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
@@ -1983,7 +1996,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S2Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
+	   PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
 
 	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
        fi
@@ -2000,7 +2013,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	       hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
 	       echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
 	   fi
-	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	   PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
 	   if [ -n "$TELCUT" ]; then
 	       PedVarHTARFile=$PedVarHTARFile$TelConfig
 	   fi
@@ -2008,7 +2021,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   PedVarHTARFile=$PedVarHTARFile'.tar'
 
 
-	   PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$Z{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
+	   PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
               
 	   SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
@@ -2020,7 +2033,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          # the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S4Zn'$Z'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	   PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
 	   if [ -n "$TELCUT" }; then
 	       PedVarHTARFile=$PedVarHTARFile$TelConfig
            fi
@@ -2105,7 +2118,11 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	 else
 	     ZnAz=$ZN'_'$AZ'Deg'
 	 fi
-	 GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+	 if [ "$SPECPART" = "CR" ]; then
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ #No wbl for CR
+         else
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+	 fi
 	 BaseFileS2=${VBFFILENAME%%.vbf}
          BaseFileS4S5=$BaseFileS2$CUTTYPE'Cuts'
          #Iterate through PedVars
@@ -2317,7 +2334,7 @@ if [ -n "$BuildLTTree" ]; then
     echo '##########################################################'
     echo '# BuildLTTree'
     echo '##########################################################'
-    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
     
     cd $VEGAS/showerReconstruction2/macros
     date
@@ -2376,7 +2393,7 @@ if [ -n "$BuildDispLTTree" ]; then
     echo '##########################################################'
     cd $VEGAS/showerReconstruction2/macros
     date
-    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
     LTFILENAME='dt'${LTFILENAME#lt}                 #Convert to a dt filename
 
     BUILDCONFIG='BuildDispTree'$Samples'Samples.config' 
@@ -2498,7 +2515,7 @@ if [ -n "$CheckLT" ]; then
    echo '##########################################################'
    LCL=$PWD
    cd $VEGAS/showerReconstruction2/macros
-   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
    LTDiagFileName=${LTFILENAME%.root}'.diag'
 
    date
@@ -2533,7 +2550,7 @@ if [ -n "$CheckDispLT" ]; then
    echo '##########################################################'
    LCL=$PWD
    cd $VEGAS/showerReconstruction2/macros
-   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $PARTICLETYPE
+   GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
   
    DTFILENAME=dt${LTFILENAME#lt}           #Convert to a dt filename
    DTDiagFileName=${DTFILENAME%.root}'.diag'
@@ -2569,7 +2586,7 @@ if [ -n "$CombineBuildCheckEALT" ]; then
    echo '##########################################################'
    LCL=$PWD
 
-   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $PARTICLETYPE
+   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $LTPARTTYPE
   
    EADIAGFILENAME=${EAFILENAME/root/diag}
    date
