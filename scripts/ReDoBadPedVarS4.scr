@@ -1,14 +1,14 @@
 #$1 CheckS4.log type file
 # This files has a list of files that need to be rerun
 # the lines we need look like: 
-# Bad:PedVar7.64WUGMDL10UA20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
+# Bad: PedVar7.53_gamma_MDL15NA_V5_T1Move_ATM22_KASCADE_zen40deg_az135deg_0.5wobbNewArraySoftCuts.root
 #$2 LT type specification: Ex All or 050
 ##########################################################################
 function usage()
 {
   echo '***ReDoBadPedVarS4 usage:'
   echo '   $1: File with Bad/Missing Stage 2 PedVar Files in form:' 
-  echo '      Bad: PedVar14.49WUEMDL10UA10_90Deg2DS2.0Wbl45mv1234M2.root'
+  echo '      Bad: PedVar7.53_gamma_MDL15NA_V5_T1Move_ATM22_KASCADE_zen40deg_az135deg_0.5wobbNewArraySoftCuts.root'
   echo '   $2: LT file offset specification: EX: All or 050'
   echo '      Note1: Works for Gammas and Electrons'
   echo '      EX: ./ReDoBadPedVarS4.scr CheckStage2Deg1-50AllElectrons.log'
@@ -39,50 +39,47 @@ grep Bad $BadFile >S4tmp1
 # Parse the bad files names so we can resubmit them to VAAuto
 #################################################################
 
-#########################
-# fist add the _0 to 0 deg az file names in prep for latter 
-#########################
-
-  sed '/Bad/s/1Deg/1_0Deg/g'     <S4tmp1   >S4tmp2
-  sed '/Bad/s/10Deg/10_0Deg/g'   <S4tmp2   >S4tmp1
-  sed '/Bad/s/20Deg/20_0Deg/g'   <S4tmp1   >S4tmp2
-  sed '/Bad/s/30Deg/30_0Deg/g'   <S4tmp2   >S4tmp1
-  sed '/Bad/s/40Deg/40_0Deg/g'   <S4tmp1   >S4tmp2
-  sed '/Bad/s/50Deg/50_0Deg/g'   <S4tmp2   >S4tmp1
-  sed '/Bad/s/60Deg/60_0Deg/g'   <S4tmp1   >S4tmp2
-  sed '/Bad/s/70Deg/70_0Deg/g'   <S4tmp2   >S4tmp1  #Note : Screws up _270Deg here
-  sed '/Bad/s/270_0Deg/270Deg/g' <S4tmp1   >S4tmp2  #Note Fix it
-  cp S4tmp2 S4tmp1                                  #Next parts assumes we start with
-                                                    #S4tmp1
-
 #############################################################
 #Now seperate things and remove unwanted stuff
-# Bad:PedVar7.64WUGMDL10UA20_270Deg2D0.0Wbl45mv1234M2UpgradeLooseCuts.root
+# Bad:PedVar7.53_gamma_MDL15NA_V5_T1Move_ATM22_KASCADE_zen40deg_az135deg_0.5wobbNewArraySoftCuts.root
 #############################################################
-#  7.64 W UA G MDL10UA 20 270 0.0 45mv UpgradeLoose
+#  7.64 G MDL10 UA V5_T1Move 22 40 135 0.5 NewArrayLoose
 
   sed '/Bad/s/Cuts.root/ /g'        <S4tmp1   >S4tmp2   #Remove "Cuts.root"
-  sed '/Bad/s/Soft/soft/g'          <S4tmp2   >S4tmp1   #Change capital on Soft
-  sed '/Bad/s/1234M2/ /g'           <S4tmp1   >S4tmp2   #Parse cuts type
-  sed '/Bad/s/Wbl/ /g'              <S4tmp2   >S4tmp1   #Parse Threshold
-  sed '/Bad/s/Deg2DS/  /g'          <S4tmp1   >S4tmp2   #Parse Offset
-  sed '/Bad/s/Deg2D/  /g'           <S4tmp2   >S4tmp1   #Parse Special 0.0 Offset
-  sed '/Bad/s/_/  /g'               <S4tmp1   >S4tmp2   #Parse Az
-  sed '/Bad/s/MDL10UA/ MDL10 UA /g'   <S4tmp2   >S4tmp1   #MDL10, ArrayType, 
-  sed '/Bad/s/MDL15NA/ MDL15 NA /g' <S4tmp1   >S4tmp2   #Special for MDL15NA
-  sed '/Bad/s/W/ W /g'          <S4tmp2   >S4tmp1   #Seperate Pedvar and season
-  sed '/Bad/s/S/ S /g'          <S4tmp1   >S4tmp2   #Seperate Pedvar other season
-  sed '/Bad/s/soft/Soft/g'          <S4tmp2   >S4tmp1   #Change capital on Soft
-  sed '/Bad/s/G/ G/g'               <S4tmp1   >S4tmp2   #Seperate PMT, part type
-  sed '/Bad/s/E/ E/g'               <S4tmp2   >S4tmp1   #Seperate PMT, part type
-  sed '/Bad/s/Bad: PedVar/ /g'      <S4tmp1   >S4tmp2   #Remove "Bad: PedVar"
+  sed '/Bad/s/wobb/ /g'             <S4tmp2   >S4tmp1   #seperates out cuts
+  sed '/Bad/s/deg_/ /g'             <S4tmp1   >S4tmp2   #seperates out offset
+  sed '/Bad/s/az/ /g'               <S4tmp2   >S4tmp1   #seperates out az
+  sed '/Bad/s/_KASCADE_zen/ /g'     <S4tmp1   >S4tmp2   #seperates out zn
+  sed '/Bad/s/_ATM/ /g'             <S4tmp2   >S4tmp1   #seprates out season
+  sed '/Bad/s/A_/  /g'              <S4tmp1   >S4tmp2   #Parse out Config
+  sed '/Bad/s/_MDL10U/ MDL10 UA /g' <S4tmp2   >S4tmp1   #MDL10, ArrayType, 
+  sed '/Bad/s/_MDL15N/ MDL15 NA /g' <S4tmp1   >S4tmp2   #Special for MDL15nA
+  sed '/Bad/s/_MDL8O/ MDL8 OA /g'   <S4tmp2   >S4tmp1   #Special for MDL8OA
+  sed '/Bad/s/_gamma/ G/g'          <S4tmp1   >S4tmp2   #determine type
+  sed '/Bad/s/_electron/ E/g'       <S4tmp2   >S4tmp1   #determine type
+  sed '/Bad/s/_cosmicRay/ CR/g'     <S4tmp1   >S4tmp2   #determine type
+  sed '/Bad/s/_proton/ P/g'         <S4tmp2   >S4tmp1   #determine type
+  sed '/Bad/s/_He4/ He4_/g'         <S4tmp1   >S4tmp2   #determine type
+  sed '/Bad/s/Bad: PedVar/ /g'      <S4tmp2   >S4tmp1   #Remove "Bad: PedVar"
 
 {  
-   while read PV SEASON PMT PTYPE MDL ARRAYTYPE ZN AZ OFF THRESH CUT 
+   while read PV PTYPE MDL ARRAYTYPE PERIOD SEASON ZN AZ OFF CUT 
     do
-	echo Executing: ./VAAuto.scr GenerateStage4Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT $LTWBL
-  	./VAAuto.scr GenerateStage4Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $CUT $LTWBL 
+      if [ "$SEASON" = "21" ]; then
+	SEASON=W
+      else
+        SEASON=S
+      fi
+      
+      if [ "$ARRAYTYPE" = "UA" ]; then
+	THRESH=45mv
+      else
+        THRESH=50mv
+      fi
+
+      #echo Executing: ./VAAuto.scr GenerateStage4FromStage2  $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $LTWBL $CUT 
+      ./VAAuto.scr GenerateStage4FromStage2  $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV $LTWBL $CUT 
     done
-}<S4tmp2
+}<S4tmp1
 
 
