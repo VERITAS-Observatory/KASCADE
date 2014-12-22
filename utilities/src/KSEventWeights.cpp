@@ -22,35 +22,44 @@
 
 extern "C" float pran(float* dummy);
 
-//const double gGammaAlpha  = -2.0;
-//	New gamma flux parameters from Dave Lewis 15/5/96
+// ******************************************************************************
+// Spectra for VBF file weighting
+// ******************************************************************************
+// New gamma flux parameters from Dave Lewis 15/5/96
 //const double gGammaAlpha  = -2.45;
+const double gGammaIPhi   =  7.16e-3;      //Spectral Amplitude for gammas
 const double gGammaAlpha  = -2.0;          //Better High E ststistics
-const double gGammaIPhi   =  7.16e-3;          //Spectral Amplitude for gammas
-//const double gGammaIPhi   =  .00716;         //Spectral Amplitude for gammas
                                                //Units=/m**2/sec/GeV
+// ********
+// Proton and He4 spectra from: Weibel-Sooth et.al. 
+// Astronomy and Astrophysics, 300(1), pg.389-398,Feb. 1, 1998
+// See also my "Whipple 10m Monte-Carlo II" lab book : pg 95
+// or see http://arxiv.org/pdf/astro-ph/9709253v1.pdf
+//const double gProtonAlpha = -2.77;     //Units=/m**2/sec/sr/)
+//const double gProtonIPhi  =  2.35e4;   //Spectral Amplitude for protons
+//const double gHe4Alpha    = -2.64;
+//const double gHe4IPhi     =  5.98e3;   //Spectral Amplitude Helium
+// ********          			       
 
-//Update to lastest proton and He4 spectra from: Weibel-Smith et.al. 
-//Astronomy and Astrophysics, 300(1), pg.389-398,Feb. 1, 1998
-//See also my "Whipple 10m Monte-Carlo II" lab book : pg 95
+// ********
+// For the AMS(2)2014-12-19 values see:"Direct detection of cosmic rays: through a 
+// new era of precision measurements of particle fluxes",Emiliano Mocchiutti,
+// Jul 4, 2014,12 pages e-Print: arXiv:1407.1143 
+const double gProtonAlpha = -2.77;       //AMS approximate value
+const double gProtonIPhi  = 1.62e4;      //Units=n/m**2/sec/sr/GeV/P 30% lower than 
+                                         //Weibel-Sooth: Need better values/errors!!!
+const double gHe4Alpha    = -2.64;       //Units=/m**2/sec/sr/(GeV/He4)
+const double gHe4IPhi     =  5.98e3;     //AMS Approximate value
+                                         //Yes I got same he4 as original Weibel-Sooth
+const double gElectronAlpha  = -3.18;    //units are /m**2/sec/sr/(GeV/elec)
+const double gElectronIPhi   =  3.374e2; //AMS Approximate value
 
-const double gProtonAlpha = -2.77;
-const double gProtonIPhi  =  2.35e4;	       //Spectral Amplitude for protons
-					       //Units=/m**2/sec/sr/GeV
-const double gHe4Alpha    = -2.64;
-const double gHe4IPhi     =  5.98e3;	       //Spectral Amplitude Helium
-					       //Units=/m**2/sec/sr/GeV
+const double gPositronAlpha  = -2.75;    //AMS Approximate value
+const double gPositronIPhi   =  1.35e-1; //units /m**2/sec/sr/(GeV/positron)
 
-// New electron/positron flux parameters from HESS 2009
-// const double gElectronAlpha  = -3.9;
-const double gElectronAlpha  = -2.0;         //Better High E ststistics
-const double gElectronIPhi   =  1.17e-7;     //Spectral Amplitude for electron
-                                             //Units=/m**2/sec/GeV
-//const double gPositronAlpha  = -2.0;         //Better High E ststistics
-const double gPositronAlpha  = -3.9;
-const double gPositronIPhi   =  1.17e-7;     //Spectral Amplitude for positrons
-                                             //Units=/m**2/sec/GeV
-
+//const double gElectronAlpha  = -2.0;         //Better High E ststistics
+// *********
+// ************************************************************************
 
 KSEventWeights::KSEventWeights(std::map<int,fShwrMap_t> Showers) 
 // ********************************************************************** 
