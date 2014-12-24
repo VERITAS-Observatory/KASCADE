@@ -1,6 +1,6 @@
- TCanvas *c7;
+TCanvas * pfCnvs;
 
-void CheckEAPlots(string kNoise="5.51", string cNoise="5.13", string kOff="050", string cOff="0.5",string zn1="20", string zn2="50", string az1="180", string az2="45")
+void CheckEAPlots(string kNoise="5.51", string cNoise="5.28", string kOff="050", string cOff="050",string zn1="20", string zn2="50", string az1="180", string az2="45")
 { 
   //string eak1="ea_V6_PMTUpgrade_ATM21_KASCADE_MDL10UA_vegasv250rc5_7sam_Alloff_s400t2_std_MSW1p1_MSL1p3_MH7p0_ThetaSq0p03_LZA.root";
   // string eak2="ea_V6_PMTUpgrade_ATM21_KASCADE_MDL10UA_vegasv250rc5_7sam_Alloff_s700t2_std_MSW1p1_MSL1p3_MH7p0_ThetaSq0p01_LZA.root";  
@@ -19,16 +19,33 @@ void CheckEAPlots(string kNoise="5.51", string cNoise="5.13", string kOff="050",
   //string eak4="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1.15_MSL1.4_ThetaSq0.03_LZA.root";  
 
   //KASCADE V4 Atm21 050 
-  string eak1="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s200t2_std_MSW1.1_MSL1.3_MH7_ThetaSq0.03_LZA.root";
-  string eak2="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s400t2_std_MSW1.1_MSL1.3_MH7.0_ThetaSq0.01_LZA.root";
-  string eak3="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s1000t2_std_MSW1.1_MSL1.4_ThetaSq0.01_LZA.root";
-  string eak4="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s200t2_std_MSW1.15_MSL1.4_ThetaSq0.03_LZA.root";  
+  //string eak1="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s200t2_std_MSW1.1_MSL1.3_MH7_ThetaSq0.03_LZA.root";
+  //string eak2="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s400t2_std_MSW1.1_MSL1.3_MH7.0_ThetaSq0.01_LZA.root";
+  //string eak3="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s1000t2_std_MSW1.1_MSL1.4_ThetaSq0.01_LZA.root";
+  //string eak4="ea_MDL8OA_V4_OldArray_ATM21_KASCADE_vegasv250rc5_7sam_050off_s200t2_std_MSW1.15_MSL1.4_ThetaSq0.03_LZA.root";  
 
   //KASCADE V4 Atm22 Alloffset 
   // string eak1="ea_MDL8OA_V4_OldArray_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1.1_MSL1.3_MH7_ThetaSq0.03_LZA.root";
   //string eak2="ea_MDL8OA_V4_OldArray_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s400t2_std_MSW1.1_MSL1.3_MH7.0_ThetaSq0.01_LZA.root";
   //string eak3="ea_MDL8OA_V4_OldArray_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s1000t2_std_MSW1.1_MSL1.4_ThetaSq0.01_LZA.root";
   //string eak4="ea_MDL8OA_V4_OldArray_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1.15_MSL1.4_ThetaSq0.03_LZA.root";  
+
+ //KASCADE V5 Atm22 All
+ //string eak1="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1.1_MSL1.3_MH7_ThetaSq0.03_LZA.root";
+ //string eak2="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s400t2_std_MSW1.1_MSL1.3_MH7.0_ThetaSq0.01_LZA.root";
+ //string eak3="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s1000t2_std_MSW1.1_MSL1.4_ThetaSq0.01_LZA.root";
+ //string eak4="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1.15_MSL1.4_ThetaSq0.03_LZA.root";
+
+
+  //KASCADE V5 Atm22 050
+ string eak1="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_050off_s200t2_std_MSW1.1_MSL1.3_MH7_ThetaSq0.03_LZA.root";
+
+ string eak2="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_050off_s400t2_std_MSW1.1_MSL1.3_MH7.0_ThetaSq0.01_LZA.root";
+ string eak3="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_050off_s1000t2_std_MSW1.1_MSL1.4_ThetaSq0.01_LZA.root";
+ string eak4="ea_MDL15NA_V5_T1Move_ATM22_KASCADE_vegasv250rc5_7sam_050off_s200t2_std_MSW1.15_MSL1.4_ThetaSq0.03_LZA.root";
+
+
+//GrISUDet
 
   //string ea1="ea_V6_PMTUpgrade_ATM21_KASCADE_MDL10UA_vegasv250rc5_7sam_050off_s400t2_std_MSW1p1_MSL1p3_MH7p0_ThetaSq0p03_LZA.root";
   //string ea2="ea_V6_PMTUpgrade_ATM21_KASCADE_MDL10UA_vegasv250rc5_7sam_050off_s700t2_std_MSW1p1_MSL1p3_MH7p0_ThetaSq0p01_LZA.root";  
@@ -41,16 +58,29 @@ void CheckEAPlots(string kNoise="5.51", string cNoise="5.13", string kOff="050",
   //string ea4="$VEGAS/../tables/ea_Oct2012_na_ATM21_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_v1.root";
 
   //GrISUDet V4 Atm21 All (uses "soft" for Loose")
-  string ea1="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
-  string ea2="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s400t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p01_LZA.root";
-  string ea3="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s1000t2_std_MSW1p1_MSL1p4_ThetaSq0p01_LZA.root";
-  string ea4="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
+  //string ea1="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
+  //string ea2="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s400t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p01_LZA.root";
+  //string ea3="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s1000t2_std_MSW1p1_MSL1p4_ThetaSq0p01_LZA.root";
+  //string ea4="$VEGAS/../tables/ea_Oct2012_oa_ATM21_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
 
   //GrISUDet V4 Atm22 050 (uses "soft" for Loose")
   //string ea1="$VEGAS/../tables/ea_Oct2012_oa_ATM22_vegasv250rc5_7sam_050off_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03.root";
   //string ea2="$VEGAS/../tables/ea_Oct2012_oa_ATM22_vegasv250rc5_7sam_050off_s400t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p01.root";
   //string ea3="$VEGAS/../tables/ea_Oct2012_oa_ATM22_vegasv250rc5_7sam_050off_s1000t2_std_MSW1p1_MSL1p4_ThetaSq0p01.root";
   //string ea4="$VEGAS/../tables/ea_Oct2012_oa_ATM22_vegasv250rc5_7sam_050off_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03.root";
+
+
+  //GrISUDet V5 Atm22 All (soft for loose)
+  //string ea1="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
+  //string ea2="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_Alloff_s400t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p01_LZA.root";
+  //string ea3="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_Alloff_s1000t2_std_MSW1p1_MSL1p4_ThetaSq0p01_LZA.root";
+  //string ea4="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_Alloff_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
+
+  //GrISUDet V5 Atm22 050 (soft for loose)
+string ea1="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_050off_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
+string ea2="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_050off_s400t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p01_LZA.root";
+string ea3="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_050off_s1000t2_std_MSW1p1_MSL1p4_ThetaSq0p01_LZA.root";
+string ea4="$VEGAS/../tables/ea_Oct2012_na_ATM22_vegasv250rc5_7sam_050off_s200t2_std_MSW1p1_MSL1p3_MH7_ThetaSq0p03_LZA.root";
 
   // ********************************************************************************
 

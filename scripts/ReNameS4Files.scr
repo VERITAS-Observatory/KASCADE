@@ -1,0 +1,186 @@
+#!/bin/bash
+#$1 List of S4 files to rename
+#$2 Season (used to find PedVar vlaues)
+#Rename to new S4 file name format
+#From: PedVar8.79SNGMDL15NA70_180Deg2DS0.5Wbl50mv1234M2NewArrayLooseCuts.root
+#to:   PedVar8.79_gamma_MDL15NA_V5_T1Move_ATM22_KASCADE_zen70deg_az180deg_0.5wobbNewArrayLooseCuts.root
+
+
+
+function GenerateVBFName()
+#$1 Particle type: SPECPART: G or E or P or He4_ or CR
+#$2 Array  EX: UA or NA or OA
+#$3 Season EX: W (Winter)  or S (Summer)
+#$4 Zenith angle (Deg)
+#$5 Azimuth angle (Deg)
+#$6 Offset angle 
+{
+  #Primay Type:
+  a=$1
+  if [ "$a" = "P" ]; then
+	PRIMARY=proton
+  fi
+  if [ "$a" = "He4_" ]; then
+	PRIMARY=He4
+  fi
+  if [ "$a" = "G" ]; then
+	PRIMARY=gamma
+  fi
+  if [ "$a" = "E" ]; then
+	PRIMARY=electron
+  fi
+  if [ "$a" = "CR" ]; then
+	PRIMARY=cosmicRay
+  fi
+  if [ ! -n "$PRIMARY" ]; then
+     echo Invalid Primary Particle type: $a
+     exit
+  fi
+
+  #Array type sapecification
+  a=$2
+  if [ "$a" = "UA" ]; then
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
+  fi
+  if [ "$a" = "NA" ]; then
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
+  fi
+  if [ "$a" = "OA" ]; then
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
+  fi
+  if [ ! -n "$Epoch" ]; then
+     echo Invalid array specification: $a
+     exit
+  fi
+
+  #winter/summ season atm spec
+  a=$3
+  if [ "$a" = "W" ]; then
+    SeasonID='21'
+  fi
+  if [ "$a" = "S" ]; then
+    SeasonID='22'
+  fi
+  if [ ! -n "$SeasonID" ]; then
+     echo Invalid winter/summer specification: $a
+     exit
+  fi 
+  #echo SeasonID: $SeasonID 'for ' $3
+
+  zenith=$4
+  azimuth=$5
+  if [ -n "$6" ]; then
+     offsetID=$6
+  fi
+
+  ###################################################
+  # Ready to build VBF file name (From OAWG 2.5 wiki page)
+  ###################################################
+  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
+  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
+
+  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
+  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
+  if [ -n "$offsetID" ]; then
+      VBFFILENAME=$VBFFILENAME'_'$offsetID'wobb'
+  fi
+  VBFFILENAME=$VBFFILENAME'.vbf'
+  return
+}
+##################################################################################
+#From  PedVar8.79SNGMDL15NA70_180Deg2DS0.5Wbl50mv1234M2NewArrayLooseCuts.root
+
+{
+ while read input
+  do
+   #Parse out the PedVar.
+   SEASON=$2
+   PEDVAR=${input%%$2*}
+   PEDVAR=${PEDVAR:6}	
+ 
+   VBF=${input#*$2}
+   VBF=$2$VBF            #VBF file name
+
+   CUTS=${VBF%%.root}    #Strip off .root
+   CUTS=${CUTS##*M2}     #Get Cuts
+
+   #echo PEDVAR: $PEDVAR VBF: $VBF CUTS: $CUTS
+
+   ####################################################################
+   #Parse the VBF file name
+   #Input examples:
+   #WUCR30_135Deg45mv1234M2WMDL10UA.vbf
+   #SNHe4_MDL15NA30_90Deg2DS2.0Wbl50mv1234M2.vbf
+   #SUGMDL10U10_135Deg2D0.0Wbl45mv1234M2.vbf
+   #WUEMDL10UA20_315Deg2DS0.75Wbl45mv1234M2.vbf
+   
+   SEASON=${VBF:0:1}
+   ARRAY=${VBF:1:1}A
+   PRIMARY=${VBF:2:1}
+   ZN_AZ=${VBF%%Deg*}         #Cut off the end
+   if [ "$PRIMARY" = "G" ] ||  [ "$PRIMARY" = "E" ] ||  [ "$PRIMARY" = "P" ]; then
+       #Check if this has MDL next after Primary
+       MDL=${VBF:3:1}
+       if [ "$MDL" = "M" ];then
+         if [ "$ARRAY" = "UA" ]; then
+             ZN_AZ=${ZN_AZ#*MDL10U}
+             ZN_AZ=${ZN_AZ#*A}
+         else
+            ZN_AZ=${ZN_AZ#*A}
+         fi
+       else
+         ZN_AZ=${ZN_AZ:3}
+       fi
+   fi
+   if [ "$PRIMARY" = "C" ]; then
+       PRIMARY=$PRIMARY'R'
+       MDL=${VBF:4:1}
+       if [ "$MDL" = "M" ];then
+         if [ "$ARRAY" = "UA" ]; then
+             ZN_AZ=${ZN_AZ#*MDL10U}
+         else
+             ZN_AZ=${ZN_AZ#*A}
+         fi
+       else
+         ZN_AZ=${ZN_AZ:4}         #Cut off the begininng to leave on Zn_Az 
+       fi                         # (or ZN is o deg az)
+   fi
+   if [ "$PRIMARY" = "H" ]; then
+      PRIMARY=$PRIMARY'e4_'
+      MDL=${VBF:6:1}
+       if [ "$MDL" = "M" ];then
+         ZN_AZ=${ZN_AZ#*A}
+       else
+         ZN_AZ=${ZN_AZ:6}         #Cut off the begininng to leave on Zn_Az 
+       fi                         # (or ZN is o deg az)
+   fi
+
+   #Now seperate out ZN and Az
+   ZN=${ZN_AZ%%_*}
+   if [ "$ZN" = "$ZN_AZ" ]; then
+     AZ=0
+   else
+     AZ=${ZN_AZ##*_}
+   fi
+  
+   #Now find the offset. CR has no offset
+   if [ "$PRIMARY" != "CR" ]; then
+     OFFSET=${VBF%Wbl*}   #Cut off end This gets messy. Better have a "Wbl" !!!!
+     OFFSET=${OFFSET#*Deg}
+     OFFSET=${OFFSET#2D}
+     OFFSET=${OFFSET#S}
+   fi
+
+   GenerateVBFName $PRIMARY $ARRAY $SEASON $ZN $AZ $OFFSET  
+   BASE=${VBFFILENAME%%.vbf}   
+
+   output=PedVar$PEDVAR'_'$BASE$CUTS'.root'
+
+   #echo $input' -> '$output
+   mv -v $input $output
+  done
+}<$1
+
