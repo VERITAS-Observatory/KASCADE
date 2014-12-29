@@ -29,7 +29,7 @@
 
 #FindNoiseLevels=enabled
 LimitSubmissions=enabled # Enable if you want to submit more that 9 HTAR
-MaxQsubsDefault=150      # jobs but only want 9 at a time to run (limit for 
+MaxQsubsDefault=450      # jobs but only want 9 at a time to run (limit for 
                          # HTAR) Or you want to generate S2 or S4 files and 
                          # only make 450 submission in queue at one time
 ###################################################################################
@@ -1327,6 +1327,7 @@ if [ -n "$CheckStage4Files" ]; then
     echo '##########################################################'
     echo '# CheckStage4Files'
     echo '##########################################################'
+    date 
     if [ ! -e "CheckStage4FileOK.C" ]; then
 	cp $KASCADEBASE/scripts/CheckStage4FileOK.C .
     fi
@@ -1617,7 +1618,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
          # ************************************************************************
          #Generate  file names
  
-         FileName=$PedVarFile$BaseFileS2'.root'
+         FileName=$PedVarName'_'$BaseFileS2'.root'
          
 
          if [ -n "$GenerateStage2FromVBF" ]; then
