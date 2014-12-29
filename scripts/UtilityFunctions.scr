@@ -1,0 +1,162 @@
+#!/bin/bash
+#Utility functions for use with KSAuto,VAAuto,CRProcessAll,EProcessAll,GProcessAll,
+#                               ksProduction.scr
+# Glenn Sembroski
+# Purdue Univ
+# 2014-12-18
+#
+# Include in files with:
+#
+#:  if [ ! -e UtilityFunctions.scr ]; then
+#:      cp $KASCADEBASE/scripts/UtilityFunctions.scr .
+#:  fi
+#:  source UtilityFunctions.scr
+#
+###################################################################################
+# Functions:
+#    function DefineShowers: Loads the energy, start and end arrays.
+#    function GenerateVBFName()
+#
+#####################################################################################
+
+function DefineShowers()
+##########################################################################
+# This function loads the energy, start,end arrays for the VERITAS KASCADE 
+# shower specifications.
+#$1: Particle type: EX. G or E or P or He4_
+#$2: Use to enable special MDL CR spec: Ex: Blank or MDL
+# Defines global arrays "energy", "start", "end"
+##########################################################################
+# Used in scripts like ksProduction.scr, KSAutoFileCheck.scr, KSAuto.scr
+{
+  echo 'DefineShowers:Type: ' $1 ' Special flag: '$2
+  local DFPARTSPEC=$1
+
+  #The following arrays came from ksProduction.scr for CR
+  energy=([1]=20   23.9 28.6 34.2 40.9 48.9 58.5 69.9 83.6 100 119.6 143 171 204.5 244.5 292.4 350  418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 17875 21375 25560 30565 36550 43707 52265 )
+
+   start=([1]=1    1    1    1    1    1    1    1    1    1   1     1   1   1     1     1     1    1   1   1   1   1   1    1    1    1    1    1    1    1    1    1    1    1    1    1     1     1     1     1     1     1     1     1     1) 
+
+  if [ "$DFPARTSPEC" = "G" ] || [  "$DFPARTSPEC" = "E" ]; then
+#Gamma,Electrons for LT and EA: index= -2.0
+  end=([1]=1001 837  700  585  490  409  342  286  240  200 168   140 117 98    82    69    58   48  40  34  28  24  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    20    10    10    10)
+
+#Electrons:index=-3.18 Generated with $KASCADEBASE/scripts/PrintEnergySteps.C 
+# GHS: 2014-12-22
+ #end=([1]=6681 4524 3064 2075 1405 952 645 437 296 200 136 92 63 43 29 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 )
+  fi
+
+  if [ "$DFPARTSPEC" = "P" ]; then
+    if [ -n "$2" ]; then
+      #MDL 
+      end=([1]=1382 1007 734   535   390  284  207  151  110  80  59    43  31  23    17    12    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5)
+    else
+      end=([1]=2764 2014 1468  1070  780  568  414  302  220  160 118   86  62  46    34    24    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    20    20    10    10)
+    fi
+  fi
+
+  if [ "$DFPARTSPEC" = "He4_" ]; then
+    if [ -n "$2" ]; then
+      #MDL 
+      end=([1]=519  387  289  215  161  120  90   67   50   37  28    21  16  12    10    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5 )
+    else
+      end=([1]=1038 774  578  430  321  240  180  134  100  74  56    41  32  24    20    20    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    10    10    10    10)
+    fi
+  fi
+}
+######################################################################################
+
+function GenerateVBFName()
+################################################################
+# Generates VBF file name
+################################################################
+#$1 Particle type: SPECPART: G or E or P or He4_ or CR
+#$2 Array  EX: UA or NA or OA
+#$3 Season EX: W (Winter)  or S (Summer)
+#$4 Zenith angle (Deg)
+#$5 Azimuth angle (Deg)
+#$6 Offset angle 
+# Generates Global variable: "VBFFILENAME"
+#################################################################
+{
+  #Primay Type:
+  local a=$1
+  local PRIMARY=NULL
+  if [ "$a" = "P" ]; then
+	PRIMARY=proton
+  fi
+  if [ "$a" = "He4_" ]; then
+	PRIMARY=He4
+  fi
+  if [ "$a" = "G" ]; then
+	PRIMARY=gamma
+  fi
+  if [ "$a" = "E" ]; then
+	PRIMARY=electron
+  fi
+  if [ "$a" = "CR" ]; then
+	PRIMARY=cosmicRay
+  fi
+  if [ "$PRIMARY" = "NULL" ]; then
+     echo Invalid Primary Particle type: $a
+     exit
+  fi
+
+  #Array type sapecification
+  a=$2
+  local Epoch=NULL
+  local SimModel
+  if [ "$a" = "UA" ]; then
+     Epoch=V6_PMTUpgrade
+     SimModel=MDL10UA
+  fi
+  if [ "$a" = "NA" ]; then
+     Epoch=V5_T1Move
+     SimModel=MDL15NA
+  fi
+  if [ "$a" = "OA" ]; then
+     Epoch=V4_OldArray
+     SimModel=MDL8OA
+  fi
+  if ["$Epoch" = "NULL" ]; then
+     echo Invalid array specification: $a
+     exit
+  fi
+
+  #winter/summ season atm spec
+  a=$3
+  local SeasonID=NULL
+  if [ "$a" = "W" ]; then
+    SeasonID='21'
+  fi
+  if [ "$a" = "S" ]; then
+    SeasonID='22'
+  fi
+  if [ "$SeasonID" = "NULL" ]; then
+     echo Invalid winter/summer specification: $a
+     exit
+  fi 
+  #echo SeasonID: $SeasonID 'for ' $3
+
+  local zenith=$4
+  local azimuth=$5
+  if [ -n "$6" ]; then
+     local VBFoffsetID=$6
+  fi
+
+  ###################################################
+  # Ready to build VBF file name (From OAWG 2.5 wiki page)
+  ###################################################
+  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
+  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
+
+  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
+  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
+  if [ -n "$6" ]; then
+      VBFFILENAME=$VBFFILENAME'_'$VBFoffsetID'wobb'
+  fi
+  VBFFILENAME=$VBFFILENAME'.vbf'
+return
+}
+##############################################################################
+

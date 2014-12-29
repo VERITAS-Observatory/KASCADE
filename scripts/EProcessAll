@@ -8,7 +8,21 @@
 #$6: Input Sub-dir: Ex: ABCD
 #$7: start direction Index. defualt is 0. 
 #$8: end direction Index. defualt is 8. 
+#################################################################################
 
+
+#######################
+#Bring in Utility function:GenerateVBFName
+#######################
+if [ ! -e UtilityFunctions.scr ]; then
+  cp $KASCADEBASE/scripts/UtilityFunctions.scr .
+fi
+source UtilityFunctions.scr
+##################################################################################
+
+##################################################################################
+#Main
+##################################################################################
 lcl=$PWD
 echo lcl: $lcl
 
@@ -24,11 +38,23 @@ echo Argument8: $8
 
 host=$(hostname)
 hostString=${host:0:6}
+if test  "$hostString" = "edison"  #Are we running on Edison
+then
+  EDISON=enabled
+  QUEUE=serial
+  WALLTIME='10:00:00'
+  QSUBEXT='.serial'
+  MEMREQUEST=' -l vmem=8GB '
+  echo '***Edison Cluster***'
+fi
+host=$(hostname)
+hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   QUEUE=serial
   WALLTIME='10:00:00'
+  MEMREQUEST=' -l pvmem=8GB '
   echo '***Carver Cluster***'
 fi
 
@@ -37,9 +63,10 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
   QUEUE=physics
-  WALLTIME='30:00:00'
+  WALLTIME='10:00:00'
   #QUEUE=standby
   #WALLTIME='04:00:00'
+  MEMREQUEST=' -l mem=8GB'
   echo '***Hansen Cluster:'$QUEUE' queue ***'
 fi
 
@@ -51,6 +78,7 @@ then
   WALLTIME='30:00:00'
   #QUEUE=standby
   #WALLTIME='04:00:00'
+  MEMREQUEST=' -l mem=8GB'
   echo '***Coates Cluster:'$QUEUE' queue ***'
 fi
 
@@ -61,11 +89,12 @@ echo Base: $Base
 
 if  [ -z "$6" ]
 then
- echo Fatal-Please supply all arguments Ex: ./EProcessAll V190 40_180Deg Noise3_5 WXYZ  
-
+ echo Fatal-Please supply all arguments Ex: ./EProcessAll V190 40_180Deg Noise3_5 WXYZ
  exit
 fi
 
+###########################################
+#Set up direction index
 if  [ -z "$7" ] ; 
 then
   let i=0;
@@ -79,10 +108,10 @@ then
 else
   let end=$8
 fi
-
-
 echo i start: $i
 echo end: $end
+##########################################
+
 
 EBase=$ABase'E'$2'2D'$3
 echo EBase: $EBase
@@ -92,8 +121,7 @@ EDirOrig=$EBase'1234M2'$SeasonSpec$6
 echo EDir: $EDir
 echo EDirOrig: $EDirOrig
 
-
-
+########################################
 cd $lcl'/electrons/'
 pwd
 mkdir -pv $EDir
@@ -103,75 +131,51 @@ if [ -d "$EDirOrig" ]; then
     $mvCmd
     rmdir -v $EDirOrig
 fi
-
-
 cd $lcl'/electrons/'$6
 pwd
 
-
 ls | grep 1234M2 | grep vbf|grep $2'2D'$3 |xargs -n1 mv -v --target=$lcl'/electrons/'$EDir
 
-
+WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
 
 while test $i -le $end
  do
     direction=$i
-    if test $direction = '0'
-    then
-       wbl=0.0Wbl
-    fi
-    if test $direction = '1'
-    then
-       wbl=S0.25Wbl
-    fi
-    if test $direction = '2'
-    then
-      wbl=S0.5Wbl 
-    fi
-    if test $direction = '3'
-    then
-       wbl=S0.75Wbl
-    fi
-    if test $direction = '4'
-    then
-       wbl=S1.0Wbl
-    fi
-    if test $direction = '5'
-    then
-       wbl=S1.25Wbl
-    fi
-    if test $direction = '6'
-    then
-       wbl=S1.5Wbl
-    fi
-    if test $direction = '7'
-    then
-       wbl=S1.75Wbl
-    fi
-    if test $direction = '8'
-    then
-       wbl=S2.0Wbl
-    fi
+    wbl=${WblOffset[$direction]}
 
-    VBFFile=$ABase'E'$5$2'2D'$wbl$3'1234M2.vbf'
+    ##############################################################################
+    # Get the VBF file name: New format
+    ##############################################################################
+    ARRAY=${ABase:1:1}A
+    zn_azDeg=$2
+    zn_az=${zn_azDeg%%Deg}
+    ZN=${zn_az%%_*}
+    if [ "$ZN" = "$zn_az" ]; then
+       AZ=0
+    else
+       AZ=${zn_az##*_}
+    fi
+    GenerateVBFName "E" $ARRAY $SeasonSpec $ZN $AZ $wbl
+    #VBFFile=$ABase'E'$5$2'2D'$wbl$3'1234M2.vbf'      #Old format
+    echo Output File Name: $VBFFILENAME
+    ##############################################################################
 
     sgeFile=$lcl'/'$Base'E'$2$wbl'.pbs'
-    echo "#"!/bin/bash                                            >$sgeFile
-    echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
-    if [ -n "$CARVER" ]; then
-     echo "#PBS -l pvmem=8GB"                                    >>$sgeFile
-    fi
+    echo "#"!/bin/bash                                              >$sgeFile
+    echo "#PBS -l walltime="$WALLTIME                              >>$sgeFile
+    echo "#PBS " $MEMREQUEST
     if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
-     echo "#PBS -l mem=8GB"                                      >>$sgeFile
+      echo source /etc/profile                                     >>$sgeFile
+      echo module load gcc/4.7.2                                   >>$sgeFile
     fi
-    echo cd $lcl'/../../veritas'                                 >>$sgeFile
-    echo './ksWeRock.scr '$EBase 98020 1234M2  \\                >>$sgeFile
-    echo $direction $Base ">"$lcl'/'$Base'E'$2$wbl'.log'         >>$sgeFile
-    echo cd $lcl                                                 >>$sgeFile
-    echo mv  -v $EBase'1234M2D'$direction$Base'.vbf' $VBFFile    >>$sgeFile
+    echo cd $lcl'/../../veritas'                                   >>$sgeFile
+    echo './ksWeRock.scr '$EBase 98020 1234M2  \\                  >>$sgeFile
+    echo $direction $Base ">"$lcl'/'$Base'E'$2$wbl'.log'           >>$sgeFile
+    echo cd $lcl                                                   >>$sgeFile
+    echo mv  -v $EBase'1234M2D'$direction$Base'.vbf' $VBFFILENAME  >>$sgeFile
 
     chmod 700 $sgeFile
-    qsub -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
+    qsub$QSUBEXT -q $QUEUE  -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
 
     i=$((i+1))			#do next directoion
 done
