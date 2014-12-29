@@ -10,10 +10,10 @@ PrintEnergySteps()
     //double fNumShowersAt100=200;   //gammas
     //double fAlpha=-2.45; //Gamma Ray spectrum index
 
-    double fNumMin=10;   //electrons
+    double fNumMin=20;   //electrons
     //double fNumShowersAt100=100;   //electrons
     double fNumShowersAt100=200;   //electrons
-    double fAlpha=-3.9; //electron spectrum index
+    double fAlpha=-3.18; //electron spectrum index
 
   //double fNumMin=5;   //Cosmic rays
   //double fNumShowersAt100=80;     // protons
