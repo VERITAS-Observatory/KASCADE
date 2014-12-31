@@ -118,7 +118,7 @@ function GenerateVBFName()
      Epoch=V4_OldArray
      SimModel=MDL8OA
   fi
-  if ["$Epoch" = "NULL" ]; then
+  if [ "$Epoch" = "NULL" ]; then
      echo Invalid array specification: $a
      exit
   fi
