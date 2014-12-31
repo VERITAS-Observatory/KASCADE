@@ -1,8 +1,22 @@
 #!/bin/bash
 #$1 List of S2 files to rename
 #$2 Season (used to find PedVar vlaues) Ex : S or W
-#Rename to new S2 file name format
+#$3 Archive directory(optional. uses hsi mv command if specified. 
+#            Ex: /archive/fortress/group/veritas/simulations/SUGMDL10UAPedVarS2
 #################################################################################
+
+function usage()
+{
+echo '***ReNameS2Files usage:'
+ echo '   $1: File with list of files who need to be updated'
+ echo '   $2: Season: Ex S or W'
+ echo '   $3: (Optional) If specified change names on the archive in this directory'
+ echo '       EX:  /archive/fortress/group/veritas/simulations/SUGMDL10UAPedVarS2'
+ echo '   : ./ReNameS2.scr List S /archive/fortress/group/veritas/simulations/SUGMDL10UAPedVarS2'
+ echo '***'
+}
+
+################
 # Main
 ################
 
@@ -11,102 +25,116 @@
 ##################
 
 if [ ! -e UtilityFunctions.scr ]; then
-  cp $KASCADEBASE/scripts/UtilityFunctions.scr .
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr .
 fi
 source UtilityFunctions.scr
 
 #################
+if [ ! -n "$2" ]; then
+    usage
+    exit
+fi
+
+if [ -n "$3" ]; then
+    ARCHIVEDIR=$3
+fi
+
 {
- while read input
-  do
-   #Parse out the PedVar.
-   SEASON=$2
-   PEDVAR=${input%%$2*}   #Everyting before the $2 (S or W)
-   PEDVAR=${PEDVAR:6}	  #Drops the leading "PedVar" 
- 
-   VBF=${input#*$2}       #Drops all up to the $2 (S or W)
-   VBF=$2$VBF             # Add the S or W back in to get the "old" VBF file name
+    while read input
+     do
+      #Parse out the PedVar.
+      SEASON=$2
+      PEDVAR=${input%%$2*}   #Everyting before the $2 (S or W)
+      PEDVAR=${PEDVAR:6}	  #Drops the leading "PedVar" 
+      
+      VBF=${input#*$2}       #Drops all up to the $2 (S or W)
+      VBF=$2$VBF             # Add the S or W back in to get the "old" VBF file name
 
-   #echo PEDVAR: $PEDVAR VBF: $VBF
+      #echo PEDVAR: $PEDVAR VBF: $VBF
 
-   ####################################################################
-   #Parse the VBF file name
-   #Input examples:
-   #WUCR30_135Deg45mv1234M2WMDL10UA.vbf
-   #SNHe4_MDL15NA30_90Deg2DS2.0Wbl50mv1234M2.vbf
-   #SUGMDL10U10_135Deg2D0.0Wbl45mv1234M2.vbf
-   #WUEMDL10UA20_315Deg2DS0.75Wbl45mv1234M2.vbf
-   #SUGMDL10U70_225Deg2DS2.0Wbl45mv1234M2.root   
+      ####################################################################
+      #Parse the VBF file name
+      #Input examples:
+      #WUCR30_135Deg45mv1234M2WMDL10UA.vbf
+      #SNHe4_MDL15NA30_90Deg2DS2.0Wbl50mv1234M2.vbf
+      #SUGMDL10U10_135Deg2D0.0Wbl45mv1234M2.vbf
+      #WUEMDL10UA20_315Deg2DS0.75Wbl45mv1234M2.vbf
+      #SUGMDL10U70_225Deg2DS2.0Wbl45mv1234M2.root   
 
-   SEASON=${VBF:0:1}      # S or W
-   ARRAY=${VBF:1:1}A      #OA or NA or UA
-   PRIMARY=${VBF:2:1}     #G or E or P or H or C
-   ZN_AZ=${VBF%%Deg*}     #Everything before "Deg"
+      SEASON=${VBF:0:1}      # S or W
+      ARRAY=${VBF:1:1}A      #OA or NA or UA
+      PRIMARY=${VBF:2:1}     #G or E or P or H or C
+      ZN_AZ=${VBF%%Deg*}     #Everything before "Deg"
 
-   ###########################
-   #Tease out the Zn_Az string
-   ###########################
-   if [ "$PRIMARY" = "G" ] ||  [ "$PRIMARY" = "E" ] ||  [ "$PRIMARY" = "P" ]; then
+      ###########################
+      #Tease out the Zn_Az string
+      ###########################
+      if [ "$PRIMARY" = "G" ] ||  [ "$PRIMARY" = "E" ] ||  [ "$PRIMARY" = "P" ]; then
        #Check if this has MDL next after Primary
-       MDL=${VBF:3:1}
-       if [ "$MDL" = "M" ];then
-         if [ "$ARRAY" = "UA" ]; then
-             ZN_AZ=${ZN_AZ#*MDL10U}
-             ZN_AZ=${ZN_AZ#*A}   #Allows for existance/non-existance of the A 
+	  MDL=${VBF:3:1}
+	  if [ "$MDL" = "M" ];then
+	      if [ "$ARRAY" = "UA" ]; then
+		  ZN_AZ=${ZN_AZ#*MDL10U}
+		  ZN_AZ=${ZN_AZ#*A}   #Allows for existance/non-existance of the A 
                                  #in the MDL10UA  spec. (Some don't have the A)
-         else
-            ZN_AZ=${ZN_AZ#*A}    # for OA and NA A always there in MDL spec
-         fi
-       else
-         ZN_AZ=${ZN_AZ:3}        #No MDl spec just drop the "SNG"  or whatever.
-       fi
-   fi
-   if [ "$PRIMARY" = "C" ]; then  #CR
-       PRIMARY=$PRIMARY'R'
-       MDL=${VBF:4:1}
-       if [ "$MDL" = "M" ];then
-         if [ "$ARRAY" = "UA" ]; then
-             ZN_AZ=${ZN_AZ#*MDL10U}
-         else
-             ZN_AZ=${ZN_AZ#*A}
-         fi
-       else
-         ZN_AZ=${ZN_AZ:4}         #Cut off the begininng to leave on Zn_Az 
-       fi                         # (or ZN is o deg az)
-   fi
-   if [ "$PRIMARY" = "H" ]; then
-      PRIMARY=$PRIMARY'e4_'
-      MDL=${VBF:6:1}
-       if [ "$MDL" = "M" ];then
-         ZN_AZ=${ZN_AZ#*A}
-       else
-         ZN_AZ=${ZN_AZ:6}         #Cut off the begininng to leave on Zn_Az 
-       fi                         # (or ZN is o deg az)
-   fi
+	      else
+		  ZN_AZ=${ZN_AZ#*A}    # for OA and NA A always there in MDL spec
+	      fi
+	  else
+	      ZN_AZ=${ZN_AZ:3}        #No MDl spec just drop the "SNG"  or whatever.
+	  fi
+      fi
+      if [ "$PRIMARY" = "C" ]; then  #CR
+	  PRIMARY=$PRIMARY'R'
+	  MDL=${VBF:4:1}
+	  if [ "$MDL" = "M" ];then
+	      if [ "$ARRAY" = "UA" ]; then
+		  ZN_AZ=${ZN_AZ#*MDL10U}
+	      else
+		  ZN_AZ=${ZN_AZ#*A}
+	      fi
+	  else
+	      ZN_AZ=${ZN_AZ:4}         #Cut off the begininng to leave on Zn_Az 
+	  fi                         # (or ZN is o deg az)
+      fi
+      if [ "$PRIMARY" = "H" ]; then
+	  PRIMARY=$PRIMARY'e4_'
+	  MDL=${VBF:6:1}
+	  if [ "$MDL" = "M" ];then
+	      ZN_AZ=${ZN_AZ#*A}
+	  else
+	      ZN_AZ=${ZN_AZ:6}         #Cut off the begininng to leave on Zn_Az 
+	  fi                         # (or ZN is o deg az)
+      fi
 
-   #Now seperate out ZN and Az
-   ZN=${ZN_AZ%%_*}
-   if [ "$ZN" = "$ZN_AZ" ]; then
-     AZ=0
-   else
-     AZ=${ZN_AZ##*_}
-   fi
+      #Now seperate out ZN and Az
+      ZN=${ZN_AZ%%_*}
+      if [ "$ZN" = "$ZN_AZ" ]; then
+	  AZ=0
+      else
+	  AZ=${ZN_AZ##*_}
+      fi
   
    #Now find the offset. CR has no offset
-   if [ "$PRIMARY" != "CR" ]; then
-     OFFSET=${VBF%Wbl*}   #Cut off end This gets messy. Better have a "Wbl" !!!!
-     OFFSET=${OFFSET#*Deg}
-     OFFSET=${OFFSET#2D}
-     OFFSET=${OFFSET#S}
-   fi
+      if [ "$PRIMARY" != "CR" ]; then
+	  OFFSET=${VBF%Wbl*}   #Cut off end This gets messy. Better have a "Wbl" !!!!
+	  OFFSET=${OFFSET#*Deg}
+	  OFFSET=${OFFSET#2D}
+	  OFFSET=${OFFSET#S}
+      fi
 
-   GenerateVBFName $PRIMARY $ARRAY $SEASON $ZN $AZ $OFFSET  
-   BASE=${VBFFILENAME%%.vbf}   
+      GenerateVBFName $PRIMARY $ARRAY $SEASON $ZN $AZ $OFFSET  
+      BASE=${VBFFILENAME%%.vbf}   
+      
+      output=PedVar$PEDVAR'_'$BASE'.root'
 
-   output=PedVar$PEDVAR'_'$BASE'.root'
-
-   echo $input' -> '$output
-   #mv -v $input $output
-  done
+      if [ -n "$ARCHIVEDIR" ]; then
+          echo hsi: $input' -> '$output
+	  hsi -q 'cd '$ARCHIVEDIR'; mv -v '$input $output';'
+      else
+          echo $input' -> '$output
+	  mv -v $input $output
+      fi
+    done
 }<$1
 
