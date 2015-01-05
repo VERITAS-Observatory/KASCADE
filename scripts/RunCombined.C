@@ -75,7 +75,7 @@ void RunCombineUsage()
   cout<<"       SetNormalizeByPeaks() : Normalize plots to match peak heights."<<endl;
   cout<<"       SetNormalizeByAreas()  :Normalize plots to match areas "<<endl;
   cout<<"       CompareTels(\"1234\",\"RunFileName1.root\",\"RunFileName2.root\")"<<endl;
-  cout<<"       CompareRuns(1,\"RunFileName1.root\",\"RunFileName2.root\",\"RunFileName3.root\",\"RunFileName4.root\")"<<endl;
+  cout<<"       CompareRuns(\"1\",\"RunFileName1.root\",\"RunFileName2.root\",\"RunFileName3.root\",\"RunFileName4.root\")"<<endl;
 }
 
   // *********************************************************************************
