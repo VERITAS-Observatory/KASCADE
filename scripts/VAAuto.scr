@@ -654,13 +654,15 @@ function SubmitVegasSimProduction()
   if [ "$FilePedVar" = "NONE" ]; then
       FilePedVar=""
   else
-     if [ ! -e "$lcl"/"$FilePedVar" ]; then
-	  echo 'VAAUTO: SubmitVegasSimProduction requires file ' $lcl'/'$FilePedVar
-          echo 'VAAuto: Fatal! File does not exist.'
-          exit
-     fi
+    if [ ! -e "$lcl"/"$FilePedVar" ]; then
+      cp $KASCADEBASE/inputs/$FilePedVar $lcl/
+      if [ ! -e "$lcl"/"$FilePedVar" ]; then
+        echo 'VAAUTO: SubmitVegasSimProduction requires file' $FilePedVar
+        echo 'VAAuto: FFatal!--Attemp to copy ' $KASCADEBASE'/inputs/'$FilePedVar' to '$lcl'/ Failed!'
+        exit
+      fi 
+    fi
   fi
-
   FileBase=$2
   VEGASScript=$3
   FileVBF=$4
