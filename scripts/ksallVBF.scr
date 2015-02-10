@@ -7,7 +7,7 @@
 #                                     or WVHe4_1Deg2D50mv1234M2ABAA
 # Atm:Char1: W or S  (Winter or summer atm)
 # Telescope:Char2: V (VERITAS) or U(Veritas Upgrade PMT) or W (Whipple) 
-# PrimaryType: P or G or E or He4_
+# PrimaryType: P or G or E or He4_ or Fe56_
 # Shower source direction: 1Deg or 10Deg2D or 40_135Deg2D
 # Threshold 45mv or 50mv
 # Tels in array  1234
@@ -453,12 +453,18 @@ echo $ExtinctionFileOption
 if [ -n "$Production" ]; then #Get 20_180:
     ZNAZSpec=${PrimarySpec:1}            #Strip off leading V
     TypeSpec=${ZNAZSpec:0:1}        #get leading G,P,E or H
-    if [ $TypeSpec = "H" ]; then
-  	TypeSpec=He4_
+    if [ $TypeSpec = "H" ] || [ $TypeSpec = "F" ] ; then
+      if [ $TypeSpec = "H" ]; then
+        TypeSpec=He4_
         ZNAZSpec=${ZNAZSpec##He4_}  #Remove He4_ from beginning
-        ZNAZSpec=${ZNAZSpec%%Deg*}  #Strip Deg off end
-        TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'$MOON
-    else
+      fi
+      if [ $TypeSpec = "F" ]; then
+        TypeSpec=Fe56_
+        ZNAZSpec=${ZNAZSpec##Fe56_}  #Remove Fe56__ from beginning
+      fi
+      ZNAZSpec=${ZNAZSpec%%Deg*}  #Strip Deg off end
+      TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg'$MOON
+    else 
        ZNAZSpec=${ZNAZSpec:1}     #remove  leading G,P,E     
        ZNAZSpec=${ZNAZSpec%%Deg*} #Strip of Trailing from DEG: 
        if [ $TypeSpec = "P" ]; then
