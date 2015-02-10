@@ -1,0 +1,90 @@
+#This builds new  ksKascade and ksTrigger config files from all existing gamma 
+#files.
+# good for NA and UA only (note added:???? is this true, seems to only make "V", but
+#                                         I think thats all we use)
+
+
+#$1 Name of new type: Ex: E or P or He4_ or Fe56_
+
+#main loop
+#We will use all the gamma (ksKascadeVG*.conifg ) files as our base files
+#We need to change the name and the type value
+#For anything not E we need to change some stuff in ksTrigger(see below)
+
+spec=$1
+
+if [ "$spec" = "E" ]; then
+	type=3
+fi
+if [ "$spec" = "P" ]; then
+	type=13
+fi
+if [ "$spec" = "He4_" ]; then
+	type=24
+fi
+if [ "$spec" = "Fe56_" ]; then
+	type=76
+fi
+
+if [ ! -n "$type" ]; then
+   echo 'Unknown type '$spec' Know types are E P He4_ Fe56_'
+   exit
+fi
+
+
+#ksKascade first
+ls *.config |grep ksKascadeVG |xargs -n1 >List
+{
+  while read InputFile
+   do
+     ConfigFile=ksKascadeV$spec${InputFile##ksKascadeVG}
+
+     echo New Kascade Config File Name: $ConfigFile
+
+     if [ -e "$ConfigFile" ];
+      then
+        rm -v $ConfigFile
+     fi
+     sed '/PrimaryType/s/1/'$type'/g' <$InputFile >$ConfigFile
+   done
+}<List	
+
+#ksTrigger
+ls *.config |grep ksTriggerVG |xargs -n1 >List
+if [ "$spec" = "E" ]; then
+	fixedOffset=2D
+fi
+
+
+#We just need to copy the gammas files with a new name 
+#Electrons will use the "2D" mode!(so we can make Lookup tables).
+#	Remove "2D" form name (for P and He4_ only)
+#	Set Gammas2D "OFF"
+#	Set MaximumThetaDeg 9
+#	Set GammaStepSizeDeg 0.1
+#	Set MultipleMountDirections "ON"
+
+
+{
+  while read InputFile
+   do
+      
+     ZnAZ=${InputFile##ksTriggerVG}
+     ZNAZ=${ZnAZ%%Deg*}Deg
+     echo ZNAZ: $ZNAZ
+	
+     ConfigFile=ksTriggerV$spec$ZNAZ$FixedOffset'.config'
+     
+     echo New ksTrigger Config File Name: $ConfigFile
+
+     if [ -e "$ConfigFile" ];
+      then
+        rm -v $ConfigFile
+     fi
+     cp $InputFile tmp1
+     sed '/Gammas2D/s/ON/OFF/g'                <tmp1 >tmp2
+     sed '/MaximumThetaDeg/s/2.0/9.0/g'        <tmp2 >tmp1
+     sed '/GammaStepSizeDeg/s/0.25/0.1/g'      <tmp1 >tmp2
+     sed '/MultipleMountDirections/s/OFF/ON/g' <tmp2 >$ConfigFile
+   done
+}<List	
