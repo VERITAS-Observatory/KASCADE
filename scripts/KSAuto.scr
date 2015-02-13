@@ -50,7 +50,9 @@ EntryPEnd=45
 #EntryPEnd=39       #17975 GeV
 
 EntryHe4Start=5
+#EntryHe4End=15      #244.5GeV
 EntryHe4End=45
+
 
 #EntryHe4End=21     #715GeV
 #EntryHe4End=31      #4275
@@ -992,7 +994,7 @@ while test $izn -lt $iznEnd
              SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
            fi
          fi
-	   SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+#	     SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
 
        else
          SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
