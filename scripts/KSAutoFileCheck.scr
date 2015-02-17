@@ -146,11 +146,11 @@ ZNAZ=${ZNAZ%%Deg*}
 
 # Get the energy start end arrays for the shower specifications.
 if [ "$Particle" = "P" ] ||[ "$Particle" = "He4_" ] ||[ "$Particle" = "G" ] ||[ "$Particle" = "E" ]; then
-   if [ ! -e DefineShowers.scr ]; then
-      cp $KASCADEBASE/scripts/DefineShowers.scr .
+   if [ ! -e UtilityFunctions.scr ]; then
+      cp $KASCADEBASE/scripts/UtilityFunctions.scr .
    fi
    echo 'KSAutoFileCheck: Testing particle type: ' $Particle 
-   source DefineShowers.scr
+   source UtilityFunctions.scr
    DefineShowers $Particle
 else
    echo 'KSAutoFileCheck: Unknown Particle type specified: ' $Particle
