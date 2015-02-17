@@ -12,8 +12,8 @@
 # Threshold 45mv or 50mv
 # Tels in array  1234
 # Array trigger Multiplicity: M2
-# Array Type OA (old array), or NA (New Array), or UA (Upgrade Array)
 # ksTrigger source files any set of 4 letters lc or uc 
+#
 #$3 Lowest flie id
 #$4 Highest file id.
 #$5 data disk directory.(Where output Te  files go, cannot be blank!!!)
@@ -26,12 +26,14 @@ TriggerEnable=enable
 #AomegaEnable=enable                   #These next 2 operate on te files only
 #ArrayTrigEnable=enable
 
-Production=enable                 #Enable Carver te.d  file Production scheme 
+#MKPlots=enable                    #Enable creation and saving of segment and 
+                                  #PES plotting files
+Production=enable                 #Enable te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
 Fall09ArrayPositions=enable       #Define if we used moved T1 array.Fall09+
                                    #Else we get original T1 postion (near T4)
 RemoveSingleVBF=enable
-CleanupEnable=enable
+#CleanupEnable=enable
 DebugPrintEnable=enable
 
 VBFOutputToDetectorSpecDir=enable #Put final VBF file in a directory
@@ -151,22 +153,22 @@ echo Working Directory is $wrkdir
 ##################################################################
 #Parse the specification string
 jobSpec=$2
-AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2NA
-TelSpec=${jobSpec:1:1}                 #gets V from WVG20DegN0.5Deg50mv1234M2OA
+AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2
+TelSpec=${jobSpec:1:1}                 #gets V from WVG20DegN0.5Deg50mv1234M2
 
-PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2UA
+PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2
 PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives VG20Deg 
                                        #or UE20_180Deg
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234OAM2AAAB from 
-                                          #WVG20Deg2D50mv1234M2NAAAAB
+                                          #WVG20Deg2D50mv1234M2AAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
-    ThresholdSpec=${jobSpec##*Deg}        #No Deg2D: gets 70mv1234M2NAABBC 
-                                          #from WVG20Deg2D70mv1234M2NAAAAB
+    ThresholdSpec=${jobSpec##*Deg}        #No Deg2D: gets 70mv1234M2ABBC 
+                                          #from WVG20Deg2D70mv1234M2AAAB
 fi                                        #Or M50mv1234M2EFGH if moon filter 
                                           #run
 
 TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
-                                           #SVG20Deg2DM50mv1234M2NABBAB
+                                           #SVG20Deg2DM50mv1234M2BBAB
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 
 MoonSpec=${ThresholdSpec:0:1}              #See if moon filter specified
@@ -176,7 +178,7 @@ if [ "$MoonSpec" = "M" ]; then
     MOON=M                          #$MOON is blank if moonfilter not specified
 fi
 
-ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2NABBAB
+ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
 
 PMTSpec=$TelSpec
 if [ "$TelSpec" != "U" ] && [ "$TelSpec" != "V" ] &&  
@@ -450,7 +452,7 @@ echo $ExtinctionFileOption
 #############################################################################
 #Production SetUP
 #############################################################################
-if [ -n "$Production" ]; then #Get 20_180:
+if [ -n "$Production" ] || [ -n "$MKPlots" ]; then #Get 20_180:
     ZNAZSpec=${PrimarySpec:1}            #Strip off leading V
     TypeSpec=${ZNAZSpec:0:1}        #get leading G,P,E or H
     if [ $TypeSpec = "H" ] || [ $TypeSpec = "F" ] ; then
@@ -473,28 +475,56 @@ if [ -n "$Production" ]; then #Get 20_180:
          TEDIR=$AtmSpec$TelSpec$TypeSpec$ZNAZSpec'Deg2D'$MOON  #E and G
        fi
     fi
+
     echo ZN_AZ: $ZNAZSpec
     echo TypeSpec: $TypeSpec
     echo teDir: $TEDIR                          
 
 fi
 
-##########################################################################
+###################################
+#Build MK's Segment filename for plotting
+if [ -n "$MKPlots" ]; then
+    EnergySpec=$1'GeV' 
+    echo EnergySpec: $EnergySpec
+    #particletypespec=${jobSpec:2:1}  Replaced by $TypeSpec
+    #directionspec=${jobSpec%%Deg*}'Deg'
+    #directionspec=${directionspec:1}
+    #directionspec=${directionspec:1}
+    #directionspec=${directionspec:1}  Replaced by  ZNAZSpec
+    MKShowerOutSpec=$TypeSpec$EnergySpec$ZNAZSpec'Deg'
+    echo MKShowerOutSpec: $MKShowerOutSpec
+fi
+
+#########################################################################
 #Setup to loop over showers
 i="$3"
 while test $i -le $4
   do
 #ksKascade
   segfile='Seg.d'$i              #Temp file, deleted later
+  if [ -n "$MKPlots" ]; then
+      MKPlotsDir=~/projects/showerdisplay/
+      mkdir -pv $MKPlotsDir
+      MKSegShowerOutFile=$MKShowerOutSpec'.d'$i #File for making segment plots
+      MKPeShowerOutFile=$MKShowerOutSpec'_pe.d'$i #File for making pe plots
+      echo MKSegShowerOutFile: $MKSegShowerOutFile
+      echo MKPeShowerOutFile: $MKPeShowerOutFile
+  fi
   if [ -n "$KascadeEnable" ]; then
     if [ -e "$segfile" ]; then
 	rm $segfile
     fi
 
-   $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran \
+   echo kascade Command: $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran -PrimaryEnergyGeV=$1 -ShowerID=$i $AtmSpecOption $segfile
+
+    $src/ksKascade -config=$ksKascadeConfig -RandomSeedFileName=ksKascade.ran \
                   -PrimaryEnergyGeV=$1 -ShowerID=$i $AtmSpecOption $segfile
 
-  fi
+   if [ -n "$MKPlots" ]; then
+       cp -v $segfile $MKPlotsDir'/'$MKSegShowerOutFile
+   fi
+ fi
 		   
 #ksLight
   pefile='Pe.d'$i                #Temp file, deleted later
@@ -509,11 +539,13 @@ while test $i -le $4
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran \
 	$ExtinctionFileOption $MoonFilterOption $segfile $pefile
 
+    if [ -n "$MKPlots" ]; then
+	cp -v $pefile $MKPlotsDir'/'$MKPeShowerOutFile
+    fi
     if [ -n "$CleanupEnable" ]; then
            rm -v $segfile		#Remove segment file
     fi
   fi
-
 
 #ksPeSortMerg
   pesfile='Pes.d'$i           #Temp file, deleted later
