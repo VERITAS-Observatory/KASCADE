@@ -1,6 +1,6 @@
 #!/bin/bash
 #This script is used to automate the generation and processing of the veritas 
-# KASCADE vbf files in 1:Noise levbels, LT and EA tables.
+# KASCA	DE vbf files in 1:Noise levbels, LT and EA tables.
 
 #It has some arguments listed below.
 #$1: Command. Do "VAAuto.scr ListCommands" for a list!
@@ -16,13 +16,13 @@
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
 #${11} Specifes Type of LT or DT table to use or make for LT,DT (Ex All or 050)
-#      for S4 and EA gen add prticletype src of LT Ex. AllG or AllE or 050G or 050E. 
+#      for S4 and EA gen add particle type src of LT Ex. AllG or AllE or 050G or 050E. 
 #      O50 and All default to Gamma type LT.
 #${12} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
 #  For Quality cuts , file used would be $VEGAS/../tables/Quality${12}Cuts
 #  For Stage4, filename would extention be:  ${12}Cuts ending
-#  For ShowerCuts, file used would be $VEGAS/../tables/Shower${12}Cuts 
+#  For ShowerCuts, file used would be $VEGAS/../tables/Shower7Sample${12}Cuts 
 #${13} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1 or 
 #                  T2 or T3 or T4
 # ************************************************************************
@@ -32,7 +32,10 @@ LimitSubmissions=enabled # Enable if you want to submit more that 9 HTAR
 MaxQsubsDefault=450      # jobs but only want 9 at a time to run (limit for 
                          # HTAR) Or you want to generate S2 or S4 files and 
                          # only make 450 submission in queue at one time
-###################################################################################
+#EdisonMultipleSerial=enabled  #Temp switch to test out new Edison mutiple 
+                              #serial VegasSimProduction submission.
+###############################################################################
+
 function commandEnable()
 {
   if [ "$1" = "ListCommands" ]; then
@@ -147,93 +150,6 @@ function GetOptionValue()
    }<$1
 }
 ##############################################################################      
-
-function GenerateVBFName()
-#$1 Particle type: SPECPART: G or E or P or He4_ or CR
-#$2 Array  EX: UA or NA or OA
-#$3 Season EX: W (Winter)  or S (Summer)
-#$4 Zenith angle (Deg)
-#$5 Azimuth angle (Deg)
-#$6 Offset angle 
-{
-  #Primay Type:
-  a=$1
-  if [ "$a" = "P" ]; then
-	PRIMARY=proton
-  fi
-  if [ "$a" = "He4_" ]; then
-	PRIMARY=He4
-  fi
-  if [ "$a" = "G" ]; then
-	PRIMARY=gamma
-  fi
-  if [ "$a" = "E" ]; then
-	PRIMARY=electron
-  fi
-  if [ "$a" = "CR" ]; then
-	PRIMARY=cosmicRay
-  fi
-  if [ ! -n "$PRIMARY" ]; then
-     echo Invalid Primary Particle type: $a
-     exit
-  fi
-
-  #Array type sapecification
-  a=$2
-  if [ "$a" = "UA" ]; then
-     Epoch=V6_PMTUpgrade
-     SimModel=MDL10UA
-  fi
-  if [ "$a" = "NA" ]; then
-     Epoch=V5_T1Move
-     SimModel=MDL15NA
-  fi
-  if [ "$a" = "OA" ]; then
-     Epoch=V4_OldArray
-     SimModel=MDL8OA
-  fi
-  if [ ! -n "$Epoch" ]; then
-     echo Invalid array specification: $a
-     exit
-  fi
-
-  #winter/summ season atm spec
-  a=$3
-  if [ "$a" = "W" ]; then
-    SeasonID='21'
-  fi
-  if [ "$a" = "S" ]; then
-    SeasonID='22'
-  fi
-  if [ ! -n "$SeasonID" ]; then
-     echo Invalid winter/summer specification: $a
-     exit
-  fi 
-  #echo SeasonID: $SeasonID 'for ' $3
-
-  zenith=$4
-  azimuth=$5
-  if [ -n "$6" ]; then
-     VBFoffsetID=$6
-  fi
-
-  ###################################################
-  # Ready to build VBF file name (From OAWG 2.5 wiki page)
-  ###################################################
-  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
-  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
-
-  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
-  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
-  if [ -n "$VBFoffsetID" ]; then
-      VBFFILENAME=$VBFFILENAME'_'$VBFoffsetID'wobb'
-  fi
-  VBFFILENAME=$VBFFILENAME'.vbf'
-return
-}
-##############################################################################
-	
-
 function GenerateEAFileName()
 #$1 Cuts Ex: UpgradeSoft  or OldArrayMedium
 #$2 Season EX: W (Winter)  or S (Summer)
@@ -648,9 +564,66 @@ function SubmitHtarFromArchive()
 }
 ##########################################################################
 
-function SubmitVegasSimProduction()
+function SubmitMultipleSerialJobs()
+#########################################################################
+#$1 Name of JobList file
+#$2 MSJ id.
+#########################################################################
+# This is just for Edison for now.
+########################################################################
 {
-  FilePedVar=$1
+  local MSJList=$1
+  local MSJId=${MSJList##*List}
+  ###########################
+  #  Finish off the Job command List file
+  ###########################
+  echo 'wait' >> $MSJList
+
+  ##############################
+  # Build the PBS file
+  ##############################
+  local sgeFile=$lcl'/MSJ'$MSJId'.pbs'
+  echo "#"PBS -l mppwidth=$NUMCORESNODE            >$sgeFile
+  echo "#"PBS -l walltime=$WALLTIME               >>$sgeFile
+  if [ -n "$EDISON" ]; then
+   echo 'module load ccm'                         >>$sgeFile
+  fi
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+    echo source /etc/profile                      >>$sgeFile
+    echo module load gcc/4.7.2                    >>$sgeFile
+  fi
+
+  echo cd $lcl                                    >>$sgeFile
+  echo ccmrun $MSJobList                          >>$sgeFile
+  chmod 700 $sgeFile
+  qsub$QSUBEXT -q $QUEUE -V -e MSJ$$MSJId'pbs.err' -o MSJ$$MSJId'pbs..log' $sgeFile 
+}  
+#####################################################################
+
+function SubmitVegasSimProduction()
+#######################################################################
+#$1 PedVar command file. Ex: PedUA4.04  or PedNA10.27 or  PedOA7.53
+#$2 FileBase: VBF Base name of the file to be processed
+#$3 Vegas script file to run. Ex:  VegasSimProductionS4.269295369.scr
+#$4 VBF file name 
+#######################################################################
+# Submits VegasSimProduction jobs to batch queue.
+# This is special version that includes ability to submit to Edison 
+# Multiple Serial Jobs (MSJ)
+# This must be flushed.
+#######################################################################
+# This keeps track of how many jobs are submitted and limits them.
+# This routine is call once for each serial job to be submitted.
+#######################################################################
+{
+  local FilePedVar=$1
+  local FileBase=$2
+  local VEGASScript=$3
+  local FileVBF=$4
+
+  ##########################################
+  #  Make sure we have the PedVar command file
+  ##########################################
   if [ "$FilePedVar" = "NONE" ]; then
       FilePedVar=""
   else
@@ -663,43 +636,88 @@ function SubmitVegasSimProduction()
       fi 
     fi
   fi
-  FileBase=$2
-  VEGASScript=$3
-  FileVBF=$4
+
+  ############################################
+  # Generate name of file that will hold this jobs "Done" flag
+  # Unique to this job.
+  ############################################
   if [ -n "$LimitSubmissions" ]; then
-    VEGASDoneLog=$FilePedVar'_'$FileBase'Done.log'     
+    local VEGASDoneLog=$FilePedVar'_'$FileBase'Done.log'     
     if [ -e "$VEGASDoneLog" ]; then              #Max queue jobs are active 
 	 rm $VEGASDoneLog
     fi
   fi
   
-  echo 
-  sgeFile=$lcl'/'$FilePedVar$FileBase'.pbs'
-  echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
-  echo "#PBS -l "$MEMREQUEST                      >>$sgeFile
-  if [ -n "$CARVER" ]; then
-    echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
-  fi
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-    echo source /etc/profile                      >>$sgeFile
-    echo module load gcc/4.7.2                    >>$sgeFile
-  fi
-  echo cd $lcl                                    >>$sgeFile
-  echo $lcl'/'$VEGASScript  \\                    >>$sgeFile
-  echo $FileVBF  $FilePedVar \\                   >>$sgeFile
-  echo ' >'$lcl'/'$FilePedVar'_'$FileBase'VBF.log'   >>$sgeFile
+  ##############################################
+  # Generate the veagsSimProduction command and wait until we have room to 
+  # submit another job
+  ##############################################
+  local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase'VBF.log'
+
   if [ -n "$LimitSubmissions" ]; then
-     echo 'echo Done >'$lcl'/'$VEGASDoneLog       >>$sgeFile
-  fi
-  if [ -n "$LimitSubmissions" ]; then
-     CheckQsubSubmissions  $MaxQsubs $QsubLogs   #This will wait 
-     echo $VEGASDoneLog >>$QsubLogs #add the next one
+     CheckQsubSubmissions  $MaxQsubs $QsubLogs      #This will wait 
+     echo $VEGASDoneLog >>$QsubLogs                 #add the next one
   fi
 
-  chmod 700 $sgeFile
-  qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
+  #############################################
+  # Check to see if we are on Edison and if the Mutiple Serial Jobs(MSJ) mode 
+  # has been enabled. If so add this job command to the list file and if we 
+  # fill it up ($NUMCORESNODE) then make and submit the .pbs job and reset.
+  #############################################
+  if [ -n "$EDISON" ] && [ -n "$EdisonMultipleSerial" ]; then
+    if test $MSJCount -eq "0"  
+     then
+      GetUniqueNumber
+      MSJobList=MSJList$UNIQUE
+    fi
+    ####################
+    # Include the creation of the "Done" file in the command
+    # Note the addition of the  "(" and ";" and ")"  and "&"
+    ####################
+    local VSPCommandLine=$VSPCommand' &'   
+    #local VSPCommandLine='( '$VSPCommand'; echo Done >'$lcl'/'$VEGASDoneLog';) &'   
+    let MSJCount=$MSJCount+1
+    echo VSPCommandLine: $VSPCommandLine
+    if [ "$MSJCount" = "1" ]; then
+      echo MSJobList: $MSJobList
+      echo $VSPCommandLine >$MSJobList
+    else
+      echo $VSPCommandLine >> $MSJobList
+    fi
+    #cat $MSJobList
+    #Submit the MSJ job if it is time.
+    if [ "$MSJCount" = "$NUMCORESNODE" ]; then
+      SubmitMultipleSerialJob  $MSJobList
+      let MSJCount=0
+    fi
+    return
+  else
+
+    #############################################
+    # Generate pbs file for this job. (Normal method)  
+    #############################################
+    local sgeFile=$lcl'/'$FilePedVar$FileBase'.pbs'
+    echo "#"PBS -l walltime=$WALLTIME                  >$sgeFile
+    echo "#PBS -l "$MEMREQUEST                        >>$sgeFile
+    if [ -n "$CARVER" ]; then
+      echo "#PBS -l nodes=1:ppn=1"                    >>$sgeFile
+    fi
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+      echo source /etc/profile                        >>$sgeFile
+      echo module load gcc/4.7.2                      >>$sgeFile
+    fi
+    echo cd $lcl                                      >>$sgeFile
+    echo $VSPCommand                                  >>$sgeFile
+
+    if [ -n "$LimitSubmissions" ]; then
+       echo 'echo Done >'$lcl'/'$VEGASDoneLog         >>$sgeFile
+    fi
+
+    chmod 700 $sgeFile
+    qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
+  fi
 }
-################################################################################### 
+##############################################################################
 
 GetUniqueNumber()
 {
@@ -710,9 +728,21 @@ GetUniqueNumber()
 ####################################################################################
 
 
-
+##############
 #Main Program:
+##############
 
+##################
+# Bring in GenerateVBFName function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr .
+fi
+source UtilityFunctions.scr
+
+###################
+#Usage:
+###################
 if [ ! -n "$1" ]; then
   commandEnable "ListCommands"   #List all commands and exits 
 fi
@@ -787,12 +817,20 @@ if test  "$hostString" = "edison"  #Are we running on Edison
 then
   EDISON=enabled
   JobIDHost='edison'
-  QUEUE=serial
-  QSUBEXT='.serial'
   ARCHIVE=/home/u/u15013/$SPECMDL'/'
   WALLTIME=30:00:00
   VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
   MEMREQUEST='vmem=8GB'
+  MaxQsubsDefault=175
+  if [ -n "$EdisonMultipleSerial" ]; then
+    QUEUE=ccm_queue       #Overrides serial
+    let MSJCount=0
+    let NUMCORESNODE=24
+    MaxQsubsDefault=350
+  else
+    QUEUE=serial
+    QSUBEXT='.serial'
+  fi
   echo '***Edison Cluster***'
 fi
 
@@ -1837,6 +1875,8 @@ if [ -n "$ProduceEASubLookupTables" ]; then
    echo '##########################################################'
    cd $lcl
    EASPEC=EA
+   WALLTIME=08:00:00
+
    date
 fi  
 ##############################################################################
@@ -2254,6 +2294,21 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 fi
 ###########################################################################
 
+################################
+#  Flush last MSJ job
+################################
+if [ -n "$EdisonMultipleSerial" ]; then
+  if [ -n "$GenerateStage2FromVBF" ] || [ -n "$GenerateStage4FromStage2" ] || 
+   [ -n "$GenerateStage5CombinedFromStage4" ]; then	
+     if [ $MSJCount -gt "0" ]; then
+       SubmitMultipleSerialJobs  $MSJobList
+     fi
+   let MSJCount=0
+  fi
+fi
+#########################################################################
+
+
 #**********************************************************************
 if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     cd $VEGAS/showerReconstruction2/macros
@@ -2322,11 +2377,13 @@ if [ -n "$CombineBuildCheckEALT" ]; then
    #############################################################################
     Script='CombineEASubLT.C'
     echo '{'                                                             >$Script
-    echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$EAFILENAME'");' >>$Script
+    #echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$EAFILENAME'");' >>$Script
+    echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$lcl'/'$EAFILENAME'");' >>$Script
     echo '}'                                                            >>$Script
     
     echo "VAAuto: Running root batch command to Create EA file:"
-    echo "VAAuto: "$EAFILENAME
+    #echo "VAAuto: "$EAFILENAME
+    echo "VAAuto: "$lcl'/'$EAFILENAME
     echo "VAAuto: Do: less CombineEASubLT.log;  then shift-F to see when it  finishes!"
     
     root -b -q $Script '>'$lcl'/CombineEASubLT.log'  
@@ -2464,16 +2521,26 @@ if [ -n "$CombineBuildCheckEALT" ]; then
 
    cd $VEGAS/resultsExtractor/macros
 
-   if [ ! -e "$EAFILENAME" ]; then
-      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
+   #if [ ! -e "$EAFILENAME" ]; then
+   #   echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
+   #   exit
+   #fi
+   if [ ! -e "$lcl"'/'"$EAFILENAME" ]; then
+      echo 'VAAuto:  Fatal--EA file '$lcl'/'$EAFILENAME 'does not exist!'
       exit
    fi
+#   $VEGAS/resultsExtractor/bin/buildEATree \
+#       $StrAz \
+#       $StrZn \
+#       $StrNoise \
+#       $StrOffset \
+#       $EAFILENAME
    $VEGAS/resultsExtractor/bin/buildEATree \
        $StrAz \
        $StrZn \
        $StrNoise \
        $StrOffset \
-       $EAFILENAME
+       #lcl'/'$EAFILENAME
 
    echo '##########################################################'
    echo '# CheckEA  '
@@ -2487,24 +2554,29 @@ if [ -n "$CombineBuildCheckEALT" ]; then
    #############################################################################
    cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
    Script='CheckEA.C'
-   echo '{'                                                          >$Script
-   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'  >>$Script
-   echo '}'                                                         >>$Script
+   echo '{'                                                                    >$Script
+   #echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'   >>$Script
+   echo '  eaValidator2("'$lcl'/'$EAFILENAME'");'                             >>$Script
+   echo '}'                                                                   >>$Script
 
-   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
-      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
+   #if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
+      #echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
+      #exit
+   #fi
+   if [ ! -e "$lcl"'/'"$EAFILENAME" ]; then
+      echo 'VAAuto:  Fatal--EA file '$lcl'/'$EAFILENAME 'does not exist!'
       exit
    fi
    echo "VAAuto: Running root batch command to Check EA file:"
-   echo "VAAuto: "$EAFILENAME
+   echo "VAAuto: "$lcl'/'$EAFILENAME
 
    ~/Switch.rootrcTo.rootrc_resultsExtractor.scr
-   rm $EADIAGFILENAME
+   rm $lcl'/'$EADIAGFILENAME
    
    root -b -q $Script '>'$lcl'/CheckEA.log'  
    
-   if [ -e  "$EADIAGFILENAME" ]; then
-       cat  $EADIAGFILENAME >>$lcl'/CheckEA.log'
+   if [ -e  "$lcl"'/'"$EADIAGFILENAME" ]; then
+       cat  $lcl'/'$EADIAGFILENAME >>$lcl'/CheckEA.log'
    fi
 
    ~/Switch.rootrcTo.rootrc_glenn.scr
@@ -2583,44 +2655,44 @@ if [ -n "$CheckDispLT" ]; then
 fi
 # ***********************************************************************
 
-if [ -n "$CombineBuildCheckEALT" ]; then
-   echo '##########################################################'
-   echo '# CheckEA'
-   echo '##########################################################'
-   LCL=$PWD
-
-   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $LTPARTTYPE
-  
-   EADIAGFILENAME=${EAFILENAME/root/diag}
-   date
-   #############################################################################
-   # Make up a script to run on root batch mode
-   #############################################################################
-   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
-   Script='CheckEA.C'
-   echo '{'                                                          >$Script
-   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'  >>$Script
-   echo '}'                                                         >>$Script
-
-   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
-      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
-      exit
-   fi
-   echo "VAAuto: Running root batch command to Check EA file:"
-   echo "VAAuto: "$EAFILENAME
-
-   ~/Switch.rootrcTo.rootrc_resultsExtractor.scr
-   rm $EADIAGFILENAME
-   
-   root -b -q $Script '>'$lcl'/CheckEA.log'  
-   
-   if [ -e  "$EADIAGFILENAME" ]; then
-       cat  $EADIAGFILENAME >>$lcl'/CheckEA.log'
-   fi
-
-   ~/Switch.rootrcTo.rootrc_glenn.scr
-   cd $LCL
-fi
+#if [ -n "$CombineBuildCheckEALT" ]; then
+#   echo '##########################################################'
+#   echo '# CheckEA'
+#   echo '##########################################################'
+#   LCL=$PWD
+#
+#   GenerateEAFileName $CUTTYPE $SPECSEA $LTWBL  'std' $TelConfig  $LTPARTTYPE
+#  
+#   EADIAGFILENAME=${EAFILENAME/root/diag}
+#   date
+#   #############################################################################
+#   # Make up a script to run on root batch mode
+#   #############################################################################
+#   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
+#   Script='CheckEA.C'
+#   echo '{'                                                          >$Script
+#   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'  >>$Script
+#   echo '}'                                                         >>$Script###
+##
+#   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
+#      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME# 'does not exist!'
+#      exit
+#   fi
+#   echo "VAAuto: Running root batch command to Check EA file:"
+#   echo "VAAuto: "$EAFILENAME#
+#
+#   ~/Switch.rootrcTo.rootrc_resultsExtractor.scr
+#   rm $EADIAGFILENAME
+#   
+#   root -b -q $Script '>'$lcl'/CheckEA.log'  
+#   
+#   if [ -e  "$EADIAGFILENAME" ]; then
+#       cat  $EADIAGFILENAME >>$lcl'/CheckEA.log'
+#   fi
+#
+#   ~/Switch.rootrcTo.rootrc_glenn.scr
+#   cd $LCL
+#fi
 
    
 #################################################################################
