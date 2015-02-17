@@ -2,14 +2,14 @@
 # This files has a list of files that need to be rerun
 # the lines we need look like: 
 # Bad: PedVar7.53_gamma_MDL15NA_V5_T1Move_ATM22_KASCADE_zen40deg_az135deg_0.5wobbNewArraySoftCuts.root
-#$2 LT type specification: Ex All or 050
+#$2 LT type specification: Ex All or 050 or ALLE 
 ##########################################################################
 function usage()
 {
   echo '***ReDoBadPedVarS4 usage:'
   echo '   $1: File with Bad/Missing Stage 2 PedVar Files in form:' 
   echo '      Bad: PedVar7.53_gamma_MDL15NA_V5_T1Move_ATM22_KASCADE_zen40deg_az135deg_0.5wobbNewArraySoftCuts.root'
-  echo '   $2: LT file offset specification: EX: All or 050'
+  echo '   $2: LT file offset specification: EX: All or AllE or 050'
   echo '      Note1: Works for Gammas and Electrons'
   echo '      EX: ./ReDoBadPedVarS4.scr CheckStage2Deg1-50AllElectrons.log'
 }
