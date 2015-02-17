@@ -30,7 +30,7 @@
 #$6 EntryEnd:   Default is G=45,E=44,P=45
 #$7 EntryStart for HE4_: Default=5
 #$8 EntryEnd for He4_: Default is 45
-#$9 Not used yet but probably for DefineShowers special flag (MDL) 
+#$9 Not used yet but probably for DefineShowers(UtilityFunctions.scr)special flag(MDL) 
 
 ###########################################################################
 
@@ -1018,12 +1018,12 @@ function BuildIsisScriptList()
 #*************************************************************
 lcl="$PWD"
 
-#Bring in the DefineShowers.scr (defines  energy, end and start arrays)
-if [ ! -e DefineShowers.scr ]; then
-   cp $KASCADEBASE/scripts/DefineShowers.scr .
+#Bring in the DefineShowers function (its in UtilitFunctions)
+#(defines  energy, end and start arrays)
+if [ ! -e UtilityFunctions.scr ]; then
+   cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
 fi
-source DefineShowers.scr
-
+source UtilityFunctions.scr
 
 host=$(hostname)
 echo host: $host
