@@ -482,7 +482,7 @@ DatFile=$RatiosFileBase'.dat' #Main *Ratios.dat file
 TxtFile=$RatiosFileBase'.txt' #Temporay file into which we will put all test MDL info.
 
 REFPARMS=$4
-MDLFIL=$5
+MDLFILE=$5
 TCONFIG=$6
 REFDATAFILE=$7
 
@@ -627,7 +627,7 @@ if [ -n "$BuildMDLAomegaConfig" ]; then
   ################################################################
   #Read in the $2.txt file and set params
   ################################################################
-  echo 'MDLAuto: Setting ksAomega'$PMT$THRESH'('$TCONFIG').config files to' $MDLFILE' values'
+  echo 'MDLAuto: Setting ksAomega'$PMT$THRESH'('$TCONFIG').config files to values in ' $lcl'/'$MDLFILE
 
   PFile=$lcl'/'$REFDATAFILE
   {
@@ -641,7 +641,7 @@ if [ -n "$BuildMDLAomegaConfig" ]; then
     sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1.config >tmp2.config
     sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2.config >tmp1.config
     sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1.config >tmp2.config
-    if [ "$array" = "UA" ]; then
+    if [ "$ARRAY" = "UA" ]; then
       sed '/SinglePeRiseTimeNS/s/0/1.7/g'             <tmp2.config >tmp1.config
       sed '/SinglePeFallTimeNS/s/0/4.75/g'            <tmp1.config >tmp2.config
     else
