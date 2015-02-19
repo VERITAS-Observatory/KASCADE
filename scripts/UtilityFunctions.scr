@@ -16,8 +16,17 @@
 # Functions:
 #    function DefineShowers: Loads the energy, start and end arrays.
 #    function GenerateVBFName()
+#    function GetUniqueNumber
 #
 #####################################################################################
+
+function GetUniqueNumber()
+{
+  #use combo of process id ($$)and number of nanosec(date +%N) since last 
+  #second tick to get unique value. (least count is micro sec at best)
+  let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
+}
+####################################################################################
 
 function DefineShowers()
 ##########################################################################

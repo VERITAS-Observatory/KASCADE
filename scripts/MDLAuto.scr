@@ -10,16 +10,16 @@ LimitSubmissions=enabled      #Enable if you want to generate Shower files
                               #475 submission in queue at one time.Causes us to
                               #wait
 #All CR energies
-EntryPStart=1
-EntryPEnd=45
-EntryHe4Start=5
-EntryHe4End=45
+#EntryPStart=1
+#EntryPEnd=45
+#EntryHe4Start=5
+#EntryHe4End=45
 
 #FAST MDL setting
-#EntryPStart=1
-#EntryPEnd=42
-#EntryHe4Start=5
-#EntryHe4End=42
+EntryPStart=1
+EntryPEnd=42
+EntryHe4Start=5
+EntryHe4End=42
 
 ###################################################################################
 function commandEnable()
@@ -31,10 +31,10 @@ function commandEnable()
     echo '    # Generation of Cosmic Ray          # Generate Cosmic Ray Sim'
     echo '    # Model (MDL) Shower VBF file       # Stage5 file'
     echo '    #------------------------           #------------------------'        
-    echo '    BuildRatiosTxtFile                  GenerateCosmicRayStage5Combined'
-    echo '    ProduceModelFile'
-    echo '    BuildModelAomegaConfig'
-    echo '    ProduceModelCosmicRayShowerVBFs'
+    echo '    ExtractMDLDatFile ($2,$3)          GenerateCosmicRayStage5Combined'
+    echo '    ProduceModelFile ($3,$4,$5)'
+    echo '    BuildMDLAomegaConfig ($3,$5,$6,$7)'
+    echo '    ProduceModelCosmicRayShowerVBFs ($3,$6,$8)'
     echo '    GenerateCosmicRayVBF'
     echo
     echo '    #------------------------'
@@ -44,9 +44,9 @@ function commandEnable()
     echo
     exit
   else
-    if [ "$1" = "BuildRatiosTxtFile" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "ExtractMDLDatFile" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "ProduceModelFile" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "BuildModelAomegaConfig" ]; then eval $1=enable; return 0; fi;  
+    if [ "$1" = "BuildMDLAomegaConfig" ]; then eval $1=enable; return 0; fi;  
     if [ "$1" = "ProduceModelCosmicRayShowerVBFs" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "GenerateCosmicRayVBF" ]; then eval $1=enable; return 0; fi;
 
@@ -64,15 +64,16 @@ function usage()
 {
   echo '***MDLAuto.scr usage for simulation processing:'
   echo ' $1: Command. Do "MDLAuto.scr ListCommands" for a list!'
-  echo ' $2: Last Detector Model Config name in Telescope Model Parameter file  '
+  echo ' $2: Detector Model Config name in Telescope Model Parameter file  '
   echo '      to use for MDL file generation.  Ex: MDL5O or MDL14N or MDL9U'  
-  echo ' $3: ArraySpec:OldArray, NewArray, UpgradeArray. Ex: OA, NA or UA'
+  echo ' $3: ArraySpec: Ex: OA, NA or UA'
   echo ' $4: TTree capable Telescope Data Parameters file we are trying to match.'
   echo '      ( Gain/F:Rate:PVar:Max3 ) Ex: UpgradeParams.txt or Run63559.txt'
   echo ' $5: Telescpe Model Configuration file to be used to make ksAomega config'
   echo '      file. Example: MDL10UA.dat or MDL15NA.dat or MDL8OA.dat'
   echo ' $6: Tele-Detector Config(ksAomega*.config): Ex:  ABCD or wxyz'
-  echo ' $7: Reference real data Stage2 or later root file(in lcl dir): Ex: 66594.root'
+  echo ' $7: Reference real data Stage2 or later root file(in lcl dir). Used in'
+  echo '     ksAomega*.config file: Ex: 66594.root'
   echo ' $8: Zn_AZ.  Ex: 20_180Deg or 30Deg'
   echo ' $9: List of PedVar values: Ex: 4.73,5.55 or  6.51 or "All" or "Base"'
   echo ' ${10}: Stage4/5 Cuts Ex: UpgradeLoose or NewArrayHard or OldArraySoft'
@@ -186,7 +187,7 @@ function SubmitQsubJobs()
 #$3  Maximum jobs to have running or waiting to run in the queue
 # Due to differences in memory requirments for Te and ShowerrVBF jobs we also
 # use the defined string MEMREQUEST. If exists is uaually has a value like
-#  MEMREQUEST=' -l pvmem=30GB '
+#  MEMREQUEST=' pvmem=30GB '
 {
   QsubList=$1
   QsubDoneList=$2
@@ -210,7 +211,7 @@ function SubmitQsubJobs()
         echo adding: $sgeDoneFile
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
-       qsub$QSUBEXT -V $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+       qsub$QSUBEXT -V -l $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
        #For Hansen pause between submissions
        if [ -n "$HANSEN" ] ; then
          sleep 10
@@ -280,99 +281,6 @@ function CheckQsubSubmissions()
 }
 ####################################################################
 
-function GetUniqueNumber()
-{
-  #use combo of process id ($$)and number of nanosec(date +%N) since last 
-  #second tick to get unique value. (least count is micro sec at best)
-  let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
-}
-####################################################################################
-
-function GenerateVBFName()
-#$1 Particle type: SPECPART: G or E or P or He4_ or CR
-#$2 Array  EX: UA or NA or OA
-#$3 Season EX: W (Winter)  or S (Summer)
-#$4 Zenith angle (Deg)
-#$5 Azimuth angle (Deg)
-#$6 Offset angle 
-{
-  #Primay Type:
-  a=$1
-  if [ "$a" = "P" ]; then
-	PRIMARY=proton
-  fi
-  if [ "$a" = "He4_" ]; then
-	PRIMARY=He4
-  fi
-  if [ "$a" = "G" ]; then
-	PRIMARY=gamma
-  fi
-  if [ "$a" = "E" ]; then
-	PRIMARY=electron
-  fi
-  if [ "$a" = "CR" ]; then
-	PRIMARY=cosmicRay
-  fi
-  if [ ! -n "$PRIMARY" ]; then
-     echo Invalid Primary Particle type: $a
-     exit
-  fi
-
-  #Array type sapecification
-  a=$2
-  if [ "$a" = "UA" ]; then
-     Epoch=V6_PMTUpgrade
-     SimModel=MDL10UA
-  fi
-  if [ "$a" = "NA" ]; then
-     Epoch=V5_T1Move
-     SimModel=MDL15NA
-  fi
-  if [ "$a" = "OA" ]; then
-     Epoch=V4_OldArray
-     SimModel=MDL8OA
-  fi
-  if [ ! -n "$Epoch" ]; then
-     echo Invalid array specification: $a
-     exit
-  fi
-
-  #winter/summ season atm spec
-  a=$3
-  if [ "$a" = "W" ]; then
-    SeasonID='21'
-  fi
-  if [ "$a" = "S" ]; then
-    SeasonID='22'
-  fi
-  if [ ! -n "$SeasonID" ]; then
-     echo Invalid winter/summer specification: $a
-     exit
-  fi 
-  #echo SeasonID: $SeasonID 'for ' $3
-
-  zenith=$4
-  azimuth=$5
-  if [ -n "$6" ]; then
-     offsetID=$6
-  fi
-
-  ###################################################
-  # Ready to build VBF file name (From OAWG 2.5 wiki page)
-  ###################################################
-  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
-  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
-
-  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
-  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
-  if [ -n "$offsetID" ]; then
-      VBFFILENAME=$VBFFILENAME'_'$offsetID'wobb'
-  fi
-  VBFFILENAME=$VBFFILENAME'.vbf'
-return
-}
-##############################################################################
-
 function GetOptionValue()
 #$1 Cuts file name
 #$2 Option whose value we need to find
@@ -388,9 +296,8 @@ function GetOptionValue()
      done
    }<$1
 }
-##############################################################################      	
-
-##################################################################################
+############################################################################## 
+     	
 function GenerateLTFileName()
 #$1 Array  EX: UA or NA or OA
 #$2 Season EX: W (Winter)  or S (Summer)
@@ -456,6 +363,16 @@ function GenerateLTFileName()
 #############################
 # Main
 #############################
+
+##################
+# Bring in GenerateVBFName and GetUniqueNumber  functions
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
+
 if [ ! -n "$1" ]; then
   commandEnable "ListCommands"   #List all commands and exits
 fi
@@ -464,6 +381,8 @@ commandEnable $1   #This will enable the specified command or exit if its not a
                    #known command.
  
 lcl=$PWD
+
+
 
 host=$(hostname)
 echo host: $host
@@ -553,12 +472,16 @@ if [ "$ARRAYDEF" = "NA" ]; then
   THRESH=50mv
 fi    
 
+echo MDLAuto:  ArrayName: $ArrayName
+ 
+
+
 RatiosFileBase=$PSF$ArrayName'Ratios'
 DatFile=$RatiosFileBase'.dat' #Main *Ratios.dat file
 TxtFile=$RatiosFileBase'.txt' #Temporay file into which we will put all test MDL info.
 
 REFPARMS=$4
-MDLFILE=$5
+MDLFIL=$5
 TCONFIG=$6
 REFDATAFILE=$7
 
@@ -592,21 +515,24 @@ IFS=$SAVEIFS
 MaxQsubs=475  
 
 ############################################################################
-#Bulid the Ratios.txt File from the Ratios.dat file for use as input to the 
-#next DetermineMDL step. Its assumed that all MDL entries will be in the
-# .dat file
-#Needs $3 only
+# Extract the input Telescope Detector Model (TDL) parameters to a temproary .txt
+# file from the Ratios.dat file for that array (OA,NA,UA) to be used as 
+# input to the next ProduceModelFile step. Its assumed that all MDL entries will be 
+# in the .dat file. 
+# Needs $2 $3 only
 
-if [ -n "$BuildRatiosTxtFile" ]; then
+if [ -n "$ExtractMDLDatFile" ]; then
   echo '##########################################################'
-  echo '# BuildRatiosTxtFile '
+  echo '# ExtractMDLDatFile '
   echo '##########################################################'
 
   cd $lcl
 
-  # Datfile is arrrainged in reverse sequecn with 4 lines of data per trial model
-  # with the first one being usually the highest and which we specify as $2
-
+  #############################################################################
+  # The Ratios.Dat file (like V190UpgradeRatios.dat specified in $DatFile ) is 
+  # arrainged with the MDLs occuring with 4 lines of data per trial model (TDL).
+  # We search for $2 (like "MDL1U").
+  #############################################################################
   #Setup to read this file in as a TTree.
   echo "t/I:T/F:N:Eff:G:R:PVar:S:NumPix:Max3_50:Max3:LRatio" >temp1.txt
   {
@@ -614,10 +540,10 @@ if [ -n "$BuildRatiosTxtFile" ]; then
       do
        echo Line: "$line"
        if [ -n "$line" ]; then
-         MDL=${line##*$MDLLast}          #See if the line the highest MDL in it.
+         MDL=${line##*$MDLLast}          #See if we have found our MDL specs.
          if [ "$MDL" != "$line" ]; then
            foundMDL="found"
-           echo foundMDL 
+           echo Found MDL$MDLLast  
          fi
   #We are at or after the MDLLast first instance
 	 if [ -n "$foundMDL" ]; then
@@ -632,19 +558,19 @@ if [ -n "$BuildRatiosTxtFile" ]; then
   sed '/T2/s/T2/2/g' <temp2.txt >temp1.txt
   sed '/T3/s/T3/3/g' <temp1.txt >temp2.txt
   sed '/T4/s/T4/4/g' <temp2.txt >temp1.txt
-  sed '/,/s/,/ /g'   <temp1.txt >$TxtFile
+  sed '/,/s/,/ /g'   <temp1.txt >$TxtFile   #Output .txt file
 fi
 
 # *********************************************************************************
 # The following is a sperate command in case we want to edit the .txt file before we
-# find the Telescope Model  values.
+# find the Telescope Detector Model  values. Usually we dont and can skip this.
 ######################################################################
 if [ -n "$ProduceModelFile" ]; then
   echo '##########################################################'
   echo '# ProduceModelFile '
   echo '##########################################################'
   # Using the determineParams.C root macro to make the MDL parameter set
-  # Save to MDLDat  file
+  # Save to MDL*.dat  file
   ################################################################
 
   cd $lcl
@@ -700,7 +626,7 @@ if [ -n "$BuildMDLAomegaConfig" ]; then
   ################################################################
   #Read in the $2.txt file and set params
   ################################################################
-  echo 'MDLAuto: Setting ksAomegaV50('$TCONFIG').config files to' $MDLFILE' values'
+  echo 'MDLAuto: Setting ksAomega'$PMT$THRESH'('$TCONFIG').config files to' $MDLFILE' values'
 
   PFile=$lcl'/'$REFDATAFILE
   {
@@ -725,10 +651,10 @@ if [ -n "$BuildMDLAomegaConfig" ]; then
    done
   }<$lcl'/'$MDLFILE
 
-  mv  T1.config ksAomegaV50mv$T1'.config'
-  mv  T2.config ksAomegaV50mv$T2'.config'
-  mv  T3.config ksAomegaV50mv$T3'.config'
-  mv  T4.config ksAomegaV50mv$T4'.config'
+  mv  T1.config ksAomega$PMT$THRESH$T1'.config'
+  mv  T2.config ksAomega$PMT$THRESH$T2'.config'
+  mv  T3.config ksAomega$PMT$THRESH$T3'.config'
+  mv  T4.config ksAomega$PMT$THRESH$T4'.config'
   cd $lcl
 fi
 ############################################################################
@@ -776,7 +702,7 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
   ####################################################################
 
   #make up our ksProduction designation
-  Spec='W'$PMT'CR'$ZnAz'50mv1234M2'$TCONFIG
+  Spec='W'$PMT'CR'$ZnAz$THRESH'1234M2'$TCONFIG
         
   NoSort='NoSort'
 
@@ -784,7 +710,7 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
                                             #wait until to submit more in our 
                                             #list
     GetUniqueNumber
-    QsubFileNameList='KSW$PMT$CR$UNIQUE'AutoqsubList'
+    QsubFileNameList='KSW'$PMT$CR$UNIQUE'AutoqsubList'
     echo QsubFileNameList: $QsubFileNameList
     if [ -e $QsubFileNameList ]; then
 	rm $QsubFileNameList
@@ -798,8 +724,12 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
 	echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
     fi
 
-    ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
-                                   #Above will fill the list file 
+    if [ ! -e ksProduction.scr ]; then
+	cp $KASCADEBASE/scripts/ksProduction.scr ./
+    fi
+
+    ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End 'MDL'
+                                  #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
                                   #Below will run them with a max of $MaxQsubs
@@ -807,6 +737,7 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
                                   # as it can
     SubmitQsubJobs  $QsubFileNameList $QsubLogs $MaxQsubs
 
+  fi
   ########################################################################
   # We are now going to wait for all of these to finish.
   ########################################################################

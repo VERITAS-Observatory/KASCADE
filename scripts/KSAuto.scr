@@ -562,18 +562,20 @@ function SubmitQsubJobs()
    }<$QsubList
 }
 ###########################################################################
-function GetUniqueNumber()
-{
-  #use combo of process id ($$)and number of nanosec(date +%N) since last 
-  #second tick to get unique value. (least count is micro sec at best)
-  let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
-}
-####################################################################################
 
 
 ############################################################################
 # Main
 ############################################################################
+
+##################
+# Bring in GetUniqueNumber function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
 if [ ! -n "$1" ]; then
   usage
   commandEnable "ListCommands"   #List all commands and exits
@@ -597,6 +599,10 @@ REFDATAFILE=${10}
 
 lcl=$PWD
 source /etc/profile
+
+
+
+
 
 host=$(hostname)
 echo host: $host
