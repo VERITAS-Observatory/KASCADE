@@ -2326,7 +2326,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     
     echo "VAAuto: Running root batch command to Create LT file:"
     echo "VAAuto: "$LTFILENAME
-    echo "VAAuto: Do: less CombineSubLT.log;  then shift-F to see when it  finishes!"
+    echo 'VAAuto: Do: less CombineSubLT.log,  then shift-F to see when it finishes!'
     
     if [ -n "$CombineSubLT" ]; then
 	root -b -q $Script '>'$lcl'/CombineSubLT.log'
