@@ -30,7 +30,7 @@
 #$6 EntryEnd:   Default is G=45,E=44,P=45
 #$7 EntryStart for HE4_: Default=5
 #$8 EntryEnd for He4_: Default is 45
-#$9 Not used yet but probably for DefineShowers(UtilityFunctions.scr)special flag(MDL) 
+#$9 Optional DefineShowers(UtilityFunctions.scr)special flag(MDL) 
 
 ###########################################################################
 
@@ -45,7 +45,7 @@ function Protons()
 
   #Veritas/Whipple set1/ksaom/kasall
   #Defines energy, start and end arrays
-  DefineShowers 'P' 
+  DefineShowers 'P' $MDL
 
 
  #Save below for reference
@@ -137,7 +137,7 @@ function Helium4()
 {
   echo Helium4: $parspec
   #Defines energy, start and end arrays
-  DefineShowers 'He4_'
+  DefineShowers 'He4_' $MDL
 
  #Save below for reference
  #Veritas/Whipple Set1/ksaom/kasall
@@ -225,7 +225,7 @@ function CosmicRay()
     echo Helium4: $he4Parspec     
   #Load up the energy start and end arrays and copy over to particular
   #arrays for CR
-  DefineShowers 'P'
+  DefineShowers 'P' $MDL
  
   for key in "${!energy[@]}"; do
     pEnergy["$key"]="${energy["$key"]}"
@@ -237,7 +237,7 @@ function CosmicRay()
     pEnd["$key"]="${end["$key"]}"
   done
 
-  DefineShowers 'He4_'
+  DefineShowers 'He4_' $MDL
 
   for key in "${!energy[@]}"; do
     he4Energy["$key"]="${energy["$key"]}"
@@ -417,7 +417,7 @@ function Gammas()
  #Whipple Set1/kasaom/kasall starts at 84 GeV
  
  #Defines energy, start and end arrays
- DefineShowers 'G'        
+ DefineShowers 'G' $MDL        
 
 
 #Keep below for reference
@@ -530,7 +530,7 @@ function Electrons()
 #Veritas Set1/ksaom/kasall
 #Whipple Set1/kasaom/kasall starts at 84 GeV
  #Defines energy, start and end arrays
-DefineShowers 'E'
+DefineShowers 'E' $MDL
 
 
 ######      1    2    3    4    5    6    7    8    9    10  11    12  13  14    15    16    17   18  19  20  21  22  23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38    39    40    41    42    43    44    45        
@@ -1012,16 +1012,19 @@ function BuildIsisScriptList()
  done
 }
 
-
 #*************************************************************
 #Start of main script.
 #*************************************************************
 lcl="$PWD"
 
-#Bring in the DefineShowers function (its in UtilitFunctions)
-#(defines  energy, end and start arrays)
+#Flag for using reduced showers for MDl CR stuff. Will be not defined for normal use.
+MDL=$9
+
+##################
+# Bring in GenerateVBFName and GetUniqueNumber  functions
+##################
 if [ ! -e UtilityFunctions.scr ]; then
-   cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
 fi
 source UtilityFunctions.scr
 
