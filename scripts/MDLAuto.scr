@@ -31,17 +31,18 @@ function commandEnable()
     echo '    # Generation of Cosmic Ray          # Generate Cosmic Ray Sim'
     echo '    # Model (MDL) Shower VBF file       # Stage5 file'
     echo '    #------------------------           #------------------------'        
-    echo '    ExtractMDLDatFile ($2,$3)          GenerateCosmicRayStage5Combined'
-    echo '    ProduceModelFile ($3,$4,$5)'
+    echo '    ExtractMDLDatFile* ($2,$3)          GenerateCosmicRayStage5Combined'
+    echo '    ProduceModelFile* ($3,$4,$5)'
     echo '    BuildMDLAomegaConfig ($3,$5,$6,$7)'
     echo '    ProduceModelCosmicRayShowerVBFs ($3,$6,$8)'
-    echo '    GenerateCosmicRayVBF'
+    echo '    GenerateCosmicRayVBF($3,$6,$8)'
     echo
     echo '    #------------------------'
     echo '    # Generate Data Stage5 file'
     echo '    #------------------------'
     echo '    GenerateDataStage5Combined'
     echo
+    echo '    *pre-production tasks'
     exit
   else
     if [ "$1" = "ExtractMDLDatFile" ]; then eval $1=enable; return 0; fi;
@@ -62,7 +63,7 @@ function commandEnable()
 ################################################################################
 function usage()
 {
-  echo '***MDLAuto.scr usage for simulation processing:'
+  echo '***MDLAuto.scr usage for Cosmic-Ray processing:'
   echo ' $1: Command. Do "MDLAuto.scr ListCommands" for a list!'
   echo ' $2: Detector Model Config name in Telescope Model Parameter file  '
   echo '      to use for MDL file generation.  Ex: MDL5O or MDL14N or MDL9U'  
@@ -676,9 +677,12 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
   ####################################################################
   #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
   ####################################################################
-  cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF$ZnAz'.scr'
+  GetUniqueNumber
+  KSALLVBFFILE=ksallVBF$ZnAz$UNIQUE'.scr'
+
+  cp $KASCADEBASE/scripts/ksallVBF.scr $KSALLVBFFILE
   sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
-                                                <ksallVBF$ZnAz'.scr' >tmp1
+                                                <$KSALLVBFFILE >tmp1
   sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
   sed '/PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
   sed '/TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
@@ -696,7 +700,7 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
   sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
   sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
   sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
-  sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >ksallVBF$ZnAz'.scr'
+  sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >$KSALLVBFFILE
   rm tmp1
   rm tmp2
   ####################################################################
@@ -728,7 +732,7 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
 	cp $KASCADEBASE/scripts/ksProduction.scr ./
     fi
 
-    ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End 'MDL'
+    ./ksProduction.scr $Spec $KSALLVBFFILE $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End 'MDL'
                                   #Above will fill the list file 
                                   # $QsubFileNameList with the names of the 
                                   # .qsub files to run(but it won't run them)
@@ -762,11 +766,10 @@ if [ -n "$GenerateCosmicRayVBF" ]; then
   echo 'MDLAuto: Process '$TCONFIG'through ksWeRock '
 
   #########################################################################
-  #Now run these showers through CRProcessAlC to make ther VBF file
+  #Now run these showers through CRProcessAll to make the VBF file
   #########################################################################
   cd $lcl
-   ./CRProcessAll V190 $ZnAz'50mv'  W$ARRAY $TCONFIG $PMT
-  echo' MDLAUTO: Did not do stage5. Have not codded it up yet!'
+   ./CRProcessAll $VDirBase $ZnAz$THRESH  W$ARRAY $TCONFIG $PMT
 fi 
 ############################################################################
 
