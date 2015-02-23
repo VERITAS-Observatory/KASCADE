@@ -2532,7 +2532,7 @@ if [ -n "$CombineBuildCheckEALT" ]; then
        $StrZn \
        $StrNoise \
        $StrOffset \
-       #lcl'/'$EAFILENAME
+       $lcl'/'$EAFILENAME
 
    echo '##########################################################'
    echo '# CheckEA  '
@@ -2541,15 +2541,15 @@ if [ -n "$CombineBuildCheckEALT" ]; then
 
    EADIAGFILENAME=${EAFILENAME/root/diag}
    date
-   #############################################################################
+   ###########################################################################
    # Make up a script to run on root batch mode
-   #############################################################################
+   ###########################################################################
    cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
    Script='CheckEA.C'
-   echo '{'                                                                    >$Script
-   #echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'   >>$Script
-   echo '  eaValidator2("'$lcl'/'$EAFILENAME'");'                             >>$Script
-   echo '}'                                                                   >>$Script
+   echo '{'                                                           >$Script
+   #echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");' >>$Script
+   echo '  eaValidator2("'$lcl'/'$EAFILENAME'");'                    >>$Script
+   echo '}'                                                          >>$Script
 
    #if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
       #echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
