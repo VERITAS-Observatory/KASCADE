@@ -1,115 +1,49 @@
 #!/bin/bash
 #CR (Proton + He4) Production version
 #This is for Carver or Hansen or Coates or Edison
-#$1 is PSF subdir  Ex: V330 or V190
-#$2:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
-#   20_180Deg
-#$3:Threshold spec ex 45mv or 50 mv
-#$4 Season:teleSpec: Ex WU or SN or WO
+#$1: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas
+#$2: Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
+#    20_180Deg
+#$3: Threshold spec ex 45mv or 50 mv
+#$4: Season:teleSpec: Ex WU or SN or WO
 #$5: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
-#$6: Input Sub-dir: Ex: ABCD
+#$6: Array Configuration Input Sub-dir: Ex: ABCD
 #$7: start direction Index. defualt is 0. !!!Ignored for CR
 #$8: end direction Index. defualt is 8.  !!!Ignored for CR
 #################################################################################
-function GenerateVBFName()
-#$1 Particle type: SPECPART: G or E or P or He4_ or CR
-#$2 Array  EX: UA or NA or OA
-#$3 Season EX: W (Winter)  or S (Summer)
-#$4 Zenith angle (Deg)
-#$5 Azimuth angle (Deg)
-#$6 Offset angle 
-{
-  #Primay Type:
-  a=$1
-  if [ "$a" = "P" ]; then
-	PRIMARY=proton
-  fi
-  if [ "$a" = "He4_" ]; then
-	PRIMARY=He4
-  fi
-  if [ "$a" = "G" ]; then
-	PRIMARY=gamma
-  fi
-  if [ "$a" = "E" ]; then
-	PRIMARY=electron
-  fi
-  if [ "$a" = "CR" ]; then
-	PRIMARY=cosmicRay
-  fi
-  if [ ! -n "$PRIMARY" ]; then
-     echo Invalid Primary Particle type: $a
-     exit
-  fi
 
-  #Array type sapecification
-  a=$2
-  if [ "$a" = "UA" ]; then
-     Epoch=V6_PMTUpgrade
-     SimModel=MDL10UA
-  fi
-  if [ "$a" = "NA" ]; then
-     Epoch=V5_T1Move
-     SimModel=MDL15NA
-  fi
-  if [ "$a" = "OA" ]; then
-     Epoch=V4_OldArray
-     SimModel=MDL8OA
-  fi
-  if [ ! -n "$Epoch" ]; then
-     echo Invalid array specification: $a
-     exit
-  fi
-
-  #winter/summ season atm spec
-  a=$3
-  if [ "$a" = "W" ]; then
-    SeasonID='21'
-  fi
-  if [ "$a" = "S" ]; then
-    SeasonID='22'
-  fi
-  if [ ! -n "$SeasonID" ]; then
-     echo Invalid winter/summer specification: $a
-     exit
-  fi 
-  #echo SeasonID: $SeasonID 'for ' $3
-
-  zenith=$4
-  azimuth=$5
-  if [ -n "$6" ]; then
-     offsetID=$6
-  fi
-
-  ###################################################
-  # Ready to build VBF file name (From OAWG 2.5 wiki page)
-  ###################################################
-  # [PrimaryType]_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_
-  #zen[ZenithAngle]deg_az[AzimuthAngle]deg_[OffsetAngle]wobb.[VBFExtention]{
-
-  VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
-  VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
-  if [ -n "$offsetID" ]; then
-      VBFFILENAME=$VBFFILENAME'_'$offsetID'wobb'
-  fi
-  VBFFILENAME=$VBFFILENAME'.vbf'
-  return
-}
-##################################################################################
 
 ##################################################################################
 #Main
 ##################################################################################
+
+##################
+# Bring in GenerateVBFName and GetUniqueNumber  functions
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
 lcl=$PWD
 echo lcl: $lcl
 
-echo Argument1: $1
-echo Argument2: $2
-echo Argument3: $3
-echo Argument4: $4
-echo Argument5: $5
-echo Argument6: $6
-echo Argument7: $7
-echo Argument8: $8
+VDIRBASE=$1
+ZN_AZDEG=$2
+THRESH=$3
+SEASARRAY=$4
+OUTFILEBASE=$5
+ARRAYCONFIG=$6
+
+
+
+echo Argument1: $VDIRBASE
+echo Argument2: $ZN_AZDEG
+echo Argument3: $THRESH
+echo Argument4: $SEASARRAY
+echo Argument5: $OUTFILEBASE
+echo Argument6: $ARRAYCONFIG
+
 
 host=$(hostname)
 hostString=${host:0:6}
@@ -156,36 +90,36 @@ then
   echo '***Coates Cluster:'$QUEUE' queue ***'
 fi
 
-ABase=$4
-SeasonSpec=${ABase:0:1}
-Base=$SeasonSpec$5
+SeasonSpec=${SEASARRAY:0:1}
+Base=$SeasonSpec$OUTFILEBASE
 echo Base: $Base
 
-if  [ -z "$6" ]
+if  [ -z "$ARRAYCONFIG" ]
 then
- echo Fatal-Please supply all arguments Ex: ./CRProcessAll V190 40_180Deg Noise3_5 ABCD exit
+ echo Fatal-Please supply all arguments Ex: ./CRProcessAll $SCRATCH/simulations/veritas 40_180Deg MDL10UA ABCD
+ exit
 fi
 
 direction=-1      #No wbl
 
-PBase=$ABase'P'$2$3
+PBase=$SEASARRAY'P'$ZN_AZDEG$THRESH
 echo PBase: $PBase
 PDir=$PBase'1234M2'$Base                #Add MDL15 to dir name. Needed by ksWeRock
-PDirOrig=$PBase'1234M2'$SeasonSpec$6 
+PDirOrig=$PBase'1234M2'$SeasonSpec$ARRAYCONFIG 
 
 echo PDir: $PDir
 echo PDirOrig: $PDirOrig
 
-He4Base=$ABase'He4_'$2$3
+He4Base=$SEASARRAY'He4_'$ZN_AZDEG$THRESH
 echo He4Base: $He4Base
 He4Dir=$He4Base'1234M2'$Base            #Add MDL15 to dir name. Needed by ksWeRock
-He4DirOrig=$He4Base'1234M2'$SeasonSpec$6 
+He4DirOrig=$He4Base'1234M2'$SeasonSpec$ARRAYCONFIG 
 
 echo He4Dir: $He4Dir
 echo He4DirOrig: $He4DirOrig
 
 #################Find protons first ##################
-cd $lcl'/protons/'   #Find our input directory and put it in the right place
+cd $VDIRBASE'/protons/'   #Find our input directory and put it in the right place
 pwd                     # with the right name.
 mkdir -pv $PDir
 if [ -d "$PDirOrig" ]; then
@@ -194,12 +128,12 @@ if [ -d "$PDirOrig" ]; then
     $mvCmd
     rmdir -v $PDirOrig
 fi
-cd $lcl'/protons/'$6
+cd $VDIRBASE'/protons/'$ARRAYCONFIG
 pwd
-ls | grep 1234M2 | grep vbf|grep $2$3 |xargs -n1 mv -v --target=$lcl'/protons/'$PDir
+ls | grep 1234M2 | grep vbf|grep $ZN_AZDEG$THRESH |xargs -n1 mv -v --target=$VDIRBASE'/protons/'$PDir
 
 ########## Now He4 #################
-cd $lcl'/he4/'   #Find our input directory and put it in the right place
+cd $VDIRBASE'/he4/'   #Find our input directory and put it in the right place
 pwd                     # with the right name.
 mkdir -pv $He4Dir
 if [ -d "$He4DirOrig" ]; then
@@ -208,42 +142,43 @@ if [ -d "$He4DirOrig" ]; then
     $mvCmd
     rmdir -v $He4DirOrig
 fi
-cd $lcl'/he4/'$6
+cd $VDIRBASE'/he4/'$ARRAYCONFIG
 pwd
-ls | grep 1234M2 | grep vbf|grep $2$3 |xargs -n1 mv -v --target=$lcl'/he4/'$PDir
+ls | grep 1234M2 | grep vbf|grep $ZN_AZDEG$THRESH |xargs -n1 mv -v --target=$VDIRBASE'/he4/'$PDir
 
 
 ##############################################################################
 # Get the VBF file name: New format
 ##############################################################################
-ARRAY=${ABase:1:1}A
-zn_azDeg=$2
-zn_az=${zn_azDeg%%Deg}
+ARRAY=${SEASARRAY:1:1}A
+
+zn_az=${ZN_AZDEG%%Deg}
 ZN=${zn_az%%_*}
 if [ "$ZN" = "$zn_az" ]; then
    AZ=0
 else
    AZ=${zn_az##*_}
 fi
+
 GenerateVBFName "CR" $ARRAY $SeasonSpec $ZN $AZ    #CR files have no offset!
-#VBFFILENAME=$ABase'CR'$5$2$3'1234M2.vbf'          #Old format
 echo Output File Name: $VBFFILENAME
+
 ##############################################################################
 
-
-sgeFile=$lcl'/'$Base'CR'$2'.pbs'
-echo "#"!/bin/bash                                             >$sgeFile
-echo "#PBS -l walltime="$WALLTIME                             >>$sgeFile
-echo "#PBS " $MEMREQUEST                                      >>$sgeFile
+WeRockVBF=$SEASARRAY'CR'$ZN_AZDEG$THRESH
+sgeFile=$lcl'/'$Base'CR'$ZN_AZDEG'.pbs'
+echo "#"!/bin/bash                                                  >$sgeFile
+echo "#PBS -l walltime="$WALLTIME                                  >>$sgeFile
+echo "#PBS " $MEMREQUEST                                           >>$sgeFile
 if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
-      echo source /etc/profile                                >>$sgeFile
-      echo module load gcc/4.7.2                              >>$sgeFile
+      echo source /etc/profile                                     >>$sgeFile
+      echo module load gcc/4.7.2                                   >>$sgeFile
 fi
-echo cd $lcl'/../../veritas'                                  >>$sgeFile
-echo './ksWeRock.scr '$ABase'CR'$2$3 98020 1234M2 \\          >>$sgeFile
-echo $direction $Base ">"$lcl'/'$Base'CR'$2'.log'             >>$sgeFile
-echo cd $lcl                                                  >>$sgeFile
-echo mv  -v $ABase'CR'$2$3'1234M2'$Base'.vbf' $VBFFILENAME       >>$sgeFile
+echo cd $VDIRBASE'/../../veritas'                                  >>$sgeFile
+echo './ksWeRock.scr '$EwRockVBF 98020 1234M2 \\                   >>$sgeFile
+echo $direction $Base ">"$lcl'/'$Base'CR'$ZN_AZDEG'.log'           >>$sgeFile
+echo cd $lcl                                                       >>$sgeFile
+echo mv  -v $VDIRBASE'/'$WeRockVBF'1234M2'$Base'.vbf' $VBFFILENAME >>$sgeFile
 
 chmod 700 $sgeFile
 qsub$QSUBEXT -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
