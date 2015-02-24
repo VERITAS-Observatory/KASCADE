@@ -34,8 +34,9 @@ function commandEnable()
     echo '    ExtractMDLDatFile* ($2,$3)          GenerateCosmicRayStage5Combined'
     echo '    ProduceModelFile* ($3,$4,$5)'
     echo '    BuildMDLAomegaConfig ($3,$5,$6,$7)'
-    echo '    ProduceModelCosmicRayShowerVBFs ($3,$6,$8)'
-    echo '    GenerateCosmicRayVBF($3,$6,$8)'
+    echo '    ProduceModelCosmicRayShowerVBF ($3,$6,$8)'
+    echo '    CheckProducedCosmicRayShowerVBF($2,$3,$6,$8)'
+    echo '    GenerateCosmicRayVBF($2,$3,$6,$8)'
     echo
     echo '    #------------------------'
     echo '    # Generate Data Stage5 file'
@@ -48,7 +49,8 @@ function commandEnable()
     if [ "$1" = "ExtractMDLDatFile" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "ProduceModelFile" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "BuildMDLAomegaConfig" ]; then eval $1=enable; return 0; fi;  
-    if [ "$1" = "ProduceModelCosmicRayShowerVBFs" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "ProduceModelCosmicRayShowerVBF" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "CheckProducedCosmicRayShowerVBF" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "GenerateCosmicRayVBF" ]; then eval $1=enable; return 0; fi;
 
     if [ "$1" = "GenerateCosmicRayStage5Combined" ]; then eval $1=enable; return 0; fi;
@@ -93,6 +95,154 @@ function usage()
 }
 #############################################################################
 
+function checkFilesExist()
+#$1 FileDir
+#$2 TeName
+#$3 Particle type
+#$4 File Type (TE or VBF)
+#$5 EntryStart
+#$6 EntryEnd
+#$7 Threshold speck (for file type VBF only)
+#$8 Alternate File Dir (optional, used for ShowerVBF only)
+{
+  #echo checkFilesExist:args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
+ 
+  cd $lcl
+  local FileDir=$1
+  local TeName=$2
+  local Particle=$3
+  local FileType=$4
+  local EntryStart=$5
+  local EntryEnd=$6
+  local Threshold=$7
+  local FileDirAlt=$8
+
+  #Check we actually got some files (ie made the Directory)
+  if [ ! -d $FileDir ]; then
+      echo 'KSAuto: Directory '$FileDir' does not exist!'
+      if [ -e  "$8" ]; then
+	  if [ ! -d $FileDirAlt ]; then
+	      echo 'KSAuto: Alternate Directory '$FileDirAlt' does not exist!'
+	      echo 'KSAuto: Apparently no ' $4 ' files were generated!'
+	      echo 'KSAuto: *************Exiting. Cluster failure?********'
+	      exit
+	  else
+	      FileDir=$FileDirAlt
+	  fi
+      else
+	  echo 'KSAuto: Apparently no ' $4 ' files were generated!'
+	  echo 'KSAuto: *************Exiting. Cluster failure?********'
+	  exit
+     fi
+  fi
+  
+  #We no long use a List but let the KSAutoFileCheckOK.scr script generate 
+  #its own list to check
+        ##Get a list of the files into Check$ZnAz.txt
+  #But we do need a file name for the results.
+  local CheckListFiles='Check'$ZnAz'.txt'
+  echo CheckListFiles: $CheckListFiles
+
+  #ls |xargs -n1 >$lcl'/'$CheckListFiles
+  cd $lcl
+
+  #checking this directory  for all files that should be there takes 5 - 10 min
+  #thus , to insure we don't over run the 30 min time limit
+  #we will have to submit the te file check and sleep until it finishes
+  echo 'KSAuto: Checking for all '$FileType' files in: '$FileDir
+       
+  local Result=$CheckListFiles'.Result'
+  if [ -e "$Result" ]; then
+      rm $Result
+  fi
+  
+  CheckList $CheckListFiles $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold $FileDir
+       
+  date
+  cd $lcl
+  if [ -s $Result ]; then
+     cat  $Result
+     iFilesNotFound=$(cat $Result | wc -l)
+     if [ -n "$ExitOnTeCreationFailure" ]; then
+       echo 'KSAuto: Exiting on File check failure'
+       echo 'KSAuto: Goodbye'
+       exit
+     fi
+     return 1
+  else
+     echo 'KSAuto: All files in Directory: '$FileDir' are present!'
+     return 0
+  fi
+}
+#############################################################################
+
+function CheckList()
+
+#$1 File name (with .Results added  to save bad files names in
+#$2 is base name of all files.ex: WVG10_315Deg2D
+#$3 Particle type (P He4_ G or E)
+#$4 File Type ( TE or VBF)
+#$5 EntryStart
+#$6 EntryEnd
+#$7 Threshold  VBF only Ex: 45mv or 50mv (needed only for FileType= VBF)
+#$8 File Dir
+  #echo CheckkList:Args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
+{  FileList=$1
+  local TeName=$2
+  local Particle=$3
+  local FileType=$4
+  local EntryStart=$5
+  local EntryEnd=$6
+  local Threshold=$7
+  local FILEDIR=$8
+  if [ -n "$CheckByPBS" ]; then
+    #build a submission .pbs file
+    local sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
+    if [ ! -n "$FUSION" ]; then
+      echo "#"PBS -q $QUEUE                                        >$sgeFile
+    fi
+    echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
+    echo "#PBS " $MEMREQUEST                                   >>$sgeFile
+
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+      echo source /etc/profile                                    >>$sgeFile
+      echo module load gcc/4.7.2                                  >>$sgeFile
+    fi
+    echo cd $lcl                                                  >>$sgeFile
+    echo $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName \\     >>$sgeFile
+    echo $Particle $FileType $EntryStart $EntryEnd $Threshold \\  >>$sgeFile
+    echo $FILEDIR                                                 >>$sgeFile
+    chmod 700 $sgeFile
+
+    qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
+
+    local CHECKLOG=$lcl'/'$FileType'Check'$ZnAz'.log'
+    local CLOG=$FileType'C'$ZnAz'.log'
+    cat $CHECKLOG | grep $JobIDHost >$CLOG
+    #rm $CHECKLOG
+    echo "KSAuto: Running KSAutoFileCheck on PBS: Entries: " $EntryStart "-" $EntryEnd
+    echo "KSAuto: Sleeping until CheckFile finishes. "
+    runsNotDone=1            #Not local
+    while test $runsNotDone -eq 1 
+      do
+       sleep 60s
+       checkRunningJobs $CLOG $ZnAz
+       let runsNotDone=$?
+      done
+    #rm $CLOG
+    #rm $sgeFile
+    return
+  else
+   #Run interactivly
+   cd $lcl
+   echo "KSAuto: Running KSAutoFileCheck interactivly: Entries: " $EntryStart "-" $EntryEnd
+
+   $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold  $FILEDIR
+   return
+  fi
+} 
+#########################################################################
+
 function SubmitVegasProduction()
 #$1 Data file
 #$2 Flasher file
@@ -106,7 +256,7 @@ function SubmitVegasProduction()
     # Make up the job script file that will be submitted below
     ####################################################################
     sgeFile=$lcl'/'$DataFile'S5.pbs'
-    echo "#"PBS -l walltime=04:00:00                   >$sgeFile
+    #echo "#"PBS -l walltime=04:00:00                   >$sgeFile
     echo "#"PBS -l walltime=$WALLTIME                 >$sgeFile
     echo "#PBS -l "$MEMREQUEST                       >>$sgeFile
     if [ -n "$CARVER" ]; then
@@ -383,6 +533,11 @@ commandEnable $1   #This will enable the specified command or exit if its not a
  
 lcl=$PWD
 
+SPECMDL=$2
+SPECPV=$9
+
+
+
 
 
 host=$(hostname)
@@ -438,7 +593,7 @@ fi
 # We are assumed to be in directory which has all files.
 ###################################
 if [ ! -n "$GenerateDataStage5Combined" ]; then
-    MDLLast=$2
+    MDLLast=$SPECMDL
     echo MDLLast: $MDLLast
     ARRAYDEF=$3
     CUTTYPE=${10}
@@ -495,7 +650,6 @@ else
   AZ=${zn_az##*_}
 fi
 
-SPECPV=$9
 SAVEIFS=$IFS
 if [[ $SPECPV = "All" ]]; then
     if [ $ARRAY = "UA" ]; then
@@ -664,9 +818,9 @@ fi
 # Process all the CR TE files for this Zn/AZ through ksAomega and ksArrayTrigger
 # using the MDLFILE parameters. This in prep for running them though CRProcessAll
 #***************************************************************************
-if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
+if [ -n "$ProduceModelCosmicRayShowerVBF" ]; then
   echo '##########################################################'
-  echo '# ProduceModelCosmicRayShowerVBFs '
+  echo '# ProduceModelCosmicRayShowerVBF '
   echo '##########################################################'
   echo 'MDLAuto: Process ksAomega*.config: ' $TCONFIG ' through ksAomega and ksArrayTrig'
   #echo 'MDLAuto: This takes about 10 min so be patient. '
@@ -759,6 +913,50 @@ if [ -n "$ProduceModelCosmicRayShowerVBFs" ]; then
 fi
 ###########################################################################
 
+if [ -n "$CheckProducedShwrVBFFiles" ]; then
+  echo '##########################################################'
+  echo '# CheckProducedShwrVBFFiles '
+  echo '##########################################################'
+
+  cd $lcl
+  date
+  TeNameP='W'$PMT'CR'$ZnAz
+
+  ShowerVBFProtonDir=$TeNameP$Threshold'1234M2W'$TCONFIG
+  ShowerVBFProtonDirAlt=$TeNameP$Threshold'1234M2W'$SPECMDL
+  ShowerPDir=$VDirBase'/protons/'$ShowerVBFProtonDir
+  ShowerPDirAlt=$VDirBase'/protons/'$ShowerVBFProtonDirAlt
+
+  #Check protons first
+  checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $Threshold $ShowerPDirAlt
+  PFilesMissing=$?
+  if [ "$PFilesMissing" -ne "1" ]; then
+    echo 'KSAuto: All Required Shower VBF files present in '$TeNameP' directory'
+  fi
+
+  checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Start $EntryHe4End $Threshold $ShowerHe4DirAlt
+  He4FilesMissing=$?
+  if [ "$He4FilesMissing" -ne "1" ]; then
+     echo 'KSAuto: All Required Shower VBF files present in '$TeNameHe4' directory'
+  fi
+  if [ "$PFilesMissing" -eq "1" ] || [ "$He4FilesMissing" -eq "1" ]; 
+    then
+      FilesMissing=1
+  fi
+
+  if [ "$FilesMissing" = "1" ]; then
+    echo 'KSAuto: '$iFilesNotFound' files not created.'
+    if [ -n "$ExitOnTeCreationFailure" ]; then
+      echo 'KSAuto: *************Missing files***********'
+      echo 'KSAuto: Exiting on File check failure'
+      echo 'KSAuto: Goodbye'
+      cd $lcl
+      exit
+    fi
+  fi
+fi
+#########################################################################
+
 if [ -n "$GenerateCosmicRayVBF" ]; then
   echo '##########################################################'
   echo '# GenerateCosmicRayVBF '
@@ -769,7 +967,7 @@ if [ -n "$GenerateCosmicRayVBF" ]; then
   #Now run these showers through CRProcessAll to make the VBF file
   #########################################################################
   cd $lcl
-   ./CRProcessAll $VDirBase $ZnAz$THRESH  W$ARRAY $TCONFIG $PMT
+   ./CRProcessAll $VDirBase $ZnAz$THRESH $SPECMDL W$TCONFIG $PMT
 fi 
 ############################################################################
 
