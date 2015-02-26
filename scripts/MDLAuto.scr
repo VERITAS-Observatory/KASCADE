@@ -981,7 +981,7 @@ if [ -n "$GenerateCosmicRayVBF" ]; then
   #Now run these showers through CRProcessAll to make the VBF file
   #########################################################################
   cd $lcl
-   ./CRProcessAll $VDirBase $ZnAz$THRESH $SPECMDL W$TCONFIG $PMT
+   ./CRProcessAll $VDirBase $ZnAz $THRESH W$PMT $SPECMDL'A' $TCONFIG 
 fi 
 ############################################################################
 
