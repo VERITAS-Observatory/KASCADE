@@ -138,7 +138,7 @@ function checkFilesExist()
   
   #We no long use a List but let the KSAutoFileCheckOK.scr script generate 
   #its own list to check
-        ##Get a list of the files into Check$ZnAz.txt
+  #Get a list of the files into Check$ZnAz.txt
   #But we do need a file name for the results.
   local CheckListFiles='Check'$ZnAz'.txt'
   echo CheckListFiles: $CheckListFiles
@@ -187,7 +187,8 @@ function CheckList()
 #$7 Threshold  VBF only Ex: 45mv or 50mv (needed only for FileType= VBF)
 #$8 File Dir
   #echo CheckkList:Args:1: $1' 2:' $2 ' 3:'$3' 4:' $4' 5:' $5' 6:' $6' 7:' $7
-{  FileList=$1
+{ 
+  local FileList=$1
   local TeName=$2
   local Particle=$3
   local FileType=$4
@@ -195,6 +196,12 @@ function CheckList()
   local EntryEnd=$6
   local Threshold=$7
   local FILEDIR=$8
+
+  if [ ! -e "$lcl"'/KSAutoFileCheck.scr' ]; then
+     cp -v $KASCADEBASE/scripts/KSAutoFileCheck.scr $lcl
+  fi
+
+
   if [ -n "$CheckByPBS" ]; then
     #build a submission .pbs file
     local sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
@@ -211,7 +218,7 @@ function CheckList()
     echo cd $lcl                                                  >>$sgeFile
     echo $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName \\     >>$sgeFile
     echo $Particle $FileType $EntryStart $EntryEnd $Threshold \\  >>$sgeFile
-    echo $FILEDIR                                                 >>$sgeFile
+    echo $FILEDIR "MDL"                                                 >>$sgeFile
     chmod 700 $sgeFile
 
     qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
@@ -237,7 +244,7 @@ function CheckList()
    cd $lcl
    echo "KSAuto: Running KSAutoFileCheck interactivly: Entries: " $EntryStart "-" $EntryEnd
 
-   $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold  $FILEDIR
+   $lcl/KSAutoFileCheck.scr $lcl'/'$FileList $TeName $Particle $FileType $EntryStart $EntryEnd $Threshold  $FILEDIR "MDL"
    return
   fi
 } 
@@ -913,28 +920,35 @@ if [ -n "$ProduceModelCosmicRayShowerVBF" ]; then
 fi
 ###########################################################################
 
-if [ -n "$CheckProducedShwrVBFFiles" ]; then
+if [ -n "$CheckProducedCosmicRayShowerVBF" ]; then
   echo '##########################################################'
-  echo '# CheckProducedShwrVBFFiles '
+  echo '# CheckProducedCosmicRayShowerVBF '
   echo '##########################################################'
 
   cd $lcl
   date
-  TeNameP='W'$PMT'CR'$ZnAz
+  TeNameP='W'$PMT'P'$ZnAz
 
-  ShowerVBFProtonDir=$TeNameP$Threshold'1234M2W'$TCONFIG
-  ShowerVBFProtonDirAlt=$TeNameP$Threshold'1234M2W'$SPECMDL
+  ShowerVBFProtonDir=$TeNameP$THRESH'1234M2W'$TCONFIG
+  ShowerVBFProtonDirAlt=$TeNameP$THRESH'1234M2W'$SPECMDL
   ShowerPDir=$VDirBase'/protons/'$ShowerVBFProtonDir
   ShowerPDirAlt=$VDirBase'/protons/'$ShowerVBFProtonDirAlt
 
+  TeNameHe4='W'$PMT'He4_'$ZnAz
+
+  ShowerVBFHe4Dir=$TeNameHe4$THRESH'1234M2W'$TCONFIG
+  ShowerVBFHe4DirAlt=$TeNameHe4$THRESH'1234M2W'$SPECMDL
+  ShowerHe4Dir=$VDirBase'/he4/'$ShowerVBFHe4Dir
+  ShowerHe4DirAlt=$VDirBase'/he4/'$ShowerVBFHe4DirAlt
+
   #Check protons first
-  checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $Threshold $ShowerPDirAlt
+  checkFilesExist $ShowerPDir  $TeNameP 'P' 'VBF' $EntryPStart $EntryPEnd $THRESH $ShowerPDirAlt
   PFilesMissing=$?
   if [ "$PFilesMissing" -ne "1" ]; then
     echo 'KSAuto: All Required Shower VBF files present in '$TeNameP' directory'
   fi
 
-  checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Start $EntryHe4End $Threshold $ShowerHe4DirAlt
+  checkFilesExist $ShowerHe4Dir $TeNameHe4 'He4_' 'VBF' $EntryHe4Start $EntryHe4End $THRESH $ShowerHe4DirAlt
   He4FilesMissing=$?
   if [ "$He4FilesMissing" -ne "1" ]; then
      echo 'KSAuto: All Required Shower VBF files present in '$TeNameHe4' directory'

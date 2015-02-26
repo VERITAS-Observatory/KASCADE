@@ -131,6 +131,7 @@ let iEntryStart=$5
 let iEntryEnd=$6
 Threshold=$7
 FileDir=$8
+MDLFLAG=$9
 
 lcl=$PWD
 LOGDIR=$lcl'/log/'
@@ -151,7 +152,7 @@ if [ "$Particle" = "P" ] ||[ "$Particle" = "He4_" ] ||[ "$Particle" = "G" ] ||[ 
    fi
    echo 'KSAutoFileCheck: Testing particle type: ' $Particle 
    source UtilityFunctions.scr
-   DefineShowers $Particle
+   DefineShowers $Particle $MDLFLAG        #if MDLFLAG not given it is blank. 
 else
    echo 'KSAutoFileCheck: Unknown Particle type specified: ' $Particle
    exit
