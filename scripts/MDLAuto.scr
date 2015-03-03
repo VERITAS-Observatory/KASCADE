@@ -27,12 +27,12 @@ function commandEnable()
   if [ "$1" = "ListCommands" ]; then
     usage
     echo '***VAAuto Valid Commands:'
-    echo '    #------------------------           #------------------------'
-    echo '    # Generation of Cosmic Ray          # Generate Cosmic Ray Sim'
-    echo '    # Model (MDL) Shower VBF file       # Stage5 file'
-    echo '    #------------------------           #------------------------'        
-    echo '    ExtractMDLDatFile* ($2,$3)          GenerateCosmicRayStage5Combined'
-    echo '    ProduceModelFile* ($3,$4,$5)'
+    echo '    #--------------------          #------------------------'
+    echo '    # Generation of Cosmic Ray     # Generate Cosmic Ray Sim'
+    echo '    # Model (MDL) Shower VBF file  # Stage5 file'
+    echo '    #------------------------      #------------------------'        
+    echo '    ExtractMDLDatFile* ($2,$3)      GenerateCosmicRayStage5Combined'
+    echo '    ProduceModelFile* ($3,$4,$5)    ($2,$3,$6,$7,$8,$9,${10})'
     echo '    BuildMDLAomegaConfig ($3,$5,$6,$7)'
     echo '    ProduceModelCosmicRayShowerVBF ($3,$6,$8)'
     echo '    CheckProducedCosmicRayShowerVBF($2,$3,$6,$8)'
@@ -68,7 +68,7 @@ function usage()
   echo '***MDLAuto.scr usage for Cosmic-Ray processing:'
   echo ' $1: Command. Do "MDLAuto.scr ListCommands" for a list!'
   echo ' $2: Detector Model Config name in Telescope Model Parameter file  '
-  echo '      to use for MDL file generation.  Ex: MDL5O or MDL14N or MDL9U'  
+  echo '      to use for MDL file generation.  Ex: MDL5OA or MDL14NA or MDL9UA'  
   echo ' $3: ArraySpec: Ex: OA, NA or UA'
   echo ' $4: TTree capable Telescope Data Parameters file we are trying to match.'
   echo '      ( Gain/F:Rate:PVar:Max3 ) Ex: UpgradeParams.txt or Run63559.txt'
@@ -78,10 +78,11 @@ function usage()
   echo ' $7: Reference real data Stage2 or later root file(in lcl dir). Used in'
   echo '     ksAomega*.config file: Ex: 66594.root'
   echo ' $8: Zn_AZ.  Ex: 20_180Deg or 30Deg'
-  echo ' $9: List of PedVar values: Ex: 4.73,5.55 or  6.51 or "All" or "Base"'
+  echo ' $9: List of PedVar values: Ex: 4.73,5.55 or  6.51 or "All" '
+  echo '     or "Base" (which is no PedVar correction(like PedVar=0)) '
   echo ' ${10}: Stage4/5 Cuts Ex: UpgradeLoose or NewArrayHard or OldArraySoft'
   echo
-  echo ' Ex: ./MDLAuto.scr GenerateCosmicRayStage5Combined MDL10UA UA Run64954.txt MDL15NA.dat ABCD  64954.root 20_180Deg 6.51'
+  echo ' Ex: ./MDLAuto.scr GenerateCosmicRayStage5Combined MDL10UA UA Run64954.txt MDL15NA.dat ABCD  64954.root 20_180Deg Base UpgradeMedium'
   echo
   echo '***MDLAuto.scr usage for Data run processing:'
   echo ' $1: Command. Do "MDLAuto.scr ListCommands" for a list!'
@@ -615,7 +616,7 @@ if [ "$ARRAYDEF" = "UA" ]; then
   PMT='U'
   PSF='V190'
   ARRAY='UA'
-  ArrayName="UpgradeArray"
+  ArrayName="Upgrade"
   THRESH=45mv
 fi
 
@@ -981,7 +982,7 @@ if [ -n "$GenerateCosmicRayVBF" ]; then
   #Now run these showers through CRProcessAll to make the VBF file
   #########################################################################
   cd $lcl
-   ./CRProcessAll $VDirBase $ZnAz $THRESH W$PMT $SPECMDL'A' $TCONFIG 
+   ./CRProcessAll $VDirBase $ZnAz $THRESH W$PMT $SPECMDL $TCONFIG 
 fi 
 ############################################################################
 
@@ -990,9 +991,9 @@ if [ -n "$GenerateCosmicRayStage5Combined" ]; then
   echo '##########################################################'
   echo '# GenerateCosmicRayStage5Combined '
   echo '##########################################################'
-  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ    #Note No Offset spec for CR
+  GenerateVBFName 'CR' $ARRAY 'W' $ZN $AZ -1  $SPECMDL  #Note No Offset spec for CR
   BaseFileName=${VBFFILENAME%%.vbf}
-  echo 
+  echo VBFFILENAME: $VBFFILENAME
 
 
   #Setup VegasSimProduction to generate S5 combined Tree.
@@ -1054,7 +1055,7 @@ if [ -n "$GenerateCosmicRayStage5Combined" ]; then
   rm tmp2
 
   #OK! We are ready to run.  Nedd to submit since this will take more than 4 hours. 
-  echo "MDLAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME       
+  echo "MDLAuto: Submitting ' $VSProdFile ' to '$QUEUE' queue for " $lcl'/'$VBFFILENAME       
 
   WALLTIME=20:00:00
   

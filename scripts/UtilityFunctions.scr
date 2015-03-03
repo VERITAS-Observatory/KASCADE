@@ -67,7 +67,7 @@ function DefineShowers()
   if [ "$DFPARTSPEC" = "He4_" ]; then
     if [ -n "$2" ]; then
       #MDL  (.5 of full)
-      end=([1]=757  565  421  318  235  175  132  88   78   54  42    32  23  17    18    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5 )
+      end=([1]=757  565  421  318  235  175  132  97   78   54  42    32  23  17    18    10    10   10  10  10  10  10  10   10   10   10   10   10   10   10   10   10   10   10   10   10    10    10    10    10    10    5     5     5     5 )
     else
       #Old he4
       #end=([1]=1038 774  578  430  321  240  180  134  100  74  56    41  32  24    20    20    20   20  20  20  20  20  20   20   20   20   20   20   20   20   20   20   20   20   20   20    20    20    20    20    20    10    10    10    10)
@@ -89,75 +89,90 @@ function GenerateVBFName()
 #$3 Season EX: W (Winter)  or S (Summer)
 #$4 Zenith angle (Deg)
 #$5 Azimuth angle (Deg)
-#$6 Offset angle 
+#$6 Offset angle OptionalEx 0.5 or 0.0 or 1.75. If $7 is to be specified but no 
+#   offset is wanted specify this as "-1" 
+#$7 Sim Model (optional, overides default ) Ex: MDL1UA etc. Default is MDL10UA or 
+#   MDL15NA or MDL8OA
 # Generates Global variable: "VBFFILENAME"
 #################################################################
 {
+  local PRIMARYSPEC=$1
+  local EPOCHSPEC=$2
+  local SEASONSPEC=$3
+  local zenith=$4
+  local azimuth=$5
+  local VBFoffsetID=$6    # $6 and $7 are optional but if you want $7 you 
+  local SimModel=$7       # need $6 specified obviously even if just a dummy
+ 
+
   #Primay Type:
-  local a=$1
   local PRIMARY=NULL
-  if [ "$a" = "P" ]; then
+  if [ "$PRIMARYSPEC" = "P" ]; then
 	PRIMARY=proton
   fi
-  if [ "$a" = "He4_" ]; then
+  if [ "$PRIMARYSPEC" = "He4_" ]; then
 	PRIMARY=He4
   fi
-  if [ "$a" = "G" ]; then
+  if [ "$PRIMARYSPEC" = "G" ]; then
 	PRIMARY=gamma
   fi
-  if [ "$a" = "E" ]; then
+  if [ "$PRIMARYSPEC" = "E" ]; then
 	PRIMARY=electron
   fi
-  if [ "$a" = "CR" ]; then
+  if [ "$PRIMARYSPEC" = "CR" ]; then
 	PRIMARY=cosmicRay
   fi
   if [ "$PRIMARY" = "NULL" ]; then
-     echo Invalid Primary Particle type: $a
+     echo Invalid Primary Particle type: $PRIMARYSPEC
      exit
   fi
 
   #Array type sapecification
-  a=$2
   local Epoch=NULL
-  local SimModel
-  if [ "$a" = "UA" ]; then
+  if [ "$EPOCHSPEC" = "UA" ]; then
      Epoch=V6_PMTUpgrade
-     SimModel=MDL10UA
+     if [ ! -n "$SimModel" ]; then
+       SimModel=MDL10UA
+     fi
   fi
-  if [ "$a" = "NA" ]; then
+
+  if [ "$EPOCHSPEC" = "NA" ]; then
      Epoch=V5_T1Move
-     SimModel=MDL15NA
+     if [ ! -n "$SimModel" ]; then
+       SimModel=MDL15NA
+     fi
   fi
-  if [ "$a" = "OA" ]; then
+  if [ "$EPOCHSPEC" = "OA" ]; then
      Epoch=V4_OldArray
-     SimModel=MDL8OA
+     if [ ! -n "$SimModel" ]; then
+       SimModel=MDL8OA
+     fi
   fi
   if [ "$Epoch" = "NULL" ]; then
-     echo Invalid array specification: $a
+     echo Invalid array specification: $EPOCHSPEC
      exit
   fi
 
-  #winter/summ season atm spec
-  a=$3
+  #winter/summer season atm spec
   local SeasonID=NULL
-  if [ "$a" = "W" ]; then
+  if [ "$SEASONSPEC" = "W" ]; then
     SeasonID='21'
   fi
-  if [ "$a" = "S" ]; then
+  if [ "$SEASONSPEC" = "S" ]; then
     SeasonID='22'
   fi
   if [ "$SeasonID" = "NULL" ]; then
-     echo Invalid winter/summer specification: $a
+     echo Invalid winter/summer specification: $SEASONSPEC
      exit
   fi 
   #echo SeasonID: $SeasonID 'for ' $3
 
-  local zenith=$4
-  local azimuth=$5
-  if [ -n "$6" ]; then
-     local VBFoffsetID=$6
+  if [ -n "$VBFoffsetID" ]; then
+    if [ "$VBFoffsetID" = "-1" ]; then
+     VBFoffsetID=""           #Set to zero length string which is what -n tests for
+    fi
   fi
-
+ 
   ###################################################
   # Ready to build VBF file name (From OAWG 2.5 wiki page)
   ###################################################
@@ -166,7 +181,7 @@ function GenerateVBFName()
 
   VBFFILENAME=$PRIMARY'_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_zen'$zenith
   VBFFILENAME=$VBFFILENAME'deg_az'$azimuth'deg'
-  if [ -n "$6" ]; then
+  if [ -n "$VBFoffsetID" ]; then
       VBFFILENAME=$VBFFILENAME'_'$VBFoffsetID'wobb'
   fi
   VBFFILENAME=$VBFFILENAME'.vbf'
