@@ -28,6 +28,8 @@ MaxQsubsDefault=475           #with ksProduction and only want to make
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
+EdisonUseGSCRATCH=enabled     #Edison uses Global Scratch (carvers scratch) 
+                                #for data source/destination.
 
 ############################################################
 # Force the Check files to match shower entry numberes to those used in ksProduction.scr
@@ -391,7 +393,7 @@ function SubmitHtarToArchive()
   echo ShDr: $ShDr
   echo ALTSHDR: $ALTSHDR
   #################################
-  #Wait for romm for next file in queue
+  #Wait for room for next file in queue
   #################################
   
   if [ -n  "$LimitSubmissions" ]; then
@@ -419,7 +421,6 @@ function SubmitHtarToArchive()
   fi
   cd $local
 
-
   #build a submission .pbs file
   sgeFile=$ShDr'HTAR.pbs'
   sgeDoneFile=$sgeFile'.Done'
@@ -427,24 +428,22 @@ function SubmitHtarToArchive()
       rm $sgeDoneFile
   fi
 
+  if [ -n "$EDISON" ]; then
+	QUEUE=xfer
+        QSUBEXT=" "
+  fi
+
   sgeFile=$lcl'/'$sgeFile
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=$WALLTIME                               >>$sgeFile
-  if [ -n "$MEMREQUEST" ]; then
-    echo "#PBS " $MEMREQUEST                                      >>$sgeFile
-  fi
+  echo "#PBS " $MEMREQUEST                                        >>$sgeFile
   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
   echo cd $SourceDir                                              >>$sgeFile
-  if [ -n "$EDISON" ]; then
-    echo 'tar -cvf '$ShDr'.tar   ./'$ShDr                         >>$sgeFile
-    echo 'hsi "firewall -on; put '$ShDr'.tar : '$Dst'/'$ShDr'.tar "' >>$sgeFile
-    echo 'rm '$ShDr'.tar'                                         >>$sgeFile
-  else
-     echo htar -cvf  $Dst'/'$ShDr'.tar  ./'$ShDr                  >>$sgeFile
-  fi
+  echo htar -cvf  $Dst'/'$ShDr'.tar  ./'$ShDr                     >>$sgeFile
+
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
     echo $sgeDoneFile >>$QsubDoneList #add the next one
@@ -493,6 +492,10 @@ function SubmitHtarFromArchive()
   sgeDoneFile=$sgeFile'.Done'
   if [ -n  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
       rm $sgeDoneFile
+  fi
+  if [ -n "$EDISON" ]; then
+	QUEUE=xfer
+        QSUBEXT=" "
   fi
   
   sgeFile=$lcl'/'$sgeFile
@@ -627,12 +630,15 @@ hostString=${host:0:6}
 if test  "$hostString" = "edison"  #Are we running on Edison
 then
   EDISON=enabled
-  VDirBase=$SCRATCH'/simulations/veritas/'
+  if [ -n "$EdisonUseGSCRATCH" ]; then
+	VDirBase=$GSCRATCH'/simulations/veritas/'
+  else
+	VDirBase=$SCRATCH'/simulations/veritas/'
+  fi
   JobIDHost='edison'
   QUEUE=serial
-  WALLTIME=06:00:00
-
   QSUBEXT='.serial'
+  WALLTIME=06:00:00
   echo '***Edison Cluster***'
   if [ -n "$LimitSubmissions" ]; then
     let MaxQsubs=$MaxQsubsDefault
@@ -964,7 +970,8 @@ while test $izn -lt $iznEnd
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
      if [ -n "$EDISON" ] || [ -n "$CARVER" ] ; then
-         HtarDir='/home/u/u15013/'$SPECMDL'/'
+         #HtarDir='/home/u/u15013/'$SPECMDL'/'
+         HtarDir="/nersc/projects/veritas/simulations/"
      fi     
  
 
