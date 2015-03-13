@@ -555,7 +555,8 @@ hostString=${host:0:6}
 if test  "$hostString" = "edison"  #Are we running on Edison
 then
   EDISON=enabled
-  VDirBase=$SCRATCH'/simulations/veritas/'
+  #VDirBase=$SCRATCH'/simulations/veritas/'
+  VDirBase=/global/scratch2/sd/u15013/simulations/veritas/
   JobIDHost='edison'
   QUEUE=serial
   QSUBEXT='.serial'

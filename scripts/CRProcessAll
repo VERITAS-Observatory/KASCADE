@@ -6,7 +6,7 @@
 #    20_180Deg
 #$3: Threshold spec ex 45mv or 50 mv
 #$4: Season:teleSpec: Ex WU or SN or WO
-#$5: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
+#$5: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL5UA etc.
 #$6: Array Configuration Input Sub-dir: Ex: ABCD
 #$7: start direction Index. defualt is 0. !!!Ignored for CR
 #$8: end direction Index. defualt is 8.  !!!Ignored for CR
@@ -160,7 +160,8 @@ else
    AZ=${zn_az##*_}
 fi
 
-GenerateVBFName "CR" $ARRAY $SeasonSpec $ZN $AZ    #CR files have no offset!
+GenerateVBFName "CR" $ARRAY $SeasonSpec $ZN $AZ -1 $OUTFILEBASE  
+                                              #CR files have no offset!
 echo Output File Name: $VBFFILENAME
 
 ##############################################################################
