@@ -1876,6 +1876,10 @@ if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
    echo '##########################################################'
    echo '# HTARPedVarZnOffsetS2ToArchive'
    echo '##########################################################'
+   if [ -n "$EDISON" ]; then
+	QUEUE=xfer
+        QSUBEXT=" "
+   fi
    cd $lcl
    date
 fi  
@@ -2019,21 +2023,27 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         ##################################################################
         # Make up Pedvar .tar file name
 	   PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
-	   PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR'1234M2.root'
-              
+     	   if [ "$SPECPART" = "CR" ]; then
+             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ #No wbl for CR
+       	   else
+             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+           fi
+           BaseFileS2=${VBFFILENAME%%_az*}
+	   PVFILESPEC='PedVar*'$BaseFileS2'*'$WBL'wobb.root'
 	   SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
        if [ -n "$HTARPedVarZnOffsetS2FromArchive" ]; then
          #*****************************************************************
-         #For each of ZN Az, and  Offset combination we recover a tar file of all
+         #For each of ZN Az, and  Offset combination we recover a tar file of 
+         # all
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
+	 PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
 
-	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
+	 SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
 
@@ -2043,20 +2053,19 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         # the files with that Zn Az and Offset and all  PedVar (9 files)
         ##################################################################
         # Make up Pedvar .tar file name
-	   if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then  #Check Archive Directory exists 
-	       echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
-	       hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
-	       echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
-	   fi
-	   PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
-	   if [ -n "$TELCUT" ]; then
-	       PedVarHTARFile=$PedVarHTARFile$TelConfig
-	   fi
+	  if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then
+             #Check Archive Directory exists 
+	    hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
+	    echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
+	  fi
+	  PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	  if [ -n "$TELCUT" ]; then
+	      PedVarHTARFile=$PedVarHTARFile$TelConfig
+	  fi
 
-	   PedVarHTARFile=$PedVarHTARFile'.tar'
+	  PedVarHTARFile=$PedVarHTARFile'.tar'
 
-
-	   PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
+	  PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
               
 	   SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
