@@ -2,6 +2,7 @@
 #  ./KSAuto.scr G S U 1 0,45,90,135,180 45mv MDL10U ABCD 64954StdCuts.root 
 #       >Check.log  with "CheckGeneratedTeFiles=enabled" enabled.
 #$2 Threshold: 45mv or 50mv 
+#$3 Results Disk: Local SV or global GSV (Edison only, otherwise ignored)
 ##From this file we will make a list Missing Te file
 
 
@@ -10,7 +11,8 @@ function usage()
  echo '***ReDoMissingTeFile usage:'
  echo '   $1: File with Missing Te Files in form: File Not found: SOG1_135Deg2DGeV36550te.d8'
  echo '   $2: Threshold: 45mv or 50mv'
- echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log   50mv'
+ echo '   $3: Results Disk (Edison only): SV or GSV (default is SV)'
+ echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log  50mv  GSV'
  echo '***'
 }
 
@@ -73,7 +75,7 @@ fi
   fi
   
   echo hostString: $hostString
-  
+
   if [ -n "$CARVER" ]; then
     dataDirBase=$SCRATCH/simulations
     #dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
@@ -84,6 +86,11 @@ fi
 
   if [ -n "$EDISON" ]; then
     dataDirBase=$SCRATCH/simulations
+    if [ -n "$DatDirFlag" ]; then
+      if [ "$DatDirFlag" = "GSV" ]; then   #Edison is only place we need to 
+       dataDirBase=$GSCRATCH/simulations   #do this.
+      fi
+    fi
     #dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
     echo Edison Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
@@ -205,6 +212,9 @@ fi
 
 CheckFile=$1
 THR=$2
+if [ -n "$3" ]; then
+  DatDirFlag=$3
+fi
 
 setup
 
