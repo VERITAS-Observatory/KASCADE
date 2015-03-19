@@ -1,13 +1,40 @@
-#bin/bash
+#!/bin/bash
+#Removes jobs from the queue
+#Two ways to define which jobs:
+#$1 File.name  with lines from "qstat -u sembrosk|grep sembrosk >File.name
+#   or 
 #$1 start entry
 #$2 end entry
 #$3 = "[]" or not.
-let i=$1
-let end=$2
-source ~/.bashrc.ext
 
-while test $i -le $end
- do
-  qdel $i$3
-  let i=i+1
-done
+
+FileName=$1
+host=$(hostname)
+echo host: $host
+hostString=${host:0:6}
+if test  "$hostString" = "edison"  #Are we running on Edison
+then
+  QSUBEXT='.serial'
+  echo '***Edison Cluster***'
+fi
+
+if [ -e "$FileName" ]; then
+  echo Deleting from queue process ID\'s in file: $FileName
+  source ~/.bashrc.ext
+  while read FullJobid theRestOfTheLine
+   do
+      jobid=${FullJobid%%.*}
+      echo $FullJobid
+      qdel$QSUBEXT $jobid
+   done<$FileName
+else
+
+  let i=$1
+  let end=$2
+  source ~/.bashrc.ext
+  while test $i -le $end
+   do
+    qdel $i$3
+    let i=i+1
+   done
+fi
