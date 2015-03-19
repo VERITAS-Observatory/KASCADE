@@ -20,8 +20,8 @@ function setup()
 {
   lcl=$PWD
 
-  host=$(hostname)
-  hostString=${host:0:6}
+  local host=$(hostname)
+  local hostString=${host:0:6}
   if test  "$hostString" = "cvrsvc"  #Are we running on Carver
     then
      CARVER=enabled
