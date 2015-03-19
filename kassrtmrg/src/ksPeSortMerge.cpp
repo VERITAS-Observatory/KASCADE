@@ -21,7 +21,8 @@
 #include "KSPeFile.h"
 
 bool ksCheckSort(int nxold, int nyold, KSPeData* pfPe);
-const int kSortMax=2000000;
+//const int kSortMax=2000000;
+const int kSortMax=20000000;
 
 class FileAndPe
 {
