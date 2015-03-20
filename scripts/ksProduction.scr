@@ -83,12 +83,7 @@ function Protons()
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
-
- #          let iEntryStart=1
- #          let iEntryEnd=45
- #           let iEntryStart=23
- #           let iEntryEnd=23
- #Reverse order (prefered)
+    #Reverse order (prefered)
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
@@ -172,10 +167,6 @@ function Helium4()
    #**********************************************************************
    #Submit in reverse order so the longest start first.
    #**********************************************************************
-
-   #        let iEntryStart=1
-   #        let iEntryEnd=45
- #Reverse order (prefered)
 	   let j=$iEntryEnd
            while test $j -ge $iEntryStart
             do	
@@ -287,11 +278,6 @@ function CosmicRay()
     #**********************************************************************
     #Submit in reverse order so the longest start first.
     #**********************************************************************
-      #let iPEntryStart=1
-      #let iHe4EntryStart=5  #Normal start for helium
-      #let iPEntryEnd=42
-      #let iHe4EntryEnd=42          #36 is 10% end
-
       let iEntryEnd=$iPEntryEnd
       if test $iPEntryEnd -lt $iHe4EntryEnd 
        then
@@ -491,30 +477,24 @@ function Gammas()
 
    fi
 
-
-#HANSEN-COATES
+ #HANSEN-COATES 
    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
-    #**********************************************************************
-    # Submit in reverse order so the longest start first.
-    # iEntryStart and iEntryEnd set in main 
-    #**********************************************************************
-      #Reverse order (prefered)
-      let j=$iEntryEnd
-      while test $j -ge $iEntryStart
-        do	
-          eGeV=${energy[$j]} 
-          let E=${eGeV%%.*}    #Need an integer for the test
-	  if [ "$E" -lt "550" ]; then
-            BuildAndSubmitHansenJobsBy10 $j 
-          else
-	     if [ "$E" -lt "20000" ]; then
-	        BuildAndSubmitHansenJobsSingly $j
-             else
-		BuildAndSubmitHansenJobsByNode $j 
-	     fi
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     # iEntryStart and iEntryEnd set in main 
+     #**********************************************************************
+     #Reverse order (prefered)
+     let j=$iEntryEnd
+     while test $j -ge $iEntryStart
+       do	
+         if test $j -le 19
+         then
+           BuildAndSubmitHansenJobs $j 
+	 else
+	   BuildAndSubmitHansenJobsSingly $j
          fi
          let j=j-1		
-        done
+       done
    fi
 }
 
@@ -617,29 +597,24 @@ DefineShowers 'E' $MDL
             done
     fi
 
-#HANSEN-COATES
+ #HANSEN-COATES 
    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
-    #**********************************************************************
-    # Submit in reverse order so the longest start first.
-    # iEntryStart and iEntryEnd set in main 
-    #**********************************************************************
-      #Reverse order (prefered)
-      let j=$iEntryEnd
-      while test $j -ge $iEntryStart
-        do	
-          eGeV=${energy[$j]} 
-          let E=${eGeV%%.*}    #Need an integer for the test
-	  if [ "$E" -lt "550" ]; then
-            BuildAndSubmitHansenJobsBy10 $j 
-          else
-	     if [ "$E" -lt "20000" ]; then
-	        BuildAndSubmitHansenJobsSingly $j
-             else
-		BuildAndSubmitHansenJobsByNode $j 
-	     fi
+     #**********************************************************************
+     #Submit in reverse order so the longest start first.
+     # iEntryStart and iEntryEnd set in main 
+     #**********************************************************************
+     #Reverse order (prefered)
+     let j=$iEntryEnd
+     while test $j -ge $iEntryStart
+       do	
+         if test $j -le 19
+         then
+           BuildAndSubmitHansenJobs $j 
+	 else
+	   BuildAndSubmitHansenJobsSingly $j
          fi
          let j=j-1		
-        done
+       done
    fi
 }
 #**************************************************************************
@@ -662,10 +637,10 @@ function BuildAndSubmitHansenJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  if [ "$E" -gt "20000" ]; then
-   echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
-   echo "#"PBS -l walltime=$WALTIMESTANDBY    >>$sgeFile
-   #echo "#"PBS -q $QUEUEPHYSICS                >$sgeFile
-   #echo "#"PBS -l walltime=$WALLTIMEPHYSICS   >>$sgeFile
+   #echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
+   #echo "#"PBS -l walltime=$WALTIMESTANDBY    >>$sgeFile
+   echo "#"PBS -q $QUEUEPHYSICS                >$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEPHYSICS   >>$sgeFile
  else
    echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
    echo "#"PBS -l walltime=$WALLTIMESTANDBY   >>$sgeFile
@@ -739,6 +714,9 @@ function BuildAndSubmitHansenJobsBy10()
    let i=$i+$Stepsize
   done
 }
+#####################################################################
+
+
 function BuildAndSubmitHansenJobsByNode()
 #**********************************************************************
 # Cause HANSEN or COATES cluster jobs to be submitted in groups of $JobsPerNode
@@ -1047,7 +1025,7 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   QUEUE=serial
-  WALLTIME=30:00:00
+  WALLTIME=20:00:00
   MEMREQUEST='pvmem=8GB'
   echo ***Carver Cluster***
 fi
@@ -1057,7 +1035,7 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
 then
   HANSEN=enabled
   QUEUEPHYSICS=physics
-  WALLTIMEPHYSICS=30:00:00
+  WALLTIMEPHYSICS=20:00:00
   QUEUESTANDBY=standby
   WALLTIMESTANDBY=04:00:00
   QUEUE=$QUEUEPHYSICS
@@ -1069,7 +1047,7 @@ then
   COATES=enabled
   QUEUESTANDBY=standby
   QUEUE=$QUEUEPHYSICS
-  WALLTIME=30:00:00
+  WALLTIME=20:00:00
   #WALLTIME=04:00:00
   MEMREQUEST='mem=8GB'
 fi
