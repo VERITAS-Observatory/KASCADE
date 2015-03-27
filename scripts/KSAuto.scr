@@ -332,9 +332,13 @@ function CheckList()
       echo "#"PBS -q $QUEUE                                        >$sgeFile
     fi
     echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
-    echo "#PBS " $MEMREQUEST                                   >>$sgeFile
-
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+    echo "#PBS " $MEMREQUEST                                      >>$sgeFile
+    if [ -n "$CONTE" ]; then
+      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
+      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
+      echo module load devel                                      >>$sgeFile
+    fi
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
       echo source /etc/profile                                    >>$sgeFile
       echo module load gcc/4.7.2                                  >>$sgeFile
     fi
@@ -437,7 +441,12 @@ function SubmitHtarToArchive()
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=$WALLTIME                               >>$sgeFile
   echo "#PBS " $MEMREQUEST                                        >>$sgeFile
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
+  if [ -n "$CONTE" ]; then
+      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
+      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
+      echo module load devel                                      >>$sgeFile
+  fi
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
@@ -502,7 +511,12 @@ function SubmitHtarFromArchive()
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=$WALLTIME                        >>$sgeFile
   echo "#PBS " $MEMREQUEST                                 >>$sgeFile
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+  if [ -n "$CONTE" ]; then
+    echo "#"PBS -l nodes=1:ppn=1                           >>$sgeFile
+    echo "#"PBS -l naccesspolicy=shared                    >>$sgeFile
+    echo module load devel                                 >>$sgeFile
+  fi
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
@@ -676,6 +690,22 @@ if test  "$hostString" = "coates"  #Are we running on coates
   echo ***Coates Cluster***
   if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
+     let MaxQsubs=$MaxQsubsDefault
+     let MaxHTARQsubs=9  
+  fi
+fi
+
+hostString=${host:0:5}
+if test  "$hostString" = "conte"  #Are we running on conte
+ then
+  CONTE=enabled
+  VDirBase=$SCRATCH'/simulations/veritas/'
+  JobIDHost='conte-adm'
+  #QUEUE=physics
+  QUEUE=standby
+  WALLTIME=04:00:00
+  echo ***Conte Cluster***
+  if [ -n "$LimitSubmissions" ]; then
      let MaxQsubs=$MaxQsubsDefault
      let MaxHTARQsubs=9  
   fi
@@ -966,7 +996,7 @@ while test $izn -lt $iznEnd
 
      fi
    
-     if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+     if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
      if [ -n "$EDISON" ] || [ -n "$CARVER" ] ; then
