@@ -284,7 +284,7 @@ function SubmitVegasProduction()
     chmod 775 $sgeFile 
     chmod 775 $VEGASScript
     echo qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile
-    qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
+    #qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
 }
 ###############################################################################
 
@@ -1105,9 +1105,9 @@ if [ -n "$GenerateDataStage5Combined" ]; then
      exit
   fi
 
-
-
+  ######################################################################
   #Setup VegasProduction to generate S5 combined Tree.
+  ######################################################################
   GetUniqueNumber
   VSProdFile=VegasProductionS5.$UNIQUE'.scr'
   cp $KASCADEBASE/scripts/VegasProduction.scr $VSProdFile
@@ -1126,9 +1126,19 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmp2 >tmp1
 
   QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
-  cp $VEGAS/../tables/$QUALITYCUTSFILE .
+  echo QUALITYCUTSFILE: $QUALITYCUTSFILE
+  cp -v $VEGAS/../tables/$QUALITYCUTSFILE ./
+  if [ ! -e "$QUALITYCUTSFILE" ]; then
+      echo MDLAuto: Fatal--Can not find find file $VEGAS/../tables/$QUALITYCUTSFILE
+      exit
+  fi
   SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
-  cp $VEGAS/../tables/$SHOWERCUTSFILE .
+  echo SHOWERCUTSFILE: $SHOWERCUTSFILE
+  cp -v $VEGAS/../tables/$SHOWERCUTSFILE ./
+  if [ ! -e "$SHOWERCUTSFILE" ]; then
+      echo MDLAuto: Fatal--Can not find find file $VEGAS/../tables/$SHOWERCUTSFILE
+      exit
+  fi
   FILEBASE=$CUTTYPE'Cuts'
 
   # We do need to set an LT name:Use winter; standard method; gamma ray LT.
@@ -1141,7 +1151,7 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
   sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
   sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  sed '/ShowerCuts=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'           <tmp2 >tmp1
   #################################################################################
   # And set Method to combined for stage5
   # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
