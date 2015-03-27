@@ -7,8 +7,6 @@
 #$2 end entry
 #$3 = "[]" or not.
 
-
-FileName=$1
 host=$(hostname)
 echo host: $host
 hostString=${host:0:6}
@@ -18,7 +16,8 @@ then
   echo '***Edison Cluster***'
 fi
 
-if [ -e "$FileName" ]; then
+if [ -e "$1" ]; then
+  FileName=$1
   echo Deleting from queue process ID\'s in file: $FileName
   source ~/.bashrc.ext
   while read FullJobid theRestOfTheLine
@@ -28,13 +27,13 @@ if [ -e "$FileName" ]; then
       qdel$QSUBEXT $jobid
    done<$FileName
 else
-
+  source ~/.bashrc.ext
   let i=$1
   let end=$2
-  source ~/.bashrc.ext
+  echo $i $end
   while test $i -le $end
    do
-    qdel $i$3
+    qdel$QSUBEXT $i$3
     let i=i+1
    done
 fi
