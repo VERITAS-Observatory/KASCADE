@@ -15,9 +15,8 @@
 #$2 has which script to run:  ksallVBF.scr
 #        ksallVBF.scr is All-singing-all-dancing: ksKascade to ksArrayTrigger
 #$3 Sort processing: Flags that a Sort will be requested and that we
-#   should use the physics queue for the higher energies on Hansen. Not defined 
-#   if jobs
-#   will take less than 4 hours.
+#   should use the physics queue for the higher energies on Hansen/Conte. Not 
+#   defined if jobs will take less than 4 hours.
 #$4 QsubFileNameList file:OPTIONAL: 
 #   This script creats all the .pbs shower files as requested and then submits
 #   them to the appropiate queue itself. All of them.
@@ -98,8 +97,8 @@ function Protons()
     fi
  #***************************************************************************
 
- #HANSEN-COATES 
-   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+ #HANSEN-CONTE-COATES 
+   if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      #**********************************************************************
@@ -181,7 +180,7 @@ function Helium4()
  fi
 
  #HANSEN-COATES
- if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+ if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      #**********************************************************************
@@ -329,7 +328,7 @@ function CosmicRay()
 #***************************************************************************
 
 #HANSEN-COATES
-   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+   if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      #**********************************************************************
@@ -478,7 +477,7 @@ function Gammas()
    fi
 
  #HANSEN-COATES 
-   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+   if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      # iEntryStart and iEntryEnd set in main 
@@ -598,7 +597,7 @@ DefineShowers 'E' $MDL
     fi
 
  #HANSEN-COATES 
-   if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
+   if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
      #**********************************************************************
      #Submit in reverse order so the longest start first.
      # iEntryStart and iEntryEnd set in main 
@@ -623,7 +622,7 @@ DefineShowers 'E' $MDL
 
 function BuildAndSubmitHansenJobs
 #**********************************************************************
-# Cause HANSEN or COATES cluster jobs to be submitted.
+# Cause HANSEN or COATES or CONTE cluster jobs to be submitted.
 # This is the "all showers of one energy in sequence on one core"
 #**********************************************************************
 {
@@ -637,17 +636,19 @@ function BuildAndSubmitHansenJobs
 
  sgeFile=$lcl'/K'$eGeV$pr.pbs
  if [ "$E" -gt "20000" ]; then
-   #echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
-   #echo "#"PBS -l walltime=$WALTIMESTANDBY    >>$sgeFile
    echo "#"PBS -q $QUEUEPHYSICS                >$sgeFile
    echo "#"PBS -l walltime=$WALLTIMEPHYSICS   >>$sgeFile
  else
    echo "#"PBS -q $QUEUESTANDBY                >$sgeFile
    echo "#"PBS -l walltime=$WALLTIMESTANDBY   >>$sgeFile
  fi
-
- echo source /etc/profile                     >>$sgeFile
+ if [ -n "$CONTE" ]; then
+   echo "#"PBS -l nodes=1:ppn=1               >>$sgeFile
+   echo "#"PBS -l naccesspolicy=shared        >>$sgeFile
+   echo module load devel                     >>$sgeFile
+ fi
  echo module load gcc/4.7.2                   >>$sgeFile
+ echo source /etc/profile                     >>$sgeFile
  echo lcl=$PBS_O_WORKDIR                      >>$sgeFile
  echo cd $lcl                                 >>$sgeFile
  echo $ksScript $eGeV $pr $showerStart  \\    >>$sgeFile
@@ -666,7 +667,7 @@ function BuildAndSubmitHansenJobs
 
 function BuildAndSubmitHansenJobsBy10()
 #**********************************************************************
-# Cause HANSEN or COATES cluster jobs to be submitted in groups of 10.
+# Cause HANSEN or COATES or CONTE cluster jobs to be submitted in groups of 10.
 #**********************************************************************
 {
  stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
@@ -695,6 +696,11 @@ function BuildAndSubmitHansenJobsBy10()
    
    echo "#"PBS -q $QUEUESTANDBY                        >$sgeFile
    echo "#"PBS -l walltime=$WALLTIMESTANDBY           >>$sgeFile
+   if [ -n "$CONTE" ]; then
+     echo "#"PBS -l nodes=1:ppn=1                     >>$sgeFile
+     echo "#"PBS -l naccesspolicy=shared              >>$sgeFile
+     echo module load devel                           >>$sgeFile
+   fi
 
    echo source /etc/profile                           >>$sgeFile
    echo module load gcc/4.7.2                         >>$sgeFile
@@ -719,10 +725,10 @@ function BuildAndSubmitHansenJobsBy10()
 
 function BuildAndSubmitHansenJobsByNode()
 #**********************************************************************
-# Cause HANSEN or COATES cluster jobs to be submitted in groups of $JobsPerNode
-# on wholely owned nodes.  Jobs are run in background. Use of /tmp scratch
-# disk will help.  end-start has been set up for be3ts value with $JobsPerNode 
-# the max best for lower energy
+# Cause HANSEN or COATES or CONTE cluster jobs to be submitted in groups 
+# of $JobsPerNode on wholely owned nodes.  Jobs are run in background. Use 
+# of /tmp scratch disk will help.  end-start has been set up for best value 
+# with $JobsPerNode the max best for lower energy
 #**********************************************************************
 {
  pr=$parspec
@@ -779,7 +785,7 @@ function BuildAndSubmitHansenJobsByNode()
 
 function BuildAndSubmitHansenJobsSingly 
 #**********************************************************************
-# Cause HANSEN or COATES  serial jobs to be submitted.
+# Cause HANSEN or COATES or CONTE serial jobs to be submitted.
 # This version submits 1 job per shower. Useful for high energies.
 # Don't use for low energies. The queue manager whill probably chokes 
 # with too many jobs in the queue. Don't know what "too many" is yet.
@@ -798,14 +804,17 @@ function BuildAndSubmitHansenJobsSingly
   do
    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
    if [ "$E" -gt "20000" ]; then
-     #echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
-     #echo "#"PBS -l walltime=$WALLTIMESTANDBY             >>$sgeFile
      echo "#"PBS -q $QUEUEPHYSICS                          >$sgeFile
      echo "#"PBS -l walltime=$WALLTIMEPHYSICS             >>$sgeFile
    else
      echo "#"PBS -q $QUEUESTANDBY                          >$sgeFile
      echo "#"PBS -l walltime=$WALLTIMESTANDBY             >>$sgeFile
    fi
+   if [ -n "$CONTE" ]; then
+     echo "#"PBS -l nodes=1:ppn=1                         >>$sgeFile
+     echo "#"PBS -l naccesspolicy=shared                  >>$sgeFile
+     echo module load devel                               >>$sgeFile
+   fi   
 
    echo source /etc/profile                               >>$sgeFile
    echo module load gcc/4.7.2                             >>$sgeFile
@@ -1052,6 +1061,18 @@ then
   MEMREQUEST='mem=8GB'
 fi
 
+hostString=${host:0:5}
+if test  "$hostString" = "conte"  #Are we running on CONTE
+then
+  CONTE=enabled
+  QUEUEPHYSICS=physics
+  WALLTIMEPHYSICS=20:00:00
+  QUEUESTANDBY=standby
+  WALLTIMESTANDBY=04:00:00
+  QUEUE=$QUEUEPHYSICS
+  MEMREQUEST='mem=8GB'
+fi
+
 hostString=${host:0:6}
 if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
 then
@@ -1154,6 +1175,18 @@ if [ -n "$HANSEN" ]; then
         echo Hansen:Sort: $Sort
     fi
 fi
+if [ -n "$CONTE" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Conte Data dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH                     
+    JobsPerNode=32
+    NumCores=32
+    if [ "$3" = "Sort" ]; then
+	Sort=enabled
+        echo Conte:Sort: $Sort
+    fi
+fi
 
 if [ -n "$COATES" ]; then
     dataDirBase=$SCRATCH'/simulations'
@@ -1204,7 +1237,7 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
                                         #WWCR20DegN0.3Deg50mv1234M2
 
     if [ -n "$CARVER" ] || [ -n "$HANSEN" ] || [ -n "$COATES" ] ||
-       [ -n "$EDISON" ] || [ -n "$FUSION" ]; then
+       [ -n "$CONTE" ] || [ -n "$EDISON" ] || [ -n "$FUSION" ]; then
       #Protons
        protonParspec=$AtmSpec$TelSpec'P'$spec
        protonDatadir="$dataDirBase/protons"
@@ -1360,9 +1393,6 @@ if [ -n "$ISIS" ]; then
     jobNum=$((jobNum+1))
     done
 fi
-
-
-#Nothing for EDISON,CARVER,HANSEN,COATES
 
 
 ###########################################################################
