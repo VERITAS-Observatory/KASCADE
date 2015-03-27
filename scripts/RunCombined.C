@@ -54,8 +54,8 @@ double fRunLengthSec=1200;
 bool useCutMask=false;
 //bool useCutMask=true;
 
-bool fNormPeaks=false;
-//bool fNormPeaks=true;                  //For Compare Runs
+bool fNormPeaks=false;                  //For Compare Runs
+bool fNormArea=false;
 
 bool fOldArray=false;
 
@@ -89,11 +89,13 @@ void SetOldArray()
 void SetNormalizeByPeaks() 
 {
   fNormPeaks=true;
+  fNormArea=false;
  return;
 }
 
 void SetNormalizeByAreas()
 {
+  fNormArea=true;
   fNormPeaks=false;
   return;
 }
@@ -528,19 +530,47 @@ void CompareRuns(std::string* pfRunNames, int fNumRuns, std::string* pfTels)
   fC1->Divide(2,3);
   fC1->cd(1);
   fPlotOption=" ";
-  ScaleAndPlot(pfR1Width,fNumRuns,fNormPeaks,true);
-  fC1->cd(2);
-  ScaleAndPlot(pfR1Length,fNumRuns,fNormPeaks,false);
-  fC1->cd(3);
-  ScaleAndPlot(pfR1Size,fNumRuns,fNormPeaks,false);
-  fC1->cd(4);
-  ScaleAndPlot(pfR1Max3,fNumRuns,fNormPeaks,false);
-  fC1->cd(5);
-  ScaleAndPlot(pfR1LOverS,fNumRuns,fNormPeaks,false);
-  fC1->cd(6);
-  ScaleAndPlot(pfR1NPixels,fNumRuns,fNormPeaks,false);
-
-
+  if (fNormPeaks) {
+    ScaleAndPlot(pfR1Width,fNumRuns,true,true);
+    fC1->cd(2);
+    ScaleAndPlot(pfR1Length,fNumRuns,true,false);
+    fC1->cd(3);
+    ScaleAndPlot(pfR1Size,fNumRuns,true,false);
+    fC1->cd(4);
+    ScaleAndPlot(pfR1Max3,fNumRuns,true,false);
+    fC1->cd(5);
+    ScaleAndPlot(pfR1LOverS,fNumRuns,true,false);
+    fC1->cd(6);
+    ScaleAndPlot(pfR1NPixels,fNumRuns,true,false);
+  }
+  else{
+    if(fNormArea) {
+	ScaleAndPlot(pfR1Width,fNumRuns,false,true);
+	fC1->cd(2);
+	ScaleAndPlot(pfR1Length,fNumRuns,false,false);
+	fC1->cd(3);
+	ScaleAndPlot(pfR1Size,fNumRuns,false,false);
+	fC1->cd(4);
+	ScaleAndPlot(pfR1Max3,fNumRuns,false,false);
+	fC1->cd(5);
+	ScaleAndPlot(pfR1LOverS,fNumRuns,false,false);
+	fC1->cd(6);
+	ScaleAndPlot(pfR1NPixels,fNumRuns,false,false);
+      }
+      else{
+	ScaleAndPlot(pfR1Width,fNumRuns,false,true);
+	fC1->cd(2);
+	ScaleAndPlot(pfR1Length,fNumRuns,false,false);
+	fC1->cd(3);
+	ScaleAndPlot(pfR1Size,fNumRuns,true,false);
+	fC1->cd(4);
+	ScaleAndPlot(pfR1Max3,fNumRuns,false,false);
+	fC1->cd(5);
+	ScaleAndPlot(pfR1LOverS,fNumRuns,false,false);
+	fC1->cd(6);
+	ScaleAndPlot(pfR1NPixels,fNumRuns,false,false);
+      }
+  }
   return;
 }
 
