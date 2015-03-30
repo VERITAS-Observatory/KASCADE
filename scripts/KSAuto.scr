@@ -1234,9 +1234,23 @@ while test $izn -lt $iznEnd
          #Read in the $SPECMDL.txt file and set params
          ################################################################
          echo 'KSAuto: Setting ksAomega'$TELCONFIG$Threshold'('$ARRAYCONFIG').config files to '$SPECMDL'.dat values'
+         
+         MDLFILE=$lcl'/'$SPECMDL".dat"
+	 if [ !  -e "$MDLFILE" ]; then
+             MDLKASFILE=$KASCADEBASE'/inputs/'$SPECMDL".dat"
+	     if [ ! -e "$MDLKASFILE" ]; then
+                echo 'KSAUTO: Fatal-Can not find files ' $MDLFILE ' or ' $MDLKASFILE
+		exit
+             else
+		 cp -v $MDLKASFILE $MDLFILE
+             fi
+         fi
 
 	 PFile=$lcl'/../simulations/veritas/'$REFDATAFILE
- 
+	 if [ ! -e "$PFile" ]; then
+	     echo 'KSAuto: fatal - Can not find file ' $PFile
+	     exit
+         fi
 	 {
 	     while read tel threshold noise eff gain 
 	       do
@@ -1257,7 +1271,7 @@ while test $izn -lt $iznEnd
 	       fi
 	       sed '5 a \#This is special for tel '$tel'.'<tmp2 >$tel'.config'
 	     done
-	     }<$lcl'/'$SPECMDL".dat"
+	     }<$MDLFILE
 
 	 mv  -f T1.config ksAomega$TELCONFIG$Threshold$T1'.config'
 	 mv  -f T2.config ksAomega$TELCONFIG$Threshold$T2'.config'
