@@ -28,7 +28,7 @@ MaxQsubsDefault=475           #with ksProduction and only want to make
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
-EdisonUseGSCRATCH=enabled     #Edison uses Global Scratch (carvers scratch) 
+#EdisonUseGSCRATCH=enabled     #Edison uses Global Scratch (carvers scratch) 
                                 #for data source/destination.
 
 ############################################################
