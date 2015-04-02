@@ -13,7 +13,6 @@
 # We may want a function that makes sure all scripts are in placeeanup
 ##########################################################################
 
-
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
 LimitSubmissions=enabled      #Enable if you want to generate Shower files 
@@ -846,7 +845,20 @@ if [ -n "$LimitSubmissions" ]; then
   fi
 fi
 
-
+if [ -n "$GenerateTeFiles" ]; then
+  KSPROD=$lcl'/ksProduction.scr'
+  if  [ ! -e "$KSPROD" ]; then
+    echo 'KSAuto: Bringing in a new ksProduction.scr'
+    cp -v $KASCADEBASE/scripts/ksProduction.scr $KSPROD
+  fi
+fi
+if [ -n "$GenerateShowerVBFFiles" ]; then
+  KSPROD=$lcl'/../simulations/veritas/ksProduction.scr'
+  if  [ ! -e "$KSPROD" ]; then
+    echo 'KSAuto: Bringing in a new ksProduction.scr'
+    cp -v $KASCADEBASE/scripts/ksProduction.scr $KSPROD
+  fi
+fi
 
 #########################################################################
 #now we loop
@@ -913,8 +925,8 @@ while test $izn -lt $iznEnd
        rm tmp1
        rm tmp2
        ####################################################################
-
-       if [ "$SPECPART" = "CR" ]; then
+ 
+        if [ "$SPECPART" = "CR" ]; then
             echo "KSAuto: Submitting ksProduction for " $ksProdSpec" Energy entries: P:"  $EntryPStart 'to' $EntryPEnd 'and He4:' $EntryHe4Start 'to' $EntryHe4End
        else
             echo "KSAuto: Submitting ksProduction for " $ksProdSpec" Energy entries "$EnergyStart" to "$EnergyEnd
@@ -1218,9 +1230,6 @@ while test $izn -lt $iznEnd
 	 echo '##########################################################'
 	 echo 'KSAuto: Generating ksAomega config files from '$SPECMDL'.dat'
 
-         #LightConeEff=0.45
-         LightConeEff=0.80
-         echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
 	 cd $KASCADEBASE/inputs
 	 rm -f tmp1
          rm -f tmp2
@@ -1241,9 +1250,26 @@ while test $izn -lt $iznEnd
          #Read in the $SPECMDL.txt file and set params
          ################################################################
          echo 'KSAuto: Setting ksAomega'$TELCONFIG$Threshold'('$ARRAYCONFIG').config files to '$SPECMDL'.dat values'
+         #LightConeEff=0.45
+         LightConeEff=0.80
+         echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
+         
+         MDLFILE=$lcl'/'$SPECMDL".dat"
+	 if [ !  -e "$MDLFILE" ]; then
+             MDLKASFILE=$KASCADEBASE'/inputs/'$SPECMDL".dat"
+	     if [ ! -e "$MDLKASFILE" ]; then
+                echo 'KSAUTO: Fatal-Can not find files ' $MDLFILE ' or ' $MDLKASFILE
+		exit
+             else
+		 cp -v $MDLKASFILE $MDLFILE
+             fi
+         fi
 
 	 PFile=$lcl'/../simulations/veritas/'$REFDATAFILE
- 
+	 if [ ! -e "$PFile" ]; then
+	     echo 'KSAuto: fatal - Can not find file ' $PFile
+	     exit
+         fi
 	 {
 	     while read tel threshold noise eff gain 
 	       do
@@ -1265,7 +1291,7 @@ while test $izn -lt $iznEnd
 	       fi
 	       sed '5 a \#This is special for tel '$tel'.'<tmp2 >$tel'.config'
 	     done
-	     }<$lcl'/'$SPECMDL".dat"
+	     }<$MDLFILE
 
 	 mv  -f T1.config ksAomega$TELCONFIG$Threshold$T1'.config'
 	 mv  -f T2.config ksAomega$TELCONFIG$Threshold$T2'.config'
