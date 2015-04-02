@@ -28,7 +28,7 @@ MaxQsubsDefault=475           #with ksProduction and only want to make
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
-EdisonUseGSCRATCH=enabled     #Edison uses Global Scratch (carvers scratch) 
+#EdisonUseGSCRATCH=enabled     #Edison uses Global Scratch (carvers scratch) 
                                 #for data source/destination.
 
 ############################################################
@@ -1218,6 +1218,9 @@ while test $izn -lt $iznEnd
 	 echo '##########################################################'
 	 echo 'KSAuto: Generating ksAomega config files from '$SPECMDL'.dat'
 
+         #LightConeEff=0.45
+         LightConeEff=0.80
+         echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
 	 cd $KASCADEBASE/inputs
 	 rm -f tmp1
          rm -f tmp2
@@ -1250,7 +1253,8 @@ while test $izn -lt $iznEnd
 	       sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmp1 >tmp2
 	       sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2 >tmp1
 	       sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1 >tmp2
-	       sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
+               sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2 >tmp1
+	       #sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
 	       sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1 >tmp2
 	       if [ "$PMT" = "U" ]; then
 		   sed '/SinglePeRiseTimeNS/s/0/1.7/g'           <tmp2 >tmp1
