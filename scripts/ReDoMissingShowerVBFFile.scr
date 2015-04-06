@@ -33,7 +33,7 @@ function setup()
     WALLTIME1=03:00:00
     #WALLTIME1=03:00:00
     WALLTIME2=$WALLTIME1
-    MEMREQEST='vmem=8GB '
+    MEMREQUEST='vmem=8GB '
     QSUBEXT='.serial'
     SUBMITLIMIT=175
     echo '***Edison Cluster***'
@@ -48,9 +48,9 @@ function setup()
      QUEUE1=$CarverQueue
      QUEUE2=$CarverQueue
      QUEUE=$QUEUE1
-     WALLTIME1=30:00:00
-     WALLTIME2=30:00:00
-     MEMREQEST='pvmem=30GB'
+     WALLTIME1=20:00:00
+     WALLTIME2=20:00:00
+     MEMREQUEST='pvmem=30GB'
      SUBMITLIMIT=950
      echo ***Carver Cluster***
   fi
@@ -62,9 +62,9 @@ function setup()
       QUEUE1=physics
       QUEUE2=standby
       QUEUE=$QUEUE1
-      WALLTIME1=30:00:00
+      WALLTIME1=20:00:00
       WALLTIME2=04:00:00
-      MEMREQEST='mem=30GB'
+      MEMREQUEST='mem=30GB'
       SUBMITLIMIT=950
       echo ***Hansen Cluster***
   fi
@@ -76,13 +76,27 @@ function setup()
       QUEUE1=physics
       QUEUE2=standby
       QUEUE=$QUEUE1
-      WALLTIME1=30:00:00
+      WALLTIME1=20:00:00
       WALLTIME2=04:00:00
-      MEMREQEST='mem=20GB'
+      MEMREQUEST='mem=20GB'
       SUBMITLIMIT=950
       echo ***Coats Cluster***
   fi
   
+  hostString=${host:0:5}
+  if test  "$hostString" = "conte"  #Are we running on Conte?
+    then
+      CONTE=enabled
+      QUEUE1=physics
+      QUEUE2=standby
+      QUEUE=$QUEUE1
+      WALLTIME1=20:00:00
+      WALLTIME2=04:00:00
+      MEMREQUEST='mem=8GB'
+      SUBMITLIMIT=950
+      echo '***Conte Cluster***'
+  fi
+
   echo hostString: $hostString
   
   if [ -n "$CARVER" ] || [ -n "$EDISON" ]; then
@@ -102,6 +116,14 @@ function setup()
   if [ -n "$COATES" ]; then
     dataDirBase=$SCRATCH'/simulations'
     echo Coates Data dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH
+  fi
+
+
+  if [ -n "$CONTE" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Conte Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
   fi
@@ -196,14 +218,16 @@ let E=${eGeV%%.*}
  if [ "$E" -gt "20000" ]; then
    echo "#"PBS -q $QUEUE1                                >$sgeFile
    echo "#PBS -l walltime="$WALLTIME1                   >>$sgeFile
-   echo "#"PBS -l $MEMREQEST                            >>$sgeFile
+   echo "#"PBS -l $MEMREQUEST                            >>$sgeFile
  else
    echo "#"PBS -q $QUEUE2                                >$sgeFile
    echo "#PBS -l walltime="$WALLTIME2                   >>$sgeFile
-   echo "#"PBS -l $MEMREQEST                            >>$sgeFile
+   echo "#"PBS -l $MEMREQUEST                            >>$sgeFile
  fi
- echo source /etc/profile                               >>$sgeFile
- echo module load gcc/4.7.2                             >>$sgeFile
+ if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+   echo source /etc/profile                             >>$sgeFile
+   echo module load gcc/4.7.2                           >>$sgeFile
+ fi
  echo $lcl'/ksallVBFShowerVBF.scr '$eGeV $SHWRSPEC \\   >>$sgeFile
  echo $showerID $showerID $datadir $workingDir \\       >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$SHWRSPEC".log" >>$sgeFile
