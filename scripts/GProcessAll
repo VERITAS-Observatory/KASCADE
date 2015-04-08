@@ -234,7 +234,7 @@ while test $i -le $end
     echo date                                                     >>$sgeFile
     echo cd $VDIRBASE'/../../veritas'                             >>$sgeFile
     echo './ksWeRock.scr '$WeRockVBF 98020 1234M2  \\             >>$sgeFile
-    echo $direction $Base ">"$lcl'/'$Base'G'$ZN_AZDEG$wbl'.log'   >>$sgeFile
+    echo $direction $Base ">"$lcl'/'$Base'G'$ZN_AZDEG$WBL'.log'   >>$sgeFile
     echo cd $lcl                                                  >>$sgeFile
     echo mv -v $VDIRBASE'/'$WeRockVBF'1234M2D'$direction$Base'.vbf' $VBFFILENAME >>$sgeFile
     echo date                                                     >>$sgeFile
