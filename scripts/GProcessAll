@@ -221,7 +221,7 @@ while test $i -le $end
     echo Output File Name: $VBFFILENAME
     ###############################################################################
 
-    WeRockVBF=$SEASARRAY'G'$ZN_AZDEG$THRESH 
+    WeRockVBF=$SEASARRAY'G'$ZN_AZDEG'2D'$THRESH 
     sgeFile=$lcl'/'$Base'G'$ZN_AZDEG$WBL'.pbs'
 
     echo "#"!/bin/bash                                             >$sgeFile
