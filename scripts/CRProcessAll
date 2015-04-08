@@ -11,11 +11,29 @@
 #$7: start direction Index. defualt is 0. !!!Ignored for CR
 #$8: end direction Index. defualt is 8.  !!!Ignored for CR
 #################################################################################
+function usage()
+{
+  echo '***CRProcessAll usage:'
+  echo '   $1 Veritas Base Directory  Ex: $SCRATCH/simulations/veritas'
+  echo '   $2:Zn_AZ and threshold specification EX: 20Deg  20_180Deg'
+  echo '   $3:Threshold spec ex 45mv or 50mv'
+  echo '   $4 Season:teleSpec: Ex: WU or SV SO'
+  echo '   $5: Output file BaseName Ex: CrabA or Noise4 or MDL15UA'
+  echo '   $6: Input Sub-dir: Ex: ABCD'
+  echo '   $7: start direction Index. defualt is 0.(=0.0deg)'
+  echo '   $8: end direction Index. defualt is 8.(=2.0deg)'
+  echo ' Ex:  ./GProcessAll V330 1_225Deg 50mv SO MDL8OA IJKL 1 1'
+  echo '***'
+}
 
 
 ##################################################################################
 #Main
 ##################################################################################
+if [  ! -n "$6" ]; then
+        usage
+        exit
+fi
 
 ##################
 # Bring in GenerateVBFName and GetUniqueNumber  functions
@@ -89,6 +107,17 @@ then
   WALLTIME='04:00:00'
   echo '***Coates Cluster:'$QUEUE' queue ***'
 fi
+
+hostString=${host:0:5}
+if test  "$hostString" = "conte"  #Are we running on conte
+then
+  CONTE=enabled
+  QUEUE=standby
+  WALLTIME='04:00:00'
+  MEMREQUEST=' -l mem=8GB'
+  echo '***Conte Cluster:'$QUEUE' queue ***'
+fi
+
 
 SeasonSpec=${SEASARRAY:0:1}
 Base=$SeasonSpec$OUTFILEBASE
