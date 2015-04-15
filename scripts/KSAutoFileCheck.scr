@@ -12,11 +12,6 @@
 #     
 ########################################################################
 
-MinLevel=.3   #VBF minimum file size to be happy with.
-if [ "$3" = "P" ] ||  [ "$3" = "He4_" ]; then
-  MinLevel=.1
-fi
-
 
 function LookForBadPeCounts()
 {
@@ -133,6 +128,23 @@ Threshold=$7
 FileDir=$8
 MDLFLAG=$9
 
+MinLevel=.3   #VBF minimum file size to be happy with.
+eLimit="1000" #VBF minimum energy to look at.
+
+if [ "$Particle" = "P" ] ||  [ "$Particle" = "He4_" ]; then
+  MinLevel=.1
+fi
+
+ZNAZ=${TeName#*$Particle}
+ZNAZ=${ZNAZ%%Deg*}
+ZN=${ZNAZ%%_*}
+echo ZN: $ZN
+
+if [ "$ZN" = "70" ]; then
+  MinLevel=.05
+  eLimit="4000"
+fi
+
 lcl=$PWD
 LOGDIR=$lcl'/log/'
 if [ "$FileType" = "TE" ]; then
@@ -141,10 +153,6 @@ fi
 
 PSF=V190             #until we do Old Array!!! We will need another argument
 #PSF=V330 
-SAP=$2
-ZNAZ=${SAP#*$Particle}
-ZNAZ=${ZNAZ%%Deg*}
-
 # Get the energy start end arrays for the shower specifications.
 if [ "$Particle" = "P" ] ||[ "$Particle" = "He4_" ] ||[ "$Particle" = "G" ] ||[ "$Particle" = "E" ]; then
    if [ ! -e UtilityFunctions.scr ]; then
@@ -206,7 +214,7 @@ while test $jIndex -le $iEntryEnd
 	  ##################################
           # Only check for entry index greater than 20
           if [ "$jIndex" -gt "20" ]; then
-            logFile=$LOGDIR'/ksProduction_'$ENERGY'd'$kIndex$SAP$Threshold'1234M2.log'
+            logFile=$LOGDIR'/ksProduction_'$ENERGY'd'$kIndex$TeName$Threshold'1234M2.log'
             if [ ! -e "$logFile" ]; then
        	      echo No log file $logFile for $NameFile
        	    else
@@ -216,12 +224,11 @@ while test $jIndex -le $iEntryEnd
         fi
         
 	eInt=${ENERGY%%.*}
-        eLimit="1000"
 	#echo eInt: $eInt eLimit: $eLimit
 	if [ "$FileType" = "VBF" ] && [ "$eInt" -gt "$eLimit" ] ; then      
           ################################
-          # Test ShowerVBF file size is at least 30% of average shower size
-          # at this energy.  Start at enegies above 1000 GeV
+          # Test ShowerVBF file size is at least $MinLevel of average shower 
+          # size at this energy.  Start at enegies above eLimit GeV
           ################################
           # Collect info for ShowervBf files at this energy
 	  ls -sl $NameFile >tmp
@@ -261,8 +268,6 @@ if [ "$FileType" = "VBF" ]; then
    do      
     ENERGY=${energy[$jIndex]}
     eInt=${ENERGY%%.*}
-    eLimit="1000"
-
     if [ "$eInt" -gt "$eLimit" ]; then # Limit lowest energy
       if [ "${icount[$jIndex]}" -eq "0" ]; then
        	echo 'KSAutoFileCheck - Fatal - No files for energy: ' $ENERGY 'in directory' $FileDir
