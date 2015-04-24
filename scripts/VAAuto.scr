@@ -14,7 +14,7 @@
 #$7 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
 #$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
 #$9 Threshold: Ex 45mv or 50mv
-#${10} PedVar list: 4.73, 5.55 6.51 or "All" or "Base"
+#${10} PedVar list: 5.18, 5.55 6.51 or "All" or "Base"
 #${11} Specifes Type of LT or DT table to use or make for LT,DT (Ex All or 050)
 #      for S4 and EA gen add particle type src of LT Ex. AllG or AllE or 050G or 050E. 
 #      O50 and All default to Gamma type LT.
@@ -122,7 +122,7 @@ function usage()
   echo ' $7: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
   echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
-  echo ' ${10}: List of PedVar values: 4.73, 5.55 6.51 or "All" or "Base"'
+  echo ' ${10}: List of PedVar values: 5.18, 5.55 6.51 or "All" or "Base"'
   echo ' ${11}: Specifes Type of LT table to use. Ex. All or 050 or ALLE or AllG(same as All)'  
   echo ' ${12}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
   echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
@@ -163,7 +163,7 @@ function GenerateEAFileName()
   a=${Cuts:0:1}
   if [ "$a" = "U" ]; then
      Epoch=V6_PMTUpgrade
-     SimModel=MDL10UA
+     SimModel=MDL12UA
   fi
   if [ "$a" = "N" ]; then
      Epoch=V5_T1Move
@@ -258,7 +258,7 @@ function GenerateLTFileName()
   a=$1
   if [ "$a" = "UA" ]; then
      Epoch=V6_PMTUpgrade
-     SimModel=MDL10UA
+     SimModel=MDL12UA
   fi
   if [ "$a" = "NA" ]; then
      Epoch=V5_T1Move
@@ -919,7 +919,7 @@ fi
 
 if [[ $SPECPV = "All" ]]; then
     if [ $SPECCFG = "UA" ]; then
-      PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+      PedVar=([0]=5.18 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
     fi
     if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
       PedVar=([0]=4.04 4.72 5.51 6.44 7.53 8.79 10.27 12.00)
@@ -1003,7 +1003,7 @@ ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
 AzStr=0,45,90,135,180,225,270,315
 
 if [ $SPECCFG = "UA" ]; then
-   NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+   NoiseStr=5.18,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
 fi
 if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
    NoiseStr=4.04,4.72,5.51,6.44,7.53,8.79,10.27,12.00
@@ -1607,9 +1607,9 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
        fi
  
        if [ "$SPECPART" = "CR" ]; then
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ #No wbl for CR
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #no wbl for CR
        else
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
        fi
        BaseFileS2=${VBFFILENAME%%.vbf}
        ################################################################
@@ -2024,9 +2024,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         # Make up Pedvar .tar file name
 	   PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
      	   if [ "$SPECPART" = "CR" ]; then
-             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ #No wbl for CR
+             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL#No wbl for CR
        	   else
-             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
            fi
            BaseFileS2=${VBFFILENAME%%_az*}
 	   PVFILESPEC='PedVar*'$BaseFileS2'*'$WBL'wobb.root'
@@ -2163,9 +2163,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	     ZnAz=$ZN'_'$AZ'Deg'
 	 fi
 	 if [ "$SPECPART" = "CR" ]; then
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ #No wbl for CR
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #No wbl for CR
          else
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
 	 fi
 	 BaseFileS2=${VBFFILENAME%%.vbf}
          BaseFileS4S5=$BaseFileS2$CUTTYPE'Cuts'
