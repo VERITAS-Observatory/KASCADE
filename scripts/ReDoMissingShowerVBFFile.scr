@@ -64,8 +64,12 @@ function setup()
       QUEUE=$QUEUE1
       WALLTIME1=20:00:00
       WALLTIME2=04:00:00
-      MEMREQUEST='mem=30GB'
+      MEMREQUEST='mem=6GB'
       SUBMITLIMIT=950
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
       echo ***Hansen Cluster***
   fi
 
@@ -92,8 +96,12 @@ function setup()
       QUEUE=$QUEUE1
       WALLTIME1=20:00:00
       WALLTIME2=04:00:00
-      MEMREQUEST='mem=8GB'
+      MEMREQUEST='mem=6GB'
       SUBMITLIMIT=950
+      let NumParaFly=0
+      let NumCores=16
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
       echo '***Conte Cluster***'
   fi
 
@@ -200,7 +208,7 @@ if [ ! -n "$2" ]; then
    echo 'ReDoMissingShowerVBF: Fatal - needs Tel Config (like ABCD)'
    exit
 fi
-SHWRSPEC=$3
+SPECSHWR=$3
 
 let E=${eGeV%%.*}
  
@@ -208,11 +216,11 @@ let E=${eGeV%%.*}
 # assume 45mv threhiold spec
 ####################################################################
 
- parspec=${SHWRSPEC%%1234M2*}1234M2
+ parspec=${SPECSHWR%%1234M2*}1234M2
 
- echo Entry:  $SHWRSPEC $eGeV $showerID
+ echo Entry:  $SPECSHWR $eGeV $showerID
  #Make up the .pbs file name
- sgeFile=$lcl'/K'$eGeV'd'$showerID$SHWRSPEC.pbs
+ sgeFile=$lcl'/K'$eGeV'd'$showerID$SPECSHWR.pbs
 
  #Build the pbs file
  if [ "$E" -gt "20000" ]; then
@@ -228,9 +236,9 @@ let E=${eGeV%%.*}
    echo source /etc/profile                             >>$sgeFile
    echo module load gcc/4.7.2                           >>$sgeFile
  fi
- echo $lcl'/ksallVBFShowerVBF.scr '$eGeV $SHWRSPEC \\   >>$sgeFile
+ echo $lcl'/ksallVBFShowerVBF.scr '$eGeV $SPECSHWR \\   >>$sgeFile
  echo $showerID $showerID $datadir $workingDir \\       >>$sgeFile
- echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$SHWRSPEC".log" >>$sgeFile
+ echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$SPECSHWR".log" >>$sgeFile
 
  chmod 700 $sgeFile
  
@@ -239,10 +247,90 @@ let E=${eGeV%%.*}
  #   echo $sgeFile >>$QsubFileNameList
  #  else
   
- qsub$QSUBEXT -V -e k$eGeV'd'$showerID$SHWRSPEC.err -o k$eGeV'd'$showerID$SHWRSPEC.log $sgeFile 
+ qsub$QSUBEXT -V -e k$eGeV'd'$showerID$SPECSHWR.err -o k$eGeV'd'$showerID$SPECSHWR.log $sgeFile 
 
  #  fi
 
+}
+#**********************************************************************
+function BuildForParaFlySubmission() 
+#**********************************************************************
+# Cause serial jobs to be submitted in a mass form using Parafly
+# This version submits $NumCoreToUse  shower jobs per ParaFly pbs submission
+# Only for the Standby/hansen queue for now.
+# 
+#**********************************************************************
+#$1 energy in GeV
+#$2 showerID
+#$3 particle spec Ex SUG70Deg2D45mv1234M2ABCD
+{
+ eGeV=$1     
+ showerID=$2
+
+ if [ ! -n "$2" ]; then
+   echo 'ReDoMissingShowerVBF: Fatal - needs Tel Config (like ABCD)'
+   exit
+ fi
+ SPECSHWR=$3
+ 
+ let E=${eGeV%%.*}
+ 
+ ####################################################################
+ # assumes 45mv threhold spec
+ ####################################################################
+
+ parspec=${SPECSHWR%%1234M2*}1234M2
+ echo Entry:  $SPECSHWR $eGeV $showerID
+
+ # ****************************************
+ # See if we need to start a new ParaFly file 
+ # ****************************************
+ if [ "$NumParaFly" -eq "0" ]; then
+    GetUniqueNumber
+    ParaFlyFile=$lcl/ParaFly$SPECSHWR'.'$UNIQUE'.cmd'
+    rm $ParaFlyFile
+ fi
+ 
+ # ******************************************
+ # Add command to process this shower.
+ # No continuations allowed in ParaFly cmd file
+ # ******************************************
+ PFLYCMD=$lcl'/ksallVBFShowerVBF.scr '$eGeV' '$SPECSHWR' '$showerID' '$showerID' '$datadir' '$workingDir" >>"$lcl"/ksProduction_"$eGeV'd'$showerID$SPECSHWR".log"
+
+ echo $PFLYCMD  >>$ParaFlyFile
+ NumParaFly=$((NumParaFly+1))
+
+ # See if time to submit this list of commands.
+ if [ "$NumParaFly" -ge "$MaxNumInParaFlyList" ]; then
+    SubmitParaFlyPBSJob
+    let NumParaFly=0
+ fi	
+}
+# *************************************************************************
+
+function SubmitParaFlyPBSJob
+{
+  #Make up the .pbs file name
+  GetUniqueNumber
+  local sgeFile=$lcl/K$UNIQUE$SPECSHWR'.pbs'
+
+  #Build the pbs file (using stndby queue)
+  echo "#"PBS -q $QUEUE2                           >$sgeFile
+  echo "#"PBS -l walltime=$WALLTIME2              >>$sgeFile
+  echo "#"PBS -l $MEMREQUEST                      >>$sgeFile
+  
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+    #Grab a complete Node
+    echo "#"PBS -l nodes=1:ppn=$NumCores          >>$sgeFile 
+    echo source /etc/profile                      >>$sgeFile
+    echo module load gcc/4.7.2                    >>$sgeFile
+  fi
+  # Add the ParaFly Command
+  echo ParaFly -c $ParaFlyFile -CPU $NumThreadsToUse  -failed_cmds FailedCommands$UNIQUE  >>$sgeFile
+ 
+  chmod 700 $sgeFile 
+  
+  qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
 }
 #**********************************************************************
 
@@ -253,6 +341,15 @@ if [  ! -n "$2" ]; then
         usage
         exit
 fi
+
+##################
+# Bring in GetUniqueNumber function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
 
 CheckFile=$1
 TELCONFIG=$2
@@ -281,8 +378,8 @@ grep "File Not found:" $CheckFile >tmp1
 #######################################################
 
   sed '/File Not/s/1234M2GeV/1234M2'$TELCONFIG' /g' <tmp1     >tmp2
-  sed '/File Not/s/\.d/  /g'                         <tmp2     >tmp1
-  sed '/File Not/s/\.vbf/  /g'                       <tmp1     >tmp2
+  sed '/File Not/s/\.d/  /g'                        <tmp2     >tmp1
+  sed '/File Not/s/\.vbf/  /g'                      <tmp1     >tmp2
   sed '/File Not/s/File Not found\:/  /g'           <tmp2     >tmp1
 
 ##############################################################
@@ -297,10 +394,26 @@ let count=0
          exit
        fi
        
+   if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+       let E=${energy%%.*}
+       if [ "$E" -gt "20000" ]; then	
+          BuildAndSubmitJobsSingly $energy $showerID $SHWRSPEC  
+       else
+	  BuildForParaFlySubmission $energy $showerID $SHWRSPEC 
+       fi
+   else
+       
        BuildAndSubmitJobsSingly $energy $showerID $SHWRSPEC  
-       count=$((count+1))
-    done
+   fi
+   count=$((count+1))
+
+  done
 }<tmp1
+
+# Flush Parafly
+if [ "$NumParaFly" -gt "0" ]; then
+   SubmitParaFlyPBSJob
+fi
 
 echo $count ' ShowerVBF file creation submissions'
 
