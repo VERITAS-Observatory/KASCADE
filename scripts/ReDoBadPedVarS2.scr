@@ -32,45 +32,67 @@ grep Bad $BadFile >S2tmp1
 # Parse the bad files names so we can resubmit them to VAAuto
 #################################################################
 
-#########################
-# fist add the _0 to 0 deg az file names in prep for latter 
-#########################
-
-  sed '/Bad/s/1Deg/1_0Deg/g'     <S2tmp1     >S2tmp2
-  sed '/Bad/s/10Deg/10_0Deg/g'   <S2tmp2     >S2tmp1
-  sed '/Bad/s/20Deg/20_0Deg/g'   <S2tmp1     >S2tmp2
-  sed '/Bad/s/30Deg/30_0Deg/g'   <S2tmp2     >S2tmp1
-  sed '/Bad/s/40Deg/40_0Deg/g'   <S2tmp1     >S2tmp2
-  sed '/Bad/s/50Deg/50_0Deg/g'   <S2tmp2     >S2tmp1
-  sed '/Bad/s/60Deg/60_0Deg/g'   <S2tmp1     >S2tmp2
-  sed '/Bad/s/70Deg/70_0Deg/g'   <S2tmp2     >S2tmp1  #Note : Screws up _270Deg here
-  sed '/Bad/s/270_0Deg/270Deg/g' <S2tmp1     >S2tmp2  #Note Fix it
-  cp S2tmp2 S2tmp1                                    #Next parts assumes we start with
-                                                      #S2tmp1
+##########################
+## first add the _0 to 0 deg az file names in prep for latter 
+############################
+#
+#  sed '/Bad/s/1Deg/1_0Deg/g'     <S2tmp1     >S2tmp2
+#  sed '/Bad/s/10Deg/10_0Deg/g'   <S2tmp2     >S2tmp1
+#  sed '/Bad/s/20Deg/20_0Deg/g'   <S2tmp1     >S2tmp2
+#  sed '/Bad/s/30Deg/30_0Deg/g'   <S2tmp2     >S2tmp1
+#  sed '/Bad/s/40Deg/40_0Deg/g'   <S2tmp1     >S2tmp2
+#  sed '/Bad/s/50Deg/50_0Deg/g'   <S2tmp2     >S2tmp1
+#  sed '/Bad/s/60Deg/60_0Deg/g'   <S2tmp1     >S2tmp2
+#  sed '/Bad/s/70Deg/70_0Deg/g'   <S2tmp2     >S2tmp1  #Note : Screws up _270Deg here
+#  sed '/Bad/s/270_0Deg/270Deg/g' <S2tmp1     >S2tmp2  #Note Fix it
+#  cp S2tmp2 S2tmp1                                    #Next parts assumes we start with
+#                                                      #S2tmp1
 #############################################################
 #Now seperate things and remove unwanted stuff
-# Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
+#(Not used anymore) Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
+# Bad: PedVar5.55_gamma_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen20deg_az225deg_0.0wobb.root
 #############################################################
 #This gets a little tricky so that we can use this generally for NA and UA
 #############################################################
-  sed '/Bad/s/1234M2.root/ /g'        <S2tmp1     >S2tmp2   #Remove "1234M2.root"
-  sed '/Bad/s/Wbl/ /g'                <S2tmp2     >S2tmp1   #parse out 45mv or 50mv
-  sed '/Bad/s/Deg2DS/  /g'            <S2tmp1     >S2tmp2   #parse out offset
-  sed '/Bad/s/Deg2D/  /g'             <S2tmp2     >S2tmp1   #Special for 0.0 deg offset
-  sed '/Bad/s/_/  /g'                 <S2tmp1     >S2tmp2   #Parse out aZ
-  sed '/Bad/s/MDL10UA/ MDL10 UA /g'   <S2tmp2     >S2tmp1   #Special for MDL10UA 
-  sed '/Bad/s/MDL15NA/ MDL15 NA /g'   <S2tmp1     >S2tmp2   #Special for MDL15NA
-  sed '/Bad/s/MDL8OA/ MDL8 OA /g'     <S2tmp1     >S2tmp2   #Special for MDL8OA
-  sed '/Bad/s/W/ W /g'                <S2tmp2     >S2tmp1   #Seperate Pedvar and season
-  sed '/Bad/s/S/ S /g'                <S2tmp1     >S2tmp2   #Seperate Pedvar other season
-  sed '/Bad/s/G/ G/g'                 <S2tmp2     >S2tmp1   #Seperate PMT, part type
-  sed '/Bad/s/E/ E/g'                 <S2tmp1     >S2tmp2   #Seperate PMT, part type
-  sed '/Bad/s/Bad: PedVar/ /g'        <S2tmp2     >S2tmp1   #Remove "Bad: PedVar"
+
+
+  sed '/Bad/s/wobb.root/ /g'          <S2tmp1     >S2tmp2   #Remove end
+  sed '/Bad/s/deg_az/  /g'            <S2tmp2     >S2tmp1   #parse out Az and offset
+  sed '/Bad/s/deg_/  /g'              <S2tmp1     >S2tmp2   #seperate Az and Offset
+  sed '/Bad/s/_KASCADE_zen/  /g'      <S2tmp2     >S2tmp1   #Parse out aZ
+  sed '/Bad/s/MDL12UA_V6_PMTUpgrade_ATM/ MDL12 UA 45mv /g'   <S2tmp1     >S2tmp2 
+  sed '/Bad/s/MDL10UA_V6_PMTUpgrade_ATM/ MDL10 UA 45mv /g'   <S2tmp2     >S2tmp1 
+  sed '/Bad/s/MDL15NA_V5_T1Move_ATM/ MDL15 NA 50mv /g'       <S2tmp1     >S2tmp2 
+  sed '/Bad/s/MDL8OA_V4_OldArray_ATM/ MDL8 OA 50mv /g'       <S2tmp2     >S2tmp1 
+  sed '/Bad/s/_/  /g'                 <S2tmp1     >S2tmp2   #Seperate particle type
+  sed '/Bad/s/Bad: PedVar/ /g'        <S2tmp2     >S2tmp1   #Sperate PedVar
 {  
-  while read PV SEASON PMT PTYPE MDL ARRAYTYPE  ZN AZ OFF THRESH
+  while read PV TYPE MDL ARRAYTYPE  THRESH SEASON ZN AZ OFF 
     do
-      	echo Executing: ./VAAuto.scr GenerateStage2Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
-	./VAAuto.scr GenerateStage2Files $SEASON $ARRAYTYPE  $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+      	if [ "$TYPE" = "gamma" ]; then
+	   PTYPE=G
+        fi
+      	if [ "$TYPE" = "proton" ]; then
+	   PTYPE=P
+        fi
+      	if [ "$TYPE" = "He4" ]; then
+	   PTYPE=He4
+        fi
+      	if [ "$TYPE" = "cosmicRay" ]; then
+	   PTYPE=CR
+        fi
+      	if [ "$TYPE" = "electron" ]; then
+	   PTYPE=E
+        fi
+
+        if [ "$SEASON" = "21" ]; then
+	   SEASON=W
+        else
+           SEASON=S
+        fi
+
+	echo Executing: ./VAAuto.scr GenerateStage2FromVBF $SEASON $ARRAYTYPE $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+	./VAAuto.scr GenerateStage2FromVBF $SEASON $ARRAYTYPE $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
     done
 }<S2tmp1
 
