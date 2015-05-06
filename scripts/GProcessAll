@@ -14,7 +14,7 @@
 function usage()
 {
   echo '***GProcessAll usage:'
-  echo '   $1 is PSF subdir  Ex: V330 or V190'
+  echo '   $1 Veritas Base Directory  Ex: $SCRATCH/simulations/veritas'
   echo '   $2:Zn_AZ and threshold specification EX: 20Deg  20_180Deg'
   echo '   $3:Threshold spec ex 45mv or 50mv'
   echo '   $4 Season:teleSpec: Ex WU or SV SO'
