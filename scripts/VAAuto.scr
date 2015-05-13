@@ -470,7 +470,7 @@ function SubmitHtarToArchive()
   sgeFile=$lcl'/'$HTARFileName'To.pbs'
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
@@ -538,7 +538,7 @@ function SubmitHtarFromArchive()
   sgeFile=$lcl'/'$Source'From.pbs'
   echo "#"PBS -q $QUEUE                                     >$sgeFile
   echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
-  if [ -n "$HANSEN" ]  || [ -n "$COATES" ]; then
+  if [ -n "$HANSEN" ]  || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
@@ -588,7 +588,7 @@ function SubmitMultipleSerialJobs()
   if [ -n "$EDISON" ]; then
    echo 'module load ccm'                         >>$sgeFile
   fi
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
   fi
@@ -702,7 +702,7 @@ function SubmitVegasSimProduction()
     if [ -n "$CARVER" ]; then
       echo "#PBS -l nodes=1:ppn=1"                    >>$sgeFile
     fi
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
       echo source /etc/profile                        >>$sgeFile
       echo module load gcc/4.7.2                      >>$sgeFile
     fi
@@ -852,6 +852,21 @@ if test  "$hostString" = "hansen"  #Are we running on Hansen
   #QUEUE=standby
   #WALLTIME=04:00:00
     echo ***Hansen Cluster***
+fi
+
+hostString=${host:0:5}
+if test  "$hostString" = "conte"  #Are we running on Conte
+    then
+    CONTE=enabled
+    ARCHIVE=/archive/fortress/group/veritas/simulations/
+    VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
+    JobIDHost='conte-adm'
+    QUEUE=physics
+    WALLTIME=30:00:00
+    MEMREQUEST='mem=15GB'
+  #QUEUE=standby
+  #WALLTIME=04:00:00
+    echo ***Comte Cluster***
 fi
 
 hostString=${host:0:6}
@@ -1567,7 +1582,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
        sgeFile=$lcl'/'$DISPSUBLTBASE'.pbs'
        echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
        echo "#PBS -l "$MEMREQUEST                      >>$sgeFile
-       if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+       if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
          echo source /etc/profile                      >>$sgeFile
          echo module load gcc/4.7.2                    >>$sgeFile
        fi
@@ -2101,7 +2116,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   sgeFile=$lcl'/'$SUBLTBASE'.pbs'
 	   echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
 	   echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
-	   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+	   if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
 	       echo source /etc/profile                >>$sgeFile
 	       echo module load gcc/4.7.2              >>$sgeFile
 	   fi
@@ -2125,7 +2140,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   sgeFile=$lcl'/'$SUBLTBASE'.pbs'
 	   echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
 	   echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
-	   if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+	   if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
 	       echo source /etc/profile                  >>$sgeFile
 	       echo module load gcc/4.7.2                >>$sgeFile
 	   fi
@@ -2358,7 +2373,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 	 if [ -n "$CARVER" ]; then
 	     echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
 	 fi
-	 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then  
+	 if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then  
 	     echo source /etc/profile                                   >>$sgeFile
 	     echo module load gcc/4.7.2                                 >>$sgeFile
 	 fi
