@@ -501,6 +501,9 @@ function SubmitHtarToArchive()
   if [ -n "$COATES" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Coates "$QUEUE" queue complete."
   fi
+  if [ -n "$CONTE" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Conte "$QUEUE" queue complete."
+  fi
 
   if [ -n "$CARVER" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Carver cluster complete."
@@ -1231,6 +1234,9 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
     #############################################################################
     WALLTIME=15:00:00
+    if [ -n "$HANSEN" ]; then
+       WALLTIME=24:00:00
+    fi
     if [ -n "$CARVER" ]; then
 	MEMREQUEST="pvmem=8GB"
     else
