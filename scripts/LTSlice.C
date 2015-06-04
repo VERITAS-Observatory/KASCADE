@@ -74,6 +74,7 @@ void widthTest(string filename, string table, float impactDist,string option,
     pSlice->SetLineColor(color);
     pSlice->Draw(option.c_str());
   }
-  return;
+  delete pfFile;
+return;
 }
   
