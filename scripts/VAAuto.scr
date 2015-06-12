@@ -67,7 +67,7 @@ function commandEnable()
     echo '    # EA Tables                         # Stage5'
     echo '    # Uses Argument $1-${12}            # Uses Arguments $1-${12}'
     echo '    #------------------------           #------------------------'
-    echo '    GenerateEASubLTListAndConfigFiles   GenerateStage5CombinedFromStage4' 
+    echo '    GenerateEASubLTListAndConfigFiles  GenerateStage5CombinedFromStage4' 
     echo '    ProduceEASubLookupTables'
     echo '    CombineBuildCheckEALT'
     exit
@@ -1278,7 +1278,7 @@ if [ -n "$GenerateStage4FromStage2" ]; then
 
     ###################################################################
     #The standard VegasSimProduction.scr should have all options 
-    #turned off.  We just have to make sure only stage 1 gets run
+    #turned off.  We just have to make sure only stage 4 gets run
     #Sample size:We will need to set integration window size if 
     #different from 7.
     ##################################################################
@@ -1309,18 +1309,28 @@ if [ -n "$GenerateStage4FromStage2" ]; then
     # We also need to set the quality cuts file and the file extention and the 
     # LT name
     ####################################################################
-
     QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
-    cp $VEGAS/../tables/$QUALITYCUTSFILE .
+    QUALCUTSSOURCE=$VEGAS'/../tables/'$QUALITYCUTSFILE
+    if [ ! -e "$QUALCUTSSOURCE" ]; then
+       echo 'VAAuto: Fatal- Can not find QualityCuts file: '$QUALCUTSSOURCE
+       exit
+    fi
+
+    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
+    LTFILESOURCE=$VEGAS'/../tables/'$LTFILENAME
+    if [ ! -e "$LTFILESOURCE" ]; then
+       echo 'VAAuto: Fatal- Can not find LT file: '$LTFILESOURCE
+       exit
+    fi
 
     FILEBASE=$CUTTYPE'Cuts'
-    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
+
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
     sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
     mv tmp2 $VSProdFile
     chmod 755  $VSProdFile
-    rm tmp2
+
     #############################################################################
     # Stage 4 only needs short time
     #############################################################################
