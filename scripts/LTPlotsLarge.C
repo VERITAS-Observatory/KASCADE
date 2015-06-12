@@ -1,4 +1,5 @@
-void LTKCPlots(string pltType, string Zn="20", string Az="180", string kNoise="5.55", string cNoise="5.21",string offSet="0.5")
+
+void LTKCPlots(string pltType, string Az="180", string kNoise="5.55", string cNoise="5.21",string offSet="0.5")
 {
   //string ltkFileName  = "ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root";
   //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
@@ -113,7 +114,7 @@ void LTKCPlots(string pltType, string Zn="20", string Az="180", string kNoise="5
     int j=i*4;
     
     c1->cd(j+1);
-    string pltTitleBase =pltType+" " + Zn + "_" + Az+ " " + kNoise + " " + offSet;
+    string pltTitleBase =pltType+" " + Znk + "_" + Az+ " " + kNoise + " " + offSet;
     string pltTitle = pltTitleBase + " 50m";
     widthTest(ltkFileName.c_str(),LTK_LT.c_str(),50," ",1, pltTitle.c_str());
     widthTest(ltcFileName.c_str(),LTC_LT.c_str(),50,"same", 2, pltTitle.c_str());
