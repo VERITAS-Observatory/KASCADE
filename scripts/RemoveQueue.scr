@@ -12,14 +12,18 @@ echo host: $host
 hostString=${host:0:6}
 if test  "$hostString" = "edison"  #Are we running on Edison
 then
+  EDISON=enabled
   QSUBEXT='.serial'
   echo '***Edison Cluster***'
 fi
 
-if [ -e "$1" ]; then
+if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
   FileName=$1
   echo Deleting from queue process ID\'s in file: $FileName
-  source ~/.bashrc.ext
+  if [ -n "$EDISON" ]; then
+    source ~/.bashrc.ext
+  fi
+
   while read FullJobid theRestOfTheLine
    do
       jobid=${FullJobid%%.*}
@@ -27,7 +31,9 @@ if [ -e "$1" ]; then
       qdel$QSUBEXT $jobid
    done<$FileName
 else
-  source ~/.bashrc.ext
+  if [ -n "$EDISON" ]; then
+    source ~/.bashrc.ext
+  fi
   let i=$1
   let end=$2
   echo $i $end
