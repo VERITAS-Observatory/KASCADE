@@ -5,6 +5,7 @@
 #$2 Telescope ksAomega config: Ex ABCD  or wxyz
 #$3 Array season spec UA or NA or OA
 #$4 Particle type Defauls to G  Optional P He4_  E
+#$5 Results Disk: Local SV or global GSV (Edison only, otherwise ignored)
 #From this file we will make a list Missing or short/failed Shower VBF files
 function usage()
 {
@@ -13,7 +14,8 @@ function usage()
  echo '   $2 Telescope ksAomega config: Ex ABCD  or wxyz'
  echo '   $3 Array season spec UA or NA or OA'
  echo '   $4 Particle type Defauls to G  Optional P He4_  E'
- echo ' EX: ./ReDoMissingShowerVBFFile.scr CheckShowerVBFMDL8OAIJKL1_0-135From.log   IJKL OA G'
+ echo '   $5 Results Disk (Edison only): SV or GSV (default is SV)'
+ echo ' EX: ./ReDoMissingShowerVBFFile.scr CheckShowerVBFMDL8OAIJKL1_0-135From.log IJKL OA G GSV'
  echo '***'
 }
 
@@ -107,9 +109,21 @@ function setup()
 
   echo hostString: $hostString
   
-  if [ -n "$CARVER" ] || [ -n "$EDISON" ]; then
+  if [ -n "$CARVER" ]; then
     dataDirBase=$lcl'/../simulations'
-    echo Carver/Edison Data Dir: $dataDirBase
+    echo Carver Data Dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH
+  fi
+
+  if [ -n "$EDISON" ]; then
+    dataDirBase=$SCRATCH/simulations
+    if [ -n "$DatDirFlag" ]; then
+      if [ "$DatDirFlag" = "GSV" ]; then   #Edison is only place we need to 
+       dataDirBase=$GSCRATCH/simulations   #do this.
+      fi
+    fi
+    echo Edison Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
   fi
@@ -163,7 +177,7 @@ function setup()
 
 
   ####################################################################
-  #Make sure ksallVBF.scr is set up correctly to generate Te files
+  #Make sure ksallVBF.scr is set up correctly to generate ShwrVBF files
   ####################################################################
   cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBFShowerVBF.scr
   sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
@@ -358,6 +372,9 @@ if [ !  -n "$4" ]; then
    PARTYPE='G'
 else
    PARTYPE=$4
+   if [ -n "$5" ]; then
+     DatDirFlag=$5
+   fi
 fi
 
 setup
