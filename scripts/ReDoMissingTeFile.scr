@@ -2,17 +2,18 @@
 #  ./KSAuto.scr G S U 1 0,45,90,135,180 45mv MDL10U ABCD 64954StdCuts.root 
 #       >Check.log  with "CheckGeneratedTeFiles=enabled" enabled.
 #$2 Threshold: 45mv or 50mv 
-#$3 Results Disk: Local SV or global GSV (Edison only, otherwise ignored)
-##From this file we will make a list Missing Te file
-
+#$3 Particle type Defauls to G  Optional P He4_  E
+#$4 Results Disk: Local SV or global GSV (Edison only, otherwise ignored)
+# *********************************************************************
 
 function usage()
 {
  echo '***ReDoMissingTeFile usage:'
  echo '   $1: File with Missing Te Files in form: File Not found: SOG1_135Deg2DGeV36550te.d8'
  echo '   $2: Threshold: 45mv or 50mv'
- echo '   $3: Results Disk (Edison only): SV or GSV (default is SV)'
- echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log  50mv  GSV'
+ echo '   $3: Particle type Defauls to G  Optional P He4_  E'
+ echo '   $4: Results Disk (Edison only)Optional: SV or GSV (default is SV)'
+ echo ' EX: ./ReDoMissingTeFile.scr CheckTeMDL8OAIJKL1_0-135From.log  50mv G GSV'
  echo '***'
 }
 
@@ -31,6 +32,7 @@ function setup()
      WALLTIMEH=20:00:00
      WALLTIMEL=$WALLTIMEH
      MEMREQUEST=' -l pvmem=8GB'
+     SUBMITLIMIT=950
      echo ***Carver Cluster***
   fi
 
@@ -45,6 +47,7 @@ then
   WALLTIMEL=$WALLTIMEH
   MEMREQUEST=' -l vmem=8GB '
   QSUBEXT='.serial'
+  SUBMITLIMIT=175
   echo '***Edison Cluster***'
 fi
 
@@ -58,6 +61,11 @@ hostString=${host:0:6}
       WALLTIMEH=20:00:00
       WALLTIMEL=04:00:00
       MEMREQUEST=' -l mem=8GB'
+      SUBMITLIMIT=950
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
       echo '***Hansen Cluster***'
 fi
 
@@ -71,7 +79,12 @@ fi
       WALLTIMEH=20:00:00
       WALLTIMEL=04:00:00
       MEMREQUEST=' -l mem=8GB'
-      echo '***Coates Cluster***'
+      SUBMITLIMIT=950
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
+     echo '***Coates Cluster***'
   fi
 
   hostString=${host:0:5}
@@ -84,14 +97,18 @@ fi
       WALLTIMEH=20:00:00
       WALLTIMEL=04:00:00
       MEMREQUEST=' -l mem=8GB'
-      echo '***Conte Cluster***'
+      SUBMITLIMIT=950
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
+     echo '***Conte Cluster***'
   fi
   
   echo hostString: $hostString
 
   if [ -n "$CARVER" ]; then
     dataDirBase=$SCRATCH/simulations
-    #dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
     echo Carver Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
@@ -104,7 +121,6 @@ fi
        dataDirBase=$GSCRATCH/simulations   #do this.
       fi
     fi
-    #dataDirBase=/project/projectdirs/m1304/veritas_CM/simulations
     echo Edison Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
@@ -132,7 +148,29 @@ fi
   fi
 
   dataDirBase=$dataDirBase'/veritas'
-  mkdir -vp $dataDirBase
+
+  if [ "$PARTYPE" = "G" ]; then
+	datadir=$dataDirBase'/gammas'
+  fi
+  
+  if [ "$PARTYPE" = "E" ]; then
+	datadir=$dataDirBase'/electrons'
+  fi
+
+  if [ "$PARTYPE" = "P" ]; then
+     datadir=$dataDirBase'/protons'
+  fi
+
+  if [ "$PARTYPE" = "He4_" ]; then
+     datadir=$dataDirBase'/he4'
+  fi
+
+  if [ ! -n "$datadir" ]; then
+     echo ReDoMissingShowerVBFFile - Bad particle spec: $PARTYPE ':Allowable are G or E or P or He4_'
+     exit
+  fi
+
+   mkdir -vp $dataDir
 
 
   ####################################################################
@@ -176,19 +214,6 @@ function BuildAndSubmitJobsSingly()
  showerID=$2
  pr=$3
 
- ParticleType=${pr:2:1}
- if [ "$ParticleType" = "G" ]; then
-     datadir=$dataDirBase'/gammas'
- fi
- if [ "$ParticleType" = "E" ]; then
-        datadir=$dataDirBase'/electrons'
- fi
- if [ "$ParticleType" = "P" ]; then
-     datadir=$dataDirBase'/protons'
- fi
- if [ "$ParticleType" = "H" ]; then
-        datadir=$dataDirBase'/he4'
- fi
 
  let E=${eGeV%%.*}
 
@@ -226,6 +251,93 @@ function BuildAndSubmitJobsSingly()
  #Submit the pbs file
  qsub$QSUBEXT -V -e k$eGeV'd'$showerID$parspec.err -o k$eGeV'd'$showerID$parspec.log $sgeFile 
 }
+#**********************************************************************
+
+function BuildForParaFlySubmission() 
+#**********************************************************************
+# Cause serial jobs to be submitted in a mass form using Parafly
+# This version submits $NumCoreToUse  shower jobs per ParaFly pbs submission
+# Only for the Standby/hansen queue for now.
+# 
+#**********************************************************************
+#$1 energy in GeV
+#$2 showerID
+#$3 particle spec Ex  WUG20_180Deg2D
+{
+ local eGeV=$1     
+ local showerID=$2
+
+ if [ ! -n "$3" ]; then
+   echo 'ReDoMissingShowerVBF: Fatal - needs particle spec like WUG20_180Deg2D'
+   exit
+ fi
+ local SPECSHWR=$3
+ 
+ let E=${eGeV%%.*}
+ 
+ ####################################################################
+ # assumes 45mv threhold spec
+ ####################################################################
+
+ local  parspec=$pr$THR'1234M2'
+ echo Entry:  $SPECSHWR $eGeV $showerID
+
+ # ****************************************
+ # See if we need to start a new ParaFly file 
+ # ****************************************
+ if [ "$NumParaFly" -eq "0" ]; then
+    GetUniqueNumber
+    ParaFlyFile=$lcl/ParaFly$SPECSHWR'.'$UNIQUE'.cmd'  # Not local!
+    rm $ParaFlyFile
+ fi
+ 
+ # ******************************************
+ # Add command to process this shower.
+ # No continuations allowed in ParaFly cmd file
+ # ******************************************
+ local PFLYCMD=$lcl'/ksallVBFShowerVBF.scr '$eGeV' '$parspec' '$showerID' '$showerID' '$datadir' '$workingDir" >>"$lcl"/ksProduction_"$eGeV'd'$showerID$parspec".log"
+
+ echo $PFLYCMD  >>$ParaFlyFile
+ NumParaFly=$((NumParaFly+1))     # Not local
+
+ # See if time to submit this list of commands.
+ if [ "$NumParaFly" -ge "$MaxNumInParaFlyList" ]; then
+    SubmitParaFlyPBSJob
+    let NumParaFly=0
+ fi	
+}
+# *************************************************************************
+
+function SubmitParaFlyPBSJob
+{
+  #Make up the .pbs file name
+  GetUniqueNumber
+  local sgeFile=$lcl/K$UNIQUE$parspec'.pbs'
+
+  #Build the pbs file.
+  if [ "$E" -gt "20000" ]; then
+   echo "#"PBS -q $QUEUE1                          >$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEH             >>$sgeFile
+  else
+   echo "#"PBS -q $QUEUE2                         >$sgeFile
+   echo "#"PBS -l walltime=$WALLTIMEL             >>$sgeFile
+  fi
+  echo "#"PBS -l $MEMREQUEST                      >>$sgeFile
+  
+  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+    #Grab a complete Node
+    echo "#"PBS -l nodes=1:ppn=$NumCores          >>$sgeFile 
+    echo source /etc/profile                      >>$sgeFile
+    echo module load gcc/4.7.2                    >>$sgeFile
+  fi
+  # Add the ParaFly Command
+  echo ParaFly -c $ParaFlyFile -CPU $NumThreadsToUse  -failed_cmds FailedCommands$UNIQUE  >>$sgeFile
+ 
+  chmod 700 $sgeFile 
+  
+  qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
+}
+#**********************************************************************
 
 #**********************************************************************
 #Main program
@@ -237,9 +349,22 @@ fi
 
 CheckFile=$1
 THR=$2
-if [ -n "$3" ]; then
-  DatDirFlag=$3
+if [ !  -n "$3" ]; then
+   PARTYPE='G'
+else
+   PARTYPE=$3
+   if [ -n "$4" ]; then
+     DatDirFlag=$4
+   fi
 fi
+
+##################
+# Bring in GetUniqueNumber function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
 
 setup
 
@@ -257,10 +382,10 @@ grep "File Not found:" $CheckFile >tmp1
 # In the ouput file it becomes:  "SUG1_45Deg 28.6 51"
 #######################################################
 
-  sed '/File Not/s/2DGeV/2D /g'                  <tmp1     >tmp2
-  sed '/File Not/s/GeV/ /g'                      <tmp2     >tmp1
-  sed '/File Not/s/te.d/  /g'                    <tmp1     >tmp2
-  sed '/File Not/s/File Not found\:/  /g'        <tmp2     >tmp1
+  sed '/File Not/s/2DGeV/2D /g'               <tmp1     >tmp2 #For G and E
+  sed '/File Not/s/GeV/ /g'                   <tmp2     >tmp1 #For P and He4_
+  sed '/File Not/s/te.d/  /g'                 <tmp1     >tmp2
+  sed '/File Not/s/File Not found\:/  /g'     <tmp2     >tmp1
 
 ##############################################################
 #Read in the file we just created and cause the job to be submited
@@ -269,12 +394,23 @@ let count=0
 {  
   while read pr energy showerID
     do
-       if [ $count -gt 995 ]; then
-         echo 'ReDoMisingTeFile--Over 995 te file creation submisions to '$QUEUE ' queue. Not gonna do any more!'
+       if [ $count -gt "$SUBMITLIMIT" ]; then
+         echo 'ReDoMisingTeFile--Over ' $SUBMITLIMIT 'te file creation submisions to '$QUEUE ' queue. Not gonna do any more!'
          exit
        fi
        
-       BuildAndSubmitJobsSingly $energy $showerID $pr  
+       if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+         let E=${energy%%.*}
+         if [ "$E" -gt "20000" ]; then	
+            BuildAndSubmitJobsSingly $energy $showerID $pr  
+         else
+	    BuildForParaFlySubmission $energy $showerID $pr 
+         fi
+       else
+       
+         BuildAndSubmitJobsSingly $energy $showerID $pr  
+       fi
+
        count=$((count+1))
     done
 }<tmp1
