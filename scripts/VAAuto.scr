@@ -652,12 +652,18 @@ function SubmitVegasSimProduction()
     fi
   fi
 
+  ################################################
+  # Set up unique idientifier for this job
+  ################################################
+  GetUniqueNumber
+  local IDUNIQUE=$UNIQUE
+
   ############################################
   # Generate name of file that will hold this jobs "Done" flag
   # Unique to this job.
   ############################################
   if [ -n "$LimitSubmissions" ]; then
-    local VEGASDoneLog=$FilePedVar'_'$FileBase'Done.log'     
+    local VEGASDoneLog=$FilePedVar'_'$FileBase$IDUNIQUE'Done.log'     
     if [ -e "$VEGASDoneLog" ]; then              #Max queue jobs are active 
 	 rm $VEGASDoneLog
     fi
@@ -667,7 +673,7 @@ function SubmitVegasSimProduction()
   # Generate the veagsSimProduction command and wait until we have room to 
   # submit another job
   ##############################################
-  local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase'VBF.log'
+  local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
 
   if [ -n "$LimitSubmissions" ]; then
      CheckQsubSubmissions  $MaxQsubs $QsubLogs      #This will wait 
@@ -711,7 +717,7 @@ function SubmitVegasSimProduction()
     #############################################
     # Generate pbs file for this job. (Normal method)  
     #############################################
-    local sgeFile=$lcl'/'$FilePedVar$FileBase'.pbs'
+    local sgeFile=$lcl'/'$FilePedVar$FileBase$IDUNIQUE'.pbs'
     echo "#"PBS -l walltime=$WALLTIME                  >$sgeFile
     echo "#PBS -l "$MEMREQUEST                        >>$sgeFile
     if [ -n "$CARVER" ]; then
@@ -734,7 +740,7 @@ function SubmitVegasSimProduction()
     fi
 
     chmod 700 $sgeFile
-    qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
+    qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase$IDUNIQUE'.err' -o $FilePedVar$FileBase$IDUNIQUE'pbs.log' $sgeFile 
   fi
 }
 ##############################################################################
