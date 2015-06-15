@@ -1,13 +1,14 @@
 
-void LTKCPlots(string pltType, string Az="180", string kNoise="5.55", string cNoise="5.21",string offSet="0.5")
+//void LTKCPlots(string pltType, string Az="180", string kNoise="5.55", string cNoise="5.21",string offSet="0.5")
+void LTKCPlots(string pltType, string Az="180", string kNoise="5.55", string cNoise="5.21",string offSet="050")
 {
   //string ltkFileName  = "ltk_Jan2013_ua_ATM21_7samples_H_vegas250_alloffsets.root";
   //string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
 
   //WUG MDL10UA MDL12UA GrISUDet All offset
-  string ltkFileName  = "lt_MDL10UA_V6_PMTUpgrade_ATM21_KASCADE_vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
-  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root";
-  string ltk12FileName  = "lt_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
+  string ltkFileName  = "$VEGAS/../tables/lt_MDL10UA_V6_PMTUpgrade_ATM21_KASCADE_vegasv250rc5_7sam_050off_std_d1.43_LZA.root";
+  string ltcFileName  = "$VEGAS/../tables/lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_050wobb_LZA_noise150fix.root";
+  string ltk12FileName  = "$VEGAS/../tables/lt_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_vegasv250rc5_7sam_050off_std_d1.43_LZA.root";
  
 
   //string ltkFileName  = "$VEGAS/../tables/lt_MDL15NA_V5_T1Move_ATM21_KASCADE__vegasv250rc5_7sam_Alloff_std_d1.43_LZA.root";
