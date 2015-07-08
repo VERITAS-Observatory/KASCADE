@@ -970,7 +970,7 @@ while test $izn -lt $iznEnd
      fi
      #######################################################################
  
-     TeName=$SPECSEA$PMT$SPECPART$ZnAz$WblFilterSpec
+     TeName=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec
      if [ "$SPECPART" = "G" ] ; then
            ParticleDir='gammas'
      fi
@@ -988,8 +988,8 @@ while test $izn -lt $iznEnd
        PSFDirP=$VDirBase'/protons/'$DirPSF 
        PSFDirHe4=$VDirBase'/he4/'$DirPSF 
        PSFDir=$PSFDirP
-       TeNameP=$SPECSEA$PMT'P'$ZnAz$WblFilterSpec
-       TeNameHe4=$SPECSEA$PMT'He4_'$ZnAz$WblFilterSpec
+       TeNameP=$SPECSEA$TELCONFIG'P'$ZnAz$WblFilterSpec
+       TeNameHe4=$SPECSEA$TELCONFIG'He4_'$ZnAz$WblFilterSpec
        TeName=$TeNameP
 
        ShowerVBFProtonDir=$TeNameP$Threshold'1234M2'$SPECSEA$ARRAYCONFIG
@@ -1004,7 +1004,7 @@ while test $izn -lt $iznEnd
 
      else
        PSFDir=$VDirBase'/'$ParticleDir'/'$DirPSF
-       TeName=$SPECSEA$PMT$SPECPART$ZnAz$WblFilterSpec
+       TeName=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec
        ShowerVBFDir=$TeName$Threshold'1234M2'$SPECSEA$ARRAYCONFIG
        ShowerVBFDirAlt=$TeName$Threshold'1234M2'$SPECSEA$SPECMDL
        ShowerDir=$VDirBase'/'$ParticleDir'/'$ShowerVBFDir
