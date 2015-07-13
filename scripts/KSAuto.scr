@@ -743,23 +743,19 @@ fi
 TELESPEC=$SPECCFG
 
 if [ "$TELESPEC" = "W" ]; then   #Whipple telescope (not really implimented, 
-   PMT="W"                       #place holder)
    DirPSF=V190
    TELCONFIG=W
 fi
 if [ "$TELESPEC" = "OA" ]; then  #Old Veritas Array (Before T1 move, Old PMTs,
-   PMT="O"                      #with old V330 PSF)
    TELCONFIG=O
    DirPSF=V330
 fi
 if [ "$TELESPEC" = "NA" ]; then  #New Veritas Array (after T1 move, Old PMTs,
-   PMT="V"                      #with new  V190 PSF)
    DirPSF=V190
    TELCONFIG=N
 fi
 if [ "$TELESPEC" = "UA" ]; then #Upgrade Veritas Array (after T1 move, New PMTs,
-   PMT="U"                     #with new  V190 PSF)
-   DirPSF=V190
+   DirPSF=V190                   #with new  V190 PSF)
    TELCONFIG=U
 fi
 
@@ -827,10 +823,10 @@ fi
 
 if [ -n "$LimitSubmissions" ]; then
   GetUniqueNumber
-  QsubLogs='Running'$SPECSEA$PMT$SPECPART$UNIQUE'KASCADEQsubLogs.txt'
+  QsubLogs='Running'$SPECSEA$TELCONFIG$UNIQUE'KASCADEQsubLogs.txt'
   QsubHTARLogs=$lcl'/Running'$UNIQUE'HTARLogs.txt'
   if [ -n "$GenerateTeFiles" ] || [ -n "$GenerateShowerVBFFiles" ]; then
-    QsubFileNameList='KS'$SPECSEA$PMT$SPECPART$UNIQUE'AutoqsubList'
+    QsubFileNameList='KS'$SPECSEA$TELCONFIG$UNIQUE'AutoqsubList'
     echo QsubFileNameList: $QsubFileNameList
     if [ -e "$QsubFileNameList" ]; then
 	rm $QsubFileNameList
@@ -886,7 +882,7 @@ while test $izn -lt $iznEnd
 #  Now all the things we can do for a particular Zn_AZ
 # *****************************************************************************
      #make up our ksProduction designation
-     ksProdSpec=$SPECSEA$PMT$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'
+     ksProdSpec=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'
   
      if [ -n "$GenerateTeFiles" ]; then
        echo '##########################################################'
@@ -1282,7 +1278,7 @@ while test $izn -lt $iznEnd
                sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2 >tmp1
 	       #sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
 	       sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1 >tmp2
-	       if [ "$PMT" = "U" ]; then
+	       if [ "$TELCONFIG; then
 		   sed '/SinglePeRiseTimeNS/s/0/1.7/g'           <tmp2 >tmp1
 		   sed '/SinglePeFallTimeNS/s/0/4.75/g'          <tmp1 >tmp2
 	       else
@@ -1505,11 +1501,11 @@ while test $izn -lt $iznEnd
        if [ "$SPECPART" = "CR" ] ; then
          #echo"CRProcessAll not working with KSAuto yet"
 	 #exit
-	  $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$PMT $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+	  $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
 
        if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ] ; then
-         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$PMT $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
        date
 
@@ -1541,7 +1537,7 @@ while test $izn -lt $iznEnd
          echo 'KSAuto:  Submission of htar ' $ShowerVBFHe4Dir 'or' $ShowerVBFHe4DirAlt 'to archive complete.'
 
        else
-        ShowerMDLDir=$SPECSEA$PMT$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
+        ShowerMDLDir=$SPECSEA$TELCONFIG$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
         SubmitHtarToArchive $ArchiveDst $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
 
        fi
