@@ -3,10 +3,10 @@
 #$0 ./kasall.src
 #$1 primary Energy in gev (integer only)
 #$2 Shower type specification string (To be included in config file names and 
-#                                     in shower names like SVP1Deg2D50mv1234M2
-#                                     or WVHe4_1Deg2D50mv1234M2ABAA
+#                                     in shower names like SNP1Deg2D50mv1234M2
+#                                     or WUHe4_1Deg2D50mv1234M2ABAA
 # Atm:Char1: W or S  (Winter or summer atm)
-# Telescope:Char2: V (VERITAS) or U(Veritas Upgrade PMT) or W (Whipple) 
+# Telescope:Char2: N (NewArray) or U(UpgradeArray) or W (Whipple) or O (OldArray) 
 # PrimaryType: P or G or E or He4_ or Fe56_
 # Shower source direction: 1Deg or 10Deg2D or 40_135Deg2D
 # Threshold 45mv or 50mv
@@ -159,22 +159,22 @@ echo Working Directory is $wrkdir
 ##################################################################
 #Parse the specification string
 jobSpec=$2
-AtmSpec=${jobSpec:0:1}                 #gets S from SVG20DegN0.5Deg50mv1234M2
-TelSpec=${jobSpec:1:1}                 #gets V from WVG20DegN0.5Deg50mv1234M2
+AtmSpec=${jobSpec:0:1}                 #gets S from SNG20DegN0.5Deg50mv1234M2
+TelSpec=${jobSpec:1:1}                 #gets N from WNG20DegN0.5Deg50mv1234M2
 
-PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SVG20Deg from SVG20Deg2D50mv1234M2
-PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives VG20Deg 
+PrimarySpec=${jobSpec%%Deg*}'Deg'      #gets SNG20Deg from SNG20Deg2D50mv1234M2
+PrimarySpec=${PrimarySpec:1}           #Strip off the S (or W) gives NG20Deg 
                                        #or UE20_180Deg
 ThresholdSpec=${jobSpec##*Deg2D}          #gets 50mv1234OAM2AAAB from 
-                                          #WVG20Deg2D50mv1234M2AAAB
+                                          #WNG20Deg2D50mv1234M2AAAB
 if [ "$ThresholdSpec" = "$jobSpec" ]; then
     ThresholdSpec=${jobSpec##*Deg}        #No Deg2D: gets 70mv1234M2ABBC 
-                                          #from WVG20Deg2D70mv1234M2AAAB
+                                          #from WNG20Deg2D70mv1234M2AAAB
 fi                                        #Or M50mv1234M2EFGH if moon filter 
                                           #run
 
-TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SVG20Deg2D from
-                                           #SVG20Deg2DM50mv1234M2BBAB
+TriggerSpec=${jobSpec%%$ThresholdSpec}     #Get other half: SNG20Deg2D from
+                                           #SNG20Deg2DM50mv1234M2BBAB
 TriggerSpec=${TriggerSpec:1}               #Drops first character (atm spec)
 
 MoonSpec=${ThresholdSpec:0:1}              #See if moon filter specified
@@ -187,34 +187,34 @@ fi
 ThreshSpec=${ThresholdSpec:0:4}            #Gets 50mv from 50mv1234M2BBAB
 
 PMTSpec=$TelSpec
-if [ "$TelSpec" != "U" ] && [ "$TelSpec" != "V" ] &&  
+if [ "$TelSpec" != "U" ] && [ "$TelSpec" != "N" ] &&  
    [ "$TelSpec" != "W" ] && [ "$TelSpec" != "O" ]; then
   echo "Fatal-Bad Telescope Spec: "$TelSpec
-  echo "Allowed values: U W V"
+  echo "Allowed values: U W N O"
   exit
 fi
 
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
    TelS='U'
-   PMTSpec='U'
+   PMTSpec='U'                          
    PSFDir='V190'
-   ConfigTriggerSpec='V'${TriggerSpec:1}
+   ConfigTriggerSpec='V'${TriggerSpec:1} #U and N both use V190 config for ksTrigger
    PrimarySpec='V'${PrimarySpec:1}       #strip off U and replace with V
    AOmThreshSpec='U'
 fi
-if [ "$TelSpec" = "V" ]; then 
-   TelS='V'
+if [ "$TelSpec" = "N" ]; then 
+   TelS='N'
    PMTSpec='V'
    PSFDir='V190'
-   ConfigTriggerSpec='V'${TriggerSpec:1}
-   PrimarySpec='V'${PrimarySpec:1}       #strip off V and replace with V
+   ConfigTriggerSpec='V'${TriggerSpec:1} #U and N both use V190 config for ksTrigger
+   PrimarySpec='V'${PrimarySpec:1}       #strip off N and replace with V
    AOmThreshSpec='N'
 fi
 if [ "$TelSpec" = "O" ]; then 
    TelS='O'
    PMTSpec='V'
    PSFDir='V330'
-   ConfigTriggerSpec='O'${TriggerSpec:1}
+   ConfigTriggerSpec='O'${TriggerSpec:1} #O uses V330 config for ksTrigger
    PrimarySpec='V'${PrimarySpec:1}       #strip off O and replace with V
    AOmThreshSpec='O'
 fi
@@ -223,7 +223,7 @@ if [ "$TelSpec" = "W" ]; then
    PMTSpec='W'                    
    PSFDir='V190'
    ConfigTriggerSpec='W'${TriggerSpec:1}
-   PrimarySpec='W'${PrimarySpec:1}       #strip off W and replace with V
+   PrimarySpec='V'${PrimarySpec:1}       #strip off W and replace with V
    AOmThreshSpec='W'
 fi
 TelSpec=$TelS
