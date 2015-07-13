@@ -1278,7 +1278,7 @@ while test $izn -lt $iznEnd
                sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2 >tmp1
 	       #sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
 	       sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1 >tmp2
-	       if [ "$TELCONFIG; then
+	       if [ "$TELCONFIG" ]; then
 		   sed '/SinglePeRiseTimeNS/s/0/1.7/g'           <tmp2 >tmp1
 		   sed '/SinglePeFallTimeNS/s/0/4.75/g'          <tmp1 >tmp2
 	       else
