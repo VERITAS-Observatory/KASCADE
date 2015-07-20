@@ -283,8 +283,8 @@ function SubmitVegasProduction()
 
     chmod 775 $sgeFile 
     chmod 775 $VEGASScript
-    echo qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile
-    #qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
+    #echo qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile
+    qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
 }
 ###############################################################################
 
@@ -775,7 +775,9 @@ if [ -n "$BuildMDLAomegaConfig" ]; then
   echo '##########################################################'
   echo 'MDLAuto: Generating ksAomega config files from '$MDLFILE
   LightConeEff=0.45
-  LightConeEff=0.80
+  if [ "$ARRAY" = "UA" ]; then
+    LightConeEff=0.80
+  fi
   echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
   cd $KASCADEBASE/inputs
 
