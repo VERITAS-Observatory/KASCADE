@@ -351,6 +351,10 @@ function SubmitQsubJobs()
   QsubList=$1
   QsubDoneList=$2
   MaxQsubs=$3
+  echo QsubList: $QsubList
+  echo QsubDoneList: $QsubDoneList
+  echo MaxQsubs: $ MaxQsubs
+
 
   if [ -e "$QsubDoneList" ]; then
     rm $QsubDoneList
@@ -394,8 +398,14 @@ function CheckQsubSubmissions()
   # returns so a new submission can be made. Other wise the code just sits 
   # here sleeping for 60 sec between checks.
   ################################################################
+  
+  maxCount=$1
   RunningQsubListFile=$2   
-  RunningQsubListTmp=$2'.tmp'
+
+  echo maxCount: $maxCount
+  #echo  RunningQsubListFile: $RunningQsubListFile
+
+  RunningQsubListTmp=$2'.tmpp'
   if [ ! -e "$RunningQsubListFile" ]; then  #empty (just starting up)
      echo no $RunningQsubListFile
      return
@@ -407,8 +417,8 @@ function CheckQsubSubmissions()
   #echo $2':'
   #cat $2
 
-  let count=$1
-  while test "$count" -ge  $1 
+  let count=$maxCount
+  while test "$count" -ge  $maxCount 
    do
    let count=0
    {
@@ -431,9 +441,9 @@ function CheckQsubSubmissions()
      rm $RunningQsubListTmp
      #echo empty count: $count
    fi
-   #echo countAfter: $count
+   echo countAfter: $count
 
-   if [ $count -ge $1 ]; then       #We are full, wait a bit and try again
+   if [ $count -ge $maxCount ]; then    #We are full, wait a bit and try again
      sleep 120
    fi
   done
@@ -542,11 +552,13 @@ commandEnable $1   #This will enable the specified command or exit if its not a
 lcl=$PWD
 
 SPECMDL=$2
+REFPARMS=$4
+MDLFILE=$5
+TCONFIG=$6
+REFDATAFILE=$7
+
+ZnAz=$8
 SPECPV=$9
-
-
-
-
 
 host=$(hostname)
 echo host: $host
@@ -555,8 +567,8 @@ hostString=${host:0:6}
 if test  "$hostString" = "edison"  #Are we running on Edison
 then
   EDISON=enabled
-  #VDirBase=$SCRATCH'/simulations/veritas/'
-  VDirBase=/global/scratch2/sd/u15013/simulations/veritas/
+  VDirBase=$SCRATCH'/simulations/veritas/'
+  #VDirBase=/global/scratch2/sd/u15013/simulations/veritas/
   JobIDHost='edison'
   QUEUE=serial
   QSUBEXT='.serial'
@@ -573,6 +585,8 @@ then
   JobIDHost='cvrsvc'
   QUEUE=serial
   MEMREQUEST=' pvmem=8GB '
+  MaxQsubs=475  
+
   echo '***Carver Cluster***'
 fi
 
@@ -584,6 +598,7 @@ then
   JobIDHost='hansen-adm'
   QUEUE=physics
   #QUEUE=standby
+  MaxQsubs=475  
   echo ***Hansen Cluster***
 fi
 
@@ -595,6 +610,7 @@ then
   JobIDHost='coates-adm'
   QUEUE=physics
   #QUEUE=standby
+  MaxQsubs=475  
   echo ***Coates Cluster***
 fi
 
@@ -645,12 +661,6 @@ RatiosFileBase=$PSF$ArrayName'Ratios'
 DatFile=$RatiosFileBase'.dat' #Main *Ratios.dat file
 TxtFile=$RatiosFileBase'.txt' #Temporay file into which we will put all test MDL info.
 
-REFPARMS=$4
-MDLFILE=$5
-TCONFIG=$6
-REFDATAFILE=$7
-
-ZnAz=$8
 zn_az=${ZnAz%%Deg}
 ZN=${zn_az%%_*}
 if [ "$ZN" = "$zn_az" ]; then
@@ -676,7 +686,6 @@ else
 fi
 IFS=$SAVEIFS
 
-MaxQsubs=475  
 
 ############################################################################
 # Extract the input Telescope Detector Model (TDL) parameters to a temproary .txt
@@ -743,10 +752,10 @@ if [ -n "$ProduceModelFile" ]; then
       cp -v $KASCADEBASE/scripts/determineParameters.C .
   fi
 
-  echo "{"                                                        >MDLAuto.rootscr
-  echo "gROOT->ProcessLine(\".L determineParameters.C\");"       >>MDLAuto.rootscr
-  echo "determineParameters(\""$TxtFile"\",\""$REFPARMS"\");"     >>MDLAuto.rootscr
-  echo "}"                                                       >>MDLAuto.rootscr
+  echo "{"                                                          >MDLAuto.rootscr
+  echo "gROOT->ProcessLine(\".L determineParameters.C\");"         >>MDLAuto.rootscr
+  echo "determineParameters(\""$TxtFile"\",\""$REFPARMS"\",false);" >>MDLAuto.rootscr
+  echo "}"                                                         >>MDLAuto.rootscr
 
   ~/Switch.rootrcTo.rootrc_glenn.scr
   root -q -b MDLAuto.rootscr  >MDLAuto.rootscr.log
@@ -800,22 +809,22 @@ if [ -n "$BuildMDLAomegaConfig" ]; then
   {
    while read tel threshold noise eff gain 
     do
-    sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config >tmp1.config
-    sed '/NoiseRate/s/12.5/'$noise'/g'                <tmp1.config >tmp2.config
-    sed '/Efficiency/s/1/'$eff'/g'                    <tmp2.config >tmp1.config
-    sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmp1.config >tmp2.config
-    sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2.config >tmp1.config
-    sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1.config >tmp2.config
-    sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2.config >tmp1.config
-    sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1.config >tmp2.config
+    sed '/DiscriminatorThreshold/s/10/'$threshold'/g' <Base.config >tmpp1.config
+    sed '/NoiseRate/s/12.5/'$noise'/g'                <tmpp1.config >tmpp2.config
+    sed '/Efficiency/s/1/'$eff'/g'                    <tmpp2.config >tmpp1.config
+    sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmpp1.config >tmpp2.config
+    sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmpp2.config >tmpp1.config
+    sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmpp1.config >tmpp2.config
+    sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmpp2.config >tmpp1.config
+    sed '/BadPixelSupression/s/ON/OFF/g'              <tmpp1.config >tmpp2.config
     if [ "$ARRAY" = "UA" ]; then
-      sed '/SinglePeRiseTimeNS/s/0/1.7/g'             <tmp2.config >tmp1.config
-      sed '/SinglePeFallTimeNS/s/0/4.75/g'            <tmp1.config >tmp2.config
+      sed '/SinglePeRiseTimeNS/s/0/1.7/g'             <tmpp2.config >tmpp1.config
+      sed '/SinglePeFallTimeNS/s/0/4.75/g'            <tmpp1.config >tmpp2.config
     else
-      sed '/SinglePeRiseTimeNS/s/0/3.2/g'             <tmp2.config >tmp1.config
-      sed '/SinglePeFallTimeNS/s/0/8.5/g'             <tmp1.config >tmp2.config
+      sed '/SinglePeRiseTimeNS/s/0/3.2/g'             <tmpp2.config >tmpp1.config
+      sed '/SinglePeFallTimeNS/s/0/8.5/g'             <tmpp1.config >tmpp2.config
     fi
-    sed '5 a \#This is special for tel '$tel'.'   tmp2.config >$tel'.config'    
+    sed '5 a \#This is special for tel '$tel'.'   tmpp2.config >$tel'.config'    
    done
   }<$lcl'/'$MDLFILE
 
@@ -849,27 +858,27 @@ if [ -n "$ProduceModelCosmicRayShowerVBF" ]; then
 
   cp $KASCADEBASE/scripts/ksallVBF.scr $KSALLVBFFILE
   sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
-                                                <$KSALLVBFFILE >tmp1
-  sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
-  sed '/PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
-  sed '/TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
-  sed '/#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmp2 >tmp1
-  sed '/#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmp1 >tmp2
-  sed '/#Production=enable/s/#Production/Production/g'      <tmp2 >tmp1
+                                                <$KSALLVBFFILE >tmpp1
+  sed '/LightEnable=enable/s/Light/#Light/g'                <tmpp1 >tmpp2
+  sed '/PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmpp2 >tmpp1
+  sed '/TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmpp1 >tmpp2
+  sed '/#AomegaEnable=enable/s/#Aomega/Aomega/g'            <tmpp2 >tmpp1
+  sed '/#ArrayTrigEnable=enable/s/#Array/Array/g'           <tmpp1 >tmpp2
+  sed '/#Production=enable/s/#Production/Production/g'      <tmpp2 >tmpp1
   echo Array: $ARRAY
   if [ "$ARRAY" = "OA" ]; then
     echo using OldArray tell positions
-    sed '/Fall09ArrayPositions=enable/s/Fall/#Fall/g'  <tmp1 >tmp2
+    sed '/Fall09ArrayPositions=enable/s/Fall/#Fall/g'  <tmpp1 >tmpp2
   else
     echo Using NewArray tel positions
-    sed '/#Fall09ArrayPositions=enable/s/#Fall/Fall/g' <tmp1 >tmp2
+    sed '/#Fall09ArrayPositions=enable/s/#Fall/Fall/g' <tmpp1 >tmpp2
   fi
-  sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmp2 >tmp1
-  sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
-  sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
-  sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >$KSALLVBFFILE
-  rm tmp1
-  rm tmp2
+  sed '/#RemoveSingleVBFEnable=enable/s/#Remove/Remove/g'   <tmpp2 >tmpp1
+  sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmpp1 >tmpp2
+  sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmpp2 >tmpp1
+  sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmpp1 >$KSALLVBFFILE
+  rm tmpp1
+  rm tmpp2
   ####################################################################
 
   #make up our ksProduction designation
@@ -880,6 +889,9 @@ if [ -n "$ProduceModelCosmicRayShowerVBF" ]; then
   if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
                                             #wait until to submit more in our 
                                             #list
+    GetUniqueNumber
+    QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
+
     GetUniqueNumber
     QsubFileNameList='KSW'$PMT$CR$UNIQUE'AutoqsubList'
     echo QsubFileNameList: $QsubFileNameList
@@ -987,6 +999,13 @@ if [ -n "$GenerateCosmicRayVBF" ]; then
   #Now run these showers through CRProcessAll to make the VBF file
   #########################################################################
   cd $lcl
+  if [ ! -e 'CRProcessAll' ]; then
+      cp -v $KASCADEBASE'/scripts/CRProcessAll' ./
+  fi
+  if [ ! -e "$VDirBase"'/../../veritas/ksWeRock.scr' ]; then
+      cp  -v $KASCADEBASE'/scripts/ksWeRock.scr' $VDirBase'/../../veritas/'
+  fi
+
    ./CRProcessAll $VDirBase $ZnAz $THRESH W$PMT $SPECMDL $TCONFIG 
 fi 
 ############################################################################
@@ -1012,18 +1031,18 @@ if [ -n "$GenerateCosmicRayStage5Combined" ]; then
   #different from 7.
   ##################################################################
   sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                          < $VSProdFile  >tmp1
-  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
-  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'              <tmp1 >tmp2
-  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmp2 >tmp1
+                                          < $VSProdFile  >tmpp1
+  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmpp1 >tmpp2
+  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmpp2 >tmpp1
+  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'              <tmpp1 >tmpp2
+  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmpp2 >tmpp1
 
   ######################################################################
   # If this is an Old Array run, enable the TelCombosToDeny=T1T4
   ######################################################################
   if  [ $ARRAY = "OA" ]; then
-      sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmp1 >tmp2 
-      cp tmp2 tmp1
+      sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmpp1 >tmpp2 
+      cp tmpp2 tmpp1
   fi
 
   ######################################################################
@@ -1042,22 +1061,22 @@ if [ -n "$GenerateCosmicRayStage5Combined" ]; then
   GenerateLTFileName $ARRAY 'W'  'All'  'std' 
   
   ###############################################################################
-  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
-  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
-  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmp2 >tmp1
+  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmpp1 >tmpp2
+  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmpp2 >tmpp1
+  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmpp1 >tmpp2
+  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'       <tmpp2 >tmpp1
   #################################################################################
   # And set Method to combined for stage5
   # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
   # output methods with RemoveCutEvents and the remove the single # from the combined 
   # one without a RemoveCutEvents.
   #################################################################################
-  sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
-  sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+  sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmpp1 >tmpp2
+  sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmpp2 >tmpp1
 
-  mv tmp1 $VSProdFile
+  mv tmpp1 $VSProdFile
   chmod 755  $VSProdFile
-  rm tmp2
+  rm tmpp2
 
   #OK! We are ready to run.  Nedd to submit since this will take more than 4 hours. 
   echo "MDLAuto: Submitting ' $VSProdFile ' to '$QUEUE' queue for " $lcl'/'$VBFFILENAME       
@@ -1121,11 +1140,11 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   #different from 7.
   ##################################################################
   sed '/#Stage1Laser=enable/s/#Stage1Laser/Stage1Laser/g' \
-                                          < $VSProdFile  >tmp1
-  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
-  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'              <tmp1 >tmp2
-  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmp2 >tmp1
+                                          < $VSProdFile  >tmpp1
+  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmpp1 >tmpp2
+  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmpp2 >tmpp1
+  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'              <tmpp1 >tmpp2
+  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                    <tmpp2 >tmpp1
 
   QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
   echo QUALITYCUTSFILE: $QUALITYCUTSFILE
@@ -1150,22 +1169,22 @@ if [ -n "$GenerateDataStage5Combined" ]; then
   QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
 
   ###############################################################################
-  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
-  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
-  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-  sed '/ShowerCuts=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'           <tmp2 >tmp1
+  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmpp1 >tmpp2
+  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmpp2 >tmpp1
+  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmpp1 >tmpp2
+  sed '/ShowerCuts=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'           <tmpp2 >tmpp1
   #################################################################################
   # And set Method to combined for stage5
   # All OutputMethodOptions start out disabled (#). Disable a second time (#->##) all 
   # output methods with RemoveCutEvents and the remove the single # from the combined 
   # one without a RemoveCutEvents.
   #################################################################################
-  sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
-  sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+  sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmpp1 >tmpp2
+  sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmpp2 >tmpp1
 
-  mv tmp1 $VSProdFile
+  mv tmpp1 $VSProdFile
   chmod 755 $VSProdFile
-  rm tmp2
+  rm tmpp2
 
   #OK! We are ready to run.  Nedd to submit since this will take more than 4 hours. 
   echo "MDLAuto: Submitting VegasProductionS5 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME       
