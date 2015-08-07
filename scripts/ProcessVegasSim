@@ -1,71 +1,66 @@
-#$1 List of data.vbf or pedvar.root files
-#$2 ksVegasSimProduction file name: 
-#       EX: ksVegasSimProduction7samples10.5.scr
-#$3 Identifying letter for Job name (ex A)
-#$4 Alternate VEGAS path (optional)
+#$1 List of Sim.vbf or Sim.root files
+#$2 VegasProduction file name: 
+#       EX: VegasProductionStdCuts.scr
+# Job designator (ex A)
+#$4 PedVar file (optional)
+#$5 Alternate VEGAS path (optional)
 
+lcl="$PWD"
+let i=0
 host=$(hostname)
 echo host: $host
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  QUEUE=physics
+  WALLTIME=30:00:00
+  #QUEUE=standby
+  #WALLTIME=04:00:00
+  echo ***Hansen Cluster***
+fi
+
 hostString=${host:0:6}
 if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 then
   CARVER=enabled
   QUEUE=serial
   WALLTIME=30:00:00
-  MEMREQUEST='pvmem=5GB'
   echo '***Carver Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
-then
-  HANSEN=enabled
-  #QUEUE=physics
-  #WALLTIME=30:00:00
-  QUEUE=standby
-  WALLTIME=04:00:00
-  MEMREQUEST='mem=5GB'
-  echo ***Hansen Cluster***
-fi
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on Coates?
-then
-  COATES=enabled
-  QUEUE=physics
-  WALLTIME=30:00:00
-  #QUEUE=standby
-  #WALLTIME=04:00:00
-  MEMREQUEST='mem=5GB'
-  echo ***Coates Cluster***
-fi
-
-lcl="$PWD"
-let i=0
 {
-  while read InputFile ; do
-      i=$((i+1))
-	BaseFileName=${InputFile##/*/}
+  while read DataFile  ; do
+      BaseFileName=${DataFile##/*/}
 ####################################################################
 # Make up the job script file that will be submitted below
 ####################################################################
-      sgeFile=$lcl'/V'$3'Job'$i'.pbs'
-      echo "#"PBS -l walltime=$WALLTIME         >$sgeFile
-	echo "#"PBS -l $MEMREQUEST             >>$sgeFile
-      if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
-        echo source /etc/profile               >>$sgeFile
-        echo module load gcc/4.5.1             >>$sgeFile
+      sgeFile=$lcl'/'$BaseFileName$3'.pbs'
+      echo "#"PBS -q $QUEUE                     >$sgeFile
+      echo "#"PBS -l walltime=$WALLTIME         >>$sgeFile
+      if [ -n "$CARVER" ]; then
+        echo "#PBS -l nodes=1:ppn=1"            >>$sgeFile
+        echo "#PBS -l pvmem=20GB"               >>$sgeFile
       fi
-      echo cd $lcl                             >>$sgeFile
-      echo $lcl'/'$2  \\                       >>$sgeFile
-      echo $InputFile' '  \\                   >>$sgeFile
-      if test -n $4
+      if [ -n "$HANSEN" ]; then  
+        echo "#PBS -l mem=15GB"                 >>$sgeFile
+        echo source /etc/profile                >>$sgeFile
+        echo module load gcc/4.7.2              >>$sgeFile
+      fi
+      echo cd $lcl                              >>$sgeFile
+      echo $lcl'/'$2  \\                        >>$sgeFile
+      echo $DataFile' '  \\  >>$sgeFile
+      if test -n "$4"
       then
-        echo $4  \\                            >>$sgeFile
+        echo $4  \\                             >>$sgeFile
+        if test -n "$5"
+        then
+          echo $5  \\                           >>$sgeFile
+        fi 
       fi 
-
-      echo ' >'$lcl'/'$BaseFileName$3'.log'         >>$sgeFile
+      echo ' >'$lcl'/'$BaseFileName$3'.log'     >>$sgeFile
       chmod 700 $sgeFile
-      qsub -q $QUEUE -V -e 'W'$3$i'.err' -o 'W'$3$i'.log' $sgeFile
+      qsub   -V -e 'W'$3$BaseFileName'.err' -o 'W'$3$BaseFileName'.log' $sgeFile
 done
 } <$1
 
