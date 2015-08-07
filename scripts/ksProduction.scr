@@ -7,11 +7,11 @@
 #     Atm-Telescope-Type-direction-threshold-arraytrigger specification 
 #     designation: 
 #     like: WWP1Deg50mv1234M2, CWHe4_1Deg50mv1234M2, SWG1Deg50mv1234M2,
-#     WVG1DegN0.5Deg50mv1234M2.  
+#     WNG1DegN0.5Deg50mv1234M2.  
 #     Giveing a Type code of 'WWCR1Deg50mv1234M2 will cause 
 #     both WWP1Deg50mv1234M2  and WWHe4_1Deg50mv1234M2 to be  run
 #   For ksallVBF through ksArrayTrigger append the telescope designations: 
-#     Like WVG20Deg2D50mv1234M2ABCD
+#     Like WNG20Deg2D50mv1234M2ABCD
 #$2 has which script to run:  ksallVBF.scr
 #        ksallVBF.scr is All-singing-all-dancing: ksKascade to ksArrayTrigger
 #$3 Sort processing: Flags that a Sort will be requested and that we
@@ -436,7 +436,7 @@ function Gammas()
 	    BuildIsisScriptList 1 1 44
           fi
 	fi
-	if [ ${jobSpec:0:1} = "V" ] ; then
+	if [ ${jobSpec:0:1} = "N" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #             For ksallVBF: set 1 about 24 hours <=10 TeV
@@ -545,7 +545,7 @@ DefineShowers 'E' $MDL
 	    BuildIsisScriptList 1 1 44
           fi
 	fi
-	if [ ${jobSpec:0:1} = "V" ] ; then
+	if [ ${jobSpec:0:1} = "N" ] ; then
           if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
 	   #For ksaomVBF ~1:20 
 #             For ksallVBF: set 1 about 24 hours <=10 TeV
@@ -1222,7 +1222,7 @@ if [ ${jobSpec:1:1} = "W" ]; then
    mkdir -vp $dataDirBase
 fi
 
-if [ ${jobSpec:1:1} = "V" ] || [ ${jobSpec:1:1} = "U" ] || 
+if [ ${jobSpec:1:1} = "N" ] || [ ${jobSpec:1:1} = "U" ] || 
    [ ${jobSpec:1:1} = "O" ]; then
     dataDirBase=$dataDirBase'/veritas'
     mkdir -vp $dataDirBase

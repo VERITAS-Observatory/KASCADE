@@ -1,0 +1,46 @@
+#!/bin/bash
+#$1 List of TE files to rename
+#
+#Rename to *V* TE files to *N* TE files
+
+##################
+# Bring in GenerateVBFName and GetUniqueNumber  functions
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
+
+#############################################################################
+
+if [ -n "$1" ]; then
+    ARCHIVEDIR=$1
+else
+   echo 'ReNameTeFiles: -- Need an input file name list!: ./ReNameTeFiles.scr FileList'
+   exit
+fi
+
+INPUTFILELIST=$1
+
+{
+ while read input
+  do
+   ####################################################################
+   #Parse the file name
+   #Input examples:
+   #WVP20DegGeV34.2te.d89
+   DISK=${input%/*}
+   FILE=${input##*/}
+   SEASON=${FILE:0:1}
+   ARRAY=${FILE:1:1}
+   PRIMARY=${FILE:2}
+
+   TEFILENAME=$DISK'/'$SEASON'N'$PRIMARY
+   # echo $input $TEFILENAME
+
+   mv -v $input $TEFILENAME
+  
+ done
+}<$INPUTFILELIST
+
