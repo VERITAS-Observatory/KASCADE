@@ -13,7 +13,7 @@ function usage()
  echo '   $1: File with Missing ShowerVBF Files in form: File Not found: SOG1Deg2D50mv1234M2GeV36550.d2.vbf'
  echo '   $2 Telescope ksAomega config: Ex ABCD  or wxyz'
  echo '   $3 Array season spec UA or NA or OA'
- echo '   $4 Particle type Defauls to G  Optional P He4_  E'
+ echo '   $4 Particle type Defauls to G  Optional P He4_  E (Note:No CR! P and He4_ must be done sperately)'
  echo '   $5 Results Disk (Edison only): SV or GSV (default is SV)'
  echo ' EX: ./ReDoMissingShowerVBFFile.scr CheckShowerVBFMDL8OAIJKL1_0-135From.log IJKL OA G GSV'
  echo '***'
@@ -179,9 +179,11 @@ function setup()
   ####################################################################
   #Make sure ksallVBF.scr is set up correctly to generate ShwrVBF files
   ####################################################################
-  cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBFShowerVBF.scr
+  GetUniqueNumber
+  KSALLShwrVBF=ksallVBFShwrVBF$UNIQUE'.scr'
+  cp $KASCADEBASE/scripts/ksallVBF.scr $KSALLShwrVBF
   sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
-                                                <ksallVBFShowerVBF.scr >tmp1
+                                                <$KSALLShwrVBF >tmp1
   sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
   sed '/PeSortMergeEnable=enable/s/PeSort/#PeSort/g'        <tmp2 >tmp1
   sed '/TriggerEnable=enable/s/Trigger/#Trigger/g'          <tmp1 >tmp2
@@ -198,7 +200,7 @@ function setup()
   sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
   sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
   sed '/MoonFilterEnable=enable/s/Moon/#Moon/g'   \
-                                                   <tmp2 >ksallVBFShowerVBF.scr
+                                                   <tmp2 >$KSALLShwrVBF
   rm tmp1
   rm tmp2
   ####################################################################
@@ -250,7 +252,7 @@ let E=${eGeV%%.*}
    echo source /etc/profile                             >>$sgeFile
    echo module load gcc/4.7.2                           >>$sgeFile
  fi
- echo $lcl'/ksallVBFShowerVBF.scr '$eGeV $SPECSHWR \\   >>$sgeFile
+ echo $lcl'/'$KSALLShwrVBF $eGeV $SPECSHWR \\   >>$sgeFile
  echo $showerID $showerID $datadir $workingDir \\       >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$SPECSHWR".log" >>$sgeFile
 
@@ -309,7 +311,7 @@ function BuildForParaFlySubmission()
  # Add command to process this shower.
  # No continuations allowed in ParaFly cmd file
  # ******************************************
- PFLYCMD=$lcl'/ksallVBFShowerVBF.scr '$eGeV' '$SPECSHWR' '$showerID' '$showerID' '$datadir' '$workingDir" >>"$lcl"/ksProduction_"$eGeV'd'$showerID$SPECSHWR".log"
+ PFLYCMD=$lcl'/'$KSALLShwrVBF' '$eGeV' '$SPECSHWR' '$showerID' '$showerID' '$datadir' '$workingDir" >>"$lcl"/ksProduction_"$eGeV'd'$showerID$SPECSHWR".log"
 
  echo $PFLYCMD  >>$ParaFlyFile
  NumParaFly=$((NumParaFly+1))
