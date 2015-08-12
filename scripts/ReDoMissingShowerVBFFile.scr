@@ -434,9 +434,12 @@ let countPara=0
 }<tmp1
 
 # Flush Parafly
-if [ "$NumParaFly" -gt "0" ]; then
-   SubmitParaFlyPBSJob
+if [ -n "$NumParaFly" ]; then
+  if [ "$NumParaFly" -gt "0" ]; then
+     SubmitParaFlyPBSJob
+  fi
 fi
+
 
 echo $count ' ShowerVBF file creation single submissions'
 if [ $countPara -gt "0" ]; then
