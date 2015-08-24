@@ -1488,8 +1488,6 @@ while test $izn -lt $iznEnd
 	   cp -v $KASCADEBASE'/scripts/ksWeRock.scr' .
        fi
 
-
-
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
        ProcessAll=$SPECPART'ProcessAll'
@@ -1501,11 +1499,11 @@ while test $izn -lt $iznEnd
        if [ "$SPECPART" = "CR" ] ; then
          #echo"CRProcessAll not working with KSAuto yet"
 	 #exit
-	  $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+	  $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
 
        if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ] ; then
-         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
        date
 
