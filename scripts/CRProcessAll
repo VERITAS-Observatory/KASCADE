@@ -22,7 +22,7 @@ function usage()
   echo '   $6: Input Sub-dir: Ex: ABCD'
   echo '   $7: start direction Index. defualt is 0.(=0.0deg)'
   echo '   $8: end direction Index. defualt is 8.(=2.0deg)'
-  echo ' Ex:  ./GProcessAll V330 1_225Deg 50mv SO MDL8OA IJKL 1 1'
+  echo ' Ex:  ./CRProcessAll $SCRATCH/simulations/veritas 1_225Deg 50mv SO MDL8OA IJKL 1 1'
   echo '***'
 }
 
@@ -30,18 +30,7 @@ function usage()
 ##################################################################################
 #Main
 ##################################################################################
-if [  ! -n "$6" ]; then
-        usage
-        exit
-fi
 
-##################
-# Bring in GenerateVBFName and GetUniqueNumber  functions
-##################
-if [ ! -e UtilityFunctions.scr ]; then
-    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
-fi
-source UtilityFunctions.scr
 
 lcl=$PWD
 echo lcl: $lcl
@@ -61,6 +50,19 @@ echo Argument3: $THRESH
 echo Argument4: $SEASARRAY
 echo Argument5: $OUTFILEBASE
 echo Argument6: $ARRAYCONFIG
+
+if [  ! -n "$6" ]; then
+        usage
+        exit
+fi
+
+##################
+# Bring in GenerateVBFName and GetUniqueNumber  functions
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
 
 
 host=$(hostname)
