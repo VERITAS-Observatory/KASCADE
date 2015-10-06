@@ -109,7 +109,13 @@ class KSVBFFile
   double fYOffset;
 
 
-bool fFoundError;
+  bool fFoundError;
+
+  //HiLoGains study
+  int fSumHiSizeBeforeLoGainConversion;
+  int fSumLowGainSizeBeforeClip;
+  int fSumLowGainSizeAfterClip;
+
 
 };
 // ***************************************************************************

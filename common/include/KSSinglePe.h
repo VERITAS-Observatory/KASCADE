@@ -11,12 +11,14 @@
 #define KSSINGLEPE_H
 
 #include <cstdlib>
-#include "KSCommon.h"
-#include "KSFADC.h"
 #include <vector>
+#include <string>
+#include <fstream>
 
 #include <TRandom3.h>
 
+#include "KSCommon.h"
+#include "KSWaveFormBasic.h"
 
 //const double kSinglePePulseHeightSigma=.275;
 const double kSinglePePulseHeightSigma=.45;
@@ -81,7 +83,7 @@ const double kBaseRiseTimeNS=1.7;  //ns
 const double kBaseFallTimeNS=4.75;  //ns
 const int    kBaseRiseSize=27;
 const int    kBaseSize=175;
-const int    kMaxSinglePePulseSize=175;    //Cut off tail to not exceed this length
+const int    kMaxSinglePePulseSize=175;//Cut off tail to not exceed this length
 const int    kBaseFallSize=kBaseSize-kBaseRiseSize;
 
 const static double kBasePulse[kBaseSize]=
@@ -122,25 +124,34 @@ class KSSinglePe
   double fArea;   
   //float fXDummy;
   TRandom3* pRandom;
- 
+  
  public:
   KSSinglePe();
   KSSinglePe(double riseTimeNS,double fallTimeNS);
   virtual ~KSSinglePe();
-
-  void setRiseFallTimes(double riseTimeNS,double fallTimeNS);
+  
+  void   initSinglePe(double singlePulseRiseNS, double singlePulseFallNS);
+  void   setRiseFallTimes(double riseTimeNS,double fallTimeNS);
   double getLengthNS(){return fLengthNS;};
   double getArea(){return fArea;};
-  // double getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC, 
-  //		                                 double scaledPulseHeight);
   double getPulseHeight(bool fAfterPulse);
   double getRiseTimeNS(){return fSinglePulseRiseTimeNS;};
   double getFallTimeNS(){return fSinglePulseFallTimeNS;};
-
+  int    getLowGainIndexAndLinearity(double highGainChargeDC, 
+				     double& linearity);
+  
+  
+  
   void  PrintSinglePe();
-
-  std::vector< double > pfSinglePulse;
+  
+  std::vector< double > fSinglePulse;
   int fNumBinsInPulse;
+  
+  
+  //Low Gain pulses
+  void  readLowGainWaveForms(std::string fileName);
+  std::vector < KSWaveFormBasic >  fLowGainWaveForm;
+  
 #ifndef _NOROOT
   ClassDef(KSSinglePe,0);
 #endif

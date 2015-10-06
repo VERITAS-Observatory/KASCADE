@@ -9,6 +9,7 @@
 
 #ifndef KSFADC_H
 #define KSFADC_H
+#include "KSWaveForm.h"
 #include "KSCommon.h"
 
 #include <iostream>
@@ -21,23 +22,35 @@ class KSFADC
  private:
   KSCameraTypes fCameraType;
   TRandom3* pRandom;
+ 
  public:
   KSFADC();
   ~KSFADC();
   void SetCameraType(KSCameraTypes CameraType);
   void SetDigCntsPerPEGains(double fDigCntsPerPEHiGain);
 
-  void makeFADCTrace(std::vector<double>& fWaveForm, int fWaveFormStartIndex,
-		     int& fTraceLengthBins, bool EnableHiLoGainProcessing, 
-		     double fFADCTracePed);
+  void makeFADCTrace(KSWaveForm* pfWaveForm, int waveFormStartIndex,
+		     int traceLengthBins, bool EnableHiLoGainProcessing, 
+		     double FADCTracePed, double lowGainPedestalFADC);
   double getWindowArea(int fStartTraceIndex, int fNumBinsToSum);
-  void  Print(int fStartTraceIndex, int fNumBinsToPrint);
+  void   Print(int fStartTraceIndex, int fNumBinsToPrint);
+  bool   generateTraceSamples(double& traceArea, KSWaveForm* pWaveForm, 
+			      int waveFormStartIndex, 
+			      int numSamplesTrace, double pedestalFADC);
+  bool   clipTrace();
 
   std::vector<int> fFADCTrace;
-  int fFADCLoTraceStart;
-  bool fFADCLowGain;
+  int    fFADCLoTraceStart;
   double fDigCntsPerPEHiGain;
   double fDigCntsPerPELoGain;
+  double fFADCTracePed;
+  double fLowGainPedestal;
+  bool   fIsLowGainTrace;
+
+  //Lo Gain Clipping study variables
+  double fPixelHiSizeBeforeLoGainConversion; //inlcudes PedfSum-
+  int fPixelLoSizeBeforeLoGainClip;
+  int fPixelLoSizeAfterLoGainClip;
 };  
 
 #endif

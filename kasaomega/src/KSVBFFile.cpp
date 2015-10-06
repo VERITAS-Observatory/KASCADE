@@ -2,8 +2,7 @@
 /**
  * \class KSVBFFile
  * \ingroup common
- * \brief Methods for Kascade VBF file.
- 
+ * \brief Methods for Kascade VBF file. 
  * Original Author: Glenn H. Sembroski
  * $Author$
  * $Date$
@@ -401,24 +400,27 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	  fStartGateBin=0;
 	}
       if(fStartGateBin+fNumWaveFromBinsInTrace >
-	 (int)pfCamera->fPixel.at(0).fWaveForm.size())
+	 (int)pfCamera->fPixel.at(0).pfWaveForm->GetNumWaveFormBins())
 	{
 	  std::cout<<"KSVBFFile: Warning Attempt to extend Trace "
 	    "past end of WaveForm"<<std::endl;
 	  std::cout<<"fStartGateBin,fNumWaveFromBinsInTrace,"
 	    "fWaveForm.size: "<<fStartGateBin<<" "
 		   <<fNumWaveFromBinsInTrace<<" "
-		   <<pfCamera->fPixel.at(0).fWaveForm.size()
+		   <<pfCamera->fPixel.at(0).pfWaveForm->GetNumWaveFormBins()
 		   <<std::endl;
 	  std::cout<<"KSVBFFile: Backing up fStartGateBin to fit "
 	    "Trace"<<std::endl;
 	  std::cerr<<"KSVBFFile:Backing up fStartGateBin to fit "
 	    "Trace"<<std::endl;
-	  fStartGateBin=pfCamera->fPixel.at(0).fWaveForm.size()-1-
+	  fStartGateBin=pfCamera->fPixel.at(0).pfWaveForm->GetNumWaveFormBins()-1-
 		                                    fNumWaveFromBinsInTrace;
 	}
     }
 
+  fSumHiSizeBeforeLoGainConversion=0;
+  fSumLowGainSizeBeforeClip=0;
+  fSumLowGainSizeAfterClip=0;
   for (unsigned k=0;k<(unsigned)gNumPixelsCamera[fCameraType]; ++k)
     {
       // *****************************************************************
@@ -443,13 +445,24 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	  // pedestal)
 	  // Added in MakeTrace
 	  pfCamera->fPixel.at(k).fFADC.makeFADCTrace(
-					    pfCamera->fPixel.at(k).fWaveForm,
+					    pfCamera->fPixel.at(k).pfWaveForm,
 					    fStartGateBin, fNumSamplesTrace,
-					    true,gPedestal[VERITAS499]);
+					    true,gPedestal[VERITAS499],
+					    gLowGainPedestal[VERITAS499]);
+	  // *************************************************************
+	  // Acqumulate HiLoGain study parameters for image
+	  // *************************************************************
+	  fSumHiSizeBeforeLoGainConversion += 
+	       pfCamera->fPixel.at(k).fFADC.fPixelHiSizeBeforeLoGainConversion;
+	  fSumLowGainSizeBeforeClip +=
+	       pfCamera->fPixel.at(k).fFADC.fPixelLoSizeBeforeLoGainClip; 
+	  fSumLowGainSizeAfterClip +=
+	       pfCamera->fPixel.at(k).fFADC.fPixelLoSizeAfterLoGainClip; 
+
 	  // **************************************************************
 	  // Now we are ready to load up the VBF samples.
 	  // ************************************************************* 
-	  event->setHiLo(k,pfCamera->fPixel.at(k).fFADC.fFADCLowGain);
+	  event->setHiLo(k,pfCamera->fPixel.at(k).fFADC.fIsLowGainTrace);
 	  for (unsigned l=0; l<event->getNumSamples(); ++l)
 	    {
 	      short unsigned int fTrc=(short unsigned int)pfCamera->
@@ -463,16 +476,17 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
 	  // This is a pedestal event
 	  // *************************************************************
 	  // Convert wave form to FADC trace.  Pedestal(use VERITAS 
-	  // pedestal)
+	  // pedesta)
 	  // Added in MakeTrace
 	  pfCamera->fPedPixels.at(k).fFADC.makeFADCTrace(
-					 pfCamera->fPedPixels.at(k).fWaveForm,
-					 fStartGateBin, fNumSamplesTrace,
-					 true,gPedestal[VERITAS499]);
+					pfCamera->fPedPixels.at(k).pfWaveForm,
+					fStartGateBin, fNumSamplesTrace,
+					true,gPedestal[VERITAS499],
+					gLowGainPedestal[VERITAS499]);
 	  // **************************************************************
 	  // Now we are ready to load up the VBF samples.
 	  // ************************************************************* 
-	  event->setHiLo(k,pfCamera->fPedPixels.at(k).fFADC.fFADCLowGain);
+	  event->setHiLo(k,pfCamera->fPedPixels.at(k).fFADC.fIsLowGainTrace);
 	  for (unsigned l=0; l<event->getNumSamples(); ++l)
 	    {
 	      short unsigned int fTrc=(short unsigned int)pfCamera->
@@ -634,9 +648,12 @@ void KSVBFFile::WriteVBF(int fArrayEventNum, int fTelID, VATime& fEventTime,
   VKascadeSimulationData *pfKSimdata=
     new VKascadeSimulationData(fNx, fNy,
 			       (uint32_t)pfTe->fDirectionIndex, 
-			       (float)pfTe->fEmissionAltitude,
-			       (float)pfTe->fEmissionAltitudeSigma,
-			       (float)pfTe->fMuonRatio,
+			       //(float)pfTe->fEmissionAltitude,
+			       //(float)pfTe->fEmissionAltitudeSigma,
+			       //(float)pfTe->fMuonRatio,
+			       (float)fSumHiSizeBeforeLoGainConversion,
+			       (float)fSumLowGainSizeBeforeClip,
+			       (float)fSumLowGainSizeAfterClip,
 			       (float)pfTe->fAomega,
 			       (float)fFADCStartGateTimeNS,
 			       fDifferentialRatePerEventHz,

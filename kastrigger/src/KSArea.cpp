@@ -40,7 +40,7 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   fGammas2D                = pfDataIn->pfTeHead->fGammas2D;
   fMultipleMountDirections = pfDataIn->pfTeHead->fMultipleMountDirections;
   fCameraType              = pfDataIn->pfTeHead->fCameraType; 
-
+  
 
   fFirstRead=true;
 
@@ -50,9 +50,10 @@ KSArea::KSArea(KSPeFile* pPesFile, KSTeFile* pTeFile,
   
   int numPixelsInTrigger=gNumTriggerPixels[fCameraType];
   pfCamera=new KSCamera(fCameraType, pfDataIn->pfTeHead, 
-			pfDataIn->fUsePatternTrigger, 0.0,
-			gFADCDigCntsPerPEHiGain[fCameraType],
-			numPixelsInTrigger,
+			pfDataIn->fUsePatternTrigger,
+			gFADCDigCntsPerPEHiGain[fCameraType], 0.0,
+			numPixelsInTrigger, gSinglePeRiseTimeNS[fCameraType],
+			gSinglePeFallTimeNS[fCameraType],
 			pfDataIn->fPSFNorthSouthDeg, 
 			pfDataIn->fPSFEastWestDeg);
   pfCamera->Print();
@@ -370,9 +371,9 @@ void KSArea::ProcessImages()
 // 5:Collect sum for Mean altitude of emmision.
 // 6:Collets sum*sum for rms calc of Mean altitude of emission
 	  fPesHitPixels=true;
-	  pfCamera->fPixel[fPixelIndex].fDisc++;
+	  pfCamera->fPixel.at(fPixelIndex).fDisc++;
 	                                        // Save focal plane times.
-	  pfCamera->fPixel[fPixelIndex].fTimePe.push_back(fPeTime);
+	  pfCamera->fPixel.at(fPixelIndex).fTimePe.push_back(fPeTime);
 
 	  fPeHits++;
 	  if(fPes.at(ipe).fTrackType==4 || fPes.at(ipe).fTrackType==5)

@@ -37,6 +37,7 @@ const double gPixelHalfSpacingMM[2]      = {       15.7,         7.5};
 const double gPixelActiveCathRadiusMM[2] = {       12.00,         5.0};
 
 const double gPedestal[2]                = {        14.5,         2.0};
+const double gLowGainPedestal[2]         = {        6.5,          2.0};
 const int    gNightSkyWaveFormNS[2]      = {        1000,        3000};
 const double gElectronicNoiseSigmaPe[2]  = {         .28,         0.0};
 //const double gElectFADCNoiseSigmaDC[2]   = {         .49,         0.0};
@@ -124,22 +125,27 @@ const double gDeg2Rad=TMath::Pi()/180.;
 //const double gWhip490RotRad=-7.306*gDeg2Rad; //Whipple 490 camera is rotated 
 //                            //by this much: Handled in WhippleCams.h
 
-const double gOverflowTime=1000001.;
+const double gOverflowTime = 1000001.;
 
-const double gWaveFormBinSizeNS=.25;     // Bin size in ns
+const double gWaveFormBinSizeNS = .25;     // Bin size in ns
 
 // double gFADCDelayNS           =-8.0;
-const double gFADCBinSizeNS         = 2.0;
-const int    gFADCHiLoGainThreshold = 250;
-const int    gFADCLowGainDelayNS    =  20;
-const double gFADCHiLoGainRatio     = 6.0;
-const double gTrigMultiplicityWidthNS = 10.0;  // WHIPPLE490 CFD Pulse width
-const int    gAbsNXAbsNYMax         =16000;    //Ranges of nx,ny
+const double gFADCBinSizeNS              = 2.0;
+const int    gFADCHiLoGainThreshold      = 250;
+const int    gFADCLowGainLookBackBins    = 24;//note:8bins=1sample=2ns
+const double gLowGainToHighGainPeakRatio = 0.099; //Nepomuks value
+const double gHighGainMVPerDC             = 7.84;  //Nepomuks value
+const double gFADCHiLoGainRatio          = 6.00;
+
+const double gTrigMultiplicityWidthNS    = 10.0;  // WHIPPLE490 CFD Pulse width
+const int    gAbsNXAbsNYMax              = 16000;    //Ranges of nx,ny
 
 //Dec 3 Value to account for round down: see notes Simulations - Dec-2012 03/12/12 
-const double    gPulseHeightForMeanFADCArea  =1.7391;//Flasher singlePe HV induced gain                                          //Assumes increasing HV by 10% increases
-                                          //gain by 1.7391
-                                          //Think about it!
+const double gPulseHeightForMeanFADCArea = 1.7391;
+                                 //Flasher singlePe HV induced gain
+                                 //Assumes increasing HV by 10% increases
+                                 //gain by 1.7391
+                                 //Think about it!
 
 //Upgrade
 const std::string gDefaultStartOfRunTime="2007-09-11 00:02:00 UTC";

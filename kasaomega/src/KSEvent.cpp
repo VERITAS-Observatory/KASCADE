@@ -35,6 +35,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   fNumPixels = gNumPixelsCamera[fCameraType];
   fMeanTimeBetweenEventsSec=1./kDefaultEventRatePerSec;
 
+
   // ------------------------------------------------------------------------
   //  Initalize the camera (Lots and Lots of work done in this constructor)
   // ----------------------------------------------------------------------
@@ -61,35 +62,19 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
   //			                              fFADCDigCntsPerPEHiGain);
 
   int numPixelsInTrigger              =pfDataIn->fNewNumPixelsInTrigger;
-  if(numPixelsInTrigger==-1)   //Default to standard L2(PST) configuration
-    {
-      numPixelsInTrigger=gNumTriggerPixels[fCameraType];
-    } 
+  if(numPixelsInTrigger==-1) {  //Default to standard L2(PST) configuration
+    
+    numPixelsInTrigger=gNumTriggerPixels[fCameraType];
+  } 
 
 
-  pfCamera=new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
-			fFADCDigCntsPerPEHiGain,fNoiseRateSigma,
-			numPixelsInTrigger);
-  
-  if(pfDataIn->fSinglePeRiseTimeNS!=0 && pfDataIn->fSinglePeFallTimeNS!=0){
-    std::cout<<"KSEvent: Reset Rising Slope to: "<<pfDataIn->fSinglePeRiseTimeNS
-	     <<"ns"<<std::endl;
-    std::cout<<"KSEvent: Reset Falling Slope to: "<<pfDataIn->fSinglePeFallTimeNS
-	     <<"ns"<<std::endl;
-
-    for(int i=0;i<numPixelsInTrigger;i++){
-      pfCamera->fPixel.at(i).pfSinglePe->setRiseFallTimes(
-					     pfDataIn->fSinglePeRiseTimeNS, 
-					     pfDataIn->fSinglePeFallTimeNS);
-      pfCamera->fPedPixels.at(i).pfSinglePe->setRiseFallTimes(
-					     pfDataIn->fSinglePeRiseTimeNS, 
-					     pfDataIn->fSinglePeFallTimeNS);
-    }
-  }
-
+  pfCamera = new KSCamera(fCameraType, pfTeHead, fUsePatternTrigger,
+			  fFADCDigCntsPerPEHiGain,fNoiseRateSigma,
+			  numPixelsInTrigger,pfDataIn->fSinglePeRiseTimeNS,
+			  pfDataIn->fSinglePeFallTimeNS);
 
   std::cout<<"ksAomega-- Ignore jitter values below"<<std::endl;
-
+  
   pfCamera->Print();
 
   // ************************************************************************

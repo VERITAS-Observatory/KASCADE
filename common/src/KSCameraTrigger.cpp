@@ -24,7 +24,7 @@ extern "C" double gaussfast();
 // ********************************************************************
 
 KSCameraTrigger::KSCameraTrigger(KSTeHeadData* pTeHead, bool UsePatternTrigger,
-				 std::vector<KSPixel>* pPixel, 
+				 std::vector< KSPixel >* pPixel, 
 				 int numPixelsInTrigger)
 {
   pfTeHead=pTeHead;
@@ -170,7 +170,7 @@ bool KSCameraTrigger::isFastTriggered()
 	  int fDisc=pfPixel->at(i).fDisc;  //numper of pes this pixel, 
 	  if(fDisc==0)                 // Do this for speed to reduce calls
 	    {		               // to gaussfast,NFluct and thus pran,RANLUX
-	      double fDiscNoise  = (double)pfPixel->at(i).fDiscNoise;
+	      double fDiscNoise  = (double) pfPixel->at(i).fDiscNoise;
 	      double fDiscPes   = NFluct(fDiscNoise);  //Add in sky noise
 	      // Note that we do not correct for efficiency here. Already 
 	      // done when we specified base noise rate.
@@ -187,7 +187,7 @@ bool KSCameraTrigger::isFastTriggered()
 		  for(int j=0;j<fDiscPes;j++)
 		    {
 		      fPulseHeight=
-			pfPixel->at(i).pfSinglePe->getPulseHeight(fAfterPulse);
+			 pfPixel->at(i).pfSinglePe->getPulseHeight(fAfterPulse);
 		      fDiscPulseHeight += fPulseHeight;
 		    }
 		}
@@ -224,7 +224,7 @@ bool KSCameraTrigger::isFastTriggered()
 	  for(int i=0;i<fNumPixelsTrigger;i++)
 	    {
 	      fCFDTriggerTimes.at(i).clear();
-	      if(pfPixel->at(i).fDiscTrigger)   //fDiscTrigger is a bool
+	      if( pfPixel->at(i).fDiscTrigger)   //fDiscTrigger is a bool
 		{
 		  fCFDTriggerTimes.at(i).push_back(100.); 
 		}
@@ -267,10 +267,10 @@ bool KSCameraTrigger::isWaveFormTriggered()
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
       fCFDTriggerTimes.at(i).clear();
-      if(pfPixel->at(i).fCFDTriggerTimeNS.size()>0)
+      if( pfPixel->at(i).fCFDTriggerTimeNS.size()>0)
 	{
 	  //std::cout<<" "<<i;
-	  fCFDTriggerTimes.at(i)=pfPixel->at(i).fCFDTriggerTimeNS; 
+	  fCFDTriggerTimes.at(i)= pfPixel->at(i).fCFDTriggerTimeNS; 
 	}
     }
   if(fCameraType==WHIPPLE490)
@@ -314,7 +314,7 @@ int KSCameraTrigger::checkThreshold()
   int fCount=0;
   for(int i=0;i<fNumPixelsTrigger;i++)
     {
-      if(pfPixel->at(i).fDiscPulseHeight>=pfPixel->at(i).fThreshold)
+      if( pfPixel->at(i).fDiscPulseHeight>= pfPixel->at(i).fThreshold)
 	{
 	  pfPixel->at(i).fDiscTrigger=true;
 	  fCount++;

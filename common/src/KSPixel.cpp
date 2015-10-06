@@ -17,46 +17,45 @@
 
 extern "C" double Rexp(double rate);
 
-KSPixel::KSPixel()
+
+KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain, 
+		 double SinglePeRiseTimeNS, double SinglePeFallTimeNS)
 {
-  pfRandom=new TRandom3(0);
-  InitPixel();
-}
-KSPixel::KSPixel(KSCameraTypes cameraType, double digCntsPerPEHiGain)
-{
-  fCameraType=cameraType;
+  fCameraType=CameraType;
   fFADC.SetCameraType(fCameraType);
-  fFADC.SetDigCntsPerPEGains(digCntsPerPEHiGain);
-  pfRandom=new TRandom3(0);
-  InitPixel();
-}
-
-void KSPixel::InitPixel()
-{
-  // ****************************************************************************
-  //This is where we could reset the rise and fall times of the single pe pulse
-  // ****************************************************************************
-
-  pfSinglePe=NULL;
-  if(fCameraType==WHIPPLE490)
-    {
-      pfSinglePe= new KSSinglePe();  //use base rise and fall times
-    }
-  if(fCameraType==VERITAS499)
-    {
-      pfSinglePe= new KSSinglePe(gSinglePeRiseTimeNS[fCameraType],
-				 gSinglePeFallTimeNS[fCameraType]); 
-    }
+  fFADC.SetDigCntsPerPEGains(DigCntsPerPEHiGain);
+  pfRandom=new TRandom3(0);   
+  if(fCameraType==WHIPPLE490) {
+    pfSinglePe= new KSSinglePe();  //use base rise and fall times
+  }
+  if(fCameraType==VERITAS499){
+    pfSinglePe= new KSSinglePe(SinglePeRiseTimeNS,SinglePeFallTimeNS);
+  }
+ 
+  // *******************************************************
+  // We create the pfWaveform here at this time so that we can run the 
+  // getMeanFADCArea and getMeanFADCArea here only when we create the pixel
+  // and not when we init the pixels which happen many times. See KSCamera
+  // *******************************************************
+  pfWaveForm=new KSWaveForm(fCameraType,pfSinglePe);
   fSinglePeSizeNS      = pfSinglePe->getLengthNS();
   fSinglePeSizeNumBins = pfSinglePe->fNumBinsInPulse;
   fSinglePeArea        = pfSinglePe->getArea();
-  //  fSinglePeMeanFADCArea           =  pfSinglePe->getMeanFADCArea(fCameraType,fFADC,
-  //						        gPulseHeightForMeanFADCArea);
-  //fSinglePeMeanFADCAreaNoRounding = pfSinglePe->getMeanFADCArea(fCameraType,fFADC,
-  //								             1000.0);
-  fSinglePeMeanFADCArea = getMeanFADCArea(fCameraType,gPulseHeightForMeanFADCArea,1.0);
-  fSinglePeMeanFADCAreaNoRounding = 
-                       getMeanFADCArea(fCameraType,gPulseHeightForMeanFADCArea,5000.0);
+  //Next 2 calls use pfWaveForm
+  fSinglePeMeanFADCArea = getMeanFADCArea(fCameraType,
+					  gPulseHeightForMeanFADCArea,1.0);
+  fSinglePeMeanFADCAreaNoRounding = getMeanFADCArea(fCameraType,
+						 gPulseHeightForMeanFADCArea,
+						 5000.0);
+  InitPixelWaveForm();
+}
+
+void KSPixel::InitPixelWaveForm()
+// ****************************************************************************
+//This is where the individiual pixel gets an individual KSWAveForm
+// ****************************************************************************
+{
+  pfWaveForm = new KSWaveForm(fCameraType,pfSinglePe); 
 }
 // **************************************************************
 
@@ -67,131 +66,70 @@ KSPixel::~KSPixel()
  
 // *************************************************************************
 
-void KSPixel::InitWaveForm(double waveFormStartNS,double waveFormLengthNS)
-// ********************************************************************
-// Allocate the wave form
-// ********************************************************************
+void KSPixel::InitWaveForm(double WaveFormStartNS,double WaveFormLengthNS)
 {
-  fWaveFormStartNS=waveFormStartNS;
-  fWaveFormLengthNS=waveFormLengthNS;
-  fNumWaveFormBins=(int)(fWaveFormLengthNS/gWaveFormBinSizeNS + 1.0);
-  fWaveForm.clear();
-  fWaveForm.resize(fNumWaveFormBins,0.0);
+  // **************************************************************************
+  // In pfWaveForm, initalize wave form and get number of elements
+  // **************************************************************************
+  fNumWaveFormBins = 
+            pfWaveForm->InitWaveForm(WaveFormStartNS, WaveFormLengthNS);
   return;
 }
-// ********************************************************************
+// ****************************************************************************
+
+double KSPixel::GetWaveFormElement(int Index)
+{
+  double element = pfWaveForm->GetWaveFormElement(Index);
+  return element;
+}
+// ****************************************************************************
+
 
 void KSPixel::BuildPeWaveForm()
 // **************************************************************************
-// In fWaveForm, build the wave form we expect from the real pe's 
+// In pfWaveForm, build the wave form we expect from the real pe's 
+// Return number of pe we actually added
 // **************************************************************************
 {
-  int numPes=fTimePe.size();
-  fDisc=0;
-  bool afterPulse=false;
-  if(numPes>0){
-    for(int i=0;i<numPes;i++){
-      if(pfRandom->Rndm()<fEfficiency){
-	fDisc++;
-	double peTime=fTimePe.at(i)-fWaveFormStartNS;
-	addPe(peTime,afterPulse);
-      }
-    }
-  }
+  fDisc=pfWaveForm->BuildPeWaveForm(fTimePe,fEfficiency);
   return;
+
 }
 // ***************************************************************************
 
-int KSPixel::AddNoiseToWaveForm(bool afterPulse)
+int KSPixel::AddNoiseToWaveForm(bool AfterPulse)
 // **************************************************************************
 // In fWaveForm, Add the noise pulses to it.
 // Note that this noise rate is not affected by the base efficiency!!!
 // **************************************************************************
-// Add pe at random times using Rexp for time intervels
 {
-  // *********************************************************************
-  // The Base noise rate was  modified by the light cone collection area 
-  // efficiency to account for different PMT areas/etc and the pixel hexagon
-  // area.
-  // *********************************************************************
-  double meanTimeGapNS=1./fNoiseRatePerNS;
+  int iCount = pfWaveForm->AddNoiseToWaveForm(AfterPulse, fNoiseRatePerNS);
 
-  double noiseTimeNS=-fSinglePeSizeNS + Rexp(meanTimeGapNS);
-  int icount=0;
-  while(noiseTimeNS<gWaveFormBinSizeNS*fNumWaveFormBins)
-    {
-      addPe(noiseTimeNS,afterPulse);
-      noiseTimeNS+=Rexp(meanTimeGapNS);
-      icount++;
-    }
-  
-
-  //cout<<"Num noise pe's:"<<icount<<endl;
-  return icount;
+  return iCount;
 }
-
-void KSPixel::addPe(double peTimeNS,bool afterPulse)
-// **************************************************************************
-// Add a single pe to the waveForm array.
-// **************************************************************************
-{
-  // **********************************************************************
-  // See if any of out pe will be in the waveform window. 
-  // PeTimeNS could be negative
-  // **********************************************************************
-  int EndInWaveFormThisPeNS=peTimeNS+fSinglePeSizeNS+gWaveFormBinSizeNS;
-  if(EndInWaveFormThisPeNS<=0){ //End of pe before waveform start.
-    return;
-  }
-
-  // ************************************************************************
-  // The single pe we are adding ends after the start of the wave form.
-  // See if it starts after the end of the waveform.
-  // ************************************************************************
-  int startBin=(int)(peTimeNS/gWaveFormBinSizeNS);//Noise can start at 
-  // or before 0.
-  if(startBin>fNumWaveFormBins-1){
-    return;
-  }
-  
-  
-  // **************************************************************************
-  // Find where it starts. If before the wave form find place in the single pe
-  // that goes into first bin of wave form
-  // **************************************************************************
-  
-  int peStartIndex=0;       //Nominal atart and end index of single pe
-  int peEndIndex=fSinglePeSizeNumBins-1;
-  if(startBin<0)              //We only have the tail end of the pe pulse
-    {
-      peStartIndex=-startBin;   //So we skip the first startBin's of the single pe 
-      startBin=0;               //and we put that in first wave form bin
-    }
-  
-  // *******************************************************************************
-  // If pulse ends after the end of the wave form reduce to that.
-  // *****************************************************************************
-  if((startBin+fSinglePeSizeNumBins-1)>=fNumWaveFormBins){
-    peEndIndex=fNumWaveFormBins-startBin-1;
-  }
-  
-  double pulseHeight=pfSinglePe->getPulseHeight(afterPulse);
-  
-  // Now load in the single pe
-  int waveFormIndex=startBin;     
-  for(int i=peStartIndex;i<=peEndIndex;i++){
-    //    if( i<0 || i>(int)pfSinglePe->pfSinglePulse.size()-1){
-    // cout<<"Out of range SinglePe: i: "<<i<<endl;
-    // }
-    //if(waveFormIndex<0 || waveFormIndex >(int)fWaveForm.size()-1 ) {
-    //  cout<<"Out of range waveformindex: "<<waveFormIndex<<endl;
-    // }
-    fWaveForm.at(waveFormIndex)+=pfSinglePe->pfSinglePulse.at(i)*pulseHeight;
-    waveFormIndex++;
-  }
-  return;
-} 
+ 
 // ***************************************************************************
+void KSPixel::RemovePedestalFromWaveForm(double WaveFormPedestal)
+ // *************************************************************************
+ // Remove Specified Pedestal from fWaveForm
+ // *************************************************************************
+{
+  pfWaveForm->RemovePedestalFromWaveForm(WaveFormPedestal);
+
+  return;
+}
+// **************************************************************************
+
+void KSPixel::AddPedestalToWaveForm(double WaveFormPedestal)
+ // *************************************************************************
+ // Add specified Pedestal to fWaveForm
+ // *************************************************************************
+{
+  pfWaveForm->AddPedestalToWaveForm(WaveFormPedestal);
+  return;
+}
+// **************************************************************************
+
 
 void KSPixel::DetermineNoisePedestals()
 // ***************************************************************************
@@ -202,22 +140,18 @@ void KSPixel::DetermineNoisePedestals()
 // ***************************************************************************
 // From this same waveform determine ther FADC window Charge Pedvar
 {
-  InitWaveForm(0.0,gNightSkyWaveFormNS[fCameraType]);
+  pfWaveForm->InitWaveForm(0.0,gNightSkyWaveFormNS[fCameraType]);
 
   //bool afterPulse=true;
   bool afterPulse=false;
 
-  AddNoiseToWaveForm(afterPulse);  //Note that this noise has not been 
-                                    //modified by overall efficiency but has 
-                                    //been modified by light cone efficiency
+  pfWaveForm->AddNoiseToWaveForm(afterPulse,fNoiseRatePerNS); //Note that this noise 
+                                             // (fNoiseRatePerNS) has not been 
+                                             //modified by overall efficiency but has 
+                                             //been modified by light cone efficiency
 
-  double waveFormSum=0;
-  for(int i=0;i<(int)fWaveForm.size();i++)
-    {
-      waveFormSum+=fWaveForm.at(i);
-    }
-
-  fWaveFormNightSkyPedestal=waveFormSum/fWaveForm.size();
+  double waveFormSum        = pfWaveForm->GetWaveFormSum();
+  fWaveFormNightSkyPedestal = waveFormSum / pfWaveForm->GetNumWaveFormBins();
 
   // ********************************************************************
   // Note: For both WHIPPLE and VERITAS the wave form fed to the ADC/FADC is
@@ -226,7 +160,7 @@ void KSPixel::DetermineNoisePedestals()
   // *************************************************************************
  
   RemovePedestalFromWaveForm(fWaveFormNightSkyPedestal);
- //PrintWaveForm(0,0,fID,0);
+  //PrintWaveForm(0,0,fID,0);
 
   // Now the Ped and PedVar for the FADC(or ADC for Whipple490) window(we 
   // have only 1 as yet)
@@ -237,7 +171,7 @@ void KSPixel::DetermineNoisePedestals()
 
   //Get the integer whoule number of FADC (or ADC for Whipple) windows in the 
   //waveform
-  int numFADCWindows=(int)(fWaveForm.size()/numBinsFADCWindow);
+  int numFADCWindows=(int)(pfWaveForm->GetNumWaveFormBins()/numBinsFADCWindow);
 
   if(fCameraType==WHIPPLE490)
     {    
@@ -257,11 +191,11 @@ void KSPixel::DetermineNoisePedestals()
       for(int i=0;i<numFADCWindows;i++)
 	{
 	  int k=i*numBinsFADCWindow;
-	  waveFormSum=0;
-	  for(int j=0;j<numBinsFADCWindow;j++)
-	    {
-	      waveFormSum+=fWaveForm.at(k+j);
-	    }
+	  waveFormSum=pfWaveForm->GetWaveFormSum(k,k+numBinsFADCWindow);
+	  //for(int j=0;j<numBinsFADCWindow;j++)
+	  // {
+	  //   waveFormSum+=fWaveForm.at(k+j);
+	  // }
 	  waveFormSum=waveFormSum/fSinglePeArea;//convert to pe's
 	  pedSum+=waveFormSum;
 	  ped2Sum+=waveFormSum*waveFormSum;
@@ -281,10 +215,10 @@ void KSPixel::DetermineNoisePedestals()
       // Determine fFADCTrace from almost entire fWaveForm
       //  Note We do not need the  use of HiLow Gain stuff here
       // Note also that the conversion to dc from pe's is done within
-      // the makeFADCTrace class. (Note Pedestal added there also)
+      // the KSFADC::makeFADCTrace method. (Note Pedestal added there also)
       // *****************************************************************
-      fFADC.makeFADCTrace(fWaveForm,0,numSamplesTrace,false,
-			                                gPedestal[VERITAS499]);
+      fFADC.makeFADCTrace(pfWaveForm,0,numSamplesTrace,false,
+			  gPedestal[VERITAS499], gLowGainPedestal[VERITAS499]);
       double pedSum=0;
       double ped2Sum=0;
       int iCount=0;  //Just being careful here.
@@ -313,31 +247,6 @@ void KSPixel::DetermineNoisePedestals()
 }
 // ****************************************************************************
 
-void KSPixel::RemovePedestalFromWaveForm(double waveFormPedestal)
- // *************************************************************************
- // Remove Specified Pedestal from fWaveForm
- // *************************************************************************
-{
-  for(int i=0;i<(int)fWaveForm.size();i++)
-    {
-      fWaveForm.at(i)=fWaveForm.at(i)-waveFormPedestal;
-    }
-  return;
-}
-// **************************************************************************
-
-void KSPixel::AddPedestalToWaveForm(double waveFormPedestal)
- // *************************************************************************
- // Add specified Pedestal to fWaveForm
- // *************************************************************************
-{
-  for(int i=0;i<(int)fWaveForm.size();i++)
-    {
-      fWaveForm.at(i)+=waveFormPedestal;
-    }
-  return;
-}
-// **************************************************************************
 
 
 double KSPixel::GetCharge(double FADCGateStartTimeNS, bool pedestalEvent)
@@ -361,11 +270,14 @@ double KSPixel::GetCharge(double FADCGateStartTimeNS, bool pedestalEvent)
     {
       int ADCNumBins = (int)((gFADCWinSize[fCameraType]*gFADCBinSizeNS) /
 			      gWaveFormBinSizeNS);
-      for(int i=0;i<ADCNumBins;i++)
-	{
-	  int j=i+startGateBin;
-	  charge+=fWaveForm.at(j);
-	}
+
+      charge=pfWaveForm->GetWaveFormSum(startGateBin,startGateBin+ADCNumBins-1);
+      //for(int i=0;i<ADCNumBins;i++)
+      //	{
+      //	  int j=i+startGateBin;
+      //	  charge+=fWaveForm.at(j);
+      //	}
+      
       charge=charge/fSinglePeArea;//Pe's
     }
   if(fCameraType==VERITAS499)
@@ -373,8 +285,8 @@ double KSPixel::GetCharge(double FADCGateStartTimeNS, bool pedestalEvent)
 
       int numSamplesTrace = gFADCWinSize[fCameraType];
 
-      fFADC.makeFADCTrace(fWaveForm,startGateBin,numSamplesTrace,true,
-			  gPedestal[VERITAS499]);
+      fFADC.makeFADCTrace(pfWaveForm,startGateBin,numSamplesTrace,true,
+			  gPedestal[VERITAS499], gLowGainPedestal[VERITAS499]);
       // ******************************************************************
       // When building the FADC trace (both hi and low gain) a FADC pedestal 
       // was added to the wave form before digitizing. It was the same 
@@ -382,8 +294,8 @@ double KSPixel::GetCharge(double FADCGateStartTimeNS, bool pedestalEvent)
       // ******************************************************************
       charge=fFADC.getWindowArea(0,gFADCWinSize[fCameraType])-fPedDC;
 	
-      //Amplify for lo gain.
-      if(fFADC.fFADCLowGain)
+      //Atenuate for lo gain.
+      if(fFADC.fIsLowGainTrace)
 	{
 	  charge=charge*gFADCHiLoGainRatio;
 	}
@@ -392,18 +304,18 @@ double KSPixel::GetCharge(double FADCGateStartTimeNS, bool pedestalEvent)
 }
 // ***************************************************************************
 
-void KSPixel::PrintWaveForm(int nx, int ny, int seqNum, 
-			    double time)
+void KSPixel::PrintWaveForm(int Nx, int Ny, int SeqNum, 
+			    double Time)
 // **************************************************************************
 // Dump wave form to ouput in form easy to plot with root. Used for debugging.
 // **************************************************************************
 {
-  int numBins=fWaveForm.size();
+  int numBins=pfWaveForm->GetNumWaveFormBins();
   for(int i=0;i<numBins;i++)
     {
       double binTime=fWaveFormStartNS+i*gWaveFormBinSizeNS;
-      cout<<nx<<" "<<ny<<" "<<seqNum<<" "<<fID<<" "<<binTime<<" "
-	       <<fWaveForm.at(i)<<" "<<time<<endl;
+      cout<<Nx<<" "<<Ny<<" "<<SeqNum<<" "<<fID<<" "<<binTime<<" "
+	       <<pfWaveForm->GetWaveFormElement(i)<<" "<<Time<<endl;
     }
   return;
 }
@@ -431,22 +343,26 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 	    {
 	      
 	      //Make a clean WaveForm 
-	      InitWaveForm(0,fSinglePeSizeNS +timeSpreadNS[k]);
+	      pfWaveForm->InitWaveForm(0,fSinglePeSizeNS +timeSpreadNS[k]);
 	      //Add in 6 pes'
 	      bool afterPulse=false;
+	      vector<double> TimePe;
 	      for(int j=0;j<numPes[n];j++)
 		{
 		  double peTimeNS=pfRandom->Rndm()*timeSpreadNS[k];
-		  addPe(peTimeNS,afterPulse);   //This uses pulse height dist
+		  TimePe.push_back(peTimeNS);
 		}
+	      pfWaveForm->BuildPeWaveForm(TimePe,afterPulse); 
+
+
 	      //Find max of this wave form and print it out.
 	      double waveFormMax=0.0;
-	      int numBins=fWaveForm.size();
+	      int numBins=pfWaveForm->GetNumWaveFormBins();
 	      for(int j=0;j<numBins;j++)
 		{
-		  if(fWaveForm.at(j)>waveFormMax)
+		  if(pfWaveForm->GetWaveFormElement(j)>waveFormMax)
 		    {
-		      waveFormMax=fWaveForm.at(j);
+		      waveFormMax=pfWaveForm->GetWaveFormElement(j);
 		    }
 		}
 	      // *************************************************************
@@ -456,8 +372,10 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 	      int numTraceBins=(int)(numBins*gWaveFormBinSizeNS/
 				      gFADCBinSizeNS)+1+1;  
 	                                      //Extra 1 is just for insruance.
-	      fFADC.makeFADCTrace(fWaveForm,0,numTraceBins,false,
-				  gPedestal[VERITAS499]);
+	      fFADC.makeFADCTrace(pfWaveForm,0,numTraceBins,false,
+				  gPedestal[VERITAS499], 
+				  gLowGainPedestal[VERITAS499]);
+
 	      double singlePeFADCArea=(fFADC.getWindowArea(0,numTraceBins)-
 			      numTraceBins*gPedestal[VERITAS499])/numPes[n];
 
@@ -474,7 +392,8 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 }
 // *************************************************************************
 
-double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  double scaledPulseHeight,
+double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  
+				double scaledPulseHeight,
 				double numPesInPulse)
 // *************************************************************************
 // Get mean area for a single pe after its WaveFormn is converted to a FADC
@@ -517,19 +436,20 @@ double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  double scaledPulseHe
     double cleanPed=gPedestal[VERITAS499];
 
     //A:Step1:
-    InitWaveForm(0.0,singlePeSizeNS);
-    // *************************************************************************
+    pfWaveForm->InitWaveForm(0.0,singlePeSizeNS);
+    // ************************************************************************
     //A:Step2:make FADC Trace (adds FADC pedestal,Adds FADC noise)
-    // *************************************************************************
-    fFADC.makeFADCTrace(fWaveForm,0,numSamplesTrace,false,cleanPed);  
+    // ************************************************************************
+    fFADC.makeFADCTrace(pfWaveForm,0,numSamplesTrace,false,cleanPed,cleanPed);
+  
     double traceArea=fFADC.getWindowArea(0,numSamplesTrace);  
     //pedFADCAreaSum+=traceArea ;
   
-    // ******************************************************************************
+    // ************************************************************************
     // now do same for singlePe pulse
 
     //A:Step1:   //Add elctronic noise:
-    InitWaveForm(0.0,singlePeSizeNS);
+    pfWaveForm->InitWaveForm(0.0,singlePeSizeNS);
     // ***************************
     // Jitter electronic noise
     // ***************************
@@ -537,9 +457,10 @@ double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  double scaledPulseHe
     //  fWaveForm(j)=pRandom->Gaus()*gElectronicNoiseSigmaPe[VERITAS499];
     // }
     
-    // **************************************************************************
-    //B:step 1.5 Add single pe: start pulse at least one sample in then dirft it
-    // *************************************************************************
+    // ********************************************************************
+    //B:step 1.5 Add single pe: start pulse at least one sample in then 
+    // dirft it
+    // ***********************************************************************
     // Jitter Start time of pulse
     // **************************
     int j = (int)(pfRandom->Rndm()*numWaveFormBinsPerFADCBin);
@@ -552,12 +473,15 @@ double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  double scaledPulseHe
     bool afterPulse=false;
     double PEpulseHeight=pfSinglePe->getPulseHeight(afterPulse);
     for(int k=0;k<fSinglePeSizeNumBins;k++) {
-      fWaveForm.at(k+j)= fWaveForm.at(k+j)+PEpulseHeight*scaledPulseHeight*
-	                         (numPesInPulse*pfSinglePe->pfSinglePulse.at(k));
+      double newHeight = pfWaveForm->GetWaveFormElement(k+j) + 
+	PEpulseHeight*scaledPulseHeight*
+	(numPesInPulse*pfSinglePe->fSinglePulse.at(k));
+      pfWaveForm->SetWaveFormElement(k+j, newHeight);
     }
 	
     //Adds FADC Ped, adds FADC noise, rounddowns.
-    fFADC.makeFADCTrace(fWaveForm,0,numSamplesTrace,false,cleanPed);  
+    fFADC.makeFADCTrace(pfWaveForm,0,numSamplesTrace,false,cleanPed,cleanPed);
+  
     double traceSinglePeArea=fFADC.getWindowArea(0,numSamplesTrace);  
     //cout<<"0 "<<numPesInPulse<<" "<<j<<" "<<cleanPed<<" "<<PEpulseHeight<<" "
     //	<<traceSinglePeArea<<" "<<traceArea<<endl;

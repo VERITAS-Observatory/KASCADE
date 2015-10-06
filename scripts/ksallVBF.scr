@@ -372,6 +372,14 @@ ln -s $inpDir/$ksArrayTriggerConfig $ksArrayTriggerConfig
 ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
 ln -s $inpDir/VeritasFacetLocations.txt VeritasFacetLocations.txt
 
+if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
+   ln -s $inpDir/UpgradeLowGainWaveFormsByAmplitudeMV.txt LowGainWaveForms.txt 
+else
+    #V4/V5 Photonis template file is incomplete
+    echo 'ksallVBF--Warning-Photonis template file is incomplete'
+    ln -s $inpDir/PhotonisLowGainPulseShapeFromFADC.txt LowGainWaveForms.txt
+fi
+
 #Setup unique random seed files into working dir.
 cp -v $inpDir/ksKascade.ran ksKascade.ran  #Copy in a file to overwrite
 let seedK=$(date +10#%N)+$$      #Add in process id ($$),10# prevents error

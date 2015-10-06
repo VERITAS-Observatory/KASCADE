@@ -11,6 +11,7 @@
 #define KSCFD_H
  
 #include "KSPixel.h"
+#include "KSWaveForm.h"
 #include "KSCommon.h"
 #include <vector>
 #include <fstream>
@@ -46,6 +47,9 @@ class KSCFD
 	       int nx, int ny);
   void PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
 		     double time, std::vector<double>& waveForm,
+		     double waveFormStartNS);
+  void PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
+		     double time, KSWaveForm* pWaveForm,
 		     double waveFormStartNS);
 
 };  

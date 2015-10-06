@@ -22,6 +22,7 @@ using namespace std;
 
 
 #include "KSSinglePe.h"
+#include "KSWaveForm.h"
 #include "KSFADC.h"
 #include "KSCommon.h"
 
@@ -34,30 +35,40 @@ class KSPixel
 // *******************************************************
 {
  public:
-  KSPixel();
-  KSPixel(KSCameraTypes CameraType, double DigCntPerPEHiGain);
+  KSPixel(KSCameraTypes CameraType, double DigCntPerPEHiGain, 
+	  double SinglePeRiseTimeNS, double SinglePeFallTimeNS);
   virtual ~KSPixel();
-  void InitPixel();
+  void InitPixelWaveForm();
+
+  // Wave form wrappers. All handled within KSWaveForm class.
   void InitWaveForm(double WaveFormStartNS,double WaveFormLengthNS);
   void BuildPeWaveForm();
   int  AddNoiseToWaveForm(bool afterPulse);
-  void DetermineNoisePedestals();
   void RemovePedestalFromWaveForm(double waveFormPedestal);
   void AddPedestalToWaveForm(double waveFormPedestal);
+  double GetWaveFormElement(int Index);
+  int  GetNumberWaveFormElement(){return fNumWaveFormBins;};
+  void DetermineNoisePedestals();
+
   double  GetCharge(double triggerTimeNS, bool pedestalEvent);
   double  GetCharge(double triggerTimeNS)
                                      {return GetCharge(triggerTimeNS,false);};
+
+
   void PrintWaveForm(int nx, int ny, int seqNum,double time);
   void PrintPulseHeightsOfLightPulse();
+
+
+
+
  private:
-  void addPe(double fPeTime,bool afterPulse);
+  //void addPe(double fPeTime,bool afterPulse);
   double getMeanFADCArea(KSCameraTypes fCameraType, double scaledPulseHeight,
 			 double numPesInPulse);
 
   float fXDummy;
   KSCameraTypes fCameraType;
   TRandom3* pfRandom;
-
  
  public:
   KSSinglePe* pfSinglePe;
@@ -84,7 +95,7 @@ class KSPixel
   vector<double> fTimePe;
 
   //WaveForm stuff
-  vector<double> fWaveForm;
+  KSWaveForm* pfWaveForm;
   double fWaveFormStartNS;
   double fWaveFormLengthNS;
   int    fNumWaveFormBins;

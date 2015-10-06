@@ -43,6 +43,7 @@ class KSCamera
   KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
 	   bool fUsePatternTrigger, double fDigCntPerPEHiGain,
 	   double fNoiseRateSigma, int numPixelsInTrigger,
+	   double SinglePeRiseTimeNS, double SinglePeFallTimeNS, 
 	   double PSFNSDeg=-1.0, double PSFEWDeg=-1.0);
  private:
   void InitCamera(KSTeHeadData* pTeHead,bool usePatternTrigger);
@@ -82,8 +83,8 @@ class KSCamera
  public:
   int fNumPixels;
   int fNumPixelsTrigger;
-  std::vector<KSPixel> fPixel;
-  std::vector<KSPixel> fPedPixels;
+  std::vector< KSPixel > fPixel;
+  std::vector< KSPixel > fPedPixels;
 
   KSCFD* pfCFD;
 
@@ -99,6 +100,8 @@ class KSCamera
   double  fEastLongitude;
   double  fDigCntsPerPEHiGain;
   double  fNoiseRateSigma;
+  double  fSinglePeRiseTimeNS;
+  double  fSinglePeFallTimeNS;
   
   double  fMaxFOVDeg2;
   float* pfTelescopePixelX;

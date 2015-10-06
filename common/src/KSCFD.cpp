@@ -36,7 +36,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
 // ***************************************************************************
 // Test to see if this pixel's waveform fires its CFD
 // ***************************************************************************
-// Note: Units of fPixel.fWaveform are PE's
+// Note: Units of fPixel->pfWaveform are PE's
 // ***************************************************************************
 // We are going to try and do both WHIPPLE490 and VERITAS499 CFD's here in the
 // same code
@@ -74,7 +74,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
   bool printWaveForms=false; 
   bool triggerFound=false;
   int fNumWaveFormBins=fPixel.fNumWaveFormBins;
-
+  
   fPixel.fCFDTriggerTimeNS.clear();           //Default is no triggers
  
 
@@ -144,7 +144,7 @@ bool KSCFD::isFired(KSPixel& fPixel, double fStartTimeOffsetNS,
 	  // We may need to get better at when we check for the threshold 
 	  // for Whipple
 	  // *************************************************************
-	  if(fPixel.fWaveForm.at(offsetCrossingBin+fCFDTriggerDelayBins)
+	  if(fPixel.pfWaveForm->GetWaveFormElement(offsetCrossingBin+fCFDTriggerDelayBins)
 	     >=fPixel.fThreshold) 
 	    {
 	      triggerFound=true;
@@ -217,6 +217,24 @@ void KSCFD::PrintWaveForm(int pixelID, int nx, int ny, int seqNum,
   return;
 }
 // ***************************************************************************
+void KSCFD::PrintWaveForm(int pixelID, int nx, int ny, int seqNum, 
+			  double time, KSWaveForm* pWaveForm,
+			  double waveFormStartNS)
+// **************************************************************************
+// Dump wave form to ouput in form easy to plot with root. Used for debugging.
+// **************************************************************************
+{
+
+  int fNumBins=pWaveForm->GetNumWaveFormBins();
+  for(int i=0;i<fNumBins;i++)
+    {
+      double fBinTime=waveFormStartNS+i*gWaveFormBinSizeNS;
+      fMyFile<<nx<<" "<<ny<<" "<<seqNum<<" "<<pixelID<<" "<<fBinTime<<" "
+	       << pWaveForm->GetWaveFormElement(i)<<" "<<time<<std::endl;
+    }
+  return;
+}
+// ***************************************************************************
 
 void KSCFD::makeInternalCFDWaveForm(KSPixel& fPixel,bool printWaveForms)
 // *********************************************************************
@@ -240,7 +258,7 @@ void KSCFD::makeInternalCFDWaveForm(KSPixel& fPixel,bool printWaveForms)
     // Attenuate and negate waveform(this is what CFD's do)
   for(int i=0;i<fNumWaveFormBins;i++)
     {
-      fNegativePulse.at(i)=(-fPixel.fWaveForm.at(i)*fCFDFraction);
+      fNegativePulse.at(i)=(-fPixel.pfWaveForm->GetWaveFormElement(i)*fCFDFraction);
     }
 
   // **************************************************************
@@ -260,7 +278,7 @@ void KSCFD::makeInternalCFDWaveForm(KSPixel& fPixel,bool printWaveForms)
     {
       int j=i-fNumCFDDelayBins; //Pick up earlier value of oirginal pulse
                                 //Thus its delayed. This is correct!!!!!
-      fCFDPulse.at(i)=fNegativePulse.at(i)+fPixel.fWaveForm.at(j);
+      fCFDPulse.at(i)=fNegativePulse.at(i)+fPixel.pfWaveForm->GetWaveFormElement(j);
 
     }
   if(printWaveForms)
@@ -269,7 +287,7 @@ void KSCFD::makeInternalCFDWaveForm(KSPixel& fPixel,bool printWaveForms)
       fMyFile<<"/I:y/I:seq/I:pix/I:t/F:p/F:time/F:"<<std::endl;
       double fThresholdTime=fPixel.fWaveFormStartNS;
       PrintWaveForm(fPixel.fID,0,0,1,fThresholdTime, 
-		    fPixel.fWaveForm,fPixel.fWaveFormStartNS);
+		    fPixel.pfWaveForm,fPixel.fWaveFormStartNS);
       PrintWaveForm(fPixel.fID,0,0,2,fThresholdTime, 
 		    fNegativePulse,fPixel.fWaveFormStartNS);
       PrintWaveForm(fPixel.fID,0,0,3,fThresholdTime, 
@@ -292,7 +310,7 @@ bool KSCFD::findAboveThreshold(KSPixel& fPixel, int& thresholdCrossingBin)
   // ***********************************************************************
   for(int i=thresholdCrossingBin;i<=fLastThresholdCheckBin;i++)
     {
-      if (fPixel.fWaveForm.at(i)>=fPixel.fThreshold)
+      if (fPixel.pfWaveForm->GetWaveFormElement(i)>=fPixel.fThreshold)
 	{
 	  aboveThresholdFound=true;
 	  thresholdCrossingBin=i;
@@ -371,7 +389,7 @@ bool KSCFD::aboveThresholdAboveOffset(KSPixel& fPixel,
 	  offsetCrossingBin=i;
 	  return false;
 	}
-      else if (fPixel.fWaveForm.at(i+fCFDTriggerDelayBins)>=fPixel.fThreshold)
+      else if (fPixel.pfWaveForm->GetWaveFormElement(i+fCFDTriggerDelayBins)>=fPixel.fThreshold)
 	{
 	  offsetCrossingBin=i;
 	  return true;

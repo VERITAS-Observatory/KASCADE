@@ -19,24 +19,35 @@
 
 KSSinglePe::KSSinglePe()
 {
-  pRandom=new TRandom3(0);
-  setRiseFallTimes(kBaseRiseTimeNS,kBaseFallTimeNS);
+  initSinglePe(kBaseRiseTimeNS,kBaseFallTimeNS);
 }
-// ************************************************************************
+// *********************************************************************
 
 KSSinglePe::KSSinglePe(double singlePulseRiseNS,double singlePulseFallNS)
 {
-  pRandom=new TRandom3(0);
-  setRiseFallTimes(singlePulseRiseNS,singlePulseFallNS);
+  initSinglePe(singlePulseRiseNS,singlePulseFallNS);
 }
-// ************************************************************************
-
+// *********************************************************************
 
 KSSinglePe::~KSSinglePe()
 {
   //Nothing here
 }
 // **************************************************************************
+
+void KSSinglePe::initSinglePe(double singlePulseRiseNS,
+			                            double singlePulseFallNS)
+{
+  pRandom=new TRandom3(0);
+  setRiseFallTimes(singlePulseRiseNS,singlePulseFallNS);
+// ****************************************************************
+  // Load in the Low Gain tempale waveforms. We assume a standard Default file 
+  // name here. Assume links to prober file (Upgrade or NewArray) version as 
+  // applicable
+  // ****************************************************************
+  readLowGainWaveForms("LowGainWaveForms.txt");
+}
+// ************************************************************************
 
 void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS, 
 				        double SinglePulseFallTimeNS)
@@ -61,20 +72,22 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
     exit(1);
   }
 
-  // ******************************************************************************
-  // In the hope of keeping the timing the same in the FADC window for all pulses
-  // we will try to keep the position of the peak the same as the Base pulse. If this
-  // is not possible (rise time is faster than base pulse we will fill in with zero's
+  // **************************************************************************
+  // In the hope of keeping the timing the same in the FADC window for all 
+  // pulses we will try to keep the position of the peak the same as the Base 
+  // pulse. If this is not possible (rise time is faster than base pulse we 
+  // will fill in with zero's
   // Otherwise if its expanded we drop off the starting bins
-  // ******************************************************************************
-  fNumBinsInPulse=kBaseRiseSize+fNumBinsInFallingPulse;//Keep peak at same place
+  // **************************************************************************
+  //Keep peak at same place
+  fNumBinsInPulse = kBaseRiseSize + fNumBinsInFallingPulse;
 
-  // ******************************************************************************
-  // We also want to limit the total length of the pulse (determines run time of 
-  // ksAomega to kMaxSinglePePulseSize. Cut tail (reduce fNumBinsInFallingPulse) to 
-  // make this so.  Note that we keep and use the fFallTimeRatio when making the
-  // falling pulse
-  // ******************************************************************************
+  // **************************************************************************
+  // We also want to limit the total length of the pulse (determines run time 
+  // of ksAomega to kMaxSinglePePulseSize. Cut tail (reduce 
+  // fNumBinsInFallingPulse) to  make this so.  Note that we keep and use the 
+  // fFallTimeRatio when making the falling pulse
+  // **************************************************************************
 
   if(fNumBinsInPulse> kMaxSinglePePulseSize){
     fNumBinsInPulse = kMaxSinglePePulseSize;
@@ -82,30 +95,32 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
 
   fNumBinsInFallingPulse=fNumBinsInPulse-kBaseRiseSize;
   
-  pfSinglePulse.clear();
-  pfSinglePulse.resize(fNumBinsInPulse,0); //non filled bins will be 0
+  fSinglePulse.clear();
+  fSinglePulse.resize(fNumBinsInPulse,0); //non filled bins will be 0
   
   // std::cout<<"fRiseTimeRatio, fFallTimeRatio,fNumBinsInRisingPulse, "
   //           "fNumBinsInFallingPulse, fNumBinsInPulse, kBaseRiseSize: "
   //	   <<fRiseTimeRatio<<' '
-  //	   <<fFallTimeRatio<<' '<<fNumBinsInRisingPulse<<' '<< fNumBinsInFallingPulse
+  //	   <<fFallTimeRatio<<' '<<fNumBinsInRisingPulse<<' '
+  //       << fNumBinsInFallingPulse
   //	   <<' '<< fNumBinsInPulse<<' '<<kBaseRiseSize<<std::endl;
 
   // ********************************************************************
   // Interpolate rising part of pulse
-  //Note here that we always want the pulse to be centered at kBaseRiseSize with the
-  //First bin at value 0.
+  // Note here that we always want the pulse to be centered at kBaseRiseSize "
+  // with the First bin at value 0.
   // If requested rise is less than kBaseRise we fill in start with 0.
-  // If reqesrted rise is greater than kBaseRise we chop off bins that would come
-  // before bin 0.
-  // Note Upgrade pulse  is very narrow and has leading ~0 bins that can be dropped
-  // for slower rise pulses.
+  // If reqesrted rise is greater than kBaseRise we chop off bins that would 
+  // come before bin 0.
+  // Note Upgrade pulse  is very narrow and has leading ~0 bins that can be 
+  // dropped for slower rise pulses.
   // ********************************************************************
   if(fNumBinsInRisingPulse==kBaseRiseSize){        //No change from base.
     for(int i=0;i<kBaseRiseSize;i++){
-      pfSinglePulse.at(i)=kBasePulse[i];
+      fSinglePulse.at(i)=kBasePulse[i];
     }
-    //std::cout<<"KSSinglePe: Rising Slope:Base: "<<kBaseRiseTimeNS<<"ns"<<std::endl;
+    //std::cout<<"KSSinglePe: Rising Slope:Base: "<<kBaseRiseTimeNS<<"ns"
+    //         <<std::endl;
   }            
   else{
     int pBin=0;
@@ -122,15 +137,16 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
       double fFraction=(aindex-(double)k);
  
       if(k+1>kBaseRiseSize){
-	std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
-		 <<std::endl;
+	std::cout << "KSSinglePe: Index out of range for base.k:" << k
+		  << std::endl;
 	exit(1);
       }
       pBin=j-startBin;
-      pfSinglePulse.at(pBin)=kBasePulse[k]+fFraction*(kBasePulse[k+1]-kBasePulse[k]);
+      fSinglePulse.at( pBin ) = kBasePulse[k] + fFraction * ( kBasePulse[k+1] -
+							      kBasePulse[k] );
     }
     //ends at same place. (1.0)
-    pfSinglePulse.at(kBaseRiseSize-1)=kBasePulse[kBaseRiseSize-1];  
+    fSinglePulse.at(kBaseRiseSize-1)=kBasePulse[kBaseRiseSize-1];  
   }
   
   // **********************************************************************
@@ -139,15 +155,17 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
   // **********************************************************************
   if(fSinglePulseFallTimeNS==kBaseFallTimeNS){      //No change from base.
     for(int i=0;i<kBaseFallSize;i++){
-      int j=kBaseRiseSize+i;   //This reflects attempt to keep peak in the same place
+      int j=kBaseRiseSize+i;   // This reflects attempt to keep peak in the 
+                               // same place
       int k=kBaseRiseSize+i;
-      pfSinglePulse.at(j)=kBasePulse[k];
+      fSinglePulse.at(j)=kBasePulse[k];
     }
-    //std::cout<<"KSSinglePe: Falling Slope:Base: "<<kBaseFallTimeNS<<"ns"<<std::endl;
+    //std::cout<<"KSSinglePe: Falling Slope:Base: "<<kBaseFallTimeNS<<"ns"
+    //         <<std::endl;
   }
   else{
-
-    for (int j=0;j<fNumBinsInFallingPulse-1; j++){  //different from base:interpolate.
+  //different from base:interpolate.
+    for (int j=0;j<fNumBinsInFallingPulse-1; j++){ 
 
       double aindex=(j/fFallTimeRatio);//fractional index within kBasePulse.
       int k=int(aindex);
@@ -167,15 +185,15 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
       }
 
       int m=kBaseRiseSize+j;
-      pfSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
+      fSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
     }
                                          //ends at same place.
-    pfSinglePulse.at(fNumBinsInPulse-1)=kBasePulse[kBaseSize-1];  
+    fSinglePulse.at(fNumBinsInPulse-1)=kBasePulse[kBaseSize-1];  
   }
   fLengthNS=fNumBinsInPulse*gWaveFormBinSizeNS;
   fArea=0;
   for(int i=0;i<fNumBinsInPulse;i++){
-    fArea+=pfSinglePulse.at(i);
+    fArea+=fSinglePulse.at(i);
   }
   return;
 }
@@ -253,67 +271,6 @@ double KSSinglePe::getPulseHeight(bool fAfterPulse)
 }
 // ****************************************************************************
 
-//Following moved to KSPixel
-//double KSSinglePe::getMeanFADCArea(KSCameraTypes fCameraType, KSFADC& fFADC, 
-//				   double scaledPulseHeight)
-// *************************************************************************
-// Get mean area for a single pe after its WaveFormn is converted to a FADC
-// trace. Do this by taking a single pe scaled by scaledPulseHeight. Do this starting 
-// with pes at each  .25 ns position. This is to find best estimate taking account of 
-// the FADC digitization.
-// If we use a very large scale factor (say 1000) we would have a very small rounddown
-// effect, and if we use a small value (like 3.75 or so) then we get the round 
-// down that the singePe area calculation from singPe runs get.
-// *************************************************************************
-//{
-//  //Number of time stepsfNumWaveFormBinsPerFADCBin
-//  int fNumWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
-//
-//  double fSinglePeFADCAreaSum=0;
-//
-//  //Number of Bins in FADC wave form.
-//  int fNumSamplesTrace=
-//    (int)(fNumBinsInPulse*gWaveFormBinSizeNS/gFADCBinSizeNS)+ 1+1;  
-//                                              //Extra 1 is just for insruance.
-//
-//  //Number of bins in Wave form to span FADC Trace
-//  int fNumWaveFormBins=fNumSamplesTrace*fNumWaveFormBinsPerFADCBin;
-//
-//  // Loop over various pedvar values that cover complete step
-//  int roundDownPed=(int)gPedestal[VERITAS499];
-//  double startPed=(double)roundDownPed;
-//  for(int m=0;m<10;m++){
-//    double cleanPed=startPed+.1*m;
-//    
-//    //Loop over progressive starting place of pe pulse.
-//    std::vector<double> fPulse;
-//    for(int j=0;j<fNumWaveFormBinsPerFADCBin;j++)  //like 8: 4bins/ns @ 2 ns
-//      {
-//	//Make a WaveForm of a scaledPulseHeight pe offset in time by j bins;
-//	//Make wave form big enough for FADC Trace
-//      
-//	fPulse.clear();
-//	fPulse.resize(fNumWaveFormBins,0);
-//	for(int i=0;i<fNumBinsInPulse;i++)
-//	  {
-//	    int k=j+i;
-//	    fPulse.at(k)=scaledPulseHeight*pfSinglePulse.at(i);
-//	  }
-//	// **********************************************************************
-//	// *********************************************************************
-//
-//	fFADC.makeFADCTrace(fPulse,0,fNumSamplesTrace,false,cleanPed);
-//	
-//	double traceArea=fFADC.getWindowArea(0,fNumSamplesTrace);
-//	fSinglePeFADCAreaSum+=(traceArea-
-//			       fNumSamplesTrace*cleanPed)/scaledPulseHeight;
-//      }
-//  }
-//  double fSinglePeMeanFADCArea=fSinglePeFADCAreaSum/(fNumWaveFormBinsPerFADCBin*10);
-//  return fSinglePeMeanFADCArea;
-//}
-//// *************************************************************************
-
 
 void  KSSinglePe::PrintSinglePe()
 // **************************************************************************
@@ -322,9 +279,239 @@ void  KSSinglePe::PrintSinglePe()
 {
   for(int i=0;i<fNumBinsInPulse;i++)
     {
-      double fBinTime=i*gWaveFormBinSizeNS;
-      std::cout<<fBinTime<<" "<<pfSinglePulse.at(i)<<std::endl;
+      double binTimeNS=i*gWaveFormBinSizeNS;
+      std::cout<<binTimeNS<<" "<<fSinglePulse.at(i)<<std::endl;
     }
   return;
 }
+// ***********************************************************************
 
+
+// ***************************************************************************
+// Low Gain template methods
+// ***************************************************************************
+
+void KSSinglePe::readLowGainWaveForms(std::string fileName)
+{
+  // ************************************************************************
+  // Read LowGain wave forms from a text file (typically named 
+  // "LowGainWaveForms.txt" use a link to the actual one if need be. Will be 
+  // different for Upgrade or NewArray)
+  // Text file format:
+  // Line 1: "-9999 -9999" : flag for the start of a waveform
+  // Line 2: "size (in DC ) (or Amplirude in Dc or amplitude in MV
+  // , linearity" 
+  // Line 3-end: time (in ns; starts at 0),  pulseheight
+  // Next line (start of next pulse will begine as above (-9999 -9999)
+  // waveform  height min == 0.0
+  // waveform  height max == 1.0
+  // Wave form times steps =  0.25 ns
+  // All wave from start times =0.0
+  // All Waveforms  start to rise at ~ 2 ns
+  // All waveforms end at 64.00 ns
+  // *************************************************************************
+  bool debugPrint=false;
+
+  std::cout <<  "Reading in Low Gain WaveForm file "<< fileName <<  std::endl;
+
+  // *****************************************************************
+  // Open the input file. (may be and probably is , a link)
+  ifstream ifs(fileName.c_str());
+  if (! ifs) {
+    std::cout << " KSSingPe--Fatal-problems opening input LowGain waveform "
+                 "file "<< fileName<< std::endl;
+    exit(1);
+  }
+  int flag1;
+  int flag2;
+
+  ifs >> flag1 >> flag2;
+  if ( ifs.eof() || ( flag1!= -9999 || flag2 != -9999 ) ) {
+    std::cout << "KSSingPe--Fatal -Problems reading first line of file" 
+	      << fileName
+	<< std::endl;
+    exit(1);
+  }
+ 
+  if(debugPrint) {
+    std::cout << "flag1,flag2: "<<flag1<<" "<<flag2<< std::endl;
+  }
+  
+  bool   finishedFile  = false;
+  double startBinNS    = 0;
+  int    templateIndex = -1;
+  // *******************************************************************
+  // Start pulse loop
+  // *******************************************************************
+  while (1) {
+    double size;
+    double linearity;
+    ifs >> size >> linearity;
+    if ( ifs.eof() ) {
+      std::cout << "KSSingPe--Fatal -Unexpected eof Problems reading first "
+	           "line of file " << fileName<< std::endl;
+      exit(1);
+    }
+    templateIndex++;
+
+    // *********************************************************************
+    // Initalize the basic waveform object(good for templates)
+    // *********************************************************************
+    KSWaveFormBasic waveForm;
+    
+    bool pulseInited=false;
+    double oldBinTime=0;
+    double time;
+    double pulseHeight;
+    // **********************************************************************
+    // Loop over reading in each time bin
+    // **********************************************************************
+    while(1) {     //readin and save the pulse
+
+      ifs >> time >> pulseHeight;
+      if (ifs.eof() ) {
+	finishedFile=true;
+	break;
+      }
+      if ( (int) time == -9999) {
+	finishedFile=false;
+	break;
+      }
+      
+      // ********************************************************
+      // Do some sanity checking: Make sure no missing bins
+      // ********************************************************
+      if( ! pulseInited) {
+	startBinNS=time;
+	oldBinTime=time - gWaveFormBinSizeNS;
+        pulseInited=true;
+      }
+      
+      if( abs(time-(oldBinTime+gWaveFormBinSizeNS) ) > 
+	                                        gWaveFormBinSizeNS/1000 ) {
+	std::cout << "Missing bin time: "<<oldBinTime+gWaveFormBinSizeNS
+		  << std::endl;
+      }
+      
+      if(debugPrint) {
+	std::cout << "time,pulseHeight: "<< time << " "<< pulseHeight
+		  << std::endl;
+      }
+      
+      // ****************************************************************
+      // Good time bin, save it away
+      // ****************************************************************
+      waveForm.fWaveForm.push_back(pulseHeight);
+      oldBinTime=time;
+    }
+    
+    waveForm.fSize = size;
+    waveForm.fLinearity    = linearity ;
+    waveForm.fStartBinNS   = startBinNS;
+    fLowGainWaveForm.push_back(waveForm);
+    
+    //if(debugPrint) {
+    //  std::cout << " LowGainWaveForm " << templateIndex <<": "
+    //	      << "size,linearity,FWHMns,relArea:"<< size << " " 
+    //	      << linearity << " "<<  waveForm.GetWaveFormFWHMns() <<" "
+    //	      << waveForm.GetWaveFormSum(0,160) /
+    //                         fLowGainWaveForm.at(0).GetWaveFormSum(0,160)
+    //	      << std::endl;
+    //}
+
+    if (finishedFile) {
+      break;
+    }
+  }
+  // ******************************************************************
+  // For picking templates from high values determine the ranges that each
+  // template covers. Also used for interpolating linearity
+  // Low limit extends to halfway down to previous template mean and halfway 
+  // up to next template mean. We obvioulsy only need to keep high limit.
+  // low limit will be previous templtes high limit.
+  // ******************************************************************
+  // template 0 hase no lower limit.  last template has no upper limit.
+  // ******************************************************************
+  
+  // *******************************************************************
+  // template 0 (linear regime), use its fgiven upper value as is (don't go 
+  // haflway up to next template)
+  // *******************************************************************
+  fLowGainWaveForm.at(0).fUpperHighGainArea = 
+                                       fLowGainWaveForm.at(0).fSize;
+  fLowGainWaveForm.at(0).fUpperLinearity =fLowGainWaveForm.at(0).fLinearity;
+
+
+  int numWaveForms=fLowGainWaveForm.size();
+  for(int i = 1; i < numWaveForms-1; i++ ) {
+    fLowGainWaveForm.at(i).fUpperHighGainArea = 
+                               (fLowGainWaveForm.at(i).fSize +
+                                 fLowGainWaveForm.at(i+1).fSize)/ 2.;
+    // **************************************************
+    // And do the same for the linearity
+    // **************************************************
+    if ( i == numWaveForms-1){
+      fLowGainWaveForm.at(i).fUpperLinearity = 
+	fLowGainWaveForm.at(i).fLinearity;
+    }
+    else{
+      fLowGainWaveForm.at(i).fUpperLinearity = 
+	(fLowGainWaveForm.at(i).fLinearity +
+	 fLowGainWaveForm.at(i+1).fLinearity)/ 2.;
+    }
+  }
+  std::cout << "Number of LowGain WaveForms:"<<  numWaveForms  << std::endl;
+  return;
+}
+// ***************************************************************************
+
+int KSSinglePe::getLowGainIndexAndLinearity(double selectionValue, 
+					    double& linearity)
+// ***************************************************************************
+// Find Index of the template whose fSize matches the 
+// selectionValue value.  Matching means that the templateSelection value is 
+// less than halfway to the next templates value. (except for the linear 
+// first one where we use the givern value. Thes valuse set when template 
+// file is read in
+// ***************************************************************************
+{
+  // ***********************
+  // Start the search. Most likely will be lowest so start there
+  // **********************
+
+
+  int templateIndex=fLowGainWaveForm.size()-1; //Highest it could be
+
+  // ******************************************************************
+  for(int i=0; i< (int) fLowGainWaveForm.size()-1; i++) {
+    if ( selectionValue < fLowGainWaveForm.at(i).fUpperHighGainArea) {
+       templateIndex= i;
+       break;
+    }
+  }
+  // *******************************************************************
+  // Now interpolate linearity
+  // *******************************************************************
+
+  // ****************
+  // At extremes linearity is constant over range of applacability ot that 
+  // template
+  // ****************
+  if(templateIndex == 0 || templateIndex == fLowGainWaveForm.size()-1) {
+    linearity=fLowGainWaveForm.at(templateIndex).fUpperLinearity;
+  }
+  else{
+    // **********************
+    // Interpolate
+    // **********************
+    double upperArea=fLowGainWaveForm.at(templateIndex).fUpperHighGainArea;
+    double lowerArea=fLowGainWaveForm.at(templateIndex-1).fUpperHighGainArea;
+    double ratio = (selectionValue - lowerArea) / (upperArea-lowerArea);
+    
+    double upperLinearity=fLowGainWaveForm.at(templateIndex).fUpperLinearity;
+    double lowerLinearity=fLowGainWaveForm.at(templateIndex-1).fUpperLinearity;
+    linearity=lowerLinearity + (ratio * (upperLinearity-lowerLinearity) );
+  }
+  return templateIndex;
+}
+// *************************************************************************

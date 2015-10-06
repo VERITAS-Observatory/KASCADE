@@ -23,15 +23,19 @@ extern "C" double gaussfast();
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
 		   bool fUsePatternTrigger, double DigCntsPePE,
 		   double NoiseRateSigma, int numPixelsInTrigger,
-		   double PSFNSDeg, double PSFEWDeg)
+		   double SinglePeRiseTimeNS, double SinglePeFallTimeNS,
+		   double PSFNSDeg, double PSFEWDeg )
 // ************************************************************************
 // Used by KSEvent and KSArea
 // ************************************************************************{
 {
-  fCameraType=CameraType;
-  fDigCntsPerPEHiGain=DigCntsPePE;
-  fNoiseRateSigma=NoiseRateSigma;
-  fNumPixelsTrigger =numPixelsInTrigger;
+  fCameraType         = CameraType;
+  fDigCntsPerPEHiGain = DigCntsPePE;
+  fNoiseRateSigma     = NoiseRateSigma;
+  fNumPixelsTrigger   = numPixelsInTrigger;
+  fSinglePeRiseTimeNS = SinglePeRiseTimeNS; 
+  fSinglePeFallTimeNS = SinglePeFallTimeNS;
+
   InitCamera(pTeHead,fUsePatternTrigger);
 
 
@@ -77,7 +81,7 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
 
 
 
-  generateCameraPixels();
+  generateCameraPixels();        //Does set fNumPixels
 
   loadPixelCharacteristics();    // Loads Efficiency,Threshold,SkyDiscNoise
 
@@ -92,12 +96,21 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
   //    when we generate pedestal events.  All we want is a place to keep the 
   //    waveforms, anything else is already set up in fPixels
   // ************************************************************************
-  KSPixel pixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
-                                                     //pixel to start with
-  int pedPixelsSize=fPixel.size();
+  // By using the same KSPixel for all pixels we get a common TRandom3 and 
+  // KSSinglePe. The InitPixelWaveForm creates a new KSWaveForm. We do that 
+  // for each pixel individually. We leave the pfWaveFrom array for pixel(0) 
+  // as it is and reset the other elements to each have their own pfWaveForm
+  // ***********************************************************************
+  KSPixel pixelElement(fCameraType, fDigCntsPerPEHiGain, fSinglePeRiseTimeNS, 
+		       fSinglePeFallTimeNS);
   fPedPixels.clear();
-  fPedPixels.resize(pedPixelsSize,pixelElem);//Allocate pixels
-  // Some stuff gets filled in in loadNoiseRatesAndPeds
+  for (int i=0; i< fNumPixels; i++) {
+    fPedPixels.push_back(pixelElement);
+    if (i >0 ) {
+      fPedPixels.at(i).InitPixelWaveForm();
+    }                           
+  }
+  // Some more stuff gets filled in in loadNoiseRatesAndPeds
   return;
 }
 // ********************************************************************
@@ -153,18 +166,27 @@ void KSCamera::Print()
 // ***************************************************************************
 void KSCamera::generateCameraPixels()
 {
-  //	Load up camera
-  //	set  pmt number
+  //	Load up camera set  pmt number
   fNumPixels=gNumPixelsCamera[fCameraType];
-  //fNumPixelsTrigger =gNumTriggerPixels[fCameraType];Replaced at input to 
-  //constroctor this class
+ 
   // *************************************************************************
   // 	Get PMT locations and radii from WhippleCams.h
-  // *************************************************************************
-  KSPixel fPixelElem(fCameraType,fDigCntsPerPEHiGain); //create a standard 
-                                                     //pixel to start with
+  // ************************************************************************
+  // By using the same KSPixel for all pixels we get a common TRandom3 and 
+  // KSSinglePe. The InitPixelWaveForm creates a new KSWaveForm. We do that 
+  // for each pixel individually
+  // We leave the pfWaveFrom array for pixel(0) as it is and reset the other 
+  // elements to each have their own pfWaveForm
+  // ***********************************************************************
+  KSPixel pixelElement(fCameraType, fDigCntsPerPEHiGain,fSinglePeRiseTimeNS, 
+		       fSinglePeFallTimeNS);
   fPixel.clear();
-  fPixel.resize(fNumPixels,fPixelElem);   //  Allocate pixels
+  for (int i=0; i< fNumPixels; i++) {
+    fPixel.push_back(pixelElement);
+    if (i >0 ) {
+      fPixel.at(i).InitPixelWaveForm();
+    }                           
+  }
 
   // *******************************************************************
   // Now load actual x,y positions of the tubes using the the arrays in 
@@ -526,6 +548,7 @@ void KSCamera::InitPixelImageData()
       fPixel.at(i).fDiscTrigger=false;        //This pixels fires
       fPixel.at(i).fTimePe.clear();
       fPixel.at(i).fCFDTriggerTimeNS.clear();
+      //fPixel.at(i).pfWaveForm->fDebug=false;
     }
   return;
 }

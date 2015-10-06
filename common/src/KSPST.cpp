@@ -44,7 +44,8 @@ KSPST::KSPST(KSCameraTypes CameraType, int TriggerMultiplicity,
 
   for(int i=0;i<fNumPatches;i++)
     {
-      pfPixelsInPatch.at(i).resize(kNumPixelsPerPatch);
+      //pfPixelsInPatch.at(i).resize(kNumPixelsPerPatch);
+      pfPixelsInPatch.at(i).resize(kNumPixelsPerPatch, -1);
   //    pfPixelsInPatchTimes.at(i).resize(kNumPixelsPerPatch);
     }
   FillPixelsInPatch();
@@ -111,88 +112,80 @@ bool KSPST::isTriggered(std::vector< std::vector < double > >& CFDTriggerTimes,
   bool weHaveAMultTrigger=false;
   pfPatchTriggerTimes.clear();
 
-  for(int i=0;i<fNumPatches;i++)
-    {
-      int gotNumTimes=0;
-      for(int j=0;j<kNumPixelsPerPatch;j++)
-	{
-	  // *************************************************************
-	  // Note: Pixels start at 1, pixel index's start at 0
-	  //       Missing patch pixels flaged as -1
-	  // *************************************************************
-	  int fPixelIndex=pfPixelsInPatch.at(i).at(j);  //Get a pixel index 
-	  if(fPixelIndex<fNumPixelsTrigger)   //This is a check for diminished
-                                              // pixel trigger range
-	    {
-	      
-	      if(fPixelIndex>=0 && CFDTriggerTimes.at(fPixelIndex).size()>0)
-		{
-		  fPatchCFDTriggerTimes.at(j)=CFDTriggerTimes.at(fPixelIndex);
-		  gotNumTimes++;
-		}
-	      else
-		{
-		  fPatchCFDTriggerTimes.at(j).clear();
-		}
-	    }
+  for(int i=0;i<fNumPatches;i++) {
+    int gotNumTimes=0;
+    for(int j=0;j<kNumPixelsPerPatch;j++) {
+      // *************************************************************
+      // Note: Pixels start at 1, pixel index's start at 0
+      //       Missing patch pixels flaged as -1
+      // *************************************************************
+      int fPixelIndex=pfPixelsInPatch.at(i).at(j);  //Get a pixel index
+      if(fPixelIndex<fNumPixelsTrigger && fPixelIndex>=0 ) {
+	//This is a check for diminished
+	// pixel trigger range
+	if(CFDTriggerTimes.at(fPixelIndex).size()>0) {
+	  fPatchCFDTriggerTimes.at(j)=CFDTriggerTimes.at(fPixelIndex);
+	  gotNumTimes++;
 	}
-      // *******************************************************************
-      // First level check is to see if we have at least enough pixels
-      // firing at any time to possibly cause a trigger
-      // *******************************************************************
-      if(gotNumTimes>=fTriggerMultiplicity)
-	{
-	  // ************************************************************
-	  // Build the CFD summed pulse wave for this patch (in a funny way)
-	  // ************************************************************
-	  // buildSummedCFD builds a list waveform in the private 
-	  // fSummedCFDWaveForm. fSummedCFDWaveForm is a vector indexed by 
-	  // times (.25 Ns steps typically) and whose contents 
-	  // at each time bin is a  list of which channle's CFD's are high at 
-	  // that time. Looking at the size of the list in any time bin will 
-	  // tell you the multiplcity. Since we restict fPatchCFDTriggerTimes 
-	  // to only those channels in a particular patch, the size tells us 
-	  // the multiplicity at any time in this patch.
-      // ***************************************************************
-	  buildSummedCFD( fPatchCFDTriggerTimes, 
-			                       gPSTPulseWidthNS[fCameraType]);
-
-	  // ************************************************************
-	  // Find the first time that has required multiplcity. Starting at 
-	  // timestartTriggerTime. Only retrigger if the pattern changes from 
-	  // the previous pattern.  May be overflow time
-	  // ************************************************************
-	  // ***************************************************************
-	  // We are going to loop over the different configurations of pixels
-	  // and get all possible triggers with their times and configurations.
-	  // Flag the we quit is to get the overflow time.
-	  // ***************************************************************
-	  pfCFDTriggerChannels=NULL;  //Flag to check for ignorable 
-	                              //patterns (NULL means don't check)
-                                      // Replaced by first success
-                                      // afterwhich this pattern is ignored
-                                      // until a new one is found.
-	  double startTriggerTime= fSummedCFDWaveFormStartNS;
-	  KSPixelTimes multiplicityTriggerTime;  
-	  while(1)
-	    {
-	      //startTriggerTime is set to next time in waveform.
-	      multiplicityTriggerTime.fTime = findSummedCFDTriggerTime( 
-							startTriggerTime,
-							fTriggerMultiplicity);
-	      if(multiplicityTriggerTime.fTime==gOverflowTime)
-		{
-		  break;
-		}
-	      else
-		{
-		  weHaveAMultTrigger=true;
-		  multiplicityTriggerTime.fIndex=i;
-		  pfPatchTriggerTimes.push_back(multiplicityTriggerTime);
-		}   
-	    }
+	else{
+	  fPatchCFDTriggerTimes.at(j).clear();
 	}
+      }
     }
+    // *******************************************************************
+    // First level check is to see if we have at least enough pixels
+    // firing at any time to possibly cause a trigger
+    // *******************************************************************
+    if(gotNumTimes>=fTriggerMultiplicity)
+      {
+	// ************************************************************
+	// Build the CFD summed pulse wave for this patch (in a funny way)
+	// ************************************************************
+	// buildSummedCFD builds a list waveform in the private 
+	// fSummedCFDWaveForm. fSummedCFDWaveForm is a vector indexed by 
+	// times (.25 Ns steps typically) and whose contents 
+	// at each time bin is a  list of which channle's CFD's are high at 
+	// that time. Looking at the size of the list in any time bin will 
+	// tell you the multiplcity. Since we restict fPatchCFDTriggerTimes 
+	// to only those channels in a particular patch, the size tells us 
+	// the multiplicity at any time in this patch.
+	// ***************************************************************
+	buildSummedCFD( fPatchCFDTriggerTimes, 
+			gPSTPulseWidthNS[fCameraType]);
+	
+	// ************************************************************
+	// Find the first time that has required multiplcity. Starting at 
+	// timestartTriggerTime. Only retrigger if the pattern changes from 
+	// the previous pattern.  May be overflow time
+	// ************************************************************
+	// ***************************************************************
+	// We are going to loop over the different configurations of pixels
+	// and get all possible triggers with their times and configurations.
+	// Flag the we quit is to get the overflow time.
+	// ***************************************************************
+	pfCFDTriggerChannels=NULL;  //Flag to check for ignorable 
+	//patterns (NULL means don't check)
+	// Replaced by first success
+	// afterwhich this pattern is ignored
+	// until a new one is found.
+	double startTriggerTime= fSummedCFDWaveFormStartNS;
+	KSPixelTimes multiplicityTriggerTime;  
+	while(1) {
+	  //startTriggerTime is set to next time in waveform.
+	  multiplicityTriggerTime.fTime = findSummedCFDTriggerTime( 
+						 startTriggerTime,
+						 fTriggerMultiplicity);
+	  if(multiplicityTriggerTime.fTime==gOverflowTime) {
+	    break;
+	  }
+	  else{
+	    weHaveAMultTrigger=true;
+	    multiplicityTriggerTime.fIndex=i;
+	    pfPatchTriggerTimes.push_back(multiplicityTriggerTime);
+	  }   
+	}
+      }
+  }
   // *****************************************************************
   // Now see if we have a multiplcity trigger. Create the full CFD Summed 
   // Waveform we will use it to find the list of all pixels that fired at a 
@@ -491,7 +484,8 @@ KSPixelUV::KSPixelUV(int StartIndex, int fNumUVIndex)
   fPixelUV.resize(fNumUVIndex);
   for(int i=0;i<fNumUVIndex;i++)
     {
-      fPixelUV.at(i).resize(fNumUVIndex);
+      //fPixelUV.at(i).resize(fNumUVIndex);
+      fPixelUV.at(i).resize(fNumUVIndex,-1);
     }
 }
 // *****************************************************************
