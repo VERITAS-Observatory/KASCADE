@@ -31,7 +31,7 @@ class KSWaveFormBasic
   double GetWaveFormSum(int i, int j);
   double GetWaveFormMax();
   double GetWaveFormFWHMns();
-  douqble GetWaveFormElement(int Index){return fWaveForm.at(Index);};
+  double GetWaveFormElement(int Index){return fWaveForm.at(Index);};
   void   SetWaveFormElement(int Index, double Value)
                                        {fWaveForm.at(Index) = Value; return;};
   void   ScaleWaveForm(double scaleFactor);
