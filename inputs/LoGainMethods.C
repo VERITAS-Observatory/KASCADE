@@ -47,8 +47,8 @@ double sumPulse(std::vector < double >& p)
 void  ReadHighGainTemplate(std::string fileName)
 {
   
-  //bool debugPrint=false;
-  bool debugPrint=true;
+  bool debugPrint=false;
+  //bool debugPrint=true;
 
 
   std::ifstream ifs(fileName.c_str());
@@ -132,7 +132,7 @@ void  ReadHighGainTemplate(std::string fileName)
     }
   }
   std::cout<<"Length of Template:"<<highGainTemplate.size()<<std::endl;
-  return;
+   return;
 }
 // ***************************************************************************
 
@@ -140,6 +140,7 @@ void  ReadLowGainTemplates(std::string fileName)
 {
   
   bool debugPrint=false;
+  //bool debugPrint=true;
 
 
   std::ifstream ifs(fileName.c_str());
@@ -214,8 +215,10 @@ void  ReadLowGainTemplates(std::string fileName)
       pulse.push_back(pulseHeight);
       oldBinTime=time;
     }
-    std::cout<<"Sum: "<< sumPulse(pulse)<<std::endl;
-
+    if(debugPrint) {
+      std::cout<<"startBinNS,Sum: "<< startBinNS << " "<< sumPulse(pulse)
+	       <<std::endl;
+    }
     lowGainTemplates.push_back(pulse);
     highGainAreaDC.push_back(equivHiGainArea);
     lowGainLinearity.push_back(linearity);
@@ -243,8 +246,8 @@ void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
   // the other pulses
   // Gather some sdtuff about template 28
   // ***********************************************************************
-  //bool debugPrint=false;
-  bool debugPrint=true;
+  bool debugPrint=false;
+  //bool debugPrint=true;
 
   int goodTailIndex=28;
   double pulseMaxGT;
@@ -279,8 +282,8 @@ void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
     it = max_element(waveForms.at(i).begin(), waveForms.at(i).end());
     double pulseMax = *it;
     if( debugPrint) {
-      std::cout << " template #"<<i<<" Min/max are: " << pulseMin << " / " 
-		<< pulseMax << std::endl;
+      std::cout << " template #"<<i<<" Min/max,startBin: " << pulseMin << " / " 
+		<< pulseMax << " " << startBin.at(i)<<std::endl;
     }
     int startBinCenter = startBin.at(i);
     int lastBinCenterIndex=
@@ -332,21 +335,20 @@ void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
 
 
 void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
-			    bool highgain = false)
+			    bool highgain = false, bool withTimeSpread=false)
 {
   // ***********************************************************************
   // Read in a nepomuk/hugh/cameron type template txt and convert to a .25 ns
   // step text file for the various pulses.
   // ***********************************************************************
   //Input file format:
-  // pulse starts with "-9999 -9999" on a line(I edited this in, 
-  //                                  Nepomuk had a "*")
+  // pulse starts with "*" on a line(Except for first pulse)
   // second line: peak intensity of equivalent high gain pulse in mv,
   //             linearity (adjustment to 10.101 (1/.099) for saturation
-  // remianing lines: time(ns)(in random very small <<0.25ns steps),
+  // remianing lines: time(ns)(in even or random small <=0.25ns steps),
   //                   pulse height
  
-  // Then next pulse starts  (Flag of start is the "9999 -9999" record)
+  // Then next pulse starts  (Flag of start is the "*" record)
   // ************************************************************************
   // Output file, sutable for reading in with 
   //                        KSSinglePe::readLowGainTemplateFile()
@@ -370,40 +372,77 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
   startBin.clear();
 
   //double baseOffset=7.0;  //ns note 2 ns = 1 sample
-  double baseOffset=5.0;  //ns note 2 ns = 1 sample
+  double baseOffset;  //ns note 2 ns = 1 sample
+  if (! withTimeSpread) {
+    // Original 0 time spread mearued pulse
+    baseOffset=5.0;  //ns note 2 ns = 1 sample
 
-  templateOffsets.resize(30);
-  templateOffsets.at(0)=3.5+ baseOffset;
-  templateOffsets.at(1)=3.25+ baseOffset;
-  templateOffsets.at(2)=2.0+ baseOffset;
-  templateOffsets.at(3)=1.5+ baseOffset;
-  templateOffsets.at(4)=0.5+ baseOffset;
-  templateOffsets.at(5)=0.75+ baseOffset;
-  templateOffsets.at(6)=1.0+ baseOffset;
-  templateOffsets.at(7)=2.0+ baseOffset;
-  templateOffsets.at(8)=1.25+ baseOffset;
-  templateOffsets.at(9)=1.75+ baseOffset;
-  templateOffsets.at(10)=2.25+ baseOffset;
-  templateOffsets.at(11)=2.5+ baseOffset;
-  templateOffsets.at(12)=2.25+ baseOffset;
-  templateOffsets.at(13)=2.0+ baseOffset;
-  templateOffsets.at(14)=2.25+ baseOffset;
-  templateOffsets.at(15)=2.5+ baseOffset;
-  templateOffsets.at(16)=2.25+ baseOffset;
-  templateOffsets.at(17)=3.0+ baseOffset;
-  templateOffsets.at(18)=3.5+ baseOffset;
-  templateOffsets.at(19)=4.25+ baseOffset;
-  templateOffsets.at(20)=3.0+ baseOffset;
-  templateOffsets.at(21)=3.25+ baseOffset;
-  templateOffsets.at(22)=3.5+ baseOffset;
-  templateOffsets.at(23)=3.75+ baseOffset;
-  templateOffsets.at(24)=3.5+ baseOffset;
-  templateOffsets.at(25)=3.5+ baseOffset;
-  templateOffsets.at(26)=3.5+ baseOffset;
-  templateOffsets.at(27)=3.5+ baseOffset;
-  templateOffsets.at(28)=3.5+ baseOffset;
- 
+    templateOffsets.resize(30);
+    templateOffsets.at(0)=3.5+ baseOffset;
+    templateOffsets.at(1)=3.25+ baseOffset;
+    templateOffsets.at(2)=2.0+ baseOffset;
+    templateOffsets.at(3)=1.5+ baseOffset;
+    templateOffsets.at(4)=0.5+ baseOffset;
+    templateOffsets.at(5)=0.75+ baseOffset;
+    templateOffsets.at(6)=1.0+ baseOffset;
+    templateOffsets.at(7)=2.0+ baseOffset;
+    templateOffsets.at(8)=1.25+ baseOffset;
+    templateOffsets.at(9)=1.75+ baseOffset;
+    templateOffsets.at(10)=2.25+ baseOffset;
+    templateOffsets.at(11)=2.5+ baseOffset;
+    templateOffsets.at(12)=2.25+ baseOffset;
+    templateOffsets.at(13)=2.0+ baseOffset;
+    templateOffsets.at(14)=2.25+ baseOffset;
+    templateOffsets.at(15)=2.5+ baseOffset;
+    templateOffsets.at(16)=2.25+ baseOffset;
+    templateOffsets.at(17)=3.0+ baseOffset;
+    templateOffsets.at(18)=3.5+ baseOffset;
+    templateOffsets.at(19)=4.25+ baseOffset;
+    templateOffsets.at(20)=3.0+ baseOffset;
+    templateOffsets.at(21)=3.25+ baseOffset;
+    templateOffsets.at(22)=3.5+ baseOffset;
+    templateOffsets.at(23)=3.75+ baseOffset;
+    templateOffsets.at(24)=3.5+ baseOffset;
+    templateOffsets.at(25)=3.5+ baseOffset;
+    templateOffsets.at(26)=3.5+ baseOffset;
+    templateOffsets.at(27)=3.5+ baseOffset;
+    templateOffsets.at(28)=3.5+ baseOffset;
+  }
+  else{
+    // KASCADE time spread (~5 ns+shower)
+    baseOffset=-3.0;  //ns note 2 ns = 1 sample
 
+    templateOffsets.resize(30);
+    templateOffsets.at(0)=1.0+baseOffset;
+    templateOffsets.at(1)=0.25+baseOffset;
+    templateOffsets.at(2)=-0.25+baseOffset;
+    templateOffsets.at(3)=0.5+baseOffset;
+    templateOffsets.at(4)=0.0+baseOffset;
+    templateOffsets.at(5)=0.0+baseOffset;
+    templateOffsets.at(6)=-0.25+baseOffset;
+    templateOffsets.at(7)=0.0+baseOffset;
+    templateOffsets.at(8)=-0.25+baseOffset;
+    templateOffsets.at(9)=0.0+baseOffset;
+    templateOffsets.at(10)=0.0+baseOffset;
+    templateOffsets.at(11)=-0.5+baseOffset;
+    templateOffsets.at(12)=0.0+baseOffset;
+    templateOffsets.at(13)=0.0+baseOffset;
+    templateOffsets.at(14)=0.5+baseOffset;
+    templateOffsets.at(15)=2.25+baseOffset;
+    templateOffsets.at(16)=1.0+baseOffset;
+    templateOffsets.at(17)=1.0+baseOffset;
+    templateOffsets.at(18)=0.25+baseOffset;
+    templateOffsets.at(19)=0.5+baseOffset;
+    templateOffsets.at(20)=0.5+baseOffset;
+    templateOffsets.at(21)=0.0+baseOffset;
+    templateOffsets.at(22)=1.0+baseOffset;
+    templateOffsets.at(23)=0.75+baseOffset;
+    templateOffsets.at(24)=0.0+baseOffset;
+    templateOffsets.at(25)=0.5+baseOffset;
+    templateOffsets.at(26)=0.0+baseOffset;
+    templateOffsets.at(27)=0.0+baseOffset;
+    templateOffsets.at(28)=-0.5+baseOffset;
+  }
 
 
   // ***************************************************
@@ -422,34 +461,27 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
   }
   std::cout<<" Input and Ouput files sucessfully opened"<<std::endl;
   
-  double flag1;
-  double flag2;
 
-  ifs >> flag1 >> flag2;
-
-  if(debugPrint) {
-    std::cout<<"flage1,flage2: "<<flag1<<" "<<flag2<<std::endl;
-  }
-
-  if (flag1!=-9999 || flag2 != -9999) {
-    std::cout<<"Fatal-Input file "<<inFileName
-	<< "failed to start with -9999 -9999 record"<<std::endl;
-    exit(1);
-  }
-
-
+ 
   // *****************************************************************
   // Start loop over templates
   // *****************************************************************
   bool finishedFile=false;
+  std::string line;
   while(1) {
     //Read first line of next template
     double hiGainAmplitudeMV;
     double linearity;
-    ifs >> hiGainAmplitudeMV >> linearity;
+    std::getline(ifs,line);
+    
+
+    //   ifs >> hiGainAmplitudeMV >> linearity;
     if (ifs.eof() ) {
       break;   //and we are done!
     }
+    istringstream is(line);
+    is >> hiGainAmplitudeMV;
+    is >> linearity;
     
     // ******************************************************************
     // Convert hiGainAmplitudeMV to equivalent High gain area in DC
@@ -478,6 +510,8 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
     // *********************************************************
     int ibin=0;
     double time;
+    std::string flag1;
+    std::string line;
     double value;
     double sum=0;
     int sumCount=0;
@@ -494,10 +528,7 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
       // **************************************************************
       //This is loop to produce one output bin
       while (1){
-	ifs >> time >> value;
-	if(debugPrint) {
-	  std::cout<<time<<" "<<value<<std::endl;
-	}
+	std::getline(ifs,line); 
 	if (ifs.eof() ) {
 
 	  //CorrectAndWritePulse(ofs, pulse, startBinCenter, templateIndex);
@@ -512,7 +543,13 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
 		   << waveForms.size() << " waveforms." << std::endl;
 	  break;
 	}
-	if ( (int)time ==-9999 ) {
+
+	//std::cout<<"line:"<<line<<std::endl;
+	istringstream iss(line);
+	iss >> flag1;
+	//std::cout<<"flag1:"<<flag1<<std::endl;
+
+	if ( flag1 == "*" ) {
 	  //CorrectAndWritePulse(ofs, pulse, startBinCenter, templateIndex);
 	  highGainAmplitudeMV.push_back(hiGainAmplitudeMV);
 	  highGainAmplitudeDC.push_back(hiGainAmplitude);
@@ -520,13 +557,19 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
 	  lowGainLinearity.push_back(linearity);
 	  startBin.push_back(startBinCenter);
 	  waveForms.push_back(pulse);
+	  //std::cout<<"finished template with a *"<<std::endl;
 
 	  //ofs << (int)time << " " << (int)value <<std::endl; //-9999 -9999
 	  finishedFile=false;
 	  finishedPulse=true;
 	  break;           // done with this pulse, go on to the next one
 	}
-	
+	istringstream isss(flag1);
+	isss >> time;
+
+	iss >> value;
+	//std::cout<<"time,value: "<<time<<" "<<value<<std::endl;
+
 	// ***************************************
 	// Use the first one to set 
 	// our first output time (On the even .25 ns step
@@ -646,13 +689,12 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
   // a .25 ns step text file for the various pulses.
   // ***********************************************************************
   //Input file format:
-  // pulse starts with "-9999 -9999" on a line(I edited this in, 
-  //                                  Nepomuk had a "*")
+  // pulse starts with "*" on a line (except for the first one)
   // second line: peak intensity of equivalent high gain pulse in mv,
   //             linearity (adjustment to 10.101 (1/.099) for saturation
-  // remianing lines: time(ns)(in random very small <<0.25ns steps),
-  //                   pulse height
-   // Then next pulse starts  (Flag of start is the "9999 -9999" record)
+  // remianing lines: time(ns)(in orig some  very small <<0.25ns steps),
+  //                   pulse height, in time spread its all .25ns)
+   // Then next pulse starts  (Flag of start is the "*"  record)
   // ************************************************************************
   // Output file, sutable for reading in with 
   //                        KSSinglePe::readLowGainTemplateFile()
@@ -666,8 +708,8 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
   // bins +/- 0.125ns around that time.
   // *************************************************************************
   
-  bool debugPrint=true;
-  //  bool debugPrint=false;
+  //bool debugPrint=true;
+    bool debugPrint=false;
 
   waveForms.clear();   //just to make enough room
   highGainAmplitudeDC.clear();
@@ -709,9 +751,6 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
   templateOffsets.at(27)=3.5+ baseOffset;
   templateOffsets.at(28)=3.5+ baseOffset;
  
-
-
-
   // ***************************************************
   //Open the input file and create the output file
   // ***************************************************
@@ -728,23 +767,6 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
   }
   std::cout<<" Input and Ouput files sucessfully opened"<<std::endl;
   
-  double flag1;
-  double flag2;
-
-  ifs >> flag1 >> flag2;
-
-  if(debugPrint) {
-    std::cout<<"flage1,flage2: "<<flag1<<" "<<flag2<<std::endl;
-  }
-
-  if (flag1!=-9999 || flag2 != -9999) {
-    std::cout<<"Fatal-Input file "<<inFileName
-	<< "failed to start with -9999 -9999 record"<<std::endl;
-    exit(1);
-  }
-
-  // Save start flags to output
-  //  ofs << (int)flag1 <<" "<<(int)flag2<<std::endl;
 
   // *****************************************************************
   // Start loop over templates
@@ -786,6 +808,7 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
     // *********************************************************
     int ibin=0;
     double time;
+    std::string flag1;
     double value;
     double sum=0;
     int sumCount=0;
@@ -802,7 +825,9 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
       // **************************************************************
       //This is loop to produce one output bin
       while (1){
-	ifs >> time >> value;
+	ifs >> flag1;
+
+
 	if(debugPrint) {
 	  std::cout<<time<<" "<<value<<std::endl;
 	}
@@ -818,7 +843,7 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
 	  finishedFile=true;   //and we are done!
 	  break;
 	}
-	if ( (int)time ==-9999 ) {
+	if ( flag == "*" ) {
 	  //CorrectAndWritePulse(ofs, pulse, startBinCenter, templateIndex);
 	  highGainAmplitudeMV.push_back(hiGainAmplitudeMV);
 	  highGainAmplitudeDC.push_back(hiGainAmplitude);
@@ -827,12 +852,14 @@ void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bo
 	  startBin.push_back(startBinCenter);
 	  waveForms.push_back(pulse);
 
-	  //ofs << (int)time << " " << (int)value <<std::endl; //-9999 -9999
 	  finishedFile=false;
 	  finishedPulse=true;
 	  break;           // done with this pulse, go on to the next one
 	}
 	
+	istringstream iss(flag1);
+	iss >> time;
+	ifs >> value;
 	// ***************************************
 	// Use the first one to set 
 	// our first output time (On the even .25 ns step
@@ -976,10 +1003,11 @@ void LoadLowGainTemplateHists ()
      for (int j=1;j<=numPoints;j++) {
        
        double value=lowGainTemplates.at(i).at(j-1);
-       if(j-1<160) {
+       // if(j-1<160) {
 	 sum += value;
+	 //std::cout<<"j,value: "<<j<<" "<<value<<std::endl;
 	 tmplt.SetBinContent(j,value);
-       }
+	 //}
      }
      templateHists.at(i)=tmplt;
      std::cout<<"i,numTemplates,tmpltName: "<<i<<" "<<numTemplates<<" "
@@ -993,11 +1021,14 @@ void LoadLowGainTemplateHists ()
 
 void PlotTemplateHists(string opt="Lsame")
 {
+  bool debugPrint=false;
   int numHists=templateHists.size();
   //int numHists=5;
   int color=2;
   for(int i=numHists-1; i>=0;i--) {
-    std::cout<<"size:"<<templateHists.size()<<std::endl;
+    if(debugPrint) {
+      std::cout<<"size:"<<templateHists.size()<<std::endl;
+    }
     if (i==numHists-1) {
        templateHists.at(i).Draw("l");
     }
@@ -1082,7 +1113,7 @@ void PlotHighGainTemplates(string opt="Lsame")
 }
 // **********************************************************************
   
-void PlotTemplateHist(int histIndex, string opt="L")
+void PlotHighGainTemplateHist(int histIndex, string opt="L")
 {
   highGainTemplateHists.at(histIndex).Draw(opt.c_str());
 }  
