@@ -167,24 +167,26 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 	cl=1;
       }
       
-      /*
-	std::cout << "n,hiQ,hiDC,hiMV,i,loQ,cl,Lin,fwhm: " 
-		<< pWaveForm->GetPECount() 
-		<< " " << highGainChargeDC << " " << highGainAmplitudeDC 
-		<< " " << highGainAmplitudeMV << " " 
-		<< pWaveForm->GetLowGainIndex() 
-	        << " " << lowGainChargeDC << " " << cl << " " 
-		<< pWaveForm->GetLinearity() <<" "
-		<< pWaveForm->GetWaveFormFWHMns() << " ";
+      
+      //std::cout 
+              //<< "n,hiQ,hiDC,hiMV,i,loQ,cl,,hiMeanSizeMV,Lin,fwhm: " 
+      //	<< pWaveForm->GetPECount() 
+      //	<< " " << highGainChargeDC << " " << highGainAmplitudeDC 
+      //	<< " " << highGainAmplitudeMV << " " 
+      //	<< pWaveForm->GetLowGainIndex() 
+      //        << " " << lowGainChargeDC << " " << cl << " " 
+      //	<< pWaveForm->GetSize() << " "
+      //	<< pWaveForm->GetLinearity() <<" "
+      //	<< pWaveForm->GetWaveFormFWHMns() << " ";
       
       // *******************************************************************
       // Add on the fadc trace
       // *******************************************************************
-      for (int m=0; m< (int) fFADCTrace.size(); m++) {
-	std::cout<<fFADCTrace.at(m)<<" ";
-      }
-      std::cout<<std::endl;
-      */
+      //for (int m=0; m< (int) fFADCTrace.size(); m++) {
+      //	std::cout<<fFADCTrace.at(m)<<" ";
+      //}
+      //std::cout<<std::endl;
+      
  
     }
   // ***********************************************************************
