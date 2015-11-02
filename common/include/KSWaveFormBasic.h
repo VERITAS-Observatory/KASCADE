@@ -37,7 +37,7 @@ class KSWaveFormBasic
   void   ScaleWaveForm(double scaleFactor);
 
   double GetLinearity(){return  fLinearity;};
-
+  double GetSize(){return  fSize;};
   vector < double > fWaveForm;
 
   // Special for templates

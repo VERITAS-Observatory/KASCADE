@@ -387,11 +387,17 @@ void KSWaveForm::BuildLowGainWaveForm(double templateDesignator)
   // ***********************************************************
   fLowGainIndex= pfSinglePe->getLowGainIndexAndLinearity(
 							templateDesignator, 
-							fLinearity);
+  							fLinearity);
+ //							fLinearity) +14;
+    
   pfSelectedWaveForm = 
                     &pfSinglePe->fLowGainWaveForm.at(fLowGainIndex).fWaveForm;
   
+  fSize = pfSinglePe->fLowGainWaveForm.at(fLowGainIndex).GetSize();
+  fLinearity = pfSinglePe->fLowGainWaveForm.at(fLowGainIndex).GetLinearity();
 
+  
+  
   // *************************************************************
   // Actually build the waveform. (sky noise pe have already been added)
   // Just cleanout the waveform and resize it, all other stuff (startbin time 
