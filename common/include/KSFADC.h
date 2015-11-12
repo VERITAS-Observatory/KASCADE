@@ -42,15 +42,15 @@ class KSFADC
   std::vector<int> fFADCTrace;
   int    fFADCLoTraceStart;
   double fDigCntsPerPEHiGain;
-  double fDigCntsPerPELoGain;
+   double fDigCntsPerPELoGain;   //not used anymore
   double fFADCTracePed;
   double fLowGainPedestal;
   bool   fIsLowGainTrace;
 
   //Lo Gain Clipping study variables
-  double fPixelHiSizeBeforeLoGainConversion; //inlcudes PedfSum-
-  int fPixelLoSizeBeforeLoGainClip;
-  int fPixelLoSizeAfterLoGainClip;
+  double fPixelHiSizeBeforeLoGainConversion; //inlcudes PedSum
+  int    fPixelLoSizeBeforeLoGainClip;
+  int    fPixelLoSizeAfterLoGainClip;
 };  
 
 #endif
