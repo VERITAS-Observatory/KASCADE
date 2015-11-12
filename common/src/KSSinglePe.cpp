@@ -497,7 +497,7 @@ int KSSinglePe::getLowGainIndexAndLinearity(double selectionValue,
   // At extremes linearity is constant over range of applacability ot that 
   // template
   // ****************
-  if(templateIndex == 0 || templateIndex == fLowGainWaveForm.size()-1) {
+  if(templateIndex == 0 || templateIndex == (int)fLowGainWaveForm.size()-1) {
     linearity=fLowGainWaveForm.at(templateIndex).fUpperLinearity;
   }
   else{

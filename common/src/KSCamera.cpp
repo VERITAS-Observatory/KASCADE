@@ -31,6 +31,7 @@ KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead,
 {
   fCameraType         = CameraType;
   fDigCntsPerPEHiGain = DigCntsPePE;
+  fDigCntsPerPELowGain = DigCntsPePE*gLowGainToHighGainPeakRatio;
   fNoiseRateSigma     = NoiseRateSigma;
   fNumPixelsTrigger   = numPixelsInTrigger;
   fSinglePeRiseTimeNS = SinglePeRiseTimeNS; 
@@ -135,17 +136,28 @@ void KSCamera::Print()
 
 
   std::cout<<"Camera Initalized:"<<std::endl;
-  std::cout<<"         Pixel 1 light Total collection effciency = "
+  std::cout<<"             Pixel 1 light Total collection effciency = "
 	   <<fPixel.at(0).fEfficiency<<std::endl;
-  std::cout<<"    Pixel 1 Total Light Cone collection effciency = "
-	   <<fPixel.at(0).fEfficiency/fPixel.at(0).fBaseEfficiency<<std::endl
-	   <<std::endl;
-  std::cout<<"                         For Hi gain of (DC / PE) = " 
-	   <<fDigCntsPerPEHiGain<<std::endl;           
-  std::cout<<"            Pixel 1 Single Pe Mean FADC Area (DC) = "
-	   <<fPixel.at(0).fSinglePeMeanFADCArea<<std::endl;
-  std::cout<<"  Pixel 1 Single Pe Mean Area (No Round Down)(DC) = "
-	   <<fPixel.at(0).fSinglePeMeanFADCAreaNoRounding<<std::endl<<std::endl;
+  std::cout<<"        Pixel 1 Total Light Cone collection effciency = "
+	   <<fPixel.at(0).fEfficiency/fPixel.at(0).fBaseEfficiency<<std::endl;
+ 
+  std::cout<<std::endl;
+
+  std::cout << "                               For Hi gain of (DC / PE) = " 
+	    << fDigCntsPerPEHiGain << std::endl;           
+  std::cout << "                              For Low gain of (DC / PE) = " 
+	    << fDigCntsPerPELowGain << std::endl;           
+  std::cout << "                    Pixel 1 Mean Hi Gain FADC Area (DC) = "
+	    << fPixel.at(0).fSinglePeMeanFADCArea << std::endl;
+  std::cout << "          Pixel 1 Mean Hi Gain Area (No Round Down)(DC) = "
+	    << fPixel.at(0).fSinglePeMeanFADCAreaNoRounding << std::endl;
+  std::cout << "   Pixel 1 Low Gain Template 0 Area (No Round Down)(DC) = "
+	    << fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding << std::endl;
+  std::cout << " Pixel 1 Template 0 Low Gain to High Gain Charge Factor = "
+	    << fPixel.at(0).fSinglePeMeanFADCAreaNoRounding / 
+               fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding << std::endl;
+  
+  std::cout<<std::endl;
 
   pfCameraTrigger->Print();
 

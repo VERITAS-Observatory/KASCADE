@@ -42,8 +42,7 @@ class KSWaveForm : public KSWaveFormBasic
   void   BuildLowGainWaveForm(double highGainChargeDC);
   int    GetLowGainIndex(){return fLowGainIndex;};
   int    GetPECount(){return fPECount;};
-
-  //void   ScaleWaveForm(double scaleFactor);
+  int    GetNumPES(){return (int)fWaveFormPETimesNS.size();};
   bool   fDebug;
 
  private:

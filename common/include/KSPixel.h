@@ -65,6 +65,8 @@ class KSPixel
   //void addPe(double fPeTime,bool afterPulse);
   double getMeanFADCArea(KSCameraTypes fCameraType, double scaledPulseHeight,
 			 double numPesInPulse);
+  double getLowGainMeanFADCArea(KSCameraTypes fCameraType,  int templateIndex,
+				int numPesInPulse);
 
   float fXDummy;
   KSCameraTypes fCameraType;
@@ -116,6 +118,7 @@ class KSPixel
   double fSinglePeArea;
   double fSinglePeMeanFADCAreaNoRounding;
   double fSinglePeMeanFADCArea;
+  double fLowGainTmplt0FADCAreaNoRounding;
   double fSinglePeSizeNS;
   int    fSinglePeSizeNumBins;
 };

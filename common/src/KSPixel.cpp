@@ -47,6 +47,11 @@ KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain,
   fSinglePeMeanFADCAreaNoRounding = getMeanFADCArea(fCameraType,
 						 gPulseHeightForMeanFADCArea,
 						 5000.0);
+ //Next call uses the lowgain templates from pfSinglePe
+  int templateIndex=0;
+  fLowGainTmplt0FADCAreaNoRounding = getLowGainMeanFADCArea(fCameraType,
+							    templateIndex,
+							    500);
   InitPixelWaveForm();
 }
 
@@ -494,6 +499,74 @@ double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,
   double singlePeAreaMean = singlePeAreaSum/(numTraces*numPesInPulse);
   double singlePeArea     = (singlePeAreaMean-pedAreaMean)/scaledPulseHeight;
   return singlePeArea;
+}
+// *************************************************************************
+ 
+double KSPixel::getLowGainMeanFADCArea(KSCameraTypes fCameraType,  
+				       int templateIndex, int numPesInPulse)
+// *************************************************************************
+// Get mean area for a single pe after its WaveFormn is converted to a FADC
+// trace.  
+// Note:If we use a very large HV scale factor (say 1000) we would have a 
+// very small rounddown effect, and if we use a small value (like 1.0  
+// *************************************************************************
+{
+  // *******************************************************************
+  // Get a pointer to the wave form source
+  // *******************************************************************
+  vector < double >*  pLowGainTemplateWaveForm = 
+    &pfSinglePe->fLowGainWaveForm.at(templateIndex).fWaveForm;
+
+  //Number of NS in SinglePe wave form. Extra 3 is just for insurance
+  
+  int lowGainTemplateNumBins = 
+    pfSinglePe->fLowGainWaveForm.at(templateIndex).GetSize();
+  int singlePeSizeNS = lowGainTemplateNumBins*gWaveFormBinSizeNS + 3;  
+  int numSamplesTrace= (int)( (double)singlePeSizeNS/gFADCBinSizeNS);  
+  int numWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
+
+  double singlePeAreaSum=0;  
+  double pedAreaSum=0;
+  int    numTraces=10000;
+  double lowGainPedestal = gLowGainPedestal[VERITAS499];
+  double linearity  = 
+    pfSinglePe->fLowGainWaveForm.at(templateIndex).GetLinearity();
+  for (int i=0;i< numTraces;i++){
+    pfWaveForm->InitWaveForm(0.0,singlePeSizeNS);
+
+    // ********************************************************************
+    // Add single pe: start pulse at least one sample in then 
+    // dirft it
+    // ***********************************************************************
+    // Jitter Start time of pulse
+    // **************************
+    int j = (int)(pfRandom->Rndm()*numWaveFormBinsPerFADCBin);
+    if(j==numWaveFormBinsPerFADCBin){
+      j=0;
+    }
+    for(int k=0;k<fSinglePeSizeNumBins;k++) {
+      double newHeight = pfWaveForm->GetWaveFormElement(k+j) + 
+	(numPesInPulse* pLowGainTemplateWaveForm->at(k));
+      pfWaveForm->SetWaveFormElement(k+j, newHeight);
+    }
+    //  CARE's scaling(which I think is the correct one to use)
+    double scaleFactor = gLowGainToHighGainPeakRatio * linearity;
+    // **************************
+    // we will mutilpy by fDigCntsPerPEHiGain (DC/PE) in the call to
+    // generateTraceSamples() 
+    // *****************************************
+    pfWaveForm->ScaleWaveForm(scaleFactor);
+
+    //Adds FADC Ped, rounddowns, mutilpy by fDigCntsPerPEHiGain (DC/PE).
+    double lowGainChargeDC;
+    fFADC.generateTraceSamples(lowGainChargeDC, pfWaveForm, 0, 
+			       numSamplesTrace, lowGainPedestal);
+  
+    lowGainChargeDC  = lowGainChargeDC - (numSamplesTrace * lowGainPedestal); 
+    singlePeAreaSum += lowGainChargeDC;
+  }
+  double singlePeAreaMean = singlePeAreaSum/(numTraces*numPesInPulse);
+  return singlePeAreaMean;
 }
 // *************************************************************************
  

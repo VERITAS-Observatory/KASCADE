@@ -99,6 +99,7 @@ class KSCamera
   double  fLatitude;
   double  fEastLongitude;
   double  fDigCntsPerPEHiGain;
+  double  fDigCntsPerPELowGain;
   double  fNoiseRateSigma;
   double  fSinglePeRiseTimeNS;
   double  fSinglePeFallTimeNS;
