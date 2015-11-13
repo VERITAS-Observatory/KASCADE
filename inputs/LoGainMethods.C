@@ -1,7 +1,7 @@
 //Root script
 const double kMVToDCN      = 7.84;           //Nepomuks values
 const double kUpgradeGainN = 2.33;           //Nepomuks values
-const double kPhotonisGainN = 1.3;           //Glenns values
+const double kPhotonisGainG = 1.3;           //Glenns values
 const double kPEToDCAreaG  = 5.62;            //Glenns value
 const double kBinSpacing   = 0.25;
 
@@ -239,7 +239,7 @@ int Round(double number)
 }
 // ***************************************************************************
 
-void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
+void CorrectAndWritePulses(std::ofstream& ofs, bool highGain,bool upgrade)
 {
   // **********************************************************************
   // Going to use the tail of template 28 to fill out any missing tails in 
@@ -249,10 +249,21 @@ void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
   bool debugPrint=false;
   //bool debugPrint=true;
 
-  int goodTailIndex=28;
+  int goodTailIndex;
   double pulseMaxGT;
   double pulseMinGT;
-  if ( addTail ) {
+  bool addTail=false;
+  if (! highGain) {
+   
+    addTail=true;
+    
+    if ( upgrade) {
+      goodTailIndex=28;
+    }
+    else{
+      goodTailIndex=2;
+    }
+  
     std::vector< double >::iterator it;   //for pulse array
     // Find the min and max elements in the vector
     it = min_element(waveForms.at(goodTailIndex).begin(), 
@@ -314,7 +325,7 @@ void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
 	ofs << time << " " << correctedPulse <<std::endl;
       }
     }
-    //Fill in tail  if last bin < 64 ns  and this is low gain
+    //Fill in tail  if last bin < 64 ns and this is low gain
     if( addTail) {
       if (time<64.0-.1*kBinSpacing) {
 	time = time + kBinSpacing;
@@ -334,8 +345,9 @@ void CorrectAndWritePulses(std::ofstream& ofs, bool addTail)
 // *************************************************************************
 
 
-void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
-			    bool highgain = false, bool withTimeSpread=false)
+void GenTemplateFile(std::string inFileName, std::string outFileName,
+		     bool upgrade = true, bool highgain = false, 
+		     bool withTimeSpread=false)
 {
   // ***********************************************************************
   // Read in a nepomuk/hugh/cameron type template txt and convert to a .25 ns
@@ -347,7 +359,6 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
   //             linearity (adjustment to 10.101 (1/.099) for saturation
   // remianing lines: time(ns)(in even or random small <=0.25ns steps),
   //                   pulse height
- 
   // Then next pulse starts  (Flag of start is the "*" record)
   // ************************************************************************
   // Output file, sutable for reading in with 
@@ -371,79 +382,90 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
   highGainAreaDC.clear();
   startBin.clear();
 
-  //double baseOffset=7.0;  //ns note 2 ns = 1 sample
-  double baseOffset;  //ns note 2 ns = 1 sample
-  if (! withTimeSpread) {
-    // Original 0 time spread mearued pulse
-    baseOffset=5.0;  //ns note 2 ns = 1 sample
-
-    templateOffsets.resize(30);
-    templateOffsets.at(0)=3.5+ baseOffset;
-    templateOffsets.at(1)=3.25+ baseOffset;
-    templateOffsets.at(2)=2.0+ baseOffset;
-    templateOffsets.at(3)=1.5+ baseOffset;
-    templateOffsets.at(4)=0.5+ baseOffset;
-    templateOffsets.at(5)=0.75+ baseOffset;
-    templateOffsets.at(6)=1.0+ baseOffset;
-    templateOffsets.at(7)=2.0+ baseOffset;
-    templateOffsets.at(8)=1.25+ baseOffset;
-    templateOffsets.at(9)=1.75+ baseOffset;
-    templateOffsets.at(10)=2.25+ baseOffset;
-    templateOffsets.at(11)=2.5+ baseOffset;
-    templateOffsets.at(12)=2.25+ baseOffset;
-    templateOffsets.at(13)=2.0+ baseOffset;
-    templateOffsets.at(14)=2.25+ baseOffset;
-    templateOffsets.at(15)=2.5+ baseOffset;
-    templateOffsets.at(16)=2.25+ baseOffset;
-    templateOffsets.at(17)=3.0+ baseOffset;
-    templateOffsets.at(18)=3.5+ baseOffset;
-    templateOffsets.at(19)=4.25+ baseOffset;
-    templateOffsets.at(20)=3.0+ baseOffset;
-    templateOffsets.at(21)=3.25+ baseOffset;
-    templateOffsets.at(22)=3.5+ baseOffset;
-    templateOffsets.at(23)=3.75+ baseOffset;
-    templateOffsets.at(24)=3.5+ baseOffset;
-    templateOffsets.at(25)=3.5+ baseOffset;
-    templateOffsets.at(26)=3.5+ baseOffset;
-    templateOffsets.at(27)=3.5+ baseOffset;
-    templateOffsets.at(28)=3.5+ baseOffset;
+  double dcToPeGain;
+  if (upgrade) {
+    dcToPeGain= kUpgradeGainN;
+    if (! withTimeSpread) {
+      // Original 0 time spread measured pulse. Below offset starts all
+      // waveform at bin8 = 2 ns = 1 sample.
+      double baseOffset=5.0;  //ns note 2 ns = 1 sample
+      templateOffsets.resize(29);
+      templateOffsets.at(0)=3.5+ baseOffset;
+      templateOffsets.at(1)=3.25+ baseOffset;
+      templateOffsets.at(2)=2.0+ baseOffset;
+      templateOffsets.at(3)=1.5+ baseOffset;
+      templateOffsets.at(4)=0.5+ baseOffset;
+      templateOffsets.at(5)=0.75+ baseOffset;
+      templateOffsets.at(6)=1.0+ baseOffset;
+      templateOffsets.at(7)=2.0+ baseOffset;
+      templateOffsets.at(8)=1.25+ baseOffset;
+      templateOffsets.at(9)=1.75+ baseOffset;
+      templateOffsets.at(10)=2.25+ baseOffset;
+      templateOffsets.at(11)=2.5+ baseOffset;
+      templateOffsets.at(12)=2.25+ baseOffset;
+      templateOffsets.at(13)=2.0+ baseOffset;
+      templateOffsets.at(14)=2.25+ baseOffset;
+      templateOffsets.at(15)=2.5+ baseOffset;
+      templateOffsets.at(16)=2.25+ baseOffset;
+      templateOffsets.at(17)=3.0+ baseOffset;
+      templateOffsets.at(18)=3.5+ baseOffset;
+      templateOffsets.at(19)=4.25+ baseOffset;
+      templateOffsets.at(20)=3.0+ baseOffset;
+      templateOffsets.at(21)=3.25+ baseOffset;
+      templateOffsets.at(22)=3.5+ baseOffset;
+      templateOffsets.at(23)=3.75+ baseOffset;
+      templateOffsets.at(24)=3.5+ baseOffset;
+      templateOffsets.at(25)=3.5+ baseOffset;
+      templateOffsets.at(26)=3.5+ baseOffset;
+      templateOffsets.at(27)=3.5+ baseOffset;
+      templateOffsets.at(28)=3.5+ baseOffset;
+    }
+    else{
+      // KASCADE time spread (~5 ns+shower)
+      double baseOffset=-3.0;  //ns note 2 ns = 1 sample
+      templateOffsets.resize(29);
+      templateOffsets.at(0)=1.0+baseOffset;
+      templateOffsets.at(1)=0.25+baseOffset;
+      templateOffsets.at(2)=-0.25+baseOffset;
+      templateOffsets.at(3)=0.5+baseOffset;
+      templateOffsets.at(4)=0.0+baseOffset;
+      templateOffsets.at(5)=0.0+baseOffset;
+      templateOffsets.at(6)=-0.25+baseOffset;
+      templateOffsets.at(7)=0.0+baseOffset;
+      templateOffsets.at(8)=-0.25+baseOffset;
+      templateOffsets.at(9)=0.0+baseOffset;
+      templateOffsets.at(10)=0.0+baseOffset;
+      templateOffsets.at(11)=-0.5+baseOffset;
+      templateOffsets.at(12)=0.0+baseOffset;
+      templateOffsets.at(13)=0.0+baseOffset;
+      templateOffsets.at(14)=0.5+baseOffset;
+      templateOffsets.at(15)=2.25+baseOffset;
+      templateOffsets.at(16)=1.0+baseOffset;
+      templateOffsets.at(17)=1.0+baseOffset;
+      templateOffsets.at(18)=0.25+baseOffset;
+      templateOffsets.at(19)=0.5+baseOffset;
+      templateOffsets.at(20)=0.5+baseOffset;
+      templateOffsets.at(21)=0.0+baseOffset;
+      templateOffsets.at(22)=1.0+baseOffset;
+      templateOffsets.at(23)=0.75+baseOffset;
+      templateOffsets.at(24)=0.0+baseOffset;
+      templateOffsets.at(25)=0.5+baseOffset;
+      templateOffsets.at(26)=0.0+baseOffset;
+      templateOffsets.at(27)=0.0+baseOffset;
+      templateOffsets.at(28)=-0.5+baseOffset;
+    }
   }
-  else{
-    // KASCADE time spread (~5 ns+shower)
-    baseOffset=-3.0;  //ns note 2 ns = 1 sample
-
-    templateOffsets.resize(30);
-    templateOffsets.at(0)=1.0+baseOffset;
-    templateOffsets.at(1)=0.25+baseOffset;
-    templateOffsets.at(2)=-0.25+baseOffset;
-    templateOffsets.at(3)=0.5+baseOffset;
-    templateOffsets.at(4)=0.0+baseOffset;
-    templateOffsets.at(5)=0.0+baseOffset;
-    templateOffsets.at(6)=-0.25+baseOffset;
-    templateOffsets.at(7)=0.0+baseOffset;
-    templateOffsets.at(8)=-0.25+baseOffset;
-    templateOffsets.at(9)=0.0+baseOffset;
-    templateOffsets.at(10)=0.0+baseOffset;
-    templateOffsets.at(11)=-0.5+baseOffset;
-    templateOffsets.at(12)=0.0+baseOffset;
-    templateOffsets.at(13)=0.0+baseOffset;
-    templateOffsets.at(14)=0.5+baseOffset;
-    templateOffsets.at(15)=2.25+baseOffset;
-    templateOffsets.at(16)=1.0+baseOffset;
-    templateOffsets.at(17)=1.0+baseOffset;
-    templateOffsets.at(18)=0.25+baseOffset;
-    templateOffsets.at(19)=0.5+baseOffset;
-    templateOffsets.at(20)=0.5+baseOffset;
-    templateOffsets.at(21)=0.0+baseOffset;
-    templateOffsets.at(22)=1.0+baseOffset;
-    templateOffsets.at(23)=0.75+baseOffset;
-    templateOffsets.at(24)=0.0+baseOffset;
-    templateOffsets.at(25)=0.5+baseOffset;
-    templateOffsets.at(26)=0.0+baseOffset;
-    templateOffsets.at(27)=0.0+baseOffset;
-    templateOffsets.at(28)=-0.5+baseOffset;
-  }
-
+  else{           //Photonis
+    dcToPeGain= kPhotonisGainG;
+      // Original 0 time spread measured pulse. Below offset starts all
+      // waveform at bin8 = 2 ns = 1 sample.
+      double baseOffset=-5.0;  //ns note 2 ns = 1 sample
+      templateOffsets.resize(4);
+      templateOffsets.at(0)= (-3) + baseOffset;
+      templateOffsets.at(1)= (-5) + baseOffset;
+      templateOffsets.at(2)= (-5) + baseOffset;
+      templateOffsets.at(3)= (-4) + baseOffset;
+  }    
 
   // ***************************************************
   //Open the input file and create the output file
@@ -675,297 +697,7 @@ void GenUpgradeTemplateFile(std::string inFileName, std::string outFileName,
       }
     }
     if ( finishedFile ) {   //Are we into the next pulse?
-      CorrectAndWritePulses(ofs,highgain);
-      break;
-    }
-  }
-}
-// **************************************************************************
-
-void GenPhotonisTemplateFile(std::string inFileName, std::string outFileName, bool addTail=false)
-{
-  // ***********************************************************************
-  // Read in a nepomuk/hugh/cameron type photonis template txt and convert to 
-  // a .25 ns step text file for the various pulses.
-  // ***********************************************************************
-  //Input file format:
-  // pulse starts with "*" on a line (except for the first one)
-  // second line: peak intensity of equivalent high gain pulse in mv,
-  //             linearity (adjustment to 10.101 (1/.099) for saturation
-  // remianing lines: time(ns)(in orig some  very small <<0.25ns steps),
-  //                   pulse height, in time spread its all .25ns)
-   // Then next pulse starts  (Flag of start is the "*"  record)
-  // ************************************************************************
-  // Output file, sutable for reading in with 
-  //                        KSSinglePe::readLowGainTemplateFile()
-  // pulse starts with "-9999 -9999" on a line
-  // second line: equivalent High Gain Pulse area in dc, linearity
-  // remaining lines:  time in .25 ns steps, pulse height
-  // Then next pulse starts. (Flag of start is the "9999 -9999" record)
-  // *************************************************************************
-  // Output pulses are normalized to max height == 1.0
-  // Output values at each .25 ns step are average over any input pulse 
-  // bins +/- 0.125ns around that time.
-  // *************************************************************************
-  
-  //bool debugPrint=true;
-    bool debugPrint=false;
-
-  waveForms.clear();   //just to make enough room
-  highGainAmplitudeDC.clear();
-  highGainAmplitudeMV.clear();
-  highGainAreaDC.clear();
-  startBin.clear();
-
-  //double baseOffset=7.0;  //ns note 2 ns = 1 sample
-  double baseOffset=5.0;  //ns note 2 ns = 1 sample
-
-  templateOffsets.resize(30);
-  templateOffsets.at(0)=3.5+ baseOffset;
-  templateOffsets.at(1)=3.25+ baseOffset;
-  templateOffsets.at(2)=2.0+ baseOffset;
-  templateOffsets.at(3)=1.5+ baseOffset;
-  templateOffsets.at(4)=0.5+ baseOffset;
-  templateOffsets.at(5)=0.75+ baseOffset;
-  templateOffsets.at(6)=1.0+ baseOffset;
-  templateOffsets.at(7)=2.0+ baseOffset;
-  templateOffsets.at(8)=1.25+ baseOffset;
-  templateOffsets.at(9)=1.75+ baseOffset;
-  templateOffsets.at(10)=2.25+ baseOffset;
-  templateOffsets.at(11)=2.5+ baseOffset;
-  templateOffsets.at(12)=2.25+ baseOffset;
-  templateOffsets.at(13)=2.0+ baseOffset;
-  templateOffsets.at(14)=2.25+ baseOffset;
-  templateOffsets.at(15)=2.5+ baseOffset;
-  templateOffsets.at(16)=2.25+ baseOffset;
-  templateOffsets.at(17)=3.0+ baseOffset;
-  templateOffsets.at(18)=3.5+ baseOffset;
-  templateOffsets.at(19)=4.25+ baseOffset;
-  templateOffsets.at(20)=3.0+ baseOffset;
-  templateOffsets.at(21)=3.25+ baseOffset;
-  templateOffsets.at(22)=3.5+ baseOffset;
-  templateOffsets.at(23)=3.75+ baseOffset;
-  templateOffsets.at(24)=3.5+ baseOffset;
-  templateOffsets.at(25)=3.5+ baseOffset;
-  templateOffsets.at(26)=3.5+ baseOffset;
-  templateOffsets.at(27)=3.5+ baseOffset;
-  templateOffsets.at(28)=3.5+ baseOffset;
- 
-  // ***************************************************
-  //Open the input file and create the output file
-  // ***************************************************
-  std::ifstream ifs(inFileName.c_str());
-  if (! ifs) {
-    std::cout<<" Fatal- Can not open "<<inFileName<<std::endl;
-    exit(1);
-  }
-
-  std::ofstream ofs(outFileName.c_str());
-  if (! ofs) {
-    std::cout<<" Fatal- Can not open "<<outFileName<<std::endl;
-    exit(1);
-  }
-  std::cout<<" Input and Ouput files sucessfully opened"<<std::endl;
-  
-
-  // *****************************************************************
-  // Start loop over templates
-  // *****************************************************************
-  bool finishedFile=false;
-  while(1) {
-    //Read first line of next template
-    double hiGainAmplitudeMV;
-    double linearity;
-    ifs >> hiGainAmplitudeMV >> linearity;
-    if (ifs.eof() ) {
-      break;   //and we are done!
-    }
-    
-    // ******************************************************************
-    // Convert hiGainAmplitudeMV to equivalent High gain area in DC
-    // ******************************************************************
-    double hiGainAmplitude = hiGainAmplitudeMV / kMVToDCN; 
-    double hiGainPE        = hiGainAmplitude /  kPhotonisGainN;
-    double hiGainArea      = hiGainPE * kPEToDCAreaG;
-
-    // ***********************************************
-    // Save to output file
-    // ***********************************************
-    // ofs<<hiGainAreaDC<<" "<<lowGainLinearity<<std::endl;
-    // ***********************************************
-    // AMP Test
-    //    ofs << hiGainAmplitudeDC << " " << lowGainLinearity << std::endl;
-    // ***********************************************
-    //std::cout << hiGainAmplitude << " " << linearity << std::endl;
-    std::cout << hiGainAmplitudeMV << " " << linearity << std::endl;
-
-    std::vector <double> pulse;   //used to fix min and peak
-    pulse.clear();
-
-    // *********************************************************
-    // Now loop through all the input pulse values. Use the first one to set 
-    // our first output time (On the even .25 ns step
-    // *********************************************************
-    int ibin=0;
-    double time;
-    std::string flag1;
-    double value;
-    double sum=0;
-    int sumCount=0;
-    bool finishedPulse=false;
-    double oldBinCenterIndex=0;
-    double oldSumAverage;
-    double startBinCenter=0;
-    // ******************************************************
-    // This outer loop is over output bins
-    // ******************************************************
-    int binCenterIndex=0;
-    while(1) {
-      double binCenter;
-      // **************************************************************
-      //This is loop to produce one output bin
-      while (1){
-	ifs >> flag1;
-
-
-	if(debugPrint) {
-	  std::cout<<time<<" "<<value<<std::endl;
-	}
-	if (ifs.eof() ) {
-
-	  //CorrectAndWritePulse(ofs, pulse, startBinCenter, templateIndex);
-	  highGainAmplitudeMV.push_back(hiGainAmplitudeMV);
-	  highGainAmplitudeDC.push_back(hiGainAmplitude);
-	  highGainAreaDC.push_back(hiGainArea);
-	  lowGainLinearity.push_back(linearity);
-	  startBin.push_back(startBinCenter);
-	  waveForms.push_back(pulse);
-	  finishedFile=true;   //and we are done!
-	  break;
-	}
-	if ( flag == "*" ) {
-	  //CorrectAndWritePulse(ofs, pulse, startBinCenter, templateIndex);
-	  highGainAmplitudeMV.push_back(hiGainAmplitudeMV);
-	  highGainAmplitudeDC.push_back(hiGainAmplitude);
-	  highGainAreaDC.push_back(hiGainArea);
-	  lowGainLinearity.push_back(linearity);
-	  startBin.push_back(startBinCenter);
-	  waveForms.push_back(pulse);
-
-	  finishedFile=false;
-	  finishedPulse=true;
-	  break;           // done with this pulse, go on to the next one
-	}
-	
-	istringstream iss(flag1);
-	iss >> time;
-	ifs >> value;
-	// ***************************************
-	// Use the first one to set 
-	// our first output time (On the even .25 ns step
-	// *************************************
-	if (ibin == 0 ) {  //we are at the first bin in this pulse
-	  // init the time,find the offset
-	  binCenterIndex = Round(time/kBinSpacing);
-	  oldBinCenterIndex=binCenterIndex-1;
-	  binCenter=binCenterIndex*kBinSpacing;
-	  startBinCenter=binCenter;
-	  ibin=1;
-	}
-	
-	int nextBinCenterIndex=Round(time/kBinSpacing);
-	if(debugPrint) {
-	  std::cout<<"time,kBinSpacing,nextBinCenterIndex,binCenterIndex,"
-                     "oldBinCenterIndex,: "
-		   <<time << " " << kBinSpacing << " " << nextBinCenterIndex 
-		   << " " << binCenterIndex << " "<<oldBinCenterIndex
-		   <<std::endl;
-	}
-
-	if (nextBinCenterIndex==binCenterIndex) {
-	  sum=sum+value;
-	  sumCount++;
-	  if(debugPrint) {
-	  std::cout<<" binCenterIndex,nextBinCenterIndex,"
-                     "sumCount,time,value,sum: "
-	  	   <<binCenterIndex<<" "<<nextBinCenterIndex
-	  	   <<" "<<sumCount<<" "<<time<<" "<<value<<" "<<sum<<std::endl;
-	  }
-	}
-	else {  // We are done with this bin and ready to start the next
-	  
-	  // ************************************************************
-	  // This is where we would check to see if we are skippinfg any 
-	  // time bins and if so we would interpolate
-	  // ************************************************************
-	  // oldSumAverage has previous pulse value and oldBinCenterIndex has 
-	  // old Index
-	  // See if we need to fill in bins
-	  // ***********************************************************
-	  double sumAverage=sum/sumCount;
-	  while( binCenterIndex-oldBinCenterIndex >1) {
-	    // Interpolate
-	    double weight= 1.0/((double)(binCenterIndex-oldBinCenterIndex));
-	    
-	    double interpolatedSumAverage=oldSumAverage +
-	      (sumAverage-oldSumAverage)*weight;
-	    
-	    if(debugPrint) {
-	      std::cout<<"weight,binCenterIndex,oldBinCenterIndex: "<<weight
-		       <<" "
-		  <<binCenterIndex<<" "<<oldBinCenterIndex<<std::endl;
-	      std::cout<<"interpolatedSumAverage,sumAverage,oldSumAverage:"
-		  <<interpolatedSumAverage<<" "<<sumAverage<<" "<<oldSumAverage
-		  <<std::endl;
-	    }
-	  
-	    oldBinCenterIndex++;
-	    oldSumAverage = interpolatedSumAverage;
-	    pulse.push_back(oldSumAverage);
-	  
-	    if(debugPrint) {
-	      double oldBinCenter  = oldBinCenterIndex*kBinSpacing;
-	      std::cout<<"BinCenter at "
-		       <<oldBinCenter + templateOffsets.at(0)
-		       <<" interpolated"<<std::endl;
-	      std::cout<<"oldBinCenter,oldSumAverage: "<<oldBinCenter<<" "
-		       <<oldSumAverage<<std::endl;
-	    }
-	  
-	  }
-	
-	  pulse.push_back(sumAverage);
-			  
-	  oldSumAverage=sumAverage;
-	  oldBinCenterIndex=binCenterIndex;
-	
-	  //and setup for the nect bin
-	  sum=value;
-	  sumCount=1;
-	  binCenterIndex=nextBinCenterIndex;
-	  binCenter=binCenterIndex*kBinSpacing;
-	
-	  ibin++;
-	
-	  if(debugPrint) {
-	    std::cout<<"binCenter,sumAverage: "
-		     <<binCenter + templateOffsets.at(0)<<" "
-		     <<sumAverage<<std::endl;
-	    std::cout<<" binCenterIndex,sumCount,time,value,sum: "
-		     <<binCenterIndex <<" "<<sumCount<<" "<<time<<" "<<value
-		     <<" "<<sum<<std::endl;
-	  }
-	
-	  break;
-	}
-      }
-      if ( finishedFile || finishedPulse ) {   //Are we into the next pulse?
-	//exit(1);
-	break;
-      }
-    }
-    if ( finishedFile ) {   //Are we into the next pulse?
-      CorrectAndWritePulses(ofs, addTail);
+      CorrectAndWritePulses(ofs,highgain,upgrade);
       break;
     }
   }
