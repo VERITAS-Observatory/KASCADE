@@ -16,11 +16,12 @@
 
 
 const double kNSPerSsample = 2.0;
+//const int    kNumTraceBins = 16;
 const int    kNumTraceBins = 32;
 const double kBinSpacingNS  = .25;
 
 int   trace[kNumTraceBins];
-int   size;
+int   tsize;
 float linearity;
 
 TTree   A;
@@ -58,9 +59,10 @@ int Round(double number)
 void PlotTraceInit(std::string fileName)
 {
   A.ReadFile(fileName.c_str(),"n/I:hiSize/F:hiDC:hiMV:i/I:loSize/F:cl/I:S:L/F:fwhm:trace[32]/I");
+
   A.SetBranchAddress("i",&baseTraceIndex);
   A.SetBranchAddress("trace",&trace);
-  A.SetBranchAddress("S",&size);
+  A.SetBranchAddress("S",&tsize);
   A.SetBranchAddress("L",&linearity);
 }
 
@@ -142,7 +144,7 @@ bool GetNextTrace(int noSpreadTemplateID, int& startTraceIndex)
     if ( startTraceIndex > numEntries -1) {
       return false;
     }
-    int numBytes = A.GetEntry(startTraceIndex); //Fills trace,size and 
+    int numBytes = A.GetEntry(startTraceIndex); //Fills trace,tsize and 
                                                 //linearity
     if (numBytes == 0) {   //No such entry!!! How do we get here?
       return false;
@@ -212,7 +214,10 @@ void SaveShiftedNormalizedTrace(double timeShiftSample, double peakValue,
     TracePair tp;
     tp.time = ( ( double) i - timeShiftSample ) * kNSPerSsample;
     tp.pulseHeight = trace[i]/peakValue;
-    tmplt.push_back(tp);
+  
+    //if(tp.time >= 0.0) {
+      tmplt.push_back(tp);
+      //}
   }
   return;
 }
@@ -225,10 +230,11 @@ void GraphTemplate(std::vector < TracePair >& tmplt   )
 {
   int numTmpltPoints = tmplt.size();
   tmpltGraph = new TGraph(numTmpltPoints);
-  for (int i = 1; i<numTmpltPoints; i++ ) {
+  for (int i = 0; i<numTmpltPoints; i++ ) {
     tmpltGraph->SetPoint(i,tmplt.at(i).time,tmplt.at(i).pulseHeight);
   }
   
+  //tmpltGraph->Draw("AL");
   tmpltGraph->Draw("AL");
   return;
 }
@@ -410,19 +416,20 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   tmplt.clear();
 
   // ******************************************
-  // We have all the trace infor in the TTree A after running PlotTraceInit
-  // We need to pickup the firat trace with the noSpreadTemplateID
+  // We have all the trace in the TTree A after running PlotTraceInit
+  // We need to pickup the first trace with the noSpreadTemplateID
   // ******************************************
   int startTraceIndex=0;
   //Results in trace[], pedestal removed
   bool gotOne=GetNextTrace(noSpreadTemplateID,startTraceIndex);
   if(!gotOne) {
     std::cout<<"Fatal no such trace"<<std::endl;
+    exit(1);
   }
   // **********************************************************************
   // Save the size and linearity of this template
   // **********************************************************************
-  tmpltSize=size;
+  tmpltSize=tsize;
   tmpltLinearity=linearity;
 
   // ********************************************
@@ -449,7 +456,7 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 
     startTraceIndex++;  //Bump to next one to test.
 
-    // Find next trace made form the specified base template.
+    // Find next trace made from the specified base template.
     bool gotATrace = GetNextTrace(noSpreadTemplateID, startTraceIndex);
     if(!gotATrace) {
       std::cout<<"Not enough traces after first"<<std::endl;
@@ -470,17 +477,20 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 
   }
 
+  // Degbug
+  //GraphTemplate(tmplt);
+
   // **********************************************************************
   // Now sort the vector of time/pulse height pairs  by time and write
   // to the output file
   // **********************************************************************
-  std::sort(tmplt.begin(), tmplt.end());  //TracPair has < operator that only 
-                                      //checks .time relationships
+  std::sort(tmplt.begin(), tmplt.end());  //TracePair has < operator that 
+                                           //only checks .time relationships
   //  for ( int j = 0; j<(int)tmplt.size();j++){
   //  std::cout<< "time,pulseHeight: "<<tmplt.at(j).time<<" "
   //	     <<tmplt.at(j).pulseHeight<<std::endl;
   //  }
-  
+  //GraphTemplate(tmplt);
   
 
   // **********************************************************************
@@ -489,7 +499,8 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   if ( saveTmplt) {
     SaveToTextFile(tmplt,fileOut);
   }
-  return;
+  //GraphTemplate(tmplt);
+ return;
 }
 
 
