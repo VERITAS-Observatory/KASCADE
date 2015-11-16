@@ -459,13 +459,23 @@ void GenTemplateFile(std::string inFileName, std::string outFileName,
     dcToPeGain= kPhotonisGainG;
       // Original 0 time spread measured pulse. Below offset starts all
       // waveform at bin8 = 2 ns = 1 sample.
-      double baseOffset=-5.0;  //ns note 2 ns = 1 sample
-      templateOffsets.resize(4);
-      templateOffsets.at(0)= (-3) + baseOffset;
-      templateOffsets.at(1)= (-5) + baseOffset;
-      templateOffsets.at(2)= (-5) + baseOffset;
-      templateOffsets.at(3)= (-4) + baseOffset;
-  }    
+      if (! withTimeSpread) {
+	double baseOffset=-5.0;  //ns note 2 ns = 1 sample
+	templateOffsets.resize(4);
+	templateOffsets.at(0)= (-3) + baseOffset;
+	templateOffsets.at(1)= (-5) + baseOffset;
+	templateOffsets.at(2)= (-5) + baseOffset;
+	templateOffsets.at(3)= (-4) + baseOffset;
+      }    
+      else{
+	double baseOffset= -2.0;  //ns note 2 ns = 1 sample
+	templateOffsets.resize(4);
+	templateOffsets.at(0)= -1.5 + baseOffset;
+	templateOffsets.at(1)=        baseOffset;
+	templateOffsets.at(2)= -2.0 + baseOffset;
+	templateOffsets.at(3)= -2.0 + baseOffset;
+      }
+  }
 
   // ***************************************************
   //Open the input file and create the output file
@@ -779,7 +789,7 @@ void PlotTemplateHists(string opt="Lsame")
     }
   }
 }
-
+// *******************************************************************
   
 void PlotTemplateHists(int histIndex, string opt="L")
 {
