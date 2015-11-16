@@ -53,6 +53,9 @@ const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 //Oct 2012 Upgrade:
 const int    gFADCNumSamples[2]          = {          16,          10};
 
+//  Template building
+//const int    gFADCNumSamples[2]          = {          32,          10};
+
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
 const double gRealDataSinglePeDC[2]      = {        5.00,        10.0};
