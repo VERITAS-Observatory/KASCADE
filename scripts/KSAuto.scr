@@ -27,8 +27,6 @@ MaxQsubsDefault=475           #with ksProduction and only want to make
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
-#EdisonUseGSCRATCH=enabled     #Edison uses Global Scratch (carvers scratch) 
-                                #for data source/destination.
 
 ############################################################
 # Force the Check files to match shower entry numberes to those used in ksProduction.scr
@@ -347,7 +345,7 @@ function CheckList()
     echo $FILEDIR                                                 >>$sgeFile
     chmod 700 $sgeFile
 
-    qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
+    $QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
 
     CHECKLOG=$lcl'/'$FileType'Check'$ZnAz'.log'
     CLOG=$FileType'C'$ZnAz'.log'
@@ -425,45 +423,54 @@ function SubmitHtarToArchive()
   cd $local
 
   #build a submission .pbs file
+
+  ###########################################
+  # special for CORI and EDSION  xfer queue
+  ###########################################
+  if [ -n "$CORI" ]; then
+	QSUB='sbatch -M escori'
+  fi
+  if [ -n "$EDISON" ]; then
+	QUEUE='-p xfer'
+        QSUB='qsub -V'
+  fi
+
   sgeFile=$ShDr'HTAR.pbs'
   sgeDoneFile=$sgeFile'.Done'
   if [ -n  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
       rm $sgeDoneFile
   fi
 
-  if [ -n "$EDISON" ]; then
-	QUEUE=xfer
-        QSUBEXT=" "
-  fi
-
   sgeFile=$lcl'/'$sgeFile
-  echo "#"PBS -q $QUEUE                                            >$sgeFile
-  echo "#"PBS -l walltime=$WALLTIME                               >>$sgeFile
-  echo "#PBS " $MEMREQUEST                                        >>$sgeFile
-  if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
+  echo "#"!/bin/bash -l                         >$sgeFile
+  if [ -n "$CORI" ]; then
+    echo "#"SBATCH -p xfer                     >>$sgeFile
+    echo "#"SBATCH -t $WALLTIME                >>$sgeFile
+  else
+    echo "#"PBS -q $QUEUE                      >>$sgeFile
+    echo "#"PBS -l walltime=$WALLTIME          >>$sgeFile
+    echo "#PBS " $MEMREQUEST                   >>$sgeFile
+    if [ -n "$CONTE" ]; then
+      echo "#"PBS -l nodes=1:ppn=1             >>$sgeFile
+      echo "#"PBS -l naccesspolicy=shared      >>$sgeFile
+      echo module load devel                   >>$sgeFile
+    fi
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
+      echo source /etc/profile                 >>$sgeFile
+      echo module load gcc/4.7.2               >>$sgeFile
+    fi
   fi
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
-    echo source /etc/profile                                      >>$sgeFile
-    echo module load gcc/4.7.2                                    >>$sgeFile
-  fi
-  echo cd $SourceDir                                              >>$sgeFile
-  echo htar -cvf  $Dst'/'$ShDr'.tar  ./'$ShDr                     >>$sgeFile
+  echo cd $SourceDir                           >>$sgeFile
+  echo htar -cvf  $Dst'/'$ShDr'.tar  ./'$ShDr  >>$sgeFile
 
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
     echo $sgeDoneFile >>$QsubDoneList #add the next one
-    echo 'echo Done >'$sgeDoneFile                                >>$sgeFile
+    echo 'echo Done >'$sgeDoneFile             >>$sgeFile
   fi
-
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'To.log'
-
-
-  qsub$QSUBEXT -V -e $ShDr'HTARTo.pbs.err' -o $ShDr'HTARTo.pbs.log' $sgeFile >$HTARLOG
-
+  $QSUB -e $ShDr'HTARTo.pbs.err' -o $ShDr'HTARTo.pbs.log' $sgeFile >$HTARLOG
   cd $lcl
 }
 #########################################################################
@@ -496,43 +503,50 @@ function SubmitHtarFromArchive()
   fi 
 
   #build a submission .pbs file
+  if [ -n "$CORI" ]; then
+	QSUB='sbatch -M escori'
+  fi
+  if [ -n "$EDISON" ]; then
+	QUEUE=xfer
+        QSUB="qsub -V"
+  fi
+  
   sgeFile=$Source'From.pbs'
   sgeDoneFile=$sgeFile'.Done'
   if [ -n  "$LimitSubmissions" ] || [ -e "$sgeDoneFile" ]; then
       rm $sgeDoneFile
   fi
-  if [ -n "$EDISON" ]; then
-	QUEUE=xfer
-        QSUBEXT=" "
-  fi
-  
   sgeFile=$lcl'/'$sgeFile
-  echo "#"PBS -q $QUEUE                                     >$sgeFile
-  echo "#"PBS -l walltime=$WALLTIME                        >>$sgeFile
-  echo "#PBS " $MEMREQUEST                                 >>$sgeFile
-  if [ -n "$CONTE" ]; then
-    echo "#"PBS -l nodes=1:ppn=1                           >>$sgeFile
-    echo "#"PBS -l naccesspolicy=shared                    >>$sgeFile
-    echo module load devel                                 >>$sgeFile
-  fi
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
-    echo source /etc/profile                               >>$sgeFile
-    echo module load gcc/4.7.2                             >>$sgeFile
+  echo "#"!/bin/bash -l                         >$sgeFile
+  if [ -n "$CORI" ]; then
+    echo "#"SBATCH -p xfer                     >>$sgeFile
+    echo "#"SBATCH -t $WALLTIME                >>$sgeFile
+  else
+    echo "#"PBS -q $QUEUE                        >>$sgeFile
+    echo "#"PBS -l walltime=$WALLTIME                        >>$sgeFile
+    echo "#PBS " $MEMREQUEST                                 >>$sgeFile
+    if [ -n "$CONTE" ]; then
+      echo "#"PBS -l nodes=1:ppn=1                           >>$sgeFile
+      echo "#"PBS -l naccesspolicy=shared                    >>$sgeFile
+      echo module load devel                                 >>$sgeFile
+    fi
+    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+      echo source /etc/profile                               >>$sgeFile
+      echo module load gcc/4.7.2                             >>$sgeFile
+    fi
   fi
   echo cd $DstDir                                          >>$sgeFile
-#  echo htar -xvf  $ArchiveDir'/'$SourceTarFile ./  \\     >>$sgeFile
   echo htar -xvf  $ArchiveDir'/'$SourceTarFile   \\        >>$sgeFile
   echo '>'$local'/'$Source'.log'                           >>$sgeFile
+
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
     echo $sgeDoneFile >>$QsubDoneList #add the next one
     echo 'echo Done >'$sgeDoneFile                         >>$sgeFile
   fi
-
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
-  qsub$QSUBEXT -V -e $Source'HTARFrom.pbs.err' -o $Source'HTARFrom.pbs.log' $sgeFile >$HTARLOG
-
+  $QSUB -e $Source'HTARFrom.pbs.err' -o $Source'HTARFrom.pbs.log' $sgeFile >$HTARLOG
   cd $lcl
 }
 ##########################################################################
@@ -569,7 +583,7 @@ function SubmitQsubJobs()
         echo adding: $sgeDoneFile
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
-       qsub$QSUBEXT -V $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+       $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
        #For Hansen pause between submissions
        if [ -n "$HANSEN" ] ; then
          sleep 10
@@ -623,40 +637,37 @@ source /etc/profile
 host=$(hostname)
 echo host: $host
 
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+
+hostString=${host:0:4}
+if test  "$hostString" = "cori"  #Are we running on Cori
 then
-  CARVER=enabled
+  CORI=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='cvrsvc'
-  QUEUE=serial
+  JobIDHost='cori'
+  QUEUE=shared
+  QSUB='sbatch'
   WALLTIME=06:00:00
-  echo '***Carver Cluster***'
-  if [ -n "$LimitSubmissions" ]; then
+  if [ -n "$LimitSubmissions" ]; then	
     let MaxQsubs=$MaxQsubsDefault
-#    let MaxQsubs=750
     let MaxHTARQsubs=9
   fi
+  echo '***Cori Phase 1 Cluster***'
 fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "edison"  #Are we running on Edison
 then
   EDISON=enabled
-  if [ -n "$EdisonUseGSCRATCH" ]; then
-	VDirBase=$GSCRATCH'/simulations/veritas/'
-  else
-	VDirBase=$SCRATCH'/simulations/veritas/'
-  fi
+  VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='edison'
   QUEUE=serial
-  QSUBEXT='.serial'
+  QSUB='qsub.serial -V'
   WALLTIME=06:00:00
-  echo '***Edison Cluster***'
   if [ -n "$LimitSubmissions" ]; then
     let MaxQsubs=$MaxQsubsDefault
     let MaxHTARQsubs=9
   fi
+  echo '***Edison Cluster***'
 fi
 
 hostString=${host:0:6}
@@ -669,12 +680,13 @@ then
   #WALLTIME=06:00:00
   QUEUE=standby
   WALLTIME=04:00:00
-  echo ***Hansen Cluster***
+  QSUB='qsub -V'
   if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
      let MaxQsubs=$MaxQsubsDefault
      let MaxHTARQsubs=9  
   fi
+  echo ***Hansen Cluster***
 fi
 
 hostString=${host:0:6}
@@ -686,6 +698,7 @@ if test  "$hostString" = "coates"  #Are we running on coates
   #QUEUE=physics
   QUEUE=standby
   WALLTIME=04:00:00
+  QSUB='qsub -V'
   echo ***Coates Cluster***
   if [ -n "$LimitSubmissions" ]; then
      #let MaxQsubs=150
@@ -703,6 +716,7 @@ if test  "$hostString" = "conte"  #Are we running on conte
   #QUEUE=physics
   QUEUE=standby
   WALLTIME=04:00:00
+  QSUB='qsub -V'
   echo ***Conte Cluster***
   if [ -n "$LimitSubmissions" ]; then
      let MaxQsubs=$MaxQsubsDefault
@@ -724,6 +738,7 @@ if test  "$hostString" = "flogin"  #Are we running on ANL fusion?
   FUSION=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='fmgt2'
+  QSUB='qsub -V'
   #No queue specification necessary for Fusion. It figures it out.
   if [ -n "$LimitSubmissions" ]; then
      let MaxQsubs=$MaxQsubsDefault
@@ -940,12 +955,6 @@ while test $izn -lt $iznEnd
 	     MEMREQUEST=' -l vmem=8GB '
 	     echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
            fi
-           if [ -n "$CARVER" ]; then
-	     #MEMREQUEST=' -l pvmem=30GB '
-	     MEMREQUEST=' -l pvmem=8GB '
-	     echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
-           fi
-
 
 	   if [ "$SPECPART" = "CR" ]; then
              ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
@@ -1011,8 +1020,8 @@ while test $izn -lt $iznEnd
      if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
-     if [ -n "$EDISON" ] || [ -n "$CARVER" ] ; then
-         #HtarDir='/home/u/u15013/'$SPECMDL'/'
+
+     if [ -n "$EDISON" ] || [ -n "$CORI" ] ; then
          HtarDir="/nersc/projects/veritas/simulations/"
      fi     
  
@@ -1032,11 +1041,7 @@ while test $izn -lt $iznEnd
 	 MEMREQUEST=' -l vmem=8GB '
 	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
        fi
-       if [ -n "$CARVER" ]; then
-	  #MEMREQUEST=' -l pvmem=30GB '
-	  MEMREQUEST=' -l pvmem=8GB '
-	  echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
-       fi
+
        if [ -n "$LimitSubmissions" ]; then
          ########################################
          # Now for CR do P and He4
@@ -1127,11 +1132,7 @@ while test $izn -lt $iznEnd
 	 MEMREQUEST=' -l vmem=8GB '
 	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
        fi
-       if [ -n "$CARVER" ]; then
-	 #MEMREQUEST=' -l pvmem=30GB '
-	 MEMREQUEST=' -l pvmem=8GB '
-	 echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
-       fi
+
        if [ -n "$LimitSubmissions" ]; then
 	  QLOGS=$QsubHTARLogs         
           MQSUBS=$MaxHTARQsubs
@@ -1371,10 +1372,7 @@ while test $izn -lt $iznEnd
 	   MEMREQUEST=' -l vmem=8GB '
 	   echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
          fi
-         if [ -n "$CARVER" ]; then
-	   MEMREQUEST=' -l pvmem=8GB '
-	   echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
-         fi
+
 	 if [ "$SPECPART" = "CR" ]; then
              ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
          else
