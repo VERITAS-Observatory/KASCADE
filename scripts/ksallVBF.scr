@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 #This runs production kascade on LINUX. Arguments are:
 #$0 ./kasall.src
 #$1 primary Energy in gev (integer only)
@@ -60,12 +60,6 @@ while [ -z "$host" ];
     host=$(hostname -s)
 done
 echo Running on $host
-
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on a Carver node
-then
-  CARVER=enabled
-fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "hansen"  #Are we running on a Hansen node
@@ -329,10 +323,7 @@ ksKascadeConfig=ksKascade$PrimarySpec'.config'
 ln -s $inpDir/$ksKascadeConfig $ksKascadeConfig
 
 ksLightConfig=ksLight$PMTSpec'.config'
-
 ln -s $inpDir/$ksLightConfig $ksLightConfig
-
-
 
 ksTriggerConfig=ksTrigger$ConfigTriggerSpec'.config'
 ln -s $inpDir/$ksTriggerConfig $ksTriggerConfig
