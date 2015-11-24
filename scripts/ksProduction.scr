@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 # ***************************************************************************
 #$1 Gets passed directly to ksallVBF.scr. Used here to specify what partmemcle 
 #   types are to be processed. (G,P,He4_ or CR(causes P and He4_ , Or E for 
@@ -44,7 +44,6 @@ function Protons()
   #Veritas/Whipple set1/ksaom/kasall
   #Defines energy, start and end arrays
   DefineShowers 'P' $MDL
-
   BuildAndSubmit
 }
 #**********************************************************************
@@ -423,7 +422,7 @@ function AddJobForByNodeSubmission()
   ##################################################################
   echo debug: $sgeFile $i
   echo $ksScript $eGeV $pr $i $k $datadir $workingDir  \\   >>$sgeFile
-  echo ">>"$lcl"/ksProduction_"$eGeV'd'$i'to'$k$pr".log +"  >>$sgeFile
+  echo ">>"$lcl"/ksProduction_"$eGeV'd'$i'to'$k$pr".log &"  >>$sgeFile
    
   let NumJobsOld=$JobsInPBSScript 
   let JobsInPBSScript=$JobsInPBSScript+1
