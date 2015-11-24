@@ -136,7 +136,7 @@ function BuildAndSubmit()
 # Generaic srcipt builing calling function
 #########################################################################
 {
-  if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
+  if [ ${JOBSPEC:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
    #**********************************************************************
    #Submit in reverse order so the longest start first.
    #**********************************************************************
@@ -364,15 +364,26 @@ function BuildAndSubmitByNode()
  let showerStart=${start[$1]}
  let showerEnd=${end[$1]}
  eGeV=${energy[$1]}     
-
  echo Entry:  $pr $eGeV $showerStart $showerEnd
 
- let i=$showerStart
- while test $i -le $showerEnd
-  do
-    AddJobForByNodeSubmission $i $eGev
-    let i=i+1
-  done
+ if test $j -le 19
+  then
+   #AddJobForByNodeSubmission $eGeV $showerStart $showerEnd
+   let stepStart=$showerStart-1
+   let stepEnd=0
+   while test $stepEnd -lt $showerEnd 
+    do
+      FindShowerIDStep $j $showerEnd      #sets to next stepStart and stepEnd
+      AddJobForByNodeSubmission $eGeV $stepStart $stepEnd
+    done
+ else 
+   let i=$showerStart
+   while test $i -le $showerEnd
+    do
+     AddJobForByNodeSubmission $eGeV $i $i
+     let i=i+1
+    done
+ fi
 }
 #########################################################################
 
@@ -385,9 +396,9 @@ function AddJobForByNodeSubmission()
 #**********************************************************************
 {
   pr=$parspec
-  i=$1
-  eGev=$2
-  
+  eGev=$1
+  local i=$2
+  local k=$3
   #################################################################
   # See if this is the start of a scriptWe accumulate jobs until
   # we have JobsPerNode.
@@ -397,7 +408,7 @@ function AddJobForByNodeSubmission()
     # Create next pbs script
     #################################
     GetUniqueNumber
-    sgeFile=$lcl'/K'$pr$UNIQUE'.pbs'
+    sgeFile=$lcl'/K'$eGev'd'$i$pr$UNIQUE'.pbs'
     BuildSgeFilePBSCmds  $sgeFile "ByNode"
     BuildSgeFileBashCmds $sgeFile "ByNode"
     let JobsInPBSScript=0
@@ -411,8 +422,8 @@ function AddJobForByNodeSubmission()
   # and the "wait" below, necessa=y for full node submission
   ##################################################################
   echo debug: $sgeFile $i
-  echo $ksScript $eGeV $pr $i $i $datadir $workingDir  \\ >>$sgeFile
-  echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log +"      >>$sgeFile
+  echo $ksScript $eGeV $pr $i $k $datadir $workingDir  \\   >>$sgeFile
+  echo ">>"$lcl"/ksProduction_"$eGeV'd'$i'to'$k$pr".log +"  >>$sgeFile
    
   let NumJobsOld=$JobsInPBSScript 
   let JobsInPBSScript=$JobsInPBSScript+1
@@ -423,7 +434,6 @@ function AddJobForByNodeSubmission()
     sed '/'$PBSCMD' -n'/s/'-n '$NumJobsOld'/-n '$JobsInPBSScript'/g' <$sgeFile  >tmp1 
     mv tmp1 $sgeFile
   fi
-
   ################################
   # See if this pbs file is done
   ################################
@@ -436,14 +446,51 @@ function AddJobForByNodeSubmission()
 }
 #####################################################################
 
+function  FindShowerIDStep()
+################################################################
+# find steps for partial shopwer range so we don't do too many showers in
+# one call. Above entry 19 gicves  only a step of 1
+# ##############################################################
+{
+  let stepEntry=$1
+  let stepLast=$2
+  let stepStart=$stepEnd+1     #stepEnd starts at 0
+  
+  if test $stepEntry -le 19
+   then
+    stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
+    let step=${stepsize[$stepEntry]}
+  else
+    let step=1
+  fi
+  let stepEnd=$stepEnd+$step
+  if [ "$stepEnd" -gt "$stepLast" ]; then
+     stepEnd=$stepLast
+  fi
+}
+#######################################################################
+
+
 
 #*************************************************************
 #Start of main script.
 #*************************************************************
+JOBSPEC=$1
+KSSCPT=$2
+SORT=$3
+if [ -n "$4" ]; then   #See if optional  qsub file namer list file is defined
+  QsubFileNameList=$4  #if so we will not submit jobs to the cluster but
+fi                     # let the calling program do that by using this file
+ST=$5
+EN=$6
+HST=$7
+HEN=$8
+#Flag for using reduced showers for MDl CR stuff. 
+#Will be not defined for normal use.
+MDL=$9
+
 lcl="$PWD"
 
-#Flag for using reduced showers for MDl CR stuff. Will be not defined for normal use.
-MDL=$9
 
 ##################
 # Bring in GenerateVBFName and GetUniqueNumber  functions
@@ -553,14 +600,13 @@ fi
 
 #script directory
 sdr=$KASCADEBASE"/scripts"
-ksscpt=$2
 
 #Check to see if the user specified the script with the .scr extention
-ksscpt=${ksscpt%.scr}
+KSSCPT=${KSSCPT%.scr}
 
             #Assume local copy of script
-kssc=${ksscpt##*/}
-if test "$kssc" = "$ksscpt"
+kssc=${KSSCPT##*/}
+if test "$kssc" = "$KSSCPT"
 then
   ksScript=$lcl'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksaom: Makes .root  files from te files(depreciated)
@@ -569,7 +615,7 @@ then
                           #ksallVBF:Does everything from ksKascade to 
                           #         ksArrayTrigger
 else
-    ksScript=$ksscpt'.scr'
+    ksScript=$KSSCPT'.scr'
 fi
 echo ksScript: $ksScript
 echo kssc: $kssc
@@ -580,9 +626,6 @@ if [ "$kssc" = "ksMissingVBF" ] || [ "$kssc" = "ksMissingTE" ]; then
 fi
 #####################################################################
 
-if [ -n "$4" ]; then   #See if optional  qsub file namer list file is defined
-  QsubFileNameList=$4  #if so we will not submit jobs to the cluster but
-fi                     # let the calling program do that by using this file
 
 #######################################
 
@@ -631,7 +674,7 @@ if [ -n "$HANSEN" ]; then
     workingDir=$SCRATCH                     
     JobsPerNode=48
     NumCores=48
-    if [ "$3" = "Sort" ]; then
+    if [ "$SORT" = "Sort" ]; then
 	Sort=enabled
         echo Hansen:Sort: $Sort
     fi
@@ -676,26 +719,26 @@ user=$USER
 #*****************************************************************************
 let pspecset=0
 maxMem=240MB
-jobSpec=$1
 
 
-if [ ${jobSpec:1:1} = "W" ]; then
+
+if [ ${JOBSPEC:1:1} = "W" ]; then
    dataDirBase=$dataDirBase'/whipple'
    mkdir -vp $dataDirBase
 fi
 
-if [ ${jobSpec:1:1} = "N" ] || [ ${jobSpec:1:1} = "U" ] || 
-   [ ${jobSpec:1:1} = "O" ]; then
+if [ ${JOBSPEC:1:1} = "N" ] || [ ${JOBSPEC:1:1} = "U" ] || 
+   [ ${JOBSPEC:1:1} = "O" ]; then
     dataDirBase=$dataDirBase'/veritas'
     mkdir -vp $dataDirBase
 fi
 
-if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
+if [ ${JOBSPEC:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
                                         
-    AtmSpec=${jobSpec:0:1}             #gets S(for summer) from  
+    AtmSpec=${JOBSPEC:0:1}             #gets S(for summer) from  
                                         #SWCR20DegN0.5Deg50mv1234M2
-    TelSpec=${jobSpec:1:1}              #gets W from CWCR20DegN0.5Deg50mv1234M2
-    spec=${jobSpec#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
+    TelSpec=${JOBSPEC:1:1}              #gets W from CWCR20DegN0.5Deg50mv1234M2
+    spec=${JOBSPEC#*CR}                 #gets 20DegN0.3Deg50mv1234M2 from 
                                         #WWCR20DegN0.3Deg50mv1234M2
 
     if [ -n "$NERSCorARGN" ] || [ -n "$PURDUE" ]; then
@@ -711,26 +754,26 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
        echo CR:He4 Dir: $he4Datadir
        mkdir -vp  $he4Datadir
  
-       if [ -n "$5" ]; then
-	let iPEntryStart=$5
+       if [ -n "$ST" ]; then
+	let iPEntryStart=$ST
        else
         let iPEntryStart=1
        fi
 
-       if [ -n "$6" ]; then
-	let iPEntryEnd=$6
+       if [ -n "$EN" ]; then
+	let iPEntryEnd=$EN
        else
         let iPEntryEnd=45
        fi
 
-       if [ -n "$7" ]; then
-	let iHe4EntryStart=$7
+       if [ -n "$HST" ]; then
+	let iHe4EntryStart=$HST
        else
         let iHe4EntryStart=5
        fi
 
-       if [ -n "$8" ]; then
-	let iHe4EntryEnd=$8
+       if [ -n "$HEN" ]; then
+	let iHe4EntryEnd=$HEN
        else
         let iHe4EntryEnd=45
        fi
@@ -752,17 +795,17 @@ if [ ${jobSpec:2:2} = "CR" ]; then      #CosmicRay (P and He4_)
     fi
 fi
 
-if [ ${jobSpec:2:1} = "E" ]; then 
+if [ ${JOBSPEC:2:1} = "E" ]; then 
     parspec=$1 
     datadir="$dataDirBase/electrons"
     mkdir -vp $datadir
-    if [ -n "$5" ]; then
-	let iEntryStart=$5
+    if [ -n "$ST" ]; then
+	let iEntryStart=$ST
     else
         let iEntryStart=1
     fi
-    if [ -n "$6" ]; then
-	let iEntryEnd=$6
+    if [ -n "$EN" ]; then
+	let iEntryEnd=$EN
     else
         let iEntryEnd=45
     fi
@@ -770,18 +813,18 @@ if [ ${jobSpec:2:1} = "E" ]; then
     let pspecset=1;
 fi
 
-if [ ${jobSpec:2:1} = "P" ] ; then 
+if [ ${JOBSPEC:2:1} = "P" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/protons"
     mkdir -vp $datadir
-    if [ -n "$5" ]; then
-      let iEntryStart=$5
+    if [ -n "$ST" ]; then
+      let iEntryStart=$ST
     else
       let iEntryStart=1
     fi
 
-    if [ -n "$6" ]; then
-      let iEntryEnd=$6
+    if [ -n "$EN" ]; then
+      let iEntryEnd=$EN
     else
       let iEntryEnd=45
     fi
@@ -789,18 +832,18 @@ if [ ${jobSpec:2:1} = "P" ] ; then
     let pspecset=1;
 fi
 
-if [ ${jobSpec:2:4} = "He4_" ] ; then 
+if [ ${JOBSPEC:2:4} = "He4_" ] ; then 
     parspec=$1 
     datadir="$dataDirBase/he4"
     mkdir -vp $datadir
-    if [ -n "$5" ]; then
-      let iEntryStart=$5
+    if [ -n "$ST" ]; then
+      let iEntryStart=$ST
     else
       let iEntryStart=5
     fi
 
-    if [ -n "$6" ]; then
-      let iEntryEnd=$6
+    if [ -n "$EN" ]; then
+      let iEntryEnd=$EN
     else
       let iEntryEnd=45
     fi
@@ -808,17 +851,17 @@ if [ ${jobSpec:2:4} = "He4_" ] ; then
     let pspecset=1;
 fi
 
-if [ ${jobSpec:2:1} = "G" ]; then
+if [ ${JOBSPEC:2:1} = "G" ]; then
     parspec=$1
     datadir="$dataDirBase/gammas"
     mkdir -vp $datadir 
-    if [ -n "$5" ]; then
-	let iEntryStart=$5
+    if [ -n "$ST" ]; then
+	let iEntryStart=$ST
     else
         let iEntryStart=1
     fi
-    if [ -n "$6" ]; then
-	let iEntryEnd=$6
+    if [ -n "$EN" ]; then
+	let iEntryEnd=$EN
     else
         let iEntryEnd=45
     fi
@@ -840,9 +883,9 @@ if [ -n "$ISIS" ]; then
     while test $jobNum -le $lastJob
     do
 	    #define job script name
-	JobScript=$lcl'/js'$jobNum'_'$jobSpec'.scr'
+	JobScript=$lcl'/js'$jobNum'_'$JOBSPEC'.scr'
 	if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
-	    JobScriptLog=$lcl'/js'$jobNum'_'$jobSpec'.log'
+	    JobScriptLog=$lcl'/js'$jobNum'_'$JOBSPEC'.log'
 	    #Initialze the script files
 	    chmod 777 $JobScript
 	    $JobScript  >$JobScriptLog &
@@ -870,3 +913,271 @@ fi
 ##################################################
 ## All the following for reference only
 ##################################################
+
+function IsisProduction()
+{
+  if [ "$1" = "P" ]; then
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+      #ksaomVBF ~12hr.
+	BuildIsisScriptList 1 1   9
+	BuildIsisScriptList 2 10 18 
+	BuildIsisScriptList 3 19 24
+	BuildIsisScriptList 4 25 30
+	BuildIsisScriptList 2 31 31             #for balance
+	BuildIsisScriptList 5 32 33
+	BuildIsisScriptList 6 34 36
+    else
+	BuildIsisScriptList 1 1  42
+    fi
+  fi
+
+  if [ "$1" = "He4_" ]; then
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+
+    #set 1 kasaomVBF ~5 hr.
+	BuildIsisScriptList 1 6  25
+	BuildIsisScriptList 2 26 30
+	BuildIsisScriptList 3 31 33
+	BuildIsisScriptList 4 34 34
+	BuildIsisScriptList 5 35 36
+	BuildIsisScriptList 6 36 36
+   else
+      BuildIsisScriptList 1 1 42
+   fi
+  fi
+
+  if [ "$1" = "G" ]; then
+       if [ ${JOBSPEC:0:1} = "W" ] ; then
+	   if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	    BuildIsisScriptList 1 11 12
+	    BuildIsisScriptList 2 13 14
+	    BuildIsisScriptList 3 15 16
+	    BuildIsisScriptList 4 17 18
+	    BuildIsisScriptList 5 19 20
+	    BuildIsisScriptList 6 21 23
+	    BuildIsisScriptList 7 24 26
+	    BuildIsisScriptList 8 27 28
+          else
+	    BuildIsisScriptList 1 1 44
+          fi
+       fi
+       if [ ${JOBSPEC:0:1} = "N" ] ; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	   #For ksaomVBF ~1:20 
+#             For ksallVBF: set 1 about 24 hours <=10 TeV
+	    BuildIsisScriptList 1 1  4
+	    BuildIsisScriptList 2 5  9
+	    BuildIsisScriptList 3 10 15
+	    BuildIsisScriptList 4 16 24
+	    BuildIsisScriptList 5 25 32
+	    BuildIsisScriptList 6 33 34
+	    BuildIsisScriptList 7 35 35
+	    BuildIsisScriptList 8 36 36
+          else
+	    BuildIsisScriptList 1 1 44
+          fi
+       fi
+   fi
+   if [ "$1" = "E" ]; then
+	if [ ${JOBSPEC:0:1} = "W" ] ; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	    BuildIsisScriptList 1 11 12
+	    BuildIsisScriptList 2 13 14
+	    BuildIsisScriptList 3 15 16
+	    BuildIsisScriptList 4 17 18
+	    BuildIsisScriptList 5 19 20
+	    BuildIsisScriptList 6 21 23
+	    BuildIsisScriptList 7 24 26
+	    BuildIsisScriptList 8 27 28
+          else
+	    BuildIsisScriptList 1 1 44
+          fi
+	fi
+	if [ ${JOBSPEC:0:1} = "N" ] ; then
+          if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	   #For ksaomVBF ~1:20 
+#             For ksallVBF: set 1 about 24 hours <=10 TeV
+	    BuildIsisScriptList 1 1  4
+	    BuildIsisScriptList 2 5  9
+	    BuildIsisScriptList 3 10 15
+	    BuildIsisScriptList 4 16 24
+	    BuildIsisScriptList 5 25 32
+	    BuildIsisScriptList 6 33 34
+	    BuildIsisScriptList 7 35 35
+	    BuildIsisScriptList 8 36 36
+
+# High >10 TeV 48 hrs?
+#	    BuildIsisScriptList 1 37  37
+#	    BuildIsisScriptList 2 38  38
+#	    BuildIsisScriptList 3 39  39
+#	    BuildIsisScriptList 4 40  40
+#	    BuildIsisScriptList 5 41  41
+#	    BuildIsisScriptList 6 42  42
+#	    BuildIsisScriptList 7 43  43
+#	    BuildIsisScriptList 8 44  44
+
+          else
+	    BuildIsisScriptList 1 1 44
+          fi
+	fi
+     fi
+  fi
+}
+#########################################################################
+
+#keep for reference:outdated, needs work to work again
+function BuildIsisScriptList()
+#**********************************************************************
+# Causes sub-script list to be created and run
+#**********************************************************************
+{
+ pr=$parspec
+ jobScript=$lcl'/js'$1'_'$JOBSPEC'.scr'
+ let processStart=$2
+ let processEnd=$3
+ let i=$processStart
+
+ while test $i -le $processEnd
+ do
+    eGeV=${energy[$i]}
+    let showerStart=${start[$i]}
+    let showerEnd=${end[$i]}
+    echo Entry: $i  $parspec $eGeV $showerStart $showerEnd 
+
+    if [ "$kssc" != "ksMissingVBF" ] && [ "$kssc" != "ksMissingTE" ]; then
+	logFile=">>"$lcl"/ksProduction_"$i"_"$pr".log"
+    else
+	logFile=' '
+    fi
+  
+    echo $ksScript $eGeV $parspec  $showerStart \\   >>$jobScript
+    echo $showerEnd $datadir $workingDir        \\   >>$jobScript
+    echo $logFile                                    >>$jobScript
+
+    i=$((i+1))			#do next process
+ done
+}
+# ******************************************************************
+
+#keep for reference:outdated, needs work to work again
+
+function BuildAndSubmitHansenJobsBy10()
+#**********************************************************************
+# Cause HANSEN or COATES or CONTE cluster jobs to be submitted in groups of 10.
+#**********************************************************************
+{
+ stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
+ pr=$parspec
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}
+ let E=${eGeV%%.*}
+     
+ echo Entry:  $pr $eGeV $showerStart $showerEnd
+ if [ $1 -le 19 ]; then
+   let Stepsize=${stepsize[$1]}
+ else
+   let Stepsize=10
+ fi
+ let i=showerStart
+ while test $i -le $showerEnd
+  do
+   let endShower=$i+$Stepsize-1
+   
+   if [ "$endShower" -gt "$showerEnd" ]; then
+     endShower=$showerEnd
+   fi
+   range=E$i'_'$endShower
+   sgeFile=$lcl'/K'$eGeV$pr'S'$range'.pbs'
+   
+   echo "#"$PBSCMD $QUEUESTANDBY                      >$sgeFile
+   echo "#"$PBSCMD $WALLTIMESTANDBY                  >>$sgeFile
+   if [ -n "$CONTE" ]; then
+     echo "#"$PBSCMD -l nodes=1:ppn=1                >>$sgeFile
+     echo "#"$PBSCMD -l naccesspolicy=shared         >>$sgeFile
+     echo module load devel                          >>$sgeFile
+   fi
+
+   echo source /etc/profile                          >>$sgeFile
+   echo module load gcc/4.7.2                        >>$sgeFile
+   echo lcl=$$PBSCMD_O_WORKDIR                       >>$sgeFile
+   echo cd $lcl                                      >>$sgeFile
+   echo $ksScript $eGeV $pr $i  \\                   >>$sgeFile
+   echo $endShower $datadir $workingDir   \\         >>$sgeFile
+   echo ">>"$lcl"/ksProduction_"$eGeV$pr$range".log" >>$sgeFile
+   chmod 700 $sgeFile
+   #echo $e  $i  $endShower
+   if [ -n "$QsubFileNameList" ]; then
+    echo 'echo Done >'$sgeFile'.Done'                >>$sgeFile
+    echo $sgeFile >>$QsubFileNameList
+   else
+     $QSUB -e k$eGeV$pr$range.err -o k$eGeV$pr$range.log $sgeFile 
+   fi
+   let i=$i+$Stepsize
+  done
+}
+#####################################################################
+
+
+#keep for reference:outdated, need work to work again
+
+#keep for reference:outdated, need work to work again
+
+
+function BuildAndSubmitJobArray
+#**********************************************************************
+# Not used: kept for reference
+# Cause Carver cluster jobs to be submitted using Job arrays.
+# Since we have lots and lots of nodes 1 job per shower
+# Need to limit number in each job array submission to 1024
+# We don't use this since the Carver queue manager probably can't handle lots 
+# of short jobs. This is just here for future reference.
+#**********************************************************************
+{
+ pr=$parspec
+ let showerStart=${start[$1]}
+ let showerEnd=${end[$1]}
+ eGeV=${energy[$1]}
+ let numBlock=1024
+
+
+ let numJobBlock=showerEnd-showerStart+1
+ let numArraySubs=numJobBlock/numBlock
+ if test $numArraySubs -gt 0
+  then
+   let numJobBlock=numBlock
+ fi
+ let k=showerStart
+
+ while test $k -le $showerEnd
+  do
+   let kend=$k+numJobBlock-1
+   if test $kend -gt $showerEnd
+    then
+     let kend=showerEnd
+   fi
+
+   echo Entry:  $pr  $eGeV $k $kend
+
+   sgeFile=$lcl'/K'$eGeV$parspec.pbs
+   echo "#"!/bin/bash -l                                         >$sgeFile
+   #echo "#"$PBSCMD -l gres=gscratch%project                         >>$sgeFile
+   echo let i=\$$PBSCMD_ARRAYID                                     >>$sgeFile
+   echo cd $lcl                                                 >>$sgeFile
+   echo LOGFILE=$lcl"/ksProduction_"$eGeV'd'\$i\'$parspec.log\' >>$sgeFile
+   echo echo LOGFILE: \$LOGFILE                                 >>$sgeFile
+   echo $ksScript $eGeV $parspec  \$i  \$i $datadir \\          >>$sgeFile
+   echo $workingDir '>'\$LOGFILE                                >>$sgeFile
+
+   chmod 700 $sgeFile
+   if [ -n "$QsubFileNameList" ]; then
+     echo 'echo Done >'$sgeFile'.Done'                          >>$sgeFile
+     echo $sgeFile >>$QsubFileNameList
+   else
+     $QSUB $QUEUE  -t $k'-'$kend -e k$eGeV.err -o k$eGeV.log $sgeFile 
+   fi
+   let k=kend+1
+
+  done
+
+}

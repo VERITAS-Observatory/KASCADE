@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 #Removes jobs from the queue
 #Two ways to define which jobs:
 #$1 File.name  with lines from "qstat -u sembrosk|grep sembrosk >File.name
@@ -9,6 +9,7 @@
 
 host=$(hostname)
 echo host: $host
+
 hostString=${host:0:6}
 if test  "$hostString" = "edison"  #Are we running on Edison
 then
@@ -17,10 +18,17 @@ then
   echo '***Edison Cluster***'
 fi
 
+hostString=${host:0:4}
+if test  "$hostString" = "cori"  #Are we running on Cori
+then
+  CORI=enabled
+  echo '***Cori phase 1 Cluster***'
+fi
+
 if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
   FileName=$1
   echo Deleting from queue process ID\'s in file: $FileName
-  if [ -n "$EDISON" ]; then
+  if [ -n "$EDISON" ] ||  [ -n "$CORI" ]; then
     source ~/.bashrc.ext
   fi
 
@@ -31,7 +39,7 @@ if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
       qdel$QSUBEXT $jobid
    done<$FileName
 else
-  if [ -n "$EDISON" ]; then
+  if [ -n "$EDISON" ] ||  [ -n "$CORI" ]; then
     source ~/.bashrc.ext
   fi
   let i=$1
@@ -39,7 +47,11 @@ else
   echo $i $end
   while test $i -le $end
    do
-    qdel$QSUBEXT $i$3
+     if [ -n "$CORI" ]; then
+	scancel  $i$3
+     else
+        qdel$QSUBEXT $i$3
+    fi
     let i=i+1
    done
 fi
