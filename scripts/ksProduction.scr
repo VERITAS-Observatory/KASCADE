@@ -522,7 +522,8 @@ then
   PBSCMD='SBATCH'
   BYNODE=enabled
   if [ -n "$BYNODE" ]; then
-    let JOBSPERNODE=32
+    let JOBSPERNODE=64           #with hyperthreading
+    #let JOBSPERNODE=32
     QUEUE='-p regular'
   else
     QUEUE='-p shared'
