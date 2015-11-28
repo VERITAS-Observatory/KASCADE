@@ -37,9 +37,13 @@ if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
       if [ -n "$EDISON" ]; then
          jobid=${FullJobid%%.*}
       fi
-      echo $FullJobid
-      qdel$QSUBEXT $jobid
-   done<$FileName
+      echo $jobid
+       if [ -n "$CORI" ]; then
+	scancel  $jobid
+     else
+       qdel$QSUBEXT $jobid
+     fi
+  done<$FileName
 else
   if [ -n "$EDISON" ] ||  [ -n "$CORI" ]; then
     source ~/.bashrc.ext
