@@ -35,13 +35,13 @@ if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
   while read FullJobid theRestOfTheLine
    do
       if [ -n "$EDISON" ]; then
-         jobid=${FullJobid%%.*}
+         FullJobid=${FullJobid%%.*}
       fi
-      echo $jobid
+      echo $FullJobid
        if [ -n "$CORI" ]; then
-	scancel  $jobid
+	scancel  $FullJobid
      else
-       qdel$QSUBEXT $jobid
+       qdel$QSUBEXT $FullJobid
      fi
   done<$FileName
 else
