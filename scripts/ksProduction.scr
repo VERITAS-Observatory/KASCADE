@@ -536,8 +536,8 @@ then
     MULTINODES=enabled       #Task uses N nodes where 
                              #N=TotalNumTasks/MAXTASKSPERNODE rounded up
                              #Else if not defined  1 node per MAXTASKSPERNODE
-    let MAXTASKSPERNODE=64   #With Hyperthreading (1 node tasks with 64 tasks)
-    #let MAXTASKSPERNODE=32   #Without hyperthreading.
+    #let MAXTASKSPERNODE=64   #With Hyperthreading (1 node tasks with 64 tasks)
+    let MAXTASKSPERNODE=32   #Without hyperthreading.
     QUEUE='-p regular'
   else
     QUEUE='-p shared'
