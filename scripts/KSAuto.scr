@@ -648,7 +648,8 @@ then
   QSUB='sbatch'
   WALLTIME=06:00:00
   if [ -n "$LimitSubmissions" ]; then	
-    let MaxQsubs=$MaxQsubsDefault
+    let MaxQsubs=10000
+#let MaxQsubs=$MaxQsubsDefault
     let MaxHTARQsubs=9
   fi
   echo '***Cori Phase 1 Cluster***'
