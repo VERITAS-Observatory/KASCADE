@@ -1477,7 +1477,7 @@ while test $izn -lt $iznEnd
   #$3 Destination directory where we want to unTar into.
 
 
-     #Following only works for G so far!
+     #Following only works for G and E and CR so far!
      if [ -n "$GenerateZnAzVBFFile" ]; then
        echo '##########################################################'
        echo '# GenerateZnAzVBFFile '
@@ -1489,25 +1489,25 @@ while test $izn -lt $iznEnd
 
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
-       ProcessAll=$SPECPART'ProcessAll'
-       if [ ! -e "$ProcessAll" ]; then
-	   cp -v $KASCADEBASE'/scripts/'$ProcessAll .
-       fi
-
 
        if [ "$SPECPART" = "CR" ] ; then
-         #echo"CRProcessAll not working with KSAuto yet"
-	 #exit
-	  $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+	   ProcessAll='CRProcessAll'
+       else
+           ProcessAll='ProcessAll'
+       fi
+       if [ ! -e "$ProcessAll" ]; then
+	 cp -v $KASCADEBASE'/scripts/'$ProcessAll .
+       fi
+       if [ "$SPECPART" = "CR" ] ; then
+         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
 
        if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ] ; then
-         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+         $SVDir'/'$ProcessAll $SPECPART $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
        date
-
-       echo "KSAuto: "$ProcessAll" VBF file generation complete"
-      fi
+       echo "KSAuto:" $ProcessAll" VBF file generation for" $SPECPART "complete"
+     fi
      ########################################################################
 
 
