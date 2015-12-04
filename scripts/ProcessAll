@@ -1,0 +1,170 @@
+#!/bin/bash
+#Generic 2D (Gamma or Electron) Production version
+#$1: Particle Spec G or E only
+#$2: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas
+#$3:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
+#   20_180Deg
+#$4:Threshold spec ex 45mv or 50 mv
+#$5 Season:teleSpec: Ex WU or SV
+#$6: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
+#$7: Input Sub-dir: Ex: ABCD
+#$8: start direction Index. defualt is 0. 
+#$9: end direction Index. defualt is 8. 
+#####################################################################
+
+
+
+
+function usage()
+{
+  echo '***ProcessAll usage:'
+  echo '   $1: Particle Spec Ex. G or E (only).'
+  echo '   $2: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas'
+  echo '   $3: Zn_AZ and threshold specification EX: 20Deg  20_180Deg'
+  echo '   $4: Threshold spec ex 45mv or 50mv'
+  echo '   $5: Season:teleSpec: Ex WU or SV SO'
+  echo '   $6: Output file BaseName Ex: CrabA or Noise4 or MDL15NA'
+  echo '   $7: Input Sub-dir: Ex: ABCD'
+  echo '   $8: start direction Index. default is 0 (=0.0deg)'
+  echo '   $9: end direction Index. default is 8 (=2.0deg)'
+  echo ' Ex:  ./ProcessAll G $SCRATCH/simulations/veritas 1_225Deg 50mv SO MDL8OA IJKL 1 1'
+  echo '***'
+}
+#######################################################################
+
+#####################################################################
+#Main script
+##############
+if [  ! -n "$7" ]; then
+        usage
+        exit
+fi
+
+lcl=$PWD
+echo lcl: $lcl
+
+SPEC=$1
+VDIRBASE=$2
+ZN_AZDEG=$3
+THRESH=$4
+SEASARRAY=$5
+OUTFILEBASE=$6
+ARRAYCONFIG=$7
+DIRLOW=$8
+DIRHIGH=$9
+
+echo Argument1: $SPEC
+echo Argument2: $VDIRBASE
+echo Argument3: $ZN_AZDEG
+echo Argument4: $THRESH
+echo Argument5: $SEASARRAY
+echo Argument6: $OUTFILEBASE
+echo Argument7: $ARRAYCONFIG
+echo Argument8: $8
+echo Argument9: $9
+
+##################
+# Bring in GenerateVBFName and GetUniqueNumber  functions
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
+SetupForHost   #Enables host name (ie CORI or HANSEN etc).
+
+SeasonSpec=${SEASARRAY:0:1}
+Base=$SeasonSpec$OUTFILEBASE
+echo Base: $Base
+
+pwd
+
+if  [ -z "$DIRLOW" ] ; 
+then
+  let i=0;
+else
+  let i=$DIRLOW
+fi
+
+if  [ -z "$DIRHIGH" ] ; 
+then
+  let end=8;
+else
+  let end=$DIRHIGH
+fi
+
+echo i start: $i
+echo end: $end
+
+ParticleBase=$SEASARRAY$SPEC$ZN_AZDEG'2D'$THRESH
+echo ParticleBase: $ParticleBase
+
+ParticleDir=$ParticleBase'1234M2'$Base   #Add MDL15UA to dir name. Needed by ksWeRock
+ParticleDirOrig=$ParticleBase'1234M2'$SeasonSpec$ARRAYCONFIG 
+echo ParticleDir: $ParticleDir
+echo ParticleDirOrig: $ParticleDirOrig
+
+if [ "$SPEC" = "G" ]; the
+  PARTICLESPEC='gammas'
+fi
+if [ "$SPEC" = "E" ]; the
+  PARTICLESPEC='electrons'
+fi
+
+cd $VDIRBASE'/'$PARTICLESPEC'/'
+pwd
+mkdir -pv $ParticleDir
+if [ -d "$ParticleDirOrig" ]; then
+    echo moving ./$ParticleDirOrig'/*' to  './'$ParticleDir'/'
+    mvCmd='mv -v ./'$ParticleDirOrig'/*  ./'$ParticleDir'/'
+    $mvCmd
+    rmdir -v $ParticleDirOrig
+fi
+
+cd $VDIRBASE'/'$PARTICLESPEC'/'$ARRAYCONFIG
+pwd
+
+ls | grep 1234M2 | grep vbf|grep $ZN_AZDEG'2D'$THRESH|xargs -n1 mv -v --target=$VDIRBASE'/'$PARTICLESPEC'/'$ParticleDir
+##############################################################################
+
+WblOffset=([0]=0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+
+while test $i -le $end
+ do
+    direction=$i
+    WBL=${WblOffset[$direction]}
+
+    #########################################################################
+    # Get the VBF file name: New format
+    #########################################################################
+    ARRAY=${SEASARRAY:1:1}A
+
+    zn_az=${ZN_AZDEG%%Deg}
+    ZN=${zn_az%%_*}
+    if [ "$ZN" = "$zn_az" ]; then
+       AZ=0
+    else
+       AZ=${zn_az##*_}
+    fi
+
+    GenerateVBFName $SPEC $ARRAY $SeasonSpec $ZN $AZ $WBL $OUTFILEBASE
+    echo Output File Name: $VBFFILENAME
+    ##########################################################################
+
+    WeRockVBF=$SEASARRAY$SPEC$ZN_AZDEG'2D'$THRESH 
+    sgeFile=$lcl'/'$Base$SPEC$ZN_AZDEG$WBL'.pbs'
+    SgeFilePBSCmds $sgeFile
+
+    echo date                                                     >>$sgeFile
+    echo cd $VDIRBASE'/../../veritas'                             >>$sgeFile
+    echo './ksWeRock.scr '$WeRockVBF 98020 1234M2  \\             >>$sgeFile
+    echo $direction $Base ">"$lcl'/'$Base$SPEC$ZN_AZDEG$WBL'.log' >>$sgeFile
+    echo cd $lcl                                                  >>$sgeFile
+    echo mv -v $VDIRBASE'/'$WeRockVBF'1234M2D'$direction$Base'.vbf' $VBFFILENAME >>$sgeFile
+    echo date                                                     >>$sgeFile
+
+    chmod 700 $sgeFile
+    $QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
+
+    i=$((i+1))			#do next directoion
+done
