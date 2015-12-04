@@ -27,9 +27,9 @@ function usage()
 }
 
 
-##################################################################################
+##############################################################################
 #Main
-##################################################################################
+###############################################################################
 
 
 lcl=$PWD
@@ -41,8 +41,6 @@ THRESH=$3
 SEASARRAY=$4
 OUTFILEBASE=$5
 ARRAYCONFIG=$6
-
-
 
 echo Argument1: $VDIRBASE
 echo Argument2: $ZN_AZDEG
@@ -65,60 +63,6 @@ fi
 source UtilityFunctions.scr
 
 
-host=$(hostname)
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
-  QUEUE=serial
-  WALLTIME='10:00:00'
-  QSUBEXT='.serial'
-  MEMREQUEST=' -l vmem=8GB '
-  echo '***Edison Cluster***'
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
-then
-  CARVER=enabled
-  QUEUE=serial
-  WALLTIME='10:00:00'
-  MEMREQUEST=' -l pvmem=8GB '
-  echo '***Carver Cluster***'
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
-then
-  HANSEN=enabled
-  QUEUE=physics
-  WALLTIME='10:00:00'
-  #QUEUE=standby
-  #WALLTIME='04:00:00'
-  MEMREQUEST=' -l mem=8GB'
-  echo '***Hansen Cluster:'$QUEUE' queue ***'
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on Coates?
-then
-  COATES=enabled
-  #QUEUE=physics
-  #WALLTIME='10:00:00'
-  QUEUE=standby
-  WALLTIME='04:00:00'
-  echo '***Coates Cluster:'$QUEUE' queue ***'
-fi
-
-hostString=${host:0:5}
-if test  "$hostString" = "conte"  #Are we running on conte
-then
-  CONTE=enabled
-  QUEUE=standby
-  WALLTIME='04:00:00'
-  MEMREQUEST=' -l mem=8GB'
-  echo '***Conte Cluster:'$QUEUE' queue ***'
-fi
 
 
 SeasonSpec=${SEASARRAY:0:1}
@@ -199,13 +143,9 @@ echo Output File Name: $VBFFILENAME
 
 WeRockVBF=$SEASARRAY'CR'$ZN_AZDEG$THRESH
 sgeFile=$lcl'/'$Base'CR'$ZN_AZDEG'.pbs'
-echo "#"!/bin/bash                                                  >$sgeFile
-echo "#PBS -l walltime="$WALLTIME                                  >>$sgeFile
-echo "#PBS " $MEMREQUEST                                           >>$sgeFile
-if [ -n "$HANSEN" ] || [ -n "$COATES" ] ; then
-      echo source /etc/profile                                     >>$sgeFile
-      echo module load gcc/4.7.2                                   >>$sgeFile
-fi
+
+SgeFilePBSCmds $sgeFile
+
 echo cd $VDIRBASE'/../../veritas'                                  >>$sgeFile
 echo './ksWeRock.scr '$WeRockVBF 98020 1234M2 \\                   >>$sgeFile
 echo $direction $Base ">"$lcl'/'$Base'CR'$ZN_AZDEG'.log'           >>$sgeFile
@@ -213,4 +153,4 @@ echo cd $lcl                                                       >>$sgeFile
 echo mv  -v $VDIRBASE'/'$WeRockVBF'1234M2'$Base'.vbf' $VBFFILENAME >>$sgeFile
 
 chmod 700 $sgeFile
-qsub$QSUBEXT -q $QUEUE -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
+$QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
