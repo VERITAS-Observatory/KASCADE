@@ -164,7 +164,7 @@ function BuildAndSubmit()
           if [ -n "$MULTITASKS" ]; then
 	    BuildAndSubmitMultiTask $j	
 	  else
-            if test $j -le 19
+            if test $j -le $MaxStepIndex
              then
               BuildAndSubmitJobs $j 
 	     else
@@ -183,7 +183,7 @@ function BuildAndSubmit()
           if [ -n "$MULTITASKS" ]; then
 	    BuildAndSubmitMultiTask $j	
 	  else
-            if test $j -le 19
+            if test $j -le $MaxStepIndex
              then
               BuildAndSubmitJobs $j 
 	     else
@@ -205,7 +205,7 @@ $ **************************************************************************
         if [ -n "$MULTITASKS" ]; then
 	  BuildAndSubmitMultiTask $j	
 	else
-          if test $j -le 19
+          if test $j -le $MaxStepIndex
            then
             BuildAndSubmitJobs $j 
           else
@@ -260,13 +260,12 @@ function BuildSgeFilePBSCmds()
  else
    echo "#"$PBSCMD $WALLTIME          >>$sgeFile
    echo "#"$PBSCMD $QUEUE             >>$sgeFile
-   if [ -n "$CORI" ]; then
-     #echo "#"$PBSCMD -ccm             >>$sgeFile
-     echo "#"$PBSCMD -N 1             >>$sgeFile
-     echo "#"$PBSCMD -n 1             >>$sgeFile
-   else
-     echo "#"$PBSCMD -l $MEMREQUEST   >>$sgeFile
-   fi
+ fi
+ if [ -n "$CORI" ]; then
+   echo "#"$PBSCMD -N 1             >>$sgeFile
+   echo "#"$PBSCMD -n 1             >>$sgeFile
+ else
+   echo "#"$PBSCMD -l $MEMREQUEST   >>$sgeFile
  fi
 }
 #########################################################################
@@ -292,18 +291,17 @@ function CompleteAndSubmit()
 {
   sgeFile=$1
   eGev=$2
-  i=$3
+  showerid=$3
 
   chmod 700 $sgeFile
   if [ -n "$QsubFileNameList" ]; then
     echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
     echo $sgeFile >>$QsubFileNameList
   else
-    $QSUB -e k$eGeV'd'$i$parspec.err -o k$eGeV'd'$i$pr.log $sgeFile 
+    $QSUB -e k$eGeV'd'$showerid$parspec.err -o k$eGeV'd'$showerid$pr.log $sgeFile 
   fi
 }
 ###########################################################################
-
 
 
 function BuildAndSubmitJobs
@@ -313,51 +311,72 @@ function BuildAndSubmitJobs
 # This is a standard way to submit jobs
 #**********************************************************************
 {
+ entryE=$1
  local pr=$parspec
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- local eGeV=${energy[$1]}     
+ let showerStart=${start[$entryE]}
+ let showerEnd=${end[$entryE]}
+ local eGeV=${energy[$entryE]}     
  echo Entry:  $pr $eGeV $showerStart $showerEnd
 
- sgeFile=$lcl'/K'$eGeV$pr.pbs
- BuildSgeFilePBSCmds   $sgeFile
- BuildSgeFileBashCmds  $sgeFile
+ if [ -n "$LOWENERGYSTEPPING" ]; then
+   let stepStart=$showerStart-1
+   let stepEnd=0
+   while test $stepEnd -lt $showerEnd 
+    do
+      FindShowerIDStep $entryE $showerEnd      #sets to next stepStart and stepEnd
+      sgeFile=$lcl'/K'$eGeV'd'$stepStart$pr.pbs
+      BuildSgeFilePBSCmds  $sgeFile
+      BuildSgeFileBashCmds $sgeFile
 
- echo $ksScript $eGeV $pr $showerStart  \\   >>$sgeFile
- echo $showerEnd $datadir $workingDir   \\   >>$sgeFile
- echo ">>"$lcl"/ksProduction_"$eGeV$pr".log" >>$sgeFile
+      echo $ksScript $eGeV $pr $stepStart $stepEnd $datadir $workingDir \\ >>$sgeFile
+      echo ">>"$lcl"/ksProduction_"$eGeV'd'$stepStart"_"$stepEnd$pr".log"  >>$sgeFile
 
- CompleteAndSubmit $sgeFile $eGev $showerStart
+      CompleteAndSubmit $sgeFile $eGev $stepStart
+    done
+ 
+ else
+ 
+   sgeFile=$lcl'/K'$eGeV$pr.pbs
+   BuildSgeFilePBSCmds   $sgeFile
+   BuildSgeFileBashCmds  $sgeFile
+
+   echo $ksScript $eGeV $pr $showerStart  \\   >>$sgeFile
+   echo $showerEnd $datadir $workingDir   \\   >>$sgeFile
+   echo ">>"$lcl"/ksProduction_"$eGeV$pr".log" >>$sgeFile
+
+   CompleteAndSubmit $sgeFile $eGev $showerStart
+ fi
 }
 #########################################################################
 
 function BuildAndSubmitJobsSingly 
 #**********************************************************************
 # Cause serial jobs to be submitted.
-# This version submits 1 job per shower. 
+# This version submits 1 job per shower
 # This is standard way to submit
 #**********************************************************************
 {
+ entryE=$1
  pr=$parspec
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- eGeV=${energy[$1]}     
+ let showerStart=${start[$entryE]}
+ let showerEnd=${end[$entryE]}
+ eGeV=${energy[$entryE]}     
 
  echo Entry:  $pr $eGeV $showerStart $showerEnd
-
- let i=showerStart
+ let i=$showerStart
  while test $i -le $showerEnd
   do
-   sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
-   BuildSgeFilePBSCmds  $sgeFile
-   BuildSgeFileBashCmds $sgeFile
+    sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
+    BuildSgeFilePBSCmds  $sgeFile
+    BuildSgeFileBashCmds $sgeFile
 
-   echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
-   echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
+    echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
+    echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
 
-   CompleteAndSubmit $sgeFile $eGev $i
-   let i=i+1
+    CompleteAndSubmit $sgeFile $eGev $i
+    let i=$i+1
   done
+
 }
 # **********************************************************************
 
@@ -369,19 +388,20 @@ function BuildAndSubmitMultiTask()
 #################################################################
 #$1: Energy entry
 {
- let showerStart=${start[$1]}
- let showerEnd=${end[$1]}
- eGeV=${energy[$1]}     
+ entryE=$1
+ let showerStart=${start[$entryE]}
+ let showerEnd=${end[$entryE]}
+ eGeV=${energy[$entryE]}     
  echo Entry:  $pr $eGeV $showerStart $showerEnd
 
- if test $j -le 19
+ if test $entryE -le $MaxStepIndex
   then
    #AddTaskForMultiTaskSubmission $eGeV $showerStart $showerEnd
    let stepStart=$showerStart-1
    let stepEnd=0
    while test $stepEnd -lt $showerEnd 
     do
-      FindShowerIDStep $j $showerEnd      #sets to next stepStart and stepEnd
+      FindShowerIDStep $entryE $showerEnd      #sets to next stepStart and stepEnd
       AddTaskForMultiTaskSubmission $eGeV $stepStart $stepEnd
     done
  else 
@@ -460,24 +480,31 @@ function AddTaskForMultiTaskSubmission()
 function  FindShowerIDStep()
 ################################################################
 # find steps for partial shopwer range so we don't do too many showers in
-# one call. Above entry 19 gives  only a step of 1
+# one call. Above entry MaxStepIndex gives  only a step of 1
 ################################################################
 {
   let stepEntry=$1
   let stepLast=$2
   let stepStart=$stepEnd+1     #stepEnd starts at 0
-  
-  if test $stepEntry -le 19
+ 
+  #echo 1:stepEntry:stepLast  $1 $stepEntry $stepLast
+
+
+  if test $stepEntry -le $MaxStepIndex
    then
-    stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)
-    let step=${stepsize[$stepEntry]}
+    #stepSize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2 )
+    stepSize=([1]=30 20 20 20 15 10 10 10 10 10 10 10 9 8 7 6 5 4 3 )
+    let step=${stepSize[$stepEntry]}
   else
     let step=1
   fi
+
   let stepEnd=$stepEnd+$step
+
   if [ "$stepEnd" -gt "$stepLast" ]; then
      stepEnd=$stepLast
   fi
+  #echo Start:End: $stepStart $stepEnd $Step
 }
 #######################################################################
 
@@ -500,7 +527,7 @@ HEN=$8
 MDL=$9
 
 lcl="$PWD"
-
+MaxStepIndex=19
 
 ##################
 # Bring in GenerateVBFName and GetUniqueNumber  functions
@@ -510,30 +537,18 @@ if [ ! -e UtilityFunctions.scr ]; then
 fi
 source UtilityFunctions.scr
 
-host=$(hostname)
-echo host: $host
+SetupForHost   #Enables host name and qsub specifics  (ie CORI or HANSEN etc).
 
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
-  QSUB='qsub.serial -V'
-  PBSCMD='PBS'
-  QUEUE='-q serial'
-  WALLTIME='-l walltime=20:00:00'
-  MEMREQUEST='vmem=4GB'
-  echo ***Edison Cluster***
+### Special for ksProduction
+if [ -n "$EDISON" ]; then
+   WALLTIME='-l walltime=20:00:00'
 fi
 
-hostString=${host:0:4}
-if test  "$hostString" = "cori"  #Are we running on cori
-then
-  CORI=enabled
-  QSUB='sbatch'
-  PBSCMD='SBATCH'
-  MULTITASKS=enabled           #Multiple tasks on each node
+if [ -n "$CORI" ]; then
+  LOWENERGYSTEPPING=enabled
+  #MULTITASKS=enabled           #Multiple tasks on each node
   if [ -n "$MULTITASKS" ]; then
-    MULTINODES=enabled       #Task uses N nodes where 
+    #MULTINODES=enabled       #Task uses N nodes where 
                              #N=TotalNumTasks/MAXTASKSPERNODE rounded up
                              #Else if not defined  1 node per MAXTASKSPERNODE
     #let MAXTASKSPERNODE=64   #With Hyperthreading (1 node tasks with 64 tasks)
@@ -542,77 +557,19 @@ then
   else
     QUEUE='-p shared'
   fi
-  WALLTIME='-t 05:00:00'
-  echo ***Cori Phase 1 Cluster***
+  WALLTIME='-t 03:00:00'
 fi
 
-
-hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
-then
-  HANSEN=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  QUEUEPHYSICS='-q physics'
+if [ -n "$HANSEN" ]; then
   WALLTIMEPHYSICS='-l walltime=20:00:00'
   QUEUESTANDBY='-q standby'
   WALLTIMESTANDBY='-l walltime=04:00:00'
   QUEUE=$QUEUEPHYSICS
+  WALLTIME=$WALLTIMEPHYSICS
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on COATES
-then
-SBATCH  COATES=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  QUEUESTANDBY='-q standby'
-  QUEUE=$QUEUEPHYSICS
-  WALLTIME='-l walltime=20:00:00'
-  #WALLTIME='-l walltime=04:00:00'
-  MEMREQUEST='mem=8GB'
-fi
 
-hostString=${host:0:5}
-if test  "$hostString" = "conte"  #Are we running on CONTE
-then
-  CONTE=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  QUEUEPHYSICS='-q physics'
-  WALLTIMEPHYSICS='-l walltime=20:00:00'
-  QUEUESTANDBY='-q standby'
-  WALLTIMESTANDBY='-l walltime=04:00:00'
-  QUEUE=$QUEUEPHYSICS
-  MEMREQUEST='mem=8GB'
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
-then
-  FUSION=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  # queue is determined by pbs.
-  WALLTIME='-l walltime=30:00:00'
-fi
-
-hostString=${host:0:4}
-if test  "$hostString" = "isis"  #Are we running on ISIS
-then
-  ISIS=enabled
-fi
-
-if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
-  PURDUE=enabled
-fi
-if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
-  NERSCorARGN=enabled
-fi	
- 
-
-
-#script directory
+###script directory
 sdr=$KASCADEBASE"/scripts"
 
 #Check to see if the user specified the script with the .scr extention
@@ -1034,8 +991,8 @@ function IsisProduction()
 	    BuildIsisScriptList 1 1 44
           fi
 	fi
-     fi
   fi
+  
 }
 #########################################################################
 
