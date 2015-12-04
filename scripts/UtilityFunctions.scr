@@ -189,3 +189,129 @@ return
 }
 ##############################################################################
 
+function SetupForHost()
+{
+ ###################################################################
+ #Specifics for cluster we are runing on
+ ###################################################################
+ host=$(hostname)
+ echo host: $host
+ 
+ hostString=${host:0:6}
+ if test  "$hostString" = "edison"  #Are we running on Edison
+  then
+   EDISON=enabled
+   QSUB='qsub.serial -V'
+   PBSCMD='PBS'
+   QUEUE='-q serial'
+   WALLTIME='-l walltime=10:00:00'
+   MEMREQUEST=' -l vmem=8GB '
+   echo '***Edison Cluster***'
+ fi
+
+ host=$(hostname)
+ hostString=${host:0:4}
+ if test  "$hostString" = "cori"  #Are we running on Cori
+  then
+   CORI=enabled
+   QSUB='sbatch'
+   PBSCMD='SBATCH'
+   QUEUE='-p shared'
+   WALLTIME='-t 10:00:00'
+   echo '***Cori Phase 1 Cluster***'
+ fi
+
+
+ hostString=${host:0:6}
+ if test  "$hostString" = "hansen"  #Are we running on Hansen
+  then
+   HANSEN=enabled
+   QSUB='qsub -V'
+   QUEUE='-q physics'
+   PBSCMD='PBS'
+   WALLTIME='-l walltime=10:00:00'
+   #QUEUE='-q standby'
+   #WALLTIME='-l walltime=04:00:00'
+   MEMREQUEST=' -l mem=8GB'
+   echo '***Hansen Cluster:'$QUEUE' queue ***'
+ fi
+
+ hostString=${host:0:6}
+ if test  "$hostString" = "coates"  #Are we running on coates
+  then
+   COATES=enabled
+   QSUB='qsub -V'
+   PBSCMD='PBS'
+   QUEUE='-q physics'
+   WALLTIME='-l walltime=30:00:00'
+   #QUEUE='-q standby'
+   #WALLTIME='-l walltime=04:00:00'
+   MEMREQUEST=' -l mem=8GB'
+   echo '***Coates Cluster:'$QUEUE' queue ***'
+ fi
+
+ hostString=${host:0:5}
+ if test  "$hostString" = "conte"  #Are we running on conte
+  then
+   CONTE=enabled
+   QSUB='qsub -V'
+   PBSCMD='PBS'
+   QUEUE='-q standby'
+   WALLTIME='-l walltime=04:00:00'
+   MEMREQUEST=' -l mem=8GB'
+   echo '***Conte Cluster:'$QUEUE' queue ***'
+ fi
+
+ hostString=${host:0:6}
+ if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
+  then
+   FUSION=enabled
+   QSUB='qsub -V'
+   PBSCMD='PBS'
+   # queue is determined by pbs.
+   WALLTIME='-l walltime=30:00:00'
+ fi
+
+ hostString=${host:0:4}
+ if test  "$hostString" = "isis"  #Are we running on ISIS
+  then
+   ISIS=enabled
+ fi
+
+if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
+   PURDUE=enabled
+ fi
+ if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
+  NERSCorARGN=enabled
+ fi	
+ if [ ! -n "$PURDUE" ] && [ ! -n "$ NERSCorARGN" ] && [ ! -n "$ISIS" ]  && [ ! -n "$FUSION" ]; then
+  echo Fatal- Unknown host machine: $Host   
+  exit
+fi 
+return
+}
+#############################################################################
+
+function SgeFilePBSCmds()
+##########################################################################
+# Adds PBS or SBATCH commands to "pbs" files to be submitted
+# $1: This scipts name of output "pbs" file
+# This is generic version
+####################################################################
+{
+ local sgeFile=$1
+ echo "#"!/bin/bash -l                 >$sgeFile
+ echo "#"$PBSCMD $QUEUE               >>$sgeFile
+ echo "#"$PBSCMD $WALLTIME            >>$sgeFile
+ if [ -n "$CORI" ]; then
+   echo "#"$PBSCMD -N 1               >>$sgeFile
+   echo "#"$PBSCMD -n 1               >>$sgeFile
+ else
+   echo "#"$PBSCMD -l $MEMREQUEST     >>$sgeFile
+ fi
+ if [ -n "$PURDUE" ]; then
+   echo module load gcc/4.7.2         >>$sgeFile
+   echo source /etc/profile           >>$sgeFile
+ fi
+}
+#########################################################################

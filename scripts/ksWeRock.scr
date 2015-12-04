@@ -36,44 +36,15 @@ if [ -n "$DebugPrintEnable" ]; then
   echo Spec: $Spec
 fi
 
-host=$(hostname)
-echo host: $host
-
-hostString=${host:0:3}
-if test  "$hostString" = "nid"  #Are we running on Edison
-then
-  EDISON=enabled
-  echo ***Edison Cluster***
+##################
+# Bring in SetupForHost function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
 fi
+source UtilityFunctions.scr
 
-hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
-then
-  HANSEN=enabled
-  echo ***Hansen Cluster***
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on COATES?
-then
-  COATES=enabled
-  echo ***Coates Cluster***
-fi
-
-# ************************************************************************
-# CARVER cluster check obviously must be done after COATS cluster scheck!!!**
-# ************************************************************************
-hostString=${host:0:1}
-if test  "$hostString" = "c"  #Are we running on Carver
-then
-  CARVER=enabled
-  echo ***Carver Cluster***
-fi
-
-if [ ! -n "$COATS" ] && [ ! -n "$HANSEN" ] && [ ! -n "$CARVER" ] && [ ! -n "$EDISON" ]; then
-  echo ksWeRock: Fatal- Unknown host machine: $Host   
-  exit
-fi 
+SetupForHost
 
 #EDISON
 if [ -n "$EDISON" ]; then
@@ -81,16 +52,19 @@ if [ -n "$EDISON" ]; then
     dstDir=$dataDirBase
 fi
 
-#CARVER
-if [ -n "$CARVER" ]; then
+#CORI
+if [ -n "$CORI" ]; then
     dataDirBase=$lcl/../simulations
     dstDir=$dataDirBase
 fi
+
 
 if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
     dataDirBase=$SCRATCH'/simulations'
     dstDir=$dataDirBase
 fi
+
+
 
 if [ ${Spec:1:1} = "N" ] ; then
 	dataDirBase=$dataDirBase'/veritas'
