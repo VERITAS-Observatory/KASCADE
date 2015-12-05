@@ -194,7 +194,12 @@ function SetupForHost()
  ###################################################################
  #Specifics for cluster we are runing on
  ###################################################################
+if [ -n "$NERSC_HOST" ]; then
+ host=$NERSC_HOST
+else
  host=$(hostname)
+fi
+
  echo host: $host
  
  hostString=${host:0:6}
@@ -208,8 +213,7 @@ function SetupForHost()
    MEMREQUEST=' -l vmem=8GB '
    echo '***Edison Cluster***'
  fi
-
- host=$(hostname)
+ 
  hostString=${host:0:4}
  if test  "$hostString" = "cori"  #Are we running on Cori
   then
