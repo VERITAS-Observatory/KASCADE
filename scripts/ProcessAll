@@ -104,10 +104,10 @@ ParticleDirOrig=$ParticleBase'1234M2'$SeasonSpec$ARRAYCONFIG
 echo ParticleDir: $ParticleDir
 echo ParticleDirOrig: $ParticleDirOrig
 
-if [ "$SPEC" = "G" ]; the
+if [ "$SPEC" = "G" ]; then
   PARTICLESPEC='gammas'
 fi
-if [ "$SPEC" = "E" ]; the
+if [ "$SPEC" = "E" ]; then
   PARTICLESPEC='electrons'
 fi
 
