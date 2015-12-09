@@ -1,16 +1,24 @@
 #!/bin/bash -l
 ########################################################################
 # Change names of files in hsi archive.
-#$1 List of WVG*.vbf files to rename
+#$1 List of files to rename
 #$2 directory path to files to be changed
-#$3 Sing in file name to change
+#$3 String in file name to change
 #$4 String to change $3 to.
+
+HSICMDFILE=g.hsi.cmd
+if [ -e "$HSICMDFILE" ]; then
+  rm $HSICMDFILE
+fi
 {
  while read input
   do
    output=$2/${input/$3/$4}
    input=$2'/'$input
-   #echo $input' -> '$output
-   hsi 'mv -v '$input $output';'
+   echo 'mv -v '$input $output >>$HSICMDFILE
   done
 }<$1
+
+hsi 'in '$HSICMDFILE';'
+
+# 'mv -v '$input $output';'
