@@ -1,0 +1,18 @@
+#!/bin/bash -l
+########################################################################
+# Change names of files on disk.
+#$1 List of files to rename
+#$2 directory path to files to be changed
+#$3 String in file name to change
+#$4 String to change $3 to.
+
+{
+ while read input
+  do
+   output=$2/${input/$3/$4}
+   input=$2'/'$input
+   #echo $input '->' $output
+   mv -v $input $output
+  done
+}<$1
+
