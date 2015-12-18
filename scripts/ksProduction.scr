@@ -537,14 +537,27 @@ if [ ! -e UtilityFunctions.scr ]; then
 fi
 source UtilityFunctions.scr
 
-SetupForHost   #Enables host name and qsub specifics  (ie CORI or HANSEN etc).
+host=$(hostname)
+echo host: $host
 
-### Special for ksProduction
-if [ -n "$EDISON" ]; then
-   WALLTIME='-l walltime=20:00:00'
+hostString=${host:0:6}
+if test  "$hostString" = "edison"  #Are we running on Edison
+then
+  EDISON=enabled
+  QSUB='qsub.serial -V'
+  PBSCMD='PBS'
+  QUEUE='-q serial'
+  WALLTIME='-l walltime=20:00:00'
+  MEMREQUEST='vmem=4GB'
+  echo ***Edison Cluster***
 fi
 
-if [ -n "$CORI" ]; then
+hostString=${host:0:4}
+if test  "$hostString" = "cori"  #Are we running on cori
+then
+  CORI=enabled
+  QSUB='sbatch'
+  PBSCMD='SBATCH'
   LOWENERGYSTEPPING=enabled
   #MULTITASKS=enabled           #Multiple tasks on each node
   if [ -n "$MULTITASKS" ]; then
@@ -558,18 +571,76 @@ if [ -n "$CORI" ]; then
     QUEUE='-p shared'
   fi
   WALLTIME='-t 03:00:00'
+  echo ***Cori Phase 1 Cluster***
 fi
 
-if [ -n "$HANSEN" ]; then
+
+hostString=${host:0:6}
+if test  "$hostString" = "hansen"  #Are we running on Hansen
+then
+  HANSEN=enabled
+  QSUB='qsub -V'
+  PBSCMD='PBS'
+  QUEUEPHYSICS='-q physics'
   WALLTIMEPHYSICS='-l walltime=20:00:00'
   QUEUESTANDBY='-q standby'
   WALLTIMESTANDBY='-l walltime=04:00:00'
   QUEUE=$QUEUEPHYSICS
-  WALLTIME=$WALLTIMEPHYSICS
 fi
 
+hostString=${host:0:6}
+if test  "$hostString" = "coates"  #Are we running on COATES
+then
+  COATES=enabled
+  QSUB='qsub -V'
+  PBSCMD='PBS'
+  QUEUESTANDBY='-q standby'
+  QUEUE=$QUEUEPHYSICS
+  WALLTIME='-l walltime=20:00:00'
+  #WALLTIME='-l walltime=04:00:00'
+  MEMREQUEST='mem=8GB'
+fi
 
-###script directory
+hostString=${host:0:5}
+if test  "$hostString" = "conte"  #Are we running on CONTE
+then
+  CONTE=enabled
+  QSUB='qsub -V'
+  PBSCMD='PBS'
+  QUEUEPHYSICS='-q physics'
+  WALLTIMEPHYSICS='-l walltime=20:00:00'
+  QUEUESTANDBY='-q standby'
+  WALLTIMESTANDBY='-l walltime=04:00:00'
+  QUEUE=$QUEUEPHYSICS
+  MEMREQUEST='mem=8GB'
+fi
+
+hostString=${host:0:6}
+if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
+then
+  FUSION=enabled
+  QSUB='qsub -V'
+  PBSCMD='PBS'
+  # queue is determined by pbs.
+  WALLTIME='-l walltime=30:00:00'
+fi
+
+hostString=${host:0:4}
+if test  "$hostString" = "isis"  #Are we running on ISIS
+then
+  ISIS=enabled
+fi
+
+if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
+  PURDUE=enabled
+fi
+if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
+  NERSCorARGN=enabled
+fi	
+ 
+
+
+#script directory
 sdr=$KASCADEBASE"/scripts"
 
 #Check to see if the user specified the script with the .scr extention
