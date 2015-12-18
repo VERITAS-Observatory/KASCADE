@@ -27,6 +27,7 @@ MaxQsubsDefault=475           #with ksProduction and only want to make
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
+JobArray=enabled             #For Cori right now 
 
 ############################################################
 # Force the Check files to match shower entry numberes to those used in ksProduction.scr
@@ -38,8 +39,8 @@ EntryGEStart=1          #Gammas and Electrons
 EntryGEEnd=45
 #EntryGEEnd=43 #36550GeV
 
-
 EntryPStart=1
+#EntryPStart=45
 EntryPEnd=45
 
 #EntryPEnd=21       #715GeV
@@ -569,14 +570,56 @@ function SubmitQsubJobs()
     rm $QsubDoneList
   fi
 
-  {
-    while read sgeFileFull
+  if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
+  ##############################################################
+  # If we are on Cori and JobArrays are enabled we need to take each file 
+  # from the QsubList, remove all the SBATCH commands and give each of these 
+  # new files an indexed name(unique also) so that they can be called in
+  # a job array submission
+  ############################################################## 
+    GetUniqueNumber           #UNIQUE will idintify this run
+    sgeFile=KS$UNIQUE.ja      #Job array submission file name
+    let sbIndex=0             $Job array index
+    {
+      while read  sgeFileFull
+        do
+	 #Remove SBATCH lines and give file indexed name 
+         let sbIndex="sbIndex+1"
+	 if [ "$sbIndex" -eq "1" ]; then
+	   sgeIndexPath=${sgeFileFull%/*}   #want same dir as input files
+	 fi
+         sgeIndexFile=$sgeIndexPath'/'$sgeFile'-'$sbIndex
+	 sed '/SBATCH/d' <$sgeFileFull >$sgeIndexFile  #Removes SBATCH lines
+         chmod 700 $sgeIndexFile
+        done
+    }<$QsubList
+     
+    #Now build and submit Jobarray SBATCH file
+    echo "#"!/bin/bash -l                                      >$sgeFile
+    if [ -n "$CORI" ]; then
+      echo "#"SBATCH -p $QUEUE                                >>$sgeFile
+      echo "#"SBATCH -t $WALLTIME                             >>$sgeFile
+      echo "#"SBATCH -N 1                                     >>$sgeFile
+      echo "#"SBATCH -n 1                                     >>$sgeFile	  
+      echo "#"SBATCH --array=1-$sbIndex                       >>$sgeFile
+      echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID'  >>$sgeFile
+      
+      chmod 700 $sgeFile
+      $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
+   fi
+
+  else
+  ###################################################################
+  # Normal submission from the QsubList  
+  ###################################################################
+   { 
+     while read sgeFileFull
       do
         CheckQsubSubmissions  $MaxQsubs $QsubDoneList 
                                      #Gets here when we can submit the next job
         sgeFile=${sgeFileFull##*/}
         echo $sgeFile
-        sgeDoneFile=$sgeFileFull'.Done'
+        local sgeDoneFile=$sgeFileFull'.Done'
         if [ -e "$sgeDoneFile" ]; then
           rm $sgeDoneFile
         fi
@@ -590,6 +633,7 @@ function SubmitQsubJobs()
        fi
       done
    }<$QsubList
+  fi
 }
 ###########################################################################
 
@@ -1534,7 +1578,7 @@ while test $izn -lt $iznEnd
          echo 'KSAuto:  Submission of htar ' $ShowerVBFHe4Dir 'or' $ShowerVBFHe4DirAlt 'to archive complete.'
 
        else
-        ShowerMDLDir=$SPECSEA$TELCONFIG$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
+        ShowerMDLDir=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'$SPECSEA$SPECMDL
         SubmitHtarToArchive $ArchiveDst $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
 
        fi
