@@ -237,55 +237,6 @@ function BuildAndSubmit()
 }
 #**********************************************************************
 
-function BuildSgeFilePBSCmds()
-##########################################################################
-# Adds PBS or SBATCH commands to "pbs" files to be submitted
-# $1: This scipts name of output "pbs" file
-####################################################################
-{
- local sgeFile=$1
- echo "#"!/bin/bash -l                 >$sgeFile
- if [ -n "$PURDUE" ]; then
-   let E=${eGeV%%.*}
-   if [ "$E" -gt "20000" ]; then
-     echo "#"$PBSCMD $QUEUEPHYSICS    >>$sgeFile
-     echo "#"$PBSCMD $WALLTIMEPHYSICS >>$sgeFile
-   else
-     echo "#"$PBSCMD $QUEUESTANDBY    >>$sgeFile
-     echo "#"$PBSCMD $WALLTIMESTANDBY >>$sgeFile
-   fi
-   echo module load gcc/4.7.2         >>$sgeFile
-   echo source /etc/profile           >>$sgeFile
-   echo lcl=$$PBSCMD_O_WORKDIR        >>$sgeFile
- else
-   echo "#"$PBSCMD $WALLTIME          >>$sgeFile
-   echo "#"$PBSCMD $QUEUE             >>$sgeFile
- fi
- if [ -n "$CORI" ]; then
-   echo "#"$PBSCMD -N 1             >>$sgeFile
-   echo "#"$PBSCMD -n 1             >>$sgeFile
- else
-   echo "#"$PBSCMD -l $MEMREQUEST   >>$sgeFile
- fi
-}
-#########################################################################
-
-function BuildSgeFileBashCmds()
-##########################################################################
-# Adds Batch commands to "pbs" files to be submitted
-# $1: This scipts name of output "pbs" file
-####################################################################
-{
-  sgeFile=$1
-  if [ -n "$PURDUE" ]; then
-    echo module load gcc/4.7.2                >>$sgeFile
-    echo source /etc/profile                  >>$sgeFile
-    echo lcl=$$PBSCMD_O_WORKDIR               >>$sgeFile
-  fi
-  echo cd $lcl                                >>$sgeFile
-}
-#########################################################################
-
 
 function CompleteAndSubmit()
 {
@@ -317,6 +268,7 @@ function BuildAndSubmitJobs
  let showerEnd=${end[$entryE]}
  local eGeV=${energy[$entryE]}     
  echo Entry:  $pr $eGeV $showerStart $showerEnd
+ let E=${eGeV%%.*}
 
  if [ -n "$LOWENERGYSTEPPING" ]; then
    let stepStart=$showerStart-1
@@ -325,8 +277,9 @@ function BuildAndSubmitJobs
     do
       FindShowerIDStep $entryE $showerEnd      #sets to next stepStart and stepEnd
       sgeFile=$lcl'/K'$eGeV'd'$stepStart$pr.pbs
-      BuildSgeFilePBSCmds  $sgeFile
-      BuildSgeFileBashCmds $sgeFile
+      
+      SgeFilePBSCmds  $sgeFile $E
+      SgeFileBashCmds $sgeFile
 
       echo $ksScript $eGeV $pr $stepStart $stepEnd $datadir $workingDir \\ >>$sgeFile
       echo ">>"$lcl"/ksProduction_"$eGeV'd'$stepStart"_"$stepEnd$pr".log"  >>$sgeFile
@@ -337,8 +290,8 @@ function BuildAndSubmitJobs
  else
  
    sgeFile=$lcl'/K'$eGeV$pr.pbs
-   BuildSgeFilePBSCmds   $sgeFile
-   BuildSgeFileBashCmds  $sgeFile
+   SgeFilePBSCmds   $sgeFile $E
+   SgeFileBashCmds  $sgeFile
 
    echo $ksScript $eGeV $pr $showerStart  \\   >>$sgeFile
    echo $showerEnd $datadir $workingDir   \\   >>$sgeFile
@@ -361,14 +314,15 @@ function BuildAndSubmitJobsSingly
  let showerStart=${start[$entryE]}
  let showerEnd=${end[$entryE]}
  eGeV=${energy[$entryE]}     
+ let E=${eGeV%%.*}
 
  echo Entry:  $pr $eGeV $showerStart $showerEnd
  let i=$showerStart
  while test $i -le $showerEnd
   do
     sgeFile=$lcl'/K'$eGeV'd'$i$pr.pbs
-    BuildSgeFilePBSCmds  $sgeFile
-    BuildSgeFileBashCmds $sgeFile
+    SgeFilePBSCmds  $sgeFile $E
+    SgeFileBashCmds $sgeFile
 
     echo $ksScript $eGeV $pr $i $i $datadir $workingDir \\ >>$sgeFile
     echo ">>"$lcl"/ksProduction_"$eGeV'd'$i$pr".log"       >>$sgeFile
@@ -440,8 +394,8 @@ function AddTaskForMultiTaskSubmission()
     #################################
     GetUniqueNumber
     sgeFile=$lcl'/K'$eGev'd'$i$pr$UNIQUE'.pbs'
-    BuildSgeFilePBSCmds  $sgeFile "MultiJob"
-    BuildSgeFileBashCmds $sgeFile "MultiJob"
+    SgeFilePBSCmds  $sgeFile
+    SgeFileBashCmds $sgeFile 
     let TasksInJobScript=0
     if [ -n "$CORI" ] && [ -n "$MULTITASKS" ]; then
       sed '/'$PBSCMD' -n'/s/'-n 1/-n 0/g' <$sgeFile  >tmp1
@@ -537,108 +491,7 @@ if [ ! -e UtilityFunctions.scr ]; then
 fi
 source UtilityFunctions.scr
 
-host=$(hostname)
-echo host: $host
-
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
-  QSUB='qsub.serial -V'
-  PBSCMD='PBS'
-  QUEUE='-q serial'
-  WALLTIME='-l walltime=20:00:00'
-  MEMREQUEST='vmem=4GB'
-  echo ***Edison Cluster***
-fi
-
-hostString=${host:0:4}
-if test  "$hostString" = "cori"  #Are we running on cori
-then
-  CORI=enabled
-  QSUB='sbatch'
-  PBSCMD='SBATCH'
-  LOWENERGYSTEPPING=enabled
-  #MULTITASKS=enabled           #Multiple tasks on each node
-  if [ -n "$MULTITASKS" ]; then
-    #MULTINODES=enabled       #Task uses N nodes where 
-                             #N=TotalNumTasks/MAXTASKSPERNODE rounded up
-                             #Else if not defined  1 node per MAXTASKSPERNODE
-    #let MAXTASKSPERNODE=64   #With Hyperthreading (1 node tasks with 64 tasks)
-    let MAXTASKSPERNODE=32   #Without hyperthreading.
-    QUEUE='-p regular'
-  else
-    QUEUE='-p shared'
-  fi
-  WALLTIME='-t 03:00:00'
-  echo ***Cori Phase 1 Cluster***
-fi
-
-
-hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
-then
-  HANSEN=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  QUEUEPHYSICS='-q physics'
-  WALLTIMEPHYSICS='-l walltime=20:00:00'
-  QUEUESTANDBY='-q standby'
-  WALLTIMESTANDBY='-l walltime=04:00:00'
-  QUEUE=$QUEUEPHYSICS
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on COATES
-then
-  COATES=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  QUEUESTANDBY='-q standby'
-  QUEUE=$QUEUEPHYSICS
-  WALLTIME='-l walltime=20:00:00'
-  #WALLTIME='-l walltime=04:00:00'
-  MEMREQUEST='mem=8GB'
-fi
-
-hostString=${host:0:5}
-if test  "$hostString" = "conte"  #Are we running on CONTE
-then
-  CONTE=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  QUEUEPHYSICS='-q physics'
-  WALLTIMEPHYSICS='-l walltime=20:00:00'
-  QUEUESTANDBY='-q standby'
-  WALLTIMESTANDBY='-l walltime=04:00:00'
-  QUEUE=$QUEUEPHYSICS
-  MEMREQUEST='mem=8GB'
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
-then
-  FUSION=enabled
-  QSUB='qsub -V'
-  PBSCMD='PBS'
-  # queue is determined by pbs.
-  WALLTIME='-l walltime=30:00:00'
-fi
-
-hostString=${host:0:4}
-if test  "$hostString" = "isis"  #Are we running on ISIS
-then
-  ISIS=enabled
-fi
-
-if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
-  PURDUE=enabled
-fi
-if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
-  NERSCorARGN=enabled
-fi	
- 
-
+SetupForHost
 
 #script directory
 sdr=$KASCADEBASE"/scripts"
@@ -652,7 +505,7 @@ if test "$kssc" = "$KSSCPT"
 then
   ksScript=$lcl'/'$kssc'.scr' #ksall: Makes seg,pe,pes,te files. Keeps te files
                           #ksaom: Makes .root  files from te files(depreciated)
-                           #ksaomVBF: Makes .vbf files from te files
+                          #ksaomVBF: Makes .vbf files from te files
                           #ksarraytriggerVBF: Makes array  .vbf files
                           #ksallVBF:Does everything from ksKascade to 
                           #         ksArrayTrigger
@@ -703,10 +556,23 @@ if [ -n "$EDISON" ]; then
 fi
 
 if [ -n "$CORI" ]; then
-    dataDirBase=$SCRATCH'/simulations'
-    echo Cori Data Dir: $dataDirBase
-    mkdir -vp $dataDirBase
-    workingDir=$SCRATCH
+  dataDirBase=$SCRATCH'/simulations'
+  echo Cori Data Dir: $dataDirBase
+  mkdir -vp $dataDirBase
+  workingDir=$SCRATCH
+
+ LOWENERGYSTEPPING=enabled
+ #MULTITASKS=enabled           #Multiple tasks on each node
+ if [ -n "$MULTITASKS" ]; then
+   #MULTINODES=enabled       #Task uses N nodes where 
+                             #N=TotalNumTasks/MAXTASKSPERNODE rounded up
+                             #Else if not defined  1 node per MAXTASKSPERNODE
+   #let MAXTASKSPERNODE=64   #With Hyperthreading (1 node tasks with 64 tasks)
+   let MAXTASKSPERNODE=32   #Without hyperthreading.
+   QUEUE='-p regular'
+ else
+   QUEUE='-p shared'
+ fi
 fi
 
 if [ -n "$HANSEN" ]; then

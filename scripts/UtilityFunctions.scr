@@ -211,6 +211,7 @@ fi
    QUEUE='-q serial'
    WALLTIME='-l walltime=10:00:00'
    MEMREQUEST=' -l vmem=8GB '
+   let SUBMITLIMIT=175
    echo '***Edison Cluster***'
  fi
  
@@ -222,6 +223,7 @@ fi
    PBSCMD='SBATCH'
    QUEUE='-p shared'
    WALLTIME='-t 10:00:00'
+   let SUBMITLIMIT=10000
    echo '***Cori Phase 1 Cluster***'
  fi
 
@@ -231,12 +233,15 @@ fi
   then
    HANSEN=enabled
    QSUB='qsub -V'
-   QUEUE='-q physics'
    PBSCMD='PBS'
-   WALLTIME='-l walltime=10:00:00'
-   #QUEUE='-q standby'
-   #WALLTIME='-l walltime=04:00:00'
+   QUEUE1='-q physics'
+   WALLTIME1='-l walltime=10:00:00'
+   QUEUE2='-q standby'
+   WALLTIME2='-l walltime=04:00:00'
+   QUEUE=$QUEUE1
+   WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
+   let SUBMITLIMIT=975
    echo '***Hansen Cluster:'$QUEUE' queue ***'
  fi
 
@@ -246,11 +251,14 @@ fi
    COATES=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
-   QUEUE='-q physics'
-   WALLTIME='-l walltime=30:00:00'
-   #QUEUE='-q standby'
-   #WALLTIME='-l walltime=04:00:00'
+   QUEUE1='-q physics'
+   WALLTIME1='-l walltime=30:00:00'
+   QUEUE2='-q standby'
+   WALLTIME2='-l walltime=04:00:00'
+   QUEUE=$QUEUE1
+   WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
+   let SUBMITLIMIT=975
    echo '***Coates Cluster:'$QUEUE' queue ***'
  fi
 
@@ -260,9 +268,14 @@ fi
    CONTE=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
-   QUEUE='-q standby'
-   WALLTIME='-l walltime=04:00:00'
+   QUEUE1='-q physics'
+   WALLTIME1='-l walltime=30:00:00'
+   QUEUE2='-q standby'
+   WALLTIME2='-l walltime=04:00:00'
+   QUEUE=$QUEUE1
+   WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
+   let SUBMITLIMIT=975
    echo '***Conte Cluster:'$QUEUE' queue ***'
  fi
 
@@ -274,12 +287,14 @@ fi
    PBSCMD='PBS'
    # queue is determined by pbs.
    WALLTIME='-l walltime=30:00:00'
+   let SUBMITLIMIT=975
  fi
 
  hostString=${host:0:4}
  if test  "$hostString" = "isis"  #Are we running on ISIS
   then
    ISIS=enabled
+   let SUBMITLIMIT=975
  fi
 
 if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
@@ -300,22 +315,47 @@ function SgeFilePBSCmds()
 ##########################################################################
 # Adds PBS or SBATCH commands to "pbs" files to be submitted
 # $1: This scipts name of output "pbs" file
-# This is generic version
+# $2: Energy(Gev (rounded down to int)Purdue: When low energy switch from the 
+#     defualt physics queue to standbuy queue
 ####################################################################
 {
  local sgeFile=$1
+ let E=$2
  echo "#"!/bin/bash -l                 >$sgeFile
- echo "#"$PBSCMD $QUEUE               >>$sgeFile
- echo "#"$PBSCMD $WALLTIME            >>$sgeFile
+ if [ -n "$2" ] && [ -n "$PURDUE" ]; then
+   if [ "$E" -lt "20000" ]; then
+     echo "#"$PBSCMD $QUEUE2          >>$sgeFile
+     echo "#"$PBSCMD $WALLTIME2       >>$sgeFile
+   else
+     echo "#"$PBSCMD $QUEUE           >>$sgeFile
+     echo "#"$PBSCMD $WALLTIME        >>$sgeFile
+   fi
+ else
+   echo "#"$PBSCMD $QUEUE             >>$sgeFile
+   echo "#"$PBSCMD $WALLTIME          >>$sgeFile
+ fi
+
  if [ -n "$CORI" ]; then
    echo "#"$PBSCMD -N 1               >>$sgeFile
    echo "#"$PBSCMD -n 1               >>$sgeFile
  else
    echo "#"$PBSCMD -l $MEMREQUEST     >>$sgeFile
  fi
- if [ -n "$PURDUE" ]; then
-   echo module load gcc/4.7.2         >>$sgeFile
-   echo source /etc/profile           >>$sgeFile
- fi
+}
+#########################################################################
+
+function SgeFileBashCmds()
+##########################################################################
+# Adds Batch commands to "pbs" files to be submitted
+# $1: This scipts name of output "pbs" file
+####################################################################
+{
+  sgeFile=$1
+  if [ -n "$PURDUE" ]; then
+    echo module load gcc/4.7.2                >>$sgeFile
+    echo source /etc/profile                  >>$sgeFile
+    echo lcl=$$PBSCMD_O_WORKDIR               >>$sgeFile
+  fi
+  echo cd $lcl                                >>$sgeFile
 }
 #########################################################################

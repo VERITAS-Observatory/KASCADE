@@ -21,98 +21,7 @@ function setup()
 {
   lcl=$PWD
 
-  local host=$(hostname)
-  local hostString=${host:0:6}
-  if test  "$hostString" = "cvrsvc"  #Are we running on Carver
-    then
-     CARVER=enabled
-     CarverQueue=serial
-     QUEUE1=$CarverQueue
-     QUEUE2=$CarverQueue
-     WALLTIMEH=20:00:00
-     WALLTIMEL=$WALLTIMEH
-     MEMREQUEST=' -l pvmem=8GB'
-     SUBMITLIMIT=950
-     echo ***Carver Cluster***
-  fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
-  EdisonQueue=serial
-  QUEUE1=$EdisonQueue
-  QUEUE2=$EdisonQueue
-  WALLTIMEH=20:00:00
-  WALLTIMEL=$WALLTIMEH
-  MEMREQUEST=' -l vmem=8GB '
-  QSUBEXT='.serial'
-  SUBMITLIMIT=175
-  echo '***Edison Cluster***'
-fi
-
-hostString=${host:0:6}
-  if test  "$hostString" = "hansen"  #Are we running on Hansen
-    then
-      HANSEN=enabled
-      QUEUE1=physics
-      QUEUE2=standby
-      QUEUE=$QUEUE1
-      WALLTIMEH=20:00:00
-      WALLTIMEL=04:00:00
-      MEMREQUEST=' -l mem=8GB'
-      SUBMITLIMIT=950
-      let NumParaFly=0
-      let NumCores=48
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-      echo '***Hansen Cluster***'
-fi
-
-  hostString=${host:0:6}
-  if test  "$hostString" = "coates"  #Are we running on Coates?
-    then
-      COATES=enabled
-      QUEUE1=physics
-      QUEUE2=standby
-      QUEUE=$QUEUE1
-      WALLTIMEH=20:00:00
-      WALLTIMEL=04:00:00
-      MEMREQUEST=' -l mem=8GB'
-      SUBMITLIMIT=950
-      let NumParaFly=0
-      let NumCores=48
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-     echo '***Coates Cluster***'
-  fi
-
-  hostString=${host:0:5}
-  if test  "$hostString" = "conte"  #Are we running on Conte?
-    then
-      CONTE=enabled
-      QUEUE1=physics
-      QUEUE2=standby
-      QUEUE=$QUEUE1
-      WALLTIMEH=20:00:00
-      WALLTIMEL=04:00:00
-      MEMREQUEST=' -l mem=8GB'
-      SUBMITLIMIT=950
-      let NumParaFly=0
-      let NumCores=48
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-     echo '***Conte Cluster***'
-  fi
-  
-  echo hostString: $hostString
-
-  if [ -n "$CARVER" ]; then
-    dataDirBase=$SCRATCH/simulations
-    echo Carver Data Dir: $dataDirBase
-    mkdir -vp $dataDirBase
-    workingDir=$SCRATCH
-  fi
+  SetupForHost
 
   if [ -n "$EDISON" ]; then
     dataDirBase=$SCRATCH/simulations
@@ -131,6 +40,10 @@ fi
     echo Hansen Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
   fi
 
   if [ -n "$COATES" ]; then
@@ -138,6 +51,10 @@ fi
     echo Coates Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
   fi
 
   if [ -n "$CONTE" ]; then
@@ -145,6 +62,10 @@ fi
     echo Conte Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
   fi
 
   dataDirBase=$dataDirBase'/veritas'
@@ -166,7 +87,7 @@ fi
   fi
 
   if [ ! -n "$datadir" ]; then
-     echo ReDoMissingShowerVBFFile - Bad particle spec: $PARTYPE ':Allowable are G or E or P or He4_'
+     echo ReDoMissingTeFile - Bad particle spec: $PARTYPE ':Allowable are G or E or P or He4_'
      exit
   fi
 
@@ -199,7 +120,7 @@ fi
 function BuildAndSubmitJobsSingly() 
 #**********************************************************************
 # Cause  serial jobs to be submitted.
-# This version submits 1 job per shower. Useful for high energies.
+# This version submits 1 job per shower.
 #**********************************************************************
 #$1 energy in GeV
 #$2 showerID
@@ -224,24 +145,9 @@ function BuildAndSubmitJobsSingly()
 #Make up the .pbs file name
  sgeFile=$lcl'/K'$eGeV'd'$showerID$pr.pbs
 
- #Build the pbs file
- if [ "$E" -gt "20000" ]; then
-   echo "#"PBS -q $QUEUE1                                      >$sgeFile
-   echo "#"PBS -l walltime=$WALLTIMEH                         >>$sgeFile
- else
-   echo "#"PBS -q $QUEUE2                                      >$sgeFile
-   echo "#"PBS -l walltime=$WALLTIMEL                         >>$sgeFile
- fi
- echo "#PBS "$MEMREQUEST                                      >>$sgeFile
- if [ -n "$CONTE" ]; then
-  echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-  echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-  echo module load devel                                      >>$sgeFile
- fi
- if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
-   echo source /etc/profile                                   >>$sgeFile
-   echo module load gcc/4.7.2                                 >>$sgeFile
- fi
+ SgeFilePBSCmds  $sgeFile $E
+ SgeFileBashCmds $sgeFile
+
  echo $lcl'/ksallVBFReDoTE.scr '$eGeV $parspec $showerID \\   >>$sgeFile
  echo $showerID $datadir $workingDir \\                       >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$parspec".log" >>$sgeFile
@@ -249,7 +155,7 @@ function BuildAndSubmitJobsSingly()
  chmod 700 $sgeFile
  
  #Submit the pbs file
- qsub$QSUBEXT -V -e k$eGeV'd'$showerID$parspec.err -o k$eGeV'd'$showerID$parspec.log $sgeFile 
+ $QSUB -e k$eGeV'd'$showerID$parspec.err -o k$eGeV'd'$showerID$parspec.log $sgeFile 
 }
 #**********************************************************************
 
@@ -324,7 +230,7 @@ function SubmitParaFlyPBSJob
   fi
   echo "#"PBS -l $MEMREQUEST                      >>$sgeFile
   
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+  if [ -n "$PURDUE" ]; then
     #Grab a complete Node
     echo "#"PBS -l nodes=1:ppn=$NumCores          >>$sgeFile 
     echo source /etc/profile                      >>$sgeFile
@@ -347,6 +253,15 @@ if [  ! -n "$2" ]; then
 	exit
 fi
 
+
+##################
+# Bring in GetUniqueNumber function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
 CheckFile=$1
 THR=$2
 if [ !  -n "$3" ]; then
@@ -357,14 +272,6 @@ else
      DatDirFlag=$4
    fi
 fi
-
-##################
-# Bring in GetUniqueNumber function
-##################
-if [ ! -e UtilityFunctions.scr ]; then
-    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
-fi
-source UtilityFunctions.scr
 
 setup
 
@@ -399,7 +306,7 @@ let count=0
          exit
        fi
        
-       if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+       if [ -n "$PURDUE" ]; then
          let E=${energy%%.*}
          if [ "$E" -gt "20000" ]; then	
             BuildAndSubmitJobsSingly $energy $showerID $pr  

@@ -21,97 +21,8 @@ function usage()
 function setup()
 {
   lcl=$PWD
-  host=$(hostname)
-
-  hostString=${host:0:4}
-  if test  "$hostString" = "cori"  #Are we running on Cori
-   then
-    CORI=enabled
-    QSUB='sbatch'
-    CoriQueue='-p shared'
-    QUEUE1=$CoriQueue
-    QUEUE2=$CoriQueue
-    WALLTIME1='-t 03:00:00'
-    WALLTIME2=$WALLTIME1
-    PBSCMD='SBATCH'
-    SUBMITLIMIT=9900
-    echo '***Cori Cluster***'
-  fi
-
-   hostString=${host:0:6}
-  if test  "$hostString" = "edison"  #Are we running on Edison
-   then
-    EDISON=enabled
-    QSUB='qsub.serial -V'
-    EdisonQueue='-q serial'
-    QUEUE1=$EdisonQueue
-    QUEUE2=$EdisonQueue
-    WALLTIME1='-l walltime=03:00:00'
-    WALLTIME2=$WALLTIME1
-    PBSCMD='PBS'
-    MEMREQUEST='vmem=8GB '
-    SUBMITLIMIT=175
-    echo '***Edison Cluster***'
-  fi
-
-
-  hostString=${host:0:6}
-  if test  "$hostString" = "hansen"  #Are we running on Hansen
-    then
-      HANSEN=enabled
-      QSUB='qsub -V'
-      QUEUE1='-q physics'
-      QUEUE2='-q standby'
-      QUEUE=$QUEUE1
-      WALLTIME1='-l walltime=20:00:00'
-      WALLTIME2='-l walltime=04:00:00'
-      PBSCMD='PBS'
-      MEMREQUEST='mem=6GB'
-      SUBMITLIMIT=950
-      let NumParaFly=0
-      let NumCores=48
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-      echo ***Hansen Cluster***
-  fi
-
-  hostString=${host:0:6}
-  if test  "$hostString" = "coates"  #Are we running on Coates
-    then
-      COATES=enabled
-      QSUB='qsub -V'
-      QUEUE1='-q physics'
-      QUEUE2='-q standby'
-      QUEUE=$QUEUE1
-      WALLTIME1='-l walltime=20:00:00'
-      WALLTIME2='-l walltime=04:00:00'
-      PBSCMD='PBS'
-      MEMREQUEST='mem=20GB'
-      SUBMITLIMIT=950
-      echo ***Coats Cluster***
-  fi
   
-  hostString=${host:0:5}
-  if test  "$hostString" = "conte"  #Are we running on Conte?
-    then
-      CONTE=enabled
-      QSUB='qsub -V'
-      QUEUE1='-q physics'
-      QUEUE2='-q standby'
-      QUEUE=$QUEUE1
-      WALLTIME1='-l walltime=20:00:00'
-      WALLTIME2='-l walltime=04:00:00'
-      PBSCMD='PBS'
-      MEMREQUEST='mem=6GB'
-      SUBMITLIMIT=950
-      let NumParaFly=0
-      let NumCores=16
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-      echo '***Conte Cluster***'
-  fi
-
-  echo hostString: $hostString
+  SetupForHost
   
   if [ -n "$CORI" ]; then
     dataDirBase=$SCRATCH/simulations
@@ -132,6 +43,10 @@ function setup()
     echo Hansen Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+      let NumParaFly=0
+      let NumCores=48
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
   fi
 
   if [ -n "$COATES" ]; then
@@ -146,6 +61,10 @@ function setup()
     echo Conte Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
+      let NumParaFly=0
+      let NumCores=16
+      let NumThreadsToUse=10
+      let MaxNumInParaFlyList=20
   fi
 
   dataDirBase=$dataDirBase'/veritas'
@@ -208,13 +127,12 @@ function setup()
 function BuildAndSubmitJobsSingly() 
 #**********************************************************************
 # Cause serial jobs to be submitted.
-# This version submits 1 job per shower. Useful for high energies.
+# This version submits 1 job per shower.
 #**********************************************************************
 #$1 energy in GeV
 #$2 showerID
 #$3 particle spec Ex SUG70Deg2D45mv1234M2ABCD
 {
-
  eGeV=$1     
  showerID=$2
  SPECSHWR=$3
@@ -228,45 +146,25 @@ function BuildAndSubmitJobsSingly()
  parspec=${SPECSHWR%%1234M2*}1234M2
 
  echo Entry:  $SPECSHWR $eGeV $showerID
+ let E=${eGeV%%.*}
+
  #Make up the .pbs file name
  sgeFile=$lcl'/K'$eGeV'd'$showerID$SPECSHWR.pbs
 
- #Build the pbs file
- echo "#"!/bin/bash -l                                          >$sgeFile
- if [ "$E" -gt "20000" ]; then
-   echo "#"$PBSCMD $QUEUE1                                     >>$sgeFile
-   echo "#"$PBSCMD $WALLTIME1                                  >>$sgeFile
- else
-   echo "#"$PBSCMD $QUEUE2                                     >>$sgeFile
-   echo "#"$PBSCMD $WALLTIME2                                  >>$sgeFile
- fi
- if [ -n "$CORI" ]; then
-   echo "#"$PBSCMD -N 1                                        >>$sgeFile
-   echo "#"$PBSCMD -n 1                                        >>$sgeFile
- else
-   echo "#"$PBSCMD -l $MEMREQUEST                              >>$sgeFile
- fi
- if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
-   echo source /etc/profile                                    >>$sgeFile
-   echo module load gcc/4.7.2                                  >>$sgeFile
- fi
+ SgeFilePBSCmds  $sgeFile $E
+ SgeFileBashCmds $sgeFile
+
  echo $lcl'/'$KSALLShwrVBF $eGeV $SPECSHWR \\                  >>$sgeFile
  echo $showerID $showerID $datadir $workingDir \\              >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$SPECSHWR".log" >>$sgeFile
 
  chmod 700 $sgeFile
  
- #if [ -n QsubFileNameList ]; then
- #   echo 'echo Done >'$sgeFile'.Done'                         >>$sgeFile
- #   echo $sgeFile >>$QsubFileNameList
- #  else
-  
  $QSUB -e k$eGeV'd'$showerID$SPECSHWR.err -o k$eGeV'd'$showerID$SPECSHWR.log $sgeFile 
-
- #  fi
-
 }
 #**********************************************************************
+
+
 function BuildForParaFlySubmission() 
 #**********************************************************************
 # Cause serial jobs to be submitted in a mass form using Parafly
@@ -416,7 +314,7 @@ let countPara=0
          exit
        fi
        
-   if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+   if [ -n "$PURDUE" ] ; then
        let E=${energy%%.*}
        if [ "$E" -gt "20000" ]; then	
           BuildAndSubmitJobsSingly $energy $showerID $SHWRSPEC  

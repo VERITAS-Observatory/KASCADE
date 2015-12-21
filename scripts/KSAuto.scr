@@ -1,24 +1,17 @@
 #!/bin/bash
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-# UNDER CONSTRUTION: Gradulally changeing from WV,SV to WN,SN (for consistancy)
-# fixed for:
-#  HTARTeFilesToArchive 
-#  HTARTeFilesFromArchive
-#  HTARShowerVBFFilesToArchive
-#  HTARShowerVBFFilesFromArchive
-# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-#This script is used to automate the generation of the veritas Te files
-#************************************************************************
-# We may want a function that makes sure all scripts are in placeeanup
+#This script is used to automate the generation of the KASCADE veritas Te, 
+# ShwrVBF and VBF files
+# By:
+# Glenn Sembroski
+# Dept. of Physics and Astronomy
+# Purdue University
+# sembrosk@purdue.edu
 ##########################################################################
 
 # This will loop over all combinations of $4(Zn) and $5(Az) entries
 
-LimitSubmissions=enabled      #Enable if you want to generate Shower files 
-MaxQsubsDefault=475           #with ksProduction and only want to make
-                              #475 submission in queue at one time.Causes us to
-                              #wait
+LimitSubmissions=enabled      #Enable if you want to generate limit number of 
+                              #shower submitted to a queue.
 #Cleanup=enabled                
 
 #DisableSleep=enabled           #Don't wait for files to finish. ususally use 
@@ -27,6 +20,7 @@ MaxQsubsDefault=475           #with ksProduction and only want to make
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
+
 JobArray=enabled             #For Cori right now 
 
 ############################################################
@@ -47,6 +41,7 @@ EntryPEnd=45
 #EntryPEnd=31        #4275
 #EntryPEnd=32       #5112GeV
 #EntryPEnd=35       #8741GeV
+
 #EntryPEnd=39       #17975 GeV
 
 EntryHe4Start=5
@@ -675,7 +670,7 @@ lcl=$PWD
 source /etc/profile
 
 
-
+SetupForHost              #From UtilitiesFunctions.scr
 
 
 host=$(hostname)
@@ -686,68 +681,41 @@ hostString=${host:0:4}
 if test  "$hostString" = "cori"  #Are we running on Cori
 then
   CORI=enabled
+
+if [ -n "$CORI" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cori'
-  QUEUE=shared
-  QSUB='sbatch'
   WALLTIME=06:00:00
   if [ -n "$LimitSubmissions" ]; then	
-    let MaxQsubs=10000
-#let MaxQsubs=$MaxQsubsDefault
-    let MaxHTARQsubs=9
+    let MaxQsubs=$SUBMITLIMIT
+    let MaxHTARQsubs=8
   fi
-  echo '***Cori Phase 1 Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
+if [ -n "$EDISON" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='edison'
-  QUEUE=serial
-  QSUB='qsub.serial -V'
   WALLTIME=06:00:00
   if [ -n "$LimitSubmissions" ]; then
-    let MaxQsubs=$MaxQsubsDefault
+    let MaxQsubs=$SUBMITLIMIT
     let MaxHTARQsubs=9
   fi
-  echo '***Edison Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
-then
-  HANSEN=enabled
+if [ -n "$HANSEN" ]; then  
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='hansen-adm'
-  #QUEUE=physics
-  #WALLTIME=06:00:00
-  QUEUE=standby
-  WALLTIME=04:00:00
-  QSUB='qsub -V'
   if [ -n "$LimitSubmissions" ]; then
-     #let MaxQsubs=150
-     let MaxQsubs=$MaxQsubsDefault
+     let MaxQsubs=$SUBMITLIMIT
      let MaxHTARQsubs=9  
   fi
-  echo ***Hansen Cluster***
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on coates
- then
-  COATES=enabled
+if [ -n "$COATES" ]; then  
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='coates-adm'
-  #QUEUE=physics
-  QUEUE=standby
-  WALLTIME=04:00:00
-  QSUB='qsub -V'
-  echo ***Coates Cluster***
   if [ -n "$LimitSubmissions" ]; then
-     #let MaxQsubs=150
-     let MaxQsubs=$MaxQsubsDefault
+     let MaxQsubs=$SUBMITLIMIT
      let MaxHTARQsubs=9  
   fi
 fi
@@ -756,22 +724,17 @@ hostString=${host:0:5}
 if test  "$hostString" = "conte"  #Are we running on conte
  then
   CONTE=enabled
+
+if [ -n "$CONTE" ]; then 
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='conte-adm'
-  #QUEUE=physics
-  QUEUE=standby
-  WALLTIME=04:00:00
-  QSUB='qsub -V'
-  echo ***Conte Cluster***
   if [ -n "$LimitSubmissions" ]; then
-     let MaxQsubs=$MaxQsubsDefault
+     let MaxQsubs=$SUBMITLIMIT
      let MaxHTARQsubs=9  
   fi
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "flogin"  #Are we running on ANL fusion?
- then                               
+if [ -n "$FUSION" ]; then 
   ##############################################################
   # Fusion has no Archive so none of the HTAR using options are viable  
   ############################################################## 
@@ -780,18 +743,14 @@ if test  "$hostString" = "flogin"  #Are we running on ANL fusion?
     echo KSAuto: Fatal-Fusion has no Archive so none of the HTAR using options are viable
     exit
   fi
-  FUSION=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='fmgt2'
-  QSUB='qsub -V'
   #No queue specification necessary for Fusion. It figures it out.
   if [ -n "$LimitSubmissions" ]; then
-     let MaxQsubs=$MaxQsubsDefault
+     let MaxQsubs=$SUBMITLIMIT
      #No Archive for fusion.
   fi
 fi
-
-
 
 if [ -n "$LimitSubmissions" ]; then
  echo "KSAuto: Overall qsub active submissions being limited to "$MaxQsubs 
