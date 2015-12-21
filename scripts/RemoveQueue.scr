@@ -6,6 +6,28 @@
 #$1 start entry
 #$2 end entry
 #$3 = "[]" or not.
+############################################################################
+function usage()
+{
+  echo '***RemoveQueue.scr: Usage:'
+  echo ' $1: File.name (Ex g.tmp) from qstat or sqs listing'
+  echo '                 or'
+  echo ' $1: Job ID start entry'
+  echo ' $2: Job ID end entry'
+  echo ' $3: "[]" or not.'
+  echo
+  echo ' Ex: ./RemoveQueue g.tmp     or    ./RemoveQueue 673633 673755'
+}
+############################################################################
+
+
+#########################
+#  Main
+#########################
+if [ ! -n "$1" ]; then
+    usage
+    exit
+fi
 
 host=$(hostname)
 echo host: $host

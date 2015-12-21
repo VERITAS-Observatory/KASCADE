@@ -320,7 +320,9 @@ function SgeFilePBSCmds()
 ####################################################################
 {
  local sgeFile=$1
- let SgeEnergy=$2
+ if [ -n "$2" ]; then
+     let SgeEnergy=$2
+ fi
  echo "#"!/bin/bash -l                 >$sgeFile
  if [ -n "$2" ] && [ -n "$PURDUE" ]; then
    if [ "$SgeEnergy" -lt "20000" ]; then
