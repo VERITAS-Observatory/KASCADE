@@ -673,15 +673,6 @@ source /etc/profile
 SetupForHost              #From UtilitiesFunctions.scr
 
 
-host=$(hostname)
-echo host: $host
-
-
-hostString=${host:0:4}
-if test  "$hostString" = "cori"  #Are we running on Cori
-then
-  CORI=enabled
-
 if [ -n "$CORI" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cori'
@@ -719,11 +710,6 @@ if [ -n "$COATES" ]; then
      let MaxHTARQsubs=9  
   fi
 fi
-
-hostString=${host:0:5}
-if test  "$hostString" = "conte"  #Are we running on conte
- then
-  CONTE=enabled
 
 if [ -n "$CONTE" ]; then 
   VDirBase=$SCRATCH'/simulations/veritas/'
@@ -1493,16 +1479,13 @@ while test $izn -lt $iznEnd
        SVDir=$lcl'/../simulations/veritas/'
        cd $SVDir
 
-       if [ "$SPECPART" = "CR" ] ; then
-	   ProcessAll='CRProcessAll'
-       else
-           ProcessAll='ProcessAll'
-       fi
+       ProcessAll='ProcessAll'
+      
        if [ ! -e "$ProcessAll" ]; then
 	 cp -v $KASCADEBASE'/scripts/'$ProcessAll .
        fi
        if [ "$SPECPART" = "CR" ] ; then
-         $SVDir'/'$ProcessAll $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
+         $SVDir'/'$ProcessAll $SPECPART  $VDirBase $ZnAz $Threshold $SPECSEA$TELCONFIG $SPECMDL $ARRAYCONFIG >$ProcessAll$ZnAz'.log'
        fi
 
        if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ] ; then
@@ -1555,6 +1538,3 @@ date
 echo 'KSAuto: All done!--Good bye!'
 
 ###########################################################################
-
-
-      

@@ -320,10 +320,10 @@ function SgeFilePBSCmds()
 ####################################################################
 {
  local sgeFile=$1
- let E=$2
+ let SgeEnergy=$2
  echo "#"!/bin/bash -l                 >$sgeFile
  if [ -n "$2" ] && [ -n "$PURDUE" ]; then
-   if [ "$E" -lt "20000" ]; then
+   if [ "$SgeEnergy" -lt "20000" ]; then
      echo "#"$PBSCMD $QUEUE2          >>$sgeFile
      echo "#"$PBSCMD $WALLTIME2       >>$sgeFile
    else

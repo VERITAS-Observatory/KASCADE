@@ -49,9 +49,9 @@ else
     source ~/.bashrc.ext
   fi
   let i=$1
-  let end=$2
-  echo $i $end
-  while test $i -le $end
+  let iEnd=$2
+  echo $i $iEnd
+  while test $i -le $iEnd
    do
      if [ -n "$CORI" ]; then
 	scancel  $i$3
