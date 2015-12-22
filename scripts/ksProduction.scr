@@ -160,7 +160,7 @@ function BuildAndSubmit()
           start[$j]=${pStart[$j]}
           end[$j]=${pEnd[$j]}
           energy[$j]=${pEnergy[$j]}
-          echo $j ${pStart[$j]} ${start[$j]}
+          #echo $j ${pStart[$j]} ${start[$j]}
           if [ -n "$MULTITASKS" ]; then
 	    BuildAndSubmitMultiTask $j	
 	  else

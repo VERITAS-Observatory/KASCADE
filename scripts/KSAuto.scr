@@ -441,7 +441,7 @@ function SubmitHtarToArchive()
   echo "#"!/bin/bash -l                         >$sgeFile
   if [ -n "$CORI" ]; then
     echo "#"SBATCH -p xfer                     >>$sgeFile
-    echo "#"SBATCH -t $WALLTIME                >>$sgeFile
+    echo "#"SBATCH $WALLTIME                   >>$sgeFile
   else
     echo "#"PBS -q $QUEUE                      >>$sgeFile
     echo "#"PBS -l walltime=$WALLTIME          >>$sgeFile
@@ -516,7 +516,7 @@ function SubmitHtarFromArchive()
   echo "#"!/bin/bash -l                         >$sgeFile
   if [ -n "$CORI" ]; then
     echo "#"SBATCH -p xfer                     >>$sgeFile
-    echo "#"SBATCH -t $WALLTIME                >>$sgeFile
+    echo "#"SBATCH $WALLTIME                                >>$sgeFile
   else
     echo "#"PBS -q $QUEUE                        >>$sgeFile
     echo "#"PBS -l walltime=$WALLTIME                        >>$sgeFile
@@ -574,6 +574,7 @@ function SubmitQsubJobs()
   ############################################################## 
     GetUniqueNumber           #UNIQUE will idintify this run
     sgeFile=KS$UNIQUE.ja      #Job array submission file name
+    echo 'KSAuto: Cori Job Array Generartion. Job Array File Name: ' $sgeFile
     let sbIndex=0             $Job array index
     {
       while read  sgeFileFull
@@ -590,18 +591,13 @@ function SubmitQsubJobs()
     }<$QsubList
      
     #Now build and submit Jobarray SBATCH file
-    echo "#"!/bin/bash -l                                      >$sgeFile
-    if [ -n "$CORI" ]; then
-      echo "#"SBATCH -p $QUEUE                                >>$sgeFile
-      echo "#"SBATCH -t $WALLTIME                             >>$sgeFile
-      echo "#"SBATCH -N 1                                     >>$sgeFile
-      echo "#"SBATCH -n 1                                     >>$sgeFile	  
-      echo "#"SBATCH --array=1-$sbIndex                       >>$sgeFile
-      echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID'  >>$sgeFile
+    SgeFilePBSCmds $sgeFile
+
+    echo "#"SBATCH --array=1-$sbIndex                       >>$sgeFile
+    echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID' >>$sgeFile
       
-      chmod 700 $sgeFile
-      $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile 
-   fi
+    chmod 700 $sgeFile
+    $QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile
 
   else
   ###################################################################
@@ -676,7 +672,7 @@ SetupForHost              #From UtilitiesFunctions.scr
 if [ -n "$CORI" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cori'
-  WALLTIME=06:00:00
+  WALLTIME='-t 06:00:00'
   if [ -n "$LimitSubmissions" ]; then	
     let MaxQsubs=$SUBMITLIMIT
     let MaxHTARQsubs=8
