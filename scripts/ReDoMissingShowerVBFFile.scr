@@ -25,7 +25,7 @@ function setup()
   SetupForHost
   
   if [ -n "$CORI" ]; then
-    WALLTIME='-t 03:00:00'
+    WALLTIME='-t 07:00:00'
     dataDirBase=$SCRATCH/simulations
     echo Cori Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
@@ -37,7 +37,7 @@ function setup()
     echo Edison Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
-    WALLTIME='-l walltime=03:00:00'
+    WALLTIME='-l walltime=05:00:00'
   fi
 
   if [ -n "$HANSEN" ]; then
