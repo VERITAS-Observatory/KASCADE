@@ -17,6 +17,7 @@ const double kBinSpacing   = 0.25;
 
 #include <TH1D.h>
 
+VALowGainTraceTemplateFitAnalysis* pfLowGainAnalyser;
 
 std::vector < std::vector < double > > lowGainTemplates;
 std::vector < double > highGainTemplate;
@@ -31,6 +32,14 @@ std::vector < TH1D >   highGainTemplateHists;
 std::vector < double > templateFWHM;
 std::vector < double > templateOffsets;
 std::vector < std::vector <double > > waveForms;
+
+
+// KSAomega TRACE TTree definiutions
+int   fNumPes;
+int   fHighSize;
+int   fTemplateIndex;
+float fLinearity;
+int   pLGTrace[16];
 
 double sumPulse(std::vector < double >& p)
 {
@@ -859,3 +868,181 @@ void PlotHighGainTemplateHist(int histIndex, string opt="L")
 {
   highGainTemplateHists.at(histIndex).Draw(opt.c_str());
 }  
+// **************************************************************************
+
+bool readInSimTraces(string KSAomegaLogFileName)
+// ***********************************************************************
+// Read in from the KASCADE ksSAomega Log file which had the fDepugPrint in 
+// ksAomega KSFADC.cpp enabled, the degub lowgain trace lines. Place into a 
+// TTree
+// ***********************************************************************
+{
+  // ********************************************************************
+  // Inorder to speed things up the code will be able to use a ksAomega Log 
+  // file as is. All the lowgain trace lines will start wiht "**LowGainTrace##"
+  // ********************************************************************
+
+
+  // ******************************************************************
+  // Define the TTree
+  // ******************************************************************
+  TFile KSAomegaTraces("KSAomegaTraces.root",recreate);
+  TTree traceTree;
+  traceTree.Branch("NumPes",&fNumPes,"n/I");
+  traceTree.Branch("HighSize",&fHighSize,"hiSize/F");
+  traceTree.Branch("TemplateIndex",&fTemplateIndex,"i/I");
+  traceTree.Branch("Linearity",&fLinearity,"L/f");
+  traceTree.Branch("LGTrace",pLGTRACE,trace[16]/I);
+
+  
+  // ***************************************************
+  //Open the input file and create the output file
+  // ***************************************************
+  std::ifstream ifs(KSAomegaLogFileName.c_str());
+  if (! ifs) {
+    std::cout<<" Fatal- Can not open "<<inFileName<<std::endl;
+    exit(1);
+  }
+
+  // ***********************************************************************
+  // Read in all the lines form the log file.
+  // Only process those beginning with "**LowGain##"
+  // Add them to the TTree
+  // ***********************************************************************
+  std::string line;
+  string LGTraceFlag;
+  while(1) {
+	std::getline(ifs,line);
+	if (ifs.eof() ) {
+      break;   //and we are done!
+    }
+    // check if its a trace line
+	istringstream is(line);
+    is >> LGTraceFlag;
+	if ( LGTraceFlag == "**LowGainTrace##" ) {
+	  is >> fNumPes;
+	  is >> fHighSize;
+      is >> fTemplateIndex;
+	  is >> fLinearity;
+	  for ( int j = 0; j < 16; j++) {
+		is >> pLGTrace[j];
+	  	if (ifs.eof() ) {
+		  std::cout << " Error reading in ksAomageaLog file" << std::endl;
+		  exit(1);
+		}
+	  }
+
+	  // Add to TTree
+	  traceTree.Fill();
+	}
+  }
+  traceTree.Write();
+return;
+}
+// ***********************************************************************
+
+void initVegasLowGainAnalysis(string LowGainTemplateROOTFileName,
+							  string LowGainTransFuncROOTFileName)
+{
+   pfLowGainAnalyser = new VALowGainTraceTemplateFitAnalysis(
+ 					 LowGainTemplateROOTFileName,LowGainTransFuncROOTFileName);
+}
+// ***********************************************************************
+
+float GetCharge(std::vector<float> const & samples)
+{
+  // *******************************************************************
+  // This is the guts of the VALowGainTraceTemplateFitAnalysis::getCharge()
+  // routine that doesn't use any of the arguments of that routine but 
+  // "samples"
+  // *******************************************************************
+  // Set up default values that arn't used anywhere
+  uint16_t telID=0;
+  uint16_t chanID=0;
+  
+  //Needs: sADCSamplingPeriod (should be 2ns I think
+  //       sHiLoGainRatio=6.0? 5.8? 5.2? 4.95?
+
+  // construct vector of sample times
+  std::vector<float> sampleTimes;
+  for(int iSample = 0; iSample < samples.size(); ++iSample) {
+	sampleTimes.push_back(iSample*sADCSamplingPeriod);
+  }
+
+  // encapsulate the trace data and metadata
+  VALowGainTraceLookupDatum channelTraceDatum(telID, chanID, sampleTimes, 
+											  samples);
+  // set name and title appropriately
+  std::stringstream traceName;
+  std::stringstream traceTitle;
+  traceName << "obsLowGainTrace_t" << telID << "_c" << chanID;
+  traceTitle << "Observed Low Gain Trace for telescope " << telID 
+			 << ", channel " << chanID;
+  channelTraceDatum.SetNameTitle(traceName.str().c_str(), 
+								 traceTitle.str().c_str());
+    
+  // The template fitting minimizer returns an integer status flag
+  int fitMinimizerStatus(0);
+  // The fit statistic returned by the template fitting algorithm
+  float fitStat(-1.0);
+  // invoke the trace fitting algorithm
+  
+  float charge(0.0);
+  hiLoRatio = sHiLoGainRatio;
+ 
+  bool foundMatchingTemplate = 
+	fLowGainTraceAnalysis->deriveBestFitTemplate( channelTraceDatum, 
+												  fitMinimizerStatus, fitStat);
+  // retrieve the data and metadata that correspond to the best-fitting 
+  // trace template.
+  if(foundMatchingTemplate ) {
+	VALowGainTraceLookupDatum const & bestMatchTrace = 
+   fLowGainTraceAnalysis->pfLowGainTraceFitter->getBestResult().mTemplateTrace;
+
+
+	// integrate the trace to obtain an equivalent high-gain trace.
+	bool gotLGCharge = 
+	  fLowGainTraceAnalysis->computeLowGainCharge(charge, bestMatchTrace);
+	if( gotLGCharge) {
+	  return charge*hiLoRatio;
+	}
+  }
+  return charge;
+}
+// *************************************************************************
+
+void LowGainChageConversionValidation(string KSAomegaLogFileName,
+									  string LowGainTemplateROOTFileName,
+									  string LowGainTransFuncROOTFileName)
+// **********************************************************************
+// Tests of VEGAS LowGain charge calculation 
+// **********************************************************************
+// Read in the traces from the KASCADE geenerated LowGain Traces file
+// Using VEGAS/ Logain conversion generate expected trace charge
+// Make diagnostic plots of actual charge(hg) vs VEGAS generated charge
+// **********************************************************************
+{
+  initVegasLowGainAnalysis(LowGainTemplateROOTFileName,
+						                     LowGainTransFuncROOTFileName);
+  readInSimTraces(KSAomegaLogFileName);
+  int numTraces = simTracesTree.getEntries(); 
+
+  for (int i=0; i<numTraces; i++){
+	simTracesTree.getEntry(i);
+	std::vector<float> const  samples;
+	for (int k=0; k < 16; k++) {
+	  samples.push_back(pLGTrace[k]);
+	}
+
+	// This needs: sADCSamplingPeriod
+	//             sHiLoGainRatio    
+	double equivCharge=GetCharge
+
+	cout << i << ": " << fNumPes << " " << fTemplate << " " << fHighSize 
+		 << " " << equivHGSize<< std::endl;
+  }
+  return;
+}
+// *************************************************************************
+
+CHECK on sADCSamplingPeriod,sHiLoGainRatio, low gain pedestal subtraction!!!!
