@@ -1,0 +1,27 @@
+set arg new  /depot/veritas/apps/veritasHansen/KASCADEDev/inputs/lowGainTemplateLookupV6withTimeSpread.root /depot/veritas/apps/veritasHansen/KASCADEDev/inputs/hamamatsu_low_gain_to_high_gain_transfer.root  /scratch/hansen/s/sembrosk/workingScratch/124700652/KSAomegaWUG12.5TeV.log
+
+
+
+
+VALowGainTraceAnalysis.cpp: 363
+VALowGainTraceAnalysis.cpp: 428
+VALowGainTraceAnalysis.cpp: 422
+VALowGainTransferFunction.cpp:110
+
+
+
+break VATraceEvaluator.cpp:819
+
+A.ReadFile("g2.tmp","HGSize/F:sHGSize:sLGSize:NPES:sTMPLT:sLin:HiLoratrat:sHILORatio:samplSum:tmpltAmp:tmpltLin:fitStatus")
+
+
+
+VATraceEvaluator.cpp:1384                computeLowGainDiagnostics after call
+VALowGainTraceAnalysis.cpp:340           deriveBestFitTemplate call
+VALowGainTraceAnalysis.cpp:354           computeLowGainCharge call
+
+
+saturated traces:
+4936 4451.6 5230.47 1019.86 998 1 0.945 5.76908 5.12862 1116 0 0 0
+
+0 908.35 934.982 192.312 178 0 1 5.05396 4.8618 289 0 0 0
