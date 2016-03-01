@@ -38,7 +38,7 @@ class KSFADC
 			      int waveFormStartIndex, 
 			      int numSamplesTrace, double pedestalFADC);
   bool   clipTrace();
-
+  int    getFADCTraceMax();
   std::vector<int> fFADCTrace;
   int    fFADCLoTraceStart;
   double fDigCntsPerPEHiGain;

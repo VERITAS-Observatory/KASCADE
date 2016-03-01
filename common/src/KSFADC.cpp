@@ -2,7 +2,8 @@
  * \class KSFADC
  * \ingroup common
  * \brief File of methods for KSFADC.
- * Original Author: Glenn H. Sembroski * $Author$Date$
+ * Original Author: Glenn H. Sembroski 
+ * $Author$Date$
  * $Revision$
  * $Tag$
  *
@@ -104,14 +105,15 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       double highGainAmplitudePE = pWaveForm->GetWaveFormMax();
       double highGainAmplitudeDC = highGainAmplitudePE * fDigCntsPerPEHiGain;
       double highGainAmplitudeMV = highGainAmplitudeDC * gHighGainMVPerDC;
+	  double highGainTraceAmplitudeDC = getFADCTraceMax();
 
       double highGainNumPES      = pWaveForm->GetNumPES();
       double highGainIsochronicAmplitudeMV = 
-                     highGainNumPES * fDigCntsPerPEHiGain * gHighGainMVPerDC;
+		              highGainNumPES * fDigCntsPerPEHiGain * gHighGainMVPerDC;
 
       //double highGainAreaPE      = pWaveForm->GetWaveFormSum();
 
-       // **********************************************************
+	  // **********************************************************
       // Build the low gain wave form using the appropriate template and 
       // linearity 
       // *********************************************************
@@ -154,7 +156,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       // we will mutilpy by fDigCntsPerPEHiGain (DC/PE) in the call to
       // generateTraceSamples() 
       // *****************************************
-       pWaveForm->ScaleWaveForm(scaleFactor);
+	  pWaveForm->ScaleWaveForm(scaleFactor);
  
       // *******************************************************************
       // Now make the trace, and get resulting "size:charge"
@@ -170,39 +172,42 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       
       int cl=0;
       if(clipTrace()) {//For really big pulses this might be needed.
-	cl=1;
+		cl=1;
       }
 
       if(fDebugPrint) {
-	double lowGainSizeDC  = lowGainChargeDC  - 
+		double lowGainSizeDC  = lowGainChargeDC  - 
                                           (numSamplesTrace * fLowGainPedestal);
-	double highGainSizeDC = highGainChargeDC - 
+		double highGainSizeDC = highGainChargeDC - 
                                           (numSamplesTrace * fFADCTracePed);
-	//double highLowPEAreaRatio = highGainAreaPE / lowGainAreaPE;
-
-	std::cout 
-	  //       //<< "n,hiQ,hiDC,hiMV,i,loQ,cl,,hiMeanSizeMV,Lin,fwhm: " 
-	  << pWaveForm->GetPECount()  << " " 
-	  << highGainSizeDC << " " 
-	  //<<  highLowPEAreaRatio << " " 
-	  << highGainAmplitudeDC << " " 
-	  << highGainIsochronicAmplitudeMV << " "
-	  << pWaveForm->GetLowGainIndex() << " " 
-	  << lowGainSizeDC << " " 
-	  << cl << " " 
-	  << pWaveForm->GetSize() << " "
-	  << pWaveForm->GetLinearity() <<" "
-	  << pWaveForm->GetWaveFormFWHMns() << " ";
+		double lowGainTraceAmplitudeDC = getFADCTraceMax();
+		double HGtoLGLinearity =  (double) lowGainTraceAmplitudeDC / 
+	                                         (double) lowGainTraceAmplitudeDC; 
+		//double highLowPEAreaRatio = highGainAreaPE / lowGainAreaPE;
+		
+		std::cout << "**LowGainTrace##" << " " 
+				  << pWaveForm->GetPECount() << " " 
+				  << highGainSizeDC << " " 
+				  << pWaveForm->GetLowGainIndex() << " " 
+				  << pWaveForm->GetLinearity() << " ";
        
-	// *******************************************************************
-	// Add on the fadc trace
-	// *******************************************************************
-	for (int m=0; m< (int) fFADCTrace.size(); m++) {
-	  std::cout<<fFADCTrace.at(m)<<" ";
-	}
-	std::cout<<std::endl;
+		// *******************************************************************
+		// Add on the fadc trace
+		// *******************************************************************
+		for (int m=0; m< (int) fFADCTrace.size(); m++) {
+		  std::cout<<fFADCTrace.at(m)<<" ";
+		}
+		std::cout << lowGainSizeDC << " " 
+				  << HGtoLGLinearity << " ";
+		//<<  highLowPEAreaRatio << " " 
+		//<< highGainAmplitudeDC << " " 
+		//<< highGainIsochronicAmplitudeMV << " "
+		//<< cl << " " 
+		//<< pWaveForm->GetSize() << " "
+		//<< pWaveForm->GetWaveFormFWHMns() << " ";
+		std::cout<<std::endl;
       }
- 
+	  
     }
   // ***********************************************************************
   return;
@@ -319,6 +324,16 @@ bool KSFADC::clipTrace()
   }
   return isClipped;
 }
+// ************************************************************************
+
+int KSFADC::GetFADCTraceMax()
+{
+  std::vector< int >::iterator it; 
+  // ******From max of Trace
+  it = max_element(fFADCTrace.begin(), fFADCTrace.end());
+  return  *it;
+}
+// *********************************************************************
 
       
 
