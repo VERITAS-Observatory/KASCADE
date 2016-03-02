@@ -80,6 +80,7 @@ using namespace std;
 
 VALowGainTraceTemplateFitAnalysis* lgAnalyserInstance;
 VATraceEvaluatorLowGainDiagnostics* evaluatorInstance;
+VALowGainTraceFitter* lowGainTraceFitter;
 
 VAArrayInfo* info;
 VAQStatsData* peds;
@@ -235,9 +236,12 @@ void initVegasEvaluatorInstance(string LowGainTemplateROOTFileName,
   
   evaluatorInstance = new VATraceEvaluatorLowGainDiagnostics(info, peds, 
 								 tOffsets, relativeGains);
+  
+
   // ****************************************************************
   // The following are all static so we can set them before we generate an 
-  // instance of VALowGainTraceTemplateFitAnalysis
+  // instance of VALowGainTraceTemplateFitAnalysis.
+  //THE  VALowGainTraceTemplateFitAnalysis CONSTRUCTOR NEEDS THEM!
   // ****************************************************************
   VALowGainTraceTemplateFitAnalysis::sUnsaturatedThreshold = 
 	                                                   kUnsaturatedThreshold;
@@ -248,9 +252,16 @@ void initVegasEvaluatorInstance(string LowGainTemplateROOTFileName,
   VALowGainTraceTemplateFitAnalysis::sADCSamplingPeriod = 
                                                        kFADCSamplingPeriodNS;
 
+
   lgAnalyserInstance = new VALowGainTraceTemplateFitAnalysis(
 				 LowGainTemplateROOTFileName,LowGainTransFuncROOTFileName);
   evaluatorInstance->setLowGainTraceAnalyzer(lgAnalyserInstance);
+  // **********************************************************************
+  // Set up to use the mutable pointeres and references.
+  // Don't really understand how this works but gets us past the 
+  // protected/public issue
+  // **********************************************************************
+  lowGainTraceFitter       = lgAnalyserInstance->getLowGainTraceFitter();
 
   // *******************************************************************
   // Set HiLo gain ratio. Default is 6.0 or 5.8  etc. 
@@ -385,7 +396,9 @@ int main(int argc, char** argv)
   // simTemplate == 0  is unsaturated template 1.0, 15000  Ideal template
   // simTemplate == 1  is first saturated template 16300 0.945  
 
-
+  bool & tracePropertiesEvaluated = 
+	                        evaluatorInstance->getLGTracePropertiesEvaluated();
+  bool & traceIsSaturated         = evaluatorInstance->getLGTraceIsSaturated();
   
   for (int j=0; j<numTraces; j++){
 	pSimTraceTree->GetEntry(j);
@@ -405,10 +418,11 @@ int main(int argc, char** argv)
 	const uint32_t windowWidth = 16;     //in samples
 	const float    pedestal    = samplePedestal*windowWidth;
 
-	evaluatorInstance->fLGTracePropertiesEvaluated=false; 
-	
-
-	  
+	// ********************************************
+	// Enables a new template/trace fitting call within the getCharge call
+	// ********************************************	
+	tracePropertiesEvaluated = false;
+   
 	double equivHGSize = evaluatorInstance->getCharge(event, samples, 
 														windowStart, 
 														windowWidth,
@@ -417,16 +431,16 @@ int main(int argc, char** argv)
 	double templateLinerity  = 0;
 	int fitMinimizerStatus   = 0;
 	int satFlag              = 0;
-	if ( evaluatorInstance-> fLGTraceIsSaturated ) {
+	if ( traceIsSaturated ) {
 	  satFlag = 1;
-	  templateAmplitude = lgAnalyserInstance->pfLowGainTraceFitter->
-		getBestResult().mTemplateTrace.getAmplitude();
+	  templateAmplitude = 
+		   lowGainTraceFitter->getBestResult().mTemplateTrace.getAmplitude();
 	  
-	  templateLinerity = lgAnalyserInstance->pfLowGainTraceFitter->
-		getBestResult().mTemplateTrace.getLinearity();
+	  templateLinerity = 
+		   lowGainTraceFitter->getBestResult().mTemplateTrace.getLinearity();
 	  
-	  fitMinimizerStatus =  lgAnalyserInstance->pfLowGainTraceFitter->
-		getBestResult().mMinuitFitStatus;
+	  fitMinimizerStatus =
+		                lowGainTraceFitter->getBestResult().mMinuitFitStatus;
 	}
 	
 	int numSamples=(int)samples.size();
