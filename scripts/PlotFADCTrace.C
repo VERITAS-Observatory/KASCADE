@@ -20,15 +20,31 @@ const double kNSPerSsample = 2.0;
 const int    kNumTraceBins = 32;
 const double kBinSpacingNS  = .25;
 
-int   trace[kNumTraceBins];
-int   tsize;
-float linearity;
 
-TTree   A;
+TTree   LGFADCTraces;
+int   numClipped;
+
+// KSAomega LGFADCTraces  TTree definiutions
+float numPes;
+int   tIndex;
+int   amplitude;
+float linearity;
+int   numSmpl;
+int   trace[kNumTraceBins];
+
+float fHighSize;
+float fLowSize;
+
+
 TGraph* tmpltGraph;
-int     baseTraceIndex;
-int     tmpltSize;
+
+// "Amp" and "Lin" for output file.
+int     tmpltAmplitude;
 double  tmpltLinearity;
+
+// Vector to hold average lgain(n): Amplitude of pulse is Amp=lgain(n)*NPES
+std::vector <double> timeSpreadLGain(50,0.0); 
+
 
 class TracePair
 {
@@ -55,15 +71,91 @@ int Round(double number)
 }
 // ***************************************************************************
 
+bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
+// ***********************************************************************
+// Read in from the KASCADE ksSAomega Log file which had the fDepugPrint in 
+// ksAomega KSFADC.cpp enabled, the debug low gain trace lines. Place into a 
+// TTree
+// ***********************************************************************
+{
+  // ********************************************************************
+  // Inorder to speed things up the code will be able to use a ksAomega Log 
+  // file as is. All the lowgain trace lines will start wiht "**LowGainTrace##"
+  // ********************************************************************
+
+  // ******************************************************************
+  // Define the branches in the internal TTree
+  // ******************************************************************
+  LGFADCTraces.Branch( "numPes",        &numPes,             "numPes/I");
+  // LGFADCTraces.Branch( "hiSize",      &fHighSize,            "hiSize/F");
+
+  LGFADCTraces.Branch( "tIndex", &tIndex,            "tIndex/I");
+  LGFADCTraces.Branch( "linearity",   &linearity,         "linearity/F");
+  LGFADCTraces.Branch( "amplitude",   &amplitude,         "amplitude/I");
+
+  // LGFADCTraces.Branch( "loSize",       &fLowSize,            "loSize/F");
+
+  LGFADCTraces.Branch( "numSmpl",      &numSmpl,            "numSmpl/I");
+  LGFADCTraces.Branch( "trace",         &trace,      "trace[numSmpl]/I");
+  // address of an address for an array (only on Branch , not SetBranchAddress)
+
+  // ***************************************************
+  //Open the input file
+  // ***************************************************
+  std::ifstream ifs( KSAomegaLogFileName.c_str());
+  if (! ifs) {
+    std::cout<<" Fatal- Can not open "<< KSAomegaLogFileName << std::endl;
+    exit(1);
+  }
+
+  // ***********************************************************************
+  // Read in all the lines form the log file.
+  // Only process those beginning with "**LowGain##"
+  // Add them to the TTree
+  // ***********************************************************************
+  std::string line;
+  string LGTraceFlag;
+  while(1) {
+	std::getline(ifs, line);
+	if (ifs.eof() ) {
+      break;   //and we are done!
+    }
+    // check if its a trace line
+	istringstream is(line);
+    is >> LGTraceFlag;
+	if ( LGTraceFlag == "**LowGainTrace##" ) {
+	  is >> numPes;
+	  is >> fHighSize;
+      is >> tIndex;
+	  is >> linearity;
+	  is >> amplitude;
+	  is >> fLowSize;
+	  is >> numSmpl;
+	  for ( int j = 0; j <  numSmpl; j++) {
+		is >> trace[j];
+	  	if (ifs.eof() ) {
+		  std::cout << " Error reading in ksAomageaLog file" << std::endl;
+		  exit(1);
+		}
+	  }
+	  // Add to TTree
+	   LGFADCTraces.Fill();
+	}
+  }
+  return true;
+}
+// ***********************************************************************
+
 
 void PlotTraceInit(std::string fileName)
 {
-  A.ReadFile(fileName.c_str(),"n/I:hiSize/F:hiDC:hiMV:i/I:loSize/F:cl/I:S:L/F:fwhm:trace[32]/I");
+  LGFADCTraces.ReadFile(fileName.c_str(),"n/I:hiSize/F:tmplt/I:Lin/F:Amp:L/F:loSize:numSmpl/I:trace[numSmpl]");
 
-  A.SetBranchAddress("i",&baseTraceIndex);
-  A.SetBranchAddress("trace",&trace);
-  A.SetBranchAddress("S",&tsize);
-  A.SetBranchAddress("L",&linearity);
+  LGFADCTraces.SetBranchAddress("tmplt",   &tIndex);
+  LGFADCTraces.SetBranchAddress("Lin",     &linearity);
+  LGFADCTraces.SetBranchAddress("Amp",     &amplitude);
+  LGFADCTraces.SetBranchAddress("numSmpl", &numSmpl);
+  LGFADCTraces.SetBranchAddress("trace",   &trace);
 }
 
 
@@ -71,7 +163,7 @@ bool PlotTrace(int n, TTree* hilo, int tmpl, bool normalize = true, std::string 
 {
   int pedestal=6.5;
   hilo->GetEntry(n);
-  if (baseTraceIndex == tmpl) {
+  if (tIndex == tmpl) {
     TH1D* tr=new TH1D("tr","tr",kNumTraceBins,0,kNumTraceBins);
     double tMax=0;
     
@@ -134,24 +226,42 @@ void PlotFADCTraces(TTree* hilo, int tmpl, bool normalize=true, int maxEnt=10,st
 // came from washU.
 // **********************************************************************
 
-bool GetNextTrace(int noSpreadTemplateID, int& startTraceIndex)
+bool GetNextTrace(int noSpreadTemplateID, int& startTraceIndex) 
 // ******************************
 //Results are in in trace[]
 // ******************************
 {
-  int numEntries=A.GetEntries();
+  int numEntries=LGFADCTraces.GetEntries();
   while(1) {
     if ( startTraceIndex > numEntries -1) {
       return false;
     }
-    int numBytes = A.GetEntry(startTraceIndex); //Fills trace,tsize and 
-                                                //linearity
+	// *************************************************
+	//Fill trace,amplitude and linearity
+    // *************************************************
+	int numBytes = LGFADCTraces.GetEntry(startTraceIndex);
+                                             
     if (numBytes == 0) {   //No such entry!!! How do we get here?
       return false;
     }
-    if (baseTraceIndex == noSpreadTemplateID) {
-      return true;
-    }
+	// ****************************************************
+	// We wat to ignore clipped traces
+	// ****************************************************
+	//"trace[numSmpl]
+	int maxOfTrace = 0;
+	for (int i = 0; i <numSmpl; i++) {
+	  if (trace[i] > maxOfTrace ) {
+		maxOfTrace=trace[i];
+	  }
+	}
+    if (tIndex == noSpreadTemplateID) {
+	  if ( maxOfTrace == 255) {
+		numClipped ++;
+	  }
+	  else{
+		return true;
+	  }
+	}
     startTraceIndex++;
   } 
 }
@@ -160,11 +270,13 @@ bool GetNextTrace(int noSpreadTemplateID, int& startTraceIndex)
 void GetPeakLocationAndValue(double& basePeakLocation,  
 			     double& traceAmplitudeDC)
 // **********************************************************************
-// Put the trace into a histogram, fit a gaussian to it and return the
-// peak location in samples and the trace fitted max amplitude in DC
+// Put the trace into a histogram, removed pedestal, fit a gaussian to it and 
+// return the peak location in samples and the trace fitted max amplitude in DC
+// Amplitude will be used to determine Timeshifted Linearity
 // **********************************************************************
 {
-  TH1D* pTemplateHist = new TH1D("templateHist","templateHist",kNumTraceBins,0.5,kNumTraceBins+.5);
+  TH1D* pTemplateHist = new TH1D("templateHist","templateHist",kNumTraceBins,
+								 0.5,kNumTraceBins+.5);
   // *****************************************************
   // Load it up with our trace
   // *****************************************************
@@ -242,8 +354,8 @@ void GraphTemplate(std::vector < TracePair >& tmplt   )
 
 void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
 // **********************************************************************
-// Append a "*" (except for the first entry) then the size and linearity pair 
-// of this template (origen) to 
+// Append a "*" (except for the first entry) then the amplitude and linearity 
+// pair of this template (origen) to 
 // the output file , Average this template over .1 ns and append the resulting
 //  time/pulseHeight pairs to the output file.
 // Don't forget to invert to match standard template format.
@@ -272,7 +384,7 @@ void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
   // **********************************************************************
   // Transfer to the template file the size and linearity of this template
   // **********************************************************************
-  outFile<<tmpltSize<<" "<<tmpltLinearity<<endl;
+  outFile<<tmpltAmplitude<<" "<<tmpltLinearity<<endl;
 
   // ***********************************************************************
   // Now average over bin size of .1 ns
@@ -400,7 +512,7 @@ void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
 
 // ********************************************************************
 
-void GenerateSimTemplates(int noSpreadTemplateID, int numToUse, 
+bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse, 
 			  std::string fileOut, bool saveTmplt=true)
 // ************************************************************************
 // Find numToUse traces for templates made from noSpreadTemplateID, line them 
@@ -420,16 +532,17 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   // We need to pickup the first trace with the noSpreadTemplateID
   // ******************************************
   int startTraceIndex=0;
+  numClipped = 0;
   //Results in trace[], pedestal removed
   bool gotOne=GetNextTrace(noSpreadTemplateID,startTraceIndex);
   if(!gotOne) {
-    std::cout<<"Fatal no such trace"<<std::endl;
-    exit(1);
+    std::cout<<"No such trace "<< noSpreadTemplateID << std::endl;
+    return false;
   }
   // **********************************************************************
-  // Save the size and linearity of this template
+  // Save the Amplitude and linearity of this template
   // **********************************************************************
-  tmpltSize=tsize;
+  tmpltAmplitude=amplitude;
   tmpltLinearity=linearity;
 
   // ********************************************
@@ -438,6 +551,11 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   double basePeakLocation;
   double traceAmplitude;
   GetPeakLocationAndValue(basePeakLocation,  traceAmplitude);
+  
+
+  double traceLGainSum =  traceAmplitude/numPes;  //init the sum
+
+
   std::cout<<"basePeakLocation,traceAmplitude: "<<basePeakLocation<<" "
 	   <<traceAmplitude<<std::endl;
 
@@ -451,8 +569,8 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   // ********************************************
   // Now go through the remaining traces
   // ********************************************
-
-  for(int i=1; i<numToUse; i++) {
+  int numProcessed;
+  for(numProcessed = 1;  numProcessed<numToUse; numProcessed++) {
 
     startTraceIndex++;  //Bump to next one to test.
 
@@ -460,21 +578,42 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
     bool gotATrace = GetNextTrace(noSpreadTemplateID, startTraceIndex);
     if(!gotATrace) {
       std::cout<<"Not enough traces after first"<<std::endl;
-      std::cout<<"Wanted "<<numToUse<< " got "<< i <<std::endl;
+      std::cout<<"Wanted "<<numToUse<< " got "<< numProcessed <<std::endl;
       break;
     }
     
     double peakLocation;
     GetPeakLocationAndValue(peakLocation, traceAmplitude);
-    
+	traceLGainSum += traceAmplitude/numPes;
+
     double sampleOffset= (peakLocation -basePeakLocation);
-    std::cout<<"noSpreadTemplateID,startTraceIndex,peakLocation,traceAmplitude,sampleOffset: "
+    std::cout<<"noSpreadTemplateID,startTraceIndex,peakLocation,"
+	           "traceAmplitude,sampleOffset: "
 	     << noSpreadTemplateID << " " << startTraceIndex << " " 
 	     << peakLocation
 	     <<" " <<traceAmplitude << " " << sampleOffset << std::endl;
 
     SaveShiftedNormalizedTrace(sampleOffset, traceAmplitude, tmplt);
 
+  }
+  // ****************************************************************
+  // Determine average amplitude this low gain pulse
+  // We can improve this a bit. by look at HGSize logain size etc.
+  // This is just the simplest
+  // ****************************************************************
+  timeSpreadLGain.at( noSpreadTemplateID ) = traceLGainSum/numProcessed;
+  std::cout <<  noSpreadTemplateID << ": Old Lin: " << tmpltLinearity 
+			<< " New Lin : ";
+  // *********************************************************
+  // Determin Linearity of timespread traces. Put into global variable
+  // *********************************************************
+  tmpltLinearity =  timeSpreadLGain.at(noSpreadTemplateID) / 
+                                                   timeSpreadLGain.at(0);  
+  std::cout << tmpltLinearity << std::endl;
+
+  if ( numClipped != 0 ) {
+	std::cout<< "Ignorred " << 	numClipped << " clipped traces! " 
+			 << std::endl;
   }
 
   // Degbug
@@ -497,11 +636,82 @@ void GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   // Now save sorted pulse to text file
   // **********************************************************************
   if ( saveTmplt) {
-    SaveToTextFile(tmplt,fileOut);
+	//"Lin" and "Amp" from global variab lestmpltLinearity and  tmpltAmplitude 
+    SaveToTextFile(tmplt,fileOut); 
   }
-  //GraphTemplate(tmplt);
- return;
+  GraphTemplate(tmplt);
+ return true;
+}
+// ************************************************************************
+
+
+void TemplateFileGen(string KSAomegaLogFileName, string PMTType, 
+					 string LGTemplatesFileName)
+// ************************************************************************
+// PMTType can be "photonis" or "hamamatsu"
+// 1.Parse through the KSAomega log file which has in KSFADC.cpp fDebugPrint
+// set to true. This file has all time spread low gain traces that were 
+// generated as output lines which look like:
+// **LowGainTrace## 998 5230.47 1 0.945  1019.86 16 9 19 49 97 151 172 150 108
+//                   78 61 50 42 36 34 31 29
+// Above is a 16 sample example. The lines are read in and placed in 
+// TTree LGFADCTraces
+// 2. Iterate through the template indexes generating the average trace shape 
+// for each template.  Also calculate the expected linearity (template 0 is 
+// defined to have linearity of 1.0, all other template linearitys are 
+// relative to its amplitude.
+// 3. Save each nomalized (peak ==1), averaged, with new linearity and old HG 
+// amplitude (we may want to look at that some day).
+// *************************************************************************
+{
+  // *****************************************************
+  // Read the traces from the log file and place in the  LGFADCTraces TTree
+  // *****************************************************
+  ReadSimTracesFromLogFile(KSAomegaLogFileName);
+
+  // ******************************************************
+  // Loop through the indexes generating ave trace
+  // Number of individual traces varies by template. Determine by hand and 
+  // hardwired here. Default to 100 for now and 30 templates max
+  // *******************************************************
+
+  std::vector < int > numTracesToUse(100,30);
+
+  int numTemplates;
+  if ( PMTType == "hamamatsu" ) {
+	numTemplates = 4;
+  }
+  else{
+	numTemplates = 29;
+  }	
+
+  for (int i = 0; i < numTemplates; i++) {
+	
+	GenerateSimTemplates(i, numTracesToUse.at(i) ,  LGTemplatesFileName, true);
+  }
+  
+
 }
 
+// *************************************************************************
 
+/*
+Needs TCanvas defined!!!!!!!!!!!!!!!!!
+void MassPlot(int numTraces,int startTmplt, int numToPlot = 9)
+// *******************************************************************
+// To make sure tcombined average traces look good before making Template file
+// ******************************************************************
+{
+  GenerateSimTemplates(0,,"g.tmp",false);
+  c1->Clear();
+  c1->Divide(3,3);
+  
+  for (int i=0; i<numToPlot;i++){
+	c1->cd(i+1);
+	int template=startTmplt+i;
+	GenerateSimTemplates(template,numTraces,"g.tmp",false);
+  }
+}
+*/
 
+  
