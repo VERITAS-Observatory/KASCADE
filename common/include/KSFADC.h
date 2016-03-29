@@ -22,13 +22,15 @@ class KSFADC
  private:
   KSCameraTypes fCameraType;
   TRandom3* pRandom;
- 
+  double fLowGainToHighGainPeakRatio;
+
  public:
   KSFADC();
   ~KSFADC();
   void SetCameraType(KSCameraTypes CameraType);
   void SetDigCntsPerPEGains(double fDigCntsPerPEHiGain);
-
+  void SetLowGainToHighGainPeakRatio(double LowGainToHighGainPeakRatio) 
+         {fLowGainToHighGainPeakRatio = LowGainToHighGainPeakRatio; return;};
   void makeFADCTrace(KSWaveForm* pfWaveForm, int waveFormStartIndex,
 		     int traceLengthBins, bool EnableHiLoGainProcessing, 
 		     double FADCTracePed, double lowGainPedestalFADC);

@@ -36,7 +36,8 @@ class KSPixel
 {
  public:
   KSPixel(KSCameraTypes CameraType, double DigCntPerPEHiGain, 
-	  double SinglePeRiseTimeNS, double SinglePeFallTimeNS);
+		  double SinglePeRiseTimeNS, double SinglePeFallTimeNS,
+		  double lowGainToHighGainPeakRatio);
   virtual ~KSPixel();
   void InitPixelWaveForm();
 
@@ -63,15 +64,18 @@ class KSPixel
 
  private:
   //void addPe(double fPeTime,bool afterPulse);
-  double getMeanFADCArea(KSCameraTypes fCameraType, double scaledPulseHeight,
-			 double numPesInPulse);
+  double getMeanFADCArea(KSCameraTypes fCameraType, double HVGain,
+						 int numPesInPulse, double timeSpread, 
+						 int startFADCBin, int endFADCBin);
   double getLowGainMeanFADCArea(KSCameraTypes fCameraType,  int templateIndex,
-				int numPesInPulse);
+								int numPesInPulse, 
+								double timeSpread, int startFADCBin, 
+								int endFADCBin);
 
   float fXDummy;
   KSCameraTypes fCameraType;
   TRandom3* pfRandom;
- 
+  double fLowGainToHighGainPeakRatio; 
  public:
   KSSinglePe* pfSinglePe;
   KSFADC fFADC;
@@ -115,10 +119,17 @@ class KSPixel
   bool   fBadPixel; 
 
   //Single pe stuf
-  double fSinglePeArea;
+  double fSinglePeArea; //Area of our single pe waveform pulse. NOT in DC!
+
   double fSinglePeMeanFADCAreaNoRounding;
+  double fSinglePeMeanFADCAreaNoRounding7Bins;
+  double fSinglePeMeanFADCAreaNoRounding16Bins;
   double fSinglePeMeanFADCArea;
+  double fSinglePeMeanFADCArea7Bins;
+  double fSinglePeMeanFADCArea16Bins;
   double fLowGainTmplt0FADCAreaNoRounding;
+  double fLowGainTmplt0FADCAreaNoRounding7Bins;
+  double fLowGainTmplt0FADCAreaNoRounding16Bins;
   double fSinglePeSizeNS;
   int    fSinglePeSizeNumBins;
 };

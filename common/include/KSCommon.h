@@ -51,10 +51,10 @@ const double gElectFADCNoiseSigmaDC[2]   = {         .35,         0.0};
 //const int    gFADCNumSamples[2]          = {          20,          10};
 
 //Oct 2012 Upgrade:
-const int    gFADCNumSamples[2]          = {          16,          10};
+//const int    gFADCNumSamples[2]          = {          16,          10};
 
 //  Template building
-//const int    gFADCNumSamples[2]          = {          32,          10};
+const int    gFADCNumSamples[2]          = {          32,          10};
 
 const int    gFADCWinSize[2]             = {           7,          10};
 const double gFADCDigCntsPerPEHiGain[2]  = {        1.61,         0.0};
@@ -115,6 +115,11 @@ const double gSinglePeFallTimeNS[2]      = {         4.75,         8.5};
 
 //const double gSinglePeFallTimeNS[2]      = {        10.0,         8.5};
 
+//const double gLowGainToHighGainRatioHamamatsu = 0.099;//Nepomuk2014
+const double gLowGainToHighGainRatioHamamatsu = 0.09756;//Thanh2016
+const double gLowGainToHighGainRatioPhotonis  = 0.13298;//Thanh2016
+
+
 
 
 //WHIPPLE490 Outer rings: 3 rings, 37 pmts/ring in a circle no lightcones
@@ -136,8 +141,7 @@ const double gWaveFormBinSizeNS = .25;     // Bin size in ns
 const double gFADCBinSizeNS              = 2.0;
 const int    gFADCHiLoGainThreshold      = 250;
 const int    gFADCLowGainLookBackBins    = 24;//note:8bins=1sample=2ns
-const double gLowGainToHighGainPeakRatio = 0.099; //Nepomuks value
-const double gHighGainMVPerDC             = 7.84;  //Nepomuks value
+const double gHighGainMVPerDC            = 7.84;  //Nepomuks value
 const double gFADCHiLoGainRatio          = 6.00;
 
 const double gTrigMultiplicityWidthNS    = 10.0;  // WHIPPLE490 CFD Pulse width
@@ -147,8 +151,8 @@ const int    gAbsNXAbsNYMax              = 16000;    //Ranges of nx,ny
 const double gPulseHeightForMeanFADCArea = 1.7391;
                                  //Flasher singlePe HV induced gain
                                  //Assumes increasing HV by 10% increases
-                                 //gain by 1.7391
-                                 //Think about it!
+                                 //gain by 1.7391. After use we divide back it
+                                 // out Think about it!
 
 //Upgrade
 const std::string gDefaultStartOfRunTime="2007-09-11 00:02:00 UTC";

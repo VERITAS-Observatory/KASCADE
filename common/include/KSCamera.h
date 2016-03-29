@@ -41,10 +41,10 @@ class KSCamera
   //	                  bool fUsePatternTrigger, double fDigCntPerPEHiGain);
 
   KSCamera(KSCameraTypes Camera, KSTeHeadData* pTeHead, 
-	   bool fUsePatternTrigger, double fDigCntPerPEHiGain,
-	   double fNoiseRateSigma, int numPixelsInTrigger,
-	   double SinglePeRiseTimeNS, double SinglePeFallTimeNS, 
-	   double PSFNSDeg=-1.0, double PSFEWDeg=-1.0);
+		   bool fUsePatternTrigger, double fDigCntPerPEHiGain,
+		   double fNoiseRateSigma, int numPixelsInTrigger,
+		   double SinglePeRiseTimeNS, double SinglePeFallTimeNS, 
+		   bool upgradePMTs, double PSFNSDeg=-1.0, double PSFEWDeg=-1.0);
  private:
   void InitCamera(KSTeHeadData* pTeHead,bool usePatternTrigger);
  public:
@@ -69,7 +69,8 @@ class KSCamera
   double fStartTimeOffsetNS;
   double fLastTimeOffsetNS;
   double fLastCFDCrossingNS;
-
+  double fLowGainToHighGainPeakRatio;
+  bool   fUpgradePMTs;
 
   void generateCameraPixels();
   void loadPixelCharacteristics();
