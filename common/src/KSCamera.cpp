@@ -21,17 +21,24 @@ extern "C" double gaussfast();
 // ************************************************************************
 
 KSCamera::KSCamera(KSCameraTypes CameraType, KSTeHeadData* pTeHead, 
-		   bool fUsePatternTrigger, double DigCntsPePE,
-		   double NoiseRateSigma, int numPixelsInTrigger,
-		   double SinglePeRiseTimeNS, double SinglePeFallTimeNS,
-		   double PSFNSDeg, double PSFEWDeg )
+				   bool fUsePatternTrigger, double DigCntsPePE,
+				   double NoiseRateSigma, int numPixelsInTrigger,
+				   double SinglePeRiseTimeNS, double SinglePeFallTimeNS,
+				   bool upgradePMTs, double PSFNSDeg, double PSFEWDeg)
 // ************************************************************************
 // Used by KSEvent and KSArea
 // ************************************************************************{
 {
   fCameraType         = CameraType;
   fDigCntsPerPEHiGain = DigCntsPePE;
-  fDigCntsPerPELowGain = DigCntsPePE*gLowGainToHighGainPeakRatio;
+  fUpgradePMTs        = upgradePMTs;
+  if(fUpgradePMTs) {
+	fLowGainToHighGainPeakRatio = gLowGainToHighGainRatioHamamatsu;
+  }
+  else{
+	fLowGainToHighGainPeakRatio = gLowGainToHighGainRatioPhotonis;
+  }
+  fDigCntsPerPELowGain = DigCntsPePE*fLowGainToHighGainPeakRatio;
   fNoiseRateSigma     = NoiseRateSigma;
   fNumPixelsTrigger   = numPixelsInTrigger;
   fSinglePeRiseTimeNS = SinglePeRiseTimeNS; 
@@ -103,7 +110,7 @@ void KSCamera::InitCamera(KSTeHeadData* pTeHead, bool fUsePatternTrigger)
   // as it is and reset the other elements to each have their own pfWaveForm
   // ***********************************************************************
   KSPixel pixelElement(fCameraType, fDigCntsPerPEHiGain, fSinglePeRiseTimeNS, 
-		       fSinglePeFallTimeNS);
+					   fSinglePeFallTimeNS,	fLowGainToHighGainPeakRatio);
   fPedPixels.clear();
   for (int i=0; i< fNumPixels; i++) {
     fPedPixels.push_back(pixelElement);
@@ -123,19 +130,28 @@ KSCamera::~KSCamera()
 
 void KSCamera::Print()
 {
-  std::cout<<"                        Telescope Focal Length(m) = "
-	   <<fFocalLengthM<<std::endl;
-  std::cout<<"      Focal plane conversion factor in meters/deg = "
-	   <<fMetersPerDeg<<std::endl;
-  std::cout<<"    Facet EastWest misalignment jitter angle(deg) = "
-	   <<fJitterWidthEastWestRad*gRad2Deg<<std::endl;
-  std::cout<<"  Facet NorthSouth misalignment jitter angle(deg) = "
-           <<fJitterWidthNorthSouthRad*gRad2Deg<<std::endl;
-  std::cout<<"                     Effective Mirror diameter(m) = "
-	   <<2*sqrt(fMirrorRadiusSquared)<<std::endl;
+  std::cout << "                        Telescope Focal Length(m) = "
+			<< fFocalLengthM<<std::endl;
+  std::cout << "      Focal plane conversion factor in meters/deg = "
+			<< fMetersPerDeg<<std::endl;
+  std::cout << "    Facet EastWest misalignment jitter angle(deg) = "
+	   << fJitterWidthEastWestRad*gRad2Deg<<std::endl;
+  std::cout << "  Facet NorthSouth misalignment jitter angle(deg) = "
+			<< fJitterWidthNorthSouthRad*gRad2Deg<<std::endl;
+  std::cout << "                     Effective Mirror diameter(m) = "
+			<< 2*sqrt(fMirrorRadiusSquared)<<std::endl;
+  std::cout << "                                         PMT Type = ";
+  if(fUpgradePMTs) {
+	std::cout << "Hamamatsu(Upgrade,V6)" << std::endl;
+  }
+  else {
+	std::cout << "Photonis (V4,V5)" << std::endl;
+  }
+  std::cout << "                       LowGainToHighGainPeakRatio = "
+		  << fLowGainToHighGainPeakRatio << std::endl;
+ 
 
-
-  std::cout<<"Camera Initalized:"<<std::endl;
+ std::cout<<"Camera Initalized:"<<std::endl;
   std::cout<<"             Pixel 1 light Total collection effciency = "
 	   <<fPixel.at(0).fEfficiency<<std::endl;
   std::cout<<"        Pixel 1 Total Light Cone collection effciency = "
@@ -143,19 +159,35 @@ void KSCamera::Print()
  
   std::cout<<std::endl;
 
-  std::cout << "                               For Hi gain of (DC / PE) = " 
+  std::cout << "                                    For Hi gain of (DC/PE) = " 
 	    << fDigCntsPerPEHiGain << std::endl;           
-  std::cout << "                              For Low gain of (DC / PE) = " 
+  std::cout << "                                   For Low gain of (DC/PE) = " 
 	    << fDigCntsPerPELowGain << std::endl;           
-  std::cout << "                    Pixel 1 Mean Hi Gain FADC Area (DC) = "
-	    << fPixel.at(0).fSinglePeMeanFADCArea << std::endl;
-  std::cout << "          Pixel 1 Mean Hi Gain Area (No Round Down)(DC) = "
-	    << fPixel.at(0).fSinglePeMeanFADCAreaNoRounding << std::endl;
-  std::cout << "   Pixel 1 Low Gain Template 0 Area (No Round Down)(DC) = "
-	    << fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding << std::endl;
-  std::cout << " Pixel 1 Template 0 Low Gain to High Gain Charge Factor = "
-	    << fPixel.at(0).fSinglePeMeanFADCAreaNoRounding / 
-               fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding << std::endl;
+
+  std::cout << "      Pixel 1 Mean Hi Gain FADC Area 7 bins(Rounding) (DC) = "
+			<< fPixel.at(0).fSinglePeMeanFADCArea7Bins << std::endl;
+  std::cout << "     Pixel 1 Mean Hi Gain FADC Area 16 bins(Rounding) (DC) = "
+			<< fPixel.at(0).fSinglePeMeanFADCArea16Bins << std::endl;
+
+  std::cout << "                Pixel 1 Mean Hi Gain FADC Area 7 bins (DC) = "
+	    << fPixel.at(0).fSinglePeMeanFADCAreaNoRounding7Bins << std::endl;
+  std::cout << "               Pixel 1 Mean Hi Gain FADC Area 16 bins (DC) = "
+	    << fPixel.at(0).fSinglePeMeanFADCAreaNoRounding16Bins << std::endl;
+
+  std::cout << "                  Pixel 1 Tmplt0 Low Gain Area 7 bins (DC) = "
+			<< fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding7Bins << std::endl;
+  std::cout << "                 Pixel 1 Tmplt0 Low Gain Area 16 bins (DC) = "
+			<< fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding16Bins 
+			<< std::endl;
+
+  std::cout << "          Pixel 1 Tmplt0 High/Low Gain Charge Ratio 7 Bins = "
+			<< fPixel.at(0).fSinglePeMeanFADCAreaNoRounding7Bins / 
+	           fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding7Bins 
+			<< std::endl;
+  std::cout << "         Pixel 1 Tmplt0 High/Low Gain Charge Ratio 16 Bins = "
+			<< fPixel.at(0).fSinglePeMeanFADCAreaNoRounding16Bins / 
+               fPixel.at(0).fLowGainTmplt0FADCAreaNoRounding16Bins
+			<< std::endl;
   
   std::cout<<std::endl;
 
@@ -191,7 +223,7 @@ void KSCamera::generateCameraPixels()
   // elements to each have their own pfWaveForm
   // ***********************************************************************
   KSPixel pixelElement(fCameraType, fDigCntsPerPEHiGain,fSinglePeRiseTimeNS, 
-		       fSinglePeFallTimeNS);
+					   fSinglePeFallTimeNS, fLowGainToHighGainPeakRatio);
   fPixel.clear();
   for (int i=0; i< fNumPixels; i++) {
     fPixel.push_back(pixelElement);

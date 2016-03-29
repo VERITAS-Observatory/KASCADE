@@ -103,7 +103,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       // Find the max of elements in the vector
 
       double highGainAmplitudePE = pWaveForm->GetWaveFormMax();
-      double highGainAmplitudeDC = highGainAmplitudePE * fDigCntsPerPEHiGain;
+      //double highGainAmplitudeDC = highGainAmplitudePE * fDigCntsPerPEHiGain;
       //double highGainAmplitudeMV = highGainAmplitudeDC * gHighGainMVPerDC;
 	  //double highGainTraceAmplitudeDC = getFADCTraceMax();
 
@@ -137,7 +137,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //   1:Normalize the new low gain pulse to have peak 1.0 (after pedestal
       //     addition)
       //  3:To find the low gain waveform height:Reduce the high Gain
-      //    waveform by the hi/lo gain factor gLowGainToHighGainPeakRatio 
+      //    waveform by the hi/lo gain factor fLowGainToHighGainPeakRatio 
       //    (Nepomuks .099) (includes 1/6 factor and the 
       //    heightSingleHGpe/heightSingleLGPe for template 0 ~ .594
       //  4 Furthor reduce the waveform height by  by the selected template 
@@ -148,7 +148,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       // *******************************************************************
       // ******************************************************************
       //  CARE's scaling(which I think is the correct one to use)
-      double scaleFactor = gLowGainToHighGainPeakRatio * 
+      double scaleFactor = fLowGainToHighGainPeakRatio * 
                                                  pWaveForm->GetLinearity(); 
       
 
@@ -170,10 +170,10 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       generateTraceSamples(lowGainChargeDC, pWaveForm,  lowGainStartIndex, 
 			   numSamplesTrace, fLowGainPedestal);
       
-      int cl=0;
-      if(clipTrace()) {//For really big pulses this might be needed.
-		cl=1;
-      }
+	  // int cl=0;
+      //if(clipTrace()) {//For really big pulses this might be needed.
+	  //		cl=1;
+      //}
 
       if(fDebugPrint) {
 		double lowGainSizeDC  = lowGainChargeDC  - 
@@ -271,7 +271,7 @@ bool KSFADC::generateTraceSamples(double& traceArea, KSWaveForm* pWaveForm,
     // **********************************************************
     // This is where we add the constant ped.
     // Add uncorelated electronic noise. The fDigCntsPerPEHiGain is also 
-    // correct here for the low gain. The  gLowGainToHighGainPeakRatio factor
+    // correct here for the low gain. The  fLowGainToHighGainPeakRatio factor
     // in makeFADCTrace accounts for it.
     //
     // **********************************************************
@@ -279,8 +279,8 @@ bool KSFADC::generateTraceSamples(double& traceArea, KSWaveForm* pWaveForm,
                         pRandom->Gaus()*gElectFADCNoiseSigmaDC[fCameraType];
     if(fSum<0)
       {
-	fSum=0;  //Event though we added a pedestal this may be negative. If
-	// so,set it to 0, as it would be in theelectronics.
+		fSum=0;  //Event though we added a pedestal this may be negative. If
+		         // so,set it to 0, as it would be in theelectronics.
       }
     
     fFADCTrace.at(i)=(int)fSum;  

@@ -67,8 +67,8 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
   int fNumBinsInFallingPulse=int(fFallTimeRatio*kBaseFallSize);
   if(fNumBinsInRisingPulse<1 || fNumBinsInFallingPulse<1){
     std::cout<<"KSSinglePe: Rise or Fall Size is too small. risesize:"
-	     <<fNumBinsInRisingPulse<<" Fall size:"<<fNumBinsInFallingPulse 
-	     <<std::endl;
+			 <<fNumBinsInRisingPulse<<" Fall size:"<<fNumBinsInFallingPulse 
+			 <<std::endl;
     exit(1);
   }
 
@@ -92,7 +92,7 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
   if(fNumBinsInPulse> kMaxSinglePePulseSize){
     fNumBinsInPulse = kMaxSinglePePulseSize;
   }
-
+  
   fNumBinsInFallingPulse=fNumBinsInPulse-kBaseRiseSize;
   
   fSinglePulse.clear();
@@ -128,22 +128,22 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
     if(startBin<0){
       startBin=0;
     }
- 
+	
     for (int j=startBin;j<fNumBinsInRisingPulse-1; j++){
-	                                 //different from base:interpolate.
+	  //different from base:interpolate.
       double aindex=(j/fRiseTimeRatio);//fractional index within kBasePulse.
       int k=int(aindex);
-
+	  
       double fFraction=(aindex-(double)k);
- 
+	  
       if(k+1>kBaseRiseSize){
-	std::cout << "KSSinglePe: Index out of range for base.k:" << k
-		  << std::endl;
-	exit(1);
+		std::cout << "KSSinglePe: Index out of range for base.k:" << k
+				  << std::endl;
+		exit(1);
       }
       pBin=j-startBin;
       fSinglePulse.at( pBin ) = kBasePulse[k] + fFraction * ( kBasePulse[k+1] -
-							      kBasePulse[k] );
+															  kBasePulse[k] );
     }
     //ends at same place. (1.0)
     fSinglePulse.at(kBaseRiseSize-1)=kBasePulse[kBaseRiseSize-1];  
@@ -164,33 +164,37 @@ void KSSinglePe::setRiseFallTimes(double SinglePulseRiseTimeNS,
     //         <<std::endl;
   }
   else{
-  //different from base:interpolate.
+	//different from base:interpolate.
     for (int j=0;j<fNumBinsInFallingPulse-1; j++){ 
-
+	  
       double aindex=(j/fFallTimeRatio);//fractional index within kBasePulse.
       int k=int(aindex);
       double fFraction=aindex-(double)k;
       k=k+kBaseRiseSize;
       double fBaseDifference;
       if((k+1)==kBaseSize){
-	fBaseDifference=0;
+		fBaseDifference=0;
       }
       else if(k+1>kBaseSize){
-	std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
-		 <<std::endl;
-	exit(1);
+		std::cout<<"KSSinglePe: Index out of range for base.k:"<<k
+				 <<std::endl;
+		exit(1);
       }
       else{
-	fBaseDifference=(kBasePulse[k+1]-kBasePulse[k]);
+		fBaseDifference=(kBasePulse[k+1]-kBasePulse[k]);
       }
-
+	  
       int m=kBaseRiseSize+j;
       fSinglePulse.at(m)=kBasePulse[k]+fFraction*fBaseDifference;
     }
-                                         //ends at same place.
+	//ends at same place.
     fSinglePulse.at(fNumBinsInPulse-1)=kBasePulse[kBaseSize-1];  
   }
   fLengthNS=fNumBinsInPulse*gWaveFormBinSizeNS;
+
+  // ************************************************************
+  // Get different areas (all bins, 16 bins, 7 bins) single PE(no ped)
+  // ************************************************************
   fArea=0;
   for(int i=0;i<fNumBinsInPulse;i++){
     fArea+=fSinglePulse.at(i);

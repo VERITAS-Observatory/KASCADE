@@ -19,12 +19,16 @@ extern "C" double Rexp(double rate);
 
 
 KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain, 
-		 double SinglePeRiseTimeNS, double SinglePeFallTimeNS)
+				 double SinglePeRiseTimeNS, double SinglePeFallTimeNS,
+				 double lowGainToHighGainPeakRatio)
 {
   fCameraType=CameraType;
   fFADC.SetCameraType(fCameraType);
   fFADC.SetDigCntsPerPEGains(DigCntsPerPEHiGain);
-  pfRandom=new TRandom3(0);   
+  fFADC.SetLowGainToHighGainPeakRatio(lowGainToHighGainPeakRatio);
+  pfRandom=new TRandom3(0);
+  fLowGainToHighGainPeakRatio = lowGainToHighGainPeakRatio;
+
   if(fCameraType==WHIPPLE490) {
     pfSinglePe= new KSSinglePe();  //use base rise and fall times
   }
@@ -40,18 +44,51 @@ KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain,
   pfWaveForm=new KSWaveForm(fCameraType,pfSinglePe);
   fSinglePeSizeNS      = pfSinglePe->getLengthNS();
   fSinglePeSizeNumBins = pfSinglePe->fNumBinsInPulse;
-  fSinglePeArea        = pfSinglePe->getArea();
-  //Next 2 calls use pfWaveForm
-  fSinglePeMeanFADCArea = getMeanFADCArea(fCameraType,
-					  gPulseHeightForMeanFADCArea,1.0);
-  fSinglePeMeanFADCAreaNoRounding = getMeanFADCArea(fCameraType,
-						 gPulseHeightForMeanFADCArea,
-						 5000.0);
- //Next call uses the lowgain templates from pfSinglePe
-  int templateIndex=0;
-  fLowGainTmplt0FADCAreaNoRounding = getLowGainMeanFADCArea(fCameraType,
-							    templateIndex,
-							    500);
+  fSinglePeArea        = pfSinglePe->getArea();//Not in DC. Arbitray units
+
+  // ********************************************************************
+  //Next set of calls uses pfWaveForm: This is for info on hi/lo gains etc.
+  // -1 for endbin indicates use full trace 
+  // *********************************************************************
+  //double timeSpreadNS = gFADCBinSizeNS;
+  double timeSpreadNS = 0.0;
+  fSinglePeMeanFADCArea = 
+	getMeanFADCArea(fCameraType, gPulseHeightForMeanFADCArea, 1, timeSpreadNS,
+					                                                   0, -1);
+  fSinglePeMeanFADCArea16Bins = 
+	getMeanFADCArea(fCameraType, gPulseHeightForMeanFADCArea, 1, timeSpreadNS,
+					                                                   0, 15);
+  fSinglePeMeanFADCArea7Bins = 
+	getMeanFADCArea(fCameraType, gPulseHeightForMeanFADCArea, 1, timeSpreadNS,
+					                                                    1, 7);
+  
+  // *********************************************************
+  // Use crazy large HVGain for no rounding. It gets divided out at the end.
+  // *********************************************************
+  timeSpreadNS = gFADCBinSizeNS;
+  //timeSpreadNS = 5.0;          //Normal shower/mirror induced time spread.(ns)
+  std::cout << " Shower/Mirror Time Spread(ns) used in Hi/lo ratio "
+	           "calculation: " << timeSpreadNS << std::endl;
+  fSinglePeMeanFADCAreaNoRounding = 
+	              getMeanFADCArea(fCameraType,  1.0, 1000,timeSpreadNS, 0,-1);
+  fSinglePeMeanFADCAreaNoRounding16Bins = 
+	             getMeanFADCArea(fCameraType, 1.0, 1000, timeSpreadNS, 0, 15);
+  fSinglePeMeanFADCAreaNoRounding7Bins = 
+	            getMeanFADCArea(fCameraType, 1.0, 1000.0, timeSpreadNS, 1, 7);
+  
+
+  //Next set of calls uses the low gain templates from pfSinglePe
+  int templateIndex = 0;
+  fLowGainTmplt0FADCAreaNoRounding = 
+	getLowGainMeanFADCArea( fCameraType, templateIndex, 200,timeSpreadNS,
+							                                           0, -1);
+  fLowGainTmplt0FADCAreaNoRounding7Bins = 
+	getLowGainMeanFADCArea( fCameraType, templateIndex, 200, timeSpreadNS,
+						                                               3, 9);
+  fLowGainTmplt0FADCAreaNoRounding16Bins = 
+	getLowGainMeanFADCArea( fCameraType, templateIndex, 200, timeSpreadNS,
+						                                               0 , 15);
+
   InitPixelWaveForm();
 }
 
@@ -398,45 +435,83 @@ void KSPixel::PrintPulseHeightsOfLightPulse()
 // *************************************************************************
 
 double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,  
-				double scaledPulseHeight,
-				double numPesInPulse)
+								double HVGain, int numPesInPulse, 
+								double timeSpreadNS, int startFADCBin, 
+								int endFADCBin)
 // *************************************************************************
 // Get mean area for a single pe after its WaveFormn is converted to a FADC
-// trace. 
-// Do this in two parts just like single pe analyis does.
+// trace. Do this in two parts just like single pe analyis does.
 //
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // And remember dumb ass, with a holey plate there is no night sky nouse!
 // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 // A: Get mean area of trace with no pulse, just night sky and pedestal
-// 1.Init a singlePe wave form length of waveform vector.
-// 2: make FADC Trace (adds FADC pedestal=14.5, adds uncorreltated FADC noise with 
-//    .35dc sigma, rounddown to make trace)
+// 1. Init a singlePe wave form length of waveform vector.
+// 2: make FADC Trace (adds FADC pedestal=14.5, adds uncorreltated FADC noise 
+//    with .35dc sigma, rounddown to make trace)
 // 3: Find area
-// 4:Do above some number of time (100000 times ) and find mean.
+// 4: Do above some number of time (100000 times ) and find mean.
 // 
 // B:Get mean area of trace with added single Pe Pulse
 // Same as A but:
-// 1.5: Add single Pe pulse multiplied by product of gains (HV and normal) and random 
-//    Pulse height
+// 1.5: Add single Pe pulse multiplied by product of gains (HV and normal) 
+//      and random Pulse height. If timeSpreadNS>0.0 Add in the pes with the 
+//      time spread.(time spread slows things down)
 //
 // C:
 // 6: Find difference with non-pulse mean
-// 7: Divide out HV gain.
-// Note:If we use a very large HV scale factor (say 1000) we would have a very small 
-// rounddown effect, and if we use a small value (like 1.75 (typical for 10% HV 
-// increase) or so) then we get the round down that the singePe area calculation 
-// from singlePe runs get.
+// 7: Divide out HVgain and number of pe's.
+// Note:If we use a very large HV scale factor (say 1000) we would have a very
+// small rounddown effect, and if we use a small value (like 1.75 (typical for
+// 10% HV increase) or so) then we get the round down that the singePe area 
+// calculation from singlePe runs get.
 // *************************************************************************
 {
-  //Number of NS in SinglePe wave form. Extra 3 is just for insruance
-  int singlePeSizeNS=  (int)fSinglePeSizeNumBins*gWaveFormBinSizeNS + 3;  
-  int numSamplesTrace= (int)( (double)singlePeSizeNS/gFADCBinSizeNS);  
+  bool fDebugPrint=false;
+  if ( startFADCBin < 0 ) {
+	startFADCBin = 0;
+  }
+  
+
   int numWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
 
-  double singlePeAreaSum=0;  
-  double pedAreaSum=0;
-  int numTraces=100000;
+  // ***************************************************************
+  // Number of NS in SinglePe wave form. Extra 3 ns is just for insurance (1 
+  // would probably be snough)
+  // ***************************************************************
+  int singlePeSizeNS=  
+	       (int)fSinglePeSizeNumBins*gWaveFormBinSizeNS + timeSpreadNS +3.0;  
+
+  int numSamplesTrace= endFADCBin-startFADCBin+1;  
+  // Negative or 0 implies use full trace
+  if(numSamplesTrace<1) {
+	 numSamplesTrace= (int)( (double)singlePeSizeNS/gFADCBinSizeNS); 
+  }
+
+  double singlePeAreaSum = 0;  
+  double pedAreaSum      = 0;
+
+  int numTraces= 500;         //Number of traces to generate and average over.
+  if (timeSpreadNS > 0.0) {
+	if (numPesInPulse > 50 ) {
+	  numTraces=1;              //probably one trace would be enough as long 
+	}                           //as numPesInPulse is big (>>18)
+  }
+  else{
+	  numTraces=500;           // For no timeSpreadNS we need this for Pulse 
+                               // height jitter
+  }
+
+  int startWaveFormBin   = (double)startFADCBin / gFADCBinSizeNS;
+
+  if(fDebugPrint) {
+	std::cout<< "HiGain number of Traces to average over: " <<  numTraces 
+			 << std::endl;
+	std::cout<<"  startFADCBin, endFADCBin,gFADCBinSizeNS,startWaveFormBin,"
+             "numSamplesTrace: " <<  startFADCBin << " " <<  endFADCBin 
+		   << " " <<gFADCBinSizeNS << " " <<  startWaveFormBin << " " 
+		   << numSamplesTrace << std::endl;
+  }
   for (int i=0;i< numTraces;i++){
     double cleanPed=gPedestal[VERITAS499];
 
@@ -445,127 +520,182 @@ double KSPixel::getMeanFADCArea(KSCameraTypes fCameraType,
     // ************************************************************************
     //A:Step2:make FADC Trace (adds FADC pedestal,Adds FADC noise)
     // ************************************************************************
-    fFADC.makeFADCTrace(pfWaveForm,0,numSamplesTrace,false,cleanPed,cleanPed);
+    fFADC.makeFADCTrace(pfWaveForm, startWaveFormBin, numSamplesTrace, false,
+						cleanPed, cleanPed);
   
-    double traceArea=fFADC.getWindowArea(0,numSamplesTrace);  
-    //pedFADCAreaSum+=traceArea ;
-  
-    // ************************************************************************
-    // now do same for singlePe pulse
+    double tracePedArea=fFADC.getWindowArea(0, numSamplesTrace);  
 
-    //A:Step1:   //Add elctronic noise:
+    // ************************************************************************
+    //   Now do same for singlePe pulse
+	// *********************************************************************
     pfWaveForm->InitWaveForm(0.0,singlePeSizeNS);
-    // ***************************
-    // Jitter electronic noise
-    // ***************************
-    //for(int j=0;j<fWaveForm.size();j++){
-    //  fWaveForm(j)=pRandom->Gaus()*gElectronicNoiseSigmaPe[VERITAS499];
-    // }
-    
+
     // ********************************************************************
-    //B:step 1.5 Add single pe: start pulse at least one sample in then 
-    // dirft it
-    // ***********************************************************************
-    // Jitter Start time of pulse
+    //A: Step 1: 
+    //B: Step 1.5: Add single pe: start pulse at least one sample in then 
+    //             dirft it
+	bool afterPulse=false;
+	// ***********************************************************************
+    // Jitter Start time of pulse (over 1 sample)
     // **************************
-    int j = (int)(pfRandom->Rndm()*numWaveFormBinsPerFADCBin);
-    if(j==numWaveFormBinsPerFADCBin){
-      j=0;
-    }
-    // **************************
-    // Jitter PePulse Hieght
-    // **************************
-    bool afterPulse=false;
-    double PEpulseHeight=pfSinglePe->getPulseHeight(afterPulse);
-    for(int k=0;k<fSinglePeSizeNumBins;k++) {
-      double newHeight = pfWaveForm->GetWaveFormElement(k+j) + 
-	PEpulseHeight*scaledPulseHeight*
-	(numPesInPulse*pfSinglePe->fSinglePulse.at(k));
-      pfWaveForm->SetWaveFormElement(k+j, newHeight);
-    }
+    int j;
+
+	if (timeSpreadNS == 0.0) {
+	  j = (int) ( pfRandom->Rndm() * numWaveFormBinsPerFADCBin);
+	  if( j == numWaveFormBinsPerFADCBin ) {
+		j = 0;
+	  }
+
+	  // **************************
+	  // Jitter PePulse Hieght
+	  // **************************
+	  double PEpulseHeight = pfSinglePe->getPulseHeight( afterPulse);
+	  for( int k = 0; k < fSinglePeSizeNumBins; k++ ) {
+		double newHeight = pfWaveForm->GetWaveFormElement(k+j) + 
+		  PEpulseHeight * HVGain *
+		  ( numPesInPulse * pfSinglePe->fSinglePulse.at( k));
+		pfWaveForm->SetWaveFormElement( k + j, newHeight);
+	  }
+	  
+	}
+	else{
+
+	  // *********************************************************************
+	  // With a timeSpreadNS we have to do individual pe's. Takes time.
+	  // *********************************************************************
+	  for (int iCount = 1; iCount <= numPesInPulse ; iCount++ ) {
+		int j = (int) (pfRandom->Rndm() * timeSpreadNS / gWaveFormBinSizeNS );
+		
+		// **************************
+		// Jitter PePulse Hieght and add in a pe.
+		// **************************
+		double PEpulseHeight = pfSinglePe->getPulseHeight( afterPulse);
+
+		for(int k=0;k<fSinglePeSizeNumBins;k++) {
+		  double newHeight = pfWaveForm->GetWaveFormElement(k+j) + 
+			PEpulseHeight*HVGain*pfSinglePe->fSinglePulse.at(k);
+		  pfWaveForm->SetWaveFormElement(k+j, newHeight);
+		}
+	  }
+
+	}
 	
-    //Adds FADC Ped, adds FADC noise, rounddowns.
-    fFADC.makeFADCTrace(pfWaveForm,0,numSamplesTrace,false,cleanPed,cleanPed);
-  
-    double traceSinglePeArea=fFADC.getWindowArea(0,numSamplesTrace);  
-    //cout<<"0 "<<numPesInPulse<<" "<<j<<" "<<cleanPed<<" "<<PEpulseHeight<<" "
-    //	<<traceSinglePeArea<<" "<<traceArea<<endl;
-    //cout<<"1 "<<numPesInPulse<<" "<<j<<" "<<cleanPed<<" "<<PEpulseHeight<<" "
-    //	<<traceSinglePeArea<<" "<<traceSinglePeArea<<endl;
-    singlePeAreaSum+=traceSinglePeArea;
-    pedAreaSum+=traceArea;
+	// *******************************
+	//Adds FADC Ped, adds FADC noise, rounddowns.
+	// *******************************
+	fFADC.makeFADCTrace(pfWaveForm, startWaveFormBin, numSamplesTrace, false,
+						cleanPed, cleanPed);
+	
+	double traceSinglePeArea=fFADC.getWindowArea(0, numSamplesTrace);  
+	  
+
+	if ( fDebugPrint ) {
+	  cout<< "0 " <<numPesInPulse << " " << j << " " << cleanPed << " "
+		  << traceSinglePeArea << endl;
+	  cout<< "1 " <<numPesInPulse << " " << j << " " << cleanPed <<" " 
+		  << traceSinglePeArea << endl;
+	}
+
+	singlePeAreaSum+=traceSinglePeArea;
+	pedAreaSum+=tracePedArea;
   }
   double pedAreaMean      = pedAreaSum/(numTraces*numPesInPulse);
   double singlePeAreaMean = singlePeAreaSum/(numTraces*numPesInPulse);
-  double singlePeArea     = (singlePeAreaMean-pedAreaMean)/scaledPulseHeight;
+  double singlePeArea     = (singlePeAreaMean-pedAreaMean)/HVGain;
   return singlePeArea;
 }
 // *************************************************************************
  
-double KSPixel::getLowGainMeanFADCArea(KSCameraTypes fCameraType,  
-				       int templateIndex, int numPesInPulse)
+double KSPixel::getLowGainMeanFADCArea(KSCameraTypes fCameraType, 
+									   int templateIndex, int numPesInPulse,
+									   double timeSpreadNS, int startFADCBin, 
+									   int endFADCBin)
 // *************************************************************************
 // Get mean area for a single pe after its WaveFormn is converted to a FADC
 // trace.  
-// Note:If we use a very large HV scale factor (say 1000) we would have a 
-// very small rounddown effect, and if we use a small value (like 1.0  
+// Note:If we use a large numPesInPulse(>> 18) we would have a 
+// very small rounddown effect.  
 // *************************************************************************
 {
+  if ( startFADCBin < 0 ) {
+	startFADCBin = 0;
+  }
+  
   // *******************************************************************
   // Get a pointer to the wave form source
   // *******************************************************************
   vector < double >*  pLowGainTemplateWaveForm = 
     &pfSinglePe->fLowGainWaveForm.at(templateIndex).fWaveForm;
 
-  //Number of NS in SinglePe wave form. Extra 3 is just for insurance
+  //Number of NS in SinglePe wave form. Extra 1.0 is just for insurance
   
   int lowGainTemplateNumBins = 
     pfSinglePe->fLowGainWaveForm.at(templateIndex).GetSize();
-  int singlePeSizeNS = lowGainTemplateNumBins*gWaveFormBinSizeNS + 3;  
-  int numSamplesTrace= (int)( (double)singlePeSizeNS/gFADCBinSizeNS);  
-  int numWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
+  //int numWaveFormBinsPerFADCBin=(int)(gFADCBinSizeNS/gWaveFormBinSizeNS);
+
+  // ***************************************************************
+  // Number of NS in SinglePe wave form. Extra 3 ns is just for insurance (1 
+  // would probably be enough)
+  // ***************************************************************
+  int singlePeSizeNS   = 
+	           lowGainTemplateNumBins*gWaveFormBinSizeNS + timeSpreadNS + 3.0;
+
+  int numSamplesTrace  = (endFADCBin-startFADCBin+1);  
+  // Negative or 0 implies use full trace
+  if( numSamplesTrace < 1) {
+	 numSamplesTrace= (int) ( (double)singlePeSizeNS / gFADCBinSizeNS); 
+  }
+
+  int startWaveFormBin = (double)startFADCBin / gWaveFormBinSizeNS;
+
 
   double singlePeAreaSum=0;  
-  double pedAreaSum=0;
-  int    numTraces=10000;
-  double lowGainPedestal = gLowGainPedestal[VERITAS499];
+
+  int numTraces = 50;
+
+  double lowGainPedestal = gLowGainPedestal[ VERITAS499];
   double linearity  = 
-    pfSinglePe->fLowGainWaveForm.at(templateIndex).GetLinearity();
-  for (int i=0;i< numTraces;i++){
-    pfWaveForm->InitWaveForm(0.0,singlePeSizeNS);
+    pfSinglePe->fLowGainWaveForm.at( templateIndex).GetLinearity();
+  for ( int i=0; i < numTraces; i++ ) {
+    pfWaveForm->InitWaveForm( 0.0, singlePeSizeNS);
 
-    // ********************************************************************
-    // Add single pe: start pulse at least one sample in then 
-    // dirft it
-    // ***********************************************************************
-    // Jitter Start time of pulse
-    // **************************
-    int j = (int)(pfRandom->Rndm()*numWaveFormBinsPerFADCBin);
-    if(j==numWaveFormBinsPerFADCBin){
-      j=0;
-    }
-    for(int k=0;k<fSinglePeSizeNumBins;k++) {
-      double newHeight = pfWaveForm->GetWaveFormElement(k+j) + 
-	(numPesInPulse* pLowGainTemplateWaveForm->at(k));
-      pfWaveForm->SetWaveFormElement(k+j, newHeight);
-    }
-    //  CARE's scaling(which I think is the correct one to use)
-    double scaleFactor = gLowGainToHighGainPeakRatio * linearity;
-    // **************************
-    // we will mutilpy by fDigCntsPerPEHiGain (DC/PE) in the call to
-    // generateTraceSamples() 
-    // *****************************************
-    pfWaveForm->ScaleWaveForm(scaleFactor);
+    // *****************************************************************
+	// Loop over pes. shift each within time spread
+	// ********************************************************************
+	for( int iCount=1; iCount <= numPesInPulse; iCount++ ) {
 
-    //Adds FADC Ped, rounddowns, mutilpy by fDigCntsPerPEHiGain (DC/PE).
-    double lowGainChargeDC;
-    fFADC.generateTraceSamples(lowGainChargeDC, pfWaveForm, 0, 
-			       numSamplesTrace, lowGainPedestal);
-  
+	  // ********************************************************************
+	  // Add single pe: start pulse at least one sample in then 
+	  // dirft it
+	  // ********************************************************************
+	  // Jitter Start time of pulse
+	  // **************************
+	  int j = (int) (pfRandom->Rndm() * timeSpreadNS / gWaveFormBinSizeNS);
+	  for( int k=0; k < fSinglePeSizeNumBins; k++ ) {
+		double newHeight = pfWaveForm->GetWaveFormElement( k + j) + 
+		  ( pLowGainTemplateWaveForm->at( k));
+		pfWaveForm->SetWaveFormElement( k + j, newHeight);
+	  }
+	}
+	//  CARE's scaling(which I think is the correct one to use)
+	// (~.09756=1/10.25 for Hamamatsu)
+	double scaleFactor = fLowGainToHighGainPeakRatio * linearity;
+	// **************************
+	// we will mutilpy by fDigCntsPerPEHiGain (DC/PE)(2.05 for hamamatsu) in 
+	// the call to generateTraceSamples() 
+	// *****************************************
+	pfWaveForm->ScaleWaveForm(scaleFactor);
+
+	//Adds FADC Ped, rounddowns, mutilpy by fDigCntsPerPEHiGain (DC/PE).
+	double lowGainChargeDC;
+	
+	fFADC.generateTraceSamples(lowGainChargeDC, pfWaveForm, startWaveFormBin, 
+							   numSamplesTrace, lowGainPedestal);
+	
     lowGainChargeDC  = lowGainChargeDC - (numSamplesTrace * lowGainPedestal); 
-    singlePeAreaSum += lowGainChargeDC;
+    singlePeAreaSum += lowGainChargeDC/numPesInPulse;
   }
-  double singlePeAreaMean = singlePeAreaSum/(numTraces*numPesInPulse);
+  double singlePeAreaMean = singlePeAreaSum/numTraces;
   return singlePeAreaMean;
 }
 // *************************************************************************
