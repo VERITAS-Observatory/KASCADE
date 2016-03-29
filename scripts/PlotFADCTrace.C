@@ -19,7 +19,7 @@ const double kNSPerSsample = 2.0;
 //const int    kNumTraceBins = 16;
 const int    kNumTraceBins = 32;
 const double kBinSpacingNS  = .25;
-
+const double kLeadingEdgeFraction = .5;
 
 TTree   LGFADCTraces;
 int   numClipped;
@@ -58,12 +58,25 @@ class TracePair
 };
 
 inline bool TracePair::operator < (const TracePair& tp) const  {
-    if(time < tp.time){
-      return true;
-    }
-    return false;
+  if(time < tp.time){
+	return true;
+  }
+  return false;
 }
 // *********************************************************************
+
+void usage()
+{
+  std::cout << " ********************Usage: " <<std::endl;
+
+  std::cout << " TemplateFileGen(KSAomegaLogFileName,LGTemplatesFileName)" 
+			<< std::endl;
+  std::cout << " PlotTraceInit(fileName)" <<std::endl; 
+  std::cout << " PlotTrace(n,hilo,tmpl,normalize=true,opt=Lsame)" << std::endl;
+  std::cout << " PlotFADCTraces(hilo,tmpl,normalize=true,maxEnt=10,"
+	"firstOpt=L)"<<std::endl;
+}
+// ********************************************************************
 
 int Round(double number)
 {
@@ -107,7 +120,7 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
     std::cout<<" Fatal- Can not open "<< KSAomegaLogFileName << std::endl;
     exit(1);
   }
-
+  std::cout<<" Opened Input Trace file " << KSAomegaLogFileName << std::endl;
   // ***********************************************************************
   // Read in all the lines form the log file.
   // Only process those beginning with "**LowGain##"
@@ -115,6 +128,7 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
   // ***********************************************************************
   std::string line;
   string LGTraceFlag;
+  int icount=0;
   while(1) {
 	std::getline(ifs, line);
 	if (ifs.eof() ) {
@@ -267,14 +281,16 @@ bool GetNextTrace(int noSpreadTemplateID, int& startTraceIndex)
 }
 // ***********************************************************************  
 
-void GetPeakLocationAndValue(double& basePeakLocation,  
-			     double& traceAmplitudeDC)
+void GetLeadinEdgeAndPeakLocationsAndPeakValue(double& peakLocation, 
+									double& leadingEdgeLocation, 
+									double& traceAmplitudeDC)
 // **********************************************************************
 // Put the trace into a histogram, removed pedestal, fit a gaussian to it and 
 // return the peak location in samples and the trace fitted max amplitude in DC
-// Amplitude will be used to determine Timeshifted Linearity
+// Amplitude will be used to determine Time shifted Linearity
 // **********************************************************************
 {
+  bool debugPrint=false;
   TH1D* pTemplateHist = new TH1D("templateHist","templateHist",kNumTraceBins,
 								 0.5,kNumTraceBins+.5);
   // *****************************************************
@@ -292,6 +308,7 @@ void GetPeakLocationAndValue(double& basePeakLocation,
     trace[i] = pTemplateHist->GetBinContent(i+1)-minAmplitude;
     pTemplateHist->SetBinContent(i+1,trace[i]);
   }
+
   // *************************************************
   // Now fit a gaussian to it.  This may need some refinement to center and 
   // limit the search
@@ -306,8 +323,39 @@ void GetPeakLocationAndValue(double& basePeakLocation,
   //pTemplateHist->Draw("L");
   pTemplateHist->Fit("gaus","W"," ",xmin,xmax);
   TF1 *fit = pTemplateHist->GetFunction("gaus");
-  basePeakLocation = fit->GetParameter(1);
+  peakLocation = fit->GetParameter(1);
   traceAmplitudeDC = fit->GetParameter(0);
+
+  // **********************************************************************
+  // Now search back down from the peak to find the leading edge at fraction 
+  // fLeadingEdgeFraction
+  // **********************************************************************
+  double leadingEdgeAmplitude= traceAmplitudeDC*kLeadingEdgeFraction;
+  int    peakIndex = pTemplateHist->GetXaxis()->FindBin(peakLocation);
+  for( int i= peakIndex; i>0; i--) {
+    double levelLow = pTemplateHist->GetBinContent(i);
+    if( levelLow < leadingEdgeAmplitude) {
+	  // ******************************************************
+	  // Interpolate
+	  // ******************************************************
+	  double leadingEdgeLocationLow= pTemplateHist->GetBinCenter(i);
+	  double leadingEdgeLocationHigh= pTemplateHist->GetBinCenter(i+1);
+	  double levelHigh= pTemplateHist->GetBinContent(i+1);
+	  double ratio=(leadingEdgeAmplitude-levelLow)/(levelHigh-levelLow);
+	  leadingEdgeLocation = leadingEdgeLocationLow + 
+		ratio * (leadingEdgeLocationHigh - leadingEdgeLocationLow);
+	  if(debugPrint) {
+		std::cout<< " leadingEdgeAmplitude,peakIndex,levelLow,levelHigh, "
+		  "leadingEdgeLocationLow,leadingEdgeLocationHigh,ratio,"
+		  "leadingEdgeLocation: " 
+				 <<leadingEdgeAmplitude << " " << peakIndex << " " << levelLow 
+				 << " " << levelHigh << " " <<  leadingEdgeLocationLow << " " 
+				 << leadingEdgeLocationHigh << " " << ratio << " " 
+				 << leadingEdgeLocation <<std::endl;
+		break;
+	  }
+	}
+  }
   return;
 }
 
@@ -520,6 +568,7 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 // pairs for all samples to the fileOut text file
 // **************************************************************************
 {
+  bool debugPrint=false;
   // ***********************************
   // Define place to keep the template (sum of all traces, shfited to have 
   // same peak)
@@ -547,24 +596,29 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 
   // ********************************************
   // Put this trace into a histogram and fit a gausion to it
+  // Find the kLeadingEdgweFraction point up the leading edge
   // ********************************************
   double basePeakLocation;
-  double traceAmplitude;
-  GetPeakLocationAndValue(basePeakLocation,  traceAmplitude);
+  double baseLeadingEdgeLocation;
+  double traceAmplitudeDC;
+  GetLeadinEdgeAndPeakLocationsAndPeakValue(basePeakLocation, 
+											baseLeadingEdgeLocation, 
+											traceAmplitudeDC);
+
+  double traceLGainSum =  traceAmplitudeDC/numPes;  //init the sum
+
   
-
-  double traceLGainSum =  traceAmplitude/numPes;  //init the sum
-
-
-  std::cout<<"basePeakLocation,traceAmplitude: "<<basePeakLocation<<" "
-	   <<traceAmplitude<<std::endl;
-
+  if (debugPrint) {
+	std::cout<<"basePeakLocation,baseLeadingEdgeLocation,traceAmplitudeDC: "
+			 <<basePeakLocation<<" " << baseLeadingEdgeLocation << " "
+			 <<traceAmplitudeDC<<std::endl;
+  }
   // *********************************************
   // Normalize and save this trace in vector pair
   // All traces will be shifted relative to this one
   // *********************************************
   
-  SaveShiftedNormalizedTrace(0.0, traceAmplitude, tmplt);
+  SaveShiftedNormalizedTrace(0.0, traceAmplitudeDC, tmplt);
 
   // ********************************************
   // Now go through the remaining traces
@@ -583,17 +637,25 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
     }
     
     double peakLocation;
-    GetPeakLocationAndValue(peakLocation, traceAmplitude);
-	traceLGainSum += traceAmplitude/numPes;
+    double leadingEdgeLocation;
+	GetLeadinEdgeAndPeakLocationsAndPeakValue(peakLocation, 
+											  leadingEdgeLocation, 
+											  traceAmplitudeDC);
 
-    double sampleOffset= (peakLocation -basePeakLocation);
-    std::cout<<"noSpreadTemplateID,startTraceIndex,peakLocation,"
-	           "traceAmplitude,sampleOffset: "
-	     << noSpreadTemplateID << " " << startTraceIndex << " " 
-	     << peakLocation
-	     <<" " <<traceAmplitude << " " << sampleOffset << std::endl;
+	traceLGainSum += traceAmplitudeDC/numPes;
 
-    SaveShiftedNormalizedTrace(sampleOffset, traceAmplitude, tmplt);
+    //double sampleOffset= (peakLocation -basePeakLocation);
+    double sampleOffset= (leadingEdgeLocation -baseLeadingEdgeLocation);
+
+    if(debugPrint) {
+	  std::cout<<"noSpreadTemplateID,startTraceIndex,leadingEdgeLocation,"
+		"traceAmplitudeDC,sampleOffset: "
+			   << noSpreadTemplateID << " " << startTraceIndex << " " 
+			   << leadingEdgeLocation
+			   <<" " <<traceAmplitudeDC << " " << sampleOffset << std::endl;
+	}
+
+    SaveShiftedNormalizedTrace(sampleOffset, traceAmplitudeDC, tmplt);
 
   }
   // ****************************************************************
@@ -645,10 +707,8 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 // ************************************************************************
 
 
-void TemplateFileGen(string KSAomegaLogFileName, string PMTType, 
-					 string LGTemplatesFileName)
+void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName)
 // ************************************************************************
-// PMTType can be "photonis" or "hamamatsu"
 // 1.Parse through the KSAomega log file which has in KSFADC.cpp fDebugPrint
 // set to true. This file has all time spread low gain traces that were 
 // generated as output lines which look like:
@@ -675,43 +735,23 @@ void TemplateFileGen(string KSAomegaLogFileName, string PMTType,
   // hardwired here. Default to 100 for now and 30 templates max
   // *******************************************************
 
-  std::vector < int > numTracesToUse(100,30);
+  std::vector < int > numTracesToUse(100,25);
 
-  int numTemplates;
-  if ( PMTType == "hamamatsu" ) {
-	numTemplates = 4;
-  }
-  else{
-	numTemplates = 29;
-  }	
+  int numTemplates = 100;  //Make extra room and let data tell us
 
-  for (int i = 0; i < numTemplates; i++) {
+  int templateID;
+  for (templateID = 0; templateID < numTemplates; templateID++) {
 	
-	GenerateSimTemplates(i, numTracesToUse.at(i) ,  LGTemplatesFileName, true);
-  }
+	bool templateProcessed = GenerateSimTemplates(templateID, 
+												numTracesToUse.at(templateID) ,
+												LGTemplatesFileName, true);
   
-
-}
+	if (!templateProcessed ) {
+	  break;
+	}
+  }
+  std::cout<<" Number of templates generated: " << templateID << std::endl;
+  }
 
 // *************************************************************************
 
-/*
-Needs TCanvas defined!!!!!!!!!!!!!!!!!
-void MassPlot(int numTraces,int startTmplt, int numToPlot = 9)
-// *******************************************************************
-// To make sure tcombined average traces look good before making Template file
-// ******************************************************************
-{
-  GenerateSimTemplates(0,,"g.tmp",false);
-  c1->Clear();
-  c1->Divide(3,3);
-  
-  for (int i=0; i<numToPlot;i++){
-	c1->cd(i+1);
-	int template=startTmplt+i;
-	GenerateSimTemplates(template,numTraces,"g.tmp",false);
-  }
-}
-*/
-
-  
