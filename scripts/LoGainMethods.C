@@ -754,7 +754,10 @@ void PlotTemplateHists(string opt="Lsame",int hStart=0, int hEnd=28)
     if(debugPrint) {
       std::cout<<"size:"<<templateHists.size()<<std::endl;
     }
-    if (i==hEnd) {
+    if (i==hEnd) { //Draw the last one first
+	  gStyle->SetOptStat(0);
+	  templateHists.at(i).SetTitle("Low Gain Templates");
+	  templateHists.at(i).GetXaxis()->SetTitle("ns"); 
 	  templateHists.at(i).Draw("l");
     }
     else{
