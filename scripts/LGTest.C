@@ -1,12 +1,13 @@
 
-TTree* pLGTree = (TTree*) new TTree();
+TTree* pLGTree;
 
 
 void TestLG(string LGTestFileName)
 {
-  pLGTree->ReadFile("g.tmp","TraceNMum/I:HGSize/F:sHGSize:"
-  					"sLGSize:NPES:sTMPLT:sLin:HiLoratrat:sHILORatio:samplSum:"
-  					"LGMaxSmpl:satFlag/I:tmpltAmp/F:tmpltLin:fitStatus/I");
+  pLGTree = (TTree*) new TTree();
+  pLGTree->ReadFile(LGTestFileName.c_str(),"TraceNMum/I:HGSize/F:sHGSize:"
+					"sLGSize:NPES:sTMPLT:sLin:HiLoratrat:sHILORatio:samplSum:"
+					"LGMaxSmpl:satFlag/I:tmpltAmp/F:tmpltLin:fitStatus/I");
  
   pLGTree->Draw("sLin:tmpltLin","fitStatus!=4","box");
   c1->Clear();
