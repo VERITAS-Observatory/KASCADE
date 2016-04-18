@@ -23,6 +23,7 @@ class KSFADC
   KSCameraTypes fCameraType;
   TRandom3* pRandom;
   double fLowGainToHighGainPeakRatio;
+  int    fTraceID;
 
  public:
   KSFADC();
