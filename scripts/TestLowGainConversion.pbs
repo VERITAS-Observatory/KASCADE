@@ -1,0 +1,6 @@
+#!/bin/bash -l
+#PBS -l walltime=4:00:00
+#PBS -l mem=5GB
+cd /depot/veritas/apps/veritasHansen/vegasLowGainDiagnosticsGlenn/common/utilities
+./bin/TestLowGainConversion  hamamatsu /depot/veritas/apps/veritasHansen/KASCADE/inputs/lowGainTemplateLookupV6withTimeSpread.root /depot/veritas/apps/veritasHansen/KASCADE/inputs/hamamatsu_low_gain_to_high_gain_transferTimeSpread.root /scratch/hansen/s/sembrosk/workingScratch/124700652/KSAomegaTraces52.3TeV16Bin.log >LowToHiConversionResultsWithTimeSpread.log 
+

@@ -1,4 +1,4 @@
-set arg new  /depot/veritas/apps/veritasHansen/KASCADEDev/inputs/lowGainTemplateLookupV6withTimeSpread.root /depot/veritas/apps/veritasHansen/KASCADEDev/inputs/hamamatsu_low_gain_to_high_gain_transfer.root  /scratch/hansen/s/sembrosk/workingScratch/124700652/KSAomegaWUG12.5TeV.log
+set arg new  /depot/veritas/apps/veritasHansen/KASCADE/inputs/lowGainTemplateLookupV6withTimeSpread.root /depot/veritas/apps/veritasHansen/KASCADE/inputs/hamamatsu_low_gain_to_high_gain_transfer.root  /scratch/hansen/s/sembrosk/workingScratch/124700652/KSAomegaWUG12.5TeV.log
 
 
 
@@ -25,3 +25,8 @@ saturated traces:
 4936 4451.6 5230.47 1019.86 998 1 0.945 5.76908 5.12862 1116 0 0 0
 
 0 908.35 934.982 192.312 178 0 1 5.05396 4.8618 289 0 0 0
+
+set arg hamamatsu /depot/veritas/apps/veritasHansen/KASCADE/inputs/lowGainTemplateLookupV6withTimeSpread.root /depot/veritas/apps/veritasHansen/KASCADE/inputs/hamamatsu_low_gain_to_high_gain_transferTimeSpread.root /scratch/hansen/s/sembrosk/workingScratch/124700652/KSAomegaTraces52.3TeV16Bin.log 
+
+
+set arg VERITASLowGainPulseShapesHamamatsuPMTFromFADCWithTimeSpreadMarch2016.txt lowGainTemplateLookupV6withTimeSpread.root 6299 1 RECREATE
