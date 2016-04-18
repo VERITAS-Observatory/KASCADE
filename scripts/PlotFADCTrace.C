@@ -16,14 +16,25 @@
 
 
 const double kNSPerSsample = 2.0;
+const int    kNumTraceBins = 32;   //Must always use the 32 bin inputs else we
+                                   // get inf in various places. and this 
+                                   // script hangs.
+
 //const int    kNumTraceBins = 16;
-const int    kNumTraceBins = 32;
 const double kBinSpacingNS  = .25;
 const double kLeadingEdgeFraction = .5;
+const double kHiAmplitudeGain = 2.05;     //Upgrade:Hamamastsu PMT's
+const double kHiToLowGainAmpUnsatRatio = 10.25; //Upgrade:Hamamastsu PMT's
+
+//const double kHiAmplitudeGain = 1.32;     //V4-V5 photonis PMT's
+//const double kHiToLowGainAmpUnsatRatio = 7.52; ///V4-V5 photonis PMT's
+
+
+
 
 TTree   LGFADCTraces;
 int   numClipped;
-
+TH1D* pTemplateHist;
 // KSAomega LGFADCTraces  TTree definiutions
 float numPes;
 int   tIndex;
@@ -44,6 +55,7 @@ double  tmpltLinearity;
 
 // Vector to hold average lgain(n): Amplitude of pulse is Amp=lgain(n)*NPES
 std::vector <double> timeSpreadLGain(50,0.0); 
+
 
 
 class TracePair
@@ -156,6 +168,7 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
 	   LGFADCTraces.Fill();
 	}
   }
+  std::cout << "ReadSimTracesFromLogFile: All traces read in." << std::endl;
   return true;
 }
 // ***********************************************************************
@@ -290,12 +303,24 @@ void GetLeadinEdgeAndPeakLocationsAndPeakValue(double& peakLocation,
 // Amplitude will be used to determine Time shifted Linearity
 // **********************************************************************
 {
+  // bool debugPrint=true;
   bool debugPrint=false;
-  TH1D* pTemplateHist = new TH1D("templateHist","templateHist",kNumTraceBins,
+  if (pTemplateHist != NULL) {
+	delete pTemplateHist;
+  }
+  pTemplateHist = new TH1D("templateHist","templateHist",kNumTraceBins,
 								 0.5,kNumTraceBins+.5);
+  
   // *****************************************************
   // Load it up with our trace
   // *****************************************************
+  if ((int)(sizeof(trace)/sizeof(int)) < kNumTraceBins ) {
+	std::cout<<"GetLeadinEdgeAndPeakLocationsAndPeakValue error: "
+	           "trace.size()<< kNumTraceBins: trace.size(), kNumTraceBins: "
+			 <<  sizeof(trace)/sizeof(int) << " " << kNumTraceBins << std::endl;
+	exit(1);
+  }
+
   for(int i=0; i<kNumTraceBins; i++) {
     pTemplateHist->SetBinContent(i+1,trace[i]);
   }
@@ -304,6 +329,9 @@ void GetLeadinEdgeAndPeakLocationsAndPeakValue(double& peakLocation,
   // Restore trace[] with minimum(pedestal) removed and do same for 
   // historgram of trace
   // **********************************************
+  if (debugPrint) {
+	std::cout<<"  minAmplitude: "<< minAmplitude <<std::endl;
+  }
   for(int i=0; i<kNumTraceBins; i++) {
     trace[i] = pTemplateHist->GetBinContent(i+1)-minAmplitude;
     pTemplateHist->SetBinContent(i+1,trace[i]);
@@ -326,14 +354,28 @@ void GetLeadinEdgeAndPeakLocationsAndPeakValue(double& peakLocation,
   peakLocation = fit->GetParameter(1);
   traceAmplitudeDC = fit->GetParameter(0);
 
+
   // **********************************************************************
   // Now search back down from the peak to find the leading edge at fraction 
   // fLeadingEdgeFraction
   // **********************************************************************
   double leadingEdgeAmplitude= traceAmplitudeDC*kLeadingEdgeFraction;
   int    peakIndex = pTemplateHist->GetXaxis()->FindBin(peakLocation);
+  if (debugPrint) {
+	std::cout<<"maxSample,xmin,xmax,peakLocation,traceAmplitudeDC,"
+               "leadingEdgeAmplitude,peakIndex: "
+			 <<maxSample << " " << xmin << " " << xmax << " " << peakLocation 
+			 << " " << traceAmplitudeDC << " " << leadingEdgeAmplitude
+			 << " " << peakIndex << std::endl;
+  }
+
+
   for( int i= peakIndex; i>0; i--) {
     double levelLow = pTemplateHist->GetBinContent(i);
+	 if(debugPrint) {
+	   std::cout<< "i,levelLow: " << i << " " << levelLow << std::endl;
+	 }
+
     if( levelLow < leadingEdgeAmplitude) {
 	  // ******************************************************
 	  // Interpolate
@@ -352,8 +394,8 @@ void GetLeadinEdgeAndPeakLocationsAndPeakValue(double& peakLocation,
 				 << " " << levelHigh << " " <<  leadingEdgeLocationLow << " " 
 				 << leadingEdgeLocationHigh << " " << ratio << " " 
 				 << leadingEdgeLocation <<std::endl;
-		break;
 	  }
+	  break;
 	}
   }
   return;
@@ -409,6 +451,7 @@ void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
 // Don't forget to invert to match standard template format.
 // ***********************************************************************
 {
+  bool debugPrint = false;
   // ******************************************************************
   // See if this file exsts
   // ******************************************************************
@@ -453,15 +496,22 @@ void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
   int binCenterIndex       = 0;
   int tmpltIndex           = 0;
   int tmpltNumBins         = tmplt.size();
+  if (debugPrint) {
+	std::cout<<" tmpltNumBins:" <<  tmpltNumBins <<std::endl;
+  }
+
   while(1) { 
     // **************************************************************
     //This is loop to produce one output bin
     // **************************************************************
     while (1){
+	  if (debugPrint) {
+		std::cout<<" tmpltIndex:" <<  tmpltIndex <<std::endl;
+	  }
       
       if (tmpltIndex==tmpltNumBins ) {
-	finishedPulse=true;
-	break;           // done with this pulse, go on to the next one
+		finishedPulse=true;
+		break;           // done with this pulse, go on to the next one
       }
       
       // ***************************************
@@ -469,52 +519,52 @@ void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
       // our first output time (On the even .25 ns step
       // *************************************
       if (ibin == 0 ) {  //we are at the first bin in this pulse
-	// init the time,find the offset
-	binCenterIndex = Round(tmplt.at(tmpltIndex).time/kBinSpacingNS);
-	oldBinCenterIndex=binCenterIndex-1;
-	ibin=1;
+		// init the time,find the offset
+		binCenterIndex = Round(tmplt.at(tmpltIndex).time/kBinSpacingNS);
+		oldBinCenterIndex=binCenterIndex-1;
+		ibin=1;
       }
       
       int nextBinCenterIndex=Round(tmplt.at(tmpltIndex).time/kBinSpacingNS);
       
       if (nextBinCenterIndex==binCenterIndex) {
-	sum=sum+tmplt.at(tmpltIndex).pulseHeight;
-	sumCount++;
+		sum=sum+tmplt.at(tmpltIndex).pulseHeight;
+		sumCount++;
       }
       else {  // We are done with this bin and ready to start the next
 	
-	// ************************************************************
-	// This is where we would check to see if we are skippinfg any 
-	// time bins and if so we would interpolate
-	// ************************************************************
-	// oldSumAverage has previous pulse value and oldBinCenterIndex has 
-	// old Index
-	// See if we need to fill in bins
-	// ***********************************************************
-	double sumAverage=sum/sumCount;
-	
-	while( binCenterIndex-oldBinCenterIndex >1) {
-	  // Interpolate
-	  double weight= 1.0/((double)(binCenterIndex-oldBinCenterIndex));
+		// ************************************************************
+		// This is where we would check to see if we are skippinfg any 
+		// time bins and if so we would interpolate
+		// ************************************************************
+		// oldSumAverage has previous pulse value and oldBinCenterIndex has 
+		// old Index
+		// See if we need to fill in bins
+		// ***********************************************************
+		double sumAverage=sum/sumCount;
+		
+		while( binCenterIndex-oldBinCenterIndex >1) {
+		  // Interpolate
+		  double weight= 1.0/((double)(binCenterIndex-oldBinCenterIndex));
 	  
-	  double interpolatedSumAverage=oldSumAverage +
-	    (sumAverage-oldSumAverage)*weight;
+		  double interpolatedSumAverage=oldSumAverage +
+			(sumAverage-oldSumAverage)*weight;
 	  
-	  oldBinCenterIndex++;
-	  oldSumAverage = interpolatedSumAverage;
-	  pulse.push_back(oldSumAverage);
-	}
+		  oldBinCenterIndex++;
+		  oldSumAverage = interpolatedSumAverage;
+		  pulse.push_back(oldSumAverage);
+		}
 	
-	pulse.push_back(sumAverage);
+		pulse.push_back(sumAverage);
 	
-	oldSumAverage=sumAverage;
-	oldBinCenterIndex=binCenterIndex;
+		oldSumAverage=sumAverage;
+		oldBinCenterIndex=binCenterIndex;
 	
-	//and setup for the nect bin
-	sum=tmplt.at(tmpltIndex).pulseHeight;
-	sumCount=1;
-	binCenterIndex=nextBinCenterIndex;
-	ibin++;
+		//and setup for the nect bin
+		sum=tmplt.at(tmpltIndex).pulseHeight;
+		sumCount=1;
+		binCenterIndex=nextBinCenterIndex;
+		ibin++;
       }
       tmpltIndex++;
     }
@@ -544,7 +594,7 @@ void SaveToTextFile(std::vector < TracePair >&tmplt, std::string fileOut)
 
     // This is where we invert the pulse also to match standard format.
     outFile<< std::fixed << std::setprecision(4) << binTime << " " << -plsHgt 
-	   << std::endl;
+		   << std::endl;
     TracePair tp;
     tp.time=binTime;
     tp.pulseHeight=plsHgt;
@@ -564,11 +614,12 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 			  std::string fileOut, bool saveTmplt=true)
 // ************************************************************************
 // Find numToUse traces for templates made from noSpreadTemplateID, line them 
-// all up with the first one, normalize them and writwe out the time,height 
+// all up with the first one, normalize them and write out the time,height 
 // pairs for all samples to the fileOut text file
 // **************************************************************************
 {
   bool debugPrint=false;
+  //bool debugPrint=true;
   // ***********************************
   // Define place to keep the template (sum of all traces, shfited to have 
   // same peak)
@@ -587,6 +638,9 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   if(!gotOne) {
     std::cout<<"No such trace "<< noSpreadTemplateID << std::endl;
     return false;
+  }
+  if(debugPrint) {
+	std::cout << "Got Trace 0 for template " << noSpreadTemplateID <<std::endl;
   }
   // **********************************************************************
   // Save the Amplitude and linearity of this template
@@ -635,6 +689,10 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
       std::cout<<"Wanted "<<numToUse<< " got "<< numProcessed <<std::endl;
       break;
     }
+	if(debugPrint) {
+	  std::cout << "Got Trace " << numProcessed << " for template " 
+				<< noSpreadTemplateID <<std::endl;
+	}
     
     double peakLocation;
     double leadingEdgeLocation;
@@ -664,29 +722,60 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   // This is just the simplest
   // ****************************************************************
   timeSpreadLGain.at( noSpreadTemplateID ) = traceLGainSum/numProcessed;
-  std::cout <<  noSpreadTemplateID << ": Old Lin: " << tmpltLinearity 
-			<< " New Lin : ";
+  std::cout <<  noSpreadTemplateID << ": Old/new/newCorr Lin: " << tmpltLinearity ;
   // *********************************************************
   // Determin Linearity of timespread traces. Put into global variable
   // *********************************************************
-  tmpltLinearity =  timeSpreadLGain.at(noSpreadTemplateID) / 
+  // -----------------
+  // Try using actual Linearuity
+  // -----------------
+  //  // For template 0 its always 1.0 (actually linis ignored for template 0)
+  //if (noSpreadTemplateID == 0) {
+  //	tmpltLinearity = 1.0;
+  //	std::cout << " " << tmpltLinearity;
+  //	double correctedLinearity =  timeSpreadLGain.at(0) / 
+  //	                          (kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio);
+  //std::cout << " " << correctedLinearity;
+  if (noSpreadTemplateID == 0) {
+	tmpltLinearity =  timeSpreadLGain.at(0) / 
+	                          (kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio);
+  std::cout << " " << tmpltLinearity;
+  }
+  else {
+	// ****************************************************
+	// We want a linearity that is ratio of time-spread template (N) peak to 
+	// that of peak pf Ideal template (0) no time spread.
+	// That value is just (NPES*2.05/10.25)/NPES or just 
+	//  kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio 
+	// 2.05/10.25 = .2(Hamamatsu) or 1.32/7.52(photonis) = .176.
+	// (Note should they be the same value?, do I have the hi pulse gains 
+	// correct?) 
+	// *******************************************************************
+	tmpltLinearity =  timeSpreadLGain.at(noSpreadTemplateID) / 
                                                    timeSpreadLGain.at(0);  
-  std::cout << tmpltLinearity << std::endl;
+	std::cout << " " << tmpltLinearity << " ";
+	tmpltLinearity = timeSpreadLGain.at(noSpreadTemplateID) / 
+	                              (kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio);
+	std::cout << tmpltLinearity;
+  }
+  std::cout << std::endl;
 
   if ( numClipped != 0 ) {
 	std::cout<< "Ignorred " << 	numClipped << " clipped traces! " 
 			 << std::endl;
   }
 
-  // Degbug
+  // Debug
   //GraphTemplate(tmplt);
 
   // **********************************************************************
   // Now sort the vector of time/pulse height pairs  by time and write
   // to the output file
   // **********************************************************************
+  //std::cout<< "Sort started"<<std::endl;
   std::sort(tmplt.begin(), tmplt.end());  //TracePair has < operator that 
                                            //only checks .time relationships
+  //std::cout<< "Sort finished"<<std::endl;
   //  for ( int j = 0; j<(int)tmplt.size();j++){
   //  std::cout<< "time,pulseHeight: "<<tmplt.at(j).time<<" "
   //	     <<tmplt.at(j).pulseHeight<<std::endl;
@@ -698,28 +787,33 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   // Now save sorted pulse to text file
   // **********************************************************************
   if ( saveTmplt) {
-	//"Lin" and "Amp" from global variab lestmpltLinearity and  tmpltAmplitude 
+	//"Lin" and "Amp" from global variab    tmpltLinearity and  tmpltAmplitude 
     SaveToTextFile(tmplt,fileOut); 
   }
-  GraphTemplate(tmplt);
- return true;
+  //GraphTemplate(tmplt);
+  if (debugPrint) {
+	std::cout<< " Template " <<  noSpreadTemplateID << "saved." <<std::endl;
+  }
+
+return true;
 }
 // ************************************************************************
 
 
 void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName)
 // ************************************************************************
-// 1.Parse through the KSAomega log file which has in KSFADC.cpp fDebugPrint
-// set to true. This file has all time spread low gain traces that were 
-// generated as output lines which look like:
+// 1.Parse through the KSAomega log file which was made with 
+// KSFADC.cpp::fDebugPrint set to true. This file has all time spread low 
+// gain traces that were generated as output lines which look like:
 // **LowGainTrace## 998 5230.47 1 0.945  1019.86 16 9 19 49 97 151 172 150 108
 //                   78 61 50 42 36 34 31 29
 // Above is a 16 sample example. The lines are read in and placed in 
 // TTree LGFADCTraces
 // 2. Iterate through the template indexes generating the average trace shape 
-// for each template.  Also calculate the expected linearity (template 0 is 
-// defined to have linearity of 1.0, all other template linearitys are 
-// relative to its amplitude.
+// for each template.  Also calculate the expected linearity (template 0 
+// (with no time spread, see below) is defined to have linearity of 1.0, all 
+// other template linearitys are relative to its amplitude(not the time-spread
+// template 0, there is ~ 20% difference!!).
 // 3. Save each nomalized (peak ==1), averaged, with new linearity and old HG 
 // amplitude (we may want to look at that some day).
 // *************************************************************************
@@ -746,6 +840,7 @@ void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName)
 												numTracesToUse.at(templateID) ,
 												LGTemplatesFileName, true);
   
+	std::cout<< "Finished template " << templateID <<std::endl;
 	if (!templateProcessed ) {
 	  break;
 	}
