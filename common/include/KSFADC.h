@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <vector>
+#include <iterator>
 
 #include <TRandom3.h>
  
@@ -36,6 +37,7 @@ class KSFADC
 		     int traceLengthBins, bool EnableHiLoGainProcessing, 
 		     double FADCTracePed, double lowGainPedestalFADC);
   double getWindowArea(int fStartTraceIndex, int fNumBinsToSum);
+  int    getFADCTracePulseStart(double pedestal);
   void   Print(int fStartTraceIndex, int fNumBinsToPrint);
   bool   generateTraceSamples(double& traceArea, KSWaveForm* pWaveForm, 
 			      int waveFormStartIndex, 

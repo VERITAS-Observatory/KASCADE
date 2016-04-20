@@ -89,7 +89,9 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
   // *************************************************************************
   if(enableHiLoGainProcessing && fIsLowGainTrace)
     {
-      //create low gain in pWaveForm
+	  int    startTracePulseHG     = getFADCTracePulseStart(fFADCTracePed);
+	  double highGainCharge7BinsDC = getWindowArea(startTracePulseHG,7);
+
       // ***************************************************************
       //To decide which Low gain template to use , use one of:
       // High Gain Charge (FADCTrace sum- minus trace pedestal)
@@ -102,7 +104,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
   
       // Find the max of elements in the vector
 
-      double highGainAmplitudePE = pWaveForm->GetWaveFormMax();
+      //double highGainAmplitudePE = pWaveForm->GetWaveFormMax();
       //double highGainAmplitudeDC = highGainAmplitudePE * fDigCntsPerPEHiGain;
       //double highGainAmplitudeMV = highGainAmplitudeDC * gHighGainMVPerDC;
 	  //double highGainTraceAmplitudeDC = getFADCTraceMax();
@@ -169,6 +171,8 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       // *****************************************
       generateTraceSamples(lowGainChargeDC, pWaveForm,  lowGainStartIndex, 
 			   numSamplesTrace, fLowGainPedestal);
+	  int startTracePulseLG = getFADCTracePulseStart(fLowGainPedestal);
+	  double lowGainCharge7BinsDC = getWindowArea(startTracePulseLG,7);
       
 	  // int cl=0;
       //if(clipTrace()) {//For really big pulses this might be needed.
@@ -176,19 +180,23 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //}
 
       if(fDebugPrint) {
-		double lowGainSizeDC  = lowGainChargeDC  - 
-                                          (numSamplesTrace * fLowGainPedestal);
-		double highGainSizeDC = highGainChargeDC - 
-                                          (numSamplesTrace * fFADCTracePed);
+		//double lowGainSizeDC  = lowGainChargeDC  - 
+        //                               (numSamplesTrace * fLowGainPedestal);
+		double lowGainSize7BinsDC  = lowGainCharge7BinsDC  - 
+                                          (7 * fLowGainPedestal);
+		//double highGainSizeDC = highGainChargeDC - 
+        //                                  (numSamplesTrace * fFADCTracePed);
+		double highGainSize7BinsDC = highGainCharge7BinsDC - 
+                                                        (7 * fFADCTracePed);
 		//double lowGainTraceAmplitudeDC = getFADCTraceMax();
 		
 		std::cout << "**LowGainTrace##" << " " 
 				  << pWaveForm->GetPECount() << " " 
-				  << highGainSizeDC << " " 
+				  << highGainSize7BinsDC << " " 
 				  << pWaveForm->GetLowGainIndex() << " " 
 				  << pWaveForm->GetLinearity() << " "  //LG template linearity
 				  << pWaveForm->GetSize() << " "       //LG template amplitude
-				  << lowGainSizeDC << " "; 
+				  << lowGainSize7BinsDC << " "; 
 		// *******************************************************************
 		// Add on the fadc trace. Needs to be last
 		// *******************************************************************
@@ -212,10 +220,12 @@ double KSFADC::getWindowArea(int fStartTraceIndex, int fNumBinsToSum)
 // ***************************************************************************
 {
   int fTraceLength=fFADCTrace.size();
-  if(fTraceLength<fStartTraceIndex+fNumBinsToSum)
+  if(fTraceLength<fStartTraceIndex+fNumBinsToSum-1)
     {
       std::cout<<"KSFADC: Request for non-existant fFADCTrace bins in "
-	"KSFADC::getWindowArea"<<std::endl;
+		         "KSFADC::getWindowArea(first,last)actualsize: "
+			   << fStartTraceIndex << " " << fStartTraceIndex+fNumBinsToSum 
+			   << " " << fTraceLength << std::endl;
       return 0;
     }
   double fSum=0;
@@ -326,8 +336,46 @@ int KSFADC::getFADCTraceMax()
 }
 // *********************************************************************
 
-      
+int KSFADC::getFADCTracePulseStart(double samplePedestal)
+// *********************************************************************
+// Using quick ansd dirty pulse location in trace , first sample that is 
+// above .5 of max of sample and back up 2 samples.
+// ********************************************************************
+{
+  // ***************************************************
+  // As a quick and dirty way to get this code to work convert to a 
+  // vector<float> subtracting the pedestal
+  int traceLength=fFADCTrace.size();
+  std::vector< float > trace(traceLength);
+  for ( int i=0; i < traceLength; i++) {
+	trace.at(i) = (float)fFADCTrace.at(i) - samplePedestal; 
+  }
 
+  // ******************************
+  // extract the peak sample value
+  // ******************************
+  float traceMaxAmplitude = *std::max_element(trace.begin(),trace.end());
 
+  // **********************************************************************
+  // Find the index of first sample with a value exceeding half the maximum.
+  // Note, std::find_if is guaranteed to return a valid iterator,
+  // since the peak value itself fulfils the selection criterion.
+  // **********************************************************************
+  std::vector< float >::difference_type thresholdIndex = 
+	std::distance(trace.begin(),std::find_if(trace.begin(),trace.end(), 
+              std::bind2nd(std::greater< float >(),.5*traceMaxAmplitude) ) );
+  // ***********************************
+  //And back up 4 ns = 2 samples if we can
+  // ***********************************
+  if( thresholdIndex != 0 ) {
+	thresholdIndex--;
+  }
+  if( thresholdIndex != 0 ) {
+	thresholdIndex--;
+  }
+  // Return the index
+  return (int) (thresholdIndex);
+}
+// *************************************************************************
 
 
