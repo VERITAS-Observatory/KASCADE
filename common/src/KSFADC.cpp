@@ -16,6 +16,7 @@
 KSFADC::KSFADC()
 {
   pRandom=new TRandom3(0);
+  fTraceID = 0;
 }
 // ************************************************************************
 
@@ -89,10 +90,21 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
   // *************************************************************************
   if(enableHiLoGainProcessing && fIsLowGainTrace)
     {
-	  int    startTracePulseHG     = getFADCTracePulseStart(fFADCTracePed);
-	  double highGainCharge7BinsDC = getWindowArea(startTracePulseHG,7);
+	  bool goodAreas = true;
 
-      // ***************************************************************
+	  double highGainCharge7BinsDC;
+	  int    startTracePulseHG     = getFADCTracePulseStart(fFADCTracePed);
+	  // ****************************
+	  // Make sure we have at least 7 bins to sum
+	  // ***************************
+	  if(fFADCTrace.size() - startTracePulseHG < 7 ) {
+		goodAreas = false;
+	  }
+	  else {
+		highGainCharge7BinsDC = getWindowArea(startTracePulseHG,7);
+	  }
+   
+	  // ***************************************************************
       //To decide which Low gain template to use , use one of:
       // High Gain Charge (FADCTrace sum- minus trace pedestal)
       // High Gain AmplitudeDC (pWaveForm Peak)
@@ -124,7 +136,9 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
      
       //pWaveForm->BuildLowGainWaveForm(highGainAmplitudeMV); 
 
-      pWaveForm->BuildLowGainWaveForm(highGainIsochronicAmplitudeMV); 
+      double interpolatedLinearity;
+	  pWaveForm->BuildLowGainWaveForm(highGainIsochronicAmplitudeMV,
+									  interpolatedLinearity); 
  
       // ******************************************************************
       //  The pulse is now built(includes noise) and is in units of pe's. 
@@ -142,16 +156,15 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //    waveform by the hi/lo gain factor fLowGainToHighGainPeakRatio 
       //    (Nepomuks .099) (includes 1/6 factor and the 
       //    heightSingleHGpe/heightSingleLGPe for template 0 ~ .594
-      //  4 Furthor reduce the waveform height by  by the selected template 
-      //    liniarity factor (pWaveForm->fLinearity), which includes the 
+      //  4 Furthor reduce the waveform height by  by the interpolated 
+	  //    template liniarity factor, which is the 
       //    relataive template pulse height for equal area single pes between 
       //    this template and template0)
       //  5. Scale the nomalized LowGain pulse to have this resultant height. 
       // *******************************************************************
       // ******************************************************************
       //  CARE's scaling(which I think is the correct one to use)
-      double scaleFactor = fLowGainToHighGainPeakRatio * 
-                                                 pWaveForm->GetLinearity(); 
+      double scaleFactor = fLowGainToHighGainPeakRatio * interpolatedLinearity;
       
 
       // **************************
@@ -172,14 +185,16 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       generateTraceSamples(lowGainChargeDC, pWaveForm,  lowGainStartIndex, 
 			   numSamplesTrace, fLowGainPedestal);
 	  int startTracePulseLG = getFADCTracePulseStart(fLowGainPedestal);
-	  double lowGainCharge7BinsDC = getWindowArea(startTracePulseLG,7);
-      
-	  // int cl=0;
-      //if(clipTrace()) {//For really big pulses this might be needed.
-	  //		cl=1;
-      //}
 
-      if(fDebugPrint) {
+	  double lowGainCharge7BinsDC = 0;
+	  if(fFADCTrace.size() - startTracePulseLG < 7 ) {
+		goodAreas = false;
+	  }
+	  else {
+		lowGainCharge7BinsDC = getWindowArea(startTracePulseLG,7);
+      }
+
+      if(fDebugPrint && goodAreas) {
 		//double lowGainSizeDC  = lowGainChargeDC  - 
         //                               (numSamplesTrace * fLowGainPedestal);
 		double lowGainSize7BinsDC  = lowGainCharge7BinsDC  - 
@@ -189,16 +204,16 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 		double highGainSize7BinsDC = highGainCharge7BinsDC - 
                                                         (7 * fFADCTracePed);
 		//double lowGainTraceAmplitudeDC = getFADCTraceMax();
-		
 		std::cout << "**LowGainTrace##" << " " 
 				  << pWaveForm->GetPECount() << " " 
-				  << highGainSize7BinsDC << " " 
-				  << pWaveForm->GetLowGainIndex() << " " 
-				  << pWaveForm->GetLinearity() << " "  //LG template linearity
+				  << highGainSize7BinsDC << " "          //No pedestal
+				  << pWaveForm->GetLowGainIndex() << " " //template iindex
+				  << pWaveForm->GetLinearity() << " "  //templatelinearity
+				  << interpolatedLinearity << " "      //linearity used.
 				  << pWaveForm->GetSize() << " "       //LG template amplitude
-				  << lowGainSize7BinsDC << " "; 
+				  << lowGainSize7BinsDC << " ";  //no pedestal
 		// *******************************************************************
-		// Add on the fadc trace. Needs to be last
+		// Add on the fadc trace. Needs to be last. includes pedestal
 		// *******************************************************************
 		std::cout << (int)fFADCTrace.size() << " ";
 		for (int m=0; m< (int) fFADCTrace.size(); m++) {
@@ -213,28 +228,28 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 }
 // ***************************************************************************
 
-double KSFADC::getWindowArea(int fStartTraceIndex, int fNumBinsToSum)
+double KSFADC::getWindowArea(int StartTraceIndex, int NumBinsToSum)
 // ***************************************************************************
 // Sum bins in trace statring at fStartTraceIndex. Result is in Digital Counts
 // Since the makeFADCTrace creates a fFADCTrace in DC.
 // ***************************************************************************
 {
-  int fTraceLength=fFADCTrace.size();
-  if(fTraceLength<fStartTraceIndex+fNumBinsToSum-1)
+  int traceLength=fFADCTrace.size();
+  if(traceLength-1 < StartTraceIndex+NumBinsToSum-1)
     {
       std::cout<<"KSFADC: Request for non-existant fFADCTrace bins in "
 		         "KSFADC::getWindowArea(first,last)actualsize: "
-			   << fStartTraceIndex << " " << fStartTraceIndex+fNumBinsToSum 
-			   << " " << fTraceLength << std::endl;
-      return 0;
-    }
-  double fSum=0;
-  for(int i=0;i<fNumBinsToSum;i++)
+			   << StartTraceIndex << " " << StartTraceIndex+NumBinsToSum 
+			   << " " << traceLength << std::endl;
+      NumBinsToSum = traceLength- StartTraceIndex;
+	}
+  double sum=0;
+  for(int i=0;i<NumBinsToSum;i++)
     {
-      int fIndex=fStartTraceIndex+i;
-      fSum+=fFADCTrace.at(fIndex);
+      int index=StartTraceIndex+i;
+	  sum+=fFADCTrace.at(index);
     }
-  return fSum;
+  return sum;
 }
 // ************************************************************************	
 void  KSFADC::Print(int fStartTraceIndex, int fNumBinsToPrint)

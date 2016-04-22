@@ -506,7 +506,7 @@ int KSSinglePe::getLowGainIndexAndLinearity(double selectionValue,
   }
   else{
     // **********************
-    // Interpolate
+    // Interpolate linearity 
     // **********************
     double upperArea=fLowGainWaveForm.at(templateIndex).fUpperHighGainArea;
     double lowerArea=fLowGainWaveForm.at(templateIndex-1).fUpperHighGainArea;

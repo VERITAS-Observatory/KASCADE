@@ -39,7 +39,8 @@ class KSWaveForm : public KSWaveFormBasic
   void AddPedestalToWaveForm(double WaveFormPedestal);
   void PrintWaveForm();
   int    GetNumWaveFormBins(){return fNumWaveFormBins;};
-  void   BuildLowGainWaveForm(double highGainChargeDC);
+  void   BuildLowGainWaveForm(double highGainChargeDC, 
+							  double& interpolatedLinearity);
   int    GetLowGainIndex(){return fLowGainIndex;};
   int    GetPECount(){return fPECount;};
   int    GetNumPES(){return (int)fWaveFormPETimesNS.size();};

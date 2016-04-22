@@ -208,8 +208,6 @@ void KSWaveForm::addPe(double PETimeNS,bool AfterPulse, double lowGainPePulseHei
   // Save the time for the time when we will have to regenerate a lo gain
   // pulse. Also save the pulse height
   // ********************************************************************
-  if( ! fLowGainMode) {
-  }
   if( ! fLowGainMode ) {
     pulseHeight=pfSinglePe->getPulseHeight(AfterPulse);
 
@@ -356,7 +354,8 @@ double KSWaveForm::GetWaveFormFWHM()
 
 // ******************************************************************
 
-void KSWaveForm::BuildLowGainWaveForm(double templateDesignator)
+void KSWaveForm::BuildLowGainWaveForm(double templateDesignator, 
+									  double& interpolatedLinearity)
 // ********************************************************************
 // This is where the HighGain waveform is converted into a lowgain wave form.
 // Methods:
@@ -383,25 +382,32 @@ void KSWaveForm::BuildLowGainWaveForm(double templateDesignator)
 
   // **********************************************************
   // Find Low gain template we want.  Set up pointer to wave form and get
-  // linearity value
+  // the interpolated linearity value
   // ***********************************************************
   fLowGainIndex= pfSinglePe->getLowGainIndexAndLinearity(
 							templateDesignator, 
-  							fLinearity);
+  							interpolatedLinearity);
  //							fLinearity) +14;
     
   pfSelectedWaveForm = 
                     &pfSinglePe->fLowGainWaveForm.at(fLowGainIndex).fWaveForm;
   
   fSize = pfSinglePe->fLowGainWaveForm.at(fLowGainIndex).GetSize();
+ 
+  // ****************************************************************
+  // The linearity derived from the getLowGainIndexAndLinearity call above
+  // is an interpolated linearity. I think thats what we should use, not the
+  // fixed template linearity below.
+  // Linearity is applied in the routine that calls this method.
+  // ******************************************************************
   fLinearity = pfSinglePe->fLowGainWaveForm.at(fLowGainIndex).GetLinearity();
-
-  
   
   // *************************************************************
   // Actually build the waveform. (sky noise pe have already been added)
   // Just cleanout the waveform and resize it, all other stuff (startbin time 
-  // ect. remains the same as the original
+  // ect. remains the same as the original. Units of peak of pulse will 
+  // therefore be in "number of pes". Scaling to low gain and applying 
+  // linearity happen later
   // *************************************************************
   fWaveForm.clear();
   fWaveForm.resize(fNumWaveFormBins, 0.0);
