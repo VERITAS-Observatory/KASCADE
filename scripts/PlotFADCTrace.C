@@ -40,6 +40,7 @@ float numPes;
 int   tIndex;
 int   amplitude;
 float linearity;
+float interpolatedLinearity;
 int   numSmpl;
 int   trace[kNumTraceBins];
 
@@ -111,17 +112,18 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
   // ******************************************************************
   // Define the branches in the internal TTree
   // ******************************************************************
-  LGFADCTraces.Branch( "numPes",        &numPes,             "numPes/I");
-  // LGFADCTraces.Branch( "hiSize",      &fHighSize,            "hiSize/F");
+  LGFADCTraces.Branch( "numPes",      &numPes,             "numPes/I");
+  // LGFADCTraces.Branch( "hiSize",      &fHighSize,         "hiSize/F");
 
-  LGFADCTraces.Branch( "tIndex", &tIndex,            "tIndex/I");
-  LGFADCTraces.Branch( "linearity",   &linearity,         "linearity/F");
-  LGFADCTraces.Branch( "amplitude",   &amplitude,         "amplitude/I");
+  LGFADCTraces.Branch( "tIndex",      &tIndex,             "tIndex/I");
+  LGFADCTraces.Branch( "linearity",   &linearity,          "linearity/F");
+  LGFADCTraces.Branch( "intrplin",    &interpolatedLinearity, "intrplin/F");
+  LGFADCTraces.Branch( "amplitude",   &amplitude,          "amplitude/I");
 
-  // LGFADCTraces.Branch( "loSize",       &fLowSize,            "loSize/F");
+  // LGFADCTraces.Branch( "loSize",       &fLowSize,         "loSize/F");
 
-  LGFADCTraces.Branch( "numSmpl",      &numSmpl,            "numSmpl/I");
-  LGFADCTraces.Branch( "trace",         &trace,      "trace[numSmpl]/I");
+  LGFADCTraces.Branch( "numSmpl",     &numSmpl,            "numSmpl/I");
+  LGFADCTraces.Branch( "trace",       &trace,              "trace[numSmpl]/I");
   // address of an address for an array (only on Branch , not SetBranchAddress)
 
   // ***************************************************
@@ -154,6 +156,7 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
 	  is >> fHighSize;
       is >> tIndex;
 	  is >> linearity;
+	  is >> interpolatedLinearity;
 	  is >> amplitude;
 	  is >> fLowSize;
 	  is >> numSmpl;
@@ -180,6 +183,7 @@ void PlotTraceInit(std::string fileName)
 
   LGFADCTraces.SetBranchAddress("tmplt",   &tIndex);
   LGFADCTraces.SetBranchAddress("Lin",     &linearity);
+  LGFADCTraces.SetBranchAddress("intrpLin",&interpolatedLinearity);
   LGFADCTraces.SetBranchAddress("Amp",     &amplitude);
   LGFADCTraces.SetBranchAddress("numSmpl", &numSmpl);
   LGFADCTraces.SetBranchAddress("trace",   &trace);

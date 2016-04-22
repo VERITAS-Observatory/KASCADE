@@ -1,8 +1,8 @@
 //Root script
 const double kMVToDCN         = 7.84;           //Nepomuks values
 const double kUpgradeGainN    = 2.33;           //Nepomuks values
-const double kPhotonisGainG   = 1.3;           //Glenns values
-const double kPEToDCAreaG     = 5.62;            //Glenns value
+const double kPhotonisGainG   = 1.3;            //Glenns values
+const double kPEToDCAreaG     = 5.62;           //Glenns value
 const double kBinSpacingNS    = 0.25;
 const double k20PercentPositionNS = 5.0;
 const int    kMaxNumTemplates = 100;
@@ -43,6 +43,7 @@ int   fNumPes;
 int   fHighSize;
 int   fTemplateIndex;
 float fLinearity;
+float fInterpolatedLinearity;
 int   pLGTrace[16];
 // *************************************************************************
 
@@ -876,6 +877,7 @@ bool ReadInSimTraces(string KSAomegaLogFileName)
   traceTree.Branch("HighSize",&fHighSize,"hiSize/F");
   traceTree.Branch("TemplateIndex",&fTemplateIndex,"i/I");
   traceTree.Branch("Linearity",&fLinearity,"L/f");
+  traceTree.Branch("InterpolatedLinearity",&fInterpolatedLinearity,"L/f");
   traceTree.Branch("LGTrace",pLGTrace,"trace[16]/I");
 
   
@@ -908,6 +910,7 @@ bool ReadInSimTraces(string KSAomegaLogFileName)
 	  is >> fHighSize;
       is >> fTemplateIndex;
 	  is >> fLinearity;
+	  is >> fInterpolatedLinearity;
 	  for ( int j = 0; j < 16; j++) {
 		is >> pLGTrace[j];
 	  	if (ifs.eof() ) {
