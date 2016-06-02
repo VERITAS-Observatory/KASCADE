@@ -28,12 +28,12 @@ void PrintEnergySteps(std::string particleType = "G", int minNumShowers = 20)
   if ( particleType == "P") {
 	pType = "Protons";
 	fNumMin = minNumShowers;   //Cosmic rays
-	fNumShowersAt100=80;     // protons
+	fNumShowersAt100=160;     // protons
 	fAlpha=-2.77; //Proton spectrum Index
   }
   if ( particleType=="H") {
 	pType = "Helium";
-	En	fNumMin= minNumShowers;   //Cosmic rays
+	fNumMin= minNumShowers;   //Cosmic rays
 	fNumShowersAt100=108;     //helium
 	fAlpha=-2.64;  //Helium spectrum Index
   }
