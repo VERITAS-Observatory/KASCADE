@@ -68,8 +68,8 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 // doesn't allow values below 0, so we need to offset up
 // ************************************************************
 {
-  // bool fDebugPrint=false;
-  bool fDebugPrint=true;
+  bool fDebugPrint=false;
+  //bool fDebugPrint=true;
 
   fIsLowGainTrace = false;             //We start at High Gain
 
