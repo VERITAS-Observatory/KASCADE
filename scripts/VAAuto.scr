@@ -1,6 +1,6 @@
 #!/bin/bash
 #This script is used to automate the generation and processing of the veritas 
-# KASCA	DE vbf files in 1:Noise levbels, LT and EA tables.
+# KASCADE vbf files in 1:Noise levbels, LT and EA tables.
 
 #It has some arguments listed below.
 #$1: Command. Do "VAAuto.scr ListCommands" for a list!
@@ -9,10 +9,10 @@
 #   UpgradeArray) 
 #  Note the UA.NA.OA extention also appears in argument $5
 #$4 ksProduction Type spec: Ex:   G or  P or He4_ or CR or E
-#$5 MDL designation for VBF files: Ex MDL10UA or MDL15NA
+#$5 MDL designation for VBF files: Ex MDL12UA or MDL15NA
 #$6 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
 #$7 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
-#$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All"
+#$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores wbl)
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar list: 5.18, 5.55 6.51 or "All" or "Base"
 #${11} Specifes Type of LT or DT table to use or make for LT,DT (Ex All or 050)
@@ -67,9 +67,9 @@ function commandEnable()
     echo '    # EA Tables                         # Stage5'
     echo '    # Uses Argument $1-${12}            # Uses Arguments $1-${12}'
     echo '    #------------------------           #------------------------'
-    echo '    GenerateEASubLTListAndConfigFiles  GenerateStage5CombinedFromStage4' 
-    echo '    ProduceEASubLookupTables'
-    echo '    CombineBuildCheckEALT'
+    echo '    GenerateEASubLTListAndConfigFiles  GenerateStage5Combined' 
+    echo '    ProduceEASubLookupTables           GenerateStage5CombinedRCE'
+    echo '    CombineBuildCheckEALT              (RCE is RemoveCutEvents)'
     exit
   else
     if [ "$1" = "GetVBFFileFromArchive" ]; then eval $1=enable; return 0; fi;
@@ -102,7 +102,8 @@ function commandEnable()
     if [ "$1" = "ProduceEASubLookupTables" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CombineBuildCheckEALT" ]; then eval $1=enable; return 0; fi;
 
-    if [ "$1" = "GenerateStage5CombinedFromStage4" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateStage5Combined" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateStage5CombinedRCE" ]; then eval $1=enable; return 0; fi;
     echo ' VAAuto: Invalid Command: '$1
     echo ' VAAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
     exit
@@ -117,17 +118,17 @@ function usage()
   echo ' $2: Season specicifaction Winter is ATM21 Summer is ATM22: Ex: W or S'
   echo ' $3: Array Cofig: Whipple,OldArray,NewArray,UpgradeArray:   Ex: W or OA or NA or UA'
   echo ' $4: Particle Type spec: Ex: G or P or He4_ or CR or E'
-  echo ' $5: Kascade Detector Model for VBF files: Ex MDL10UA or MDL15NA or MDL8OA'
+  echo ' $5: Kascade Detector Model for VBF files: Ex MDL12UA or MDL15NA or MDL8OA'
   echo ' $6: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
   echo ' $7: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
-  echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All"'
+  echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores wbl)'
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
   echo ' ${10}: List of PedVar values: 5.18, 5.55 6.51 or "All" or "Base"'
   echo ' ${11}: Specifes Type of LT table to use. Ex. All or 050 or ALLE or AllG(same as All)'  
   echo ' ${12}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
   echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
-  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL10UA 1,10,20 45,90,135 0.5 45mv All AllE UpgradeSoft'
+  echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL12UA 1,10,20 45,90,135 0.5 45mv All AllE UpgradeSoft'
   echo
 }
 #############################################################################
@@ -1166,16 +1167,20 @@ fi
 ###############################################################################
 
 if [ -n "$LimitSubmissions" ]; then
-  if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || 
-     [ -n "$HTARPedVarZnOffsetS2FromArchive" ] ||
-     [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || 
+  if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || \
+     [ -n "$HTARPedVarZnOffsetS2FromArchive" ] || \
+     [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || \
      [ -n "$HTARPedVarZnOffsetS4FromArchive" ]; then
       GetUniqueNumber
       QsubLogs='RunningHtarQsubLogs'$UNIQUE'.txt'
       let MaxHTARQsubs=9
       echo "VAAuto: HTAR qsub active submissions being limited to " $MaxHTARQsubs 
   fi
-  if [ -n "$GenerateSimLaserFile" ] || [ -n "$GenerateStage2FromVBF" ] || [ -n "$GenerateStage4FromStage2" ] || [ -n "$GenerateStage5CombinedFromStage4" ]; then
+  if [ -n "$GenerateSimLaserFile" ]     || \
+     [ -n "$GenerateStage2FromVBF" ]    || \
+     [ -n "$GenerateStage4FromStage2" ] || \
+     [ -n "$GenerateStage5Combined" ]   || \
+     [ -n "$GenerateStage5CombinedRCE" ]; then
       GetUniqueNumber
       QsubLogs='RunningVegasQsubLogs'$UNIQUE'.txt'
       let MaxQsubs=$MaxQsubsDefault
@@ -1351,11 +1356,19 @@ if [ -n "$GenerateStage4FromStage2" ]; then
 fi
 ############################################################################
 
-if [ -n "$GenerateStage5CombinedFromStage4" ]; then
-    echo '##########################################################'
-    echo '# GenerateStage5CombinedFromStage4'
-    echo '##########################################################'
-    cd $lcl
+if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
+    if [ -n "$GenerateStage5Combined" ]; then
+      echo '##########################################################'
+      echo '# GenerateStage5Combined (Does not  RemoveCutEvents)'
+      echo '##########################################################'
+    fi
+    if [ -n "$GenerateStage5CombinedRCE" ]; then
+      echo '##########################################################'
+      echo '# GenerateStage5CombinedRCE (Has RemoveCutEvents)'
+      echo '##########################################################'
+    fi
+
+	cd $lcl
     date
     #Make sure VegasSimProduction.scr is set up correctly to get  
     #Stage5 combined tree
@@ -1391,17 +1404,30 @@ if [ -n "$GenerateStage5CombinedFromStage4" ]; then
     ###############################################################################
     sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
     sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'           <tmp2 >tmp1
-    #################################################################################
+    ###########################################################################
     # And set Method to combined for stage5
-    # All OutputMethodOptions start out disabled (#). Disable a second time (#->##)
-    # all output methods with RemoveCutEvents and the remove the single # from the 
-    # combined one without a RemoveCutEvents.
-    #################################################################################
-    sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
-    sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+    # All OutputMethodOptions start out disabled (#). 
+    # For no RemoveCutEvents, Disable a second time (#->##) the  Combined 
+    # output methods with RemoveCutEvents and then  remove the single # from 
+    # the combined one without a RemoveCutEvents.
+    ###########################################################################
+    if [ -n "$GenerateStage5Combined" ]; then
+      sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+      sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+	fi
+   
+    ##########################################################################
+    # For a combined option with RemoveCutEvents only remove # from that option
+    # Have to double disable stereo option first
+    ##########################################################################
+    if [ -n "$GenerateStage5CombinedRCE" ]; then
+      sed '/Method=stereo/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+      sed '/RemoveCutEvents/s/#OutputMethod/OutputMethod/g'       <tmp2 >tmp1
+	fi
 
-    mv tmp1 $VSProdFile
+	mv tmp1 $VSProdFile
     chmod 755 $VSProdFile
+    rm tmp1
     rm tmp2
 
 fi
@@ -1999,9 +2025,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
    [ -n "$CombineSubLT" ]             || [ -n "$HTARPedVarZnOffsetS2FromArchive" ] || \
    [ -n "$GenerateStage4FromStage2" ] || [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || \
    [ -n "$CheckStage4Files" ]         || [ -n "$HTARPedVarZnOffsetS4FromArchive" ] || \
-   [ -n "$GenerateStage5CombinedFromStage4" ]  || [ -n "$CombineBuildCheckEALT" ]  || \
-   [ -n "$GenerateEASubLTListAndConfigFiles" ] || \
-   [ -n "$ProduceEASubLookupTables" ] ; then
+   [ -n "$GenerateStage5Combined" ]   || [ -n "$GenerateStage5CombinedRCE" ]       || \
+   [ -n "$CombineBuildCheckEALT" ]    || [ -n "$ProduceEASubLookupTables" ]        || \
+   [ -n "$GenerateEASubLTListAndConfigFiles" ] ; then
 
 #****************************************************************************
    # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
@@ -2294,10 +2320,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
            fi
            ###############################################################
 
-	   if [ -n "$GenerateStage5CombinedFromStage4" ]; then
-              #echo '##########################################################'
-              #echo '# GenerateStage5CombinedFromStage4 ' 	    
-              #echo '##########################################################'
+	   if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
 	      cd $lcl
 	      date
 	      echo PV:$PV
@@ -2376,8 +2399,10 @@ fi
 #  Flush last MSJ job
 ################################
 if [ -n "$EdisonMultipleSerial" ]; then
-  if [ -n "$GenerateStage2FromVBF" ] || [ -n "$GenerateStage4FromStage2" ] || 
-   [ -n "$GenerateStage5CombinedFromStage4" ]; then	
+  if [ -n "$GenerateStage2FromVBF" ]    || \
+	 [ -n "$GenerateStage4FromStage2" ] || \
+	 [ -n "$GenerateStage5Combined" ]   || \
+	 [ -n "$GenerateStage5CombinedRCE" ]; then	
      if [ $MSJCount -gt "0" ]; then
        SubmitMultipleSerialJobs  $MSJobList
      fi
