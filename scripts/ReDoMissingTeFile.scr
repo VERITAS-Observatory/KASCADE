@@ -6,6 +6,9 @@
 #$4 Results Disk: Local SV or global GSV (Edison only, otherwise ignored)
 # *********************************************************************
 
+#PARAFLYUPPERENERGY=20000
+PARAFLYUPPERENERGY=100        #Special for Electron spectrum
+
 function usage()
 {
  echo '***ReDoMissingTeFile usage:'
@@ -221,7 +224,7 @@ function SubmitParaFlyPBSJob
   local sgeFile=$lcl/K$UNIQUE$parspec'.pbs'
 
   #Build the pbs file.
-  if [ "$E" -gt "20000" ]; then
+  if [ "$E" -gt "$PARAFLYUPPERENERGY" ]; then
    echo "#"PBS -q $QUEUE1                          >$sgeFile
    echo "#"PBS -l walltime=$WALLTIMEH             >>$sgeFile
   else
@@ -308,7 +311,7 @@ let count=0
        
        if [ -n "$PURDUE" ]; then
          let E=${energy%%.*}
-         if [ "$E" -gt "20000" ]; then	
+         if [ "$E" -gt "$PARAFLYUPPERENERGY" ]; then	
             BuildAndSubmitJobsSingly $energy $showerID $pr  
          else
 	    BuildForParaFlySubmission $energy $showerID $pr 
