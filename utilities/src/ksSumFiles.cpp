@@ -149,17 +149,34 @@ int main(int argc, char** argv)
 
       bool fWeightBySpectrum=false;
       if(command_line.find("EnableSpectrumWeighting",
-			   "Indicates that while appending events from files "
-			   "from the input file list, cuts are to be made "
-			   "accoring to a weighted spectrum. The weights are "
-			   "determined from the spectrum for the particle "
-			   "type of the list and the number of showers at "
-			   "each energy. These values are derived from the "
-			   "shower list.")
-	 == VAOptions::FS_FOUND)
-	{
-	  fWeightBySpectrum=true;
-	}
+						   "Indicates that while appending events "
+						   "from files from the input file list, "
+						   "cuts are to be made accoring to a "
+						   "weighted spectrum. The weights are "
+						   "determined from the spectrum for the "
+						   "particle type of the list and the "
+						   "number of showers at each energy. These "
+						   "values are derived from the shower list."
+						   "After weights are derived they are "
+						   "scaled so that the maximum weight is set "
+						   "by the value of this option(default = "
+						   "1.0).")
+		 == VAOptions::FS_FOUND)
+		{
+		  fWeightBySpectrum=true;
+		}
+
+	  double fMaximumScaledWeight=1.0;
+      if(command_line.findWithValue("MaximumScaledWeight",fMaximumScaledWeight,
+									"After weights are derived they are "
+									"scaled so that the maximum weight is set "
+									"by the value of this option(default = "
+									"1.0).")
+		 == VAOptions::FS_FOUND)
+		{
+		  std::cout<< "Maximum Scaled Weight set to "
+				   << fMaximumScaledWeight << std::endl;
+		}
       
 	  double fMinimumWeight=0.0;
       if(command_line.findWithValue("MinimumWeightFraction",fMinimumWeight,
@@ -173,6 +190,7 @@ int main(int argc, char** argv)
 		  std::cout<<"Minimum Weight fraction of events to keep set to "
                    <<fMinimumWeight<<std::endl;
 		}
+
       double fMaximumWeight=1.0;
       if(command_line.findWithValue("MaximumWeightFraction",fMaximumWeight,
 									"Set the maximum allowable weight. Value "
@@ -431,7 +449,8 @@ int main(int argc, char** argv)
 
       pfWeights = new KSEventWeights(fTypes);
 
-      pfWeights->calculateLogWeights(fMinimumWeight,fMaximumWeight);
+      pfWeights->calculateLogWeights(fMinimumWeight,fMaximumWeight, 
+									 fMaximumScaledWeight);
       pfWeights->Print();
       if(!fWeightBySpectrum)
 	{

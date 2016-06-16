@@ -308,8 +308,17 @@ void KSEventWeights::calculateWeights()
 // **************************************************************************
 
 void KSEventWeights::calculateLogWeights(double minimumWeight,
-										 double maximumWeight) 
+										 double maximumWeight, 
+										 double maximumScaledWeight) 
 {
+  // ********************************************************************
+  // By defualt minimuWeight=0.0, maximumWeight=1.0, 
+  //maximumScaledWeight=1.0
+  //  minimWeight and maximumWeight force those limits. Set them to the same 
+  // value and all weights are that value.
+  // normilizationfactor=1.0 scales all weights such that the max is that value
+  // So for example: If maximumScaledWeight=0.5 the all weights are scaled to 
+  // the correct relative weights with max one being .05
   // ********************************************************************** 
   //Maps are screwy and you have to look very carefully at whats being done 
   // We use map iterators a lot (probably should use them more). See pg 200 
@@ -496,22 +505,30 @@ void KSEventWeights::calculateLogWeights(double minimumWeight,
   // ***********************************************************************
   // Re-scale so maximum weight is 1.0: all types
   // ***********************************************************************
-  for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end()
-	;fWeightPos++)
-    {
+  for(fWeightPos = fWeightMap.begin(); fWeightPos != fWeightMap.end();
+	  fWeightPos++) {
 
-      for(fShowerWeightPos=fWeightPos->second.begin();
-	  fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
-	{
+	for(fShowerWeightPos = fWeightPos->second.begin();
+		fShowerWeightPos != fWeightPos->second.end(); fShowerWeightPos++) {
 
-	  fShowerWeightPos->second=fShowerWeightPos->second/fMaxWeight;
+	  // ***************************************************************
+	  // This scales all weight to correct relative values with maximum
+	  // weight of 1.0
+	  // ***************************************************************
+	  fShowerWeightPos->second = fShowerWeightPos->second / fMaxWeight;
+	
+	  // ***************************************************************
+	  // now scale that weight to the maximumScaledValue
+	  // ***************************************************************
+	  fShowerWeightPos->second = 
+		                     fShowerWeightPos->second * maximumScaledWeight;
 	}
-    }
+  }
 
   // ************************************************************************
   // If we have a minimum and/or a maximum weight then set to that
   // ************************************************************************
-  if(minimumWeight>0 || maximumWeight < 1.0 ) {
+  if(minimumWeight > 0 || maximumWeight < 1.0 ) {
 	for(fWeightPos = fWeightMap.begin(); fWeightPos != fWeightMap.end();
 		fWeightPos++) {
 	  for(fShowerWeightPos = fWeightPos->second.begin();
