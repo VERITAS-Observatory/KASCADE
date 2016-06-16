@@ -160,19 +160,35 @@ int main(int argc, char** argv)
 	{
 	  fWeightBySpectrum=true;
 	}
-      double fMinimumWeight=0.0;
+      
+	  double fMinimumWeight=0.0;
       if(command_line.findWithValue("MinimumWeightFraction",fMinimumWeight,
-			   "Set the minimum allowable weight. Value is in "
-                           "fraction, that is: -MinimumWeightFraction=.05 "
-                           "will cause a minimum of 5% of events to be kept. "
-                           "Defualt is to have no minimum (0%).")
-	 == VAOptions::FS_FOUND)
-	{
-	  std::cout<<"Minimum Weight fraction of events to keep set to "
+									"Set the minimum allowable weight. Value "
+									"is in fraction, that is: "
+									"-MinimumWeightFraction=.05 will cause a "
+									"minimum of 5% of events to be kept. "
+									"Defualt is to have no minimum (0%).")
+		 == VAOptions::FS_FOUND)
+		{
+		  std::cout<<"Minimum Weight fraction of events to keep set to "
                    <<fMinimumWeight<<std::endl;
-	}
-
-      bool fDistributeEnergy=false;
+		}
+      double fMaximumWeight=1.0;
+      if(command_line.findWithValue("MaximumWeightFraction",fMaximumWeight,
+									"Set the maximum allowable weight. Value "
+									"is in fraction, that is: "
+									"-MaximumWeightFraction=.05 will cause a "
+									"maximum of 5% of events to be kept. "
+									"Defualt is to have no upper limit(100%).")
+		 == VAOptions::FS_FOUND)
+		{
+		  std::cout<<"Maximum Weight fraction of events to keep set to "
+                   <<fMaximumWeight<<std::endl;
+		}
+	  std::cout<<"Min/Max fractions: " << fMinimumWeight << "/" 
+			   <<fMaximumWeight << std::endl;
+ 
+	  bool fDistributeEnergy=false;
       if(command_line.find("DistributeEnergy",
 			   "Indicates that while appending events from files "
 			   "from the input file list, we are going to jitter "
@@ -415,7 +431,7 @@ int main(int argc, char** argv)
 
       pfWeights = new KSEventWeights(fTypes);
 
-      pfWeights->calculateLogWeights(fMinimumWeight);
+      pfWeights->calculateLogWeights(fMinimumWeight,fMaximumWeight);
       pfWeights->Print();
       if(!fWeightBySpectrum)
 	{

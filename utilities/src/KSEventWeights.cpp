@@ -306,7 +306,9 @@ void KSEventWeights::calculateWeights()
   return;
 }
 // **************************************************************************
-void KSEventWeights::calculateLogWeights(double minimumWeight) 
+
+void KSEventWeights::calculateLogWeights(double minimumWeight,
+										 double maximumWeight) 
 {
   // ********************************************************************** 
   //Maps are screwy and you have to look very carefully at whats being done 
@@ -323,7 +325,7 @@ void KSEventWeights::calculateLogWeights(double minimumWeight)
   for(fShowersPos=fShowers.begin();fShowersPos != fShowers.end();fShowersPos++)
     {
       // ******************************************************************
-      // Create entries in the ouput maps if we need to, and get
+      // Create entries in the output maps if we need to, and get
       // iterators to maps of this type
       // ******************************************************************
       int fShowerType=fShowersPos->first;  //'first' is the 'key'
@@ -507,23 +509,25 @@ void KSEventWeights::calculateLogWeights(double minimumWeight)
     }
 
   // ************************************************************************
-  // If we have a minimum weight then set to that
+  // If we have a minimum and/or a maximum weight then set to that
   // ************************************************************************
-  if(minimumWeight>0)
-   {
-     for(fWeightPos=fWeightMap.begin();fWeightPos != fWeightMap.end()
-	    ;fWeightPos++)
-        {
-          for(fShowerWeightPos=fWeightPos->second.begin();
-	       fShowerWeightPos!=fWeightPos->second.end();fShowerWeightPos++)
-	   {
-              if(fShowerWeightPos->second<minimumWeight)
-               {
-                 fShowerWeightPos->second=minimumWeight;
-               }
-           }
+  if(minimumWeight>0 || maximumWeight < 1.0 ) {
+	for(fWeightPos = fWeightMap.begin(); fWeightPos != fWeightMap.end();
+		fWeightPos++) {
+	  for(fShowerWeightPos = fWeightPos->second.begin();
+		  fShowerWeightPos != fWeightPos->second.end(); fShowerWeightPos++) {
+		
+		if(fShowerWeightPos->second < minimumWeight) {
+		  fShowerWeightPos->second = minimumWeight;
+		}
+		
+		if(fShowerWeightPos->second > maximumWeight) {
+		  fShowerWeightPos->second = maximumWeight;
+		}
+		
+	  }
 	}
-    }
+  }
   //   And we are done.
   return;
 }
