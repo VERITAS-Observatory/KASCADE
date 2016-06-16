@@ -33,27 +33,35 @@ EntryGEStart=1          #Gammas and Electrons
 EntryGEEnd=45
 #EntryGEEnd=43 #36550GeV
 
-EntryPStart=1
+#EntryPStart=1
+EntryPStart=18      #418 GeV
+#EntryPStart=18      #500 GeV
 #EntryPStart=45
-EntryPEnd=45
+
 
 #EntryPEnd=21       #715GeV
-#EntryPEnd=31        #4275
+#EntryPEnd=23       #1223 GeV
+EntryPEnd=25       #1462 GeV
+#EntryPEnd=31       #4275
 #EntryPEnd=32       #5112GeV
 #EntryPEnd=35       #8741GeV
-
 #EntryPEnd=39       #17975 GeV
+#EntryPEnd=45       #52265 GeV
 
-EntryHe4Start=5
-#EntryHe4End=15      #244.5GeV
-EntryHe4End=45
+#EntryHe4Start=5
+EntryHe4Start=18    #418 GeV
+#EntryHe4Start=18    #500 GeV
 
 
+#EntryHe4End=15     #244.5GeV
 #EntryHe4End=21     #715GeV
-#EntryHe4End=31      #4275
+#EntryHe4End=23     #1223 GeV
+EntryHe4End=25      #1462 GeV
+#EntryHe4End=31     #4275
 #EntryHe4End=32     #5112 GeV
 #EntryHe4End=35     #8741 GeV
-#EntryHe4End=40      #21375 GeV
+#EntryHe4End=40     #21375 GeV
+#EntryHe4End=45     #52265 GeV
 
 if [ "$2" = "CR" ]; then
   echo EntryPEnd: $EntryPEnd
@@ -80,9 +88,9 @@ function commandEnable()
     echo '    #  Uses arguments $1-$7        # Uses arguments $1-${10}'  
     echo '    #------------------------      #------------------------ '
     echo '    GenerateTeFiles                BuildMDLAomegaConfig'
-    echo '    HTARTeFilesFromArchive        GenerateShowerVBFFiles'
+    echo '    HTARTeFilesFromArchive         GenerateShowerVBFFiles'
     echo '    CheckGeneratedTeFiles          CheckGeneratedShwrVBFFiles'
-    echo '    HTARTeFilesToArchive          HTARShowerVBFFilesFromArchive'
+    echo '    HTARTeFilesToArchive           HTARShowerVBFFilesFromArchive'
     echo '    CheckHTARTeFiles(inoperative)  HTARShowerVBFFilesToArchive'
     echo
     echo '    #------------------------'
@@ -121,11 +129,11 @@ function usage()
   echo '  $5 Zn List: Ex: 1,10,20,30,40,50,60,70 or "All"'
   echo '  $6 Az List: Ex: 0,45,90,135,180,225,270,315 or "All"'
   echo '  $7 Threshold Spec (+MoonFilter opt): Ex:  45mv or 50mv or M50mv of M25mv'
-  echo '  $8 MDL Spec for VBF files: Ex: MDL10UA or MDL15NA of MDL8OA'
+  echo '  $8 MDL Spec for VBF files: Ex: MDL12UA or MDL15NA of MDL8OA'
   echo '  $9 Tele-Detector Config(ksAomega*.config): Ex:  ABCD or wxyz'
-  echo '  ${10} Data Reference File (in lcl dir): Ex:  63559.root'
+  echo '  ${10} Data Reference File (in lcl dir): Ex:  64594StdCuts.root or 63559.root'
   echo
-  echo '  Ex: ./kKSAuto.scr GenerateTeFiles G W UA 20 All 45mv MDL10UA WXYZ 64954.root'
+  echo '  Ex: ./KSAuto.scr GenerateTeFiles G W UA 20 All 45mv MDL12UA WXYZ 64954.root'
   echo
 }
 ###########################################################################
@@ -1238,7 +1246,7 @@ while test $izn -lt $iznEnd
          echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
          
          MDLFILE=$lcl'/'$SPECMDL".dat"
-	 if [ !  -e "$MDLFILE" ]; then
+	     if [ !  -e "$MDLFILE" ]; then
              MDLKASFILE=$KASCADEBASE'/inputs/'$SPECMDL".dat"
 	     if [ ! -e "$MDLKASFILE" ]; then
                 echo 'KSAUTO: Fatal-Can not find files ' $MDLFILE ' or ' $MDLKASFILE
@@ -1262,7 +1270,7 @@ while test $izn -lt $iznEnd
 	       sed '/DigitalCountsPerPE/s/4.2/'$gain'/g'         <tmp1 >tmp2
 	       sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2 >tmp1
 	       sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1 >tmp2
-               sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2 >tmp1
+           sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2 >tmp1
 	       #sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
 	       sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1 >tmp2
 	       if [ "$TELCONFIG" ]; then

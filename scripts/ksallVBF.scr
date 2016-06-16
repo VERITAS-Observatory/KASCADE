@@ -26,7 +26,7 @@ TriggerEnable=enable
 #AomegaEnable=enable                   #These next 2 operate on te files only
 #ArrayTrigEnable=enable
 
-#MKPlots=enable                    #Enable creation and saving of segment and 
+MKPlots=enable                    #Enable creation and saving of segment and 
                                   #PES plotting files
 Production=enable                 #Enable te.d  file Production scheme 
                                   #(makes dirs, moves files etc.0
@@ -364,11 +364,11 @@ ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
 ln -s $inpDir/VeritasFacetLocations.txt VeritasFacetLocations.txt
 
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
-   ln -s $inpDir/UpgradeLowGainWaveFormsByAmplitudeMV.txt LowGainWaveForms.txt 
+   ln -s $inpDir/KASCADEHamamatsuLowGainWaveFormsMarch2016.txt LowGainWaveForms.txt 
 else
     #V4/V5 Photonis template file is incomplete
     echo 'ksallVBF--Warning-Photonis template file is incomplete'
-    ln -s $inpDir/PhotonisLowGainPulseShapeFromFADC.txt LowGainWaveForms.txt
+    ln -s $inpDir/KASCADEPhotonisLowGainWaveFormsMarch2016.txt LowGainWaveForms.txt
 fi
 
 #Setup unique random seed files into working dir.
@@ -509,7 +509,8 @@ while test $i -le $4
 #ksKascade
   segfile='Seg.d'$i              #Temp file, deleted later
   if [ -n "$MKPlots" ]; then
-      MKPlotsDir=~/projects/showerdisplay/
+      MKPlotsDir=$5
+
       mkdir -pv $MKPlotsDir
       MKSegShowerOutFile=$MKShowerOutSpec'.d'$i #File for making segment plots
       MKPeShowerOutFile=$MKShowerOutSpec'_pe.d'$i #File for making pe plots
@@ -527,7 +528,7 @@ while test $i -le $4
                   -PrimaryEnergyGeV=$1 -ShowerID=$i $AtmSpecOption $segfile
 
    if [ -n "$MKPlots" ]; then
-       cp -v $segfile $MKPlotsDir'/'$MKSegShowerOutFile
+       cp -v $segfile $MKPlotsDir'/'$MKSegShowerOutFile'.seg'
    fi
  fi
 		   
@@ -544,9 +545,9 @@ while test $i -le $4
     $src/ksLight -config=$ksLightConfig -RandomSeedFileName=ksLight.ran \
 	$ExtinctionFileOption $MoonFilterOption $segfile $pefile
 
-    if [ -n "$MKPlots" ]; then
-	cp -v $pefile $MKPlotsDir'/'$MKPeShowerOutFile
-    fi
+#if [ -n "$MKPlots" ]; then
+#   cp -v $pefile $MKPlotsDir'/'$MKPeShowerOutFile
+#fi
     if [ -n "$CleanupEnable" ]; then
            rm -v $segfile		#Remove segment file
     fi

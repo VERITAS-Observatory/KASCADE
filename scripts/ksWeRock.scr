@@ -23,7 +23,11 @@
 CleanupEnable=enable
 DebugPrintEnable=enable
 
+#MIMWEIGHTOPTION='-MinimumWeightFraction=0.0'
+#MAXWEIGHTOPTION='-MaximumWeightFraction=1.0'
 
+MINWEIGHTOPTION='-MinimumWeightFraction=0.05'
+MAXWEIGHTOPTION='-MaximumWeightFraction=0.05'
 
 
 ##################################################################
@@ -218,19 +222,22 @@ fi
   OutputVBFFile=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf'
   echo Output VBF File: $OutputVBFFile
 
+  echo Weight min opt: $MINWEIGHTOPTION
+  echo Weight max opt: $MAXWEIGHTOPTION
+
       $KASCADEBASE/bin/ksSumFiles -EnableSpectrumWeighting \
-                           -MinimumWeightFraction=.0 \
-	                   -RunNumber=$2 \
-                      	   -OutputVBFFileName=$OutputVBFFile \
-			   $DirIndexOption $EnableDebugPrintOption \
-                           ShowerList 
+			 $MINWEIGHTOPTION  $MAXWEIGHTOPTION \
+	         -RunNumber=$2 \
+             -OutputVBFFileName=$OutputVBFFile \
+			 $DirIndexOption $EnableDebugPrintOption \
+             ShowerList 
 
 #This is A No-Weights version (weights set to 1) for making LT (LookUp Tables)
-#     $KASCADEBASE/bin/ksSumFiles  \
-#	                   -RunNumber=$2  \
-#                      	   -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf' \
-#			   $DirIndexOption \
-#                           ShowerList 
+#      $KASCADEBASE/bin/ksSumFiles  \
+#	          -RunNumber=$2  \
+#             -OutputVBFFileName=$dstDir/$Spec$ArConfig$DDir$TAG'.vbf' \
+#			  $DirIndexOption \
+#             ShowerList 
 
 #Cleanup
 ##Cleanup:

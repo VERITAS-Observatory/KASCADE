@@ -6,6 +6,13 @@
 #$3 Array season spec UA or NA or OA
 #$4 Particle type Defauls to G  Optional P He4_  E
 #From this file we will make a list Missing or short/failed Shower VBF files
+
+#PARAFLYUPPERENERGY=20000
+PARAFLYUPPERENERGY=100        #Special for Electron spectrum
+
+
+
+
 function usage()
 {
  echo '***ReDoMissingShowerVBFFile usage:'
@@ -318,7 +325,7 @@ let countPara=0
        
    if [ -n "$PURDUE" ] ; then
        let E=${energy%%.*}
-       if [ "$E" -gt "20000" ]; then	
+       if [ "$E" -gt "$PARAFLYUPPERENERGY" ]; then	
           BuildAndSubmitJobsSingly $energy $showerID $SHWRSPEC  
 	  count=$((count+1))
        else

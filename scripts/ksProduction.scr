@@ -153,7 +153,7 @@ function BuildAndSubmit()
      let j=$iEntryEnd
      while test $j -ge $iEntryStart
        do
-	if [ $j -le $iPEntryEnd ] && [ $j -ge $iPEntryStart ];
+	   if [ $j -le $iPEntryEnd ] && [ $j -ge $iPEntryStart ];
          then 
           parspec=$protonParspec               
           datadir=$protonDatadir
@@ -162,13 +162,13 @@ function BuildAndSubmit()
           energy[$j]=${pEnergy[$j]}
           #echo $j ${pStart[$j]} ${start[$j]}
           if [ -n "$MULTITASKS" ]; then
-	    BuildAndSubmitMultiTask $j	
-	  else
+	        BuildAndSubmitMultiTask $j	
+	      else
             if test $j -le $MaxStepIndex
-             then
-              BuildAndSubmitJobs $j 
-	     else
-	      BuildAndSubmitJobsSingly $j
+              then
+                BuildAndSubmitJobs $j 
+	        else
+	          BuildAndSubmitJobsSingly $j
             fi
           fi      
         fi
@@ -481,7 +481,9 @@ HEN=$8
 MDL=$9
 
 lcl="$PWD"
-MaxStepIndex=19
+#MaxStepIndex=19
+MaxStepIndex=10        #For electron spectrum special processing
+                       #(everything is single job sumbmissions)
 
 ##################
 # Bring in GenerateVBFName and GetUniqueNumber  functions
