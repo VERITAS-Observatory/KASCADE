@@ -397,7 +397,7 @@ function AddTaskForMultiTaskSubmission()
     SgeFilePBSCmds  $sgeFile
     SgeFileBashCmds $sgeFile 
     let TasksInJobScript=0
-    if [ -n "$CORI" ] && [ -n "$MULTITASKS" ]; then
+    if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$MULTITASKS" ]; then
       sed '/'$PBSCMD' -n'/s/'-n 1/-n 0/g' <$sgeFile  >tmp1
       mv tmp1 $sgeFile
     fi
@@ -415,7 +415,7 @@ function AddTaskForMultiTaskSubmission()
 
   ###################################################################
   #We need to keep the number of tasks in the SBATCH or PBS comand updated
-  if [ -n "$CORI" ] && [ -n "$MULTITASKS" ]; then
+  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$MULTITASKS" ]; then
     sed '/'$PBSCMD' -n'/s/'-n '$NumJobsOld'/-n '$TasksInJobScript'/g' <$sgeFile  >tmp1 
     mv tmp1 $sgeFile
   fi

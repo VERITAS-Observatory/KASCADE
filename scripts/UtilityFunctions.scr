@@ -217,12 +217,11 @@ fi
  if test  "$hostString" = "edison"  #Are we running on Edison
   then
    EDISON=enabled
-   QSUB='qsub.serial -V'
-   PBSCMD='PBS'
-   QUEUE='-q serial'
-   WALLTIME='-l walltime=10:00:00'
-   MEMREQUEST=' -l vmem=8GB '
-   let SUBMITLIMIT=175
+   QSUB='sbatch'
+   PBSCMD='SBATCH'
+   QUEUE='-p shared'
+   WALLTIME='-t 10:00:00'
+   let SUBMITLIMIT=10000
    echo '***Edison Cluster***'
  fi
  
@@ -348,7 +347,7 @@ function SgeFilePBSCmds()
    echo "#"$PBSCMD $WALLTIME          >>$sgeFile
  fi
 
- if [ -n "$CORI" ]; then
+ if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
    echo "#"$PBSCMD -N 1               >>$sgeFile
    echo "#"$PBSCMD -n 1               >>$sgeFile
  else

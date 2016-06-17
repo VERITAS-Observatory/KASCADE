@@ -21,7 +21,7 @@ LimitSubmissions=enabled      #Enable if you want to generate limit number of
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
 
-JobArray=enabled             #For Cori right now 
+#JobArray=enabled             #For Cori right now 
 
 ############################################################
 # Force the Check files to match shower entry numberes to those used in ksProduction.scr
@@ -436,7 +436,7 @@ function SubmitHtarToArchive()
   fi
   if [ -n "$EDISON" ]; then
 	QUEUE='-p xfer'
-        QSUB='qsub -V'
+	QSUB='qsub -V'
   fi
 
   sgeFile=$ShDr'HTAR.pbs'
@@ -447,7 +447,7 @@ function SubmitHtarToArchive()
 
   sgeFile=$lcl'/'$sgeFile
   echo "#"!/bin/bash -l                         >$sgeFile
-  if [ -n "$CORI" ]; then
+  if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
     echo "#"SBATCH -p xfer                     >>$sgeFile
     echo "#"SBATCH $WALLTIME                   >>$sgeFile
   else
@@ -522,7 +522,7 @@ function SubmitHtarFromArchive()
   fi
   sgeFile=$lcl'/'$sgeFile
   echo "#"!/bin/bash -l                         >$sgeFile
-  if [ -n "$CORI" ]; then
+  if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
     echo "#"SBATCH -p xfer                     >>$sgeFile
     echo "#"SBATCH $WALLTIME                                >>$sgeFile
   else
@@ -573,45 +573,45 @@ function SubmitQsubJobs()
     rm $QsubDoneList
   fi
 
-  if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
-  ##############################################################
-  # If we are on Cori and JobArrays are enabled we need to take each file 
-  # from the QsubList, remove all the SBATCH commands and give each of these 
-  # new files an indexed name(unique also) so that they can be called in
-  # a job array submission
-  ############################################################## 
+  if [[ -n "$CORI"  || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+    ##############################################################
+    # If we are on Cori or Edison and JobArrays are enabled we need to take 
+    # each file 
+    # from the QsubList, remove all the SBATCH commands and give each of 
+    # these new files an indexed name(unique also) so that they can be 
+    # called in a job array submission
+    ############################################################## 
     GetUniqueNumber           #UNIQUE will idintify this run
     sgeFile=KS$UNIQUE.ja      #Job array submission file name
     echo 'KSAuto: Cori Job Array Generartion. Job Array File Name: ' $sgeFile
     let sbIndex=0             $Job array index
     {
-      while read  sgeFileFull
-        do
-	 #Remove SBATCH lines and give file indexed name 
-         let sbIndex="sbIndex+1"
-	 if [ "$sbIndex" -eq "1" ]; then
-	   sgeIndexPath=${sgeFileFull%/*}   #want same dir as input files
-	 fi
-         sgeIndexFile=$sgeIndexPath'/'$sgeFile'-'$sbIndex
-	 sed '/SBATCH/d' <$sgeFileFull >$sgeIndexFile  #Removes SBATCH lines
-         chmod 700 $sgeIndexFile
-        done
+     while read  sgeFileFull
+      do
+       #Remove SBATCH lines and give file indexed name
+       let sbIndex="sbIndex+1"
+	   if [ "$sbIndex" -eq "1" ]; then
+	     sgeIndexPath=${sgeFileFull%/*}   #want same dir as input files
+	   fi
+       sgeIndexFile=$sgeIndexPath'/'$sgeFile'-'$sbIndex
+	   sed '/SBATCH/d' <$sgeFileFull >$sgeIndexFile  #Removes SBATCH lines
+       chmod 700 $sgeIndexFile
+      done
     }<$QsubList
      
     #Now build and submit Jobarray SBATCH file
     SgeFilePBSCmds $sgeFile
 
     echo "#"SBATCH --array=1-$sbIndex                       >>$sgeFile
-    echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID' >>$sgeFile
+    echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID' >>$sgeFile  
       
     chmod 700 $sgeFile
     $QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile
-
   else
-  ###################################################################
-  # Normal submission from the QsubList  
-  ###################################################################
-   { 
+    ###################################################################
+    # Normal submission from the QsubList  
+    ###################################################################
+    { 
      while read sgeFileFull
       do
         CheckQsubSubmissions  $MaxQsubs $QsubDoneList 
@@ -623,15 +623,15 @@ function SubmitQsubJobs()
           rm $sgeDoneFile
         fi
         echo adding: $sgeDoneFile
-	echo $sgeDoneFile >>$QsubDoneList #add the next one
+	    echo $sgeDoneFile >>$QsubDoneList #add the next one
        
-       $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-       #For Hansen pause between submissions
-       if [ -n "$HANSEN" ] ; then
-         sleep 10
-       fi
+        $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+        #For Hansen pause between submissions
+        if [ -n "$HANSEN" ] ; then
+          sleep 2
+        fi
       done
-   }<$QsubList
+    }<$QsubList
   fi
 }
 ###########################################################################
@@ -690,7 +690,7 @@ fi
 if [ -n "$EDISON" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='edison'
-  WALLTIME=06:00:00
+  WALLTIME='-t 06:00:00'
   if [ -n "$LimitSubmissions" ]; then
     let MaxQsubs=$SUBMITLIMIT
     let MaxHTARQsubs=9
@@ -945,10 +945,10 @@ while test $izn -lt $iznEnd
 	   if [ -e $QsubFileNameList ]; then
 	      rm $QsubFileNameList
            fi
-           if [ -n "$EDISON" ]; then
-	     MEMREQUEST=' -l vmem=8GB '
-	     echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
-           fi
+#           if [ -n "$EDISON" ]; then
+#	     MEMREQUEST=' -l vmem=8GB '
+#	     echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
+#           fi
 
 	   if [ "$SPECPART" = "CR" ]; then
              ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
@@ -1031,10 +1031,10 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
-       if [ -n "$EDISON" ]; then
-	 MEMREQUEST=' -l vmem=8GB '
-	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
-       fi
+#       if [ -n "$EDISON" ]; then
+#	 MEMREQUEST=' -l vmem=8GB '
+#	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
+#       fi
 
        if [ -n "$LimitSubmissions" ]; then
          ########################################
@@ -1122,10 +1122,10 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
-       if [ -n "$EDISON" ]; then
-	 MEMREQUEST=' -l vmem=8GB '
-	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
-       fi
+#       if [ -n "$EDISON" ]; then
+#	 MEMREQUEST=' -l vmem=8GB '
+#	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
+#       fi
 
        if [ -n "$LimitSubmissions" ]; then
 	  QLOGS=$QsubHTARLogs         
@@ -1359,13 +1359,13 @@ while test $izn -lt $iznEnd
        if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
                                             #wait until to submit more in our 
                                             #list
-	 if [ -e $QsubFileNameList ]; then
+	   if [ -e $QsubFileNameList ]; then
 	    rm $QsubFileNameList
-         fi
-         if [ -n "$EDISON" ]; then
-	   MEMREQUEST=' -l vmem=8GB '
-	   echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
-         fi
+       fi
+#         if [ -n "$EDISON" ]; then
+#	   MEMREQUEST=' -l vmem=8GB '
+#	   echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
+#         fi
 
 	 if [ "$SPECPART" = "CR" ]; then
              ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
