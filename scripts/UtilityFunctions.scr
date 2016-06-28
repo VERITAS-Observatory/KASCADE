@@ -219,6 +219,7 @@ fi
    EDISON=enabled
    QSUB='sbatch'
    PBSCMD='SBATCH'
+   SBATCHDISK='-L SCRATCH'
    QUEUE='-p shared'
    WALLTIME='-t 10:00:00'
    let SUBMITLIMIT=10000
@@ -231,6 +232,7 @@ fi
    CORI=enabled
    QSUB='sbatch'
    PBSCMD='SBATCH'
+   SBATCHDISK='-L SCRATCH'
    QUEUE='-p shared'
    WALLTIME='-t 10:00:00'
    let SUBMITLIMIT=10000
@@ -350,6 +352,9 @@ function SgeFilePBSCmds()
  if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
    echo "#"$PBSCMD -N 1               >>$sgeFile
    echo "#"$PBSCMD -n 1               >>$sgeFile
+   if [ -n "$SBATCHDISK" ]; then
+     echo "#"$PBSCMD $SBATCHDISK
+   fi
  else
    echo "#"$PBSCMD $MEMREQUEST     >>$sgeFile
  fi
