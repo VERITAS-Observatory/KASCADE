@@ -330,7 +330,7 @@ function CheckList()
     #build a submission .pbs file
     sgeFile=$lcl'/'$TeName'Check'$FileType'.pbs'
     if [ ! -n "$FUSION" ]; then
-      echo "#"PBS -q $QUEUE                                        >$sgeFile
+      echo "#"PBS $QUEUE                                        >$sgeFile
     fi
     echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
     echo "#PBS " $MEMREQUEST                                      >>$sgeFile
@@ -451,8 +451,8 @@ function SubmitHtarToArchive()
     echo "#"SBATCH -p xfer                     >>$sgeFile
     echo "#"SBATCH $WALLTIME                   >>$sgeFile
   else
-    echo "#"PBS -q $QUEUE                      >>$sgeFile
-    echo "#"PBS -l walltime=$WALLTIME          >>$sgeFile
+    echo "#"PBS $QUEUE                         >>$sgeFile
+    echo "#"PBS $WALLTIME                      >>$sgeFile
     echo "#PBS " $MEMREQUEST                   >>$sgeFile
     if [ -n "$CONTE" ]; then
       echo "#"PBS -l nodes=1:ppn=1             >>$sgeFile
@@ -521,13 +521,13 @@ function SubmitHtarFromArchive()
       rm $sgeDoneFile
   fi
   sgeFile=$lcl'/'$sgeFile
-  echo "#"!/bin/bash -l                         >$sgeFile
+  echo "#"!/bin/bash -l                                       >$sgeFile
   if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-    echo "#"SBATCH -p xfer                     >>$sgeFile
-    echo "#"SBATCH $WALLTIME                                >>$sgeFile
+    echo "#"SBATCH -p xfer                                   >>$sgeFile
+    echo "#"SBATCH $WALLTIME                                 >>$sgeFile
   else
-    echo "#"PBS -q $QUEUE                        >>$sgeFile
-    echo "#"PBS -l walltime=$WALLTIME                        >>$sgeFile
+    echo "#"PBS  $QUEUE                                      >>$sgeFile
+    echo "#"PBS  $WALLTIME                                   >>$sgeFile
     echo "#PBS " $MEMREQUEST                                 >>$sgeFile
     if [ -n "$CONTE" ]; then
       echo "#"PBS -l nodes=1:ppn=1                           >>$sgeFile
@@ -539,14 +539,14 @@ function SubmitHtarFromArchive()
       echo module load gcc/4.7.2                             >>$sgeFile
     fi
   fi
-  echo cd $DstDir                                          >>$sgeFile
-  echo htar -xvf  $ArchiveDir'/'$SourceTarFile   \\        >>$sgeFile
-  echo '>'$local'/'$Source'.log'                           >>$sgeFile
+  echo cd $DstDir                                            >>$sgeFile
+  echo htar -xvf  $ArchiveDir'/'$SourceTarFile   \\          >>$sgeFile
+  echo '>'$local'/'$Source'.log'                             >>$sgeFile
 
   if [ -n "$LimitSubmissions" ]; then
     echo adding: $sgeDoneFile
     echo $sgeDoneFile >>$QsubDoneList #add the next one
-    echo 'echo Done >'$sgeDoneFile                         >>$sgeFile
+    echo 'echo Done >'$sgeDoneFile                           >>$sgeFile
   fi
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
