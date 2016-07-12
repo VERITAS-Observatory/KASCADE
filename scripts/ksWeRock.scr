@@ -11,6 +11,7 @@
 #$3 Arrayconfig/Multiplicity  (12--M2 123-M2 1234M3) Not required
 #$4 Direction index. (-1 means all)
 #$5 dir tag  spec
+#$6 veritas dir (Ex veritas1, default=veritas)
 
 #Ex ./ksWeRock.scr WNG20Deg50mv  95020 123-M2 
 #Ex ./ksWeRock.scr SNG20Deg2D50mv 95021 123-M2 4
@@ -28,7 +29,7 @@ DebugPrintEnable=enable
 #MIMWEIGHTOPTION='-MinimumWeightFraction=0.0'
 #MAXWEIGHTOPTION='-MaximumWeightFraction=1.0'
 
-MAXSCALEDWEIGHTOPTION='-MaximumScaledWeight=0.05'
+#MAXSCALEDWEIGHTOPTION='-MaximumScaledWeight=0.05'
 #MINWEIGHTOPTION='-MinimumWeightFraction=0.05'
 #MAXWEIGHTOPTION='-MaximumWeightFraction=0.05'
 
@@ -72,15 +73,20 @@ if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
 fi
 
 
+if [ -n "$6" ]; then
+   VERITAS=$6
+else
+   VERITAS=veritas
+fi
 
 if [ ${Spec:1:1} = "N" ] ; then
-	dataDirBase=$dataDirBase'/veritas'
-	dstDir=$dstDir'/veritas'
+	dataDirBase=$dataDirBase'/'$VERITAS
+	dstDir=$dstDir'/'$VERITAS
 fi
 
 if [ ${Spec:1:1} = "O" ] ; then
-	dataDirBase=$dataDirBase'/veritas'
-	dstDir=$dstDir'/veritas'
+	dataDirBase=$dataDirBase'/'$VERITAS
+	dstDir=$dstDir'/'$VERITAS
 fi
 
 if [ ${Spec:1:1} = "W" ] ; then
@@ -89,8 +95,8 @@ if [ ${Spec:1:1} = "W" ] ; then
 fi
 
 if [ ${Spec:1:1} = "U" ] ; then
-	dataDirBase=$dataDirBase'/veritas'
-	dstDir=$dstDir'/veritas'
+	dataDirBase=$dataDirBase'/'$VERITAS
+	dstDir=$dstDir'/'$VERITAS
 fi
 
 if  [ ${Spec:2:1} = "E" ] ; then

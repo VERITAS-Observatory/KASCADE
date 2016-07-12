@@ -1,0 +1,85 @@
+
+lcl=$PWD
+
+
+function moveEm()
+{
+  echo $1 $2 $3 $4 $5 $6
+
+  let E=$1
+  let EEND=$2
+  let IEND=$3
+  let DEST=$4
+  SPEC=$5
+  BDIR=$6
+  energy=([1]=418 500 598 715 855 1022 1223 1462 1748 2091 2500 2990 3575 4275 5112 6113 7310 8741 10453 12500 14948 )  
+	echo $SPEC $BDIR
+#Loop over energies
+  while test $E -le $EEND 
+   do
+	ENERGY=${energy[$E]}
+    #loop over new directories
+    let I=1
+
+    SOURCE=$lcl'/'$BDIR'/WU'$SPEC'20_180Deg45mv1234M2WMDL12UA/'
+
+
+    let j=1  #starting shower id
+    while test $I -le $IEND
+     do
+	  cd $lcl/..            #Go to dir simulations/
+      mkdir -vp veritas$I   #make temp dir
+      cd veritas$I
+	  tmplcl=$PWD
+	  mkdir $BDIR
+ 
+      DESTINATION=$tmplcl'/'$BDIR'/WU'$SPEC'20_180Deg45mv1234M2WMDL12UA'/
+      mkdir -pv $DESTINATION
+     
+	  echo e: $E  ENERGY: $ENERGY  SOURCE: $SOURCE  DESTINATION: $DESTINATION  
+
+
+
+      cd  $SOURCE	
+ 
+      #loop over showers ID to mv (not just copy, mv is fastest)
+      jEnd=$((j+$DEST))
+      while test $j -lt $jEnd
+	   do
+	     SRC=WU$SPEC'20_180Deg45mv1234M2GeV'$ENERGY'.d'$j'.vbf'
+         mv -v $SRC  $DESTINATION
+         echo SRC: $SRC
+         j=$((j+1))
+       done       #End shower id loop
+      let j=$jEnd
+      I=$((I+1))
+     done         #End directory loop
+    E=$((E+1))
+   done           #End energy loop
+}
+
+function spredEm()
+{
+  spec=$1
+  bdir=$2
+  echo $1 $2 $spec $bdir
+
+  let eL=1                    #Starting low energy entry
+  let eLEnd=8                 #ending low energy entry
+  let eH=9                    #starting High energy entry
+  let eHEnd=21                #ending High Energy entry
+  let iEnd=25                 #Number of directories to create
+  let lowDest=20              #Num of low energy shwrs per energy  each dir
+  let highDest=4              #Num of high energy shwrs per energy  each dir
+                              #Note:  iEnd*lowDest=500, iEnd*highDest=100
+  moveEm $eL $eLEnd $iEnd $lowDest $spec $bdir
+   
+  moveEm $eH $eHEnd $iEnd $highDest $spec $bdir
+}
+
+
+spredEm P protons
+spredEm He4_ he4 
+
+
+
