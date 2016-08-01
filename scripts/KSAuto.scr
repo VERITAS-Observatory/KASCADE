@@ -35,31 +35,39 @@ EntryGEEnd=45
 
 #EntryPStart=1
 EntryPStart=18      #418 GeV
-#EntryPStart=18      #500 GeV
+#EntryPStart=19      #500 GeV
+#EntryPStart=26      #1748 GeV
 #EntryPStart=45
 
-
+#EntryPEnd=20       #598GeV
 #EntryPEnd=21       #715GeV
-#EntryPEnd=23       #1223 GeV
-EntryPEnd=25       #1462 GeV
+#EntryPEnd=22       #855 GeV
+#EntryPEnd=23       #1022 GeV
+#EntryPEnd=25       #1462 GeV
 #EntryPEnd=31       #4275
 #EntryPEnd=32       #5112GeV
 #EntryPEnd=35       #8741GeV
+EntryPEnd=38       #14948 GeV
 #EntryPEnd=39       #17975 GeV
 #EntryPEnd=45       #52265 GeV
 
 #EntryHe4Start=5
 EntryHe4Start=18    #418 GeV
-#EntryHe4Start=18    #500 GeV
+#EntryHe4Start=19    #500 GeV
+#EntryHe4Start=26    #1748 GeV
 
 
 #EntryHe4End=15     #244.5GeV
+#EntryHe4End=18    #418 GeV
+#EntryHe4End=20     #598GeV
 #EntryHe4End=21     #715GeV
-#EntryHe4End=23     #1223 GeV
-EntryHe4End=25      #1462 GeV
+#EntryHe4End=23     #1022 GeV
+#EntryHe4End=24     #1223 GeV
+#EntryHe4End=25      #1462 GeV
 #EntryHe4End=31     #4275
 #EntryHe4End=32     #5112 GeV
 #EntryHe4End=35     #8741 GeV
+EntryHe4End=38      #14948 GeV
 #EntryHe4End=40     #21375 GeV
 #EntryHe4End=45     #52265 GeV
 
@@ -1241,8 +1249,12 @@ while test $izn -lt $iznEnd
          #Read in the $SPECMDL.txt file and set params
          ################################################################
          echo 'KSAuto: Setting ksAomega'$TELCONFIG$Threshold'('$ARRAYCONFIG').config files to '$SPECMDL'.dat values'
-         #LightConeEff=0.45
-         LightConeEff=0.80
+		 
+         if [ "$TELCONFIG" = "N" ] ||  [ "$TELCONFIG" = "O" ]; then
+	       LightConeEff=0.45
+         else
+	       LightConeEff=0.80
+         fi
          echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
          
          MDLFILE=$lcl'/'$SPECMDL".dat"
@@ -1271,14 +1283,13 @@ while test $izn -lt $iznEnd
 	       sed '/Telescope "T1"/s/T1/'$tel'/g'               <tmp2 >tmp1
 	       sed '/PixelStatsFileName " "/s:" ":"'$PFile'":g'  <tmp1 >tmp2
            sed '/LightConeCon/s/0.35/'$LightConeEff'/g'      <tmp2 >tmp1
-	       #sed '/LightConeConcentration/s/0.35/0.45/g'       <tmp2 >tmp1
 	       sed '/BadPixelSupression/s/ON/OFF/g'              <tmp1 >tmp2
-	       if [ "$TELCONFIG" ]; then
-		   sed '/SinglePeRiseTimeNS/s/0/1.7/g'           <tmp2 >tmp1
-		   sed '/SinglePeFallTimeNS/s/0/4.75/g'          <tmp1 >tmp2
+	       if [ "$TELCONFIG" = "U" ]; then
+		     sed '/SinglePeRiseTimeNS/s/0/1.7/g'           <tmp2 >tmp1
+		     sed '/SinglePeFallTimeNS/s/0/4.75/g'          <tmp1 >tmp2
 	       else
-		   sed '/SinglePeRiseTimeNS/s/0/3.2/g'           <tmp2 >tmp1
-		   sed '/SinglePeFallTimeNS/s/0/8.5/g'           <tmp1 >tmp2
+		     sed '/SinglePeRiseTimeNS/s/0/3.2/g'           <tmp2 >tmp1
+		     sed '/SinglePeFallTimeNS/s/0/8.5/g'           <tmp1 >tmp2
 	       fi
 	       sed '5 a \#This is special for tel '$tel'.'<tmp2 >$tel'.config'
 	     done
