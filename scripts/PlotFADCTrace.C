@@ -143,6 +143,11 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
   std::string line;
   string LGTraceFlag;
   int icount=0;
+  //bool debugPrint=true;
+  bool debugPrint=false;
+  if (debugPrint) {
+	std::cout<<"numPed,fHighSize,tLindex,linearity,interpolatedLinearity,amplitude,fLowSize,numSmpl:" <<std::endl;
+  }
   while(1) {
 	std::getline(ifs, line);
 	if (ifs.eof() ) {
@@ -160,6 +165,13 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
 	  is >> amplitude;
 	  is >> fLowSize;
 	  is >> numSmpl;
+	  if (debugPrint) {
+		std::cout<< icount << ": " << numPes << " " << fHighSize << " " 
+				 << tIndex << " " << linearity << " " << interpolatedLinearity 
+				 << " " << amplitude << " " << fLowSize << " " << numSmpl 
+				 <<std::endl;
+	  }
+
 	  for ( int j = 0; j <  numSmpl; j++) {
 		is >> trace[j];
 	  	if (ifs.eof() ) {
@@ -168,7 +180,13 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
 		}
 	  }
 	  // Add to TTree
-	   LGFADCTraces.Fill();
+	  //LGFADCTraces.Fill();
+	   icount++;
+	   if (icount%1000 == 0 ){
+		 std::cout<< "At Trace: " << icount << std::endl;
+
+	   }
+
 	}
   }
   std::cout << "ReadSimTracesFromLogFile: All traces read in." << std::endl;
