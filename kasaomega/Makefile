@@ -44,13 +44,9 @@ CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o))
 EXEOBJECT = $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)) 
 EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=)) 
 ifdef VEGAS
-    ifdef ROOTSYS
-all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
-    else
-all: norootcomment
-    endif
+ all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
 else
-all: noVEGAScomment
+ all: noVEGAScomment
 endif
 
 
@@ -77,12 +73,12 @@ $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 .PHONY: install
 
 ifdef VEGAS
-    ifdef ROOTSYS
+#    ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(EXE) $(TOPDIR)/bin 
-    else
-install: norootcomment
-    endif
+#    else
+#install: norootcomment
+#    endif
 else
 install: noVEGAScomment
 endif

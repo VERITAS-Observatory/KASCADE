@@ -36,13 +36,14 @@ EXE = $(addprefix $(BINDIR)/, $(EXETARGET:.cpp=))
 #TESTEXEOBJECT = $(addprefix $(TMPDIR)/, $(TESTTARGET:.cpp=.o)) 
 #TESTEXE = $(addprefix $(BINDIR)/, $(TESTTARGET:.cpp=)) 
 
-ifdef ROOTSYS
+#ifdef ROOTSYS
+
 all: $(LIBTARGET) $(EXEOBJECT) $(EXETARGET) 
 
 #$(TESTEXEOBJECT) $(TESTTARGET) 
-else
-all: norootcomment
-endif
+#else
+#all: norootcomment
+#endif
 
 
 
@@ -78,13 +79,13 @@ $(addprefix $(TMPDIR)/, $(EXETARGET:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 
 .PHONY: install
 
-ifdef ROOTSYS
+#ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(EXE)  $(TOPDIR)/bin 
 #        $(TESTEXE)
-else
-install: norootcomment
-endif
+#else
+#install: norootcomment
+#endif
 
 
 .PHONY: clean

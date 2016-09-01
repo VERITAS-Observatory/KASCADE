@@ -33,12 +33,12 @@ CPPSOURCES   = $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET1) | \
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
 ifdef VEGAS
-    ifdef ROOTSYS
+    #ifdef ROOTSYS
 all: $(LIBTARGET) $(CPPTARGETOBJECTS) $(CPPEXES)
-    else 
-all:  $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) \
-	$(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) norootcomment
-    endif
+    #else 
+#all:  $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) \
+#	$(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) norootcomment
+#    endif
 else
 all:  $(addprefix $(TMPDIR)/, $(CPPTARGET1:.cpp=.o)) \
 	$(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) noVEGAScomment
@@ -93,14 +93,14 @@ $(addprefix $(BINDIR)/, $(CPPTARGET4:.cpp=)): $(LIBTARGET)
 .PHONY: install
 
 ifdef VEGAS
-    ifdef ROOTSYS
+    #ifdef ROOTSYS
 install:
 	$(INSTALLCMD) $(CPPEXES) $(TOPDIR)/bin
-    else 
-install:norootcomment 
-	$(INSTALLCMD) $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) \
-	$(TOPDIR)/bin
-    endif
+    #else 
+#install:norootcomment 
+#	$(INSTALLCMD) $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) \
+#	$(TOPDIR)/bin
+#    endif
 else
 install: noVEGAScomment
 	$(INSTALLCMD) $(addprefix $(BINDIR)/, $(CPPTARGET1:.cpp=)) \
@@ -122,7 +122,7 @@ clean:
 
 .PHONY: norootcomment
 norootcomment:
-	@echo "******************kasaomega/Makefile**************************"
+	@echo "******************utilities/Makefile**************************"
 	@echo "* ROOTSYS not defined (ROOT not installed?)"
 	@echo "* Can't make or install " \
 	$(addprefix $(BINDIR)/, $(CPPTARGET2:.cpp=))
@@ -130,7 +130,7 @@ norootcomment:
 
 .PHONY: noVEGAScomment
 noVEGAScomment:
-	@echo "******************kasaomega/Makefile**************************"
+	@echo "******************utilities/Makefile**************************"
 	@echo "* VEGAS not defined (VEGAS not installed?)"
 	@echo "* Can't make or install" \
 	$(addprefix $(BINDIR)/, $(CPPTARGET2:.cpp=))
