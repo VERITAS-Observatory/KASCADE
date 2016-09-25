@@ -44,7 +44,7 @@ function setup()
     echo Edison Data Dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
-    WALLTIME='-l walltime=05:00:00'
+    WALLTIME='-t 07:00:00'
   fi
 
   if [ -n "$HANSEN" ]; then

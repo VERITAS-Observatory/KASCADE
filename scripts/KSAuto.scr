@@ -14,17 +14,18 @@ LimitSubmissions=enabled      #Enable if you want to generate limit number of
                               #shower submitted to a queue.
 #Cleanup=enabled                
 
-#DisableSleep=enabled           #Don't wait for files to finish. ususally use 
+#DisableSleep=enabled           #Don't wait for files to finish. ususally use   
                                 #only when we have a a group of small runs of 
                                 #GenerateTeFiles and want to load up the 
                                 #cluster
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
 
-#JobArray=enabled             #For Cori right now 
+JobArray=enabled             #For Cori and Edison right now 
 
 ############################################################
-# Force the Check files to match shower entry numberes to those used in ksProduction.scr
+# Force the Check files to match shower entry numberes to those used in 
+#ksProduction.scr
 ############################################################
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
@@ -34,27 +35,34 @@ EntryGEEnd=45
 #EntryGEEnd=43 #36550GeV
 
 #EntryPStart=1
-EntryPStart=18      #418 GeV
+EntryPStart=17      #350 GeV     #GroupA start
+#EntryPStart=18      #418 GeV
 #EntryPStart=19      #500 GeV
 #EntryPStart=26      #1748 GeV
-#EntryPStart=45
+#EntryPStart=30       #3575 GeV      #group B start
+#EntryPStart=45     #52265 GeV
 
 #EntryPEnd=20       #598GeV
 #EntryPEnd=21       #715GeV
 #EntryPEnd=22       #855 GeV
 #EntryPEnd=23       #1022 GeV
 #EntryPEnd=25       #1462 GeV
+#EntryPEnd=26       #1787 GeV
+#EntryPEnd=29       #2990         #group A end
+#EntryPEnd=30       #3575       
 #EntryPEnd=31       #4275
 #EntryPEnd=32       #5112GeV
 #EntryPEnd=35       #8741GeV
-EntryPEnd=38       #14948 GeV
+#EntryPEnd=38       #14948 GeV
 #EntryPEnd=39       #17975 GeV
-#EntryPEnd=45       #52265 GeV
+EntryPEnd=45       #52265 GeV    #group B end
 
 #EntryHe4Start=5
-EntryHe4Start=18    #418 GeV
+EntryHe4Start=17    #350 GeV     #group A start
+#EntryHe4Start=18    #418 GeV  
 #EntryHe4Start=19    #500 GeV
 #EntryHe4Start=26    #1748 GeV
+#EntryHe4Start=30     #3575 GeV       #group B start
 
 
 #EntryHe4End=15     #244.5GeV
@@ -64,12 +72,14 @@ EntryHe4Start=18    #418 GeV
 #EntryHe4End=23     #1022 GeV
 #EntryHe4End=24     #1223 GeV
 #EntryHe4End=25      #1462 GeV
+#EntryHe4End=29     #2990         #group A end
+#EntryHe4End=30     #3575       
 #EntryHe4End=31     #4275
 #EntryHe4End=32     #5112 GeV
 #EntryHe4End=35     #8741 GeV
-EntryHe4End=38      #14948 GeV
+#EntryHe4End=38      #14948 GeV
 #EntryHe4End=40     #21375 GeV
-#EntryHe4End=45     #52265 GeV
+EntryHe4End=45     #52265 GeV      #groupB end
 
 if [ "$2" = "CR" ]; then
   echo EntryPEnd: $EntryPEnd
@@ -437,14 +447,14 @@ function SubmitHtarToArchive()
   #build a submission .pbs file
 
   ###########################################
-  # special for CORI and EDSION  xfer queue
+  # special for CORI and EDSION  htar/hsi transfer  queue
   ###########################################
   if [ -n "$CORI" ]; then
 	QSUB='sbatch -M escori'
   fi
   if [ -n "$EDISON" ]; then
-	QUEUE='-p xfer'
-	QSUB='qsub -V'
+        QSUB='sbatch -M esedison'
+        WALLTIME='-t 24:00:00'
   fi
 
   sgeFile=$ShDr'HTAR.pbs'
@@ -519,8 +529,7 @@ function SubmitHtarFromArchive()
 	QSUB='sbatch -M escori'
   fi
   if [ -n "$EDISON" ]; then
-	QUEUE=xfer
-        QSUB="qsub -V"
+     	QSUB='sbatch -M esedison'
   fi
   
   sgeFile=$Source'From.pbs'
@@ -591,7 +600,7 @@ function SubmitQsubJobs()
     ############################################################## 
     GetUniqueNumber           #UNIQUE will idintify this run
     sgeFile=KS$UNIQUE.ja      #Job array submission file name
-    echo 'KSAuto: Cori Job Array Generartion. Job Array File Name: ' $sgeFile
+    echo 'KSAuto: Job Array Generartion. Job Array File Name: ' $sgeFile
     let sbIndex=0             $Job array index
     {
      while read  sgeFileFull
@@ -688,7 +697,7 @@ SetupForHost              #From UtilitiesFunctions.scr
 if [ -n "$CORI" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='cori'
-  WALLTIME='-t 06:00:00'
+  WALLTIME='-t 12:00:00'
   if [ -n "$LimitSubmissions" ]; then	
     let MaxQsubs=$SUBMITLIMIT
     let MaxHTARQsubs=8
@@ -698,7 +707,7 @@ fi
 if [ -n "$EDISON" ]; then
   VDirBase=$SCRATCH'/simulations/veritas/'
   JobIDHost='edison'
-  WALLTIME='-t 06:00:00'
+  WALLTIME='-t 12:00:00'
   if [ -n "$LimitSubmissions" ]; then
     let MaxQsubs=$SUBMITLIMIT
     let MaxHTARQsubs=9
@@ -1255,7 +1264,7 @@ while test $izn -lt $iznEnd
          else
 	       LightConeEff=0.80
          fi
-         echo 'MDLAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
+         echo 'KSAuto: Setting ksAomega config LightCone Eff to: ' $LightConeEff
          
          MDLFILE=$lcl'/'$SPECMDL".dat"
 	     if [ !  -e "$MDLFILE" ]; then

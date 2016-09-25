@@ -1,0 +1,238 @@
+#!/bin/bash
+#Special CR ESpec
+#$1: Number of SubVBF files to divide things up into
+#$2: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas
+#$3:Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
+#   20_180Deg
+#$4:Threshold spec ex 45mv or 50 mv
+#$5 Season:teleSpec: Ex WU or SV
+#$6: Output file BaseName Ex: CrabA or Noise4 Noise3_5 MDL15 etc.
+#$7: Input Sub-dir: Ex: ABCD
+#$8: Run or DoNotRun(default): Optional, submit or not submit
+
+#####################################################################
+##############################################################################
+#This replaces call to KSAuto.scr for VBF generation for Electron Spectrum
+#Assumes standard ESpec CR shower numbers of 500(315-1462),100(1748-14948),
+# 50(17875-52265). (P and He4_)
+#Method is instesd of doing one VBF file for a Zn_Az,  to do N files such 
+#that we have about 1,000,000 events per subVBF file. Then we can process all 
+#the files through VEGAS in parallel 
+##(or we could add threads to VEGAS!!!).##
+###############################################################################
+#Method is to:
+# 1: Make temporary simulation/veritasN/protons and  
+#    simulation/veritasN/he4 directories 
+# 2: Make links to the subsets of files in tese directories to the original
+#    placement of simulation/veritas/he4 and simulation/veritas/protons
+# 3: Submit the ProcessAll jobs.
+###############################################################################
+
+function usage()
+{
+  echo '***ProcessAllESpec usage:'
+  echo '   $1: Number of subVBF files to generate'
+  echo '   $2: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas'
+  echo '   $3: Zn_AZ and threshold specification EX: 20Deg  20_180Deg'
+  echo '   $4: Threshold spec ex 45mv or 50mv'
+  echo '   $5: Season:teleSpec: Ex WU or SV SO'
+  echo '   $6: Output file BaseName Ex: CrabA or Noise4 or MDL15NA'
+  echo '   $7: Input Sub-dir: Ex: ABCD'
+  echo '   $8: "Run" or "DoNotRun"(default): Optional,submit or not submit'  
+  echo ' Ex:  ./ProcessAllESpec.scr 20 $SCRATCH/simulations/veritas 10_180Deg 45mv WU MDL12UA WXYZ Run'
+  echo '***'
+}
+
+##################
+# Main
+##################
+
+if [  ! -n "$7" ]; then
+        usage
+        exit
+fi
+
+NUMSUBVBF=$1
+VDIRBASE=$2
+ZN_AZDEG=$3
+THRESH=$4
+SEASARRAY=$5
+OUTFILEBASE=$6
+ARRAYCONFIG=$7
+RUNOPT=$8
+
+
+echo Argument1: $NUMSUBVBF
+echo Argument2: $VDIRBASE
+echo Argument3: $ZN_AZDEG
+echo Argument4: $THRESH
+echo Argument5: $SEASARRAY
+echo Argument6: $OUTFILEBASE
+echo Argument7: $ARRAYCONFIG
+echo Argument8: $RUNOPT
+
+##################
+# Bring in DefineShowers function
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
+
+###################
+#Generate/clear the subVBF directories
+###################
+#Check we have  ShwrVBF source directories
+PBASE=$SEASARRAY'P'$ZN_AZDEG$THRESH'1234M2'
+PShwrVBFDir=$PBASE'W'$ARRAYCONFIG
+PShwrVBFMDLDir=$PBASE'W'$OUTFILEBASE
+PShwrVBFFullDir=$VDIRBASE'/protons/'$PShwrVBFDir
+
+HBASE=$SEASARRAY'He4_'$ZN_AZDEG$THRESH'1234M2'
+HShwrVBFDir=$HBASE'W'$ARRAYCONFIG      
+HShwrVBFMDLDir=$HBASE'W'$OUTFILEBASE      
+HShwrVBFFullDir=$VDIRBASE'/he4/'$HShwrVBFDir
+
+if [ ! -d "$PShwrVBFFullDir" ]; then
+   echo Protons ShwrVBF dir missing:  $PShwrVBFFullDir
+   exit
+fi
+
+if [ ! -d "$HShwrVBFFullDir" ]; then
+   echo He4_ ShwrVBF dir missing:  $HShwrVBFFullDir
+   exit
+fi
+
+##############
+# set up for shower id loops
+#Assume P and He4_ have same number of shower/energies so just getting 
+#energy and end arrays for P is enough
+
+DefineShowers 'P'
+eEntryStart=17    #315GeV
+eEntryEnd=45      #52265GeV
+
+
+###################
+#Loop over the subVBF's
+let dGroup=1
+let dEnd=$NUMSUBVBF
+
+
+while test $dGroup -le $dEnd
+  do
+    SubVBFDir=$VDIRBASE$dGroup
+    mkdir -vp $SubVBFDir
+
+    cd $SubVBFDir
+    
+    mkdir -vp protons
+    mkdir -vp he4
+
+#Clear any existing dirs.
+    cd protons
+    ls
+    if [ -d "$PShwrVBFDir" ]; then
+      echo Clearing  $PWD'/'$PShwrVBFDir'/*'
+      rm -r $PShwrVBFDir
+    fi
+    
+    mkdir -vp $PShwrVBFDir
+    
+    if [ -d "$PShwrVBFMDLDir" ]; then
+      echo Removing existing $PWD'/'$PShwrVBFMDLDir'/*'
+      rm -r $PShwrVBFMDLDir
+    fi
+
+    cd ../he4
+
+    if [ -d "$HShwrVBFDir" ]; then
+      echo Clearing $PWD'/'$HShwrVBFDir'/*'
+      rm -r $HShwrVBFDir	
+    fi
+
+    mkdir -vp $HShwrVBFDir
+
+    if [ -d "$HShwrVBFMDLDir" ]; then
+      echo Removing existing $PWD'/'$HShwrVBFMDLDir'/*'
+      rm -r $HShwrVBFMDLDir
+    fi
+
+    let dGroup=$((dGroup+1))
+  done
+  
+########################################
+#Generate the links
+#loop over entires (energy)
+let eEntry=eEntryStart
+while test $eEntry -le $eEntryEnd
+  do
+    let showerEnd=${end[$eEntry]}
+    eGeV=${energy[$eEntry]}     
+    #Generate the span
+    let span=$((showerEnd/NUMSUBVBF))
+    echo $eEntry':' $eGeV $showerEnd $NUMSUBVBF $span
+    #Check span is integer (so all groups have same #)
+    let recTot=$((span*NUMSUBVBF))
+    if [ "$recTot" -ne "$showerEnd" ]; then
+      echo Number of SubVBF files: $NUMSUBVBF 'fails to divide evenly into Number of showers: ' $showerEnd
+      echo Correct number of SubVBF files so that it does
+      echo If you do not do this the weighting in ksSumVBF gets screwed up.
+      exit
+    fi
+
+#####################
+# Loop over subVBF groups
+    let dGroup=1
+    let dEnd=$NUMSUBVBF
+
+    let shIndex=1
+    
+    while test $dGroup -le $dEnd
+      do
+        let shEnd=$((shIndex+span-1))
+        if [ "$shEnd" -gt "$showerEnd" ]; then
+	  shEnd=$showerEnd
+        fi
+        if [ "$dGroup" -eq "$dEnd" ]; then
+          shEnd=$showerEnd
+        fi
+
+#####################
+# loop over the showers
+        while test $shIndex -le $shEnd
+          do	
+	    pShowerName=$PBASE'GeV'$eGeV'.d'$shIndex'.vbf'
+            hShowerName=$HBASE'GeV'$eGeV'.d'$shIndex'.vbf' 
+            #################
+            #make the links
+
+            cd $VDIRBASE$dGroup'/protons/'$PShwrVBFDir
+	    #echo $PWD: $PShwrVBFFullDir'/'$pShowerName $pShowerName
+	    ln -s $PShwrVBFFullDir'/'$pShowerName $pShowerName             
+	    cd $VDIRBASE$dGroup'/he4/'$HShwrVBFDir
+	    #echo $PWD: $HShwrVBFFullDir'/'$hShowerName $hShowerName
+	    ln -s $HShwrVBFFullDir'/'$hShowerName $hShowerName
+
+            let shIndex=$((shIndex+1))
+          done
+         
+        let dGroup=$((dGroup+1))
+      done
+    let eEntry=$((eEntry+1))
+  done
+###############################
+#Loop over groups and submit ProcessAll
+
+if [ "$RUNOPT" = "Run" ]; then
+  let dGroup=1
+  let dEnd=$NUMSUBVBF
+  cd $SCRATCH/simulations/veritas/
+
+  while test $dGroup -le $dEnd
+    do
+     ./ProcessAll CR $VDIRBASE$dGroup $ZN_AZDEG $THRESH $SEASARRAY $OUTFILEBASE $ARRAYCONFIG
+     let dGroup=$((dGroup+1))
+    done
+fi

@@ -60,7 +60,7 @@ if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
          FullJobid=${FullJobid%%.*}
       fi
       echo $FullJobid
-       if [ -n "$CORI" ]; then
+       if [ -n "$CORI" ] ||[ -n "$EDISON" ] ; then
 	scancel  $FullJobid
      else
        qdel$QSUBEXT $FullJobid
@@ -75,7 +75,7 @@ else
   echo $i $iEnd
   while test $i -le $iEnd
    do
-     if [ -n "$CORI" ]; then
+     if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
 	scancel  $i$3
      else
         qdel$QSUBEXT $i$3

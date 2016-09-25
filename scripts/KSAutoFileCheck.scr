@@ -27,7 +27,7 @@ function LookForBadPeCounts()
    do
     if [ !  -n "$g" ]; then
       Found=0
-      echo Failed 1
+      echo Failed to find \'Number of photons written out\' entry in:  $LOGFILE
       return
     fi
     numpes=$g
@@ -41,7 +41,7 @@ function LookForBadPeCounts()
    do
      if [ ! -n "$h" ]; then
        Found=0
-       echo Failed 2
+       echo Failed to find \' Number of PEs read in\' entry in: $LOGFILE
        return
      fi
      numfound=$h
@@ -50,8 +50,8 @@ function LookForBadPeCounts()
 
  if [ "$numfound" != "$numpes" ]; then
    Found=0
-   echo Failed 2.1
-   retrun
+   echo Failed to match numpes in: $LOGFILE
+   return
  fi
 
  grep "ksPeSortMerge: Successful Sort(I checked!)" $LOGFILE >pecheckok
@@ -60,7 +60,7 @@ function LookForBadPeCounts()
    do
      if [ "$b" != "Successful" ]; then
        Found=0
-      echo Failed 3
+      echo Failed to find \'Successful Sort\(I checked!\)\' in: $LOGFILE
        return
      fi
    done
@@ -72,7 +72,7 @@ function LookForBadPeCounts()
    do
      if [ ! -n "$i" ]; then
        Found=0
-       echo Failed 4
+       echo Failed to find \'Number of Sorted PEs written out\' entry in:  $LOGFILE
        return
      fi
      if [ -n "$eorFile" ]; then 
@@ -86,7 +86,7 @@ function LookForBadPeCounts()
  
  if [ "$numfound" != "$numpes" ]; then
    Found=0
-   echo Failed 5
+   echo Failed to match numfound in : $LOGFILE
    return
  fi
 
@@ -96,7 +96,7 @@ function LookForBadPeCounts()
    do
      if [ ! -n "$i" ]; then
        Found=0
-       echo Failed 6
+       echo Failed to find \'KSPeFile reports Number of Pe\' entry in: $LOGFILE
        return
      fi
      numfound=$i
@@ -105,7 +105,7 @@ function LookForBadPeCounts()
 
  if [ "$numfound" != "$numpes" ]; then
    Found==0
-   echo Failed 7
+   echo Failed to match numfound in: $LOGFILE
    return
  fi
 }
