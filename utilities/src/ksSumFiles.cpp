@@ -981,8 +981,10 @@ int main(int argc, char** argv)
 	       <<fNumNormalEvents<<std::endl;
       std::cout<<"ksSumFiles: Number of Pedestal Events written:"
 	       <<fNumPedEvents<<std::endl;
-      std::cout<<"ksSumFiles: End of Run at: "<<fEventTime<<std::endl;
-      std::cout<<"ksSumFiles: Normal end"<<std::endl;
+      std::cout<<"ksSumFiles: Data End of Run at: "<<fEventTime<<std::endl;
+      thetime=time(NULL);
+      std::cout<<"ksSumFiles: Normal end at --- "<<ctime(&thetime)
+	<<std::endl;
 
       // ----------------------------------------------------------------------
       // Save the random number generator seeds.
