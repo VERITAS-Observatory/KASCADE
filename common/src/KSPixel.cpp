@@ -65,8 +65,8 @@ KSPixel::KSPixel(KSCameraTypes CameraType, double DigCntsPerPEHiGain,
   // *********************************************************
   // Use crazy large HVGain for no rounding. It gets divided out at the end.
   // *********************************************************
-  timeSpreadNS = gFADCBinSizeNS;//No time spread single sample jitter
-  //timeSpreadNS = 5.0;          //Shower/mirror ~ induced time spread(ns)
+  //timeSpreadNS = gFADCBinSizeNS;//No time spread single sample jitter
+  timeSpreadNS = 5.0;          //Shower/mirror ~ induced time spread(ns)
   std::cout << " Shower/Mirror Time Spread(ns) used in Hi/lo ratio "
 	           "calculation: " << timeSpreadNS << std::endl;
   fSinglePeMeanFADCAreaNoRounding = 
