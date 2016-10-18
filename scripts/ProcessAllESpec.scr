@@ -1,4 +1,4 @@
-#!/bin/bash
+=#!/bin/bash
 #Special CR ESpec
 #$1: Number of SubVBF files to divide things up into
 #$2: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas
@@ -39,7 +39,7 @@ function usage()
   echo '   $6: Output file BaseName Ex: CrabA or Noise4 or MDL15NA'
   echo '   $7: Input Sub-dir: Ex: ABCD'
   echo '   $8: "Run" or "DoNotRun"(default): Optional,submit or not submit'  
-  echo ' Ex:  ./ProcessAllESpec.scr 20 $SCRATCH/simulations/veritas 10_180Deg 45mv WU MDL12UA WXYZ Run'
+  echo ' Ex:  ./ProcessAllESpec.scr 25 $SCRATCH/simulations/veritas 10_180Deg 45mv WU MDL12UA WXYZ Run'
   echo '***'
 }
 
@@ -88,21 +88,53 @@ PBASE=$SEASARRAY'P'$ZN_AZDEG$THRESH'1234M2'
 PShwrVBFDir=$PBASE'W'$ARRAYCONFIG
 PShwrVBFMDLDir=$PBASE'W'$OUTFILEBASE
 PShwrVBFFullDir=$VDIRBASE'/protons/'$PShwrVBFDir
+PShwrVBFMDLFullDir=$VDIRBASE'/protons/'$PShwrVBFMDLDir
+echo PShwrVBFFullDir: $PShwrVBFFullDir
+echo PShwrVBFMDLFullDir: $PShwrVBFMDLFullDir
 
 HBASE=$SEASARRAY'He4_'$ZN_AZDEG$THRESH'1234M2'
 HShwrVBFDir=$HBASE'W'$ARRAYCONFIG      
 HShwrVBFMDLDir=$HBASE'W'$OUTFILEBASE      
 HShwrVBFFullDir=$VDIRBASE'/he4/'$HShwrVBFDir
+HShwrVBFMDLFullDir=$VDIRBASE'/he4/'$HShwrVBFMDLDir
+echo HShwrVBFFullDir: $HShwrVBFFullDir
+echo HShwrVBFMDLFullDir: $HShwrVBFMDLFullDir
 
-if [ ! -d "$PShwrVBFFullDir" ]; then
-   echo Protons ShwrVBF dir missing:  $PShwrVBFFullDir
-   exit
+
+
+#Make surte we have the one of the ShwrVBF file directories
+#Protons
+if [ ! -d "$PShwrVBFMDLFullDir" ]  &&  [ ! -d "$PShwrVBFFullDir" ]; then
+     echo Fatal--Protons: Can not find any ShwrVBF  directory:  
+     echo Neither $PShwrVBFMDLFullDir nor $PShwrVBFFullDir exist
+     exit;
+fi
+#We want all the ShwrVBF  files in the PShwrVBFMDLFullDir
+if [ ! -d "$PShwrVBFMDLFullDir" ]; then
+   #Make one
+   mkdir -vp $PShwrVBFMDLFullDir
 fi
 
-if [ ! -d "$HShwrVBFFullDir" ]; then
-   echo He4_ ShwrVBF dir missing:  $HShwrVBFFullDir
-   exit
+if [ -d "$PShwrVBFFullDir" ]; then
+   mv -v $PShwrVBFFullDir/*   $PShwrVBFMDLFullDir/
 fi
+
+#He4_
+if [ ! -d "$HShwrVBFMDLFullDir" ]  && [ ! -d "$HShwrVBFFullDir" ]; then
+     echo Fatal--He4: Can not find any ShwrVBF  directory:  
+     echo Neither $HShwrVBFMDLFullDir nor $HShwrVBFFullDir exist
+     exit;
+fi
+#We want allshwrVBF  files in the HShwrVBFMDLFullDir
+if [ ! -d "$HShwrVBFMDLFullDir" ]; then
+   #Make one
+   mkdir -vp $HShwrVBFMDLFullDir
+fi
+if [ -d "$HShwrVBFFullDir" ]; then
+   mv $HShwrVBFFullDir/*  $HShwrVBFMDLFullDir/
+fi
+
+#So after this point we only need to worry about the MDl directories
 
 ##############
 # set up for shower id loops
@@ -124,41 +156,25 @@ while test $dGroup -le $dEnd
   do
     SubVBFDir=$VDIRBASE$dGroup
     mkdir -vp $SubVBFDir
-
     cd $SubVBFDir
-    
     mkdir -vp protons
     mkdir -vp he4
 
-#Clear any existing dirs.
+#Clear any existing dGroup MDL dirs. PShwrVBFMDLDir and HShwrVBFMDLDir
+#They If they exist should only have links in them
     cd protons
-    ls
-    if [ -d "$PShwrVBFDir" ]; then
-      echo Clearing  $PWD'/'$PShwrVBFDir'/*'
-      rm -r $PShwrVBFDir
-    fi
-    
-    mkdir -vp $PShwrVBFDir
-    
     if [ -d "$PShwrVBFMDLDir" ]; then
-      echo Removing existing $PWD'/'$PShwrVBFMDLDir'/*'
+      #echo Clearing  $PWD'/'$PShwrVBFMDLDir/*
       rm -r $PShwrVBFMDLDir
     fi
-
+    mkdir -vp $PShwrVBFMDLDir   
+    
     cd ../he4
-
-    if [ -d "$HShwrVBFDir" ]; then
-      echo Clearing $PWD'/'$HShwrVBFDir'/*'
-      rm -r $HShwrVBFDir	
-    fi
-
-    mkdir -vp $HShwrVBFDir
-
     if [ -d "$HShwrVBFMDLDir" ]; then
-      echo Removing existing $PWD'/'$HShwrVBFMDLDir'/*'
-      rm -r $HShwrVBFMDLDir
+      #echo Clearing $PWD'/'$HShwrVBFMDLDir/*
+      rm  -r $HShwrVBFMDLDir	
     fi
-
+    mkdir -vp $HShwrVBFMDLDir
     let dGroup=$((dGroup+1))
   done
   
@@ -207,13 +223,21 @@ while test $eEntry -le $eEntryEnd
             hShowerName=$HBASE'GeV'$eGeV'.d'$shIndex'.vbf' 
             #################
             #make the links
+            #This assume all files exist Could put some checks in here
+	    
+	    pshwrVBFFile=$PShwrVBFMDLFullDir'/'$pShowerName
+            if [ ! -e "$pshwrVBFFile" ]; then
+               echo Missing file $pshwrVBFFile
+            fi
+            cd $VDIRBASE$dGroup'/protons/'$PShwrVBFMDLDir
+	    ln -s $pshwrVBFFile $pShowerName             
 
-            cd $VDIRBASE$dGroup'/protons/'$PShwrVBFDir
-	    #echo $PWD: $PShwrVBFFullDir'/'$pShowerName $pShowerName
-	    ln -s $PShwrVBFFullDir'/'$pShowerName $pShowerName             
-	    cd $VDIRBASE$dGroup'/he4/'$HShwrVBFDir
-	    #echo $PWD: $HShwrVBFFullDir'/'$hShowerName $hShowerName
-	    ln -s $HShwrVBFFullDir'/'$hShowerName $hShowerName
+	    hshwrVBFFile=$HShwrVBFMDLFullDir'/'$hShowerName
+            if [ ! -e "$hshwrVBFFile" ]; then
+               echo Missing file $hshwrVBFFile
+            fi
+	    cd $VDIRBASE$dGroup'/he4/'$HShwrVBFMDLDir
+	    ln -s $hshwrVBFFile $hShowerName
 
             let shIndex=$((shIndex+1))
           done
