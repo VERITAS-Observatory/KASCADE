@@ -14,7 +14,7 @@ LimitSubmissions=enabled      #Enable if you want to generate limit number of
                               #shower submitted to a queue.
 #Cleanup=enabled                
 
-#DisableSleep=enabled           #Don't wait for files to finish. ususally use   
+#DisableSleep=enabled           #Don't wait for files to finish. ususally use 
                                 #only when we have a a group of small runs of 
                                 #GenerateTeFiles and want to load up the 
                                 #cluster
@@ -39,8 +39,8 @@ EntryPStart=17      #350 GeV     #GroupA start
 #EntryPStart=18      #418 GeV
 #EntryPStart=19      #500 GeV
 #EntryPStart=26      #1748 GeV
-#EntryPStart=30       #3575 GeV      #group B start
-#EntryPStart=45     #52265 GeV
+#EntryPStart=30      #3575 GeV      #group B start
+#EntryPStart=45      #52265 GeV
 
 #EntryPEnd=20       #598GeV
 #EntryPEnd=21       #715GeV
@@ -57,27 +57,27 @@ EntryPStart=17      #350 GeV     #GroupA start
 #EntryPEnd=39       #17975 GeV
 EntryPEnd=45       #52265 GeV    #group B end
 
-#EntryHe4Start=5
+##EntryHe4Start=5
 EntryHe4Start=17    #350 GeV     #group A start
 #EntryHe4Start=18    #418 GeV  
 #EntryHe4Start=19    #500 GeV
 #EntryHe4Start=26    #1748 GeV
-#EntryHe4Start=30     #3575 GeV       #group B start
+#EntryHe4Start=30    #3575 GeV       #group B start
 
 
 #EntryHe4End=15     #244.5GeV
-#EntryHe4End=18    #418 GeV
+#EntryHe4End=18     #418 GeV
 #EntryHe4End=20     #598GeV
 #EntryHe4End=21     #715GeV
 #EntryHe4End=23     #1022 GeV
 #EntryHe4End=24     #1223 GeV
-#EntryHe4End=25      #1462 GeV
+#EntryHe4End=25     #1462 GeV
 #EntryHe4End=29     #2990         #group A end
 #EntryHe4End=30     #3575       
 #EntryHe4End=31     #4275
 #EntryHe4End=32     #5112 GeV
 #EntryHe4End=35     #8741 GeV
-#EntryHe4End=38      #14948 GeV
+#EntryHe4End=38     #14948 GeV
 #EntryHe4End=40     #21375 GeV
 EntryHe4End=45     #52265 GeV      #groupB end
 
@@ -493,7 +493,7 @@ function SubmitHtarToArchive()
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'To.log'
   $QSUB -e $ShDr'HTARTo.pbs.err' -o $ShDr'HTARTo.pbs.log' $sgeFile >$HTARLOG
-  cd $lcl
+  cd $local
 }
 #########################################################################
 
@@ -1048,33 +1048,30 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
-#       if [ -n "$EDISON" ]; then
-#	 MEMREQUEST=' -l vmem=8GB '
-#	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
-#       fi
 
        if [ -n "$LimitSubmissions" ]; then
          ########################################
          # Now for CR do P and He4
          ########################################
+	ArchiveSrc=$HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/'
+
          if [ "$SPECPART" = "CR" ] ; then
-           SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirP $TeNameP $QsubHTARLogs $MaxHTARQsubs
-           SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
+           SubmitHtarFromArchive $ArchiveSrc $PSFDirP $TeNameP $QsubHTARLogs $MaxHTARQsubs
+           SubmitHtarFromArchive $ArchiveSrc $PSFDirHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
          else
            ############################
            # Only G or E or P or He4
            # P or He4 dest is "CR" directory
            ############################
            if [ "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
-             SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+	     ArchiveSrc=$HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/'
+             SubmitHtarFromArchive  $ArchiveSrc $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
            else
-             SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
+             SubmitHtarFromArchive $ArchiveSrc $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
            fi
          fi
-#	     SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $QsubHTARLogs $MaxHTARQsubs
-
        else
-         SubmitHtarFromArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName 
+         SubmitHtarFromArchive $ArchiveSrc $PSFDir $TeName 
        fi
      fi
      #####################################################################
@@ -1139,10 +1136,6 @@ while test $izn -lt $iznEnd
        #(ie are blank)  if LimitSubmissions is not enabled we really don't 
        # need the following test but it does make things clearer
        ################################################################
-#       if [ -n "$EDISON" ]; then
-#	 MEMREQUEST=' -l vmem=8GB '
-#	 echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
-#       fi
 
        if [ -n "$LimitSubmissions" ]; then
 	  QLOGS=$QsubHTARLogs         
@@ -1150,22 +1143,25 @@ while test $izn -lt $iznEnd
           #Othersiwe they are blank.
        fi
 
+       ArchiveDst=$HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/'
+
        ########################################
        # Now for CR do P and He4 
        ########################################
        if [ "$SPECPART" = "CR" ] ; then
          #Note:TeNameP used second time (arg $4) for Alt loc (cause something has to go there!)
-         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirP $TeNameP $TeNameP $QsubHTARLogs $MaxHTARQsubs
-         SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDirHe4 $TeNameHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarToArchive $ArchiveDst $PSFDirP $TeNameP $TeNameP $QsubHTARLogs $MaxHTARQsubs
+         SubmitHtarToArchive $ArchiveDst  $PSFDirHe4 $TeNameHe4 $TeNameHe4 $QsubHTARLogs $MaxHTARQsubs
        else
          ############################
          # Only G or E or P or He4
          # P or He4 dest is "CR" directory
          ############################
          if [ "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
-              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/' $PSFDir $TeName $TeName $QsubHTARLogs $MaxHTARQsubs
+           ArchiveDst=$HtarDir$SPECSEA$TELCONFIG'CR'$WblFilterSpec'TE/'
+           SubmitHtarToArchive  $ArchiveDst $PSFDir $TeName $TeName $QsubHTARLogs $MaxHTARQsubs
          else
-              SubmitHtarToArchive $HtarDir$SPECSEA$TELCONFIG$SPECPART$WblFilterSpec'TE/' $PSFDir $TeName $TeName $QsubHTARLogs $MaxHTARQsubs
+              SubmitHtarToArchive $ArchiveDst $PSFDir $TeName $TeName $QsubHTARLogs $MaxHTARQsubs
          fi
        fi
 
@@ -1471,6 +1467,9 @@ while test $izn -lt $iznEnd
        ################################################################
 
        ArchiveSrc=$HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/'
+       if [  "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
+         ArchiveSrc=$HtarDir$SPECSEA$TELCONFIG'CR'$SPECMDL'VBFShowers/'
+       fi
 
        if [ "$SPECPART" = "CR" ] ; then
          SubmitHtarFromArchive $ArchiveSrc $VDirBase'/protons/' $ShowerVBFProtonDirAlt  $QsubHTARLogs $MaxHTARQsubs
@@ -1535,6 +1534,9 @@ while test $izn -lt $iznEnd
        cd $lcl'/../simulations/veritas/'
        date
        ArchiveDst=$HtarDir$SPECSEA$TELCONFIG$SPECPART$SPECMDL'VBFShowers/'
+       if [  "$SPECPART" = "P" ] ||  [ "$SPECPART" = "He4_" ]; then
+         ArchiveDst=$HtarDir$SPECSEA$TELCONFIG'CR'$SPECMDL'VBFShowers/'
+       fi
 
        if [ "$SPECPART" = "CR" ] ; then
          SubmitHtarToArchive $ArchiveDst $VDirBase'/protons/' $ShowerVBFProtonDir $ShowerVBFProtonDirAlt $QsubHTARLogs $MaxHTARQsubs
@@ -1548,6 +1550,7 @@ while test $izn -lt $iznEnd
         SubmitHtarToArchive $ArchiveDst $VDirBase'/'$ParticleDir'/'  $ShowerMDLDir $ShowerMDLDir $QsubHTARLogs $MaxHTARQsubs
 
        fi
+       cd $lcl
     fi
 
      #########################################################################
