@@ -125,7 +125,8 @@ void  getEA( TFile* f, string eaTableNameBase, int offsetIndex,
 // *************
 void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex, 
 					double EnergyGeV, string EAFileName, double& AOmega,
-					double& AOmegaErrLo, double& AOmegaErrHi)
+					double& AOmegaErrLo, double& AOmegaErrHi, 
+					int SourceOffsetIndex)
 // ****************************************************************
 // This root macro find the electron(or gamma(?)) EA for an aperture at zn_az
 // for a pedvar from the EAFileName at an energy EnergyGeV. The result thus
@@ -185,7 +186,7 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
 
   // **************************
   // Loop through the offsets adding AOmega from each annulus
-  // Later add stuff to handle the source exclusion area
+  // Adding stuff to handle the source exclusion area
   // **************************
   // Find last complete annulus index
   // **************************
@@ -194,6 +195,11 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
   if( maxCompleteOffsetIndex <0) {   //This taken care of below
 	maxCompleteOffsetIndex = 0;
   }
+
+  double sourceRadiusDeg = .1;
+  double sourceRadiusRad = sourceRadiusDeg * TMath::DegToRad();
+  double sourceAreaSR = 2.*TMath::Pi()*(1.-cos(sourceRadiusRad));
+
 
   double innerRadiusRad = 0;
   double outerRadiusRad = 0;
@@ -205,7 +211,7 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
   int index = findPointIndex( pEAGraph, 0.0);
   double eaErrLo = pEAGraph->GetErrorYlow(index);
   double eaErrHi = pEAGraph->GetErrorYhigh(index);
-  cout<<"ea,eaErrLo:" << ea <<" " << eaErrLo <<endl;
+  //cout<<"ea,eaErrLo:" << ea <<" " << eaErrLo <<endl;
 
   if (ea < 0 ) {
 	return 0;
@@ -218,7 +224,12 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
 	outerRadiusRad = ( 0.25 / 2.0 ) *  TMath::DegToRad(); 
   }
   
+
   double omegaSR = 2.0 * TMath::Pi() * (1.-cos(outerRadiusRad)); 
+  if(SourceOffsetIndex == 0) {
+	omegaSR =  omegaSR - sourceAreaSR;
+  }
+
 	  
   double aOmegaSum = ea * omegaSR;
 
@@ -260,6 +271,11 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
 	
 	omegaSR = 2 * TMath::Pi() * ( (cos( innerRadiusRad) - 
 								   cos( outerRadiusRad) ) );
+	//Is the source exclusion within this annulus?
+	if(SourceOffsetIndex == i) {
+	  omegaSR =  omegaSR - sourceAreaSR;
+	}
+
 	
 	//cout<<"off,omega,ea: "<<centerOffsetDeg<<" " << omegaSR << " " << ea<<endl;
 	// *******************
@@ -302,6 +318,11 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
 	omegaSR = 2 * TMath::Pi() * ( (cos( innerRadiusRad) - 
 								   cos( outerRadiusRad) ) );
 	
+	//Is source in the outer imcomplete annulus?
+	if(SourceOffsetIndex ==  maxCompleteOffsetIndex+1)  {
+	  omegaSR =  omegaSR - sourceAreaSR;
+	}
+
 	//cout<<"off,omega,ea: "<<0.0<<" " << omegaSR << " " << ea<<endl;
 	// *******************
 	// And add this contribution
@@ -326,8 +347,9 @@ void getESpecAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
 // ***********************************************************************
 
 void PlotAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex, 
-				string EAFileName)
-// **********************************************************************
+				string EAFileName, int color=1, string plotOption="AP", 
+				int SourceOffsetIndex = -1)
+// *********************************************ion*************************
 // Plot AOmega for arguments using EA file EaFileName
 // **********************************************************************
 {
@@ -342,7 +364,10 @@ void PlotAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
   TGraphAsymmErrors* pAOmegaGraph  = 
                           new TGraphAsymmErrors(eIndexLast-eIndexFirst + 1);
 
-
+  cout<<" Model: MDL10UA    Aperture(deg): " << ApertureDeg <<"   PedVar: " 
+	  << getPedvarStr(PedvarIndex, "MDL10UA") << endl;
+  cout<<"i:EnergyGeV:log10EnergyTeV:aOmega:aOmegaError+:aOmegaError-: " <<endl;
+ 
   for (int i = eIndexFirst; i <=  eIndexLast; i++ ) {
 	double energyGeV = getEnergyGeV(i);
 	double log10EnergyTeV = log10(energyGeV/1000.0);
@@ -353,21 +378,42 @@ void PlotAOmega(int Zn, int Az, double ApertureDeg, int PedvarIndex,
 	double aOmega;
 	double aOmegaErrLo;
 	double aOmegaErrHi;
-	getESpecAOmega(Zn, Az, ApertureDeg, PedvarIndex, energyGeV,EAFileName,
-				   aOmega, aOmegaErrLo, aOmegaErrHi);
+	getESpecAOmega(Zn, Az, ApertureDeg, PedvarIndex, energyGeV, EAFileName,
+				   aOmega, aOmegaErrLo, aOmegaErrHi, SourceOffsetIndex);
 
 	// ***************************************************
 	// Enter it into a TGraph.
 	// ***************************************************
-	cout<<"i,log10EnergyTeV,aOmega,aOmegaError: " <<i<<" "<<log10EnergyTeV
-		<< " " << aOmega << " " << aOmegaErrLo << " " <<  aOmegaErrHi 
-		<< endl;
+	cout<<i<<" " << energyGeV << " " << log10EnergyTeV << " " << aOmega 
+		<< " " << aOmegaErrHi << " " <<  aOmegaErrLo << endl;
 	pAOmegaGraph->SetPoint(i - eIndexFirst, log10EnergyTeV, aOmega);
   	pAOmegaGraph->SetPointError(i - eIndexFirst, 0.0, 0.0, 
 								                 aOmegaErrLo, aOmegaErrHi);
   }
   pAOmegaGraph->SetMarkerStyle(20);
-  pAOmegaGraph->Draw("AP");
+
+  if ( plotOption.find("same") == string::npos) {
+	ostringstream os;
+	//os<<"AOmega For Electrons for " << ApertureDeg<< "(Black)" 
+	//	<< ApertureDeg-.2 << "(Red)" << ApertureDeg-.4
+	//	<< "(Green) deg. aperture"<<endl;
+	//os<<"AOmega For Electrons for " << ApertureDeg << "and PedVar " 
+	//  << getPedvarStr(PedvarIndex, "MDL10UA")<<" (Black)" 
+	//  << getPedvarStr(PedvarIndex-3, "MDL10UA")<<" (Red)" 
+	//  << getPedvarStr(PedvarIndex-6, "MDL10UA")<<" (Green)" 
+	//  << " Pedvars "<<endl;
+	os<<"AOmega For Electrons for " << ApertureDeg << "and PedVar " 
+	  << getPedvarStr(PedvarIndex, "MDL10UA")
+	  <<" no src exclusion(Black) with src exclusion(red)" <<endl;
+	string AOmegaTitle = os.str();
+	pAOmegaGraph->SetTitle(AOmegaTitle.c_str()); 
+	pAOmegaGraph->GetXaxis()->SetTitle( "log10(E(TeV))");
+	pAOmegaGraph->GetYaxis()->SetTitle( "AOmega M^{2}sr");
+  }
+  
+  pAOmegaGraph-> SetMarkerColor(color);
+
+  pAOmegaGraph->Draw(plotOption.c_str());
   return;
 }
 // ************************************************************
