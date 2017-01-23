@@ -357,7 +357,7 @@ function CheckList()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
       echo source /etc/profile                                    >>$sgeFile
       echo module load gcc/4.7.2                                  >>$sgeFile
     fi
@@ -477,7 +477,7 @@ function SubmitHtarToArchive()
       echo "#"PBS -l naccesspolicy=shared      >>$sgeFile
       echo module load devel                   >>$sgeFile
     fi
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
+    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
       echo source /etc/profile                 >>$sgeFile
       echo module load gcc/4.7.2               >>$sgeFile
     fi
@@ -551,7 +551,7 @@ function SubmitHtarFromArchive()
       echo "#"PBS -l naccesspolicy=shared                    >>$sgeFile
       echo module load devel                                 >>$sgeFile
     fi
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
       echo source /etc/profile                               >>$sgeFile
       echo module load gcc/4.7.2                             >>$sgeFile
     fi
@@ -643,8 +643,8 @@ function SubmitQsubJobs()
 	    echo $sgeDoneFile >>$QsubDoneList #add the next one
        
         $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-        #For Hansen pause between submissions
-        if [ -n "$HANSEN" ] ; then
+        #For Hammer pause between submissions
+        if [ -n "$HAMMER" ] ; then
           sleep 2
         fi
       done
@@ -714,9 +714,9 @@ if [ -n "$EDISON" ]; then
   fi
 fi
 
-if [ -n "$HANSEN" ]; then  
+if [ -n "$HAMMER" ]; then  
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='hansen-adm'
+  JobIDHost='hammer-adm'
   if [ -n "$LimitSubmissions" ]; then
      let MaxQsubs=$SUBMITLIMIT
      let MaxHTARQsubs=9  
@@ -1028,7 +1028,7 @@ while test $izn -lt $iznEnd
 
      fi
    
-     if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+     if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
 
