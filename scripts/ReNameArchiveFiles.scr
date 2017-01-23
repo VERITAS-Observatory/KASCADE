@@ -1,7 +1,8 @@
 #!/bin/bash -l
 ########################################################################
 # Change names of files in hsi archive.
-#$1 List of files to rename
+#$1 List of files to rename(hsi "cd simulations/WNG2DTE/ ; ls;"
+# (cut and paste to file. cat file|xargs -n1 >List.list)
 #$2 directory path to files to be changed
 #$3 String in file name to change
 #$4 String to change $3 to.
