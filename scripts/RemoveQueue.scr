@@ -39,6 +39,12 @@ then
   QSUBEXT='.serial'
   echo '***Edison Cluster***'
 fi
+hostString=${host:0:6}
+if test  "$hostString" = "hammer"  #Are we running on Hammer
+then
+  HAMMER=enabled
+  echo '***Hammer Cluster***'
+fi
 
 hostString=${host:0:4}
 if test  "$hostString" = "cori"  #Are we running on Cori
@@ -58,11 +64,16 @@ if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
    do
       if [ -n "$EDISON" ]; then
          FullJobid=${FullJobid%%.*}
+      elif [ -n "$HAMMER" ]; then
+         FullJobid=${FullJobid%%.*}
       fi
+
       echo $FullJobid
-       if [ -n "$CORI" ] ||[ -n "$EDISON" ] ; then
-	scancel  $FullJobid
-     else
+      if [ -n "$CORI" ] ||[ -n "$EDISON" ] ; then
+	     scancel  $FullJobid
+      elif [ -n "$HAMMER" ]; then
+         qdel  $FullJobid
+      else
        qdel$QSUBEXT $FullJobid
      fi
   done<$FileName
