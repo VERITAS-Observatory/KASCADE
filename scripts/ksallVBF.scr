@@ -62,9 +62,9 @@ done
 echo Running on $host
 
 hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on a Hansen node
+if test  "$hostString" = "hammer"  #Are we running on a Hammer node
 then
-  HANSEN=enabled
+  HAMMER=enabled
 fi
 
 hostString=${host:0:6}
@@ -136,9 +136,9 @@ cd workingScratch          #This is a  sub dir of the data dir (PBS)
 mkdir $dirID
 
 #######################################################################
-#Following is supposed to make running on hansen node more robust
+#Following is supposed to make running on hammer node more robust
 #######################################################################
-#if [ -n "$HANSEN" ]; then
+#if [ -n "$HAMMER" ]; then
 #  lfs setstripe -c 1 $dirID
 #  lfs getstripe $dirID
 #fi
