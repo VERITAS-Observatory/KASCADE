@@ -1,3 +1,4 @@
+   
 //Root script
 const double kMVToDCN         = 7.84;           //Nepomuks values
 const double kUpgradeGainN    = 2.33;           //Nepomuks values
@@ -46,6 +47,8 @@ float fLinearity;
 float fInterpolatedLinearity;
 int   pLGTrace[16];
 // *************************************************************************
+  
+TTree results;
 
 void usage()
 {
@@ -998,38 +1001,185 @@ float GetCharge(std::vector<float> const & samples)
 }
 // *************************************************************************
 
-void LowGainChageConversionValidation(string KSAomegaLogFileName,
-									  string LowGainTemplateROOTFileName,
-									  string LowGainTransFuncROOTFileName)
-// **********************************************************************
-// Tests of VEGAS LowGain charge calculation 
-// **********************************************************************
-// Read in the traces from the KASCADE geenerated LowGain Traces file
-// Using VEGAS/ Logain conversion generate expected trace charge
-// Make diagnostic plots of actual charge(hg) vs VEGAS generated charge
-// **********************************************************************
+//void LowGainChargeConversionValidation(string KSAomegaLogFileName,
+//									  string LowGainTemplateROOTFileName,
+//									  string LowGainTransFuncROOTFileName)
+// // **********************************************************************
+// // Tests of VEGAS LowGain charge calculation 
+// // **********************************************************************
+// // Read in the traces from the KASCADE geenerated LowGain Traces file
+// // Using VEGAS/ Logain conversion generate expected trace charge
+// // Make diagnostic plots of actual charge(hg) vs VEGAS generated charge
+// // **********************************************************************
+// {
+//   initVegasLowGainAnalysis(LowGainTemplateROOTFileName,
+// 						   LowGainTransFuncROOTFileName);
+//   readInSimTraces(KSAomegaLogFileName);
+//   int numTraces = simTracesTree.getEntries(); 
+// 
+//   for (int i=0; i<numTraces; i++){
+// 	simTracesTree.getEntry(i);
+// 	std::vector<float> const  samples;
+// 	for (int k=0; k < 16; k++) {
+// 	  samples.push_back(pLGTrace[k]);
+// 	}
+// 
+// 	// This needs: sADCSamplingPeriod
+// 	//             sHiLoGainRatio    
+// 	double equivCharge=GetCharge
+// 
+// 	  cout << i << ": " << fNumPes << " " << fTemplate << " " << fHighSize 
+// 		   << " " << equivHGSize<< std::endl;
+//   }
+//   return;
+// }
+// *************************************************************************
+
+void cleanupTestLowGainConversionLogFile(std::string conversionLogFileName,
+										 std::string cleanedLogFileName)
 {
-  initVegasLowGainAnalysis(LowGainTemplateROOTFileName,
-						   LowGainTransFuncROOTFileName);
-  readInSimTraces(KSAomegaLogFileName);
-  int numTraces = simTracesTree.getEntries(); 
+  std::string line;
+  std::ifstream infile;
+  infile.open (conversionLogFileName.c_str());
+  std::ofstream outfile;
+  outfile.open(cleanedLogFileName.c_str());
+  bool pastIntro = false;
 
-  for (int i=0; i<numTraces; i++){
-	simTracesTree.getEntry(i);
-	std::vector<float> const  samples;
-	for (int k=0; k < 16; k++) {
-	  samples.push_back(pLGTrace[k]);
+  while(! infile.eof() ) {     // To get you all the lines.
+
+	getline(infile,line); // Saves the line in STRING.
+	// ********************
+	// Get past the intor log file lines
+	// Find the start of the traces
+	// ********************
+	if ( !pastIntro) {
+	  std::istringstream iss(line);
+	  std::string firstWord;
+	  iss >> firstWord;
+	  if ( firstWord == "0") {
+		pastIntro=true;
+	  }
+	  else{
+		continue;
+	  }
 	}
-
-	// This needs: sADCSamplingPeriod
-	//             sHiLoGainRatio    
-	double equivCharge=GetCharge
-
-	  cout << i << ": " << fNumPes << " " << fTemplate << " " << fHighSize 
-		   << " " << equivHGSize<< std::endl;
+	// ************************
+	// Drop the warning  lines that starts with "VATrace"
+	if (line.substr(0,7) == "VATrace") {
+	  continue;
+	}
+	
+	// ***************************************
+	// Write trace to ouput file
+	// ***************************************
+	outfile<<line<<std::endl;
   }
+  infile.close();
+  outfile.close();
   return;
 }
-// *************************************************************************
+// **********************************************************************
+
+void PlotTestLowGainConversionResults(string conversionLogFileName)
+{
+  // ****************************************************************
+  // Make plots of various thing to determine Vegas LowGain to equivalent 
+  // HighGain size conversion effectivness. UsesLog file produced by running 
+  // the $VEGAS/common/utilities/TestLowGainConversion.cpp  program.
+  // ****************************************************************
+  // First cleanup the log file to get it ready to be read into a TTree
+  // ****************************************************************
+  string cleanedLogFileName = "cleanedLogFile.log";
+  cleanupTestLowGainConversionLogFile(conversionLogFileName,
+									  cleanedLogFileName);
+  
+  // ***************
+  // Read into TTree
+  // ***************
+
+  results.ReadFile(cleanedLogFileName.c_str(), "I/I:RCNHGSize/F:TrueHGSize:TrueLGSize:NPES:sTMPLT:sLin:intLin:HiLoratrat:sHILORatio:samplSum:lGMaxSample:satFlag:tmpltAmp:tmpltLin:fitStatus:NLFlag:clipFlag:earlyFlag:lateFlag");
+  
+  // /*
+  results.Draw("TrueHGSize:RCNHGSize","fitStatus == 0 && sTMPLT<1");
+  c1->Clear();
+  c1->Divide(2,4);
+  c1->cd(1);
+  results.Draw("RCNHGSize:TrueHGSize","fitStatus == 0 && sTMPLT<1"); 
+  c1->cd(2);
+  results.Draw("RCNHGSize/TrueHGSize","fitStatus == 0 && sTMPLT<1");
+  c1->cd(3);
+  results.Draw("RCNHGSize:TrueHGSize","fitStatus == 0 && NLFlag==1"); 
+  c1->cd(4);
+  results.Draw("RCNHGSize/TrueHGSize","fitStatus == 0 && NLFlag==1");
+  c1->cd(5);
+  results.Draw("RCNHGSize:TrueHGSize",
+			   "fitStatus == 0 && satFlag==1 && NLFlag==0"); 
+  c1->cd(6);
+  results.Draw("RCNHGSize/TrueHGSize",
+			   "fitStatus == 0 && satFlag==1 && NLFlag==0");
+
+  c1->cd(7);
+  results.Draw("RCNHGSize:TrueHGSize",
+			   "fitStatus == 0 && ( sTMPLT<1 || NLFlag==1)");
+  c1->cd(8);
+  results.Draw("RCNHGSize:TrueHGSize", "fitStatus == 0");
+
+  // */
+  
+  
+  /* Photonis(4..22)
+  results.Draw("(4.22*NPES):RCNHGSize","fitStatus == 0 && sTMPLT<1");
+  c1->Clear();
+  c1->Divide(2,4);
+  c1->cd(1);
+  results.Draw("(4.22*NPES):RCNHGSize","fitStatus == 0 && sTMPLT<1"); 
+  c1->cd(2);
+  results.Draw("RCNHGSize/(4.22*NPES)","fitStatus == 0 && sTMPLT<1");
+  c1->cd(3);
+  results.Draw("(4.22*NPES):RCNHGSize","fitStatus == 0 && NLFlag==1"); 
+  c1->cd(4);
+  results.Draw("RCNHGSize/(4.22*NPES)","fitStatus == 0 && NLFlag==1");
+  c1->cd(5);
+  results.Draw("(4.22*NPES):RCNHGSize",
+			   "fitStatus == 0 && satFlag==1 && NLFlag==0"); 
+  c1->cd(6);
+  results.Draw("RCNHGSize/(4.22*NPES)",
+			   "fitStatus == 0 && satFlag==1 && NLFlag==0");
+
+  c1->cd(7);
+  results.Draw("(4.22*NPES):RCNHGSize",
+			   "fitStatus == 0 && ( sTMPLT<1 || NLFlag==1)");
+  c1->cd(8);
+  results.Draw("(4.22*NPES):RCNHGSize", "fitStatus == 0");
+  */
+
+  /* Hamamatsu: 4.45
+  results.Draw("(4.45*NPES):RCNHGSize","fitStatus == 0 && sTMPLT<1");
+  c1->Clear();
+  c1->Divide(2,4);
+  c1->cd(1);
+  results.Draw("(4.45*NPES):RCNHGSize","fitStatus == 0 && sTMPLT<1"); 
+  c1->cd(2);
+  results.Draw("RCNHGSize/(4.45*NPES)","fitStatus == 0 && sTMPLT<1");
+  c1->cd(3);
+  results.Draw("(4.45*NPES):RCNHGSize","fitStatus == 0 && NLFlag==1"); 
+  c1->cd(4);
+  results.Draw("RCNHGSize/(4.45*NPES)","fitStatus == 0 && NLFlag==1");
+  c1->cd(5);
+  results.Draw("(4.45*NPES):RCNHGSize",
+			   "fitStatus == 0 && satFlag==1 && NLFlag==0"); 
+  c1->cd(6);
+  results.Draw("RCNHGSize/(4.45*NPES)",
+			   "fitStatus == 0 && satFlag==1 && NLFlag==0");
+
+  c1->cd(7);
+  results.Draw("(4.45*NPES):RCNHGSize",
+			   "fitStatus == 0 && ( sTMPLT<1 || NLFlag==1)");
+  c1->cd(8);
+  results.Draw("(4.45*NPES):RCNHGSize", "fitStatus == 0");
+  */
+
+  return;
+}
 
 //CHECK on sADCSamplingPeriod,sHiLoGainRatio, low gain pedestal subtraction!!!!
