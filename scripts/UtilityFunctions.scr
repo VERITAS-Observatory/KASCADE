@@ -248,9 +248,9 @@ fi
 
 
  hostString=${host:0:6}
- if test  "$hostString" = "hansen"  #Are we running on Hansen
+ if test  "$hostString" = "hammer"  #Are we running on Hammer
   then
-   HANSEN=enabled
+   HAMMER=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
    QUEUE1='-q physics'
@@ -261,7 +261,7 @@ fi
    WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
    let SUBMITLIMIT=975
-   echo '***Hansen Cluster:'$QUEUE' queue ***'
+   echo '***Hammer Cluster:'$QUEUE' queue ***'
  fi
 
  hostString=${host:0:6}
@@ -316,7 +316,7 @@ fi
    let SUBMITLIMIT=975
  fi
 
-if [ -n "$HANSEN" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
+if [ -n "$HAMMER" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
    PURDUE=enabled
  fi
  if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
