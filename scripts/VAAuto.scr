@@ -476,7 +476,7 @@ function SubmitHtarToArchive()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
+  if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
@@ -502,8 +502,8 @@ function SubmitHtarToArchive()
   # We are now going to wait for the htar to finish.
   #####################################################################
 
-  if [ -n "$HANSEN" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Hansen "$QUEUE" queue complete."
+  if [ -n "$HAMMER" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Hammer "$QUEUE" queue complete."
   fi
   if [ -n "$COATES" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Coates "$QUEUE" queue complete."
@@ -553,7 +553,7 @@ function SubmitHtarFromArchive()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-  if [ -n "$HANSEN" ]  || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+  if [ -n "$HAMMER" ]  || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
@@ -604,7 +604,7 @@ function SubmitMultipleSerialJobs()
   if [ -n "$EDISON" ]; then
    echo 'module load ccm'                         >>$sgeFile
   fi
-  if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+  if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
   fi
@@ -729,7 +729,7 @@ function SubmitVegasSimProduction()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-    if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
       echo source /etc/profile                        >>$sgeFile
       echo module load gcc/4.7.2                      >>$sgeFile
     fi
@@ -867,18 +867,18 @@ if test  "$hostString" = "cvrsvc"  #Are we running on Carver
 fi
 
 hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
+if test  "$hostString" = "hammer"  #Are we running on Hammer
     then
-    HANSEN=enabled
+    HAMMER=enabled
     ARCHIVE=/archive/fortress/group/veritas/simulations/
     VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-    JobIDHost='hansen-adm'
+    JobIDHost='hammer-adm'
     QUEUE=physics
     WALLTIME=30:00:00
     MEMREQUEST='mem=15GB'
   #QUEUE=standby
   #WALLTIME=04:00:00
-    echo ***Hansen Cluster***
+    echo ***Hammer Cluster***
 fi
 
 hostString=${host:0:5}
@@ -1262,7 +1262,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
     #############################################################################
     WALLTIME=15:00:00
-    if [ -n "$HANSEN" ]; then
+    if [ -n "$HAMMER" ]; then
        WALLTIME=24:00:00
     fi
     if [ -n "$CARVER" ]; then
@@ -1652,7 +1652,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-      if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
+      if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
          echo source /etc/profile                      >>$sgeFile
          echo module load gcc/4.7.2                    >>$sgeFile
        fi
@@ -2191,7 +2191,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-	   if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
+	   if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
 	       echo source /etc/profile                >>$sgeFile
 	       echo module load gcc/4.7.2              >>$sgeFile
 	   fi
@@ -2220,7 +2220,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-	   if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
+	   if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
 	       echo source /etc/profile                  >>$sgeFile
 	       echo module load gcc/4.7.2                >>$sgeFile
 	   fi
@@ -2457,7 +2457,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-	 if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then  
+	 if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then  
 	     echo source /etc/profile                                   >>$sgeFile
 	     echo module load gcc/4.7.2                                 >>$sgeFile
 	 fi
