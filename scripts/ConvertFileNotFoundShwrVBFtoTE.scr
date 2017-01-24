@@ -1,0 +1,38 @@
+#!/bin/bash -l
+# Convert the gP.tmp file created with: 
+#'grep "File N" CheckShwrVBF.log |grep WUP >gP.tmp'
+# to a gPP.tmp file ready for input to ./ReDoMissingTeFile.scr
+#That is redo from the start the TE file for a 'bad' shwrVBF file.
+# $1 : file created with: 'grep "File N" CheckShwrVBF.log |grep WUP'
+# $2 : file to input to ReDoMissingTEFile.scr
+#
+
+function usage()
+{
+  echo '*****Usage**************************************************'
+  echo './ConvertFileNotFoundShwrVBFtoTE.scr  gP.tmp gPP.tmp'
+  echo '$1 : file created with: grep "File N" CheckShwrVBF.log |grep WUP'
+  echo '$2 : file to input to ReDoMissingTEFile.scr'
+  echo '************************************************************'
+}
+
+# ***************
+# main
+# ***************
+SHWRVBFFILE=$1
+TEFILE=$2
+
+if [ ! -n "$1" ]; then
+   usage
+   exit
+fi
+
+SHWRVBFFILE=$1
+TEFILE=$2
+#On searching for string ".d" need to escape (\) the "."  + '\.d'
+#But the replacement te.d I don't need to escape the "."
+
+sed '/File N/s/\.vbf//g' <$SHWRVBFFILE >tmp1
+sed '/File N/s/\.d/te.d/g' <tmp1 >tmp2    
+sed '/File N/s/45mv1234M2//g' <tmp2 >$TEFILE
+
