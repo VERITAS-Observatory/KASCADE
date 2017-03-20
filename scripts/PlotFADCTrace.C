@@ -23,14 +23,14 @@ const int    kNumTraceBins = 32;   //Must always use the 32 bin inputs else we
 //const int    kNumTraceBins = 16;
 const double kBinSpacingNS  = .25;
 const double kLeadingEdgeFraction = .5;
-const double kHiAmplitudeGain = 2.05;     //Upgrade:Hamamastsu PMT's
-const double kHiToLowGainAmpUnsatRatio = 10.25; //Upgrade:Hamamastsu PMT's
+const double kHiAmplitudeGainV6 = 2.05;     //Upgrade:Hamamastsu PMT's
+const double kHiToLowGainAmpUnsatRatioV6 = 10.25; //Upgrade:Hamamastsu PMT's
 
-//const double kHiAmplitudeGain = 1.32;     //V4-V5 photonis PMT's
-//const double kHiToLowGainAmpUnsatRatio = 7.52; ///V4-V5 photonis PMT's
+const double kHiAmplitudeGainV5V4 = 1.32;     //V4-V5 photonis PMT's
+const double kHiToLowGainAmpUnsatRatioV5V4 = 7.52; ///V4-V5 photonis PMT's
 
-
-
+double hiAmplitudeGain;
+double hiToLowGainAmpUnsatRatio;
 
 TTree   LGFADCTraces;
 int   numClipped;
@@ -180,12 +180,12 @@ bool ReadSimTracesFromLogFile(string KSAomegaLogFileName)
 		}
 	  }
 	  // Add to TTree
-	  //LGFADCTraces.Fill();
-	   icount++;
-	   if (icount%1000 == 0 ){
-		 std::cout<< "At Trace: " << icount << std::endl;
+	  LGFADCTraces.Fill();
+	  icount++;
+	  if (icount%1000 == 0 ){
+		std::cout<< "At Trace: " << icount << std::endl;
 
-	   }
+	  }
 
 	}
   }
@@ -756,11 +756,11 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
   //	tmpltLinearity = 1.0;
   //	std::cout << " " << tmpltLinearity;
   //	double correctedLinearity =  timeSpreadLGain.at(0) / 
-  //	                          (kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio);
+  //	                          (hiAmplitudeGain/hiToLowGainAmpUnsatRatio);
   //std::cout << " " << correctedLinearity;
   if (noSpreadTemplateID == 0) {
 	tmpltLinearity =  timeSpreadLGain.at(0) / 
-	                          (kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio);
+	                          (hiAmplitudeGain/hiToLowGainAmpUnsatRatio);
   std::cout << " " << tmpltLinearity;
   }
   else {
@@ -768,7 +768,7 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
 	// We want a linearity that is ratio of time-spread template (N) peak to 
 	// that of peak pf Ideal template (0) no time spread.
 	// That value is just (NPES*2.05/10.25)/NPES or just 
-	//  kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio 
+	//  hiAmplitudeGain/hiToLowGainAmpUnsatRatio 
 	// 2.05/10.25 = .2(Hamamatsu) or 1.32/7.52(photonis) = .176.
 	// (Note should they be the same value?, do I have the hi pulse gains 
 	// correct?) 
@@ -777,7 +777,7 @@ bool GenerateSimTemplates(int noSpreadTemplateID, int numToUse,
                                                    timeSpreadLGain.at(0);  
 	std::cout << " " << tmpltLinearity << " ";
 	tmpltLinearity = timeSpreadLGain.at(noSpreadTemplateID) / 
-	                              (kHiAmplitudeGain/kHiToLowGainAmpUnsatRatio);
+	                              (hiAmplitudeGain/hiToLowGainAmpUnsatRatio);
 	std::cout << tmpltLinearity;
   }
   std::cout << std::endl;
@@ -822,7 +822,8 @@ return true;
 // ************************************************************************
 
 
-void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName)
+void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName,
+					 int epoch, int numToUse = 25)
 // ************************************************************************
 // 1.Parse through the KSAomega log file which was made with 
 // KSFADC.cpp::fDebugPrint set to true. This file has all time spread low 
@@ -840,6 +841,14 @@ void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName)
 // amplitude (we may want to look at that some day).
 // *************************************************************************
 {
+  if(epoch == 6) {
+	hiAmplitudeGain = 2.05;
+	hiToLowGainAmpUnsatRatio = 10.25;
+  }
+  else{
+	hiAmplitudeGain = 1.32;
+	hiToLowGainAmpUnsatRatio = 7.52;
+  }
   // *****************************************************
   // Read the traces from the log file and place in the  LGFADCTraces TTree
   // *****************************************************
@@ -851,9 +860,9 @@ void TemplateFileGen(string KSAomegaLogFileName, string LGTemplatesFileName)
   // hardwired here. Default to 100 for now and 30 templates max
   // *******************************************************
 
-  std::vector < int > numTracesToUse(100,25);
-
   int numTemplates = 100;  //Make extra room and let data tell us
+  std::vector < int > numTracesToUse(100,numToUse);
+
 
   int templateID;
   for (templateID = 0; templateID < numTemplates; templateID++) {

@@ -1038,13 +1038,18 @@ float GetCharge(std::vector<float> const & samples)
 void cleanupTestLowGainConversionLogFile(std::string conversionLogFileName,
 										 std::string cleanedLogFileName)
 {
+  bool debugPrint = false;
   std::string line;
   std::ifstream infile;
   infile.open (conversionLogFileName.c_str());
   std::ofstream outfile;
   outfile.open(cleanedLogFileName.c_str());
   bool pastIntro = false;
-
+  int count=0;
+  
+  if(debugPrint) {
+	std::cout<<"*Input data file: " << conversionLogFileName << std::endl;
+  }
   while(! infile.eof() ) {     // To get you all the lines.
 
 	getline(infile,line); // Saves the line in STRING.
@@ -1056,10 +1061,17 @@ void cleanupTestLowGainConversionLogFile(std::string conversionLogFileName,
 	  std::istringstream iss(line);
 	  std::string firstWord;
 	  iss >> firstWord;
+	  if(debugPrint) {
+		std::cout << "firstWord: "<< firstWord << std::endl;
+	  }
 	  if ( firstWord == "0") {
 		pastIntro=true;
+		if(debugPrint) {
+		  std::cout<<"*Found first Trace Line" << std::endl;
+		}
 	  }
 	  else{
+		//std::cout << line << std::endl;
 		continue;
 	  }
 	}
@@ -1073,6 +1085,15 @@ void cleanupTestLowGainConversionLogFile(std::string conversionLogFileName,
 	// Write trace to ouput file
 	// ***************************************
 	outfile<<line<<std::endl;
+	if(debugPrint) {
+	  if( count%100 == 0 ) {
+		std::cout << "#"<<flush;
+	  }
+	  count++;
+	}
+  }
+  if(debugPrint) {
+	std::cout << std::endl;
   }
   infile.close();
   outfile.close();
@@ -1089,6 +1110,11 @@ void PlotTestLowGainConversionResults(string conversionLogFileName)
   // ****************************************************************
   // First cleanup the log file to get it ready to be read into a TTree
   // ****************************************************************
+  bool debugPrint = false;
+  if(debugPrint) {
+	std::cout << "*Cleanup log file " <<  conversionLogFileName << flush
+			  <<std::endl;
+  }
   string cleanedLogFileName = "cleanedLogFile.log";
   cleanupTestLowGainConversionLogFile(conversionLogFileName,
 									  cleanedLogFileName);
@@ -1096,9 +1122,14 @@ void PlotTestLowGainConversionResults(string conversionLogFileName)
   // ***************
   // Read into TTree
   // ***************
-
+  if(debugPrint) {
+	std::cout << "*Read cleaned up file into TTree" << flush << std::endl;
+  }
   results.ReadFile(cleanedLogFileName.c_str(), "I/I:RCNHGSize/F:TrueHGSize:TrueLGSize:NPES:sTMPLT:sLin:intLin:HiLoratrat:sHILORatio:samplSum:lGMaxSample:satFlag:tmpltAmp:tmpltLin:fitStatus:NLFlag:clipFlag:earlyFlag:lateFlag");
   
+  if(debugPrint) {
+	std::cout << "*Generate Plots " << flush << std::endl;
+  }
   // /*
   results.Draw("TrueHGSize:RCNHGSize","fitStatus == 0 && sTMPLT<1");
   c1->Clear();
