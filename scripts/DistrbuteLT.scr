@@ -2,7 +2,7 @@
 #$1 List file of  files to distribute
 
 #Assumes List file entries have full path name.
-CARVER=enabled
+CORI=enabled
 EDISON=enabled
 UCLA=enabled
 PURDUE=Enabled
@@ -25,10 +25,10 @@ lcl=$PWD
      pwd
      echo LTFILE: $LTFILE 
    
-     if [ -n "$CARVER" ]; then
-	 echo  To Carver ../tables: 
+     if [ -n "$CORI" ]; then
+	 echo  To CORI ../tables: 
          cp -v $LTFILE $VEGAS/../tables
-         echo To Carver tables archive:
+         echo To CORI tables archive:
          hsi 'cd tables; put '$LTFILE';'
      fi
 
@@ -39,10 +39,9 @@ lcl=$PWD
 
      if [ -n "$PURDUE" ]; then
          echo To purdue ../tables:
-         #scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/depot/veritas/apps/tables/
-         scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/group/veritas/apps/tables/
+         scp $LTFILE sembrosk@hammer.rcac.purdue.edu:/group/veritas/apps/tables/
          echo To Purdue Archive:
-         scp $LTFILE sembrosk@hansen.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
+         scp $LTFILE sembrosk@hammer.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
      fi
 
      if [ -n "$UCLA" ]; then

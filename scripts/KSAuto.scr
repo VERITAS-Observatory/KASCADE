@@ -30,12 +30,14 @@ JobArray=enabled             #For Cori and Edison right now
 EntryGEStart=1          #Gammas and Electrons 
                         #This for the checks and for TE gen only for now.
 #EntryGEStart=43 #36550GeV
+EntryGEStart=45 #52265GeV
 
-EntryGEEnd=45
-#EntryGEEnd=43 #36550GeV
+#EntryGEEnd=43  #36550GeV
+EntryGEEnd=45  #52265GeV
+
 
 #EntryPStart=1
-EntryPStart=17      #350 GeV     #GroupA start
+#EntryPStart=17      #350 GeV     #GroupA start
 #EntryPStart=18      #418 GeV
 #EntryPStart=19      #500 GeV
 #EntryPStart=26      #1748 GeV
@@ -352,12 +354,12 @@ function CheckList()
     fi
     echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
     echo "#PBS " $MEMREQUEST                                      >>$sgeFile
-    if [ -n "$CONTE" ]; then
+    if [ -n "$PURDUE" ]; then
       echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+    if [ -n "$PURDUE" ]; then
       echo source /etc/profile                                    >>$sgeFile
       echo module load gcc/4.7.2                                  >>$sgeFile
     fi
@@ -477,7 +479,7 @@ function SubmitHtarToArchive()
       echo "#"PBS -l naccesspolicy=shared      >>$sgeFile
       echo module load devel                   >>$sgeFile
     fi
-    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
+    if [ -n "$PURDUE" ]; then  
       echo source /etc/profile                 >>$sgeFile
       echo module load gcc/4.7.2               >>$sgeFile
     fi
@@ -551,7 +553,7 @@ function SubmitHtarFromArchive()
       echo "#"PBS -l naccesspolicy=shared                    >>$sgeFile
       echo module load devel                                 >>$sgeFile
     fi
-    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+    if [ -n "$PURDUE" ]; then
       echo source /etc/profile                               >>$sgeFile
       echo module load gcc/4.7.2                             >>$sgeFile
     fi
@@ -644,7 +646,7 @@ function SubmitQsubJobs()
        
         $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
         #For Hammer pause between submissions
-        if [ -n "$HAMMER" ] ; then
+        if [ -n "$PURDUE" ] ; then
           sleep 2
         fi
       done
@@ -723,9 +725,9 @@ if [ -n "$HAMMER" ]; then
   fi
 fi
 
-if [ -n "$COATES" ]; then  
+if [ -n "$HALSTEAD" ]; then  
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='coates-adm'
+  JobIDHost='halstead-adm'
   if [ -n "$LimitSubmissions" ]; then
      let MaxQsubs=$SUBMITLIMIT
      let MaxHTARQsubs=9  
@@ -1028,11 +1030,11 @@ while test $izn -lt $iznEnd
 
      fi
    
-     if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ] ; then
+     if [ -n "$PURDUE" ]; then
          HtarDir="/archive/fortress/group/veritas/simulations/"
      fi     
 
-     if [ -n "$EDISON" ] || [ -n "$CORI" ] ; then
+     if [ -n "$NERSCorARGN" ]; then
          HtarDir="/nersc/projects/veritas/simulations/"
      fi     
  

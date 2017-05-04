@@ -15,8 +15,8 @@
 #$2 has which script to run:  ksallVBF.scr
 #        ksallVBF.scr is All-singing-all-dancing: ksKascade to ksArrayTrigger
 #$3 Sort processing: Flags that a Sort will be requested and that we
-#   should use the physics queue for the higher energies on Hansen/Conte. Not 
-#   defined if jobs will take less than 4 hours.
+#   should use the physics queue for the higher energies on 
+#   Hammer/Halstead/Conte. Not defined if jobs will take less than 4 hours.
 #$4 QsubFileNameList file:OPTIONAL: 
 #   This script creats all the .pbs shower files as requested and then submits
 #   them to the appropiate queue itself. All of them.
@@ -577,16 +577,28 @@ if [ -n "$CORI" ]; then
  fi
 fi
 
-if [ -n "$HANSEN" ]; then
+if [ -n "$HAMMER" ]; then
     dataDirBase=$SCRATCH'/simulations'
-    echo Hansen Data dir: $dataDirBase
+    echo Hammer Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH                     
     JobsPerNode=48
     NumCores=48
     if [ "$SORT" = "Sort" ]; then
 	Sort=enabled
-        echo Hansen:Sort: $Sort
+        echo Hammer:Sort: $Sort
+    fi
+fi
+if [ -n "$HALSTEAD" ]; then
+    dataDirBase=$SCRATCH'/simulations'
+    echo Halstead Data dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH                     
+    JobsPerNode=48
+    NumCores=48
+    if [ "$SORT" = "Sort" ]; then
+	Sort=enabled
+        echo Halstead:Sort: $Sort
     fi
 fi
 
@@ -603,12 +615,6 @@ if [ -n "$CONTE" ]; then
     fi
 fi
 
-if [ -n "$COATES" ]; then
-    dataDirBase=$SCRATCH'/simulations'
-    echo Coates Data dir: $dataDirBase
-    mkdir -vp $dataDirBase
-    workingDir=$SCRATCH
-fi
 
 if [ -n "$FUSION" ]; then
     dataDirBase=$SCRATCH'/simulations'
@@ -971,9 +977,9 @@ function BuildIsisScriptList()
 
 #keep for reference:outdated, needs work to work again
 
-function BuildAndSubmitHansenJobsBy10()
+function BuildAndSubmitPurdueJobsBy10()
 #**********************************************************************
-# Cause HANSEN or COATES or CONTE cluster jobs to be submitted in groups of 10.
+# Cause HAMMER or HALSTEAD or CONTE ({URDUE) cluster jobs to be submitted in groups of 10.
 #**********************************************************************
 {
  stepsize=([1]=60 60 50 40 30 20 15 12 10 8 7 5 5 5 4 3 2 2 2)

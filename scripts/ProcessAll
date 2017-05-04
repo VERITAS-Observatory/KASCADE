@@ -117,7 +117,7 @@ if [ ! -e UtilityFunctions.scr ]; then
 fi
 source UtilityFunctions.scr
 
-SetupForHost   #Enables host name (ie CORI or HANSEN etc).
+SetupForHost   #Enables host name.
 
 SeasonSpec=${SEASARRAY:0:1}
 Base=$SeasonSpec$OUTFILEBASE

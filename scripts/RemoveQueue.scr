@@ -1,4 +1,4 @@
-#!/bin/bash -l
+!/bin/bash -l
 #Removes jobs from the queue
 #Two ways to define which jobs:
 #$1 File.name  with lines from "qstat -u sembrosk|grep sembrosk >File.name
@@ -39,11 +39,19 @@ then
   QSUBEXT='.serial'
   echo '***Edison Cluster***'
 fi
+
 hostString=${host:0:6}
 if test  "$hostString" = "hammer"  #Are we running on Hammer
 then
   HAMMER=enabled
   echo '***Hammer Cluster***'
+fi
+
+hostString=${host:0:8}
+if test  "$hostString" = "halstead"  #Are we running on Halstead
+then
+  HALSTEAD=enabled
+  echo '***Halstead Cluster***'
 fi
 
 hostString=${host:0:4}
@@ -64,14 +72,14 @@ if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
    do
       if [ -n "$EDISON" ]; then
          FullJobid=${FullJobid%%.*}
-      elif [ -n "$HAMMER" ]; then
+      elif [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
          FullJobid=${FullJobid%%.*}
       fi
 
       echo $FullJobid
       if [ -n "$CORI" ] ||[ -n "$EDISON" ] ; then
 	     scancel  $FullJobid
-      elif [ -n "$HAMMER" ]; then
+      elif [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
          qdel  $FullJobid
       else
        qdel$QSUBEXT $FullJobid

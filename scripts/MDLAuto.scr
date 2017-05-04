@@ -212,7 +212,7 @@ function CheckList()
     echo "#"PBS -l walltime=01:00:00                              >>$sgeFile
     echo "#PBS " $MEMREQUEST                                   >>$sgeFile
 
-    if [ -n "$HAMMER" ] || [ -n "$COATES" ] ; then
+    if [ -n "$PURDUE" ]; then
       echo source /etc/profile                                    >>$sgeFile
       echo module load gcc/4.7.2                                  >>$sgeFile
     fi
@@ -270,7 +270,7 @@ function SubmitVegasProduction()
     if [ -n "$CARVER" ]; then
       echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
     fi
-    if [ -n "$HAMMER" ] || [ -n "$COATES" ]; then
+    if [ -n "$PURDUE"]; then
       echo source /etc/profile                       >>$sgeFile
       echo module load gcc/4.7.2                     >>$sgeFile
     fi
@@ -318,7 +318,7 @@ function SubmitVegasSimProduction()
   if [ -n "$CARVER" ]; then
     echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
   fi
-  if [ -n "$HAMMER" ] || [ -n "$COATES" ]; then
+  if [ -n "$PURDUE" ]; then
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
   fi
@@ -376,7 +376,7 @@ function SubmitQsubJobs()
        
        qsub$QSUBEXT -V -l $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
        #For Hammer pause between submissions
-       if [ -n "$HAMMER" ] ; then
+       if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ] ; then
          sleep 10
        fi
       done
@@ -577,17 +577,17 @@ then
   echo '***Edison Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+hostString=${host:0:5}
+if test  "$hostString" = "cori"  #Are we running on Cori
 then
-  CARVER=enabled
+  CORI=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='cvrsvc'
+  JobIDHost='cori'
   QUEUE=serial
   MEMREQUEST=' pvmem=8GB '
   MaxQsubs=475  
 
-  echo '***Carver Cluster***'
+  echo '***Cori Cluster***'
 fi
 
 hostString=${host:0:6}
@@ -602,16 +602,16 @@ then
   echo ***Hammer Cluster***
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on Coates?
+hostString=${host:0:8}
+if test  "$hostString" = "halstead"  #Are we running on Halstead
 then
-  HAMMER=enabled
+  HALSTEAD=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='coates-adm'
+  JobIDHost='halstead-adm'
   QUEUE=physics
   #QUEUE=standby
   MaxQsubs=475  
-  echo ***Coates Cluster***
+  echo ***Halstead Cluster***
 fi
 
 ###################################
@@ -926,14 +926,11 @@ if [ -n "$ProduceModelCosmicRayShowerVBF" ]; then
   ########################################################################
 
   echo "MDLAuto: Submission of ksProduction to make shower VBF files on "
-  if [ -n "$HAMMER" ]; then
-    echo "MDLAuto: Hammer cluster for "$ZnAz" complete."
+  if [ -n "$PURDUE" ]; then
+    echo "MDLAuto: Purdue cluster for "$ZnAz" complete."
   fi
-  if [ -n "$COATES" ]; then
-    echo "MDLAuto: Coates cluster for "$ZnAz" complete."
-  fi
-  if [ -n "$CARVER" ]; then
-    echo "MDLAuto: Carver cluster for "$ZnAz" complete."
+  if [ -n "$NERSCorARGN" ]; then
+    echo "MDLAuto: NERSC cluster for "$ZnAz" complete."
   fi
 fi
 ###########################################################################

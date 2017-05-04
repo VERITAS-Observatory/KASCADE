@@ -67,7 +67,7 @@ if [ -n "$CORI" ]; then
 fi
 
 
-if [ -n "$HANSEN" ] || [ -n "$COATES" ]; then
+if [ -n "$PURDUE" ]; then
     dataDirBase=$SCRATCH'/simulations'
     dstDir=$dataDirBase
 fi

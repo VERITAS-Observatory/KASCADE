@@ -1,6 +1,5 @@
 #!/bin/bash
 #CR (Proton + He4) Production version
-#This is for Carver or Hansen or Coates or Edison
 #$1: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas
 #$2: Zn_AZ and threshold specification EX: 20Deg  (if az=0) or 
 #    20_180Deg

@@ -38,9 +38,9 @@ function setup()
     workingDir=$SCRATCH
   fi
 
-  if [ -n "$HANSEN" ]; then
+  if [ -n "$HAMMER" ]; then
     dataDirBase=$SCRATCH'/simulations'
-    echo Hansen Data dir: $dataDirBase
+    echo Hammer Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
       let NumParaFly=0
@@ -49,9 +49,9 @@ function setup()
       let MaxNumInParaFlyList=20
   fi
 
-  if [ -n "$COATES" ]; then
+  if [ -n "$HALSTEAD" ]; then
     dataDirBase=$SCRATCH'/simulations'
-    echo Coates Data dir: $dataDirBase
+    echo Halstead Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
       let NumParaFly=0
@@ -166,7 +166,6 @@ function BuildForParaFlySubmission()
 #**********************************************************************
 # Cause serial jobs to be submitted in a mass form using Parafly
 # This version submits $NumCoreToUse  shower jobs per ParaFly pbs submission
-# Only for the Standby/hansen queue for now.
 # 
 #**********************************************************************
 #$1 energy in GeV

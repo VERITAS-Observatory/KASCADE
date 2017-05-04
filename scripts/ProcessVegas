@@ -9,33 +9,24 @@ let i=0
 host=$(hostname)
 echo host: $host
 hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
+if test  "$hostString" = "hammer"  #Are we running on Hammer
 then
-  HANSEN=enabled
+  HAMMER=enabled
   QUEUE=physics
   WALLTIME=30:00:00
   #QUEUE=standby
   #WALLTIME=04:00:00
-  echo ***Hansen Cluster***
+  echo ***HaMMER Cluster***
 fi
-
-if test  "$hostString" = "coates"  #Are we running on Coates?
+hostString=${host:0:8}
+if test  "$hostString" = "halstead"  #Are we running on Halstead
 then
-  COATES=enabled
+  HALSTEAD=enabled
   QUEUE=physics
   WALLTIME=30:00:00
   #QUEUE=standby
   #WALLTIME=04:00:00
-  echo ***Coates Cluster***
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
-then
-  CARVER=enabled
-  QUEUE=serial
-  WALLTIME=30:00:00
-  echo '***Carver Cluster***'
+  echo ***Halstead Cluster***
 fi
 hostString=${host:0:5}
 if test  "$hostString" = "conte"  #Are we running on Conte
@@ -64,7 +55,7 @@ fi
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-      if [ -n "$HANSEN" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
+      if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ] || [ -n "$CONTE" ]; then  
         echo "#PBS -l mem=15GB"                       >>$sgeFile
         echo source /etc/profile                      >>$sgeFile
         echo module load gcc/4.7.2                    >>$sgeFile

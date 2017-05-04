@@ -476,7 +476,7 @@ function SubmitHtarToArchive()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-  if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then  
+  if [ -n "$PURDUE" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/4.7.2                                    >>$sgeFile
   fi
@@ -505,15 +505,15 @@ function SubmitHtarToArchive()
   if [ -n "$HAMMER" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Hammer "$QUEUE" queue complete."
   fi
-  if [ -n "$COATES" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Coates "$QUEUE" queue complete."
+  if [ -n "$HALSTEAD" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Halstead "$QUEUE" queue complete."
   fi
   if [ -n "$CONTE" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Conte "$QUEUE" queue complete."
   fi
 
-  if [ -n "$CARVER" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Carver cluster complete."
+  if [ -n "$CORI" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Cori cluster complete."
   fi
 
   if [ -n "$EDISON" ]; then
@@ -553,7 +553,7 @@ function SubmitHtarFromArchive()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-  if [ -n "$HAMMER" ]  || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+  if [ -n "$PURDUE" ]; then
     echo source /etc/profile                               >>$sgeFile
     echo module load gcc/4.7.2                             >>$sgeFile
   fi
@@ -604,7 +604,7 @@ function SubmitMultipleSerialJobs()
   if [ -n "$EDISON" ]; then
    echo 'module load ccm'                         >>$sgeFile
   fi
-  if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+  if [ -n "$PURDUE" ]; then
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
   fi
@@ -729,7 +729,7 @@ function SubmitVegasSimProduction()
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-    if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE" ]; then
+    if [ -n "$PURDUE" ]; then
       echo source /etc/profile                        >>$sgeFile
       echo module load gcc/4.7.2                      >>$sgeFile
     fi
@@ -853,18 +853,6 @@ then
   echo '***Edison Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
-    then
-    CARVER=enabled
-    JobIDHost='cvrsvc'
-    QUEUE=serial
-    WALLTIME=30:00:00
-    ARCHIVE=/home/u/u15013/$SPECMDL'/'
-    VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
-    MEMREQUEST='pvmem=15GB'
-    echo '***Carver Cluster***'
-fi
 
 hostString=${host:0:6}
 if test  "$hostString" = "hammer"  #Are we running on Hammer
@@ -893,22 +881,22 @@ if test  "$hostString" = "conte"  #Are we running on Conte
     MEMREQUEST='mem=15GB'
   #QUEUE=standby
   #WALLTIME=04:00:00
-    echo ***Comte Cluster***
+    echo ***Conte Cluster***
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on Coates?
+hostString=${host:0:8}
+if test  "$hostString" = "halstead"  #Are we running on Halstead?
     then
-    COATES=enabled
+    HALSTEAD=enabled
     ARCHIVE=/archive/fortress/group/veritas/simulations/
     VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-    JobIDHost='coates-adm'
+    JobIDHost='halstead-adm'
     QUEUE=physics
     WALLTIME=30:00:00
     MEMREQUEST='mem=15GB'
   #QUEUE=standby
   #WALLTIME=04:00:00
-    echo ***Coates Cluster***
+    echo ***Halstead Cluster***
 fi
 
 
@@ -1262,7 +1250,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
     #############################################################################
     WALLTIME=15:00:00
-    if [ -n "$HAMMER" ]; then
+    if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
        WALLTIME=24:00:00
     fi
     if [ -n "$CARVER" ]; then
@@ -1652,7 +1640,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-      if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
+      if [ -n "$PURDUE" ]; then
          echo source /etc/profile                      >>$sgeFile
          echo module load gcc/4.7.2                    >>$sgeFile
        fi
@@ -2191,7 +2179,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-	   if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
+	   if [ -n "$PURDUE" ]; then
 	       echo source /etc/profile                >>$sgeFile
 	       echo module load gcc/4.7.2              >>$sgeFile
 	   fi
@@ -2220,7 +2208,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-	   if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then
+	   if [ -n "$PURDUE" ]; then
 	       echo source /etc/profile                  >>$sgeFile
 	       echo module load gcc/4.7.2                >>$sgeFile
 	   fi
@@ -2457,7 +2445,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
       echo module load devel                                      >>$sgeFile
     fi
-	 if [ -n "$HAMMER" ] || [ -n "$COATES" ] || [ -n "$CONTE"]; then  
+	 if [ -n "$PURDUE" ]; then  
 	     echo source /etc/profile                                   >>$sgeFile
 	     echo module load gcc/4.7.2                                 >>$sgeFile
 	 fi

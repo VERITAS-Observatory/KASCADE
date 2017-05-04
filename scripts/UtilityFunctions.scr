@@ -247,6 +247,23 @@ fi
  fi
 
 
+ hostString=${host:0:8}
+ if test  "$hostString" = "halstead"  #Are we running on Halstead
+  then
+   HALSTEAD=enabled
+   QSUB='qsub -V'
+   PBSCMD='PBS'
+   QUEUE1='-q physics'
+   WALLTIME1='-l walltime=10:00:00'
+   QUEUE2='-q standby'
+   WALLTIME2='-l walltime=04:00:00'
+   QUEUE=$QUEUE1
+   WALLTIME=$WALLTIME1
+   MEMREQUEST=' -l mem=8GB'
+   let SUBMITLIMIT=975
+   echo '***Halstead Cluster:'$QUEUE' queue ***'
+ fi
+
  hostString=${host:0:6}
  if test  "$hostString" = "hammer"  #Are we running on Hammer
   then
@@ -264,22 +281,6 @@ fi
    echo '***Hammer Cluster:'$QUEUE' queue ***'
  fi
 
- hostString=${host:0:6}
- if test  "$hostString" = "coates"  #Are we running on coates
-  then
-   COATES=enabled
-   QSUB='qsub -V'
-   PBSCMD='PBS'
-   QUEUE1='-q physics'
-   WALLTIME1='-l walltime=30:00:00'
-   QUEUE2='-q standby'
-   WALLTIME2='-l walltime=04:00:00'
-   QUEUE=$QUEUE1
-   WALLTIME=$WALLTIME1
-   MEMREQUEST=' -l mem=8GB'
-   let SUBMITLIMIT=975
-   echo '***Coates Cluster:'$QUEUE' queue ***'
- fi
 
  hostString=${host:0:5}
  if test  "$hostString" = "conte"  #Are we running on conte
@@ -309,14 +310,7 @@ fi
    let SUBMITLIMIT=975
  fi
 
- hostString=${host:0:4}
- if test  "$hostString" = "isis"  #Are we running on ISIS
-  then
-   ISIS=enabled
-   let SUBMITLIMIT=975
- fi
-
-if [ -n "$HAMMER" ] || [ -n "$CONTE" ] || [ -n "$COATES" ] ; then
+if [ -n "$HAMMER" ] || [ -n "$CONTE" ] || [ -n "$HALSTEAD" ] ; then
    PURDUE=enabled
  fi
  if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then

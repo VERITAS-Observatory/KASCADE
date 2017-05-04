@@ -67,10 +67,10 @@ then
   HAMMER=enabled
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on a Coates node?
+hostString=${host:0:8}
+if test  "$hostString" = "halstead"  #Are we running on a Halstead node?
 then
-  COATES=enabled
+  HALSTEAD=enabled
 fi
 
 hostString=${host:0:1}
@@ -80,10 +80,6 @@ then
 fi
 hostString=${host:0:4}
 
-if test  "$hostString" = "isis"  #Are we running on ISIS?
-then
-  ISIS=enabled
-fi
 
 #########################################################################
 #Set up private working directory for this run. 

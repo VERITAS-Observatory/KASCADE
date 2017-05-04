@@ -43,7 +43,7 @@ lcl="$PWD"
 SetUpForHost    #From UtilityFunctions.scr:Specifics for cluster we are on
 
 let i=0
-if [ -n "$HANSEN" ]; then
+if [ -n "$PURDUE" ]; then
   #Defualt is Physics queue with 10 hr walltime.
   WALLTIME=30:00:00  #Extend WALLTIME from default
   #QUEUE=QUEUE2           #Standby queue

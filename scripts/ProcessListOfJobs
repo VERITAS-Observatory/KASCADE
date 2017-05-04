@@ -3,23 +3,23 @@
 #$1 List of Job files to submit
 host=$(hostname)
 echo host: $host
-hostString=${host:0:6}
+hostString=${host:0:4}
 
-if test  "$hostString" = "cvrsvc"  #Are we running on Carver
+if test  "$hostString" = "cori"  #Are we running on Cori
 then
   QUEUE=serial
 fi
 
 hostString=${host:0:6}
-if test  "$hostString" = "hansen"  #Are we running on Hansen
+if test  "$hostString" = "hammer"  #Are we running on Hammer
 then
   QUEUE1=physics
   QUEUE2=standby
   QUEUE=$QUEUE1
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "coates"  #Are we running on Coates?
+hostString=${host:0:8}
+if test  "$hostString" = "halstead"  #Are we running on Halstead
 then
   QUEUE1=physics
   QUEUE2=standby
