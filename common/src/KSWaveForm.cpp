@@ -375,7 +375,7 @@ void KSWaveForm::BuildLowGainWaveForm(double templateDesignator,
 //             the selected low gain pulse shape.
 // **********************************************************************
 {
-  fLowGainMode=true;  // Used by add Pe to ignore efficiency (already done 
+  fLowGainMode=true;  // Used by addPe() to ignore efficiency (already done 
                       // when adding pe's to fWaveFormPETimesNS). Also uses 
                       // fWaveFormPEPulseHeights  for
                       // all single pe pulse heights 

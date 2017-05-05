@@ -70,6 +70,8 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 {
   bool fDebugPrint=false;
   //bool fDebugPrint=true;
+  bool fLowGainDiagnosticPrint=true;
+  //bool  fLowGainDiagnosticPrint=false;
 
   fIsLowGainTrace = false;             //We start at High Gain
 
@@ -103,13 +105,21 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 	  else {
 		highGainCharge7BinsDC = getWindowArea(startTracePulseHG,7);
 	  }
-   
+	  //if(fDebugPrint ) {
+	  //	std::cout << "**Hi Gain Pulse: " 
+	  //			  << startTracePulseHG << " " 
+	  //			  << (int)fFADCTrace.size() << " ";
+	  //	for (int m=0; m< (int) fFADCTrace.size(); m++) {
+	  //	  std::cout<<fFADCTrace.at(m)<<" ";
+	  //	}
+	  //	std::cout<<std::endl;
+	  //}   
 	  // ***************************************************************
-      //To decide which Low gain template to use , use one of:
+      // To decide which Low gain template to use , use one of:
       // High Gain Charge (FADCTrace sum- minus trace pedestal)
       // High Gain AmplitudeDC (pWaveForm Peak)
       // High Gain AmplitudeMV (pWaveForm Peak)
-      // Kust insert correct value in the GenerateTraceSamples call. Linked in
+      // Just insert correct value in the GenerateTraceSamples call. Linked in
       // template file should have correct parameter(on the linearity line).
       // ******************************************************************
       
@@ -154,8 +164,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //     addition)
       //  3:To find the low gain waveform height:Reduce the high Gain
       //    waveform by the hi/lo gain factor fLowGainToHighGainPeakRatio 
-      //    (Nepomuks .099) (includes 1/6 factor and the 
-      //    heightSingleHGpe/heightSingleLGPe for template 0 ~ .594
+      //    (Than 2016:Hamamatsu 1/10.25=.0976, photonis = 1/7.52=.13298) 
       //  4 Furthor reduce the waveform height by  by the interpolated 
 	  //    template liniarity factor, which is the 
       //    relataive template pulse height for equal area single pes between 
@@ -194,13 +203,13 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 		lowGainCharge7BinsDC = getWindowArea(startTracePulseLG,7);
       }
 
-      if(fDebugPrint && goodAreas) {
-		//double lowGainSizeDC  = lowGainChargeDC  - 
-        //                               (numSamplesTrace * fLowGainPedestal);
+      if(fLowGainDiagnosticPrint&& goodAreas) {
+		double lowGainSizeDC  = lowGainChargeDC  - 
+                                       (numSamplesTrace * fLowGainPedestal);
 		double lowGainSize7BinsDC  = lowGainCharge7BinsDC  - 
                                           (7 * fLowGainPedestal);
-		//double highGainSizeDC = highGainChargeDC - 
-        //                                  (numSamplesTrace * fFADCTracePed);
+		double highGainSizeDC = highGainChargeDC - 
+                                          (numSamplesTrace * fFADCTracePed);
 		double highGainSize7BinsDC = highGainCharge7BinsDC - 
                                                         (7 * fFADCTracePed);
 		//double lowGainTraceAmplitudeDC = getFADCTraceMax();
@@ -212,6 +221,12 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 				  << interpolatedLinearity << " "      //linearity used.
 				  << pWaveForm->GetSize() << " "       //LG template amplitude
 				  << lowGainSize7BinsDC << " ";  //no pedestal
+		if (fDebugPrint) {
+		  std::cout << lowGainSize7BinsDC/highGainSize7BinsDC << " "
+					<< highGainSizeDC << " "
+					<< lowGainSizeDC << " "
+					<< lowGainSizeDC/highGainSizeDC << " "; 
+		}
 		// *******************************************************************
 		// Add on the fadc trace. Needs to be last. includes pedestal
 		// *******************************************************************
@@ -220,6 +235,8 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 		  std::cout<<fFADCTrace.at(m)<<" ";
 		}
 		std::cout<<std::endl;
+		std::cout<<std::flush;
+
       }
 	  
     }
