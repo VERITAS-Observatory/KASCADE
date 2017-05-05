@@ -335,30 +335,34 @@ function SgeFilePBSCmds()
  local sgeFile=$1
  if [ -n "$2" ]; then
      let SgeEnergy=$2
- fi
- echo "#"!/bin/bash -l                 >$sgeFile
- if [ -n "$2" ] && [ -n "$PURDUE" ]; then
-   if [ "$SgeEnergy" -lt "20000" ]; then
-     echo "#"$PBSCMD $QUEUE2          >>$sgeFile
-     echo "#"$PBSCMD $WALLTIME2       >>$sgeFile
-   else
-     echo "#"$PBSCMD $QUEUE           >>$sgeFile
-     echo "#"$PBSCMD $WALLTIME        >>$sgeFile
-   fi
  else
-   echo "#"$PBSCMD $QUEUE             >>$sgeFile
-   echo "#"$PBSCMD $WALLTIME          >>$sgeFile
+     let SgeEnergy=20
  fi
 
- if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-   echo "#"$PBSCMD -N 1               >>$sgeFile
-   echo "#"$PBSCMD -n 1               >>$sgeFile
-   echo "#"$PBSCMD $MEMREQUEST        >>$sgeFile
-   if [ -n "$SBATCHDISK" ]; then
-     echo "#"$PBSCMD $SBATCHDISK      >>$sgeFile
+ echo "#"!/bin/bash -l                           >$sgeFile
+ if [ -n "$PURDUE" ]; then
+   if [ "$SgeEnergy" -lt "20000" ]; then
+     echo "#"$PBSCMD $QUEUE2                     >>$sgeFile
+     echo "#"$PBSCMD $WALLTIME2                  >>$sgeFile
+   else
+     echo "#"$PBSCMD $QUEUE                      >>$sgeFile
+     echo "#"$PBSCMD $WALLTIME                   >>$sgeFile
+   fi
+   echo "#"PBS -l nodes=1:ppn=1                  >>$sgeFile 
+   echo "#"$PBSCMD -l naccesspolicy=singleuser   >>$sgeFile
+ 
+ elif [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+   echo "#"$PBSCMD $QUEUE                        >>$sgeFile
+   echo "#"$PBSCMD $WALLTIME                     >>$sgeFile
+   echo "#"$PBSCMD -N 1                          >>$sgeFile
+   echo "#"$PBSCMD -n 1                          >>$sgeFile
+   echo "#"$PBSCMD $MEMREQUEST                   >>$sgeFile
+   if [ -n "$SBATCHDISK" ]; then        
+     echo "#"$PBSCMD $SBATCHDISK                 >>$sgeFile
    fi
  else
-   echo "#"$PBSCMD $MEMREQUEST        >>$sgeFile
+   echo Host not known by this script!!
+   exit
  fi
 }
 #########################################################################
@@ -371,10 +375,10 @@ function SgeFileBashCmds()
 {
   sgeFile=$1
   if [ -n "$PURDUE" ]; then
-    echo module load gcc/4.7.2                >>$sgeFile
+    echo module load KASCADE                  >>$sgeFile
     echo source /etc/profile                  >>$sgeFile
-    echo lcl=$$PBSCMD_O_WORKDIR               >>$sgeFile
+    echo lcl=\$PBSCMD_O_WORKDIR               >>$sgeFile
   fi
-  echo cd $lcl                                >>$sgeFile
+  echo cd \$lcl                               >>$sgeFile
 }
 #########################################################################
