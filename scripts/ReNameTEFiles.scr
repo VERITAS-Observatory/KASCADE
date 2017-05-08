@@ -30,14 +30,17 @@ INPUTFILELIST=$1
    #Parse the file name
    #Input examples:
    #WVP20DegGeV34.2te.d89
-   DISK=${input%/*}
+   DSK=${input%/*}
+   if [ "$DSK" != "$input" ]; then
+	   DISK=$DSK'/'
+   fi
    FILE=${input##*/}
    SEASON=${FILE:0:1}
    ARRAY=${FILE:1:1}
    PRIMARY=${FILE:2}
 
-   TEFILENAME=$DISK'/'$SEASON'N'$PRIMARY
-   # echo $input $TEFILENAME
+   TEFILENAME=$DISK$SEASON'N'$PRIMARY
+   #echo $input $TEFILENAME
 
    mv -v $input $TEFILENAME
   
