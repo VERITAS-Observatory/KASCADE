@@ -38,6 +38,14 @@ function setup()
     workingDir=$SCRATCH
   fi
 
+  if [ -n "$CORI" ]; then
+    dataDirBase=$SCRATCH/simulations
+    echo Cori Data Dir: $dataDirBase
+    mkdir -vp $dataDirBase
+    workingDir=$SCRATCH
+    echo WorkingDir: $workingDir
+  fi
+
   if [ -n "$HAMMER" ]; then
     dataDirBase=$SCRATCH'/simulations'
     echo Hammer Data dir: $dataDirBase
@@ -74,28 +82,28 @@ function setup()
   dataDirBase=$dataDirBase'/veritas'
 
   if [ "$PARTYPE" = "G" ]; then
-	datadir=$dataDirBase'/gammas'
+	dataDir=$dataDirBase'/gammas'
   fi
   
   if [ "$PARTYPE" = "E" ]; then
-	datadir=$dataDirBase'/electrons'
+	dataDir=$dataDirBase'/electrons'
   fi
 
   if [ "$PARTYPE" = "P" ]; then
-     datadir=$dataDirBase'/protons'
+     dataDir=$dataDirBase'/protons'
   fi
 
   if [ "$PARTYPE" = "He4_" ]; then
-     datadir=$dataDirBase'/he4'
+     dataDir=$dataDirBase'/he4'
   fi
 
-  if [ ! -n "$datadir" ]; then
+  if [ ! -n "$dataDir" ]; then
      echo ReDoMissingTeFile - Bad particle spec: $PARTYPE ':Allowable are G or E or P or He4_'
      exit
   fi
 
    mkdir -vp $dataDir
-
+   echo Final dataDir: $dataDir
 
   ####################################################################
   # Bring in ksallVBF and make sure its set up right
@@ -152,7 +160,7 @@ function BuildAndSubmitJobsSingly()
  SgeFileBashCmds $sgeFile
 
  echo $lcl'/ksallVBFReDoTE.scr '$eGeV $parspec $showerID \\   >>$sgeFile
- echo $showerID $datadir $workingDir \\                       >>$sgeFile
+ echo $showerID $dataDir $workingDir \\                       >>$sgeFile
  echo ">>"$lcl"/ksProduction_"$eGeV'd'$showerID$parspec".log" >>$sgeFile
 
  chmod 700 $sgeFile
@@ -203,7 +211,7 @@ function BuildForParaFlySubmission()
  # Add command to process this shower.
  # No continuations allowed in ParaFly cmd file
  # ******************************************
- local PFLYCMD=$lcl'/ksallVBFShowerVBF.scr '$eGeV' '$parspec' '$showerID' '$showerID' '$datadir' '$workingDir" >>"$lcl"/ksProduction_"$eGeV'd'$showerID$parspec".log"
+ local PFLYCMD=$lcl'/ksallVBFShowerVBF.scr '$eGeV' '$parspec' '$showerID' '$showerID' '$dataDir' '$workingDir" >>"$lcl"/ksProduction_"$eGeV'd'$showerID$parspec".log"
 
  echo $PFLYCMD  >>$ParaFlyFile
  NumParaFly=$((NumParaFly+1))     # Not local
@@ -274,6 +282,7 @@ else
      DatDirFlag=$4
    fi
 fi
+echo CheckFile: $CheckFile  THR: $THR  PARTYPE: $PARTYPE
 
 setup
 

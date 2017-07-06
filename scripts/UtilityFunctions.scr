@@ -243,7 +243,7 @@ fi
    QUEUE='-p shared'
    WALLTIME='-t 12:00:00'
    let SUBMITLIMIT=10000
-   echo '***Cori Phase 1 Cluster***'
+   echo '***Cori/Haswell  Cluster***'
  fi
 
 
@@ -357,6 +357,11 @@ function SgeFilePBSCmds()
    echo "#"$PBSCMD -N 1                          >>$sgeFile
    echo "#"$PBSCMD -n 1                          >>$sgeFile
    echo "#"$PBSCMD $MEMREQUEST                   >>$sgeFile
+
+   if [ -n "$CORI" ]; then
+       echo "#"$PBSCMD -C haswell                >>$sgeFile
+   fi
+
    if [ -n "$SBATCHDISK" ]; then        
      echo "#"$PBSCMD $SBATCHDISK                 >>$sgeFile
    fi
