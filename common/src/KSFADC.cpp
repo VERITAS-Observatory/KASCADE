@@ -71,7 +71,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
   bool fDebugPrint=false;
   //bool fDebugPrint=true;
   bool  fLowGainDiagnosticPrint=false;
-#bool fLowGainDiagnosticPrint=true;
+  //bool fLowGainDiagnosticPrint=true;
 
   fIsLowGainTrace = false;             //We start at High Gain
 
