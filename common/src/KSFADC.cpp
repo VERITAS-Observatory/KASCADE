@@ -26,7 +26,7 @@ KSFADC::~KSFADC()
 }
 // ************************************************************************
 
-  void KSFADC::SetCameraType(KSCameraTypes CameraType)
+void KSFADC::SetCameraType(KSCameraTypes CameraType)
 {
   fCameraType=CameraType;
   fDigCntsPerPEHiGain=gFADCDigCntsPerPEHiGain[fCameraType];
@@ -70,8 +70,8 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
 {
   bool fDebugPrint=false;
   //bool fDebugPrint=true;
-  bool fLowGainDiagnosticPrint=true;
-  //bool  fLowGainDiagnosticPrint=false;
+  bool  fLowGainDiagnosticPrint=false;
+#bool fLowGainDiagnosticPrint=true;
 
   fIsLowGainTrace = false;             //We start at High Gain
 
@@ -92,29 +92,29 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
   // *************************************************************************
   if(enableHiLoGainProcessing && fIsLowGainTrace)
     {
-	  bool goodAreas = true;
+      bool goodAreas = true;
 
-	  double highGainCharge7BinsDC;
-	  int    startTracePulseHG     = getFADCTracePulseStart(fFADCTracePed);
-	  // ****************************
-	  // Make sure we have at least 7 bins to sum
-	  // ***************************
-	  if(fFADCTrace.size() - startTracePulseHG < 7 ) {
-		goodAreas = false;
-	  }
-	  else {
-		highGainCharge7BinsDC = getWindowArea(startTracePulseHG,7);
-	  }
-	  //if(fDebugPrint ) {
-	  //	std::cout << "**Hi Gain Pulse: " 
-	  //			  << startTracePulseHG << " " 
-	  //			  << (int)fFADCTrace.size() << " ";
-	  //	for (int m=0; m< (int) fFADCTrace.size(); m++) {
-	  //	  std::cout<<fFADCTrace.at(m)<<" ";
-	  //	}
-	  //	std::cout<<std::endl;
-	  //}   
-	  // ***************************************************************
+      double highGainCharge7BinsDC;
+      int    startTracePulseHG     = getFADCTracePulseStart(fFADCTracePed);
+      // ****************************
+      // Make sure we have at least 7 bins to sum
+      // ***************************
+      if(fFADCTrace.size() - startTracePulseHG < 7 ) {
+	goodAreas = false;
+      }
+      else {
+	highGainCharge7BinsDC = getWindowArea(startTracePulseHG,7);
+      }
+      //if(fDebugPrint ) {
+      //	std::cout << "**Hi Gain Pulse: " 
+      //			  << startTracePulseHG << " " 
+      //			  << (int)fFADCTrace.size() << " ";
+      //	for (int m=0; m< (int) fFADCTrace.size(); m++) {
+      //	  std::cout<<fFADCTrace.at(m)<<" ";
+      //	}
+      //	std::cout<<std::endl;
+      //}   
+      // ***************************************************************
       // To decide which Low gain template to use , use one of:
       // High Gain Charge (FADCTrace sum- minus trace pedestal)
       // High Gain AmplitudeDC (pWaveForm Peak)
@@ -129,15 +129,15 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //double highGainAmplitudePE = pWaveForm->GetWaveFormMax();
       //double highGainAmplitudeDC = highGainAmplitudePE * fDigCntsPerPEHiGain;
       //double highGainAmplitudeMV = highGainAmplitudeDC * gHighGainMVPerDC;
-	  //double highGainTraceAmplitudeDC = getFADCTraceMax();
+      //double highGainTraceAmplitudeDC = getFADCTraceMax();
 
       double highGainNumPES      = pWaveForm->GetNumPES();
       double highGainIsochronicAmplitudeMV = 
-		              highGainNumPES * fDigCntsPerPEHiGain * gHighGainMVPerDC;
+	highGainNumPES * fDigCntsPerPEHiGain * gHighGainMVPerDC;
 
       //double highGainAreaPE      = pWaveForm->GetWaveFormSum();
 
-	  // **********************************************************
+      // **********************************************************
       // Build the low gain wave form using the appropriate template and 
       // linearity 
       // *********************************************************
@@ -147,8 +147,8 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //pWaveForm->BuildLowGainWaveForm(highGainAmplitudeMV); 
 
       double interpolatedLinearity;
-	  pWaveForm->BuildLowGainWaveForm(highGainIsochronicAmplitudeMV,
-									  interpolatedLinearity); 
+      pWaveForm->BuildLowGainWaveForm(highGainIsochronicAmplitudeMV,
+				      interpolatedLinearity); 
  
       // ******************************************************************
       //  The pulse is now built(includes noise) and is in units of pe's. 
@@ -166,7 +166,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       //    waveform by the hi/lo gain factor fLowGainToHighGainPeakRatio 
       //    (Than 2016:Hamamatsu 1/10.25=.0976, photonis = 1/7.52=.13298) 
       //  4 Furthor reduce the waveform height by  by the interpolated 
-	  //    template liniarity factor, which is the 
+      //    template liniarity factor, which is the 
       //    relataive template pulse height for equal area single pes between 
       //    this template and template0)
       //  5. Scale the nomalized LowGain pulse to have this resultant height. 
@@ -180,7 +180,7 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       // we will mutilpy by fDigCntsPerPEHiGain (DC/PE) in the call to
       // generateTraceSamples() 
       // *****************************************
-	  pWaveForm->ScaleWaveForm(scaleFactor);
+      pWaveForm->ScaleWaveForm(scaleFactor);
  
       // *******************************************************************
       // Now make the trace, and get resulting "size:charge"
@@ -193,49 +193,49 @@ void KSFADC::makeFADCTrace(KSWaveForm* pWaveForm,int waveFormStartIndex,
       // *****************************************
       generateTraceSamples(lowGainChargeDC, pWaveForm,  lowGainStartIndex, 
 			   numSamplesTrace, fLowGainPedestal);
-	  int startTracePulseLG = getFADCTracePulseStart(fLowGainPedestal);
+      int startTracePulseLG = getFADCTracePulseStart(fLowGainPedestal);
 
-	  double lowGainCharge7BinsDC = 0;
-	  if(fFADCTrace.size() - startTracePulseLG < 7 ) {
-		goodAreas = false;
-	  }
-	  else {
-		lowGainCharge7BinsDC = getWindowArea(startTracePulseLG,7);
+      double lowGainCharge7BinsDC = 0;
+      if(fFADCTrace.size() - startTracePulseLG < 7 ) {
+	goodAreas = false;
+      }
+      else {
+	lowGainCharge7BinsDC = getWindowArea(startTracePulseLG,7);
       }
 
       if(fLowGainDiagnosticPrint&& goodAreas) {
-		double lowGainSizeDC  = lowGainChargeDC  - 
-                                       (numSamplesTrace * fLowGainPedestal);
-		double lowGainSize7BinsDC  = lowGainCharge7BinsDC  - 
-                                          (7 * fLowGainPedestal);
-		double highGainSizeDC = highGainChargeDC - 
-                                          (numSamplesTrace * fFADCTracePed);
-		double highGainSize7BinsDC = highGainCharge7BinsDC - 
-                                                        (7 * fFADCTracePed);
-		//double lowGainTraceAmplitudeDC = getFADCTraceMax();
-		std::cout << "**LowGainTrace##" << " " 
-				  << pWaveForm->GetPECount() << " " 
-				  << highGainSize7BinsDC << " "          //No pedestal
-				  << pWaveForm->GetLowGainIndex() << " " //template iindex
-				  << pWaveForm->GetLinearity() << " "  //templatelinearity
-				  << interpolatedLinearity << " "      //linearity used.
-				  << pWaveForm->GetSize() << " "       //LG template amplitude
-				  << lowGainSize7BinsDC << " ";  //no pedestal
-		if (fDebugPrint) {
-		  std::cout << lowGainSize7BinsDC/highGainSize7BinsDC << " "
-					<< highGainSizeDC << " "
-					<< lowGainSizeDC << " "
-					<< lowGainSizeDC/highGainSizeDC << " "; 
-		}
-		// *******************************************************************
-		// Add on the fadc trace. Needs to be last. includes pedestal
-		// *******************************************************************
-		std::cout << (int)fFADCTrace.size() << " ";
-		for (int m=0; m< (int) fFADCTrace.size(); m++) {
-		  std::cout<<fFADCTrace.at(m)<<" ";
-		}
-		std::cout<<std::endl;
-		std::cout<<std::flush;
+	double lowGainSizeDC  = lowGainChargeDC  - 
+	  (numSamplesTrace * fLowGainPedestal);
+	double lowGainSize7BinsDC  = lowGainCharge7BinsDC  - 
+	  (7 * fLowGainPedestal);
+	double highGainSizeDC = highGainChargeDC - 
+	  (numSamplesTrace * fFADCTracePed);
+	double highGainSize7BinsDC = highGainCharge7BinsDC - 
+	  (7 * fFADCTracePed);
+	//double lowGainTraceAmplitudeDC = getFADCTraceMax();
+	std::cout << "**LowGainTrace##" << " " 
+		  << pWaveForm->GetPECount() << " " 
+		  << highGainSize7BinsDC << " "          //No pedestal
+		  << pWaveForm->GetLowGainIndex() << " " //template iindex
+		  << pWaveForm->GetLinearity() << " "  //templatelinearity
+		  << interpolatedLinearity << " "      //linearity used.
+		  << pWaveForm->GetSize() << " "       //LG template amplitude
+		  << lowGainSize7BinsDC << " ";  //no pedestal
+	if (fDebugPrint) {
+	  std::cout << lowGainSize7BinsDC/highGainSize7BinsDC << " "
+		    << highGainSizeDC << " "
+		    << lowGainSizeDC << " "
+		    << lowGainSizeDC/highGainSizeDC << " "; 
+	}
+	// *******************************************************************
+	// Add on the fadc trace. Needs to be last. includes pedestal
+	// *******************************************************************
+	std::cout << (int)fFADCTrace.size() << " ";
+	for (int m=0; m< (int) fFADCTrace.size(); m++) {
+	  std::cout<<fFADCTrace.at(m)<<" ";
+	}
+	std::cout<<std::endl;
+	std::cout<<std::flush;
 
       }
 	  
@@ -255,16 +255,16 @@ double KSFADC::getWindowArea(int StartTraceIndex, int NumBinsToSum)
   if(traceLength-1 < StartTraceIndex+NumBinsToSum-1)
     {
       std::cout<<"KSFADC: Request for non-existant fFADCTrace bins in "
-		         "KSFADC::getWindowArea(first,last)actualsize: "
-			   << StartTraceIndex << " " << StartTraceIndex+NumBinsToSum 
-			   << " " << traceLength << std::endl;
+	"KSFADC::getWindowArea(first,last)actualsize: "
+	       << StartTraceIndex << " " << StartTraceIndex+NumBinsToSum 
+	       << " " << traceLength << std::endl;
       NumBinsToSum = traceLength- StartTraceIndex;
-	}
+    }
   double sum=0;
   for(int i=0;i<NumBinsToSum;i++)
     {
       int index=StartTraceIndex+i;
-	  sum+=fFADCTrace.at(index);
+      sum+=fFADCTrace.at(index);
     }
   return sum;
 }
@@ -289,7 +289,8 @@ void  KSFADC::Print(int fStartTraceIndex, int fNumBinsToPrint)
 // ************************************************************************
 
 bool KSFADC::generateTraceSamples(double& traceArea, KSWaveForm* pWaveForm, 
-	     int waveFormStartIndex,int numSamplesTrace, double pedestalFADC) 
+				  int waveFormStartIndex,int numSamplesTrace, 
+				  double pedestalFADC) 
 // ********************************************************************
 // Generate the FADC trace samples from the pWaveForm. Flag if we exceed 
 // Maximum allowed trace value
@@ -318,11 +319,11 @@ bool KSFADC::generateTraceSamples(double& traceArea, KSWaveForm* pWaveForm,
     //
     // **********************************************************
     fSum=((fSum/fNumWaveFormBins1NS)*fDigCntsPerPEHiGain)+pedestalFADC + 
-                        pRandom->Gaus()*gElectFADCNoiseSigmaDC[fCameraType];
+      pRandom->Gaus()*gElectFADCNoiseSigmaDC[fCameraType];
     if(fSum<0)
       {
-		fSum=0;  //Event though we added a pedestal this may be negative. If
-		         // so,set it to 0, as it would be in theelectronics.
+	fSum=0;  //Event though we added a pedestal this may be negative. If
+	// so,set it to 0, as it would be in theelectronics.
       }
     
     fFADCTrace.at(i)=(int)fSum;  
@@ -380,7 +381,7 @@ int KSFADC::getFADCTracePulseStart(double samplePedestal)
   int traceLength=fFADCTrace.size();
   std::vector< float > trace(traceLength);
   for ( int i=0; i < traceLength; i++) {
-	trace.at(i) = (float)fFADCTrace.at(i) - samplePedestal; 
+    trace.at(i) = (float)fFADCTrace.at(i) - samplePedestal; 
   }
 
   // ******************************
@@ -394,16 +395,16 @@ int KSFADC::getFADCTracePulseStart(double samplePedestal)
   // since the peak value itself fulfils the selection criterion.
   // **********************************************************************
   std::vector< float >::difference_type thresholdIndex = 
-	std::distance(trace.begin(),std::find_if(trace.begin(),trace.end(), 
+    std::distance(trace.begin(),std::find_if(trace.begin(),trace.end(), 
               std::bind2nd(std::greater< float >(),.5*traceMaxAmplitude) ) );
   // ***********************************
   //And back up 4 ns = 2 samples if we can
   // ***********************************
   if( thresholdIndex != 0 ) {
-	thresholdIndex--;
+    thresholdIndex--;
   }
   if( thresholdIndex != 0 ) {
-	thresholdIndex--;
+    thresholdIndex--;
   }
   // Return the index
   return (int) (thresholdIndex);
