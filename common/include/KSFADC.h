@@ -15,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 
 #include <TRandom3.h>
  

@@ -20,6 +20,7 @@
 #include <string>
 #include <fstream>      //for input binary pst pattern file
 #include <set>
+#include <cmath>
 
 #include "KSCommon.h"
 #include "KSCameraGrid.h"
