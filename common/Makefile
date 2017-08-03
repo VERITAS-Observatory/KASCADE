@@ -10,14 +10,14 @@
 #
 # -----------------------------------------------------------------------------
 
-include ../Makefile.common
+
 
 #normally comment out next line(we don't want profileing)
 #OPTPRF=-pg
 
-
-
 TOPDIR = ..
+
+include ../Makefile.common
 
 BUILD_SHARED = $(CXX) -shared -Wl,-s
 

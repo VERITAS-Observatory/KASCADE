@@ -33,7 +33,6 @@ TOPCOMMONDIR = $(TOPDIR)/common
 TOPCOMMONINCDIR = $(TOPCOMMONDIR)/$(INCDIR)
 TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
-
 #Define VEGAS in .bashrc (or wherever)
 
 # -----------------------------------------------------------------------------
@@ -50,8 +49,8 @@ VEGASLDFLAGS = $(VEGASCMNLIBDIR) $(VEGAGCMNLIB)
 # KASCADE DEFINES AND INCLUDES
 # -----------------------------------------------------------------------------
 
-KASINCFLAGS = -I$(TOPCOMMONINCDIR) -Iinclude -I.
-KASLIBFLAGS = -L$(TOPCOMMONLIBDIR) -Llib
+KASINCFLAGS = -I$(TOPCOMMONINCDIR) -I./include -I./
+KASLIBFLAGS = -L$(TOPCOMMONLIBDIR) -L./lib
 KASLDFLAGS = $(KASLIBFLAGS)
 KASLIBS =   -lKascadeCommon
 KASLIBSROOT = -lKascadeCommonRoot
