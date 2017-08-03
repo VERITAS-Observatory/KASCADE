@@ -261,21 +261,21 @@ int main(int argc, char** argv)
 	}
 
       std::string fRandomSeedFileName;
-      if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
+      if(command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
 				    "Ranlux seed file")
-	 == VAOptions::FS_FOUND)
+	 != VAOptions::FS_FOUND)
 	{
 	  fRandomSeedFileName="ksMergeFiles.ran";
 	}
       
       std::string fBaseFile;
-      if(!command_line.findWithValue("BaseFile",fBaseFile,
+      if(command_line.findWithValue("BaseFile",fBaseFile,
 				     "Input file name for Base file. "
 				     "Ouput file consists of events randomized"
 				     "  from this file with specified rate and"
 				     " with pedestal events from this file on "
 				     "each second mark. Required!")
-	 == VAOptions::FS_FOUND)
+	 != VAOptions::FS_FOUND)
 	{
 	  std::cout<<"ksMergeFiles - BaseFile Option is required"
 		   <<std::endl;

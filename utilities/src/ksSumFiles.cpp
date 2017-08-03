@@ -234,9 +234,9 @@ int main(int argc, char** argv)
       
 
       std::string fRandomSeedFileName;
-      if(!command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
+      if(command_line.findWithValue("RandomSeedFileName",fRandomSeedFileName,
 				     "Ranlux seed file")
-	 == VAOptions::FS_FOUND)
+	 != VAOptions::FS_FOUND)
 	{
 	  fRandomSeedFileName="ksSumFiles.ran";
 	}
