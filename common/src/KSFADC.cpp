@@ -364,7 +364,7 @@ int KSFADC::getFADCTraceMax()
 {
   std::vector< int >::iterator it; 
   // ******From max of Trace
-  it = max_element(fFADCTrace.begin(), fFADCTrace.end());
+  it = std::max_element(fFADCTrace.begin(), fFADCTrace.end());
   return  *it;
 }
 // *********************************************************************
@@ -395,7 +395,7 @@ int KSFADC::getFADCTracePulseStart(double samplePedestal)
   // since the peak value itself fulfils the selection criterion.
   // **********************************************************************
   std::vector< float >::difference_type thresholdIndex = 
-    std::distance(trace.begin(),std::find_if(trace.begin(),trace.end(), 
+    std::distance(trace.begin(), std::find_if(trace.begin(),trace.end(), 
               std::bind2nd(std::greater< float >(),.5*traceMaxAmplitude) ) );
   // ***********************************
   //And back up 4 ns = 2 samples if we can

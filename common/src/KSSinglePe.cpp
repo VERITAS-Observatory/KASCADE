@@ -42,8 +42,11 @@ void KSSinglePe::initSinglePe(double singlePulseRiseNS,
   setRiseFallTimes(singlePulseRiseNS,singlePulseFallNS);
 // ****************************************************************
   // Load in the Low Gain tempale waveforms. We assume a standard Default file 
-  // name here. Assume links to prober file (Upgrade or NewArray) version as 
-  // applicable
+  // name here. Assume links to correct file (Hamamatsu or Photonis) version as 
+  // applicable (Usually done in ksallVBF.scr, but for testing could be done 
+  // by hand). Files are in $KASCADE/inputs:
+  // KASCADEPhotonisLowGainWaveFormsMarch2016.txt  or 
+  // KASCADEHamamatsuLowGainWaveFormsMarch2016.txt
   // ****************************************************************
   readLowGainWaveForms("LowGainWaveForms.txt");
 }
