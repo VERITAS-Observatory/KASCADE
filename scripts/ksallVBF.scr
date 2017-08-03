@@ -360,11 +360,11 @@ ln -s $inpDir/PSTMultiplicity3.bin PSTMultiplicity3.bin
 ln -s $inpDir/VeritasFacetLocations.txt VeritasFacetLocations.txt
 
 if [ "$TelSpec" = "U" ]; then          #test if this is veritas upgrade
+   echo Using for V6 LowGainWaveForms: KASCADEHamamatsuLowGainWaveFormsMarch2016.txt
    ln -s $inpDir/KASCADEHamamatsuLowGainWaveFormsMarch2016.txt LowGainWaveForms.txt 
 else
-    #V4/V5 Photonis template file is incomplete
-    echo 'ksallVBF--Warning-Photonis template file is incomplete'
-    ln -s $inpDir/KASCADEPhotonisLowGainWaveFormsMarch2016.txt LowGainWaveForms.txt
+   echo Using for V6=4/V5 LowGainWaveForms: KASCADEPhotonisLowGainWaveFormsMarch2016.txt
+   ln -s $inpDir/KASCADEPhotonisLowGainWaveFormsMarch2016.txt LowGainWaveForms.txt
 fi
 
 #Setup unique random seed files into working dir.
