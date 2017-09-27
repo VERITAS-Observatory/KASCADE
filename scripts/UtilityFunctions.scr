@@ -263,11 +263,10 @@ fi
    let SUBMITLIMIT=975
    echo '***Halstead Cluster:'$QUEUE' queue ***'
  fi
-
- hostString=${host:0:6}
- if test  "$hostString" = "hammer"  #Are we running on Hammer
+ hostString=${host:0:4}
+ if test  "$hostString" = "rice"  #Are we running on Rice
   then
-   HAMMER=enabled
+   RICE=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
    QUEUE1='-q physics'
@@ -278,9 +277,8 @@ fi
    WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
    let SUBMITLIMIT=975
-   echo '***Hammer Cluster:'$QUEUE' queue ***'
+   echo '***Rice Cluster:'$QUEUE' queue ***'
  fi
-
 
  hostString=${host:0:5}
  if test  "$hostString" = "conte"  #Are we running on conte
@@ -310,7 +308,7 @@ fi
    let SUBMITLIMIT=975
  fi
 
-if [ -n "$HAMMER" ] || [ -n "$CONTE" ] || [ -n "$HALSTEAD" ] ; then
+if [ -n "$RICE" ] || [ -n "$CONTE" ] || [ -n "$HALSTEAD" ] ; then
    PURDUE=enabled
  fi
  if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
@@ -349,7 +347,8 @@ function SgeFilePBSCmds()
      echo "#"$PBSCMD $WALLTIME                   >>$sgeFile
    fi
    echo "#"PBS -l nodes=1:ppn=1                  >>$sgeFile 
-   echo "#"$PBSCMD -l naccesspolicy=singleuser   >>$sgeFile
+   #echo "#"$PBSCMD -l naccesspolicy=singleuser   >>$sgeFile
+   echo "#"$PBSCMD -l naccesspolicy=shared       >>$sgeFile
  
  elif [ -n "$CORI" ] || [ -n "$EDISON" ]; then
    echo "#"$PBSCMD $QUEUE                        >>$sgeFile
