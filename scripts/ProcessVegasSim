@@ -1,9 +1,9 @@
 #$1 List of Sim.vbf or Sim.root files
 #$2 VegasProduction file name: 
 #       EX: VegasProductionStdCuts.scr
-#$3: Job designator (ex A)
-#$4 PedVar file (optional)
-#$5 Alternate VEGAS path (optional)
+#$3 Job designator (ex A)
+#$4 Alternate VEGAS path (optional)
+#$5 PedVar file (optional)
 
 function usage()
 {
