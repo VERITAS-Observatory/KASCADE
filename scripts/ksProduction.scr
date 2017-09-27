@@ -122,8 +122,8 @@ function Electrons()
 {
     echo Electrons: $parspec
 
- Veritas Set1/ksaom/kasall
- Whipple Set1/kasaom/kasall starts at 84 GeV
+# Veritas Set1/ksaom/kasall
+# Whipple Set1/kasaom/kasall starts at 84 GeV
  #Defines energy, start and end arrays
  DefineShowers 'E' $MDL
  BuildAndSubmit
