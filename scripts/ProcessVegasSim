@@ -11,12 +11,13 @@ function usage()
  echo '   $1:  List of Sim.vbf or Sim.root files'
  echo '   $2:  VegasProduction file name: Ex: VegasSimProductionStdCuts.scr'
  echo '   $3:  Job designator. Ex "A" or "B5" or "MyVeryFavoriteJob"'
- echo '   $4:  PedVar file name (optional)Ex: PedUA5.18 '
- echo ' EX: ./ProcessVegasSim 745677.vbf VegasSimProductionStdCuts.scr A1 PedNA6.44'
+ echo '   $4:  Vegas Version (optional) Ex: 2.5.4 or 2.5.5M '
+ echo '   $5:  PedVar file name (optional and $4 must be specified )Ex: PedUA5.18 '
+ echo ' EX: ./ProcessVegasSim 745677.vbf VegasSimProductionStdCuts.scr A1 2.5.5M PedNA6.44 '
  echo '***'
 }
 
-if [ -n "$2" ]; then
+if [ ! -n "$3" ]; then
    usage
    exit
 fi
@@ -29,18 +30,19 @@ if [ ! -e UtilityFunctions.scr ]; then
 fi
 source UtilityFunctions.scr
 
-
-
 RUNLIST=$1
 VEGASSIMPRODFILENAME=$2
 JOBDESIGNATOR=$3
-PEDVARFILENAME=$4
+VEGASVERSION=$4
+PEDVARFILENAME=$5
 
-
+module unload vegas
+module load vegas/$VEGASVERSION   #if VEGASVERSION not specified this just 
+module li                         #loads default vegas
 
 lcl="$PWD"
 
-SetUpForHost    #From UtilityFunctions.scr:Specifics for cluster we are on
+SetupForHost    #From UtilityFunctions.scr:Specifics for cluster we are on
 
 let i=0
 if [ -n "$PURDUE" ]; then
@@ -64,7 +66,11 @@ fi
    SgeFileBashCmds $sgeFile  # In UtilityFunictions.scr:
                              # Adds Batch commands to "pbs" files
 
+   echo module unload vegas                          >>$sgeFile
+   echo module load vegas/$VEGASVERSION              >>$sgeFile
+   echo module list                                  >>$sgeFile
    echo cd $lcl                                      >>$sgeFile
+ 
    echo $lcl'/'$VEGASSIMPRODFILENAME  \\             >>$sgeFile
    echo $DataFile' '  \\                             >>$sgeFile
    if test -n "$PEDVARFILENAME"
