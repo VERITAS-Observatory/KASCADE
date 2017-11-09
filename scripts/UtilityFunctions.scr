@@ -357,7 +357,7 @@ function SgeFilePBSCmds()
    echo "#"$PBSCMD -n 1                          >>$sgeFile
 
    if [ -n "$EDISON" ]; then
-       echo "#"$PBSCMD $MEMREQUEST                   >>$sgeFile
+       echo "#"$PBSCMD $MEMREQUEST               >>$sgeFile
    fi
 
    if [ -n "$CORI" ]; then
