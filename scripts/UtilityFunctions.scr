@@ -355,7 +355,10 @@ function SgeFilePBSCmds()
    echo "#"$PBSCMD $WALLTIME                     >>$sgeFile
    echo "#"$PBSCMD -N 1                          >>$sgeFile
    echo "#"$PBSCMD -n 1                          >>$sgeFile
-   echo "#"$PBSCMD $MEMREQUEST                   >>$sgeFile
+
+   if [ -n "$EDISON" ]; then
+       echo "#"$PBSCMD $MEMREQUEST                   >>$sgeFile
+   fi
 
    if [ -n "$CORI" ]; then
        echo "#"$PBSCMD -C haswell                >>$sgeFile
