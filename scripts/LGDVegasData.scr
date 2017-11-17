@@ -1,0 +1,87 @@
+##########################################################################
+#$ $1  filename of file conating datarun.cvbf laserrun.cvbf  epock
+##########################################################################
+#!/bin/bash
+
+##################
+# Bring in Setup For Hosthost functions
+##################
+if [ ! -e UtilityFunctions.scr ]; then
+    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+fi
+source UtilityFunctions.scr
+
+SetupForHost
+version=$VEGASMODULEVERSION
+echo version: $version
+#module unload vegas
+module load vegas/$version
+
+echo VEGAS: $VEGAS
+
+if [ -n "$CORI" ]; then
+   lgdf=$VEGAS/../../common/lowGainDataFiles   #on cori
+   echo lgdfC: $lgdf
+fi
+if [ -n "$HALSTEAD" ]; then
+   lgdf=$VEGAS/../../common/lowGainDataFiles   #on Halstead
+   echo lgdfH: $lgdf
+fi
+DATADIR=$SCRATCH'/simulations/veritas'
+{
+  while read DataRunFile FlasherRunFile epoch; do
+    DATARUN=${DataRunFile%%.cvbf}
+    cvbfDataFile=$DATADIR'/'$DataRunFile
+    rootDataFile=$DATADIR'/'$DATARUN'.root'
+    cvbfFlasherFile=$DATADIR'/'$FlasherRunFile
+    rootFlasherFile=$DATADIR'/'${FlasherRunFile%%.cvbf}'.root'
+
+    if [ "$epoch" = "5" ]; then
+        pmt=photonis
+        Pmt=Photonis
+        SRC=A
+        THR=50
+    elif [ "$epoch" = "6" ]; then
+        pmt=hamamatsu
+        Pmt=Hamamatsu
+        SRC=
+        THR=45
+    else
+        echo 'Missing or bad epoch, 3rd arg. Should be 5 or 6. Nothing done!'
+        exit
+    fi
+
+    VTMPLT=$lgdf'/lowGainTemplateLookup'$Pmt'WithTimeSpread'$SRC'.root'
+    VTF=$lgdf'/'$pmt'_low_gain_to_high_gain_transfer'$SRC'.root'
+
+    ####################################################################
+    # Make up the job script file that will be submitted below
+    ####################################################################
+    sgeFile=$DATARUN'.pbs'
+    SgeFilePBSCmds $sgeFile
+    
+    if [ -n $VEGASMODULEVERSION ]; then
+       echo module unload vegas                             >>$sgeFile
+       echo module load vegas/$VEGASMODULEVERSION           >>$sgeFile
+    fi
+
+    echo cd $lgdf                                           >>$sgeFile
+
+    echo vaStage1 -Stage1_RunMode=laser $cvbfFlasherFile \\ >>$sgeFile
+    echo $rootFlasherFile                                   >>$sgeFile
+
+    echo vaStage1 -Stage1_RunMode=data $cvbfDataFile \\     >>$sgeFile
+    echo $rootDataFile                                      >>$sgeFile
+
+    echo vaStage2 -Hillas2DCalc=Null \\                     >>$sgeFile
+    echo -TE_Algorithm=TraceEvaluatorLowGainDiagnostics \\  >>$sgeFile
+    echo -TE_LowGainTemplateFilePath=$VTMPLT \\             >>$sgeFile
+    echo -TE_LowGainTransferFunctionFilePath=$VTF \\        >>$sgeFile
+    echo $cvbfDataFile' '$rootDataFile' '$rootFlasherFile   >>$sgeFile
+    chmod 700 $sgeFile
+    cmd=$QSUB' -e '$sgeFile'.err -o '$sgeFile'.log '$sgeFile 
+    echo cmd: $cmd
+    #$cmd
+done
+} <$1
+
