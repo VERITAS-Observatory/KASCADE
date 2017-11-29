@@ -81,7 +81,7 @@ DATADIR=$SCRATCH'/simulations/veritas'
     chmod 700 $sgeFile
     cmd=$QSUB' -e '$sgeFile'.err -o '$sgeFile'.log '$sgeFile 
     echo cmd: $cmd
-    #$cmd
+    $cmd
 done
 } <$1
 
