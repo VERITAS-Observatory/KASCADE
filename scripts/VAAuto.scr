@@ -757,7 +757,8 @@ function SubmitVegasSimProduction()
 ##############
 
 ##################
-# Bring in GenerateVBFName and GetUniqueNumber  functions
+# Bring in SetupForHost, GetUniqueNumber and  GenerateVBFName
+#  functions
 ##################
 if [ ! -e UtilityFunctions.scr ]; then
     cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
@@ -787,9 +788,6 @@ SPECPV=${10}
 LTWBL=${11}
 CUTTYPE=${12}
 TELCUT=${13}
-
-
-
 
 ###########################
 #Winter/Summer
@@ -830,80 +828,36 @@ if [ "$len" != "3" ]; then
    fi
 fi
 
+##############################
 
-source /etc/profile
+SetupForHost        #From UtilityFumctions.
 
-host=$(hostname)
-echo host: $host
-
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
+if [ -n "$EDISON" ]; then
   JobIDHost='edison'
   ARCHIVE=/home/u/u15013/$SPECMDL'/'
-  WALLTIME=30:00:00
   VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
-  MEMREQUEST='vmem=8GB'
   MaxQsubsDefault=175
   if [ -n "$EdisonMultipleSerial" ]; then
-    QUEUE=ccm_queue       #Overrides serial
+    QUEUE='-p ccm_queue'       #Overrides sharedl
     let MSJCount=0
     let NUMCORESNODE=24
-    MaxQsubsDefault=350
+    MaxQsubsDefault=1000
   else
     QUEUE=serial
-    QSUBEXT='.serial'
   fi
-  echo '***Edison Cluster***'
 fi
 
-
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on Hammer
-    then
-    HAMMER=enabled
-    ARCHIVE=/archive/fortress/group/veritas/simulations/
-    VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-    JobIDHost='hammer-adm'
-    QUEUE=physics
-    WALLTIME=30:00:00
-    MEMREQUEST='mem=15GB'
-  #QUEUE=standby
-  #WALLTIME=04:00:00
-    echo ***Hammer Cluster***
-fi
-
-hostString=${host:0:5}
-if test  "$hostString" = "conte"  #Are we running on Conte
-    then
-    CONTE=enabled
+if [ -n "$CONTE" ]; then
     ARCHIVE=/archive/fortress/group/veritas/simulations/
     VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
     JobIDHost='conte-adm'
-    QUEUE=physics
-    WALLTIME=30:00:00
-    MEMREQUEST='mem=15GB'
-  #QUEUE=standby
-  #WALLTIME=04:00:00
-    echo ***Conte Cluster***
 fi
 
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on Halstead?
-    then
-    HALSTEAD=enabled
+if [ -n "$HALSTEAD" ]; then
     ARCHIVE=/archive/fortress/group/veritas/simulations/
     VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
     JobIDHost='halstead-adm'
-    QUEUE=physics
-    WALLTIME=30:00:00
-    MEMREQUEST='mem=15GB'
-  #QUEUE=standby
-  #WALLTIME=04:00:00
-    echo ***Halstead Cluster***
 fi
-
 
 ########################################################################
 #To find the Zn,AZ,Offset and Pedvar  combinations first put $SPECZN,$SPECAZ,$SPECWBL and $SPECPV 
@@ -932,25 +886,7 @@ if [ $SPECWBL = "All" ]; then
 else  
     IFS=, read -a WblOffset <<< "$SPECWBL"
     let iwblEnd=${#WblOffset[@]}
-#    if [ "$iwblEnd" -eq "1" ]; then   #This code activated if only one offset
-#	W=${WblOffset[0]}             #specified in command line
-#        OFFSETID=${W:0:1}${W:2:1}
-#        if [ "${#W}" = "3" ]; then
-#	    OFFSETID=$OFFSETID'0'
-#        else
-#	    OFFSETID=$OFFSETID${W:3:1}  #This has problems and I think 
-#                                        #OFFSETID is used only with EA tables
-#        fi                              #and should be fixed.
-#	if [ "$W" = "0.5" ]; then
-#	    LTWbl="050"
-#	else
-#	    LTWbl="All"     #Logic here needs work but this will work for now
-#	fi                  #If offset is 0.5 then LT 050off table is always 
-#    else                    # used. Otherwise the Alloff table is used.
-#	LTWbl="All"         #I think this is ok as 050 table is the same as the
-#    fi                      #0.5deg entry in Alloff table.
 fi
-
 
 if [[ $SPECPV = "All" ]]; then
     if [ $SPECCFG = "UA" ]; then
@@ -971,10 +907,6 @@ else
     fi
 fi
 IFS=$SAVEIFS
-
-
-
-
 ###########################################################################
 
 #Check if the is for 2D offsets, blank if not
@@ -1234,7 +1166,8 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     if [ ! -e "$VSProdFile" ]; then
       cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
 
-      #The standard VegasSimProduction.scr should have all options 
+      #######################################################################
+      #The standard $KASCADE/scripts/VegasSimProduction.scr should have all options 
       #turned off.  We just have to make sure only stages 1 and 2 get run
       #??????Sample size:We will need to set integration window size if 
       #different from 7?????? Not implimented yet.
@@ -1253,36 +1186,37 @@ if [ -n "$GenerateStage2FromVBF" ]; then
       #Look in config file for on of the options
       runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
       if [ -n "$runningLGD" ]; then
-	 #########################################
-	 #Define the file names needed in the options.]
-	 #########################################
-	 if [ -n "$CORI" ]; then
-	     lgdf=$VEGAS/../../common/lowGainDataFiles/   #on cori
-	 else
-	     if [ -n "$HALSTEAD" ]; then
-		 lgdf=$VEGAS/../../common/lowGainDataFiles/   #on Halstead
-	     fi
-	 fi
-	 #note the difference (cap/nocap) PMT_Mfr and PMT_mfr (not my fault!)
-	 VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
-	 VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
+		 echo VAAuto: vaStage2 is LGD capable.
+	     #########################################
+	     #Define the file names needed in the options.]
+	     #########################################
+	     if [ -n "$CORI" ]; then
+	       lgdf=$VEGAS/../../common/lowGainDataFiles/   #on cori
+	      else
+	        if [ -n "$HALSTEAD" ]; then
+		      lgdf=$VEGAS/../../common/lowGainDataFiles/   #on Halstead
+	        fi
+	      fi
+  	    #note the difference (cap/nocap) PMT_Mfr and PMT_mfr (not my fault!)
+	    VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
+	    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
 
-	 sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  < $VSProdFile >tmp1
-	 sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  < tmp1 >tmp2
-	 sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
+	    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  < $VSProdFile >tmp1
+	    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  < tmp1 >tmp2
+	    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
 
       fi
 
       chmod 755 $VSProdFile
-     
       rm tmp1
       rm tmp2
+
     fi
     #############################################################################
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
     #############################################################################
     WALLTIME=15:00:00
-    if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
+    if [ -n "$HALSTEAD" ]; then
        WALLTIME=24:00:00
     fi
     MEMREQUEST="mem=8GB"
@@ -1763,49 +1697,49 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
          
 
          if [ -n "$GenerateStage2FromVBF" ]; then
-          #echo '##########################################################'
-          #echo '# GenerateStage2FromVBF '
- 	  #echo '##########################################################'
-	  cd $lcl
-	  date
-	  echo PedVarFile: $PedVarFile
+           #echo '##########################################################'
+           #echo '# GenerateStage2FromVBF '
+     	   #echo '##########################################################'
+	       cd $lcl
+	       date
+	       echo PedVarFile: $PedVarFile
       
-          echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-	  SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+           echo "VAAuto: Submitting VegasSimProductionS1S2 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
+	       SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
 
-	 fi
+	     fi
          ###############################################################
 
 
          if [ -n "$CheckStage2Files" ]; then
-          # echo '##########################################################'
-          # echo '# CheckStage2Files'
-	  # echo '##########################################################'
-	   cd $lcl
+           # echo '##########################################################'
+           # echo '# CheckStage2Files'
+	       # echo '##########################################################'
+	       cd $lcl
 	     
-          #Check VARootIO can open and load file 
-	   ~/Switch.rootrcTo.rootrc_glenn.scr
-	   Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
-	   echo Arg: $Arg 
+           #Check VARootIO can open and load file 
+	       ~/Switch.rootrcTo.rootrc_glenn.scr
+	       Arg=$lcl'/CheckStage2FileOK.C("'$FileName'")'
+	       echo Arg: $Arg 
 
-	   if [ -e  "CheckStage2FileOK.Result" ]; then
-	       rm "CheckStage2FileOK.Result"
-	   fi
-	   let TimeWaited=0
+	       if [ -e  "CheckStage2FileOK.Result" ]; then
+	         rm "CheckStage2FileOK.Result"
+	       fi 
+	       let TimeWaited=0
 
-	   root -q -b -q $Arg  >CheckStage2OK.log
+	       root -q -b -q $Arg  >CheckStage2OK.log
 
-	   if [ !  -e  "CheckStage2FileOK.Result" ]; then
-	       echo 'VAAuto: root CheckStage2FileOK.C failed to produce CheckStage2FileOK.Result'
-	       echo 'VAAuto: Check to see if another VAAuto is running: ps aux'
-	       echo "Bad: "$FileName
-	       cat CheckStage2OK.log
-	   else
+	       if [ !  -e  "CheckStage2FileOK.Result" ]; then
+	         echo 'VAAuto: root CheckStage2FileOK.C failed to produce CheckStage2FileOK.Result'
+	         echo 'VAAuto: Check to see if another VAAuto is running: ps aux'
+	         echo "Bad: "$FileName
+	         cat CheckStage2OK.log
+	       else
 
-	       {
-		   read BAD
-		   let suzBAD=$BAD
-		   if [ $suzBAD -lt "0" ]; then
+	        {
+		     read BAD
+		     let suzBAD=$BAD
+		     if [ $suzBAD -lt "0" ]; then
 		       echo "Bad: "$FileName
 		       if [ $suzBAD -eq "-1" ]; then
 			   echo "VAAuto: VARootIO failed to open" 
@@ -1822,11 +1756,11 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 		       if [ $suzBAD -eq "-5" ]; then
 			   echo "VAAuto: Too few events ( <20 )  in ParameterisedEventTree"
 		       fi
-		   fi 
-	       } <CheckStage2FileOK.Result
-	       rm CheckStage2FileOK.Result
-	   fi
-	 fi
+		     fi 
+	         } <CheckStage2FileOK.Result
+	         rm CheckStage2FileOK.Result
+	       fi
+	     fi
          ###############################################################
   
 
@@ -1834,9 +1768,9 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
          if [ -n "$GenerateDispSubLTListFiles" ]; then
            # echo '##########################################################'
            # echo '# GenerateDispSubLTListFiles'
-	   # echo '##########################################################'
-	     cd $lcl
-	     echo $FileName >>$DispListName
+	       # echo '##########################################################'
+	       cd $lcl
+	       echo $FileName >>$DispListName
          fi
          #******************************************************************
  
