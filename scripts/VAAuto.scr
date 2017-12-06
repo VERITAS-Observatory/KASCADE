@@ -164,11 +164,16 @@ function GenerateEAFileName()
   a=${Cuts:0:1}
   if [ "$a" = "U" ]; then
      Epoch=V6_PMTUpgrade
+     PMT_Mfr=Photonis
+     PMT_mfr=photonis
      SimModel=MDL12UA
   fi
   if [ "$a" = "N" ]; then
      Epoch=V5_T1Move
-     SimModel=MDL15NA
+     PMT_Mfr=Hamamatsu
+     PMT_mfr=hamamatsu
+      
+    SimModel=MDL15NA
   fi
   if [ "$a" = "O" ]; then
      Epoch=V4_OldArray
@@ -1227,24 +1232,51 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
 
     if [ ! -e "$VSProdFile" ]; then
-     cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
+      cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
 
-     #The standard VegasSimProduction.scr should have all options 
-     #turned off.  We just have to make sure only stages 1 and 2 get run
-     #??????Sample size:We will need to set integration window size if 
-     #different from 7?????? Not implimented yet.
-     ##################################################################
-     sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                          < $VSProdFile >tmp1
-     sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
-     sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-     sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
-     sed '/Stage5=enable/s/Stage5/#Stage5/g' \
-                                           <tmp2 >$VSProdFile
-     chmod 755 $VSProdFile
+      #The standard VegasSimProduction.scr should have all options 
+      #turned off.  We just have to make sure only stages 1 and 2 get run
+      #??????Sample size:We will need to set integration window size if 
+      #different from 7?????? Not implimented yet.
+      ##################################################################
+      sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+                                                          < $VSProdFile >tmp1
+      sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+      sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+      sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+      sed '/Stage5=enable/s/Stage5/#Stage5/g' \                   <tmp2 >$VSProdFile 
+
+      ####################################################################
+      #Check now to see if we are using a LowGain (LGD) capable vegas. 
+      #If so, defin in the vegasSimProduction file the -TE options.
+      ####################################################################
+      #Look in config file for on of the options
+      runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
+      if [ -n "$runningLGD" ]; then
+	 #########################################
+	 #Define the file names needed in the options.]
+	 #########################################
+	 if [ -n "$CORI" ]; then
+	     lgdf=$VEGAS/../../common/lowGainDataFiles/   #on cori
+	 else
+	     if [ -n "$HALSTEAD" ]; then
+		 lgdf=$VEGAS/../../common/lowGainDataFiles/   #on Halstead
+	     fi
+	 fi
+	 #note the difference (cap/nocap) PMT_Mfr and PMT_mfr (not my fault!)
+	 VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
+	 VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
+
+	 sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  < $VSProdFile >tmp1
+	 sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  < tmp1 >tmp2
+	 sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
+
+      fi
+
+      chmod 755 $VSProdFile
      
-     rm tmp1
-     rm tmp2
+      rm tmp1
+      rm tmp2
     fi
     #############################################################################
     # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
@@ -1253,11 +1285,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
        WALLTIME=24:00:00
     fi
-    if [ -n "$CARVER" ]; then
-	MEMREQUEST="pvmem=8GB"
-    else
-	MEMREQUEST="mem=8GB"
-    fi
+    MEMREQUEST="mem=8GB"
 fi
 ############################################################################
 

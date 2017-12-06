@@ -7,7 +7,6 @@
 #   If FileBase is defined below the stage4/stage5 file will be the stage1/stage2 
 #   filename with $FileBase inserted before the .root
 #$2 PedVarScaleing file to set noise(file name  or "dummy"): May define "PedVarFile"
-
 #################################################################################
 # Note we use $VEGAS/bin  for  vegas programs.
 #################################################################################
@@ -65,8 +64,15 @@ if [ -n "$2" ]; then
   fi
 fi
 
+############################################################################
+#Following are place holders for the LGD options if we use them
+#defined by calling script using sed replacemnet, otherwise then are empty
+############################################################################
+#LGDAlgorithumOption=
+#LGDTemplateOption=
+#LGDTranferFuntionOption=
 
-#Stage4_2         
+#Stage4_2 Options         
   #CutTelescopeOption='-CutTelescope=0/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
@@ -116,7 +122,9 @@ if [ -n "$Stage1Laser" ]; then
         simLaser.root
 fi
 
-#Now process the file:
+##############################################################################
+# Define the necessary files
+##############################################################################
 VBFFileName=$1
 File=${VBFFileName%".root"}'.root' #allow for .root or .vbf file names on input
 #echo File: $File
@@ -134,6 +142,9 @@ if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
 fi
 echo RootFileName: $RootFileName
 
+#################################################################################
+#Now start the processing
+#################################################################################
 if [ -n "$Stage1Data" ]; then
     echo Stage1Data: $Stage1Data
     $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
@@ -144,10 +155,12 @@ fi
 
 if [ -n "$Stage2" ]; then
     echo Stage2: $Stage2
+
     $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
 	$BadPixelOption $NumEventsToAnalyseOption \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
         $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
+	$LGDAlgorithumOption $LGDTemplateOption $LGDTranferFuntionOption \
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 
