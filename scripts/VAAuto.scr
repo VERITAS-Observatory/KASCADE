@@ -1164,8 +1164,8 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
 
     if [ ! -e "$VSProdFile" ]; then
-      cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
-
+      cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
+	  ls -al $VSProdFile
       #######################################################################
       #The standard $KASCADE/scripts/VegasSimProduction.scr should have all options 
       #turned off.  We just have to make sure only stages 1 and 2 get run
@@ -1173,8 +1173,8 @@ if [ -n "$GenerateStage2FromVBF" ]; then
       #different from 7?????? Not implimented yet.
       ##################################################################
       sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                                          < $VSProdFile >tmp1
-      sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+                                                           <$VSProdFile >tmp11
+      sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp11 >tmp2
       sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
       sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
       sed '/Stage5=enable/s/Stage5/#Stage5/g' \                   <tmp2 >$VSProdFile 
@@ -1201,8 +1201,8 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	    VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
 	    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
 
-	    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  < $VSProdFile >tmp1
-	    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  < tmp1 >tmp2
+	    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp1
+	    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp1 >tmp2
 	    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
 
       fi
