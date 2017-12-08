@@ -802,7 +802,7 @@ function BuildVegasSimProduction()
   # Check to see if we are on Cori. If so add this job command to the qsub 
   # list file then make the .pbs job.
   #############################################
-  if [[ -n "$CORI" ] || [ -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
       ##############################################
       # Generate the veagsSimProduction command 
       ##############################################
@@ -1805,7 +1805,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 
 			 cd $lcl
 			 date
-			 if [[ -n "$CORI" ] || [ -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+			 if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
 				 #########################################################
 				 # BuildVegasSimProduction will create the .pbs file and add
                  # that files name to the QsubFileNameList  file
@@ -1914,7 +1914,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	#For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
 	#in the qsubFileNameList
     ######################################################################
-	if [[ -n "$CORI"  ] || [ -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+	if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
 		SubmitQsubJobs  $QsubFileNameList
 	fi
 fi
