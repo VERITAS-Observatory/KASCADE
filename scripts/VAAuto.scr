@@ -32,6 +32,8 @@ LimitSubmissions=enabled # Enable if you want to submit more that 9 HTAR
 MaxQsubsDefault=450      # jobs but only want 9 at a time to run (limit for 
                          # HTAR) Or you want to generate S2 or S4 files and 
                          # only make 450 submission in queue at one time
+
+JobArray=enabled         #For cori jobs arrays
 #EdisonMultipleSerial=enabled  #Temp switch to test out new Edison mutiple 
                               #serial VegasSimProduction submission.
 ###############################################################################
@@ -751,6 +753,74 @@ function SubmitVegasSimProduction()
 }
 ##############################################################################
 
+function BuildVegasSimProduction()
+#######################################################################
+#$1 PedVar command file. Ex: PedUA4.04  or PedNA10.27 or  PedOA7.53
+#$2 FileBase: VBF Base name of the file to be processed
+#$3 Vegas script file to run. Ex:  VegasSimProductionS4.269295369.scr
+#$4 VBF file name 
+#######################################################################
+# Builds a  VegasSimProduction .pbs job file (but does not submit it. Puts
+# it in a qsubFileNameList instead for later submission(usually as a job 
+# ray).
+#######################################################################
+# No track is kept on the number of jobs in the list. This is ok on CORI
+# where the limit is 10,000
+# This routine is called once for each serial job to be submitted.
+# This is a sligtly modified version of the original SubmitVegasSimProduction
+# function
+#######################################################################
+{
+  local FilePedVar=$1
+  local FileBase=$2
+  local VEGASScript=$3
+  local FileVBF=$4
+
+  ##########################################
+  #  Make sure we have the PedVar command file
+  ##########################################
+  if [ "$FilePedVar" = "NONE" ]; then
+      FilePedVar=""
+  else
+    if [ ! -e "$lcl"/"$FilePedVar" ]; then
+      cp $KASCADEBASE/inputs/$FilePedVar $lcl/
+      if [ ! -e "$lcl"/"$FilePedVar" ]; then
+        echo 'VAAUTO: SubmitVegasSimProduction requires file' $FilePedVar
+        echo 'VAAuto: FFatal!--Attemp to copy ' $KASCADEBASE'/inputs/'$FilePedVar' to '$lcl'/ Failed!'
+        exit
+      fi 
+    fi
+  fi
+
+  ################################################
+  # Set up unique idientifier for this job
+  ################################################
+  GetUniqueNumber
+  local IDUNIQUE=$UNIQUE
+
+  #############################################
+  # Check to see if we are on Cori. If so add this job command to the qsub 
+  # list file then make the .pbs job.
+  #############################################
+  if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
+      ##############################################
+      # Generate the veagsSimProduction command 
+      ##############################################
+	  local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
+	  sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
+	  SgeFilePBSCmds   $sgeFile
+	  SgeFileBashCmds  $sgeFile
+
+	  echo $VSPCommand                             >>$sgeFile
+
+	  SgeFileCompleteAndSave $sgeFile
+  else
+     echo 'Fatal--BuildVegasSimProduction: Not setup for this cluster'
+     exit
+  fi
+}
+##############################################################################
+
 
 ##############
 #Main Program:
@@ -1154,9 +1224,12 @@ fi
 
 if [ -n "$GenerateStage2FromVBF" ]; then
     echo '##########################################################'
-    echo '# GenerateStage2FromVBF'
+    echo '# GenerateStage2FromVBF (Cori ready)'
     echo '##########################################################'
-    cd $lcl
+    ####################################################################
+    #Setup the VegasSimProduction.scr we will use
+	####################################################################
+	cd $lcl
     date
     #Make sure VegasSimProduction.scr is set up correctly to get  
     #Stage1 and Stage2
@@ -1164,80 +1237,78 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
     echo VSProdFile:   $VSProdFile
 
-    if [ ! -e "$VSProdFile" ]; then
-      cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
-      ls -al $VSProdFile
+	####################################################################
+    # See note below in GeneraterStage2FromVBF swection on CORI use of Job 
+    # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
+    # here.
+    # Eventual use on all clusters
+    ####################################################################
+	QsubFileNameList='VA'$UNIQUE'AutoqsubList'
+    echo QsubFileNameList: $QsubFileNameList
+    if [ -e "$QsubFileNameList" ]; then
+		rm $QsubFileNameList
+    fi
+	QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
+    if [ -e "$QsubLogs" ]; then
+		rm $QsubLogs
+    fi
+
+	cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
+	ls -al $VSProdFile
       #######################################################################
-      #The standard $KASCADE/scripts/VegasSimProduction.scr should have all options 
-      #turned off.  We just have to make sure only stages 1 and 2 get run
+      #The standard $KASCADE/scripts/VegasSimProduction.scr should have all 
+      #options turned off.  We just have to make sure only stages 1 and 2 
+      #get run
       #??????Sample size:We will need to set integration window size if 
       #different from 7?????? Not implimented yet.
       ##################################################################
-      sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+	sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
                                                            <$VSProdFile >tmp1
-
-      ls -al $VSProdFile
-
-      sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
-      ls -al $VSProdFile
-      sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-      ls -al $VSProdFile
-      sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
-      ls -al $VSProdFile
-      sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
-      mv tmp1 $VSProdFile
-
+	sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+	sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+	sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+	sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
+	mv tmp1 $VSProdFile
 
       ####################################################################
-      #Check now to see if we are using a LowGain (LGD) capable vegas. 
-      #If so, defin in the vegasSimProduction file the -TE options.
+      # Check now to see if we are using a LowGain (LGD) capable vegas. 
+      # If so, enable definitions in the $VAProdFile(vegasSimProduction) file 
+      # the -TE options.
+      # Look in vaStage2 config file for the TE options. That will tell us
       ####################################################################
-      #Look in config file for on of the options
-      ls -al $VSProdFile
-      module list
-      runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
-      echo runningLGD:  $runningLGD
-      if [ -n "$runningLGD" ]; then
-	     echo VAAuto: vaStage2 is LGD capable.
-             ls -al $VSProdFile
-             #########################################
+	runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
+	if [ -n "$runningLGD" ]; then
+		echo VAAuto: vaStage2 is LGD capable.
+         #########################################
 	     #Define the file names needed in the options.]
 	     #########################################
-	     if [ -n "$CORI" ]; then
-	       lgdf=$VEGAS/../../common/lowGainDataFiles/   #on cori
-	      else
+		if [ -n "$CORI" ]; then
+			lgdf=$VEGAS/../../common/lowGainDataFiles/   #on cori
+		else
 	        if [ -n "$HALSTEAD" ]; then
-		      lgdf=$VEGAS/../../common/lowGainDataFiles/   #on Halstead
+				lgdf=$VEGAS/../../common/lowGainDataFiles/   #on Halstead
 	        fi
-	      fi
-  	    echo lgdf: $lgdf
-            #note the difference (cap/nocap) PMT_Mfr and PMT_mfr (not my fault!)
+		fi
+        #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
 	    VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
 	    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
-            ls -al $VSProdFile
-
 	    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
-      ls -al $VSProdFile
 	    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
-      ls -al $VSProdFile
 	    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
-      ls -al $VSProdFile
+	fi
 
-      fi
-
-      chmod 755 $VSProdFile
-      rm tmp1
-      rm tmp2
-
-    fi
-    #############################################################################
-    # Stage 2 only needs shorter time if Carver (may let us get nodes easier)
-    #############################################################################
+	chmod 755 $VSProdFile
+	rm tmp1
+	rm tmp2
+	
+    ###########################################################################
+    # Stage 2 only needs longer time if Halstead
+    ###########################################################################
     WALLTIME=15:00:00
     if [ -n "$HALSTEAD" ]; then
-       WALLTIME=24:00:00
+		WALLTIME='-l walltime=24:00:00'
+		MEMREQUEST=" -l mem=8GB"
     fi
-    MEMREQUEST="mem=8GB"
 fi
 ############################################################################
 
@@ -1715,17 +1786,38 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
          
 
          if [ -n "$GenerateStage2FromVBF" ]; then
-           #echo '##########################################################'
-           #echo '# GenerateStage2FromVBF '
-     	   #echo '##########################################################'
-	       cd $lcl
-	       date
-	       echo PedVarFile: $PedVarFile
-      
-           echo "VAAuto: Submitting $VAProdFile to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-	       SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+             #echo '##########################################################'
+             #echo '# GenerateStage2FromVBF '
+     	     #echo '##########################################################'
 
-	     fi
+	         ################################################################
+             # I made a change for the Cori version . Enable the Job array 
+             # algorithum as used in the KAAuto.scr file for Cori.  This 
+             # requires that we make all the pbs files and place there names 
+             # in a QSubListFile instead of running them dierectly. Then after
+             # that is  complete a single routine, SubmitQsubJobs, (now in 
+             # UtilityFuntions is call to submit a job array submission. (Note:
+             # there is no QsubLimit procedure when using the job arrays (for 
+             # now).
+             # Eventually we will switch over to using the QSubListFile for  
+             # all clusters. Only Cori for now.
+             #################################################################
+
+			 cd $lcl
+			 date
+			 if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
+				 #########################################################
+				 # BuildVegasSimProduction will create the .pbs file and add
+                 # that files name to the QsubFileNameList  file
+                 #########################################################
+				 BuildVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME 
+			 else
+				 echo PedVarFile: $PedVarFile
+				 echo "VAAuto: Submitting $VAProdFile to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
+				 SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+
+			 fi
+		 fi
          ###############################################################
 
 
@@ -1811,6 +1903,22 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 fi
 
 ###########################################################################
+
+if [ -n "$GenerateStage2FromVBF" ]; then
+	
+    #echo '##########################################################'
+    #echo '# GenerateStage2FromVBF '
+    #echo '##########################################################'
+	
+    ######################################################################
+	#For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
+	#in the qsubFileNameList
+    ######################################################################
+	if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
+		SubmitQsubJobs  $QsubFileNameList
+	fi
+fi
+##########################################################################
 
 if [ -n "$GenerateSubLTListFiles" ]; then
    echo '##########################################################'

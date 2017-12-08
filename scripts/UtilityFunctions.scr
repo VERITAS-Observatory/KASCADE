@@ -389,3 +389,98 @@ function SgeFileBashCmds()
   echo cd \$lcl                               >>$sgeFile
 }
 #########################################################################
+
+function SgeFileCompleteAndSave()
+#########################################################################
+# Complete the .pbs file by adding Done command file creation
+# Save job name to the QsubFileNameList.
+#Ref.:  This mimics the ksProduction::CompleteAndSubmit function
+#########################################################################
+{
+	sgeFile=$1
+  chmod 700 $sgeFile
+  echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
+  echo $sgeFile >>$QsubFileNameList
+}
+############################################################################
+
+function SubmitQsubJobs()
+#################################################
+#$1  List of .qsub jobs to submit
+#$2  file with all the names of the *.qsub.Done files the submitted jobs will 
+#    write when they finish
+#$3  Maximum jobs to have running or waiting to run in the queue
+# Due to differences in memory requirments for Te and ShowerrVBF jobs we also
+# use the defined string MEMREQUEST. If exists is uaually has a value like
+#  MEMREQUEST=' -l pvmem=30GB '
+{
+  QsubList=$1
+  QsubDoneList=$2
+  MaxQsubs=$3
+
+  if [ -e "$QsubDoneList" ]; then
+    rm $QsubDoneList
+  fi
+
+  if [[ -n "$CORI"  || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+    ##############################################################
+    # If we are on Cori or Edison and JobArrays are enabled we need to take 
+    # each file 
+    # from the QsubList, remove all the SBATCH commands and give each of 
+    # these new files an indexed name(unique also) so that they can be 
+    # called in a job array submission
+    ############################################################## 
+    GetUniqueNumber           #UNIQUE will idintify this run
+    sgeFile=KS$UNIQUE.ja      #Job array submission file name
+    echo 'KSAuto: Job Array Generartion. Job Array File Name: ' $sgeFile
+    let sbIndex=0             $Job array index
+    {
+     while read  sgeFileFull
+      do
+       #Remove SBATCH lines and give file indexed name
+       let sbIndex="sbIndex+1"
+	   if [ "$sbIndex" -eq "1" ]; then
+	     sgeIndexPath=${sgeFileFull%/*}   #want same dir as input files
+	   fi
+       sgeIndexFile=$sgeIndexPath'/'$sgeFile'-'$sbIndex
+	   sed '/SBATCH/d' <$sgeFileFull >$sgeIndexFile  #Removes SBATCH lines
+       chmod 700 $sgeIndexFile
+      done
+    }<$QsubList
+     
+    #Now build and submit Jobarray SBATCH file
+    SgeFilePBSCmds $sgeFile
+
+    echo "#"SBATCH --array=1-$sbIndex                       >>$sgeFile
+    echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID' >>$sgeFile  
+      
+    chmod 700 $sgeFile
+    $QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile
+  else
+    ###################################################################
+    # Normal submission from the QsubList  
+    ###################################################################
+    { 
+     while read sgeFileFull
+      do
+        CheckQsubSubmissions  $MaxQsubs $QsubDoneList 
+                                     #Gets here when we can submit the next job
+        sgeFile=${sgeFileFull##*/}
+        echo $sgeFile
+        local sgeDoneFile=$sgeFileFull'.Done'
+        if [ -e "$sgeDoneFile" ]; then
+          rm $sgeDoneFile
+        fi
+        echo adding: $sgeDoneFile
+	    echo $sgeDoneFile >>$QsubDoneList #add the next one
+       
+        $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+        #For Hammer pause between submissions
+        if [ -n "$PURDUE" ] ; then
+          sleep 2
+        fi
+      done
+    }<$QsubList
+  fi
+}
+###########################################################################
