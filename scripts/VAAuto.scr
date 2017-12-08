@@ -825,7 +825,7 @@ function BuildVegasSimProduction()
 ##############
 #Main Program:
 ##############
-module list
+
 ##################
 # Bring in SetupForHost, GetUniqueNumber and  GenerateVBFName
 #  functions
@@ -906,14 +906,24 @@ if [ -n "$EDISON" ]; then
   JobIDHost='edison'
   ARCHIVE=/home/u/u15013/$SPECMDL'/'
   VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
-  MaxQsubsDefault=175
-  if [ -n "$EdisonMultipleSerial" ]; then
-    QUEUE='-p ccm_queue'       #Overrides sharedl
+  MaxQsubsDefault=9000
+  if [ -n "$EdisonMultipleSerial" ]; then  #This may be obsolete 2017-12-08
+    QUEUE='-p ccm_queue'       #Overrides shared queue
     let MSJCount=0
     let NUMCORESNODE=24
-    MaxQsubsDefault=1000
-  else
-    QUEUE=serial
+    MaxQsubsDefault=9000
+  fi
+fi
+if [ -n "$CORI" ]; then
+  JobIDHost='cori'
+  ARCHIVE=/home/u/u15013/$SPECMDL'/'
+  VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
+  MaxQsubsDefault=9000
+  if [ -n "$CoriMultipleSerial" ]; then #This may be obsolete 2017-12-08
+    QUEUE='-p ccm_queue'       #Overrides shared queue
+    let MSJCount=0
+    let NUMCORESNODE=24
+    MaxQsubsDefault=9000
   fi
 fi
 
@@ -1254,7 +1264,6 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     fi
 
 	cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
-	ls -al $VSProdFile
       #######################################################################
       #The standard $KASCADE/scripts/VegasSimProduction.scr should have all 
       #options turned off.  We just have to make sure only stages 1 and 2 
@@ -1298,7 +1307,6 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	fi
 
 	chmod 755 $VSProdFile
-	rm tmp1
 	rm tmp2
 	
     ###########################################################################
@@ -1804,7 +1812,6 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
              #################################################################
 
 			 cd $lcl
-			 date
 			 if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
 				 #########################################################
 				 # BuildVegasSimProduction will create the .pbs file and add
