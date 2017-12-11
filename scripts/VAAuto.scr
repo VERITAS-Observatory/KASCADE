@@ -799,8 +799,8 @@ function BuildVegasSimProduction()
   local IDUNIQUE=$UNIQUE
 
   #############################################
-  # Check to see if we are on Cori. If so add this job command to the qsub 
-  # list file then make the .pbs job.
+  # Check to see if we are on Cori. If so make the .pbs job, then add this 
+  # job  to the qsub list file.
   #############################################
   if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
       ##############################################
@@ -1237,8 +1237,10 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     echo '# GenerateStage2FromVBF (Cori ready)'
     echo '##########################################################'
     ####################################################################
-    #Setup the VegasSimProduction.scr we will use
-	####################################################################
+    #1: Setup the VegasSimProduction.scr we will use for these jobs.
+	#2: Setup the QsubFileNameList and QsubsLogs file
+    #3:  For Halstead shorten the walltime for these Stage2 jobs.
+    ####################################################################
 	cd $lcl
     date
     #Make sure VegasSimProduction.scr is set up correctly to get  
@@ -1802,13 +1804,14 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
              # I made a change for the Cori version . Enable the Job array 
              # algorithum as used in the KAAuto.scr file for Cori.  This 
              # requires that we make all the pbs files and place there names 
-             # in a QSubListFile instead of running them dierectly. Then after
-             # that is  complete a single routine, SubmitQsubJobs, (now in 
-             # UtilityFuntions is call to submit a job array submission. (Note:
+             # in a QSubListFile instead of running them directly. Then after
+             # that is  complete, a single routine, SubmitQsubJobs, (now in 
+             # UtilityFuntions)is called to submit a job array submission task.
+			 #(Note:
              # there is no QsubLimit procedure when using the job arrays (for 
              # now).
              # Eventually we will switch over to using the QSubListFile for  
-             # all clusters. Only Cori for now.
+             # all clusters. Only Cori and Edison for now.
              #################################################################
 
 			 cd $lcl

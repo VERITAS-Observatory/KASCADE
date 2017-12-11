@@ -386,7 +386,9 @@ function SgeFileBashCmds()
     echo source /etc/profile                  >>$sgeFile
     echo lcl=\$PBSCMD_O_WORKDIR               >>$sgeFile
   fi
-  echo cd \$lcl                               >>$sgeFile
+  echo cd $lcl                                >>$sgeFile
+  echo pwd                                    >>$sgeFile
+  echo module list                            >>$sgeFile
 }
 #########################################################################
 
