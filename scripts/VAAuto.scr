@@ -166,16 +166,11 @@ function GenerateEAFileName()
   a=${Cuts:0:1}
   if [ "$a" = "U" ]; then
      Epoch=V6_PMTUpgrade
-     PMT_Mfr=Photonis
-     PMT_mfr=photonis
      SimModel=MDL12UA
   fi
   if [ "$a" = "N" ]; then
      Epoch=V5_T1Move
-     PMT_Mfr=Hamamatsu
-     PMT_mfr=hamamatsu
-      
-    SimModel=MDL15NA
+	 SimModel=MDL15NA
   fi
   if [ "$a" = "O" ]; then
      Epoch=V4_OldArray
@@ -270,7 +265,7 @@ function GenerateLTFileName()
   fi
   if [ "$a" = "NA" ]; then
      Epoch=V5_T1Move
-     SimModel=MDL15NA
+	 SimModel=MDL15NA
   fi
   if [ "$a" = "OA" ]; then
      Epoch=V4_OldArray
@@ -874,15 +869,21 @@ fi
 ############################
 if [ "$SPECCFG" = "UA" ]; then
     PMT="U"
+	PMT_Mfr=Photonis
+	PMT_mfr=photonis
     LTSEASON="ua"
 fi
 if [ "$SPECCFG" = "OA" ]; then
     PMT="O"
+	PMT_Mfr=Hamamatsu
+	PMT_mfr=hamamatsu
     LTSEASON="oa"
 fi
 if [ "$SPECCFG" = "NA" ]; then
     PMT="N"
-    LTSEASON="na"
+	PMT_Mfr=Hamamatsu
+	PMT_mfr=hamamatsu
+	LTSEASON="na"
 fi
 if [ "$SPECCFG" = "W" ]; then
     PMT=$SPECCFG
@@ -1301,8 +1302,14 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	        fi
 		fi
         #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
-	    VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
+	    echo PMT_Mfr: $PMT_Mfr
+	    echo PMT_mfr: $PMT_mfr
+		echo ldgf: $lgdf
+
+		VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
 	    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
+
+
 	    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
 	    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
 	    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
@@ -1315,6 +1322,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     # Stage 2 only needs longer time if Halstead
     ###########################################################################
     WALLTIME=' -t 15:00:00'
+	MEMREQUEST='--mem=5GB'
     if [ -n "$HALSTEAD" ]; then
 		WALLTIME='-l walltime=24:00:00'
 		MEMREQUEST=" -l mem=8GB"
