@@ -2166,58 +2166,58 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 
        #**********************************************************
        if [ -n "$GenerateSubLTConfigFiles" ] || \
-	  [ -n "$GenerateEASubLTListAndConfigFiles" ] ;
-	 then
+		  [ -n "$GenerateEASubLTListAndConfigFiles" ] ;
+	     then
          #############################################################
          #Now we need to "edit the new config file
          #############################################################
          #Figure out what the Zenith argument should look like
-	   if test $izn -eq "0" 
-	    then
+	     if test $izn -eq "0" 
+	      then
 	       Zn=${Zenith[izn]}','${Zenith[1]}
-	   else
+	     else
 	       Zn=${Zenith[0]}','${Zenith[izn]}
-	   fi
-	   #now replace Zenith argument and put in a tmp file
-	   sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
+	     fi
+	     #now replace Zenith argument and put in a tmp file
+	     sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
 
            ##############################################################
            #Now do the same for the Offset but put in final file
            #If we only are doing one offset leavce AbsoluteOffset blank
-	   if test $iwblEnd -ne "1"   #Allows for only one WBl
-	     then   
+	     if test $iwblEnd -ne "1"   #Allows for only one WBl
+	      then   
 	       if test $iwbl -eq "0" 
-		 then
-		   W=${WblOffset[$iwbl]},${WblOffset[1]}
+		    then
+		     W=${WblOffset[$iwbl]},${WblOffset[1]}
 	       else
-		   W=${WblOffset[0]},${WblOffset[$iwbl]}
+		     W=${WblOffset[0]},${WblOffset[$iwbl]}
 	       fi
 	       sed '/luteOffset/s/'$ABOStr'/'$W'/g'  <config2.tmp >$ConfigName
-	   else
+	     else
 	       cp config2.tmp $ConfigName
               #   sed '/luteOffset/s/'$ABOStr'/   /g'  <config2.tmp >$ConfigName
-           fi   
+         fi   
            #now replace Offset argument and put in a final file
-	   rm config2.tmp
+	     rm config2.tmp
        fi
        #********************************************************************
 
 
        if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
-        #*****************************************************************
-        #For each of ZN Az, and  Offset combination we make a tar file of all
-        #the files with that Zn Az and Offset and all  PedVar (9 files)
-        ##################################################################
-        # Make up Pedvar .tar file name
-	   PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
-     	   if [ "$SPECPART" = "CR" ]; then
-             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL#No wbl for CR
-       	   else
-             GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
-           fi
-           BaseFileS2=${VBFFILENAME%%_az*}
-	   PVFILESPEC='PedVar*'$BaseFileS2'*'$WBL'wobb.root'
-	   SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
+         # *****************************************************************
+         # For each of ZN Az, and  Offset combination we make a tar file of all
+         # the files with that Zn Az and Offset and all  PedVar (9 files)
+         # #################################################################
+         # Make up Pedvar .tar file name
+	     PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
+         if [ "$SPECPART" = "CR" ]; then
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL#No wbl for CR
+         else
+           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
+         fi
+         BaseFileS2=${VBFFILENAME%%_az*}
+	     PVFILESPEC='PedVar*'$BaseFileS2'*'$WBL'wobb.root'
+	     SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
@@ -2228,33 +2228,33 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	 PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
+	     PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
 
-	 SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
+	     SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
 
        if [ -n "$HTARPedVarZnOffsetS4ToArchive" ]; then
-        #*****************************************************************
-        # For each of ZN Az, and  Offset combination we make a tar file of all
-        # the files with that Zn Az and Offset and all  PedVar (9 files)
-        ##################################################################
-        # Make up Pedvar .tar file name
-	  if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then
+         #*****************************************************************
+         # For each of ZN Az, and  Offset combination we make a tar file of all
+         # the files with that Zn Az and Offset and all  PedVar (9 files)
+         ##################################################################
+         # Make up Pedvar .tar file name
+	     if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then
              #Check Archive Directory exists 
-	    hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
-	    echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
-	  fi
-	  PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
-	  if [ -n "$TELCUT" ]; then
-	      PedVarHTARFile=$PedVarHTARFile$TelConfig
-	  fi
+	       hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
+	       echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
+	     fi
+	     PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	     if [ -n "$TELCUT" ]; then
+	       PedVarHTARFile=$PedVarHTARFile$TelConfig
+	     fi
 
-	  PedVarHTARFile=$PedVarHTARFile'.tar'
+	     PedVarHTARFile=$PedVarHTARFile'.tar'
 
-	  PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
+	     PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
               
-	   SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
+	     SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
        fi
        #*********************************************************************
 
@@ -2264,12 +2264,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          # the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	   PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
-	   if [ -n "$TELCUT" }; then
+	     PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	     if [ -n "$TELCUT" }; then
 	       PedVarHTARFile=$PedVarHTARFile$TelConfig
-           fi
+         fi
 	   
-	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
+	     SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
        
@@ -2277,28 +2277,21 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          ####################################################################
          # Make up the job script file that will be submitted below
          ####################################################################
-	   sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-	   echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
-	   echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
-    fi
-	   if [ -n "$PURDUE" ]; then
-	       echo source /etc/profile                >>$sgeFile
-	       echo module load gcc/4.7.2              >>$sgeFile
-	   fi
-	   echo cd $lcl                                >>$sgeFile
-	   echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
-	   echo -config $lcl'/'$ConfigName \\          >>$sgeFile
-	   echo -cuts $LTCUTSFILE  \\                  >>$sgeFile
-	   echo  $lcl'/'$ListName   \\                 >>$sgeFile
-	   echo  $SubLTFileName  \\                    >>$sgeFile
-	   echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
-	   chmod 700 $sgeFile
+
+	     sgeFile=$lcl'/'$SUBLTBASE'.pbs'
+	     SgeFilePBSCmds   $sgeFile
+	     SgeFileBashCmds  $sgeFile
+
+	     echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
+	     echo -config $lcl'/'$ConfigName \\          >>$sgeFile
+	     echo -cuts $LTCUTSFILE  \\                  >>$sgeFile
+	     echo  $lcl'/'$ListName   \\                 >>$sgeFile
+	     echo  $SubLTFileName  \\                    >>$sgeFile
+	     echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
+
+		 SgeFileCompleteAndSave $sgeFile
 	   
-	   qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+	     #qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
@@ -2306,28 +2299,28 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          ####################################################################
          # Make up the job script file that will be submitted below
          ####################################################################
-	   sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-	   echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
-	   echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
-    fi
-	   if [ -n "$PURDUE" ]; then
+	     sgeFile=$lcl'/'$SUBLTBASE'.pbs'
+	     echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
+	     echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
+         if [ -n "$CONTE" ]; then
+           echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
+           echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
+           echo module load devel                                      >>$sgeFile
+         fi
+	     if [ -n "$PURDUE" ]; then
 	       echo source /etc/profile                  >>$sgeFile
 	       echo module load gcc/4.7.2                >>$sgeFile
-	   fi
-	   echo cd $lcl                                >>$sgeFile
-	   echo $VEGAS/bin/makeEA \\                   >>$sgeFile
-	   echo -config $lcl'/'$ConfigName \\          >>$sgeFile
-	   echo -cuts $EACUTSFILE  \\                  >>$sgeFile
-	   echo  $lcl'/'$ListName   \\                 >>$sgeFile
-	   echo  $SubLTFileName  \\                    >>$sgeFile
-	   echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
-	   chmod 700 $sgeFile
+	     fi
+	     echo cd $lcl                                >>$sgeFile
+	     echo $VEGAS/bin/makeEA \\                   >>$sgeFile
+	     echo -config $lcl'/'$ConfigName \\          >>$sgeFile
+	     echo -cuts $EACUTSFILE  \\                  >>$sgeFile
+	     echo  $lcl'/'$ListName   \\                 >>$sgeFile
+	     echo  $SubLTFileName  \\                    >>$sgeFile
+	     echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
+	     chmod 700 $sgeFile
 	   
-	   qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+	     qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
@@ -2335,14 +2328,14 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          #*******************************************************************
          # Create the List of all SubLT files to be combined
          #******************************************************************
-	 # But first check that each file does exixt. We may want to test deeper
+	     # But first check that each file does exixt. We may want to test deeper
          # if this isn't enough later.
          ###################################################################
-	   if  [ ! -e "$SubLTFileName" ]; then
+	     if  [ ! -e "$SubLTFileName" ]; then
 	       echo 'VAAuto: Fatal--SubLT file '$SubLTFileName ' dose not exist'
 	       exit
-	   fi
-	   echo $SubLTFileName >>$lcl'/'$SubLTList
+	     fi
+	     echo $SubLTFileName >>$lcl'/'$SubLTList
        fi
        #*******************************************************************
 
