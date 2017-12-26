@@ -254,26 +254,42 @@ fi
    HALSTEAD=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
+
    QUEUE1='-q physics'
+   PHYSICSQUEUE=$QUEUE1
    WALLTIME1='-l walltime=10:00:00'
+   PHYSICSWALLTIME=$WALLTIME1
+
    QUEUE2='-q standby'
+   STANDBYQUEUE=$QUEUE2
+
    WALLTIME2='-l walltime=04:00:00'
+   STANDBYWALLTIME=$WALLTIME2
+
    QUEUE=$QUEUE1
    WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
    let SUBMITLIMIT=975
    echo '***Halstead Cluster:'$QUEUE' queue ***'
  fi
+
  hostString=${host:0:4}
  if test  "$hostString" = "rice"  #Are we running on Rice
   then
    RICE=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
+
    QUEUE1='-q physics'
+   PHYSICSQUEUE=$QUEUE1
    WALLTIME1='-l walltime=10:00:00'
+   PHYSICSWALLTIME=$WALLTIME1
+
    QUEUE2='-q standby'
+   STANDBYQUEUE=$QUEUE2
    WALLTIME2='-l walltime=04:00:00'
+   STANDBYWALLTIME=$WALLTIME2
+
    QUEUE=$QUEUE1
    WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
@@ -287,10 +303,17 @@ fi
    CONTE=enabled
    QSUB='qsub -V'
    PBSCMD='PBS'
+ 
    QUEUE1='-q physics'
+   PHYSICSQUEUE=$QUEUE1
    WALLTIME1='-l walltime=30:00:00'
+   PHYSICSWALLTIME=$WALLTIME1
+
    QUEUE2='-q standby'
+   STANDBYQUEUE=$QUEUE2
    WALLTIME2='-l walltime=04:00:00'
+   STANDBYWALLTIME=$WALLTIME2
+
    QUEUE=$QUEUE1
    WALLTIME=$WALLTIME1
    MEMREQUEST=' -l mem=8GB'
@@ -332,23 +355,11 @@ function SgeFilePBSCmds()
 ####################################################################
 {
  local sgeFile=$1
- if [ -n "$2" ]; then
-     let SgeEnergy=$2
- else
-     let SgeEnergy=20
- fi
-
  echo "#"!/bin/bash -l                           >$sgeFile
- if [ -n "$PURDUE" ]; then
-   if [ "$SgeEnergy" -lt "20000" ]; then
-     echo "#"$PBSCMD $QUEUE2                     >>$sgeFile
-     echo "#"$PBSCMD $WALLTIME2                  >>$sgeFile
-   else
-     echo "#"$PBSCMD $QUEUE                      >>$sgeFile
-     echo "#"$PBSCMD $WALLTIME                   >>$sgeFile
-   fi
+ if [ -n "$PURDUE" ]; then  
+   echo "#"$PBSCMD $QUEUE                        >>$sgeFile
+   echo "#"$PBSCMD $WALLTIME                     >>$sgeFile
    echo "#"PBS -l nodes=1:ppn=1                  >>$sgeFile 
-   #echo "#"$PBSCMD -l naccesspolicy=singleuser   >>$sgeFile
    echo "#"$PBSCMD -l naccesspolicy=shared       >>$sgeFile
  
  elif [ -n "$CORI" ] || [ -n "$EDISON" ]; then
