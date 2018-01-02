@@ -2,8 +2,7 @@
 #This script is used to automate the generation and processing of the veritas 
 # KASCADE vbf files in 1:Noise levbels, LT and EA tables.
 
-#It has some arguments listed below.
-#$1: Command. Do "VAAuto.scr ListCommands" for a list!
+#It has some arguments listed below.bin#$1: Command. Do "VAAuto.scr ListCommands" for a list!
 #$2 ksProduction season spec: Ex: W or S
 #$3 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, 
 #   UpgradeArray) 
@@ -20,9 +19,9 @@
 #      O50 and All default to Gamma type LT.
 #${12} Stage4 file extention+Cuts extention:  Ex. UpgradeMedium or NewArrayHard
 #      Default for LTCutsFile is LookUpTableStdCuts
-#  For Quality cuts , file used would be $VEGAS/../tables/Quality${12}Cuts
+#  For Quality cuts , file used would be $VERITASAPPS/tables/Quality${12}Cuts
 #  For Stage4, filename would extention be:  ${12}Cuts ending
-#  For ShowerCuts, file used would be $VEGAS/../tables/Shower7Sample${12}Cuts 
+#  For ShowerCuts, file used would be $VERITASAPPS/tables/Shower7Sample${12}Cuts 
 #${13} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1 or 
 #                  T2 or T3 or T4
 # ************************************************************************
@@ -189,7 +188,7 @@ function GenerateEAFileName()
   #############################
   # Make up quality factor file name
   #############################
-  tbl=$VEGAS'/../tables/'
+  tbl=$VERITASAPPS'/tables/'
   GetOptionValue $tbl'Quality'$Cuts'Cuts'  SizeLower  #sets OptionValue
   sizeCut=${OptionValue:2}                       #Drop "0/"
 
@@ -286,7 +285,7 @@ function GenerateLTFileName()
   #############################
   # LookuptableCuts file name
   #############################
-  tbl=$VEGAS'/../tables/'
+  tbl=$VERITASAPPS'/tables/'
   GetOptionValue $tbl'LookupTableStdCuts'  DistanceUpper   #sets OptionValue
   distCut=${OptionValue:2}                       #Drop "0/"
   #leave in decimal points.   #distCut=${distCut/./p}#Convert "." to "p". Not sure why
@@ -854,6 +853,15 @@ LTWBL=${11}
 CUTTYPE=${12}
 TELCUT=${13}
 
+##########################
+# Check VEGASBASE
+##########################
+if [ ! -n "$VEGASBASE" ]; then
+  echo VAAUTO***This version of VEGAS module file does not set VEGASBASE
+  exit
+fi
+
+
 ###########################
 #Winter/Summer
 ###########################
@@ -1008,9 +1016,9 @@ CFG_W=MEAN
 CFG_E=MEAN
 
 if [ $HMode = "HFit" ]; then
-    LTCUTSFILE=$VEGAS'/../tables/LookupTableHFit'
+    LTCUTSFILE=$VERITASAPPS'/tables/LookupTableHFit'
 else
-    LTCUTSFILE=$VEGAS'/../tables/LookupTable'
+    LTCUTSFILE=$VERITASAPPS'/tables/LookupTable'
 fi
 
 if [ -n "$CUTTYPE" ]; then 
@@ -1030,7 +1038,7 @@ fi
 #   DistanceUpper 0/1.38
 #   NTubesMin 0/5
 ###############################################################
-DISPLTCUTSFILE=$VEGAS'/../tables/LookupTableDispCuts'
+DISPLTCUTSFILE=$VERITASAPPS'/tables/LookupTableDispCuts'
 if [ -n "$ProduceDispSubLookupTables" ]; then
     if [ ! -e $DISPLTCUTSFILE ]; then
 	echo 'VAAuto: Fatal- Can not find file: '$DISPLTCUTSFILE
@@ -1038,7 +1046,7 @@ if [ -n "$ProduceDispSubLookupTables" ]; then
     fi
 fi
 
-EACUTSFILE=$VEGAS'/../tables/Shower'$Samples'Sample'$CUTTYPE'Cuts'
+EACUTSFILE=$VERITASAPPS'/tables/Shower'$Samples'Sample'$CUTTYPE'Cuts'
 if [ -n "$ProduceEASubLookupTables" ]; then
   if [ ! -e $EACUTSFILE ]; then
      echo 'VAAuto: Fatal- Can not find file: '$EACUTSFILE
@@ -1295,10 +1303,10 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	     #Define the file names needed in the options.]
 	     #########################################
 		if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-			lgdf=$VEGAS/../../common/lowGainDataFiles/   #on cori
+			lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
 		else
 	        if [ -n "$HALSTEAD" ]; then
-				lgdf=$VEGAS/../../common/lowGainDataFiles/   #on Halstead
+				lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
 	        fi
 		fi
         #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
@@ -1378,14 +1386,14 @@ if [ -n "$GenerateStage4FromStage2" ]; then
     # LT name
     ####################################################################
     QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
-    QUALCUTSSOURCE=$VEGAS'/../tables/'$QUALITYCUTSFILE
+    QUALCUTSSOURCE=$VERITASAPPS'/tables/'$QUALITYCUTSFILE
     if [ ! -e "$QUALCUTSSOURCE" ]; then
        echo 'VAAuto: Fatal- Can not find QualityCuts file: '$QUALCUTSSOURCE
        exit
     fi
 
     GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
-    LTFILESOURCE=$VEGAS'/../tables/'$LTFILENAME
+    LTFILESOURCE=$VERITASAPPS'/tables/'$LTFILENAME
     if [ ! -e "$LTFILESOURCE" ]; then
        echo 'VAAuto: Fatal- Can not find LT file: '$LTFILESOURCE
        exit
@@ -1451,7 +1459,7 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
 
     SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
     FILEBASE=$CUTTYPE'Cuts'
-    cp $VEGAS/../tables/$SHOWERCUTSFILE  .
+    cp $VERITASAPPS/tables/$SHOWERCUTSFILE  .
     echo SHOWERCUTSFILE: $SHOWERCUTSFILE
     echo FILEBASE: $FILEBASE
 
@@ -1536,7 +1544,7 @@ if [ -n "$GenerateDispSubLTConfigFiles" ]; then
    # Note: No DTM_TelID(All tel tables look identicle)  or 
    #       DTM_AbsoluteOffset (doesn't make sense for DTM) differences used
    # *************************************************************************
-    $VEGAS/showerReconstruction2/bin/produceDispTables -save_config_and_exit tmp1
+    $VEGAS/bin/produceDispTables -save_config_and_exit tmp1
     sed '/DTC_SimulationType/s/GrISU/KASCADE/g'                  <tmp1 >tmp2
     sed '/DTM_FillType "MEDIAN"/s/MEDIAN/MEDIAN/g'               <tmp2 >tmp1
     sed '/DTM_Azimuth      /s/Azimuth/Azimuth '$AzStr'/g'        <tmp1 >tmp2
@@ -1959,7 +1967,7 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
    # Generate template config file
    # Change for KASCADE and Number of samples
    # *************************************************************************
-   $VEGAS/showerReconstruction2/bin/produce_lookuptables -save_config_and_exit tmp1
+   $VEGAS/bin/produce_lookuptables -save_config_and_exit tmp1
    sed '/CorePositionFractionalErrorCut/s/100/.25/g' <tmp1 >tmp2
    sed '/CorePositionAbsoluteErrorCut/s/1000/20/g'   <tmp2 >tmp1
    sed '/LTC_SimulationType/s/GrISU/KASCADE/g'       <tmp1 >tmp2
@@ -2501,7 +2509,7 @@ fi
 
 #**********************************************************************
 if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
-    cd $VEGAS/showerReconstruction2/macros
+    cd $VEGASBASE/showerReconstruction2/macros
     if [ ! -e "combineKASCADE_LT.C" ]; then
 	cp $KASCADEBASE'/scripts/combineKASCADE_LT.C' .
     fi
@@ -2548,7 +2556,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 	     echo source /etc/profile                                   >>$sgeFile
 	     echo module load gcc/4.7.2                                 >>$sgeFile
 	 fi
-	 echo cd $VEGAS/showerReconstruction2/macros                    >>$sgeFile
+	 echo cd $VEGASBASE/showerReconstruction2/macros                    >>$sgeFile
 	 echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
     
 	 chmod 700 $sgeFile
@@ -2558,7 +2566,7 @@ fi
 #**********************************************************************
 
 if [ -n "$CombineBuildCheckEALT" ]; then
-    cd $VEGAS/resultsExtractor/macros
+    cd $VEGASBASE/resultsExtractor/macros
     if [ ! -e "combineEAKascade.C" ]; then
 	cp $KASCADEBASE'/scripts/combineEAKascade.C' .
     fi
@@ -2591,10 +2599,10 @@ if [ -n "$BuildLTTree" ]; then
     echo '##########################################################'
     GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
     
-    cd $VEGAS/showerReconstruction2/macros
+    cd $VEGASBASE/showerReconstruction2/macros
     date
     BUILDCONFIG='BuildTree'$Samples'Samples.config' 
-    $VEGAS/showerReconstruction2/bin/buildLTTree -save_config_and_exit tmp1
+    $VEGAS/bin/buildLTTree -save_config_and_exit tmp1
     
    #**********************************************************************
    #Modify for this LT: except for TelID we need at least 2 to change things
@@ -2638,7 +2646,7 @@ if [ -n "$BuildLTTree" ]; then
     fi
     mv $INFILE $BUILDCONFIG
 
-    $VEGAS/showerReconstruction2/bin/buildLTTree '-config='$BUILDCONFIG $LTFILENAME 
+    $VEGAS/bin/buildLTTree '-config='$BUILDCONFIG $LTFILENAME 
 fi
 ##############################################################################
 
@@ -2646,13 +2654,13 @@ if [ -n "$BuildDispLTTree" ]; then
     echo '##########################################################'
     echo '# BuildDispLTTree'
     echo '##########################################################'
-    cd $VEGAS/showerReconstruction2/macros
+    cd $VEGASBASE/showerReconstruction2/macros
     date
     GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
     LTFILENAME='dt'${LTFILENAME#lt}                 #Convert to a dt filename
 
     BUILDCONFIG='BuildDispTree'$Samples'Samples.config' 
-    $VEGAS/showerReconstruction2/bin/buildDispTree -save_config_and_exit tmp1
+    $VEGAS/bin/buildDispTree -save_config_and_exit tmp1
 
    #**********************************************************************
    #Modify for this Disp LT: we need at least 2 to change things
@@ -2686,7 +2694,7 @@ if [ -n "$BuildDispLTTree" ]; then
     sed '/DTM_Width         /s/Width/Width '$DTMWidthStr'/g'    <$INFILE >$OUTFILE
     sed '/DTM_Length        /s/Length/Length '$DTMLengthStr'/g' <$OUTFILE >$BUILDCONFIG
 
-    $VEGAS/showerReconstruction2/bin/buildDispTree '-config='$BUILDCONFIG $LTFILENAME 
+    $VEGAS/bin/buildDispTree '-config='$BUILDCONFIG $LTFILENAME 
 fi
 #################################################################################
 
@@ -2714,23 +2722,23 @@ if [ -n "$CombineBuildCheckEALT" ]; then
       StrOffset='-AbsoluteOffset='$ABOStr
    fi
 
-   cd $VEGAS/resultsExtractor/macros
+   cd $VEGASBASE/resultsExtractor/macros
 
    #if [ ! -e "$EAFILENAME" ]; then
-   #   echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
+   #   echo 'VAAuto:  Fatal--EA file '$VEGASBASE'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
    #   exit
    #fi
    if [ ! -e "$lcl"'/'"$EAFILENAME" ]; then
       echo 'VAAuto:  Fatal--EA file '$lcl'/'$EAFILENAME 'does not exist!'
       exit
    fi
-#   $VEGAS/resultsExtractor/bin/buildEATree \
+#   $VEGAS/bin/buildEATree \
 #       $StrAz \
 #       $StrZn \
 #       $StrNoise \
 #       $StrOffset \
 #       $EAFILENAME
-   $VEGAS/resultsExtractor/bin/buildEATree \
+   $VEGAS/bin/buildEATree \
        $StrAz \
        $StrZn \
        $StrNoise \
@@ -2747,15 +2755,16 @@ if [ -n "$CombineBuildCheckEALT" ]; then
    ###########################################################################
    # Make up a script to run on root batch mode
    ###########################################################################
-   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
+   #cd $VEGASBASE'/../vegasV2.5.3/resultsExtractor/macros'
+   cd $VEGASBASE'/resultsExtractor/macros'
    Script='CheckEA.C'
    echo '{'                                                           >$Script
-   #echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");' >>$Script
+   #echo '  eaValidator2("'$VEGASBASE'/resultsExtractor/macros/'$EAFILENAME'");' >>$Script
    echo '  eaValidator2("'$lcl'/'$EAFILENAME'");'                    >>$Script
    echo '}'                                                          >>$Script
 
-   #if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
-      #echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
+   #if [ ! -e "$VEGASBASE"/resultsExtractor/macros/"$EAFILENAME" ]; then
+      #echo 'VAAuto:  Fatal--EA file '$VEGASBASE'/resultsExtractor/macros/'$EAFILENAME 'does not exist!'
       #exit
    #fi
    if [ ! -e "$lcl"'/'"$EAFILENAME" ]; then
@@ -2784,7 +2793,7 @@ if [ -n "$CheckLT" ]; then
    echo '# CheckLT'
    echo '##########################################################'
    LCL=$PWD
-   cd $VEGAS/showerReconstruction2/macros
+   cd $VEGASBASE/showerReconstruction2/macros
    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
    LTDiagFileName=${LTFILENAME%.root}'.diag'
 
@@ -2819,7 +2828,7 @@ if [ -n "$CheckDispLT" ]; then
    echo '# CheckDispLT'
    echo '##########################################################'
    LCL=$PWD
-   cd $VEGAS/showerReconstruction2/macros
+   cd $VEGASBASE/showerReconstruction2/macros
    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
   
    DTFILENAME=dt${LTFILENAME#lt}           #Convert to a dt filename
@@ -2863,14 +2872,15 @@ fi
 #   #############################################################################
 #   # Make up a script to run on root batch mode
 #   #############################################################################
-#   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
+##   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
+#   cd $VEGASBASE'/resultsExtractor/macros'
 #   Script='CheckEA.C'
 #   echo '{'                                                          >$Script
-#   echo '  eaValidator2("'$VEGAS'/resultsExtractor/macros/'$EAFILENAME'");'  >>$Script
+#   echo '  eaValidator2("'$VEGASBASE'/resultsExtractor/macros/'$EAFILENAME'");'  >>$Script
 #   echo '}'                                                         >>$Script###
 ##
-#   if [ ! -e "$VEGAS"/resultsExtractor/macros/"$EAFILENAME" ]; then
-#      echo 'VAAuto:  Fatal--EA file '$VEGAS'/resultsExtractor/macros/'$EAFILENAME# 'does not exist!'
+#   if [ ! -e "$VEGASBASE"/resultsExtractor/macros/"$EAFILENAME" ]; then
+#      echo 'VAAuto:  Fatal--EA file '$VEGASBASE'/resultsExtractor/macros/'$EAFILENAME# 'does not exist!'
 #      exit
 #   fi
 #   echo "VAAuto: Running root batch command to Check EA file:"
