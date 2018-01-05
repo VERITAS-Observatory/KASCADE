@@ -1028,9 +1028,11 @@ else
 fi
 if [ -n "$ProduceSubLookupTables" ]; then
   if [ ! -e $LTCUTSFILE ]; then
-	echo 'VAAuto: Fatal- Can not find file: '$LTCUTSFILE
-	exit
-    fi
+      echo 'VAAuto: Fatal- Can not find file: '$LTCUTSFILE
+      exit
+  else
+      echo 'VAAuto: Using Quality Cuts file: '$LTCUTSFILE
+  fi
 fi
 
 ###############################################################
@@ -1938,7 +1940,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	
     ######################################################################
 	#For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
-	#in the qsubFileNameList
+	#in the qsubFileNameList. 	SubmitQsubJobs is in UtilityFuncitons.scr
     ######################################################################
 	if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
 		SubmitQsubJobs  $QsubFileNameList
@@ -2046,12 +2048,12 @@ if [ -n "$ProduceSubLookupTables" ]; then
    echo '# ProduceSubLookupTables'
    echo '##########################################################'
    cd $lcl
-   MEMREQUEST="mem=24GB"
-   if [ -n "$CARVER" ]; then
-       MEMREQUEST="pvmem=24GB"
+   MEMREQUEST=" -l mem=24GB"
+   if [ -n "$CORI" ]; then
+       MEMREQUEST=" --mem=24GB"
    fi
    if [ -n "$EDISON" ]; then
-       MEMREQUEST="vmem=24GB"
+       MEMREQUEST=" --mem=24GB"
    fi
    date
 fi  
@@ -2290,6 +2292,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	     SgeFilePBSCmds   $sgeFile
 	     SgeFileBashCmds  $sgeFile
 
+	     echo /usr/bin/time  \\                      >>$sgeFile
 	     echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
 	     echo -config $lcl'/'$ConfigName \\          >>$sgeFile
 	     echo -cuts $LTCUTSFILE  \\                  >>$sgeFile
@@ -2297,9 +2300,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	     echo  $SubLTFileName  \\                    >>$sgeFile
 	     echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
 
-		 SgeFileCompleteAndSave $sgeFile
+	     SgeFileCompleteAndSave $sgeFile
 	   
-	     #qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+	     #qsub$QSUBEXT -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
