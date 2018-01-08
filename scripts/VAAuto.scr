@@ -218,12 +218,13 @@ function GenerateEAFileName()
   ###################################################
   # Ready to build file name (from OAWG 2.5 wiki page)
   ###################################################
-# ea_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_vegasv250rc5_
-# 7sam_[offsetID]off_s[sizeCut]t[telescopeMultiplicity]_[method]_MSW[MSW upper cut]_
-# MSL[MSL upper cut]_MH[Max height lower cut]_ThetaSq[Theta square upper cut]_LZA.root
+# ea_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_
+# vegasv[VEGASMODULEVERSION]_7sam_[offsetID]off_s[sizeCut]t[telescopeMultiplicity]_
+# [method]_MSW[MSW upper cut]_MSL[MSL upper cut]_MH[Max height lower cut]_
+# ThetaSq[Theta square upper cut]_LZA.root
 
 # ea_[array]_ATM[SeasonID]_[SimulationTool]_[SimulationToolVersion]_
-# [DetectorModelID]_[Primary]_vegasv250rc5_7sam_[offsetID]off_
+# [DetectorModelID]_[Primary]_vegasv[VEGASMODULEVERSION]_7sam_[offsetID]off_
 # s[sizeCut][telescopeCut]_[method]_MSW[MSW upper cut]_MSL[MSL upper cut]_
 # MH[Max height lower cut]_ThetaSq[Theta square upper cut]_LZA.root
 
@@ -233,7 +234,7 @@ function GenerateEAFileName()
      EAFILENAME=$EAFILENAME$6'_'
   fi
 
-  EAFILENAME=$EAFILENAME'vegasv250rc5_7sam_'$offsetID'off_'
+  EAFILENAME=$EAFILENAME'vegasv'$VEGASMODULEVERSION'_7sam_'$offsetID'off_'
   EAFILENAME=$EAFILENAME's'$sizeCut$telescopeMultiplicity'_'$method'_MSW'
   EAFILENAME=$EAFILENAME$MSWUpperCut'_MSL'$MSLUpperCut'_'
 
@@ -294,17 +295,19 @@ function GenerateLTFileName()
   
 
   ###################################################
-  # Ready to build file name (From OAWG 2.5 wiki page)
+  # Ready to build file names (From OAWG 2.5 wiki page)
   ###################################################
-# lt_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_vegasv250rc5_
-# 7sam_[offsetID]off_[method]_d[distCut]_LZA.root
+
+
+  # lt_[SimModel]_[Epoch]_ATM[SeasonID]_[SimulationSource]_[PrimaryType]_
+  # vegasv[VEGASMODULEVERSION]_7sam_[offsetID]off_[method]_d[distCut]_LZA.root
 
   LTFILENAME='lt_'$SimModel'_'$Epoch'_ATM'$SeasonID'_KASCADE_'
   if  [ -n "$5" ]; then                                        #PrimaryType
      LTFILENAME=$LTFILENAME$5'_'
   fi
 
-  LTFILENAME=$LTFILENAME'vegasv250rc5_7sam_'$offsetID'off_'$method'_d'$distCut'_'
+  LTFILENAME=$LTFILENAME'vegasv'$VEGASMODULEVERSION'_7sam_'$offsetID'off_'$method'_d'$distCut'_'
   LTFILENAME=$LTFILENAME'LZA.root'
   echo LTFILENAME: $LTFILENAME
   return
@@ -815,10 +818,74 @@ function BuildVegasSimProduction()
 }
 ##############################################################################
 
+function BuildProduceLookupTables()
+#$1 SUBLTBASE: Base name for input and output sublt, root and log files
+#$2 ConfigName: Configuration file name
+#$3 LTCUTSFILE: Quality cuts file name
+#$4 ListName: File with list of input Stage2 files
+#$5 SubLTFileName: Output SubLT file name
+#################################################################################
+# Make a .pbs comand file fot this SubLt file generation. DDO NOT submit but do add 
+# its name to the QsubFileNameList. Later we willsubmit this list as a job array 
+# (after a little screwing around and cleanup)
+################################################################################
+{
+  local BASESUBLT=$1
+  local CNFGNAME=$2
+  local QLTYNAME=$3
+  local LISTNAME=$4
+  local SUBLTNAME=$5
+  
+  ################################################
+  # Set up unique idientifier for this job
+  ################################################
+  GetUniqueNumber
+  local IDUNIQUE=$UNIQUE
+
+  #############################################
+  # Check to see if we are on Cori. If so make the .pbs job, then add this 
+  # job  to the qsub list file.
+  #############################################
+  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+    sgeFile=$lcl'/PRLT'$IDUNIQUE$BASESUBLT'.pbs'
+    SgeFilePBSCmds   $sgeFile                       #In UtilityFunctions
+    SgeFileBashCmds  $sgeFile                       #In UtilityFunctions
+	    
+    echo /usr/bin/time  \\                      >>$sgeFile
+    echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
+    echo -config $lcl'/'$CNFGNAME \\            >>$sgeFile
+    echo -cuts $QLTYNAME  \\                    >>$sgeFile
+    echo  $lcl'/'$LISTNAME   \\                 >>$sgeFile
+    echo  $SUBLTNAME  \\                        >>$sgeFile
+    echo '>'$lcl'/'$BASESUBLT'.log'             >>$sgeFile
+
+
+    #Save this file name into the QsubFileNameList
+    SgeFileCompleteAndSave $sgeFile              #In UtilityFunctions
+  else
+     echo 'Fatal--BuildProduceLookupTables: Not setup for this cluster'
+     exit
+  fi
+}
+#################################################################################
 
 ##############
 #Main Program:
 ##############
+
+#################################
+# Make sure KASCADE has been loaded
+#################################
+if [ ! -n "$KASCADE" ]; then
+    echo "VAUTO:  Loading KASCADE with 'module load KASCADE'"
+    module unload KASCADE
+    module load KASCADE
+    if [ ! -n "$KASCADE" ]; then
+	echo 'VAAuto: Fatal--Failed to load KASCADE'
+	exit
+    fi
+fi
+
 
 ##################
 # Bring in SetupForHost, GetUniqueNumber and  GenerateVBFName
@@ -854,11 +921,15 @@ CUTTYPE=${12}
 TELCUT=${13}
 
 ##########################
-# Check VEGASBASE
+# Check VEGASBASE and VEGASMODULEVERSION
 ##########################
 if [ ! -n "$VEGASBASE" ]; then
   echo VAAUTO***This version of VEGAS module file does not set VEGASBASE
   exit
+fi
+if [ ! -n "$VEGASMODULEVERSION" ]; then
+    echo VAAuto: Fatal--This version of vegas dones not set VEGASMODULEVERSION
+    exit
 fi
 
 
@@ -1818,7 +1889,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
              #echo '# GenerateStage2FromVBF '
      	     #echo '##########################################################'
 
-	         ################################################################
+	     ################################################################
              # I made a change for the Cori version . Enable the Job array 
              # algorithum as used in the KAAuto.scr file for Cori.  This 
              # requires that we make all the pbs files and place there names 
@@ -1832,20 +1903,19 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
              # all clusters. Only Cori and Edison for now.
              #################################################################
 
-			 cd $lcl
-			 if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
-				 #########################################################
-				 # BuildVegasSimProduction will create the .pbs file and add
-                 # that files name to the QsubFileNameList  file
-                 #########################################################
-				 BuildVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME 
-			 else
-				 echo PedVarFile: $PedVarFile
-				 echo "VAAuto: Submitting $VAProdFile to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-				 SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
-
-			 fi
-		 fi
+	     cd $lcl
+	     if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+		#######################################################
+		# BuildVegasSimProduction will create the .pbs file and add
+                # that files name to the QsubFileNameList  file
+                #########################################################
+		BuildVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME 
+	     else
+		 echo PedVarFile: $PedVarFile
+		 echo "VAAuto: Submitting $VAProdFile to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
+		 SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+	     fi
+	 fi
          ###############################################################
 
 
@@ -2048,6 +2118,19 @@ if [ -n "$ProduceSubLookupTables" ]; then
    echo '# ProduceSubLookupTables'
    echo '##########################################################'
    cd $lcl
+
+   GetUniqueNumber
+   ####################################################################
+   # See note below in GeneraterStage2FromVBF swection on CORI use of Job 
+   # arrays. Requires a QsubFileNameList. Setup its name here.
+   # Eventual use on all clusters
+   ####################################################################
+   QsubFileNameList='PLT'$UNIQUE'AutoqsubList'
+   echo QsubFileNameList: $QsubFileNameList
+
+   ########################################
+   # produceLookupTables needs lots of memory
+   ########################################
    MEMREQUEST=" -l mem=24GB"
    if [ -n "$CORI" ]; then
        MEMREQUEST=" --mem=24GB"
@@ -2274,12 +2357,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          # the files with that Zn Az and Offset and all  PedVar (9 files)
          ##################################################################
          # Make up Pedvar .tar file name
-	     PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
-	     if [ -n "$TELCUT" }; then
+	   PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+	   if [ -n "$TELCUT" }; then
 	       PedVarHTARFile=$PedVarHTARFile$TelConfig
-         fi
+	   fi
 	   
-	     SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
+	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
        fi
        #*********************************************************************
        
@@ -2287,22 +2370,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
          ####################################################################
          # Make up the job script file that will be submitted below
          ####################################################################
+	 BuildProduceLookupTables $SUBLTBASE $ConfigName $LTCUTSFILE $ListName $SubLTFileName
 
-	     sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-	     SgeFilePBSCmds   $sgeFile
-	     SgeFileBashCmds  $sgeFile
 
-	     echo /usr/bin/time  \\                      >>$sgeFile
-	     echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
-	     echo -config $lcl'/'$ConfigName \\          >>$sgeFile
-	     echo -cuts $LTCUTSFILE  \\                  >>$sgeFile
-	     echo  $lcl'/'$ListName   \\                 >>$sgeFile
-	     echo  $SubLTFileName  \\                    >>$sgeFile
-	     echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
-
-	     SgeFileCompleteAndSave $sgeFile
-	   
-	     #qsub$QSUBEXT -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
@@ -2318,20 +2388,20 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
            echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
            echo module load devel                                      >>$sgeFile
          fi
-	     if [ -n "$PURDUE" ]; then
-	       echo source /etc/profile                  >>$sgeFile
-	       echo module load gcc/4.7.2                >>$sgeFile
-	     fi
-	     echo cd $lcl                                >>$sgeFile
-	     echo $VEGAS/bin/makeEA \\                   >>$sgeFile
-	     echo -config $lcl'/'$ConfigName \\          >>$sgeFile
-	     echo -cuts $EACUTSFILE  \\                  >>$sgeFile
-	     echo  $lcl'/'$ListName   \\                 >>$sgeFile
-	     echo  $SubLTFileName  \\                    >>$sgeFile
-	     echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
-	     chmod 700 $sgeFile
-	   
-	     qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+	 if [ -n "$PURDUE" ]; then
+	     echo source /etc/profile                  >>$sgeFile
+	     echo module load gcc/4.7.2                >>$sgeFile
+	 fi
+	 echo cd $lcl                                >>$sgeFile
+	 echo $VEGAS/bin/makeEA \\                   >>$sgeFile
+	 echo -config $lcl'/'$ConfigName \\          >>$sgeFile
+	 echo -cuts $EACUTSFILE  \\                  >>$sgeFile
+	 echo  $lcl'/'$ListName   \\                 >>$sgeFile
+	 echo  $SubLTFileName  \\                    >>$sgeFile
+	 echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
+	 chmod 700 $sgeFile
+	 
+	 qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
        fi
        #*******************************************************************
 
@@ -2509,6 +2579,25 @@ if [ -n "$EdisonMultipleSerial" ]; then
 fi
 #########################################################################
 
+if [ -n "$ProduceSubLookupTables" ]; then
+	
+    #echo '##########################################################'
+    #echo '#  ProduceSubLookupTables'
+    #echo '##########################################################'
+	
+    ######################################################################
+    #For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
+    #in the qsubFileNameList. 	SubmitQsubJobs is in UtilityFuncitons.scr
+    ######################################################################
+    if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+       SubmitQsubJobs  $QsubFileNameList
+    fi
+fi
+##########################################################################
+
+
+
+
 
 #**********************************************************************
 if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
@@ -2540,6 +2629,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     if [ -n "$CombineSubLT" ]; then
 	root -b -q $Script '>'$lcl'/CombineSubLT.log'
     fi
+
     if  [ -n "$CombineDispSubLT" ]; then
 	#The combine Disp takes too long to run interactivly, so submit it.
         #build a submission .pbs file
@@ -2550,18 +2640,19 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 	 if [ -n "$CARVER" ]; then
 	     echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
 	 fi
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
-    fi
+	 if [ -n "$CONTE" ]; then
+	     echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
+	     echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
+	     echo module load devel                                      >>$sgeFile
+	 fi
 	 if [ -n "$PURDUE" ]; then  
 	     echo source /etc/profile                                   >>$sgeFile
 	     echo module load gcc/4.7.2                                 >>$sgeFile
 	 fi
+	 
 	 echo cd $VEGASBASE/showerReconstruction2/macros                    >>$sgeFile
 	 echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
-    
+	 
 	 chmod 700 $sgeFile
 	 qsub$QSUBEXT -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
     fi
@@ -2758,7 +2849,6 @@ if [ -n "$CombineBuildCheckEALT" ]; then
    ###########################################################################
    # Make up a script to run on root batch mode
    ###########################################################################
-   #cd $VEGASBASE'/../vegasV2.5.3/resultsExtractor/macros'
    cd $VEGASBASE'/resultsExtractor/macros'
    Script='CheckEA.C'
    echo '{'                                                           >$Script
@@ -2875,7 +2965,6 @@ fi
 #   #############################################################################
 #   # Make up a script to run on root batch mode
 #   #############################################################################
-##   cd $VEGAS'/../vegasV2.5.3/resultsExtractor/macros'
 #   cd $VEGASBASE'/resultsExtractor/macros'
 #   Script='CheckEA.C'
 #   echo '{'                                                          >$Script
