@@ -660,6 +660,18 @@ function SubmitQsubJobs()
 # Main
 ############################################################################
 
+###########################################
+# First check to see that KASCAEE is loaded
+###########################################
+if [ ! -n "$KASCADE" ]; then
+   module load KASCADE
+   module list
+   if [ ! -n "$KASCADE" ]; then
+      echo 'KSAuto: Fatal--Unalble to module load KASCADE susessfully!'
+      exit
+   fi
+fi
+
 ##################
 # Bring in GetUniqueNumber function
 ##################
