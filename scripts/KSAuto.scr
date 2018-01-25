@@ -36,12 +36,12 @@ EntryGEStart=45 #52265GeV
 EntryGEEnd=45  #52265GeV
 
 
-#EntryPStart=1
+EntryPStart=1
 #EntryPStart=17      #350 GeV     #GroupA start
 #EntryPStart=18      #418 GeV
 #EntryPStart=19      #500 GeV
 #EntryPStart=26      #1748 GeV
-#EntryPStart=30      #3575 GeV      #group B start
+#ntryPStart=30      #3575 GeV      #group B start
 #EntryPStart=45      #52265 GeV
 
 #EntryPEnd=20       #598GeV
@@ -59,12 +59,12 @@ EntryGEEnd=45  #52265GeV
 #EntryPEnd=39       #17975 GeV
 EntryPEnd=45       #52265 GeV    #group B end
 
-##EntryHe4Start=5
-EntryHe4Start=17    #350 GeV     #group A start
+EntryHe4Start=5
+#EntryHe4Start=17    #350 GeV     #group A start
 #EntryHe4Start=18    #418 GeV  
 #EntryHe4Start=19    #500 GeV
 #EntryHe4Start=26    #1748 GeV
-#EntryHe4Start=30    #3575 GeV       #group B start
+#ntryHe4Start=30    #3575 GeV       #group B start
 
 
 #EntryHe4End=15     #244.5GeV
@@ -83,10 +83,38 @@ EntryHe4Start=17    #350 GeV     #group A start
 #EntryHe4End=40     #21375 GeV
 EntryHe4End=45     #52265 GeV      #groupB end
 
-if [ "$2" = "CR" ]; then
+
+echo 2: $2
+
+if [ "$2" = "CRA" ]; then
+  EntryPStart=17
+  EntryPEnd=29
+  EntryHe4Start=17
+  EntryHe4End=29
+  echo EntryPStart: $EntryPStart
+  echo EntryHe4Start: $EntryHe4Start
   echo EntryPEnd: $EntryPEnd
   echo EntryHe4End: $EntryHe4End
 fi
+
+if [ "$2" = "CRB" ]; then
+  EntryPStart=30
+  EntryPEnd=45
+  EntryHe4Start=30
+  EntryHe4End=45
+  echo EntryPStart: $EntryPStart
+  echo EntryHe4Start: $EntryHe4Start
+  echo EntryPEnd: $EntryPEnd
+  echo EntryHe4End: $EntryHe4End
+fi
+
+if [ "$2" = "CR" ]; then
+  echo EntryPStart: $EntryPStart
+  echo EntryHe4Start: $EntryHe4Start
+  echo EntryPEnd: $EntryPEnd
+  echo EntryHe4End: $EntryHe4End
+fi
+
 if [ "$2" = "P" ]; then
  EntryGEStart=$EntryPStart
  EntryGEEnd=$EntryPEnd
@@ -143,7 +171,7 @@ function usage()
 {
   echo '***KSAuto.scr: Usage:'
   echo '  $1: Command. Do "KSAuto.scr ListCommands" to see list.'
-  echo '  $2 Type spec: Ex: G or P or He4_ or CR or E'
+  echo '  $2 Type spec: Ex: G or P or He4_ or CR or CRA or CRB or E'
   echo '  $3 Season spec: Winter (ATM21) Summer (ATM22) Ex: W or S'
   echo '  $4 ArraySpec: Whipple, OldArray, NewArray, UpgradeArray. Ex: W, OA, NA or UA'
   echo '  $5 Zn List: Ex: 1,10,20,30,40,50,60,70 or "All"'
@@ -689,7 +717,7 @@ commandEnable $1   #This will enable the specified command or exit if its not a
                    #known command.
 
 
-SPECPART=$2
+SPECPART=$2 
 SPECSEA=$3
 SPECCFG=$4
 SPECZN=$5
@@ -700,6 +728,9 @@ ARRAYCONFIG=$9
 REFDATAFILE=${10}
 
 
+if [ "$SPECPART" = "CRA" ] || [ "$SPECPART" = "CRB" ]; then
+    SPECPART="CR"
+fi
 
 lcl=$PWD
 source /etc/profile
