@@ -226,7 +226,7 @@ fi
    QSUB='sbatch'
    PBSCMD='SBATCH'
    SBATCHDISK='-L SCRATCH'
-   QUEUE='-p shared'
+   QUEUE='-q shared'
    WALLTIME='-t 12:00:00'
    MEMREQUEST='--mem=6GB'
    let SUBMITLIMIT=10000
@@ -240,7 +240,7 @@ fi
    QSUB='sbatch'
    PBSCMD='SBATCH'
    SBATCHDISK='-L SCRATCH'
-   QUEUE='-p shared'
+   QUEUE='-q shared'
    WALLTIME='-t 12:00:00'
    MEMREQUEST='--mem=5GB'
    let SUBMITLIMIT=10000
