@@ -1,4 +1,4 @@
-=#!/bin/bash
+#!/bin/bash
 #Special CR ESpec
 #$1: Number of SubVBF files to divide things up into
 #$2: Veritas Base Directory  Ex: $SCRATCH/simulations/veritas

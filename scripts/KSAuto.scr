@@ -494,9 +494,11 @@ function SubmitHtarToArchive()
   fi
 
   sgeFile=$lcl'/'$sgeFile
+  echo KSAuto: SubmitHtarToArchive:sgeFile: $sgeFile
+
   echo "#"!/bin/bash -l                         >$sgeFile
   if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-    echo "#"SBATCH -p xfer                     >>$sgeFile
+    echo "#"SBATCH -q xfer                     >>$sgeFile
     echo "#"SBATCH $WALLTIME                   >>$sgeFile
   else
     echo "#"PBS $QUEUE                         >>$sgeFile
@@ -522,6 +524,8 @@ function SubmitHtarToArchive()
   fi
   chmod 700 $sgeFile
   HTARLOG=$local'/KSHTAR'$ZnAz'To.log'
+  echo KSAuto: SubmitHtarToArchive:HTARLog: $HTARLOG
+
   $QSUB -e $ShDr'HTARTo.pbs.err' -o $ShDr'HTARTo.pbs.log' $sgeFile >$HTARLOG
   cd $local
 }
@@ -570,7 +574,7 @@ function SubmitHtarFromArchive()
   sgeFile=$lcl'/'$sgeFile
   echo "#"!/bin/bash -l                                       >$sgeFile
   if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-    echo "#"SBATCH -p xfer                                   >>$sgeFile
+    echo "#"SBATCH -q xfer                                   >>$sgeFile
     echo "#"SBATCH $WALLTIME                                 >>$sgeFile
   else
     echo "#"PBS  $QUEUE                                      >>$sgeFile
