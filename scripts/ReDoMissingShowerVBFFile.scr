@@ -112,6 +112,8 @@ function setup()
   GetUniqueNumber
   KSALLShwrVBF=ksallVBFShwrVBF$UNIQUE'.scr'
   cp $KASCADEBASE/scripts/ksallVBF.scr $KSALLShwrVBF
+  chmod 775 $KSALLShwrVBF
+
   sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
                                                 <$KSALLShwrVBF >tmp1
   sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
@@ -131,6 +133,7 @@ function setup()
   sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >tmp2
   sed '/MoonFilterEnable=enable/s/Moon/#Moon/g'   \
                                                    <tmp2 >$KSALLShwrVBF
+  chmod 775 $KSALLShwrVBF
   rm tmp1
   rm tmp2
   ####################################################################

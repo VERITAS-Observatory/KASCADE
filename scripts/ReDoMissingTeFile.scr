@@ -108,6 +108,7 @@ function setup()
   ####################################################################
   # Bring in ksallVBF and make sure its set up right
   cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBFReDoTE.scr
+  chmod 775 ksallVBFReDoTE.scr
   sed '/#KascadeEnable=enable/s/#Kascade/Kascade/g' <ksallVBFReDoTE.scr >tmp1
   sed '/#LightEnable=enable/s/#Light/Light/g'                     <tmp1 >tmp2
   sed '/#PeSortMergeEnable=enable/s/#PeSort/PeSort/g'             <tmp2 >tmp1
@@ -120,6 +121,7 @@ function setup()
   sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'                <tmp1 >tmp2
   sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'          <tmp2 \
                                                            >ksallVBFReDoTE.scr
+  chmod 775 ksallVBFReDoTE.scr
   rm tmp1
   rm tmp2
   ####################################################################

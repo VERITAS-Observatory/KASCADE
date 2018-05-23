@@ -656,7 +656,7 @@ function SubmitQsubJobs()
     echo "#"SBATCH --array=1-$sbIndex                       >>$sgeFile
     echo $sgeIndexPath'/'$sgeFile'-'\$'SLURM_ARRAY_TASK_ID' >>$sgeFile  
       
-    chmod 700 $sgeFile
+    chmod 775 $sgeFile
     $QSUB -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile
   else
     ###################################################################
@@ -973,6 +973,8 @@ while test $izn -lt $iznEnd
        #Make sure ksallVBF.scr is set up correctly to generate Te files
        ####################################################################
        cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF$ZnAz'.scr'
+       chmod 775  ksallVBF$ZnAz'.scr'
+
        sed '/#KascadeEnable=enable/s/#Kascade/Kascade/g' \
                                                   <ksallVBF$ZnAz'.scr' >tmp1
        sed '/#LightEnable=enable/s/#Light/Light/g'               <tmp1 >tmp2
@@ -993,6 +995,7 @@ while test $izn -lt $iznEnd
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
        sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
        sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >ksallVBF$ZnAz'.scr'
+       chmod 775  ksallVBF$ZnAz'.scr'
        rm tmp1
        rm tmp2
        ####################################################################
@@ -1389,6 +1392,8 @@ while test $izn -lt $iznEnd
        #Make sure ksallVBF.scr is set up correctly to generate VBF shower files
        ####################################################################
        cp $KASCADEBASE/scripts/ksallVBF.scr ksallVBF$ZnAz'.scr'
+       chmod 775  ksallVBF$ZnAz'.scr'
+
        sed '/KascadeEnable=enable/s/Kascade/#Kascade/g' \
                                                 <ksallVBF$ZnAz'.scr' >tmp1
        sed '/LightEnable=enable/s/Light/#Light/g'                <tmp1 >tmp2
@@ -1409,6 +1414,7 @@ while test $izn -lt $iznEnd
        sed '/#CleanupEnable=enable/s/#Cleanup/Cleanup/g'         <tmp1 >tmp2
        sed '/#DebugPrintEnable=enable/s/#Debug/Debug/g'          <tmp2 >tmp1
        sed '/#VBFOutputToDetectorSpecDir=enable/s/#VBF/VBF/g'    <tmp1 >ksallVBF$ZnAz'.scr'
+       chmod 775  ksallVBF$ZnAz'.scr'
        rm tmp1
        rm tmp2
        ####################################################################
