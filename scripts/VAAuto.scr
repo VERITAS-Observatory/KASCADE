@@ -26,6 +26,13 @@
 #                  T2 or T3 or T4
 # ************************************************************************
 
+SimSetStart=1
+SimSetEnd=25
+if [ -n "$SimSetStart" ] && [ -n "$SimSetEnd" ]; then
+  echo "VAAuto--SimSet use expected"
+fi
+
+
 #FindNoiseLevels=enabled
 LimitSubmissions=enabled # Enable if you want to submit more that 9 HTAR
 MaxQsubsDefault=450      # jobs but only want 9 at a time to run (limit for 
@@ -812,7 +819,7 @@ function BuildVegasSimProduction()
 
 	  SgeFileCompleteAndSave $sgeFile
   else
-     echo 'Fatal--BuildVegasSimProduction: Not setup for this cluster'
+     echo 'VAAuto--Fatal:BuildVegasSimProduction: Not setup for this cluster'
      exit
   fi
 }
@@ -1363,25 +1370,33 @@ if [ -n "$GenerateStage2FromVBF" ]; then
 	sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
 	mv tmp1 $VSProdFile
 
-      ####################################################################
-      # Check now to see if we are using a LowGain (LGD) capable vegas. 
-      # If so, enable definitions in the $VAProdFile(vegasSimProduction) file 
-      # the -TE options.
-      # Look in vaStage2 config file for the TE options. That will tell us
-      ####################################################################
+    ####################################################################
+    # Check now to see if we are using a LowGain (LGD) capable vegas. 
+    # If so, enable definitions in the $VAProdFile(vegasSimProduction)file: 
+    # the -TE options.
+    # Look in vaStage2 config file to see if the TE options are mentioned. 
+    # That will tell us is we are using a LowGain (LGD) capable vegas.
+    ####################################################################
 	runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
 	if [ -n "$runningLGD" ]; then
 		echo VAAuto: vaStage2 is LGD capable.
          #########################################
 	     #Define the file names needed in the options.]
 	     #########################################
-		if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-			lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
-		else
-	        if [ -n "$HALSTEAD" ]; then
+		if [ -n "$VEGASBASE" ]; then
+            if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+			  lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
+		    else
+	          if [ -n "$HALSTEAD" ]; then
 				lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
-	        fi
-		fi
+	          fi
+		    fi
+        else
+            echo "VAAUTO--Fatal: This version of vegas does not define VEGASBASE"
+            echo "VAAUTO--Needed for LowGain analysis"
+            exit
+        fi
+
         #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
 	    echo PMT_Mfr: $PMT_Mfr
 	    echo PMT_mfr: $PMT_mfr
@@ -1849,12 +1864,12 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
          echo '##########################################################'
          echo '# GetVBFFileFromArchive'
          echo '##########################################################'
-	 cd $lcl
-	 date
-	 echo VBFFILENAME: $VBFFILENAME
-	 echo VBFDIR: $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-	 if [ ! -e  "$VBFFILENAME" ]; then
-           hsi 'cd '$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF; get '$VBFFILENAME';'
+	     cd $lcl
+	     date
+	     echo VBFFILENAME: $VBFFILENAME
+	     echo VBFDIR: $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
+         if [ ! -e  "$VBFFILENAME" ]; then
+            hsi 'cd '$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF; get '$VBFFILENAME';'
          fi
        fi
             
@@ -1864,7 +1879,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
        let kpvar=0
        let kpvarEnd=${#PedVar[@]}
        while test $kpvar -lt $kpvarEnd
-	do
+	    do
          #Test for defaults
          PV=${PedVar[$kpvar]} 
          if test "$PV" = "0"
@@ -1876,46 +1891,84 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
            PedVarName=PedVar$PV
          fi  
    
-         # ************************************************************************
-         #  Now all the things we can do for a particular Zn,AZ,WblOffset and PedVar
-         # ************************************************************************
+         # ***********************************************************************
+         #  Now all the things we can do for a particular Zn,AZ,WblOffset and 
+         #  PedVar
+         # **********************************************************************
          #Generate  file names
  
          FileName=$PedVarName'_'$BaseFileS2'.root'
          
 
          if [ -n "$GenerateStage2FromVBF" ]; then
-             #echo '##########################################################'
-             #echo '# GenerateStage2FromVBF '
-     	     #echo '##########################################################'
+           #echo '##########################################################'
+           #echo '# GenerateStage2FromVBF '
+     	   #echo '##########################################################'
 
-	     ################################################################
-             # I made a change for the Cori version . Enable the Job array 
-             # algorithum as used in the KAAuto.scr file for Cori.  This 
-             # requires that we make all the pbs files and place there names 
-             # in a QSubListFile instead of running them directly. Then after
-             # that is  complete, a single routine, SubmitQsubJobs, (now in 
-             # UtilityFuntions)is called to submit a job array submission task.
-			 #(Note:
-             # there is no QsubLimit procedure when using the job arrays (for 
-             # now).
-             # Eventually we will switch over to using the QSubListFile for  
-             # all clusters. Only Cori and Edison for now.
-             #################################################################
+           ################################################################
+           # I made a change for the Cori version . Enable the Job array 
+           # algorithum as used in the KAAuto.scr file for Cori.  This 
+           # requires that we make all the pbs files and place their names 
+           # in a QSubListFile instead of running them directly. Then after
+           # that is  complete, a single routine, SubmitQsubJobs, (now in 
+           # UtilityFuntions)is called to submit a job array submission task.
+		   #(Note:
+           # there is no QsubLimit procedure when using the job arrays (for 
+           # now).
+           # Eventually we will switch over to using the QSubListFile for  
+           # all clusters. Only Cori and Edison for now.
+           #################################################################
 
-	     cd $lcl
-	     if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
-		#######################################################
-		# BuildVegasSimProduction will create the .pbs file and add
-                # that files name to the QsubFileNameList  file
-                #########################################################
-		BuildVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME 
-	     else
-		 echo PedVarFile: $PedVarFile
-		 echo "VAAuto: Submitting $VAProdFile to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-		 SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
-	     fi
-	 fi
+	       cd $lcl
+           # ###############################################################
+           # Due to size and walltime limits we have divided the each CR vbf 
+           # file into a number of seperate files. This is implimented by adding 
+           # a SimSet number at the end of the VBF file name ( just before the 
+           # .vbf extention). This program does this by using the SimSetStar and 
+           # SimSetEnd symbols. If they are both defined the we are using SimSets
+           # ################################################################
+           if [ -n "$SimSetStart" ] && [ -n "$SimSetEnd" ]; then
+              let sSimSetNum=$SimSetStart
+              let sSimSetEnd=$SimSetEnd
+           else
+              let sSimSetNum=0 
+              let sSimSetEnd=0
+           fi
+
+           echo VAAuto--Generating Stage2 files'(s)' from $PedVarFile and:
+
+           while test $sSimSetNum -le $sSimSetEnd
+	        do
+             if [ "$sSimSetNum" = "0" ]; then
+                 VBFNM=$VBFFILENAME
+                 BFNMS2=$BaseFileS2
+             else
+                 VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
+                 BFNMS2=$BaseFileS2$sSimSetNum
+             fi
+             if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+		       #######################################################
+		       # BuildVegasSimProduction will create the .pbs file and add
+               # that file's name to the QsubFileNameList  file
+               # The actual submision of the job array job to the cluster and 
+               # moidification of the .pbs job to be a job array job is done 
+               # later in this script.
+               #########################################################
+		       # Check that the vbf file exists in the lcl directory
+               if [ ! -e "$VBFNM" ]; then
+                 echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
+                 echo VAAuto--Job Array submission aborted.
+                 exit
+               fi
+
+               BuildVegasSimProduction $PedVarFile $BSFNMS2 $VSProdFile $VBFNM 
+             else
+		       SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+             fi
+             echo VAAuto--File:  $VBFNM 
+             sSimSetNum=$((sSimSetNum + 1))
+	       done
+         fi
          ###############################################################
 
 
@@ -2009,12 +2062,14 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     #echo '##########################################################'
 	
     ######################################################################
-	#For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
-	#in the qsubFileNameList. 	SubmitQsubJobs is in UtilityFuncitons.scr
+	# For NERSC (Cori or Edison) JobArray only: generate Jobarry .pbs file for 
+    # all the .pbs jobs in the qsubFileNameList.
+    # SubmitQsubJobs is in UtilityFuncitons.scr
     ######################################################################
 	if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
-		SubmitQsubJobs  $QsubFileNameList
-	fi
+		#SubmitQsubJobs  $QsubFileNameList
+	    echo Cori SubmitQsubJobs ignored.So nothing has actually been done!!!
+    fi
 fi
 ##########################################################################
 
