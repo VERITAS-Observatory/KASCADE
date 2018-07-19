@@ -2,17 +2,26 @@
 # ./VAAutoG.scr W UA G MDL10UA All All All 45mv All >CheckS2.log
 # This files has a list of files that need to be rerun
 # the lines we need look like: 
-# Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
+# Bad: PedVar7.64_cosmicRay_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen1deg_az135deg.root
+# or  if we have eSpec SimSets:
+# Bad PedVar7.64_cosmicRay_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen1deg_az135deg24.root 
+# or
+# Bad: PedVar7.64_electron__MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen1deg_az135deg_8.97wobb.root
+# or
+# Bad PedVar8.97_gamma_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen70deg_az270deg_1.25wobb.root
+
+
 ##########################################################################
 
 function usage()
 {
   echo '***ReDoBadPedVarS2 usage:'
   echo '   $1: File with Bad/Missing Stage 2 PedVar Files in form:' 
-  echo '           Bad: PedVar14.49WUEMDL10UA10_90Deg2DS2.0Wbl45mv1234M2.root'
+  echo '           Bad: PedVar8.97_gamma_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE\
+       '_zen70deg_az270deg_1.25wobb.root'
   echo ' EX: ./ReDoBadPedVarS2.scr CheckStage2Deg1-50AllElectrons.log'
-  echo ' Note1: Works for Gammas and Electrons'
-  echo ' Note2: Make sure VAAuto.scr has GenerateStage2Files=enabled'
+  echo ' Note: Works for gamma and electron and cosmicRay(with or without \
+       'simsets)'
 }
 
 if [ ! -n "$1" ]; then
@@ -32,66 +41,75 @@ grep Bad $BadFile >S2tmp1
 # Parse the bad files names so we can resubmit them to VAAuto
 #################################################################
 
-##########################
-## first add the _0 to 0 deg az file names in prep for latter 
-############################
-#
-#  sed '/Bad/s/1Deg/1_0Deg/g'     <S2tmp1     >S2tmp2
-#  sed '/Bad/s/10Deg/10_0Deg/g'   <S2tmp2     >S2tmp1
-#  sed '/Bad/s/20Deg/20_0Deg/g'   <S2tmp1     >S2tmp2
-#  sed '/Bad/s/30Deg/30_0Deg/g'   <S2tmp2     >S2tmp1
-#  sed '/Bad/s/40Deg/40_0Deg/g'   <S2tmp1     >S2tmp2
-#  sed '/Bad/s/50Deg/50_0Deg/g'   <S2tmp2     >S2tmp1
-#  sed '/Bad/s/60Deg/60_0Deg/g'   <S2tmp1     >S2tmp2
-#  sed '/Bad/s/70Deg/70_0Deg/g'   <S2tmp2     >S2tmp1  #Note : Screws up _270Deg here
-#  sed '/Bad/s/270_0Deg/270Deg/g' <S2tmp1     >S2tmp2  #Note Fix it
-#  cp S2tmp2 S2tmp1                                    #Next parts assumes we start with
-#                                                      #S2tmp1
 #############################################################
 #Now seperate things and remove unwanted stuff
-#(Not used anymore) Bad: PedVar12.35WUGMDL10UA10_270Deg2DS1.25Wbl45mv1234M2.root
 # Bad: PedVar5.55_gamma_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen20deg_az225deg_0.0wobb.root
+# Bad: PedVar5.55_cosmicRay_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen1deg_az315deg4.root
 #############################################################
-#This gets a little tricky so that we can use this generally for NA and UA
+# This gets a little tricky especially for cosmicRays /simsets)
+# so that we can use this generally for NA and UA
 #############################################################
 
+#Remove constants from file name strings leaving spaces in their place
+# starting from the end of the file name string:
+  sed '/Bad/s/.root/ /g'          <S2tmp1     >S2tmp2    #Remove end
+  sed '/Bad/s/wobb/ /g'           <S2tmp2     >S2tmp1    #Remove wobb if its there
+  sed '/Bad/s/deg_az/  /g'        <S2tmp1     >S2tmp2    #parse out Az and offset
+  sed '/Bad/s/deg_/  /g'          <S2tmp2     >S2tmp1    #seperate Az and Offset or
+  sed '/Bad/s/deg/  /g'           <S2tmp1     >S2tmp2    #seperate Az and simset(must be after above)
 
-  sed '/Bad/s/wobb.root/ /g'          <S2tmp1     >S2tmp2   #Remove end
-  sed '/Bad/s/deg_az/  /g'            <S2tmp2     >S2tmp1   #parse out Az and offset
-  sed '/Bad/s/deg_/  /g'              <S2tmp1     >S2tmp2   #seperate Az and Offset
-  sed '/Bad/s/_KASCADE_zen/  /g'      <S2tmp2     >S2tmp1   #Parse out aZ
-  sed '/Bad/s/MDL12UA_V6_PMTUpgrade_ATM/ MDL12 UA 45mv /g'   <S2tmp1     >S2tmp2 
+  sed '/Bad/s/_KASCADE_zen/  /g'  <S2tmp2     >S2tmp1    #Parse out aZ
+  sed '/Bad/s/MDL12UA_V6_PMTUpgrade_ATM/ MDL12 UA 45mv /g'   <S2tmp1     >S2tmp2 #Parse atm index 
   sed '/Bad/s/MDL10UA_V6_PMTUpgrade_ATM/ MDL10 UA 45mv /g'   <S2tmp2     >S2tmp1 
   sed '/Bad/s/MDL15NA_V5_T1Move_ATM/ MDL15 NA 50mv /g'       <S2tmp1     >S2tmp2 
   sed '/Bad/s/MDL8OA_V4_OldArray_ATM/ MDL8 OA 50mv /g'       <S2tmp2     >S2tmp1 
-  sed '/Bad/s/_/  /g'                 <S2tmp1     >S2tmp2   #Seperate particle type
-  sed '/Bad/s/Bad: PedVar/ /g'        <S2tmp2     >S2tmp1   #Sperate PedVar
+  sed '/Bad/s/_/  /g'             <S2tmp1     >S2tmp2    #Seperate particle type
+  sed '/Bad/s/Bad: PedVar/ /g'    <S2tmp2     >S2tmp1    #Sperate PedVar
+
+#################################################
+#When the above isa done we would see in the file:
+#    5.55 gamma MDL12 UA 45mv 21 20 225 0.0
+# or
+#    5.55 cosmicRay MDL12 UA 45mv 21 1 315 4
+# or for non-simset cosmicray
+#    5.55 cosmicRay MDL12 UA 45mv 21 1 315
+# ###############################################
+
 {  
   while read PV TYPE MDL ARRAYTYPE  THRESH SEASON ZN AZ OFF 
-    do
-      	if [ "$TYPE" = "gamma" ]; then
-	   PTYPE=G
-        fi
-      	if [ "$TYPE" = "proton" ]; then
-	   PTYPE=P
-        fi
-      	if [ "$TYPE" = "He4" ]; then
-	   PTYPE=He4
-        fi
-      	if [ "$TYPE" = "cosmicRay" ]; then
-	   PTYPE=CR
-        fi
-      	if [ "$TYPE" = "electron" ]; then
+   do
+    if [ "$TYPE" = "gamma" ]; then
+	  PTYPE=G
+    fi
+
+    if [ "$TYPE" = "proton" ]; then
+	  PTYPE=P
+    fi
+
+    if [ "$TYPE" = "He4" ]; then
+	  PTYPE=He4
+    fi
+
+    if [ "$TYPE" = "cosmicRay" ]; then
+	  if [ -n "$OFF" ]; then
+        PTYPE=CR$OFF'-'$OFF            #Simset specification
+      else
+        PTYPE=CR
+      fi
+    fi
+
+   	if [ "$TYPE" = "electron" ]; then
 	   PTYPE=E
-        fi
+    fi
 
-        if [ "$SEASON" = "21" ]; then
-	   SEASON=W
-        else
-           SEASON=S
-        fi
+    if [ "$SEASON" = "21" ]; then
+	  SEASON=W
+    else
+      SEASON=S
+    fi
 
-	echo Executing: ./VAAuto.scr GenerateStage2FromVBF $SEASON $ARRAYTYPE $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
+	#Note that VAAuto for cosmicRay ignores OFF entry.  
+    echo Executing: ./VAAuto.scr GenerateStage2FromVBF $SE  ASON $ARRAYTYPE $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
 	./VAAuto.scr GenerateStage2FromVBF $SEASON $ARRAYTYPE $PTYPE $MDL$ARRAYTYPE $ZN $AZ $OFF $THRESH $PV
     done
 }<S2tmp1
