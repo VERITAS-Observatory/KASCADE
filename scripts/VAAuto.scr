@@ -888,12 +888,15 @@ function BuildProduceLookupTables()
 ##############
 #Main Program:
 ##############
+echo 'Starting VAAuto at $(date)'
 
 #################################
 # Make sure KASCADE has been loaded
 #################################
 if [ ! -n "$KASCADE" ]; then
+    #Following needed for $KASCADE definition
     echo "VAUTO:  Loading KASCADE with 'module load KASCADE'"
+    #Following needed to restore correct root version and set $VEGAS definitions
     echo "VAUTO:  Loading VEGAS   with 'module load vegas'"
     module unload KASCADE
     module load KASCADE
@@ -1371,7 +1374,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     echo VSProdFile:   $VSProdFile
 
 	####################################################################
-    # See note below in GeneraterStage2FromVBF swection on CORI use of Job 
+    # See note below in GeneraterStage2FromVBF section on CORI use of Job 
     # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
     # here.
     # Eventual use on all clusters
@@ -1930,28 +1933,12 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
          #Generate  file names
  
          FileName=$PedVarName'_'$BaseFileS2'.root'
-         
 
-         if [ -n "$GenerateStage2FromVBF" ]; then
-           #echo '##########################################################'
-           #echo '# GenerateStage2FromVBF '
-     	   #echo '##########################################################'
-
-           ################################################################
-           # I made a change for the Cori version . Enable the Job array 
-           # algorithum as used in the KAAuto.scr file for Cori.  This 
-           # requires that we make all the pbs files and place their names 
-           # in a QSubListFile instead of running them directly. Then after
-           # that is  complete, a single routine, SubmitQsubJobs, (now in 
-           # UtilityFuntions)is called to submit a job array submission task.
-		   #(Note:
-           # there is no QsubLimit procedure when using the job arrays (for 
-           # now).
-           # Eventually we will switch over to using the QSubListFile for  
-           # all clusters. Only Cori and Edison for now.
-           #################################################################
-
-	   cd $lcl
+         # ***********************************************************************
+         #  GenerateStage2FromVBF and CheckStage2Files also need SimSet interation
+         #  is applicable
+         # ***********************************************************************
+         if [ -n "$GenerateStage2FromVBF" ] && if [ -n "$CheckStage2Files" ]; then
            # ###############################################################
            # Due to size and walltime limits we have divided the each CR vbf 
            # file into a number of seperate files. This is implimented by adding 
@@ -1967,117 +1954,128 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
               let sSimSetEnd=0
            fi
 
-           echo VAAuto--Generating Stage2 files'(s)' from $PedVarFile and:
-
            while test $sSimSetNum -le $sSimSetEnd
-	    do
-             if [ "$sSimSetNum" = "0" ]; then
+	        do
+ 
+             if [ -n "$GenerateStage2FromVBF" ]; then
+               #echo '##########################################################'
+               #echo '# GenerateStage2FromVBF '
+     	       #echo '##########################################################'
+
+               ################################################################
+               # I made a change for the Cori version . Enable the Job array 
+               # algorithum as used in the KAAuto.scr file for Cori.  This 
+               # requires that we make all the pbs files and place their names 
+               # in a QSubListFile instead of running them directly. Then after
+               # that is  complete, a single routine, SubmitQsubJobs, (now in 
+               # UtilityFuntions)is called to submit a job array submission task.
+		       #(Note:
+               # there is no QsubLimit procedure when using the job arrays (for 
+               # now).
+               # Eventually we will switch over to using the QSubListFile for  
+               # all clusters. Only Cori and Edison for now.
+               #################################################################
+
+	           cd $lcl
+               if [ "$sSimSetNum" = "0" ]; then
                  VBFNM=$VBFFILENAME
                  BFNMS2=$BaseFileS2
-             else
+               else
                  VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
                  BFNMS2=$BaseFileS2$sSimSetNum
+               fi
+               if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+                 #######################################################
+                 # BuildVegasSimProduction will create the .pbs file and add
+                 # that file's name to the QsubFileNameList  file
+                 # The actual submision of the job array job to the cluster and 
+                 # moidification of the .pbs job to be a job array job is done 
+                 # later in this script.
+                 #########################################################
+                 # Check that the vbf file exists in the lcl directory
+                 if [ ! -e "$VBFNM" ]; then
+                   echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
+                   echo VAAuto--Job Array submission aborted.
+                   exit
+                 fi
+
+                 BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
+               else
+		         SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+               fi
+               echo VAAuto--File:  $VBFNM 
              fi
-             if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
-               #######################################################
-               # BuildVegasSimProduction will create the .pbs file and add
-               # that file's name to the QsubFileNameList  file
-               # The actual submision of the job array job to the cluster and 
-               # moidification of the .pbs job to be a job array job is done 
-               # later in this script.
-               #########################################################
-               # Check that the vbf file exists in the lcl directory
-               if [ ! -e "$VBFNM" ]; then
-                 echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
-                 echo VAAuto--Job Array submission aborted.
-                 exit
+             ###############################################################
+
+
+             if [ -n "$CheckStage2Files" ]; then
+               # echo '##########################################################'
+               # echo '# CheckStage2Files'
+	           # echo '##########################################################'
+	           cd $lcl
+	     
+               #Check VARootIO can open and load file 
+               #Setip for running root. 
+	           ~/Switch.rootrcTo.rootrc_glenn.scr
+           
+               #Previously we made sure we have the root script file 
+               # CheckStage2FileOK.C
+
+               if [ "$sSimSetNum" = "0" ]; then
+                 RootFileName=$PedVarName'_'$BaseFileS2'.root'
+               else
+                 RootFileName=$PedVarName'_'$BaseFileS2$sSimSetNum'.root'
                fi
 
-               BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
-             else
-		       SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
-             fi
-             echo VAAuto--File:  $VBFNM 
-             sSimSetNum=$((sSimSetNum + 1))
-	    done
-         fi
-         ###############################################################
-
-
-         if [ -n "$CheckStage2Files" ]; then
-           # echo '##########################################################'
-           # echo '# CheckStage2Files'
-	   # echo '##########################################################'
-	   cd $lcl
-	     
-          #Check VARootIO can open and load file 
-           #Setip for running root. 
-	       ~/Switch.rootrcTo.rootrc_glenn.scr
-           #Previously we made sure we have the root script file heckStage2FileOK.C
-
-           # ###########################
-           # Following is for the special eSpec files.
-           if [ -n "$SimSetStart" ] && [ -n "$SimSetEnd" ]; then
-             let sSimSetNum=$SimSetStart
-             let sSimSetEnd=$SimSetEnd
-           else
-             let sSimSetNum=0 
-             let sSimSetEnd=0
-           fi
-
-           while test $sSimSetNum -le $sSimSetEnd
-	    do
-             if [ "$sSimSetNum" = "0" ]; then
-               RootFileName=$PedVarName'_'$BaseFileS2'.root'
-             else
-               RootFileName=$PedVarName'_'$BaseFileS2$sSimSetNum'.root'
-             fi
-
-             echo VAAuto--Checking Stage2 file: $RootFileName
-             Arg=$lcl'/CheckStage2FileOK.C("'$RootFileName'")'
-             if [ -e  "CheckStage2FileOK.Result" ]; then
-               rm "CheckStage2FileOK.Result"
-             fi 
-             root -q -b -q $Arg  >CheckStage2OK.log
-
-             if [ !  -e  "CheckStage2FileOK.Result" ]; then
-               echo 'VAAuto: root CheckStage2FileOK.C failed to produce ' \
-                    'CheckStage2FileOK.Result'
-               echo 'VAAuto: You shouold check to see if another VAAuto is ' \
-                    'running: $> ps aux'
-               echo 'Bad: "$RootFileName'
-               cat CheckStage2OK.log
-             else 
-              {
-               read BAD
-               let suzBAD=$BAD
-               if [ $suzBAD -lt "0" ]; then
-                 echo "Bad: "$RootFileName
-                 if [ $suzBAD -eq "-1" ]; then
-                   echo "VAAuto: VARootIO failed to open. " 
-	         fi
-                 if [ $suzBAD -eq "-2" ]; then
-                   echo "VAAuto: VARootIO failed to load file. May not exist"
-                 fi
-                 if [ $suzBAD -eq "-3" ]; then
-                   echo 'VAAuto: VARootIO failed to find ' \
-                        'ParameterisedEventTree'
-                 fi
-                 if [ $suzBAD -eq "-4" ]; then
-                   echo "VAAuto: VARootIO failed to find SimulatedEventTree"
-                 fi
-		 if [ $suzBAD -eq "-5" ]; then
-                   echo "VAAuto: Too few events ( <20 )  in " \
-                        "ParameterisedEventTree"
-		 fi
+               echo VAAuto--Checking Stage2 file: $RootFileName
+               Arg=$lcl'/CheckStage2FileOK.C("'$RootFileName'")'
+               if [ -e  "CheckStage2FileOK.Result" ]; then
+                 rm "CheckStage2FileOK.Result"
                fi 
-               rm CheckStage2FileOK.Result
-              } <CheckStage2FileOK.Result
-             fi 
+               root -q -b -q $Arg  >CheckStage2OK.log
+
+               if [ !  -e  "CheckStage2FileOK.Result" ]; then
+                 echo 'VAAuto: root CheckStage2FileOK.C failed to produce ' \
+                      'CheckStage2FileOK.Result'
+                 echo 'VAAuto: You shouold check to see if another VAAuto is ' \
+                      'running: $> ps aux'
+                 echo 'Bad: "$RootFileName'
+                 cat CheckStage2OK.log
+               else 
+                {
+                 read BAD
+                 let suzBAD=$BAD
+                 if [ $suzBAD -lt "0" ]; then
+                   echo "Bad: "$RootFileName
+                 
+                   if [ $suzBAD -eq "-1" ]; then
+                     echo "VAAuto: VARootIO failed to open. " 
+	               fi
+                   if [ $suzBAD -eq "-2" ]; then
+                     echo "VAAuto: VARootIO failed to load file. May not exist"
+                   fi
+                   if [ $suzBAD -eq "-3" ]; then
+                     echo 'VAAuto: VARootIO failed to find ' \
+                          'ParameterisedEventTree'
+                   fi
+                   if [ $suzBAD -eq "-4" ]; then
+                     echo "VAAuto: VARootIO failed to find SimulatedEventTree"
+                   fi
+		           if [ $suzBAD -eq "-5" ]; then
+                     echo "VAAuto: Too few events ( <20 )  in " \
+                          "ParameterisedEventTree"
+		           fi
+                 fi 
+                 rm CheckStage2FileOK.Result
+                } <CheckStage2FileOK.Result
+               fi 
+             fi
+             # ##############################################################
+         
              sSimSetNum=$((sSimSetNum + 1))
-            done
-         fi
-         # ##############################################################
+            done        #end of SimSet loop
+         fi           
+         # ##################################################################
 
          if [ -n "$GenerateDispSubLTListFiles" ]; then
            # echo '##########################################################'
@@ -2234,7 +2232,7 @@ if [ -n "$ProduceSubLookupTables" ]; then
 
    GetUniqueNumber
    ####################################################################
-   # See note below in GeneraterStage2FromVBF swection on CORI use of Job 
+   # See note below in GenerateStage2FromVBF swection on CORI use of Job 
    # arrays. Requires a QsubFileNameList. Setup its name here.
    # Eventual use on all clusters
    ####################################################################
@@ -2579,32 +2577,119 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 	   fi
            #******************************************************************
 
-	   if [ -n "$GenerateStage4FromStage2" ]; then
-            #echo '##########################################################'
-            #echo '# GenerateStage4FromStage2 ' 	    
-            #echo '##########################################################'
-	      cd $lcl
-	      date
-	      echo PV:$PV
-	      echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-	       
-	      echo PedVarFile: $PedVarFile 
-	      echo BaseFileS2: $BaseFileS2 
-	      echo VBFFILENAME: $VBFFILENAME
-              ###################################################
-              # Note here that VeagsSimProductionS4.scr will generate the PedVar 
-              # Stage4 filename with the correct TelConfig and cuts
-              # the VSProdFile has that info added to it with sed commands.
-              ###################################################
+       # ***********************************************************************
+       #  GenerateStage4FromStage2 and CheckStage4Files also need SimSet interation
+       #  is applicable
+       # ***********************************************************************
+       if [ -n "$GenerateStage4FromStage2" ] && if [ -n "$CheckStage4Files" ]; then
+         # ###############################################################
+         # Due to size and walltime limits we have divided the each CR vbf 
+         # file into a number of seperate files. This is implimented by adding 
+         # a SimSet number at the end of the VBF file name ( just before the 
+         # .vbf extention). This program does this by using the SimSetStar and 
+         # SimSetEnd symbols. If they are both defined the we are using SimSets
+         # ################################################################
+         if [ -n "$SimSetStart" ] && [ -n "$SimSetEnd" ]; then
+           let sSimSetNum=$SimSetStart
+           let sSimSetEnd=$SimSetEnd
+         else
+           let sSimSetNum=0 
+           let sSimSetEnd=0
+         fi
+         while test $sSimSetNum -le $sSimSetEnd
+	      do
 
-	      SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+           if [ -n "$GenerateStage4FromStage2" ]; then
+             #echo '##########################################################'
+             #echo '# GenerateStage4FromStage2 ' 	    
+             #echo '##########################################################'
+	         cd $lcl
+
+             if [ "$sSimSetNum" = "0" ]; then
+               VBFNM=$VBFFILENAME
+               BFNMS2=$BaseFileS2
+             else
+               VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
+               BFNMS2=$BaseFileS2$sSimSetNum
+             fi
+
+	         echo PV:$PV
+ 	         #echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
+	       
+	         #echo PedVarFile: $PedVarFile 
+	         #echo BaseFileS2: $BaseFileS2 
+	         #echo VBFFILENAME: $VBFFILENAME
+             ###################################################
+             # Note here that VeagsSimProductionS4.scr will generate the PedVar 
+             # Stage4 filename with the correct TelConfig and cuts
+             # the VSProdFile has that info added to it with sed commands.
+             ###################################################
+
+	         if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+               #######################################################
+               # BuildVegasSimProduction will create the .pbs file and add
+               # that file's name to the QsubFileNameList  file
+               # The actual submision of the job array job to the cluster and 
+               # moidification of the .pbs job to be a job array job is done 
+               # later in this script.
+               #########################################################
+               # Check that the vbf file exists in the lcl directory
+               if [ ! -e "$VBFNM" ]; then
+                 echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
+                 echo VAAuto--Job Array submission aborted.
+                 exit
+               fi
+
+               BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
+             else
+		       SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+             fi
            fi
            ###############################################################
+	        
+           if [ -n "$CheckStage4Files" ]; then
+             # echo '##########################################################'
+             # echo '# CheckStage4Files'
+	         # echo '##########################################################'
+	         cd $lcl
+	       
+             #Check VARootIO can open and load file 
+	         Arg=$lcl'/CheckStage4FileOK.C("'$PedVarS4FileName'")'
+	       
+	         root -q -b -q $Arg >CheckStage4OK.log
+	         {
+		       read BAD
+		       let suzBAD="$BAD"
+		       if [ "$suzBAD" -lt "15" ]; then
+		         echo "Bad: "$PedVarS4FileName
+		         echo "Reason: "$suzBAD
+		         if [ $suzBAD -eq "1" ]; then
+			       echo "VAAuto: VARootIO failed to open" 
+		         fi
+		         #if [ $suzBAD -eq "2" ]; then
+		         #  echo "VAAuto: VARootIO failed to load"
+		         #fi
+		         if [ $suzBAD -eq "3" ]; then
+			       echo "VAAuto: VARootIO failed to find ShowerDataTree"
+		         fi
+		       fi 
+		   
+	         } <CheckStage4FileOK.Result
+	         #rm CheckStage4FileOK.Result
+	       fi
+           ###############################################################
+          
+           sSimSetNum=$((sSimSetNum + 1))
+          done        #end of SimSet loop
+       fi           
+       # ####################################################################
 
-	   if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
-	      cd $lcl
-	      date
-	      echo PV:$PV
+
+	   if [ -n "$GenerateStage5Combined" ] || \
+          [ -n "$GenerateStage5CombinedRCE" ]; then
+	     cd $lcl
+	     date
+	     echo PV:$PV
               # OK! We are ready to run.  Need to submit since this will take more 
               # than 1 hours or we have many to run in parallel 
               WALLTIME=20:00:00
@@ -2614,57 +2699,25 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 MEMREQUEST="mem=8GB"
               fi
 
-	      echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for ' $lcl'/'$VBFFILENAME 
+	     echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for '\
+             $lcl'/'$VBFFILENAME 
 	       
-	      echo PedVarFile: $PedVarFile 
-	      echo BaseFileS2: $BaseFileS2 
-	      echo VBFFILENAME: $VBFFILENAME
+	     echo PedVarFile: $PedVarFile 
+	     echo BaseFileS2: $BaseFileS2 
+	     echo VBFFILENAME: $VBFFILENAME
               ###################################################
               # Note here that VeagsSimProductionS5.scr will generate the PedVar 
               # Stage4 filename with the correct TelConfig and Cuts. 
               # the VSProdFile has that info added to it with sed commands.
               ###################################################
             
-	      SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+	     SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
 		   
 	   fi
 
-           ###############################################################
+       ###############################################################
 	   
-	   if [ -n "$CheckStage4Files" ]; then
-             # echo '##########################################################'
-             # echo '# CheckStage4Files'
-	     # echo '##########################################################'
-	       cd $lcl
-	       
-             #Check VARootIO can open and load file 
-	       
-	       Arg=$lcl'/CheckStage4FileOK.C("'$PedVarS4FileName'")'
-	       
-	       root -q -b -q $Arg >CheckStage4OK.log
-	       {
-		   read BAD
-		   let suzBAD="$BAD"
-		   
-		   if [ "$suzBAD" -lt "15" ]; then
-		       echo "Bad: "$PedVarS4FileName
-		       echo "Reason: "$suzBAD
-		       if [ $suzBAD -eq "1" ]; then
-			   echo "VAAuto: VARootIO failed to open" 
-		       fi
-		   #if [ $suzBAD -eq "2" ]; then
-		       #echo "VAAuto: VARootIO failed to load"
-		   #fi
-		       if [ $suzBAD -eq "3" ]; then
-			   echo "VAAuto: VARootIO failed to find ShowerDataTree"
-		       fi
-		   fi 
-		   
-	       } <CheckStage4FileOK.Result
-	     #rm CheckStage4FileOK.Result
-	   fi
-           ###############################################################
-           
+         
 	   let kpvar=$kpvar+1
 	  done
 	 kaz=$((kaz+1))
@@ -3106,5 +3159,4 @@ fi
 
    
 #################################################################################
-date
-echo 'VAAuto: All done!'
+echo 'VAAuto: All done at $(date)!'
