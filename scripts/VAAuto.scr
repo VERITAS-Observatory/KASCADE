@@ -183,7 +183,7 @@ function GenerateEAFileName()
   fi
   if [ "$a" = "N" ]; then
      Epoch=V5_T1Move
-	 SimModel=MDL15NA
+         SimModel=MDL15NA
   fi
   if [ "$a" = "O" ]; then
      Epoch=V4_OldArray
@@ -279,7 +279,7 @@ function GenerateLTFileName()
   fi
   if [ "$a" = "NA" ]; then
      Epoch=V5_T1Move
-	 SimModel=MDL15NA
+         SimModel=MDL15NA
   fi
   if [ "$a" = "OA" ]; then
      Epoch=V4_OldArray
@@ -322,7 +322,9 @@ function GenerateLTFileName()
   fi
 
   LTFILENAME=$LTFILENAME'vegasv'$VEGASMODULEVERSION'_7sam_'$offsetID'off_'$method'_d'$distCut'_'
-  LTFILENAME=$LTFILENAME'LZA.root'
+  #eSpec Doesn't use LZA
+  #LTFILENAME=$LTFILENAME'LZA.root'
+  LTFILENAME=$LTFILENAME'.root'
   echo LTFILENAME: $LTFILENAME
   return
 }
@@ -358,22 +360,22 @@ function CheckQsubSubmissions()
     {
       while  read QsublogFile;  
        do
-	 if [ !  -e "$QsublogFile" ]; then
-	   let count=count+1
+         if [ !  -e "$QsublogFile" ]; then
+           let count=count+1
            echo $QsublogFile >>$RunningQsubListTmp
          fi
        done
     } < $RunningQsubListFile
 
     if [ -e "$RunningQsubListTmp" ]; then
-	cp $RunningQsubListTmp  $RunningQsubListFile
-	rm $RunningQsubListTmp
+        cp $RunningQsubListTmp  $RunningQsubListFile
+        rm $RunningQsubListTmp
     else
-	rm  $RunningQsubListFile
+        rm  $RunningQsubListFile
     fi
 
     if [ $count -ge $1 ]; then             #We are full, wait a bit and try again
-	sleep 60
+        sleep 60
     fi
    done
 }
@@ -480,7 +482,7 @@ function SubmitHtarToArchive()
   if [ -n "$LimitSubmissions" ]; then
     HTARDoneLog=$HTARFileName'HTARDone.log'     
     if [ -e "$HTARDoneLog" ]; then              #MaxHTARQsubs jobs are active 
-	 rm $HTARDoneLog
+         rm $HTARDoneLog
     fi
   fi
 
@@ -558,7 +560,7 @@ function SubmitHtarFromArchive()
   if [ -n "$LimitSubmissions" ]; then
     HTARDoneLog=$Source'HTARDone.log'     
     if [ -e "$HTARDoneLog" ]; then              #MaxHTARQsubs jobs are active 
-	 rm $HTARDoneLog
+         rm $HTARDoneLog
     fi
   fi
 
@@ -681,7 +683,7 @@ function SubmitVegasSimProduction()
   if [ -n "$LimitSubmissions" ]; then
     local VEGASDoneLog=$FilePedVar'_'$FileBase$IDUNIQUE'Done.log'     
     if [ -e "$VEGASDoneLog" ]; then              #Max queue jobs are active 
-	 rm $VEGASDoneLog
+         rm $VEGASDoneLog
     fi
   fi
   
@@ -819,14 +821,14 @@ function BuildVegasSimProduction()
       ##############################################
       # Generate the veagsSimProduction command 
       ##############################################
-	  local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
-	  sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
-	  SgeFilePBSCmds   $sgeFile
-	  SgeFileBashCmds  $sgeFile
+          local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
+          sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
+          SgeFilePBSCmds   $sgeFile
+          SgeFileBashCmds  $sgeFile
 
-	  echo $VSPCommand                             >>$sgeFile
+          echo $VSPCommand                             >>$sgeFile
 
-	  SgeFileCompleteAndSave $sgeFile
+          SgeFileCompleteAndSave $sgeFile
   else
      echo 'VAAuto--Fatal:BuildVegasSimProduction: Not setup for this cluster'
      exit
@@ -866,7 +868,7 @@ function BuildProduceLookupTables()
     sgeFile=$lcl'/PRLT'$IDUNIQUE$BASESUBLT'.pbs'
     SgeFilePBSCmds   $sgeFile                       #In UtilityFunctions
     SgeFileBashCmds  $sgeFile                       #In UtilityFunctions
-	    
+            
     echo /usr/bin/time  \\                      >>$sgeFile
     echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
     echo -config $lcl'/'$CNFGNAME \\            >>$sgeFile
@@ -888,7 +890,7 @@ function BuildProduceLookupTables()
 ##############
 #Main Program:
 ##############
-echo 'Starting VAAuto at $(date)'
+echo 'Starting VAAuto at ' $(date)
 
 #################################
 # Make sure KASCADE has been loaded
@@ -903,8 +905,8 @@ if [ ! -n "$KASCADE" ]; then
     module unload vegas
     module load vegas
     if [ ! -n "$KASCADE" ]; then
-	echo 'VAAuto: Fatal--Failed to load KASCADE'
-	exit
+        echo 'VAAuto: Fatal--Failed to load KASCADE'
+        exit
     fi
     module li
 fi
@@ -971,21 +973,21 @@ fi
 ############################
 if [ "$SPECCFG" = "UA" ]; then
     PMT="U"
-	PMT_Mfr=Photonis
-	PMT_mfr=photonis
+        PMT_Mfr=Photonis
+        PMT_mfr=photonis
     LTSEASON="ua"
 fi
 if [ "$SPECCFG" = "OA" ]; then
     PMT="O"
-	PMT_Mfr=Hamamatsu
-	PMT_mfr=hamamatsu
+        PMT_Mfr=Hamamatsu
+        PMT_mfr=hamamatsu
     LTSEASON="oa"
 fi
 if [ "$SPECCFG" = "NA" ]; then
     PMT="N"
-	PMT_Mfr=Hamamatsu
-	PMT_mfr=hamamatsu
-	LTSEASON="na"
+        PMT_Mfr=Hamamatsu
+        PMT_mfr=hamamatsu
+        LTSEASON="na"
 fi
 if [ "$SPECCFG" = "W" ]; then
     PMT=$SPECCFG
@@ -1074,9 +1076,9 @@ fi
 if [[ $SPECPV = "All" ]]; then
     if [ $SPECCFG = "UA" ]; then
       if [ $SPECMDL = "MDL12UA" ]; then
-	  PedVar=([0]=5.18 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+          PedVar=([0]=5.18 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
       else
-	  PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
+          PedVar=([0]=4.73 5.55 6.51 7.64 8.97 10.52 12.35 14.49 17.00)
       fi
     fi
     if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
@@ -1084,9 +1086,9 @@ if [[ $SPECPV = "All" ]]; then
     fi
 else
     if [[ $SPECPV = "Base" ]]; then
-	PedVar=([0]=0 )
+        PedVar=([0]=0 )
     else
-	IFS=, read -a PedVar <<< "$SPECPV"
+        IFS=, read -a PedVar <<< "$SPECPV"
     fi
 fi
 IFS=$SAVEIFS
@@ -1108,7 +1110,7 @@ if [ ${SPECPART:0:2} = "CR" ]; then
      if [ ! -n "$SimSetStart" ] || [ ! -n "$SimSetEnd" ]; then
         echo VAAuto:Fatal--Simsets improperly defined: #SPECPART
         echo VAAuto: Should be of the form CR1-25 oe CR4-4
-	exit 
+        exit 
      fi
      echo 'VAAuto: SimSets Enabled:'$SimSetStart' to '$SimSetEnd
     fi
@@ -1156,8 +1158,8 @@ fi
 DISPLTCUTSFILE=$VERITASAPPS'/tables/LookupTableDispCuts'
 if [ -n "$ProduceDispSubLookupTables" ]; then
     if [ ! -e $DISPLTCUTSFILE ]; then
-	echo 'VAAuto: Fatal- Can not find file: '$DISPLTCUTSFILE
-	exit
+        echo 'VAAuto: Fatal- Can not find file: '$DISPLTCUTSFILE
+        exit
     fi
 fi
 
@@ -1179,9 +1181,9 @@ AzStr=0,45,90,135,180,225,270,315
 
 if [ $SPECCFG = "UA" ]; then
     if [ $SPECMDL = "MDL12UA" ]; then
-	NoiseStr=5.18,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+        NoiseStr=5.18,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
     else
-	NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
+        NoiseStr=4.73,5.55,6.51,7.64,8.97,10.52,12.35,14.49,17.00
     fi
 fi
 if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
@@ -1362,7 +1364,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     echo '##########################################################'
     ####################################################################
     #1: Setup the VegasSimProduction.scr we will use for these jobs.
-	#2: Setup the QsubFileNameList and QsubsLogs file
+        #2: Setup the QsubFileNameList and QsubsLogs file
     #3:  For Halstead shorten the walltime for these Stage2 jobs.
     ####################################################################
     cd $lcl
@@ -1373,23 +1375,23 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
     echo VSProdFile:   $VSProdFile
 
-	####################################################################
+        ####################################################################
     # See note below in GeneraterStage2FromVBF section on CORI use of Job 
     # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
     # here.
     # Eventual use on all clusters
     ####################################################################
-	QsubFileNameList='VA'$UNIQUE'AutoqsubList'
+    QsubFileNameList='VA'$UNIQUE'AutoqsubList'
     echo QsubFileNameList: $QsubFileNameList
     if [ -e "$QsubFileNameList" ]; then
-		rm $QsubFileNameList
+                rm $QsubFileNameList
     fi
-	QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
+        QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
     if [ -e "$QsubLogs" ]; then
-		rm $QsubLogs
+                rm $QsubLogs
     fi
 
-	cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
+        cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
       #######################################################################
       #The standard $KASCADE/scripts/VegasSimProduction.scr should have all 
       #options turned off.  We just have to make sure only stages 1 and 2 
@@ -1397,13 +1399,13 @@ if [ -n "$GenerateStage2FromVBF" ]; then
       #??????Sample size:We will need to set integration window size if 
       #different from 7?????? Not implimented yet.
       ##################################################################
-	sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+        sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
                                                            <$VSProdFile >tmp1
-	sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
-	sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-	sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
-	sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
-	mv tmp1 $VSProdFile
+        sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+        sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+        sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+        sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
+        mv tmp1 $VSProdFile
 
     ####################################################################
     # Check now to see if we are using a LowGain (LGD) capable vegas. 
@@ -1412,20 +1414,20 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     # Look in vaStage2 config file to see if the TE options are mentioned. 
     # That will tell us is we are using a LowGain (LGD) capable vegas.
     ####################################################################
-	runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
-	if [ -n "$runningLGD" ]; then
-		echo VAAuto: vaStage2 is LGD capable.
+        runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
+        if [ -n "$runningLGD" ]; then
+                echo VAAuto: vaStage2 is LGD capable.
          #########################################
-	     #Define the file names needed in the options.]
-	     #########################################
-		if [ -n "$VEGASBASE" ]; then
+             #Define the file names needed in the options.]
+             #########################################
+                if [ -n "$VEGASBASE" ]; then
             if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-			  lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
-		    else
-	          if [ -n "$HALSTEAD" ]; then
-				lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
-	          fi
-		    fi
+                          lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
+                    else
+                  if [ -n "$HALSTEAD" ]; then
+                                lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
+                  fi
+                    fi
         else
             echo "VAAUTO--Fatal: This version of vegas does not define VEGASBASE"
             echo "VAAUTO--Needed for LowGain analysis"
@@ -1433,30 +1435,30 @@ if [ -n "$GenerateStage2FromVBF" ]; then
         fi
 
         #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
-	    echo PMT_Mfr: $PMT_Mfr
-	    echo PMT_mfr: $PMT_mfr
-		echo ldgf: $lgdf
+            echo PMT_Mfr: $PMT_Mfr
+            echo PMT_mfr: $PMT_mfr
+                echo ldgf: $lgdf
 
-		VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
-	    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
+                VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
+            VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
 
 
-	    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
-	    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
-	    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
-	fi
+            sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
+            sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
+            sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
+        fi
 
-	chmod 755 $VSProdFile
-	rm tmp2
-	
+        chmod 755 $VSProdFile
+        rm tmp2
+        
     ###########################################################################
     # Stage 2 only needs longer time if Halstead
     ###########################################################################
     WALLTIME=' -t 15:00:00'
-	MEMREQUEST='--mem=5GB'
+        MEMREQUEST='--mem=5GB'
     if [ -n "$HALSTEAD" ]; then
-		WALLTIME='-l walltime=24:00:00'
-		MEMREQUEST=" -l mem=8GB"
+                WALLTIME='-l walltime=24:00:00'
+                MEMREQUEST=" -l mem=8GB"
     fi
 fi
 ############################################################################
@@ -1467,6 +1469,26 @@ if [ -n "$GenerateStage4FromStage2" ]; then
     echo '##########################################################'
     cd $lcl
     date
+    GetUniqueNumber
+    VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
+    echo VSProdFile:   $VSProdFile
+
+        ####################################################################
+    # See note below in GeneraterStage2FromVBF section on CORI use of Job 
+    # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
+    # here.
+    # Eventual use on all clusters
+    ####################################################################
+    QsubFileNameList='VA'$UNIQUE'AutoqsubList'
+    echo QsubFileNameList: $QsubFileNameList
+    if [ -e "$QsubFileNameList" ]; then
+      rm $QsubFileNameList
+    fi
+      QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
+    if [ -e "$QsubLogs" ]; then
+      rm $QsubLogs
+    fi
+
     #Make sure VegasSimProduction.scr is set up correctly to get  
     #Stage4
 
@@ -1556,7 +1578,7 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
       echo '##########################################################'
     fi
 
-	cd $lcl
+        cd $lcl
     date
     #Make sure VegasSimProduction.scr is set up correctly to get  
     #Stage5 combined tree
@@ -1602,7 +1624,7 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
     if [ -n "$GenerateStage5Combined" ]; then
       sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
       sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
-	fi
+        fi
    
     ##########################################################################
     # For a combined option with RemoveCutEvents only remove # from that option
@@ -1611,9 +1633,9 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
     if [ -n "$GenerateStage5CombinedRCE" ]; then
       sed '/Method=stereo/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
       sed '/RemoveCutEvents/s/#OutputMethod/OutputMethod/g'       <tmp2 >tmp1
-	fi
+        fi
 
-	mv tmp1 $VSProdFile
+        mv tmp1 $VSProdFile
     chmod 755 $VSProdFile
     rm tmp1
     rm tmp2
@@ -1637,7 +1659,7 @@ if [ -n "$CheckStage4Files" ]; then
     echo '##########################################################'
     date 
     if [ ! -e "CheckStage4FileOK.C" ]; then
-	cp $KASCADEBASE/scripts/CheckStage4FileOK.C .
+        cp $KASCADEBASE/scripts/CheckStage4FileOK.C .
     fi
     ~/Switch.rootrcTo.rootrc_glenn.scr
 fi
@@ -1817,9 +1839,9 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         ############################
         if test $kaz -eq "0" 
          then
- 	  Az=${Azimuth[$kaz]},${Azimuth[1]}
+           Az=${Azimuth[$kaz]},${Azimuth[1]}
         else
- 	  Az=${Azimuth[0]},${Azimuth[$kaz]}
+           Az=${Azimuth[0]},${Azimuth[$kaz]}
         fi
         #now replace Offset argument and put in a final file
         sed '/DTM_Azimuth/s/'$AzStr'/'$Az'/g'  <config2.tmp >$DispConfigName
@@ -1887,26 +1909,26 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         fi
  
         if [ "$SPECPART" = "CR" ]; then
-            GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #no wbl for CR
+          GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #no wbl for CR
         else
-            GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
+          GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
         fi
+
         BaseFileS2=${VBFFILENAME%%.vbf}
         ################################################################
- 	    
+             
         if [ -n "$GetVBFFileFromArchive" ]; then
           echo '##########################################################'
           echo '# GetVBFFileFromArchive'
           echo '##########################################################'
-	  cd $lcl
-	  date
-	  echo VBFFILENAME: $VBFFILENAME
-	  echo VBFDIR: $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
+          cd $lcl
+          date
+          echo VBFFILENAME: $VBFFILENAME
+          echo VBFDIR: $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
           if [ ! -e  "$VBFFILENAME" ]; then
              hsi 'cd '$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF; get '$VBFFILENAME';'
           fi
         fi
-            
         ###############################################################
 
         #Iterate through PedVars
@@ -1937,7 +1959,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
           #  GenerateStage2FromVBF and CheckStage2Files also need SimSet interation
           #  is applicable
           # ***********************************************************************
-          if [ -n "$GenerateStage2FromVBF" ] && if [ -n "$CheckStage2Files" ]; then
+          if [ -n "$GenerateStage2FromVBF" ] || [ -n "$CheckStage2Files" ]; then
             # ###############################################################
             # Due to size and walltime limits we have divided the each CR vbf 
             # file into a number of seperate files. This is implimented by adding 
@@ -1954,12 +1976,12 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
             fi
 
             while test $sSimSetNum -le $sSimSetEnd
-	     do
- 
+             do
+	       
               if [ -n "$GenerateStage2FromVBF" ]; then
                 #echo '##########################################################'
                 #echo '# GenerateStage2FromVBF '
-     	        #echo '##########################################################' 
+                #echo '##########################################################' 
 
                 ################################################################
                 # I made a change for the Cori version . Enable the Job array 
@@ -1968,14 +1990,14 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
                 # in a QSubListFile instead of running them directly. Then after
                 # that is  complete, a single routine, SubmitQsubJobs, (now in 
                 # UtilityFuntions)is called to submit a job array submission task.
-		#(Note:
+                #(Note:
                 # there is no QsubLimit procedure when using the job arrays (for 
                 # now).
                 # Eventually we will switch over to using the QSubListFile for  
                 # all clusters. Only Cori and Edison for now.
                 #################################################################
 
-	        cd $lcl
+                cd $lcl
                 if [ "$sSimSetNum" = "0" ]; then
                   VBFNM=$VBFFILENAME
                   BFNMS2=$BaseFileS2
@@ -2000,7 +2022,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 
                   BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
                 else
-	 	  SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+                   SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
                 fi
                 echo VAAuto--File:  $VBFNM 
               fi
@@ -2008,14 +2030,14 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 
 
               if [ -n "$CheckStage2Files" ]; then
-                # echo '##########################################################'
-                # echo '# CheckStage2Files'
-	        # echo '##########################################################'
-	        cd $lcl
-	     
+                #echo '##########################################################'
+                #echo '# CheckStage2Files (a)'
+                #echo '##########################################################'
+                cd $lcl
+             
                 #Check VARootIO can open and load file 
                 #Setip for running root. 
-	        ~/Switch.rootrcTo.rootrc_glenn.scr
+                ~/Switch.rootrcTo.rootrc_glenn.scr
            
                 # Previously we made sure we have the root script file 
                 # CheckStage2FileOK.C
@@ -2049,7 +2071,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
                   
                     if [ $suzBAD -eq "-1" ]; then
                       echo "VAAuto: VARootIO failed to open. " 
- 	            fi
+                    fi
                     if [ $suzBAD -eq "-2" ]; then
                       echo "VAAuto: VARootIO failed to load file. May not exist"
                     fi
@@ -2060,10 +2082,10 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
                     if [ $suzBAD -eq "-4" ]; then
                       echo "VAAuto: VARootIO failed to find SimulatedEventTree"
                     fi
-		    if [ $suzBAD -eq "-5" ]; then
+                    if [ $suzBAD -eq "-5" ]; then
                       echo "VAAuto: Too few events ( <20 )  in " \
                            "ParameterisedEventTree"
-		    fi
+                    fi
                   fi 
                   rm CheckStage2FileOK.Result
                  } <CheckStage2FileOK.Result
@@ -2079,9 +2101,9 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
           if [ -n "$GenerateDispSubLTListFiles" ]; then
             # echo '##########################################################'
             # echo '# GenerateDispSubLTListFiles'
-	    # echo '##########################################################'
-	    cd $lcl
-	    echo $FileName >>$DispListName
+            # echo '##########################################################'
+            cd $lcl
+            echo $FileName >>$DispListName
           fi
           #******************************************************************
  
@@ -2112,13 +2134,13 @@ fi
 ###########################################################################
 
 if [ -n "$GenerateStage2FromVBF" ]; then
-	
+        
     #echo '##########################################################'
     #echo '# GenerateStage2FromVBF '
     #echo '##########################################################'
-	
+        
     ######################################################################
-	# For NERSC (Cori or Edison) JobArray only: generate Jobarry .pbs file for 
+        # For NERSC (Cori or Edison) JobArray only: generate Jobarry .pbs file for 
     # all the .pbs jobs in the qsubFileNameList.
     # SubmitQsubJobs is in UtilityFuncitons.scr
     ######################################################################
@@ -2170,7 +2192,7 @@ if [ -n "$GenerateSubLTConfigFiles" ]; then
       cp tmp1 tmp2
    fi
    sed '/Log10SizePerBin/s/0.04/0.07/g'              <tmp2 >tmp1
-   sed '/ImpDistUpperLimit/s/400/800/g'	             <tmp1 >tmp2
+   sed '/ImpDistUpperLimit/s/400/800/g'                     <tmp1 >tmp2
    sed '/Log10EaxisEnergyUpperLimit/s/6/5/g'         <tmp2 >tmp1
    #Set the number of samples for noise
    sed '/LTM_WindowSizeForNoise/s/7/'$Samples'/g' <tmp1 >tmp2
@@ -2267,7 +2289,7 @@ if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
    echo '# HTARPedVarZnOffsetS2ToArchive'
    echo '##########################################################'
    if [ -n "$EDISON" ]; then
-	QUEUE=xfer
+        QUEUE=xfer
         QSUBEXT=" "
    fi
    cd $lcl
@@ -2326,405 +2348,400 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
    [ -n "$CombineBuildCheckEALT" ]    || [ -n "$ProduceEASubLookupTables" ]        || \
    [ -n "$GenerateEASubLTListAndConfigFiles" ] ; then
 
-#****************************************************************************
-   # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
-   # combination
-   # we loop over Zn and Offset 
-   #############################################################################
+  #****************************************************************************
+  # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
+  # combination
+  # we loop over Zn and Offset 
+  #############################################################################
 
-   #######################################################################
-   #Zenith
-   let izn=0
-   let iznEnd=${#Zenith[@]}
-   while test $izn -lt $iznEnd
-    do
-     ZN=${Zenith[$izn]}
-     #echo izn: $izn' ZN: '$ZN
+  #######################################################################
+  #Zenith
+  let izn=0
+  let iznEnd=${#Zenith[@]}
+  while test $izn -lt $iznEnd
+   do
+    ZN=${Zenith[$izn]}
+    #echo izn: $izn' ZN: '$ZN
 
-     ####################################################################
-     # Iterate over WBL Offsets
-     ####################################################################
-     #Wbl Offset
-     let iwbl=0
-     let iwblEnd=${#WblOffset[@]}
-     while test $iwbl -lt $iwblEnd
-      do
-       WBL=${WblOffset[$iwbl]}
-       if [ "$WBL" !=  '0.0' ]; then
-	   WBLSPEC=S$WBL'Wbl'
-       else
-	   WBLSPEC=$WBL'Wbl'
-       fi
-       if [ -n "$CheckStage4Files" ]; then
-	   echo $ZN':' $WBLSPEC >&2   #Print to stderr during operation to 
-       fi                            #let user know things are running
+    ####################################################################
+    # Iterate over WBL Offsets
+    ####################################################################
+    #Wbl Offset
+    let iwbl=0
+    let iwblEnd=${#WblOffset[@]}
+    while test $iwbl -lt $iwblEnd
+     do
+      WBL=${WblOffset[$iwbl]}
+      if [ "$WBL" !=  '0.0' ]; then
+        WBLSPEC=S$WBL'Wbl'
+      else
+        WBLSPEC=$WBL'Wbl'
+      fi
+      if [ -n "$CheckStage4Files" ]; then
+         echo $ZN':' $WBLSPEC >&2   #Print to stderr during operation to 
+      fi                            #let user know things are running
 
-       #Construct the Sub Lt or  EASubLT Config File Name. 
-       #EASPEC is only defined for EA gens.
-       SUBLTBASE=$EASPEC'SubLT'$SPECSEA$Samples'Sample'$ZN'Deg'$WBLSPEC$CUTTYPE
+      #Construct the Sub Lt or  EASubLT Config File Name. 
+      #EASPEC is only defined for EA gens.
+      SUBLTBASE=$EASPEC'SubLT'$SPECSEA$Samples'Sample'$ZN'Deg'$WBLSPEC$CUTTYPE
 
-       ConfigName=$SUBLTBASE$HMode'.config'
-       ListName=$SUBLTBASE'List'
-       SubLTFileName=$lcl'/'$SUBLTBASE'.root'
+      ConfigName=$SUBLTBASE$HMode'.config'
+      ListName=$SUBLTBASE'List'
+      SubLTFileName=$lcl'/'$SUBLTBASE'.root'
 
-       #**********************************************************
-       if [ -n "$GenerateSubLTConfigFiles" ] || \
-		  [ -n "$GenerateEASubLTListAndConfigFiles" ] ;
-	     then
-         #############################################################
-         #Now we need to "edit the new config file
-         #############################################################
-         #Figure out what the Zenith argument should look like
-	     if test $izn -eq "0" 
-	      then
-	       Zn=${Zenith[izn]}','${Zenith[1]}
-	     else
-	       Zn=${Zenith[0]}','${Zenith[izn]}
-	     fi
-	     #now replace Zenith argument and put in a tmp file
-	     sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
+      #**********************************************************
+      if [ -n "$GenerateSubLTConfigFiles" ] || \
+         [ -n "$GenerateEASubLTListAndConfigFiles" ] ;
+       then
+        #############################################################
+        #Now we need to "edit the new config file
+        #############################################################
+        #Figure out what the Zenith argument should look like
+        if test $izn -eq "0" 
+         then
+          Zn=${Zenith[izn]}','${Zenith[1]}
+        else
+          Zn=${Zenith[0]}','${Zenith[izn]}
+        fi
+        #now replace Zenith argument and put in a tmp file
+        sed '/Zenith/s/'$ZNStr'/'$Zn'/g' <config1.tmp >config2.tmp
 
-           ##############################################################
-           #Now do the same for the Offset but put in final file
-           #If we only are doing one offset leavce AbsoluteOffset blank
-	     if test $iwblEnd -ne "1"   #Allows for only one WBl
-	      then   
-	       if test $iwbl -eq "0" 
-		    then
-		     W=${WblOffset[$iwbl]},${WblOffset[1]}
-	       else
-		     W=${WblOffset[0]},${WblOffset[$iwbl]}
-	       fi
-	       sed '/luteOffset/s/'$ABOStr'/'$W'/g'  <config2.tmp >$ConfigName
-	     else
-	       cp config2.tmp $ConfigName
-              #   sed '/luteOffset/s/'$ABOStr'/   /g'  <config2.tmp >$ConfigName
-         fi   
-           #now replace Offset argument and put in a final file
-	     rm config2.tmp
-       fi
-       #********************************************************************
+        ##############################################################
+        #Now do the same for the Offset but put in final file
+        #If we only are doing one offset leavce AbsoluteOffset blank
+        if test $iwblEnd -ne "1"   #Allows for only one WBl
+         then   
+          if test $iwbl -eq "0" 
+           then
+            W=${WblOffset[$iwbl]},${WblOffset[1]}
+          else
+            W=${WblOffset[0]},${WblOffset[$iwbl]}
+          fi
+          sed '/luteOffset/s/'$ABOStr'/'$W'/g'  <config2.tmp >$ConfigName
+        else
+          cp config2.tmp $ConfigName
+          #   sed '/luteOffset/s/'$ABOStr'/   /g'  <config2.tmp >$ConfigName
+        fi   
+        #now replace Offset argument and put in a final file
+        rm config2.tmp
+      fi
+      #********************************************************************
 
 
-       if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
-         # *****************************************************************
-         # For each of ZN Az, and  Offset combination we make a tar file of all
-         # the files with that Zn Az and Offset and all  PedVar (9 files)
-         # #################################################################
-         # Make up Pedvar .tar file name
-	     PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
-         if [ "$SPECPART" = "CR" ]; then
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL#No wbl for CR
-         else
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
-         fi
-         BaseFileS2=${VBFFILENAME%%_az*}
-	     PVFILESPEC='PedVar*'$BaseFileS2'*'$WBL'wobb.root'
-	     SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
-       fi
-       #*********************************************************************
+      if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
+        # *****************************************************************
+        # For each of ZN Az, and  Offset combination we make a tar file of all
+        # the files with that Zn Az and Offset and all  PedVar (9 files)
+        # #################################################################
+        # Make up Pedvar .tar file name
+        PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL'.tar'
+        if [ "$SPECPART" = "CR" ]; then
+          GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL#No wbl for CR
+        else
+          GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
+        fi
+        BaseFileS2=${VBFFILENAME%%_az*}
+        PVFILESPEC='PedVar*'$BaseFileS2'*'$WBL'wobb.root'
+        SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/'$PedVarHTARFile $lcl "$PVFILESPEC"
+      fi
+      #*********************************************************************
 
-       if [ -n "$HTARPedVarZnOffsetS2FromArchive" ]; then
-         #*****************************************************************
-         #For each of ZN Az, and  Offset combination we recover a tar file of 
-         # all
-         #the files with that Zn Az and Offset and all  PedVar (9 files)
-         ##################################################################
-         # Make up Pedvar .tar file name
-	     PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
+      if [ -n "$HTARPedVarZnOffsetS2FromArchive" ]; then
+        #*****************************************************************
+        #For each of ZN Az, and  Offset combination we recover a tar file of 
+        # all
+        #the files with that Zn Az and Offset and all  PedVar (9 files)
+        ##################################################################
+        # Make up Pedvar .tar file name
+        PedVarHTARFile='S2Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL
 
-	     SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
-       fi
-       #*********************************************************************
+        SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS2/' $lcl $PedVarHTARFile 
+      fi
+      #*********************************************************************
 
-       if [ -n "$HTARPedVarZnOffsetS4ToArchive" ]; then
-         #*****************************************************************
-         # For each of ZN Az, and  Offset combination we make a tar file of all
-         # the files with that Zn Az and Offset and all  PedVar (9 files)
-         ##################################################################
-         # Make up Pedvar .tar file name
-	     if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then
-             #Check Archive Directory exists 
-	       hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
-	       echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
-	     fi
-	     PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
-	     if [ -n "$TELCUT" ]; then
-	       PedVarHTARFile=$PedVarHTARFile$TelConfig
-	     fi
+      if [ -n "$HTARPedVarZnOffsetS4ToArchive" ]; then
+        #*****************************************************************
+        # For each of ZN Az, and  Offset combination we make a tar file of all
+        # the files with that Zn Az and Offset and all  PedVar (9 files)
+        ##################################################################
+        # Make up Pedvar .tar file name
+        if [ ! -d "$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4'" ]; then
+          #Check Archive Directory exists 
+          hsi 'cd '$ARCHIVE'; mkdir '$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4;'
+          echo $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4' ;
+        fi
+        PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+        if [ -n "$TELCUT" ]; then
+          PedVarHTARFile=$PedVarHTARFile$TelConfig
+        fi
 
-	     PedVarHTARFile=$PedVarHTARFile'.tar'
+        PedVarHTARFile=$PedVarHTARFile'.tar'
 
-	     PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
+        PVFILESPEC='PedVar*'$SPECSEA$PMT$SPECPART$SPECMDL$ZN{D,_45D,_90D,_135D,_180D,_225D,_270D,_315D}'eg2D'$WBLSPEC$SPECTHR$TelConfig'M2'$CUTTYPE'Cuts.root'
               
-	     SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
-       fi
-       #*********************************************************************
+        SubmitHtarToArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/'$PedVarHTARFile $lcl "$PVFILESPEC"
+      fi
+      #*********************************************************************
 
-       if [ -n "$HTARPedVarZnOffsetS4FromArchive" ]; then
-         #*****************************************************************
-         # For each of ZN Az, and  Offset combination we recover a tar file of all
-         # the files with that Zn Az and Offset and all  PedVar (9 files)
-         ##################################################################
-         # Make up Pedvar .tar file name
-	   PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
-	   if [ -n "$TELCUT" }; then
-	       PedVarHTARFile=$PedVarHTARFile$TelConfig
-	   fi
-	   
-	   SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
-       fi
-       #*********************************************************************
+      if [ -n "$HTARPedVarZnOffsetS4FromArchive" ]; then
+        #*****************************************************************
+        # For each of ZN Az, and  Offset combination we recover a tar file of all
+        # the files with that Zn Az and Offset and all  PedVar (9 files)
+        ##################################################################
+        # Make up Pedvar .tar file name
+        PedVarHTARFile='S4Zn'$ZN'Deg2D'$WBLSPEC'AllPedVarAllAz'$SPECSEA$PMT$SPECPART$SPECMDL$CUTTYPE'Cuts'
+        if [ -n "$TELCUT" }; then
+          PedVarHTARFile=$PedVarHTARFile$TelConfig
+        fi
+           
+        SubmitHtarFromArchive $ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'PedVarS4/' $lcl $PedVarHTARFile 
+      fi
+      #*********************************************************************
        
-       if [ -n "$ProduceSubLookupTables" ]; then
-         ####################################################################
-         # Make up the job script file that will be submitted below
-         ####################################################################
-	 BuildProduceLookupTables $SUBLTBASE $ConfigName $LTCUTSFILE $ListName $SubLTFileName
+      if [ -n "$ProduceSubLookupTables" ]; then
+        ####################################################################
+        # Make up the job script file that will be submitted below
+        ###################################################################
+        BuildProduceLookupTables $SUBLTBASE $ConfigName $LTCUTSFILE $ListName $SubLTFileName
+      fi
+      #*******************************************************************
 
+      if [ -n "$ProduceEASubLookupTables" ]; then
+        ####################################################################
+        # Make up the job script file that will be submitted below
+        ####################################################################
+        sgeFile=$lcl'/'$SUBLTBASE'.pbs'
+        echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
+        echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
+        if [ -n "$CONTE" ]; then
+          echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
+          echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
+          echo module load devel                                      >>$sgeFile
+        fi
+        if [ -n "$PURDUE" ]; then
+            echo source /etc/profile                  >>$sgeFile
+            echo module load gcc/4.7.2                >>$sgeFile
+        fi
+        echo cd $lcl                                >>$sgeFile
+        echo $VEGAS/bin/makeEA \\                   >>$sgeFile
+        echo -config $lcl'/'$ConfigName \\          >>$sgeFile
+        echo -cuts $EACUTSFILE  \\                  >>$sgeFile
+        echo  $lcl'/'$ListName   \\                 >>$sgeFile
+        echo  $SubLTFileName  \\                    >>$sgeFile
+        echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
+        chmod 700 $sgeFile
+        
+        qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+      fi
+      #*******************************************************************
 
-       fi
-       #*******************************************************************
+      if [ -n "$CombineSubLT" ] || [ -n "$CombineBuildCheckEALT" ] ; then
+        #*******************************************************************
+        # Create the List of all SubLT files to be combined
+        #******************************************************************
+        # But first check that each file does exixt. We may want to test deeper
+        # if this isn't enough later.
+        ###################################################################
+        if  [ ! -e "$SubLTFileName" ]; then
+          echo 'VAAuto: Fatal--SubLT file '$SubLTFileName ' dose not exist'
+          exit
+        fi
+        echo $SubLTFileName >>$lcl'/'$SubLTList
+      fi
+      #*******************************************************************
 
-       if [ -n "$ProduceEASubLookupTables" ]; then
-         ####################################################################
-         # Make up the job script file that will be submitted below
-         ####################################################################
-	     sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-	     echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
-	     echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
-         if [ -n "$CONTE" ]; then
-           echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-           echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-           echo module load devel                                      >>$sgeFile
-         fi
-	 if [ -n "$PURDUE" ]; then
-	     echo source /etc/profile                  >>$sgeFile
-	     echo module load gcc/4.7.2                >>$sgeFile
-	 fi
-	 echo cd $lcl                                >>$sgeFile
-	 echo $VEGAS/bin/makeEA \\                   >>$sgeFile
-	 echo -config $lcl'/'$ConfigName \\          >>$sgeFile
-	 echo -cuts $EACUTSFILE  \\                  >>$sgeFile
-	 echo  $lcl'/'$ListName   \\                 >>$sgeFile
-	 echo  $SubLTFileName  \\                    >>$sgeFile
-	 echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
-	 chmod 700 $sgeFile
-	 
-	 qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
-       fi
-       #*******************************************************************
+      #Azimuth
+      let kaz=0
+      let kazEnd=${#Azimuth[@]}
+      while test $kaz -lt $kazEnd
+       do
+        #Make   Zn_Az string
+        AZ=${Azimuth[$kaz]}
+        if test $AZ = "0"
+         then
+          ZnAz=$ZN'Deg'
+        else
+          ZnAz=$ZN'_'$AZ'Deg'
+        fi
+        if [ "$SPECPART" = "CR" ]; then
+          GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #No wbl for CR
+        else
+          GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
+        fi
+        BaseFileS2=${VBFFILENAME%%.vbf}
+        BaseFileS4S5=$BaseFileS2$CUTTYPE'Cuts'
+        #Iterate through PedVars
+        let kpvar=0
+        while test $kpvar -lt $kpvarEnd
+         do   
+          PV=${PedVar[$kpvar]} 
+          PedVarFile=Ped$SPECCFG$PV
+          PedVarName=PedVar$PV
+          PedVarS2FileName=$PedVarName'_'$BaseFileS2'.root'
+          PedVarS4FileName=$PedVarName'_'$BaseFileS4S5'.root'
+          #********************************************************************
+           
+          if [ -n "$GenerateSubLTListFiles" ]; then
+            # echo '##########################################################'
+            # echo '# GenerateSubLTListFiles'
+            # echo '##########################################################'
+            cd $lcl
+            echo $PedVarS2FileName >>$ListName
+          fi
+          #******************************************************************
 
-       if [ -n "$CombineSubLT" ] || [ -n "$CombineBuildCheckEALT" ] ; then
-         #*******************************************************************
-         # Create the List of all SubLT files to be combined
-         #******************************************************************
-	     # But first check that each file does exixt. We may want to test deeper
-         # if this isn't enough later.
-         ###################################################################
-	     if  [ ! -e "$SubLTFileName" ]; then
-	       echo 'VAAuto: Fatal--SubLT file '$SubLTFileName ' dose not exist'
-	       exit
-	     fi
-	     echo $SubLTFileName >>$lcl'/'$SubLTList
-       fi
-       #*******************************************************************
+          if [ -n "$GenerateEASubLTListAndConfigFiles" ]; then
+            cd $lcl
+            echo $PedVarS4FileName >>$ListName
+          fi
+          #******************************************************************
 
-       #Azimuth
-       let kaz=0
-       let kazEnd=${#Azimuth[@]}
-       while test $kaz -lt $kazEnd
-	do
-         #Make   Zn_Az string
-	 AZ=${Azimuth[$kaz]}
-         if test $AZ = "0"
-	     then
-	     ZnAz=$ZN'Deg'
-	 else
-	     ZnAz=$ZN'_'$AZ'Deg'
-	 fi
-	 if [ "$SPECPART" = "CR" ]; then
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #No wbl for CR
-         else
-           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ $WBL $SPECMDL
-	 fi
-	 BaseFileS2=${VBFFILENAME%%.vbf}
-         BaseFileS4S5=$BaseFileS2$CUTTYPE'Cuts'
-         #Iterate through PedVars
-	 let kpvar=0
-	 while test $kpvar -lt $kpvarEnd
-	  do   PV=${PedVar[$kpvar]} 
-	   PedVarFile=Ped$SPECCFG$PV
-	   PedVarName=PedVar$PV
+          # ***********************************************************************
+          #  GenerateStage4FromStage2 and CheckStage4Files also need SimSet interation
+          #  is applicable
+          # ***********************************************************************
+          if [ -n "$GenerateStage4FromStage2" ] ||  [ -n "$CheckStage4Files" ]; then
+            # ###############################################################
+            # Due to size and walltime limits we have divided the each CR vbf 
+            # file into a number of seperate files. This is implimented by adding 
+            # a SimSet number at the end of the VBF file name ( just before the 
+            # .vbf extention). This program does this by using the SimSetStar and 
+            # SimSetEnd symbols. If they are both defined the we are using SimSets
+            # ################################################################
+            if [ -n "$SimSetStart" ] && [ -n "$SimSetEnd" ]; then
+              let sSimSetNum=$SimSetStart
+              let sSimSetEnd=$SimSetEnd
+            else
+              let sSimSetNum=0 
+              let sSimSetEnd=0
+            fi
+            while test $sSimSetNum -le $sSimSetEnd
+             do
 
-	   PedVarS2FileName=$PedVarName'_'$BaseFileS2'.root'
-	   PedVarS4FileName=$PedVarName'_'$BaseFileS4S5'.root'
-	   #********************************************************************
-	   
-	   if [ -n "$GenerateSubLTListFiles" ]; then
-             # echo '##########################################################'
-             # echo '# GenerateSubLTListFiles'
-	     # echo '##########################################################'
-	       cd $lcl
-	       echo $PedVarS2FileName >>$ListName
-	   fi
-           #******************************************************************
+              if [ -n "$GenerateStage4FromStage2" ]; then
+                #echo '##########################################################'
+                #echo '# GenerateStage4FromStage2 '             
+                #echo '##########################################################'
+                cd $lcl
 
-	   if [ -n "$GenerateEASubLTListAndConfigFiles" ]; then
-	       cd $lcl
-	       echo $PedVarS4FileName >>$ListName
-	   fi
-           #******************************************************************
+                if [ "$sSimSetNum" = "0" ]; then
+                  VBFNM=$VBFFILENAME
+                  BFNMS2=$BaseFileS2
+                else
+                  VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
+                  BFNMS2=$BaseFileS2$sSimSetNum
+                fi
 
-       # ***********************************************************************
-       #  GenerateStage4FromStage2 and CheckStage4Files also need SimSet interation
-       #  is applicable
-       # ***********************************************************************
-       if [ -n "$GenerateStage4FromStage2" ] && if [ -n "$CheckStage4Files" ]; then
-         # ###############################################################
-         # Due to size and walltime limits we have divided the each CR vbf 
-         # file into a number of seperate files. This is implimented by adding 
-         # a SimSet number at the end of the VBF file name ( just before the 
-         # .vbf extention). This program does this by using the SimSetStar and 
-         # SimSetEnd symbols. If they are both defined the we are using SimSets
-         # ################################################################
-         if [ -n "$SimSetStart" ] && [ -n "$SimSetEnd" ]; then
-           let sSimSetNum=$SimSetStart
-           let sSimSetEnd=$SimSetEnd
-         else
-           let sSimSetNum=0 
-           let sSimSetEnd=0
-         fi
-         while test $sSimSetNum -le $sSimSetEnd
-	      do
+                echo PV:$PV
+                #echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
+               
+                #echo PedVarFile: $PedVarFile 
+                #echo BaseFileS2: $BaseFileS2 
+                #echo VBFFILENAME: $VBFFILENAME
+                ###################################################
+                # Note here that VeagsSimProductionS4.scr will generate the PedVar 
+                # Stage4 filename with the correct TelConfig and cuts
+                # the VSProdFile has that info added to it with sed commands.
+                ###################################################
 
-           if [ -n "$GenerateStage4FromStage2" ]; then
-             #echo '##########################################################'
-             #echo '# GenerateStage4FromStage2 ' 	    
-             #echo '##########################################################'
-	         cd $lcl
+                if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+                  #######################################################
+                  # BuildVegasSimProduction will create the .pbs file and add
+                  # that file's name to the QsubFileNameList  file
+                  # The actual submision of the job array job to the cluster and 
+                  # moidification of the .pbs job to be a job array job is done 
+                  # later in this script.
+                  #########################################################
+                  # Check that the vbf file exists in the lcl directory
+                  if [ ! -e "$VBFNM" ]; then
+                    echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
+                    echo VAAuto--Job Array submission aborted.
+                    exit
+                  fi
 
-             if [ "$sSimSetNum" = "0" ]; then
-               VBFNM=$VBFFILENAME
-               BFNMS2=$BaseFileS2
-             else
-               VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
-               BFNMS2=$BaseFileS2$sSimSetNum
-             fi
-
-	         echo PV:$PV
- 	         #echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-	       
-	         #echo PedVarFile: $PedVarFile 
-	         #echo BaseFileS2: $BaseFileS2 
-	         #echo VBFFILENAME: $VBFFILENAME
-             ###################################################
-             # Note here that VeagsSimProductionS4.scr will generate the PedVar 
-             # Stage4 filename with the correct TelConfig and cuts
-             # the VSProdFile has that info added to it with sed commands.
-             ###################################################
-
-	         if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
-               #######################################################
-               # BuildVegasSimProduction will create the .pbs file and add
-               # that file's name to the QsubFileNameList  file
-               # The actual submision of the job array job to the cluster and 
-               # moidification of the .pbs job to be a job array job is done 
-               # later in this script.
-               #########################################################
-               # Check that the vbf file exists in the lcl directory
-               if [ ! -e "$VBFNM" ]; then
-                 echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
-                 echo VAAuto--Job Array submission aborted.
-                 exit
-               fi
-
-               BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
-             else
-		       SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
-             fi
-           fi
-           ###############################################################
-	        
-           if [ -n "$CheckStage4Files" ]; then
-             # echo '##########################################################'
-             # echo '# CheckStage4Files'
-	         # echo '##########################################################'
-	         cd $lcl
-	       
-             #Check VARootIO can open and load file 
-	         Arg=$lcl'/CheckStage4FileOK.C("'$PedVarS4FileName'")'
-	       
-	         root -q -b -q $Arg >CheckStage4OK.log
-	         {
-		       read BAD
-		       let suzBAD="$BAD"
-		       if [ "$suzBAD" -lt "15" ]; then
-		         echo "Bad: "$PedVarS4FileName
-		         echo "Reason: "$suzBAD
-		         if [ $suzBAD -eq "1" ]; then
-			       echo "VAAuto: VARootIO failed to open" 
-		         fi
-		         #if [ $suzBAD -eq "2" ]; then
-		         #  echo "VAAuto: VARootIO failed to load"
-		         #fi
-		         if [ $suzBAD -eq "3" ]; then
-			       echo "VAAuto: VARootIO failed to find ShowerDataTree"
-		         fi
-		       fi 
-		   
-	         } <CheckStage4FileOK.Result
-	         #rm CheckStage4FileOK.Result
-	       fi
-           ###############################################################
-          
-           sSimSetNum=$((sSimSetNum + 1))
-          done        #end of SimSet loop
-       fi           
-       # ####################################################################
-
-
-	   if [ -n "$GenerateStage5Combined" ] || \
-          [ -n "$GenerateStage5CombinedRCE" ]; then
-	     cd $lcl
-	     date
-	     echo PV:$PV
-              # OK! We are ready to run.  Need to submit since this will take more 
-              # than 1 hours or we have many to run in parallel 
-              WALLTIME=20:00:00
-              if [ -n "$CARVER" ]; then
-                MEMREQUEST="pvmem=8GB"
-              else
-                MEMREQUEST="mem=8GB"
+                  BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
+                else
+                       SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+                fi
               fi
+              ###############################################################
+                
+              if [ -n "$CheckStage4Files" ]; then
+                # echo '##########################################################'
+                # echo '# CheckStage4Files'
+                # echo '##########################################################'
+                cd $lcl
+               
+                #Check VARootIO can open and load file 
+                Arg=$lcl'/CheckStage4FileOK.C("'$PedVarS4FileName'")'
+               
+                root -q -b -q $Arg >CheckStage4OK.log
+                 {
+                  read BAD
+                  let suzBAD="$BAD"
+                  if [ "$suzBAD" -lt "15" ]; then
+                    echo "Bad: "$PedVarS4FileName
+                    echo "Reason: "$suzBAD
+                    if [ $suzBAD -eq "1" ]; then
+                      echo "VAAuto: VARootIO failed to open" 
+                    fi
+                    #if [ $suzBAD -eq "2" ]; then
+                    #  echo "VAAuto: VARootIO failed to load"
+                    #fi
+                    if [ $suzBAD -eq "3" ]; then
+                      echo "VAAuto: VARootIO failed to find ShowerDataTree"
+                    fi
+                  fi 
+                   
+                 } <CheckStage4FileOK.Result
+                #rm CheckStage4FileOK.Result
+              fi
+              ##########################################################
+          
+              sSimSetNum=$((sSimSetNum + 1))
+             done        #End of SimSet while loop
+          fi           
+          # ####################################################################
 
-	     echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for '\
-             $lcl'/'$VBFFILENAME 
-	       
-	     echo PedVarFile: $PedVarFile 
-	     echo BaseFileS2: $BaseFileS2 
-	     echo VBFFILENAME: $VBFFILENAME
-              ###################################################
-              # Note here that VeagsSimProductionS5.scr will generate the PedVar 
-              # Stage4 filename with the correct TelConfig and Cuts. 
-              # the VSProdFile has that info added to it with sed commands.
-              ###################################################
+
+          if [ -n "$GenerateStage5Combined" ] || \
+             [ -n "$GenerateStage5CombinedRCE" ]; then
+            cd $lcl
+            date
+            echo PV:$PV
+            # OK! We are ready to run.  Need to submit since this will take more 
+            # than 1 hours or we have many to run in parallel 
+            WALLTIME=20:00:00
+            if [ -n "$CARVER" ]; then
+              MEMREQUEST="pvmem=8GB"
+            else
+              MEMREQUEST="mem=8GB"
+            fi
+
+            echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for '\
+                 $lcl'/'$VBFFILENAME 
+               
+            echo PedVarFile: $PedVarFile 
+            echo BaseFileS2: $BaseFileS2 
+            echo VBFFILENAME: $VBFFILENAME
+            ###################################################
+            # Note here that VeagsSimProductionS5.scr will generate the PedVar 
+            # Stage4 filename with the correct TelConfig and Cuts. 
+            # the VSProdFile has that info added to it with sed commands.
+            ###################################################
             
-	     SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
-		   
-	   fi
+            SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
+                   
+          fi
+          ###############################################################
 
-       ###############################################################
-	   
-         
-	   let kpvar=$kpvar+1
-	  done
-	 kaz=$((kaz+1))
-        done
-       let iwbl=$iwbl+1
-      done
-     izn=$((izn+1))
-    done
+         done                 #End of Pedvar while loop
+        kaz=$((kaz+1))
+       done                   #End of Axzimuth while loop
+      let iwbl=$iwbl+1
+     done                     #End of wbl (offset) while loop
+    izn=$((izn+1))
+   done                       #End of zenith while loop
 fi
 ###########################################################################
 
@@ -2733,9 +2750,9 @@ fi
 ################################
 if [ -n "$EdisonMultipleSerial" ]; then
   if [ -n "$GenerateStage2FromVBF" ]    || \
-	 [ -n "$GenerateStage4FromStage2" ] || \
-	 [ -n "$GenerateStage5Combined" ]   || \
-	 [ -n "$GenerateStage5CombinedRCE" ]; then	
+         [ -n "$GenerateStage4FromStage2" ] || \
+         [ -n "$GenerateStage5Combined" ]   || \
+         [ -n "$GenerateStage5CombinedRCE" ]; then        
      if [ $MSJCount -gt "0" ]; then
        SubmitMultipleSerialJobs  $MSJobList
      fi
@@ -2745,14 +2762,14 @@ fi
 #########################################################################
 
 if [ -n "$ProduceSubLookupTables" ]; then
-	
+        
     #echo '##########################################################'
     #echo '#  ProduceSubLookupTables'
     #echo '##########################################################'
-	
+        
     ######################################################################
     #For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
-    #in the qsubFileNameList. 	SubmitQsubJobs is in UtilityFuncitons.scr
+    #in the qsubFileNameList.         SubmitQsubJobs is in UtilityFuncitons.scr
     ######################################################################
     if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
        SubmitQsubJobs  $QsubFileNameList
@@ -2768,11 +2785,11 @@ fi
 if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     cd $VEGASBASE/showerReconstruction2/macros
     if [ ! -e "combineKASCADE_LT.C" ]; then
-	cp $KASCADEBASE'/scripts/combineKASCADE_LT.C' .
+        cp $KASCADEBASE'/scripts/combineKASCADE_LT.C' .
     fi
    
     if [ -e "$LTFILENAME" ]; then
-	rm -v $LTFILENAME
+        rm -v $LTFILENAME
     fi
 
    ###########################################################################
@@ -2792,34 +2809,34 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     echo 'VAAuto: Do: less CombineSubLT.log,  then shift-F to see when it finishes!'
     
     if [ -n "$CombineSubLT" ]; then
-	root -b -q $Script '>'$lcl'/CombineSubLT.log'
+        root -b -q $Script '>'$lcl'/CombineSubLT.log'
     fi
 
     if  [ -n "$CombineDispSubLT" ]; then
-	#The combine Disp takes too long to run interactivly, so submit it.
+        #The combine Disp takes too long to run interactivly, so submit it.
         #build a submission .pbs file
-	sgeFile=$lcl'/CmbDisp.pbs'
-	 echo "#"PBS -q $QUEUE                                           >$sgeFile
-	 echo "#"PBS -l walltime=04:00:00                               >>$sgeFile
-	 echo "#PBS -l "$MEMREQUEST                                     >>$sgeFile
-	 if [ -n "$CARVER" ]; then
-	     echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
-	 fi
-	 if [ -n "$CONTE" ]; then
-	     echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-	     echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-	     echo module load devel                                      >>$sgeFile
-	 fi
-	 if [ -n "$PURDUE" ]; then  
-	     echo source /etc/profile                                   >>$sgeFile
-	     echo module load gcc/4.7.2                                 >>$sgeFile
-	 fi
-	 
-	 echo cd $VEGASBASE/showerReconstruction2/macros                    >>$sgeFile
-	 echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
-	 
-	 chmod 700 $sgeFile
-	 qsub$QSUBEXT -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
+        sgeFile=$lcl'/CmbDisp.pbs'
+         echo "#"PBS -q $QUEUE                                           >$sgeFile
+         echo "#"PBS -l walltime=04:00:00                               >>$sgeFile
+         echo "#PBS -l "$MEMREQUEST                                     >>$sgeFile
+         if [ -n "$CARVER" ]; then
+             echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
+         fi
+         if [ -n "$CONTE" ]; then
+             echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
+             echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
+             echo module load devel                                      >>$sgeFile
+         fi
+         if [ -n "$PURDUE" ]; then  
+             echo source /etc/profile                                   >>$sgeFile
+             echo module load gcc/4.7.2                                 >>$sgeFile
+         fi
+         
+         echo cd $VEGASBASE/showerReconstruction2/macros                    >>$sgeFile
+         echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
+         
+         chmod 700 $sgeFile
+         qsub$QSUBEXT -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
     fi
 fi
 #**********************************************************************
@@ -2827,7 +2844,7 @@ fi
 if [ -n "$CombineBuildCheckEALT" ]; then
     cd $VEGASBASE/resultsExtractor/macros
     if [ ! -e "combineEAKascade.C" ]; then
-	cp $KASCADEBASE'/scripts/combineEAKascade.C' .
+        cp $KASCADEBASE'/scripts/combineEAKascade.C' .
     fi
    ###########################################################################
    # This file is loaded by the rootlogon.C in showerReconstruction2/macros
@@ -2870,38 +2887,38 @@ if [ -n "$BuildLTTree" ]; then
     let iznEnd=${#Zenith[@]}
     let kazEnd=${#Azimuth[@]}
     let kpvarEnd=${#PedVar[@]}
-		
+                
     INFILE=tmp2
     OUTFILE=tmp1
-		
+                
     if [ ${#Azimuth[@]} -gt "1" ]; then
-	sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        sed '/Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
    
     if [ ${#Zenith[@]} -gt "1" ]; then
-	echo ZNStr: $ZNStr
-	sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        echo ZNStr: $ZNStr
+        sed '/Zenith         /s/Zenith/Zenith '$ZNStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
     if [ ${#PedVar[@]} -gt "1" ]; then
-	sed '/Noise         /s/Noise/Noise '$NoiseStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        sed '/Noise         /s/Noise/Noise '$NoiseStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
 
    #This should allow for single offset in which case the AbsoluteOFffset is left 
    #blank in the buildTree config file.
     if [ ${#WblOffset[@]} -gt "1" ]; then
-	sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        sed '/luteOffset    /s/Offset/Offset '$ABOStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
     mv $INFILE $BUILDCONFIG
 
@@ -2932,23 +2949,23 @@ if [ -n "$BuildDispLTTree" ]; then
     OUTFILE=tmp2
 
     if [ ${#Azimuth[@]} -gt "1" ]; then
-	sed '/DTM_Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        sed '/DTM_Azimuth      /s/Azimuth/Azimuth '$AzStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
    
     if [ ${#Zenith[@]} -gt "1" ]; then
-	sed '/DTM_Zenith         /s/Zenith/Zenith '$ZNStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        sed '/DTM_Zenith         /s/Zenith/Zenith '$ZNStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
     if [ ${#PedVar[@]} -gt "1" ]; then
-	sed '/DTM_Noise         /s/Noise/Noise '$NoiseStr'/g' <$INFILE >$OUTFILE
-	TMPFILE=$INFILE
-	INFILE=$OUTFILE
-	OUTFILE=$TMPFILE
+        sed '/DTM_Noise         /s/Noise/Noise '$NoiseStr'/g' <$INFILE >$OUTFILE
+        TMPFILE=$INFILE
+        INFILE=$OUTFILE
+        OUTFILE=$TMPFILE
     fi
     sed '/DTM_Width         /s/Width/Width '$DTMWidthStr'/g'    <$INFILE >$OUTFILE
     sed '/DTM_Length        /s/Length/Length '$DTMLengthStr'/g' <$OUTFILE >$BUILDCONFIG
@@ -3158,4 +3175,4 @@ fi
 
    
 #################################################################################
-echo 'VAAuto: All done at $(date)!'
+echo 'VAAuto: All done at' $(date)'!'
