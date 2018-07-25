@@ -490,11 +490,11 @@ function SubmitHtarToArchive()
   #build a submission .pbs file
   sgeFile=$lcl'/'$HTARFileName'To.pbs'
   echo "#"PBS -q $QUEUE                                            >$sgeFile
-  echo "#"PBS -l walltime=04:00:00                                >>$sgeFile
+  echo "#"PBS $WALLTIME                                           >>$sgeFile
     if [ -n "$CONTE" ]; then
       echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
+      echo module load gcc/5.3.0                                  >>$sgeFile
     fi
   if [ -n "$PURDUE" ]; then  
     echo source /etc/profile                                      >>$sgeFile
@@ -566,23 +566,23 @@ function SubmitHtarFromArchive()
 
   #build a submission .pbs file
   sgeFile=$lcl'/'$Source'From.pbs'
-  echo "#"PBS -q $QUEUE                                     >$sgeFile
-  echo "#"PBS -l walltime=04:00:00                         >>$sgeFile
+  echo "#"PBS -q $QUEUE                               >$sgeFile
+  echo "#"PBS $WALLTIME                              >>$sgeFile
     if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
+      echo "#"PBS -l nodes=1:ppn=1                   >>$sgeFile
+      echo "#"PBS -l naccesspolicy=shared            >>$sgeFile
+      echo module load gcc/5.3.0                     >>$sgeFile
     fi
   if [ -n "$PURDUE" ]; then
-    echo source /etc/profile                               >>$sgeFile
+    echo source /etc/profile                         >>$sgeFile
     echo module load gcc/5.2.0                       >>$sgeFile
   fi
 
-  echo cd $DestinationDir                                  >>$sgeFile
-  echo htar -xvf  $ArchiveDir'/'$SourceTarFile    \\       >>$sgeFile
+  echo cd $DestinationDir                            >>$sgeFile
+  echo htar -xvf  $ArchiveDir'/'$SourceTarFile    \\ >>$sgeFile
   echo '>'$local'/'$Source'.log'     >>$sgeFile
   if [ -n "$LimitSubmissions" ]; then
-     echo 'echo Done >'$lcl'/'$HTARDoneLog                 >>$sgeFile
+     echo 'echo Done >'$lcl'/'$HTARDoneLog           >>$sgeFile
   fi
 
   if [ -n "$LimitSubmissions" ]; then
@@ -620,7 +620,7 @@ function SubmitMultipleSerialJobs()
   ##############################
   local sgeFile=$lcl'/MSJ'$MSJId'.pbs'
   echo "#"PBS -l mppwidth=$NUMCORESNODE            >$sgeFile
-  echo "#"PBS -l walltime=$WALLTIME               >>$sgeFile
+  echo "#"PBS $WALLTIME                           >>$sgeFile
   if [ -n "$EDISON" ]; then
    echo 'module load ccm'                         >>$sgeFile
   fi
@@ -739,15 +739,15 @@ function SubmitVegasSimProduction()
 
 
 
-    echo "#"PBS -l walltime=$WALLTIME                  >$sgeFile
-    echo "#PBS -l "$MEMREQUEST                        >>$sgeFile
+    echo "#"PBS $WALLTIME                  >$sgeFile
+    echo "#PBS "$MEMREQUEST                        >>$sgeFile
     if [ -n "$CARVER" ]; then
       echo "#PBS -l nodes=1:ppn=1"                    >>$sgeFile
     fi
     if [ -n "$CONTE" ]; then
       echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
+      echo module load gcc/5.3.0                      >>$sgeFile
     fi
     if [ -n "$PURDUE" ]; then
       echo source /etc/profile                        >>$sgeFile
@@ -818,20 +818,20 @@ function BuildVegasSimProduction()
   # job  to the qsub list file.
   #############################################
   if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
-      ##############################################
-      # Generate the veagsSimProduction command 
-      ##############################################
-          local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
-          sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
-          SgeFilePBSCmds   $sgeFile
-          SgeFileBashCmds  $sgeFile
+    ##############################################
+    # Generate the veagsSimProduction command 
+    ##############################################
+    local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
+    sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
+    SgeFilePBSCmds   $sgeFile
+    SgeFileBashCmds  $sgeFile
 
-          echo $VSPCommand                             >>$sgeFile
+    echo $VSPCommand                             >>$sgeFile
 
-          SgeFileCompleteAndSave $sgeFile
+    SgeFileCompleteAndSave $sgeFile
   else
-     echo 'VAAuto--Fatal:BuildVegasSimProduction: Not setup for this cluster'
-     exit
+    echo 'VAAuto--Fatal:BuildVegasSimProduction: Not setup for this cluster'
+    exit
   fi
 }
 ##############################################################################
@@ -1455,114 +1455,112 @@ if [ -n "$GenerateStage2FromVBF" ]; then
     # Stage 2 only needs longer time if Halstead
     ###########################################################################
     WALLTIME=' -t 15:00:00'
-        MEMREQUEST='--mem=5GB'
+    MEMREQUEST='--mem=5GB'
     if [ -n "$HALSTEAD" ]; then
-                WALLTIME='-l walltime=24:00:00'
-                MEMREQUEST=" -l mem=8GB"
+      WALLTIME='-l walltime=24:00:00'
+      MEMREQUEST=" -l mem=8GB"
     fi
 fi
 ############################################################################
 
 if [ -n "$GenerateStage4FromStage2" ]; then
-    echo '##########################################################'
-    echo '# GenerateStage4FromStage2'
-    echo '##########################################################'
-    cd $lcl
-    date
-    GetUniqueNumber
-    VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
-    echo VSProdFile:   $VSProdFile
+  echo '##########################################################'
+  echo '# GenerateStage4FromStage2'
+  echo '##########################################################'
+  cd $lcl
+  date
+  GetUniqueNumber
+  VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
+  echo VSProdFile:   $VSProdFile
 
-        ####################################################################
-    # See note below in GeneraterStage2FromVBF section on CORI use of Job 
-    # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
-    # here.
-    # Eventual use on all clusters
-    ####################################################################
-    QsubFileNameList='VA'$UNIQUE'AutoqsubList'
-    echo QsubFileNameList: $QsubFileNameList
-    if [ -e "$QsubFileNameList" ]; then
-      rm $QsubFileNameList
-    fi
-      QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
-    if [ -e "$QsubLogs" ]; then
-      rm $QsubLogs
-    fi
+  ####################################################################
+  # See note below in GeneraterStage2FromVBF section on CORI use of Job 
+  # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
+  # here.
+  # Eventual use on all clusters
+  ####################################################################
+  QsubFileNameList='VA'$UNIQUE'AutoqsubList'
+  echo QsubFileNameList: $QsubFileNameList
+  if [ -e "$QsubFileNameList" ]; then
+    rm $QsubFileNameList
+  fi
+  QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
+  if [ -e "$QsubLogs" ]; then
+    rm $QsubLogs
+  fi
 
-    #Make sure VegasSimProduction.scr is set up correctly to get  
-    #Stage4
+  #Make sure VegasSimProduction.scr is set up correctly to get  
+  #Stage4
 
-    GetUniqueNumber
-    VSProdFile=VegasSimProductionS4.$UNIQUE'.scr'
+  GetUniqueNumber
+  VSProdFile=VegasSimProductionS4.$UNIQUE'.scr'
 
-    cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
+  cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
 
-    ###################################################################
-    #The standard VegasSimProduction.scr should have all options 
-    #turned off.  We just have to make sure only stage 4 gets run
-    #Sample size:We will need to set integration window size if 
-    #different from 7.
-    ##################################################################
-    sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
+  ###################################################################
+  #The standard VegasSimProduction.scr should have all options 
+  #turned off.  We just have to make sure only stage 4 gets run
+  #Sample size:We will need to set integration window size if 
+  #different from 7.
+  ##################################################################
+  sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
                                           < $VSProdFile  >tmp1
-    sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
-    sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
-    sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'                   <tmp1 >tmp2
-    sed '/Stage5=enable/s/Stage5/#Stage5/g'                    <tmp2 >tmp1
+  sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
+  sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
+  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'                   <tmp1 >tmp2
+  sed '/Stage5=enable/s/Stage5/#Stage5/g'                    <tmp2 >tmp1
 
-    ######################################################################
-    #  Check to see if we are to exclude a telescope from the stage4 analysis
-    ######################################################################
-    if [ -n "$CutTel" ]; then
-     sed '/CutTelescopeOption=/s/#CutTel/CutTel/g'              <tmp1 >tmp2
-     sed '/CutTelescopeOption=/s/=0/='$CutTel'/g'               <tmp2 >tmp1
-    fi
+  ######################################################################
+  #  Check to see if we are to exclude a telescope from the stage4 analysis
+  ######################################################################
+  if [ -n "$CutTel" ]; then
+    sed '/CutTelescopeOption=/s/#CutTel/CutTel/g'              <tmp1 >tmp2
+    sed '/CutTelescopeOption=/s/=0/='$CutTel'/g'               <tmp2 >tmp1
+  fi
 
-    ######################################################################
-    # If this is an Old Array run, enable the TelCombosToDeny=T1T4
-    ######################################################################
-    if  [ $SPECCFG = "OA" ]; then
-      sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmp1 >tmp2 
-      cp tmp2 tmp1
-    fi
+  ######################################################################
+  # If this is an Old Array run, enable the TelCombosToDeny=T1T4
+  ######################################################################
+  if  [ $SPECCFG = "OA" ]; then
+    sed '/TelCombosToDeny=T1T4/s/#Deny/Deny/g'  <tmp1 >tmp2 
+    cp tmp2 tmp1
+  fi
 
-    ######################################################################
-    # We also need to set the quality cuts file and the file extention and the 
-    # LT name
-    ####################################################################
-    QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
-    QUALCUTSSOURCE=$VERITASAPPS'/tables/'$QUALITYCUTSFILE
-    if [ ! -e "$QUALCUTSSOURCE" ]; then
-       echo 'VAAuto: Fatal- Can not find QualityCuts file: '$QUALCUTSSOURCE
-       exit
-    fi
+  ######################################################################
+  # We also need to set the quality cuts file and the file extention and the 
+  # LT name
+  ####################################################################
+  QUALITYCUTSFILE=Quality$CUTTYPE'Cuts'
+  QUALCUTSSOURCE=$VERITASAPPS'/tables/'$QUALITYCUTSFILE
+  if [ ! -e "$QUALCUTSSOURCE" ]; then
+    echo 'VAAuto: Fatal- Can not find QualityCuts file: '$QUALCUTSSOURCE
+    exit
+  fi
 
-    GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
-    LTFILESOURCE=$VERITASAPPS'/tables/'$LTFILENAME
-    if [ ! -e "$LTFILESOURCE" ]; then
-       echo 'VAAuto: Fatal- Can not find LT file: '$LTFILESOURCE
-       exit
-    fi
+  GenerateLTFileName $SPECCFG $SPECSEA $LTWBL  'std' $LTPARTTYPE
+  LTFILESOURCE=$VERITASAPPS'/tables/'$LTFILENAME
+  if [ ! -e "$LTFILESOURCE" ]; then
+    echo 'VAAuto: Fatal- Can not find LT file: '$LTFILESOURCE
+    exit
+  fi
 
-    FILEBASE=$CUTTYPE'Cuts'
+  FILEBASE=$CUTTYPE'Cuts'
 
-    sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
-    sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
-    sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
-    mv tmp2 $VSProdFile
-    chmod 755  $VSProdFile
+  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
+  sed '/QualityCuts/s/QualityStdCuts/'$QUALITYCUTSFILE'/g'         <tmp2 >tmp1
+  sed '/Table=LookupTable/s/LookupTable/'$LTFILENAME'/g'           <tmp1 >tmp2
+  mv tmp2 $VSProdFile
+  chmod 755  $VSProdFile
 
-    #############################################################################
-    # Stage 4 only needs short time
-    #############################################################################
-    WALLTIME=04:00:00
-   if [ -n "$CARVER" ]; then
-       MEMREQUEST="pvmem=8GB"
-   else
-       MEMREQUEST="mem=8GB"
-   fi
-
-    
+  #############################################################################
+  # Stage 4 only needs short time
+  #############################################################################
+  WALLTIME='-t 04:00:00'
+  MEMREQUEST='--mem=5GB'
+  if [ -n "$HALSTEAD" ]; then
+    WALLTIME='-l walltime=04:00:00'
+    MEMREQUEST='-l mem=8GB'
+  fi
 fi
 ############################################################################
 
@@ -1854,16 +1852,16 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         # Make up the job script file that will be submitted below
         ####################################################################
         sgeFile=$lcl'/'$DISPSUBLTBASE'.pbs'
-        echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
-        echo "#PBS -l "$MEMREQUEST                      >>$sgeFile
+        echo "#"PBS $WALLTIME                >$sgeFile
+        echo "#PBS "$MEMREQUEST                         >>$sgeFile
         if [ -n "$CONTE" ]; then
          echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
          echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-         echo module load devel                                      >>$sgeFile
+         echo module load gcc/5.3.0                     >>$sgeFile
         fi
         if [ -n "$PURDUE" ]; then
           echo source /etc/profile                      >>$sgeFile
-          echo module load gcc/4.7.2                    >>$sgeFile
+          echo module load gcc/5.2.0                    >>$sgeFile
         fi
         echo cd $lcl                                    >>$sgeFile
         echo $VEGAS/bin/produceDispTables \\            >>$sgeFile
@@ -2263,7 +2261,7 @@ if [ -n "$ProduceSubLookupTables" ]; then
    ########################################
    # produceLookupTables needs lots of memory
    ########################################
-   MEMREQUEST=" -l mem=24GB"
+   MEMREQUEST=" -l mem=24GB"       #This is for pbs (Purdue)
    if [ -n "$CORI" ]; then
        MEMREQUEST=" --mem=24GB"
    fi
@@ -2274,14 +2272,16 @@ if [ -n "$ProduceSubLookupTables" ]; then
 fi  
 ########################################################################
 if [ -n "$ProduceEASubLookupTables" ]; then
-   echo '##########################################################'
-   echo '# ProduceEASubLookupTables'
-   echo '##########################################################'
-   cd $lcl
-   EASPEC=EA
-   WALLTIME=08:00:00
-
-   date
+  echo '##########################################################'
+  echo '# ProduceEASubLookupTables'
+  echo '##########################################################'
+  cd $lcl
+  EASPEC=EA
+  WALLTIME='-t 08:00:00'
+  if [ -n "$HALSTEAD" ]; then
+    WALLTIME='-l walltime=04:00:00'
+  fi
+  date
 fi  
 ##############################################################################
 if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
@@ -2511,16 +2511,16 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         # Make up the job script file that will be submitted below
         ####################################################################
         sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-        echo "#"PBS -l walltime=$WALLTIME            >$sgeFile
-        echo "#PBS -l "$MEMREQUEST                  >>$sgeFile
+        echo "#"PBS $WALLTIME            >$sgeFile
+        echo "#PBS "$MEMREQUEST                  >>$sgeFile
         if [ -n "$CONTE" ]; then
           echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
           echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-          echo module load devel                                      >>$sgeFile
+          echo module load gcc/5.3.0                >>$sgeFile
         fi
         if [ -n "$PURDUE" ]; then
             echo source /etc/profile                  >>$sgeFile
-            echo module load gcc/4.7.2                >>$sgeFile
+            echo module load gcc/5.2.0              >>$sgeFile
         fi
         echo cd $lcl                                >>$sgeFile
         echo $VEGAS/bin/makeEA \\                   >>$sgeFile
@@ -2615,7 +2615,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
               let sSimSetNum=0 
               let sSimSetEnd=0
             fi
-            while test $sSimSetNum -le $sSimSetEnd
+            echo sSimSetEnd: $sSimSetEnd
+	    while test $sSimSetNum -le $sSimSetEnd
              do
 
               if [ -n "$GenerateStage4FromStage2" ]; then
@@ -2632,12 +2633,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                   BFNMS2=$BaseFileS2$sSimSetNum
                 fi
 
-                echo PV:$PV
+                #echo PV:$PV
                 #echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
                
-                #echo PedVarFile: $PedVarFile 
-                #echo BaseFileS2: $BaseFileS2 
-                #echo VBFFILENAME: $VBFFILENAME
+                echo PedVarFile: $PedVarFile 
+                echo $BaseFileS2: $BaseFileS2 
+                echo VBFFILENAME: $VBFFILENAME
                 ###################################################
                 # Note here that VeagsSimProductionS4.scr will generate the PedVar 
                 # Stage4 filename with the correct TelConfig and cuts
@@ -2652,16 +2653,19 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                   # moidification of the .pbs job to be a job array job is done 
                   # later in this script.
                   #########################################################
-                  # Check that the vbf file exists in the lcl directory
-                  if [ ! -e "$VBFNM" ]; then
-                    echo VAAuto--Fatal: VBF input file $VBFNM does not exist in lcl.
+                  # Check that the stage2 root file exists in the lcl directory
+                  #Generate the root file name
+		  ROOTFILE=PedVar$PV'_'$BFNMS2'.root'
+		  if [ ! -e "$ROOTFILE" ]; then
+                    echo 'VAAuto--Fatal: Stage2 root file '$ROOTFILE' does not exist'\
+                         'in lcl.'
                     echo VAAuto--Job Array submission aborted.
                     exit
                   fi
 
                   BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
                 else
-                       SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+                  SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
                 fi
               fi
               ###############################################################
@@ -2699,23 +2703,22 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
               ##########################################################
           
               sSimSetNum=$((sSimSetNum + 1))
-             done        #End of SimSet while loop
+	     done        #End of SimSet while loop
           fi           
           # ####################################################################
-
 
           if [ -n "$GenerateStage5Combined" ] || \
              [ -n "$GenerateStage5CombinedRCE" ]; then
             cd $lcl
             date
-            echo PV:$PV
+            
             # OK! We are ready to run.  Need to submit since this will take more 
             # than 1 hours or we have many to run in parallel 
-            WALLTIME=20:00:00
-            if [ -n "$CARVER" ]; then
-              MEMREQUEST="pvmem=8GB"
-            else
-              MEMREQUEST="mem=8GB"
+            WALLTIME='-t 20:00:00'
+            MEMREQUEST=" --mem=5GB"
+	    if [ -n "$HALSTEAD" ]; then
+              WALLTIME='-l walltime= 20:00:00'
+              MEMREQUEST=" -l mem=5GB"
             fi
 
             echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for '\
@@ -2734,16 +2737,36 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                    
           fi
           ###############################################################
-
+          let kpvar=$kpvar+1
          done                 #End of Pedvar while loop
         kaz=$((kaz+1))
+        echo kaz: $kaz
        done                   #End of Axzimuth while loop
       let iwbl=$iwbl+1
+      echo iwbl: $iwbl
      done                     #End of wbl (offset) while loop
     izn=$((izn+1))
+    echo izn: $izn
    done                       #End of zenith while loop
 fi
 ###########################################################################
+
+if [ -n "$GenerateStage4FromStage2" ]; then
+        
+    #echo '##########################################################'
+    #echo '# GenerateStage4FromStage2 '
+    #echo '##########################################################'
+        
+    ######################################################################
+    # For NERSC (Cori or Edison) JobArray only: generate Jobarry .pbs file for 
+    # all the .pbs jobs in the qsubFileNameList.
+    # SubmitQsubJobs is in UtilityFuncitons.scr
+    ######################################################################
+    if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+       SubmitQsubJobs  $QsubFileNameList
+    fi
+fi
+##########################################################################
 
 ################################
 #  Flush last MSJ job
@@ -2817,19 +2840,19 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
         #build a submission .pbs file
         sgeFile=$lcl'/CmbDisp.pbs'
          echo "#"PBS -q $QUEUE                                           >$sgeFile
-         echo "#"PBS -l walltime=04:00:00                               >>$sgeFile
-         echo "#PBS -l "$MEMREQUEST                                     >>$sgeFile
+         echo "#"PBS $WALLTIME                                         >>$sgeFile
+         echo "#PBS "$MEMREQUEST                                     >>$sgeFile
          if [ -n "$CARVER" ]; then
              echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
          fi
          if [ -n "$CONTE" ]; then
              echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
              echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-             echo module load devel                                      >>$sgeFile
+             echo module load gcc/5.3.0                                 >>$sgeFile
          fi
          if [ -n "$PURDUE" ]; then  
              echo source /etc/profile                                   >>$sgeFile
-             echo module load gcc/4.7.2                                 >>$sgeFile
+             echo module load gcc/5.2.0                                 >>$sgeFile
          fi
          
          echo cd $VEGASBASE/showerReconstruction2/macros                    >>$sgeFile
