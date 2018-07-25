@@ -95,12 +95,12 @@ fi
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
   #DenyTelescopeOption='-TelCombosToDeny=T1T4'
 
-  CutsDir=$VEGAS/../tables
+  CutsDir=$VEGASBASE/../tables
   QualityCuts='QualityStdCuts'
 
   #"LookupTable" below should be replaced by actual name.
   #  Actual table expected to be in directory: $VEGAS/../tables
-  TableDir=$VEGAS/../tables
+  TableDir=$VEGASBASE/../tables
   Table=LookupTable
 
 #Stage5
