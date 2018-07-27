@@ -821,7 +821,7 @@ function BuildVegasSimProduction()
     ##############################################
     # Generate the veagsSimProduction command 
     ##############################################
-    local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$IDUNIQUE'VBF.log'
+    local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase'.'$IDUNIQUE'.VBF.log'
     sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
     SgeFilePBSCmds   $sgeFile
     SgeFileBashCmds  $sgeFile
@@ -1344,7 +1344,7 @@ if [ -n "$GenerateSimLaserFile" ]; then
                                         < VegasSimProductionLaser.scr >tmp1
     sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'      <tmp1 >tmp2
     sed '/Stage2=enable/s/Stage2/#Stage2/g'                  <tmp2 >tmp1
-    sed '/Stage4=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+    sed '/Stage4=enable/s/Stage4/#Stage4/g'                  <tmp1 >tmp2
     sed '/Stage5=enable/s/Stage5/#Stage5/g' \
                                          <tmp2 >VegasSimProductionLaser.scr
     rm tmp1
@@ -1403,7 +1403,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
                                                            <$VSProdFile >tmp1
         sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
         sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-        sed '/Stage4_2=enable/s/Stage4/#Stage4/g'                   <tmp1 >tmp2
+        sed '/Stage4=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
         sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
         mv tmp1 $VSProdFile
 
@@ -1489,8 +1489,7 @@ if [ -n "$GenerateStage4FromStage2" ]; then
     rm $QsubLogs
   fi
 
-  #Make sure VegasSimProduction.scr is set up correctly to get  
-  #Stage4
+  #Make sure VegasSimProduction.scr is set up correctly to get Stage4
 
   GetUniqueNumber
   VSProdFile=VegasSimProductionS4.$UNIQUE'.scr'
@@ -1507,7 +1506,7 @@ if [ -n "$GenerateStage4FromStage2" ]; then
                                           < $VSProdFile  >tmp1
   sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
   sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
-  sed '/#Stage4_2=enable/s/#Stage4_2/Stage4_2/g'                   <tmp1 >tmp2
+  sed '/#Stage4=enable/s/#Stage4/Stage4/g'                   <tmp1 >tmp2
   sed '/Stage5=enable/s/Stage5/#Stage5/g'                    <tmp2 >tmp1
 
   ######################################################################
@@ -1597,7 +1596,7 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
                                           < $VSProdFile  >tmp1
     sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
     sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
-    sed '/Stage4_2=enable/s/Stage4_2/#Stage4_2/g'              <tmp1 >tmp2
+    sed '/Stage4=enable/s/Stage4/#Stage4/g'                    <tmp1 >tmp2
     sed '/#Stage5=enable/s/#Stage5/Stage5/g'                   <tmp2 >tmp1
 
     SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
