@@ -17,13 +17,13 @@
 #Stage1Data=enable
 #Stage2=enable
 
-#Stage4_2=enable
+#Stage4=enable
 #Stage5=enable
 
 echo Stage1Laser: $Stage1Laser
 echo Stage1Data:  $Stage1Data
 echo Stage2:      $Stage2 
-echo Stage4_2:    $Stage4_2
+echo Stage4:      $Stage4
 echo Stage5:      $Stage5
 ##############################################################################
 #Configurable options:
@@ -72,7 +72,7 @@ fi
 #LGDTemplateOption=
 #LGDTranferFuntionOption=
 
-#Stage4_2 Options         
+#Stage4 Options         
   #CutTelescopeOption='-CutTelescope=0/1' #Not used much anymore:  
   #To force removal of particular telescopes when calculating shower parameters
 
@@ -205,15 +205,15 @@ fi
 echo CutRootFileName: $CutRootFileName
 
 
-if [ -n "$Stage4_2" ]; then
-     echo Stage4_2: $Stage4_2
+if [ -n "$Stage4" ]; then
+     echo Stage4: $Stage4
      echo RootFileName: $RootFileName
      echo CutRootFileName: $CutRootFileName
      cp -v $RootFileName $CutRootFileName
      echo ET: $TableDir/$Table
-     $VEGAS/bin/vaStage4.2 -table=$TableDir/$Table -OverrideLTCheck=1 \
+     $VEGAS/bin/vaStage4 -table=$TableDir/$Table -OverrideLTCheck=1 \
 	-cuts=$CutsDir/$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
-	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.2.config \
+	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.config \
 	$SeparationAngleCutOption $CutRootFileName
 fi
 
