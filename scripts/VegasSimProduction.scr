@@ -80,7 +80,7 @@ fi
                               #output files. Differentiates between various 
                               #cutfile possibilities. 
                               #EX:"NCut" or "ZCut" or "ZDenyT1T4" etc 
-#  OutputFileNameExt="S7"   #Additional extension to add to the file name of 
+#OutputFileNameExt=S7      #Additional extension to add to the file name of 
                            #the separate output file from stage5. If not 
                            #specified you don't get a separate output file and
                            #the cut tree (combined or stereo) will go into the
@@ -89,7 +89,7 @@ fi
                            #Comment out if you don't want a separate output 
                            #file from stage5
                            #DO NOT use this option when making files for
-                           #maeSignalModels(it needs the simulation tree)
+                           #makeSignalModels(it needs the simulation tree)
   #WindowSizeOption='-LTM_WindowSizeForNoise=12'         #default is 7
   #SeparationAngleCutOption='-GC_SeparationCut=16'       #default is 10
   #DenyTelescopeOption='-TelCombosToDeny=ANY2'
@@ -214,15 +214,18 @@ if [ -n "$Stage4" ]; then
      $VEGAS/bin/vaStage4 -table=$TableDir/$Table -OverrideLTCheck=1 \
 	-cuts=$CutsDir/$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.config \
-	$SeparationAngleCutOption $CutRootFileName
+	$SeparationAngleCutOption $CutRootFi
+Click here for more details on cut optimizationleName
 fi
 
 if [ -n "$Stage5" ]; then
       echo Stage5: $Stage5
 
       if [ -n "$OutputFileNameExt" ]; then
-        OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
+        #OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
+        OutputFileName=${CutRootFileName%".root"}$OutputFileNameExt'.root'
 	OutputFileNameOpt='-outputFile='$OutputFileName
+        echo OutputFileNameOpt: $OutputFileNameOpt
       fi
       
     $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCutsFile $OutputMethodOptions \

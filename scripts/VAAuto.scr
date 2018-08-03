@@ -1,8 +1,8 @@
 #!/bin/bash
-#This script is used to automate the generation and processing of the veritas 
+# This script is used to automate the generation and processing of the veritas 
 # KASCADE vbf files in 1:Noise levbels, LT and EA tables.
-
-#It has some arguments listed below.bin#$1: Command. Do "VAAuto.scr ListCommands" for a list!
+# It has some arguments listed below.bin#$1: Command. Do "VAAuto.scr ListCommands" 
+# for a list!
 #$2 ksProduction season spec: Ex: W or S
 #$3 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, 
 #   UpgradeArray) 
@@ -22,7 +22,10 @@
 #      Default for LTCutsFile is LookUpTableStdCuts
 #  For Quality cuts , file used would be $VERITASAPPS/tables/Quality${12}Cuts
 #  For Stage4, filename would extention be:  ${12}Cuts ending
-#  For ShowerCuts, file used would be $VERITASAPPS/tables/Shower7Sample${12}Cuts 
+#  For Stage5, ZAlpha: {12}  would be something like: UpgradeMediumElectron or
+#      UpgradeMediumHadron or UpgradeMediumRecon
+#      Then ShowerCuts, file used would be $VERITASAPPS/tables/Shower7Sample${12}Cuts 
+#
 #${13} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1 or 
 #                  T2 or T3 or T4
 # ************************************************************************
@@ -135,14 +138,16 @@ function usage()
   echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores wbl)'
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
   echo ' ${10}: List of PedVar values: 5.18, 5.55 6.51 or "All" or "Base"'
-  echo ' ${11}: Specifes Type of LT table to use. Ex. All or 050 or ALLE or' \
+  echo ' ${11}: Specifes Type of LT table to use. Ex. All or 050 or ALLE or'\
        'AllG(same as All)'  
   echo ' ${12}: Cuts Ex: UpgradeLoose or UpgradeMedium or NewArrayHard or OldArraySoft'
+  echo '        For zAlpha: UpgradeMediumElectron or UpgradeMediumHadron or '\
+       'UpgradeMediumRecon'
   echo ' ${13}: (Optional) Tel to cut for Stage4 and EA gen. Ex: T1 or T2 or T3 or T4'
   echo
   echo ' EX: ./VAAuto.scr GenerateStage4FromStage2 W UA E MDL12UA 1,10,20 45,90,135'\
        '0.5 45mv All AllE UpgradeSoft'
-  echo ' EX: ./VAAuto.scr GenerateStage2FromVBF W UA CR1-25 MDL12UA 1,10,20' \
+  echo ' EX: ./VAAuto.scr GenerateStage2FromVBF W UA CR1-25 MDL12UA 1,10,20'\
        '45,90,135 0.5 45mv All'
   echo
 }
@@ -789,7 +794,7 @@ function BuildVegasSimProduction()
   local VEGASScript=$3
   local FileVBF=$4
 
-  #echo BuilsVegasSimProduction Args: $1 $2 $3 $4
+  echo BuilsVegasSimProduction Args: $1 $2 $3 $4
 
   ##########################################
   #  Make sure we have the PedVar command file
@@ -800,12 +805,20 @@ function BuildVegasSimProduction()
     if [ ! -e "$lcl"/"$FilePedVar" ]; then
       cp $KASCADEBASE/inputs/$FilePedVar $lcl/
       if [ ! -e "$lcl"/"$FilePedVar" ]; then
-        echo 'VAAuto--SubmitVegasSimProduction requires file' $FilePedVar
+        echo 'VAAuto--BuildVegasSimProduction requires file' $FilePedVar
         echo 'VAAuto--Fatal!--The attempt to copy ' $KASCADEBASE'/inputs/'$FilePedVar' to '$lcl'/ Failed!'
         exit
       fi 
     fi
   fi
+  
+  ################################################
+  # Make sure the VegasSimProduciton file exists
+  ################################################
+  if [ ! -e "$lcl"/"$VEGASScript" ]; then
+        echo 'VAAuto--BuildVegasSimProduction requires file' $VEGASScript
+        exit
+  fi      
 
   ################################################
   # Set up unique idientifier for this job
@@ -1296,7 +1309,6 @@ if [ -n "$TELCUT" ]; then
    echo 'VAAuto: Array configuration: '$TelConfig'  No '$TELCUT
 fi
 ###############################################################################
-
 if [ -n "$LimitSubmissions" ]; then
   if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || \
      [ -n "$HTARPedVarZnOffsetS2FromArchive" ] || \
@@ -1307,11 +1319,7 @@ if [ -n "$LimitSubmissions" ]; then
       let MaxHTARQsubs=9
       echo "VAAuto: HTAR qsub active submissions being limited to " $MaxHTARQsubs 
   fi
-  if [ -n "$GenerateSimLaserFile" ]     || \
-     [ -n "$GenerateStage2FromVBF" ]    || \
-     [ -n "$GenerateStage4FromStage2" ] || \
-     [ -n "$GenerateStage5Combined" ]   || \
-     [ -n "$GenerateStage5CombinedRCE" ]; then
+  if [ -n "$GenerateSimLaserFile" ]; then
       GetUniqueNumber
       QsubLogs='RunningVegasQsubLogs'$UNIQUE'.txt'
       let MaxQsubs=$MaxQsubsDefault
@@ -1322,7 +1330,7 @@ if [ -n "$LimitSubmissions" ]; then
       rm $QsubLogs                     #Just some cleanup if previous run died.
   fi
 fi
-
+echo at -3
 ############################################################################
 # Sim Laser generation
 ############################################################################
@@ -1359,108 +1367,113 @@ fi
 #############################################################################
 
 if [ -n "$GenerateStage2FromVBF" ]; then
-    echo '##########################################################'
-    echo '# GenerateStage2FromVBF (Cori ready)'
-    echo '##########################################################'
-    ####################################################################
-    #1: Setup the VegasSimProduction.scr we will use for these jobs.
-        #2: Setup the QsubFileNameList and QsubsLogs file
-    #3:  For Halstead shorten the walltime for these Stage2 jobs.
-    ####################################################################
-    cd $lcl
-    date
-    #Make sure VegasSimProduction.scr is set up correctly to get  
-    #Stage1 and Stage2
-    GetUniqueNumber
-    VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
-    echo VSProdFile:   $VSProdFile
+  echo '##########################################################'
+  echo '# GenerateStage2FromVBF (Cori ready)'
+  echo '##########################################################'
+  ####################################################################
+  #1: Setup the VegasSimProduction.scr we will use for these jobs.
+  #2: Setup the QsubFileNameList and QsubsLogs file
+  #3:  For Halstead shorten the walltime for these Stage2 jobs.
+  ####################################################################
+  cd $lcl
+  date
+  # ##################################################################
+  # Make sure VegasSimProduction.scr is set up correctly to get  
+  # Stage1 and Stage2
+  # ##################################################################
+  GetUniqueNumber
+  VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
+  echo VSProdFile:   $VSProdFile
 
-        ####################################################################
-    # See note below in GeneraterStage2FromVBF section on CORI use of Job 
-    # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
-    # here.
-    # Eventual use on all clusters
-    ####################################################################
-    QsubFileNameList='VA'$UNIQUE'AutoqsubList'
-    echo QsubFileNameList: $QsubFileNameList
-    if [ -e "$QsubFileNameList" ]; then
-                rm $QsubFileNameList
-    fi
-        QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
-    if [ -e "$QsubLogs" ]; then
-                rm $QsubLogs
-    fi
+  ####################################################################
+  # See note below in GeneraterStage2FromVBF section on CORI use of Job 
+  # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
+  # here.
+  # Eventual use on all clusters
+  ####################################################################
+  QsubFileNameList='VA'$UNIQUE'AutoqsubList'
+  echo QsubFileNameList: $QsubFileNameList
+  if [ -e "$QsubFileNameList" ]; then
+    rm $QsubFileNameList
+  fi
 
-        cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
-      #######################################################################
-      #The standard $KASCADE/scripts/VegasSimProduction.scr should have all 
-      #options turned off.  We just have to make sure only stages 1 and 2 
-      #get run
-      #??????Sample size:We will need to set integration window size if 
-      #different from 7?????? Not implimented yet.
-      ##################################################################
-        sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                                           <$VSProdFile >tmp1
-        sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
-        sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
-        sed '/Stage4=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
-        sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
-        mv tmp1 $VSProdFile
+  QsubLogs='VARunning'$UNIQUE'QsubLogs.txt'
+  if [ -e "$QsubLogs" ]; then
+    rm $QsubLogs
+  fi
+  let MaxQsubs=$MaxQsubsDefault
+  echo "VAAuto: Stage2 Overall qsub active submissions being limited to " $MaxQsubs 
 
-    ####################################################################
-    # Check now to see if we are using a LowGain (LGD) capable vegas. 
-    # If so, enable definitions in the $VAProdFile(vegasSimProduction)file: 
-    # the -TE options.
-    # Look in vaStage2 config file to see if the TE options are mentioned. 
-    # That will tell us is we are using a LowGain (LGD) capable vegas.
-    ####################################################################
-        runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
-        if [ -n "$runningLGD" ]; then
-                echo VAAuto: vaStage2 is LGD capable.
-         #########################################
-             #Define the file names needed in the options.]
-             #########################################
-                if [ -n "$VEGASBASE" ]; then
-            if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-                          lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
-                    else
-                  if [ -n "$HALSTEAD" ]; then
-                                lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
-                  fi
-                    fi
-        else
-            echo "VAAUTO--Fatal: This version of vegas does not define VEGASBASE"
-            echo "VAAUTO--Needed for LowGain analysis"
-            exit
+  cp $KASCADE/scripts/VegasSimProduction.scr $VSProdFile
+
+  #######################################################################
+  #The standard $KASCADE/scripts/VegasSimProduction.scr should have all 
+  #options turned off.  We just have to make sure only stages 1 and 2 
+  #get run
+  #??????Sample size:We will need to set integration window size if 
+  #different from 7?????? Not implimented yet.
+  ##################################################################
+  sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g'      <$VSProdFile >tmp1
+  sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
+  sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
+  sed '/Stage4=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
+  sed '/Stage5=enable/s/Stage5/#Stage5/g'                     <tmp2 >tmp1
+  mv tmp1 $VSProdFile
+
+  ####################################################################
+  # Check now to see if we are using a LowGain (LGD) capable vegas. 
+  # If so, enable definitions in the $VAProdFile(vegasSimProduction)file: 
+  # the -TE options.
+  # Look in vaStage2 config file to see if the TE options are mentioned. 
+  # That will tell us is we are using a LowGain (LGD) capable vegas.
+  ####################################################################
+  runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
+  if [ -n "$runningLGD" ]; then
+    echo VAAuto: vaStage2 is LGD capable.
+    #########################################
+    #Define the file names needed in the options.
+    #########################################
+    if [ -n "$VEGASBASE" ]; then
+      if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+        lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
+      else
+        if [ -n "$HALSTEAD" ]; then
+          lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
         fi
+      fi
+    else
+      echo "VAAUTO--Fatal: This version of vegas does not define VEGASBASE"
+      echo "VAAUTO--Needed for LowGain analysis"
+      exit
+    fi
 
-        #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
-            echo PMT_Mfr: $PMT_Mfr
-            echo PMT_mfr: $PMT_mfr
-                echo ldgf: $lgdf
+    #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
+    echo PMT_Mfr: $PMT_Mfr
+    echo PMT_mfr: $PMT_mfr
+    echo ldgf: $lgdf
 
-                VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
-            VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
+    VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
+    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
 
+    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
+    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
+    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
+  fi
 
-            sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
-            sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
-            sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
-        fi
-
-        chmod 755 $VSProdFile
-        rm tmp2
+  chmod 755 $VSProdFile
+  rm tmp2
         
-    ###########################################################################
-    # Stage 2 only needs longer time if Halstead
-    ###########################################################################
-    WALLTIME=' -t 15:00:00'
-    MEMREQUEST='--mem=5GB'
-    if [ -n "$HALSTEAD" ]; then
-      WALLTIME='-l walltime=24:00:00'
-      MEMREQUEST=" -l mem=8GB"
-    fi
+  ###########################################################################
+  # Stage 2 only needs longer time if Halstead
+  ###########################################################################
+  WALLTIME=' -t 15:00:00'
+  MEMREQUEST='--mem=5GB'
+  if [ -n "$HALSTEAD" ]; then
+    WALLTIME='-l walltime=24:00:00'
+    MEMREQUEST=" -l mem=8GB"
+  fi
 fi
+
 ############################################################################
 
 if [ -n "$GenerateStage4FromStage2" ]; then
@@ -1488,6 +1501,9 @@ if [ -n "$GenerateStage4FromStage2" ]; then
   if [ -e "$QsubLogs" ]; then
     rm $QsubLogs
   fi
+  let MaxQsubs=$MaxQsubsDefault
+  echo "VAAuto: Stage4 Overall qsub active submissions being limited to " $MaxQsubs 
+
 
   #Make sure VegasSimProduction.scr is set up correctly to get Stage4
 
@@ -1563,80 +1579,128 @@ if [ -n "$GenerateStage4FromStage2" ]; then
 fi
 ############################################################################
 
+
 if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
-    if [ -n "$GenerateStage5Combined" ]; then
-      echo '##########################################################'
-      echo '# GenerateStage5Combined (Does not  RemoveCutEvents)'
-      echo '##########################################################'
+  echo at 1.0
+  if [ -n "$GenerateStage5Combined" ]; then
+    echo '##########################################################'
+    echo '# GenerateStage5Combined : Does not  RemoveCutEvents'
+    echo '##########################################################'
+  fi
+  if [ -n "$GenerateStage5CombinedRCE" ]; then
+    echo '##########################################################'
+    echo '# GenerateStage5CombinedRCE: Has RemoveCutEvents'
+    echo '##########################################################'
+  fi
+
+  cd $lcl
+  date
+    
+  #Make sure VegasSimProduction.scr is set up correctly to get  
+  #Stage5 combined tree
+
+  GetUniqueNumber
+  VSProdFile=VegasSimProductionS5.$UNIQUE'.scr'
+  echo VSProdFile: $VSProdFile
+
+  ####################################################################
+  # See note below in GeneraterStage2FromVBF section on CORI use of Job 
+  # arrays. Requires a QsubFileNameList and a QsubLogs file. Setup its name 
+  # here.
+  # Eventual use on all clusters
+  ####################################################################
+  QsubFileNameList='VA'$UNIQUE'AutoqsubList'
+  echo QsubFileNameList: $QsubFileNameList
+  if [ -e "$QsubFileNameList" ]; then
+    rm $QsubFileNameList
+  fi
+  QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
+  if [ -e "$QsubLogs" ]; then
+    rm $QsubLogs
+  fi
+  let MaxQsubs=$MaxQsubsDefault
+  echo "VAAuto: Stage5 Overall qsub active submissions being limited to " $MaxQsubs 
+
+  ###################################################################
+  # The standard VegasSimProduction.scr should have all options 
+  # turned off.  We just have to make sure only stage 5 gets run
+  # Sample size:We will need to set integration window size if 
+  # different from 7.
+  ##################################################################
+  cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
+  sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g'     <$VSProdFile  >tmp1
+  sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
+  sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
+  sed '/Stage4=enable/s/Stage4/#Stage4/g'                    <tmp1 >tmp2
+  sed '/#Stage5=enable/s/#Stage5/Stage5/g'                   <tmp2 >tmp1
+
+  SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
+  cp $VERITASAPPS/tables/$SHOWERCUTSFILE  .
+  echo SHOWERCUTSFILE: $SHOWERCUTSFILE
+  sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g' <tmp1 >tmp2
+
+  ###############################################################################    
+  # If this is a Stage5 run for ZAlpha the input CUTTYPE will be somethin like:
+  # UpgradeMediumHadron or UpgradeMediumElectron or UpgradeMediumRecon.
+  # if so we have to modify the filebase to get rid of the Electron or Hadron 
+  # or Recon so that the input cuts filename from Stage4 looks correct in 
+  #  VagasSimProduciton
+  ###############################################################################    
+  if [ ! "${CUTTYPE%%Electron}" = "$CUTTYPE" ];  then
+    CUTBASE=${CUTTYPE%%Electron}
+    OUTEXT=Electron
+  else
+    if [ ! "${CUTTYPE%%Hadron}" = "$CUTTYPE" ];  then
+      CUTBASE=${CUTTYPE%%Hadron}   #Used later to check Stage4 file existance
+      OUTEXT=Hadron
+    else
+      if [ ! "${CUTTYPE%%Recon}" = "$CUTTYPE" ];  then
+        CUTBASE=${CUTTYPE%%Recon}
+        OUTEXT=Recon
+      else
+        CUTBASE=$CUTTYPE
+        # Note: no OUTEXT extention being defined. => no output file name generated
+        # in VegasSimProduction
+      fi
     fi
-    if [ -n "$GenerateStage5CombinedRCE" ]; then
-      echo '##########################################################'
-      echo '# GenerateStage5CombinedRCE (Has RemoveCutEvents)'
-      echo '##########################################################'
-    fi
+  fi
 
-        cd $lcl
-    date
-    #Make sure VegasSimProduction.scr is set up correctly to get  
-    #Stage5 combined tree
-
-    GetUniqueNumber
-    VSProdFile=VegasSimProductionS5.$UNIQUE'.scr'
-    echo VSProdFile: $VSProdFile
-
-    cp $KASCADEBASE/scripts/VegasSimProduction.scr $VSProdFile
-
-    ###################################################################
-    #The standard VegasSimProduction.scr should have all options 
-    #turned off.  We just have to make sure only stage 1 gets run
-    #Sample size:We will need to set integration window size if 
-    #different from 7.
-    ##################################################################
-    sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g' \
-                                          < $VSProdFile  >tmp1
-    sed '/Stage1Data=enable/s/Stage1Data/#Stage1Data/g'        <tmp1 >tmp2
-    sed '/Stage2=enable/s/Stage2/#Stage2/g'                    <tmp2 >tmp1
-    sed '/Stage4=enable/s/Stage4/#Stage4/g'                    <tmp1 >tmp2
-    sed '/#Stage5=enable/s/#Stage5/Stage5/g'                   <tmp2 >tmp1
-
-    SHOWERCUTSFILE=Shower7Sample$CUTTYPE'Cuts'
-    FILEBASE=$CUTTYPE'Cuts'
-    cp $VERITASAPPS/tables/$SHOWERCUTSFILE  .
-    echo SHOWERCUTSFILE: $SHOWERCUTSFILE
-    echo FILEBASE: $FILEBASE
-
-    GetUniqueNumber
-    QsubLogs='RunningMDLQsubLogs'$UNIQUE'.txt'
-
-    ###############################################################################
-    sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp1 >tmp2
-    sed '/ShowerCutsFile=/s/ShowerStdCuts/'$SHOWERCUTSFILE'/g'           <tmp2 >tmp1
-    ###########################################################################
-    # And set Method to combined for stage5
-    # All OutputMethodOptions start out disabled (#). 
-    # For no RemoveCutEvents, Disable a second time (#->##) the  Combined 
-    # output methods with RemoveCutEvents and then  remove the single # from 
-    # the combined one without a RemoveCutEvents.
-    ###########################################################################
-    if [ -n "$GenerateStage5Combined" ]; then
-      sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
-      sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
-        fi
+  FILEBASE=$CUTBASE'Cuts'
+  echo FILEBASE: $FILEBASE
+  sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp2 >tmp1
+    
+  ###############################################################################
+  # Now we need to also enable the -outputfile option in the vaStage5 call within 
+  # VegasSimProduction. We do this by replacing the '#OutputFileNameExt=S7' with
+  # something like: 'OutputFileNameExt=Electron'
+  if [ -n "$OUTEXT" ]; then
+    sed '/#OutputFileNameExt/s/#OutputFileNameExt=S7/OutputFileNameExt='$OUTEXT'/g'  <tmp1 >tmp2
+    mv tmp2 tmp1
+  fi  
+  ###############################################################################
+  # And set Method to combined for stage5
+  # All OutputMethodOptions start out disabled (#). 
+  # For no RemoveCutEvents, Disable a second time (#->##) the  Combined 
+  # output methods with RemoveCutEvents and then  remove the single # from 
+  # the combined one without a RemoveCutEvents.
+  ###########################################################################
+  if [ -n "$GenerateStage5Combined" ]; then
+    sed '/RemoveCutEvents/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+    sed '/Method=combined/s/#OutputMethod/OutputMethod/g'         <tmp2 >tmp1
+  fi
    
-    ##########################################################################
-    # For a combined option with RemoveCutEvents only remove # from that option
-    # Have to double disable stereo option first
-    ##########################################################################
-    if [ -n "$GenerateStage5CombinedRCE" ]; then
-      sed '/Method=stereo/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
-      sed '/RemoveCutEvents/s/#OutputMethod/OutputMethod/g'       <tmp2 >tmp1
-        fi
+  ##########################################################################
+  # For a combined option with RemoveCutEvents only remove # from that option
+  # Have to double disable stereo option first
+  ##########################################################################
+  if [ -n "$GenerateStage5CombinedRCE" ]; then
+    sed '/Method=stereo/s/#OutputMethod/##OutputMethod/g'       <tmp1 >tmp2
+    sed '/RemoveCutEvents/s/#OutputMethod/OutputMethod/g'       <tmp2 >tmp1
+  fi
 
-        mv tmp1 $VSProdFile
-    chmod 755 $VSProdFile
-    rm tmp1
-    rm tmp2
-
+  mv tmp1 $VSProdFile
+  chmod 755 $VSProdFile
+  rm tmp2
 fi
 ############################################################################
 
@@ -1684,7 +1748,7 @@ if [ -n "$GenerateDispSubLTConfigFiles" ]; then
    # Generate template config file for the Disp tables
    # Change for KASCADE and Number of samples
    # Note: No DTM_TelID(All tel tables look identicle)  or 
-   #       DTM_AbsoluteOffset (doesn't make sense for DTM) differences used
+   # DTM_AbsoluteOffset,  Doesn't make sense for DTM, differences used
    # *************************************************************************
     $VEGAS/bin/produceDispTables -save_config_and_exit tmp1
     sed '/DTC_SimulationType/s/GrISU/KASCADE/g'                  <tmp1 >tmp2
@@ -2017,7 +2081,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
                     exit
                   fi
 
-                  BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
+                   BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
                 else
                    SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
                 fi
@@ -2347,6 +2411,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
    [ -n "$CombineBuildCheckEALT" ]    || [ -n "$ProduceEASubLookupTables" ]        || \
    [ -n "$GenerateEASubLTListAndConfigFiles" ] ; then
 
+
+
   #****************************************************************************
   # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
   # combination
@@ -2599,7 +2665,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
           #  GenerateStage4FromStage2 and CheckStage4Files also need SimSet interation
           #  is applicable
           # ***********************************************************************
-          if [ -n "$GenerateStage4FromStage2" ] ||  [ -n "$CheckStage4Files" ]; then
+          if [ -n "$GenerateStage4FromStage2" ] ||  [ -n "$CheckStage4Files" ] || \
+             [ -n "$GenerateStage5Combined" ] ||  -n "$GenerateStage5CombinedRCE" ]; 
+           then
+
             # ###############################################################
             # Due to size and walltime limits we have divided the each CR vbf 
             # file into a number of seperate files. This is implimented by adding 
@@ -2617,6 +2686,17 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
             echo sSimSetEnd: $sSimSetEnd
 	    while test $sSimSetNum -le $sSimSetEnd
              do
+              if [ "$sSimSetNum" = "0" ]; then
+                VBFNM=$VBFFILENAME
+                BFNMS2=$BaseFileS2
+              else
+                VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
+                BFNMS2=$BaseFileS2$sSimSetNum
+              fi
+
+              echo PedVarFile: $PedVarFile 
+              echo BaseFileS2: $BFNMS2 
+              echo VBFFILENAME: $VBFNM
 
               if [ -n "$GenerateStage4FromStage2" ]; then
                 #echo '##########################################################'
@@ -2624,25 +2704,11 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 #echo '##########################################################'
                 cd $lcl
 
-                if [ "$sSimSetNum" = "0" ]; then
-                  VBFNM=$VBFFILENAME
-                  BFNMS2=$BaseFileS2
-                else
-                  VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
-                  BFNMS2=$BaseFileS2$sSimSetNum
-                fi
-
-                #echo PV:$PV
-                #echo "VAAuto: Submitting VegasSimProductionS4 to '$QUEUE' queue for " $lcl'/'$VBFFILENAME 
-               
-                echo PedVarFile: $PedVarFile 
-                echo $BaseFileS2: $BaseFileS2 
-                echo VBFFILENAME: $VBFFILENAME
                 ###################################################
                 # Note here that VeagsSimProductionS4.scr will generate the PedVar 
                 # Stage4 filename with the correct TelConfig and cuts
                 # the VSProdFile has that info added to it with sed commands.
-                ###################################################
+                #############################################
 
                 if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
                   #######################################################
@@ -2699,43 +2765,60 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                  } <CheckStage4FileOK.Result
                 #rm CheckStage4FileOK.Result
               fi
-              ##########################################################
+              # #########################################################
+
+              if [ -n "$GenerateStage5Combined" ] || \
+                 [ -n "$GenerateStage5CombinedRCE" ]; then
+
+		cd $lcl
+                date
+            
+                # OK! We are ready to run.  Need to submit since this will take more 
+                # than 1 hours or we have many to run in parallel 
+                WALLTIME='-t 20:00:00'
+                MEMREQUEST=" --mem=5GB"
+	        if [ -n "$HALSTEAD" ]; then
+                  WALLTIME='-l walltime= 20:00:00'
+                  MEMREQUEST=" -l mem=5GB"
+                fi
+
+                echo 'VAAuto: Submitting '$VSProdFile ' to '$QUEUE' queue for '\
+                     $lcl'/'$VBFNM 
+               
+                ###################################################
+                # Note here that VeagsSimProductionS5.scr will generate the PedVar 
+                # Stage4 filename with the correct TelConfig and Cuts. 
+                # the VSProdFile has that info added to it with sed commands.
+                # Also an Output file will be specified with correct OutputFileNameExt
+                ###################################################
+                if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+                  #######################################################
+                  # BuildVegasSimProduction will create the .pbs file and add
+                  # that file's name to the QsubFileNameList  file
+                  # The actual submision of the job array job to the cluster and 
+                  # moidification of the .pbs job to be a job array job is done 
+                  # later in this script.
+                  #########################################################
+                  # Check that the stage4 root file exists in the lcl directory
+                  #Generate the root file name
+		  ROOTFILE=PedVar$PV'_'$BFNMS2$CUTBASE'Cuts.root'
+		  if [ ! -e "$ROOTFILE" ]; then
+                    echo 'VAAuto--Fatal: Stage4 root file '$ROOTFILE' does not exist'\
+                         'in lcl.'
+                    echo VAAuto--Job Array submission aborted.
+                    exit
+                  fi
+                  BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
+                else
+                  SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+                fi
+             
+              fi  #End of GenerateStage5Combined and GenerateStage5CombinedRCE
           
               sSimSetNum=$((sSimSetNum + 1))
 	     done        #End of SimSet while loop
           fi           
-          # ####################################################################
-
-          if [ -n "$GenerateStage5Combined" ] || \
-             [ -n "$GenerateStage5CombinedRCE" ]; then
-            cd $lcl
-            date
-            
-            # OK! We are ready to run.  Need to submit since this will take more 
-            # than 1 hours or we have many to run in parallel 
-            WALLTIME='-t 20:00:00'
-            MEMREQUEST=" --mem=5GB"
-	    if [ -n "$HALSTEAD" ]; then
-              WALLTIME='-l walltime= 20:00:00'
-              MEMREQUEST=" -l mem=5GB"
-            fi
-
-            echo 'VAAuto: Submitting VegasSimProductionS5 to '$QUEUE' queue for '\
-                 $lcl'/'$VBFFILENAME 
-               
-            echo PedVarFile: $PedVarFile 
-            echo BaseFileS2: $BaseFileS2 
-            echo VBFFILENAME: $VBFFILENAME
-            ###################################################
-            # Note here that VeagsSimProductionS5.scr will generate the PedVar 
-            # Stage4 filename with the correct TelConfig and Cuts. 
-            # the VSProdFile has that info added to it with sed commands.
-            ###################################################
-            
-            SubmitVegasSimProduction $PedVarFile $BaseFileS2 $VSProdFile $VBFFILENAME
-                   
-          fi
-          ###############################################################
+           ###############################################################
           let kpvar=$kpvar+1
          done                 #End of Pedvar while loop
         kaz=$((kaz+1))
@@ -2750,7 +2833,8 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
 fi
 ###########################################################################
 
-if [ -n "$GenerateStage4FromStage2" ]; then
+if [ -n "$GenerateStage4FromStage2" ] || [ -n "$GenerateStage5Combined" ] || \
+   [ -n "$GenerateStage5CombinedRCE" ]; then
         
     #echo '##########################################################'
     #echo '# GenerateStage4FromStage2 '
@@ -2775,6 +2859,7 @@ if [ -n "$EdisonMultipleSerial" ]; then
          [ -n "$GenerateStage4FromStage2" ] || \
          [ -n "$GenerateStage5Combined" ]   || \
          [ -n "$GenerateStage5CombinedRCE" ]; then        
+
      if [ $MSJCount -gt "0" ]; then
        SubmitMultipleSerialJobs  $MSJobList
      fi
@@ -2799,10 +2884,6 @@ if [ -n "$ProduceSubLookupTables" ]; then
 fi
 ##########################################################################
 
-
-
-
-
 #**********************************************************************
 if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
     cd $VEGASBASE/showerReconstruction2/macros
@@ -2819,6 +2900,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
 
     ~/Switch.rootrcTo.rootrc_showerReconstruction2 
    #############################################################################
+
    # Make up a script to run on root batch mode
    #############################################################################
     Script='CombineSubLT.C'
