@@ -2666,7 +2666,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
           #  is applicable
           # ***********************************************************************
           if [ -n "$GenerateStage4FromStage2" ] ||  [ -n "$CheckStage4Files" ] || \
-             [ -n "$GenerateStage5Combined" ] ||  -n "$GenerateStage5CombinedRCE" ]; 
+             [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; 
            then
 
             # ###############################################################
