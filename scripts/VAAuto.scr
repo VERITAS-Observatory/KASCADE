@@ -794,7 +794,7 @@ function BuildVegasSimProduction()
   local VEGASScript=$3
   local FileVBF=$4
 
-  echo BuilsVegasSimProduction Args: $1 $2 $3 $4
+  echo BuildVegasSimProduction Args: $1 $2 $3 $4
 
   ##########################################
   #  Make sure we have the PedVar command file
@@ -834,7 +834,7 @@ function BuildVegasSimProduction()
     ##############################################
     # Generate the veagsSimProduction command 
     ##############################################
-    local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase'.'$IDUNIQUE'.VBF.log'
+    local VSPCommand=$lcl'/'$VEGASScript' '$FileVBF' '$FilePedVar' >'$lcl'/'$FilePedVar'_'$FileBase$OUTEXT'.'$IDUNIQUE'.log'
     sgeFile=$lcl'/VA'$FilePedVar'_'$FileBase$IDUNIQUE'.pbs'
     SgeFilePBSCmds   $sgeFile
     SgeFileBashCmds  $sgeFile
