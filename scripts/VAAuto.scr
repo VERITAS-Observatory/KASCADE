@@ -12,7 +12,8 @@
 #$5 MDL designation for VBF files: Ex MDL12UA or MDL15NA
 #$6 comma seperated list of ZN values: Ex 1,10,20,30,40,50,60,70 or "All
 #$7 comma seperated list of AZ values: Ex 0,45,90,135,180,225,270,315 or "All"
-#$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores wbl) 
+#$8 wbl list Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores wbl, except eSpec stage5 
+#            where its the aperture radius(1 value only)) 
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar list: 5.18, 5.55 6.51 or "All" or "Base"
 #${11} Specifes Type of LT or DT table to use or make for LT,DT (Ex All or 050)
@@ -135,7 +136,8 @@ function usage()
   echo ' $5: Kascade Detector Model for VBF files: Ex MDL12UA or MDL15NA or MDL8OA'
   echo ' $6: List of ZN values:   Ex: 1,10,20,30,40,50,60,70 or "All"'
   echo ' $7: List of AZ values:   Ex: 0,45,90,135,180,225,270,315 or "All"'
-  echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores wbl)'
+  echo ' $8: List of Wbl values:  Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR ignores'\
+       'wbl or for eSpec Stage5 Wbl[0] = aperture).'
   echo ' $9: Threshold: Ex 45mv (for UA) or 50mv (for OA and NA)'
   echo ' ${10}: List of PedVar values: 5.18, 5.55 6.51 or "All" or "Base"'
   echo ' ${11}: Specifes Type of LT table to use. Ex. All or 050 or ALLE or'\
@@ -1670,11 +1672,27 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
   sed '/FileBase/s/StdCuts/'$FILEBASE'/g'                          <tmp2 >tmp1
     
   ###############################################################################
-  # Now we need to also enable the -outputfile option in the vaStage5 call within 
-  # VegasSimProduction. We do this by replacing the '#OutputFileNameExt=S7' with
-  # something like: 'OutputFileNameExt=Electron'
+  # Now for eSpec we need to also enable the -outputfile option in the vaStage5 
+  # call within VegasSimProduction. We do this by replacing the 
+  # '#OutputFileNameExt=S7' with something like: 'OutputFileNameExt=Electron'
+  # For eSpec we also need to set the aperature. Fi=or this the offset shoiuld 
+  # have been set to the rquired aperature.
+  # #############################################################################
+    
   if [ -n "$OUTEXT" ]; then
-    sed '/#OutputFileNameExt/s/#OutputFileNameExt=S7/OutputFileNameExt='$OUTEXT'/g'  <tmp1 >tmp2
+    if [ ${#WblOffset[@]} -eq "1" ]; then
+      sed '/#OutputFileNameExt/s/#OutputFileNameExt=S7/OutputFileNameExt='$OUTEXT'/g' \
+                                                                       <tmp1 >tmp2
+      off=${WblOffset[0]}
+      OFFSQR=$(awk 'BEGIN{print '$off' * '$off'}')
+      sed '/#ThetaSquareUpper=/s/#ThetaSquareUpper=.01/ThetaSquareUpper='$OFFSQR'/g' \
+                                                                       <tmp2 >tmp1
+      sed '/#Stage5ThetaSquareOption/s/#Stage5/Stage5/g'               <tmp1 >tmp2 
+      echo 'VAAuto: eSpec radius^2 aperature set to '$OFFSQR 'deg^2 '
+    else
+      echo 'VAAuto: Fatal-For eSpec more than one aperture (offset) specified'
+      exit
+    fi
     mv tmp2 tmp1
   fi  
   ###############################################################################
