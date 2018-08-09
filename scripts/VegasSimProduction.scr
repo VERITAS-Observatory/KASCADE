@@ -223,7 +223,7 @@ if [ -n "$Stage5" ]; then
 
       if [ -n "$OutputFileNameExt" ]; then
         #OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
-        OutputFileName=${CutRootFileName%".root"}$OutputFileNameExt'.root'
+        OutputFileName=${CutRootFileName%"Cuts.root"}$OutputFileNameExt'Cuts.root'
 	OutputFileNameOpt='-outputFile='$OutputFileName
         echo OutputFileNameOpt: $OutputFileNameOpt
       fi
