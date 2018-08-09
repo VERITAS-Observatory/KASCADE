@@ -105,8 +105,9 @@ fi
 
 #Stage5
 
- ShowerCutsFile=ShowerStdCuts	  
-
+ ShowerCutsFile=ShowerStdCuts
+ #ThetaSquareUpper=.01	  
+ #Stage5ThetaSquareOption='ThetaSquareUpper='$ThetaSquareUpper
 
 #OutputMethodOptions='-Method=combined -RemoveCutEvents=true'
 #OutputMethodOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
@@ -229,5 +230,5 @@ if [ -n "$Stage5" ]; then
       fi
       
     $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCutsFile $OutputMethodOptions \
-         -inputFile=$CutRootFileName $OutputFileNameOpt
+	$Stage5ThetaSquareOption  -inputFile=$CutRootFileName $OutputFileNameOpt
 fi
