@@ -107,7 +107,7 @@ fi
 
  ShowerCutsFile=ShowerStdCuts
  #ThetaSquareUpper=.01	  
- #Stage5ThetaSquareOption='ThetaSquareUpper='$ThetaSquareUpper
+ #Stage5ThetaSquareOption='-ThetaSquareUpper='$ThetaSquareUpper
 
 #OutputMethodOptions='-Method=combined -RemoveCutEvents=true'
 #OutputMethodOptions='-Method=combined'  #Must use for makeSignalsModels!!!!!!
@@ -212,11 +212,11 @@ if [ -n "$Stage4" ]; then
      echo CutRootFileName: $CutRootFileName
      cp -v $RootFileName $CutRootFileName
      echo ET: $TableDir/$Table
+
      $VEGAS/bin/vaStage4 -table=$TableDir/$Table -OverrideLTCheck=1 \
 	-cuts=$CutsDir/$QualityCuts $DenyTelescopeOption  $CutTelescopeOption \
 	$WindowSizeOption -G_SimulationMode=1 -save_config=vaStage4.config \
-	$SeparationAngleCutOption $CutRootFi
-Click here for more details on cut optimizationleName
+	$SeparationAngleCutOption $CutRootFileName
 fi
 
 if [ -n "$Stage5" ]; then

@@ -20,8 +20,8 @@ function usage()
   echo '           Bad: PedVar8.97_gamma_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE\
        '_zen70deg_az270deg_1.25wobb.root'
   echo ' EX: ./ReDoBadPedVarS2.scr CheckStage2Deg1-50AllElectrons.log'
-  echo ' Note: Works for gamma and electron and cosmicRay(with or without \
-       'simsets)'
+  echo ' Note: Works for gamma and electron and cosmicRay with or without\
+       'simsets'
 }
 
 if [ ! -n "$1" ]; then

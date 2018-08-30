@@ -1332,7 +1332,7 @@ if [ -n "$LimitSubmissions" ]; then
       rm $QsubLogs                     #Just some cleanup if previous run died.
   fi
 fi
-echo at -3
+
 ############################################################################
 # Sim Laser generation
 ############################################################################
@@ -1675,8 +1675,8 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
   # Now for eSpec we need to also enable the -outputfile option in the vaStage5 
   # call within VegasSimProduction. We do this by replacing the 
   # '#OutputFileNameExt=S7' with something like: 'OutputFileNameExt=Electron'
-  # For eSpec we also need to set the aperature. Fi=or this the offset shoiuld 
-  # have been set to the rquired aperature.
+  # For eSpec we also need to set the aperature. For this the offset shoiuld 
+  # have been set to the required aperature.
   # #############################################################################
     
   if [ -n "$OUTEXT" ]; then
