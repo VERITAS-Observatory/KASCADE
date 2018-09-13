@@ -1739,6 +1739,10 @@ if [ -n "$CheckStage4Files" ]; then
     date 
     if [ ! -e "CheckStage4FileOK.C" ]; then
         cp $KASCADEBASE/scripts/CheckStage4FileOK.C .
+	if [ ! -e "CheckStage4FileOK.C" ]; then
+	    echo VAAuto--Fatal couold not find KASCADE/scripts/CheckStage4FileOK.C
+	    exit
+        fi
     fi
     ~/Switch.rootrcTo.rootrc_glenn.scr
 fi
@@ -2710,7 +2714,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
               else
                 VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
                 BFNMS2=$BaseFileS2$sSimSetNum
-              fi
+	      fi
 
               echo PedVarFile: $PedVarFile 
               echo BaseFileS2: $BFNMS2 
@@ -2758,16 +2762,16 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 # echo '# CheckStage4Files'
                 # echo '##########################################################'
                 cd $lcl
-               
+		PVFNS4='PedVar'$PV'_'$BFNMS2$CUTTYPE'Cuts.root'
                 #Check VARootIO can open and load file 
-                Arg=$lcl'/CheckStage4FileOK.C("'$PedVarS4FileName'")'
+                Arg=$lcl'/CheckStage4FileOK.C("'$PVFNS4'")'
                
                 root -q -b -q $Arg >CheckStage4OK.log
                  {
                   read BAD
                   let suzBAD="$BAD"
                   if [ "$suzBAD" -lt "15" ]; then
-                    echo "Bad: "$PedVarS4FileName
+                    echo "Bad: "$PVFNS4
                     echo "Reason: "$suzBAD
                     if [ $suzBAD -eq "1" ]; then
                       echo "VAAuto: VARootIO failed to open" 
