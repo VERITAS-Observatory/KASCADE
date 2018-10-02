@@ -394,7 +394,7 @@ function SgeFileBashCmds()
 {
   sgeFile=$1
   if [ -n "$PURDUE" ]; then
-    echo module load KASCADE                  >>$sgeFile
+    #echo module load KASCADE                  >>$sgeFile
     echo source /etc/profile                  >>$sgeFile
     echo lcl=\$PBSCMD_O_WORKDIR               >>$sgeFile
   fi
