@@ -108,6 +108,20 @@ if [ "$2" = "CRB" ]; then
   echo EntryHe4End: $EntryHe4End
 fi
 
+PTYPE=$2
+ENTRY=${PTYPE##CRC}
+if [ "$2" != "$ENTRY" ]; then
+  EntryPStart=$ENTRY
+  EntryPEnd=$ENTRY
+  EntryHe4Start=$ENTRY
+  EntryHe4End=$ENTRY
+  echo CRC:EntryPStart: $EntryPStart
+  echo CRC:EntryHe4Start: $EntryHe4Start
+  echo CRC:EntryPEnd: $EntryPEnd
+  echo CRC:EntryHe4End: $EntryHe4End
+  DEFSHWRFLAG="CRC" 
+fi
+
 if [ "$2" = "CR" ]; then
   echo EntryPStart: $EntryPStart
   echo EntryHe4Start: $EntryHe4Start
@@ -123,7 +137,6 @@ if [ "$2" = "He4_" ]; then
  EntryGEStart=$EntryHe4Start
  EntryGEEnd=$EntryHe4End
 fi
-
 
 #############################################################
 function commandEnable()
@@ -171,7 +184,7 @@ function usage()
 {
   echo '***KSAuto.scr: Usage:'
   echo '  $1: Command. Do "KSAuto.scr ListCommands" to see list.'
-  echo '  $2 Type spec: Ex: G or P or He4_ or CR or CRA or CRB or E'
+  echo '  $2 Type spec: Ex: G or P or He4_ or CR or CRA or CRB or CRC26 or E'
   echo '  $3 Season spec: Winter (ATM21) Summer (ATM22) Ex: W or S'
   echo '  $4 ArraySpec: Whipple, OldArray, NewArray, UpgradeArray. Ex: W, OA, NA or UA'
   echo '  $5 Zn List: Ex: 1,10,20,30,40,50,60,70 or "All"'
@@ -719,8 +732,6 @@ fi
 
 commandEnable $1   #This will enable the specified command or exit if its not a 
                    #known command.
-
-
 SPECPART=$2 
 SPECSEA=$3
 SPECCFG=$4
@@ -732,8 +743,10 @@ ARRAYCONFIG=$9
 REFDATAFILE=${10}
 
 
-if [ "$SPECPART" = "CRA" ] || [ "$SPECPART" = "CRB" ]; then
+if [ "$SPECPART" = "CRA" ] || [ "$SPECPART" = "CRB" ] || 
+   [ "${SPECPART#CRC}" != "$SPECPART" ]; then
     SPECPART="CR"
+    echo SPECPART: $SPECPART
 fi
 
 lcl=$PWD
@@ -890,8 +903,6 @@ fi
 
 IFS=$SAVEIFS
 
-
-
 if [ ! -e "$lcl/KSAutoFileCheck.scr" ]; then
   cp -v $KASCADEBASE'/scripts/KSAutoFileCheck.scr' $lcl
 fi
@@ -933,7 +944,6 @@ fi
 
 #########################################################################
 #now we loop
-
 #Zenith
 let izn=0
 let iznEnd=${#Zenith[@]}
@@ -958,7 +968,7 @@ while test $izn -lt $iznEnd
 # *****************************************************************************
      #make up our ksProduction designation
      ksProdSpec=$SPECSEA$TELCONFIG$SPECPART$ZnAz$WblFilterSpec$Threshold'1234M2'
-  
+
      if [ -n "$GenerateTeFiles" ]; then
        echo '##########################################################'
        echo '# GenerateTeFiles '
@@ -1002,7 +1012,8 @@ while test $izn -lt $iznEnd
  
         if [ "$SPECPART" = "CR" ]; then
             echo "KSAuto: Submitting ksProduction for " $ksProdSpec" Energy entries: P:"  $EntryPStart 'to' $EntryPEnd 'and He4:' $EntryHe4Start 'to' $EntryHe4End
-       else
+            echo Special Flag = $DEFSHWRFLAG
+	else
             echo "KSAuto: Submitting ksProduction for " $ksProdSpec" Energy entries "$EnergyStart" to "$EnergyEnd
        fi
  
@@ -1020,7 +1031,7 @@ while test $izn -lt $iznEnd
 #           fi
 
 	   if [ "$SPECPART" = "CR" ]; then
-             ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
+             ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End $DEFSHWRFLAG
            else
              ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EnergyStart $EnergyEnd
            fi                     #Above will fill the list file 
@@ -1430,16 +1441,16 @@ while test $izn -lt $iznEnd
        if [ -n LimitSubmissions ]; then     #We submit max number of jobs and 
                                             #wait until to submit more in our 
                                             #list
-	   if [ -e $QsubFileNameList ]; then
+	  if [ -e $QsubFileNameList ]; then
 	    rm $QsubFileNameList
-       fi
+          fi
 #         if [ -n "$EDISON" ]; then
 #	   MEMREQUEST=' -l vmem=8GB '
 #	   echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
 #         fi
 
 	 if [ "$SPECPART" = "CR" ]; then
-             ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End
+             ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End $DEFSHWRFLAG
          else
              ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EnergyStart $EnergyEnd
          fi                     #Above will fill the list file 
