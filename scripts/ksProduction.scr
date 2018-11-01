@@ -479,7 +479,7 @@ HEN=$8
 #Flag for using reduced showers for MDl CR stuff. 
 #Will be not defined for normal use.
 MDL=$9
-
+echo Special Flag: $MDL
 lcl="$PWD"
 #MaxStepIndex=19
 MaxStepIndex=10        #For electron spectrum special processing
