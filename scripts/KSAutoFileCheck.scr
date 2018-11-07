@@ -9,6 +9,7 @@
 #$6 EntryEnd:  ex 45 or maybe 47
 #$7 VBF only: Threshold Ex. 45mv or 50mv  or M45mv. Needed for VBF filename.
 #$8 File directory name. (includes full path)
+#$9 Special MDL/ CRC flag
 #     
 ########################################################################
 
