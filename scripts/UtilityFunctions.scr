@@ -424,7 +424,7 @@ function SgeFileCompleteAndSave()
 #Ref.:  This mimics the ksProduction::CompleteAndSubmit function
 #########################################################################
 {
-	sgeFile=$1
+  sgeFile=$1
   chmod 700 $sgeFile
   echo 'echo Done >'$sgeFile'.Done'                    >>$sgeFile
   echo $sgeFile >>$QsubFileNameList
