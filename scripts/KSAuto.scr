@@ -110,7 +110,7 @@ fi
 
 PTYPE=$2
 ENTRY=${PTYPE##CRC}
-if [ "$2" != "$ENTRY" ]; then
+if [ "$2" != "$ENTRY" ]; then   #Its a single enrty spec. Ex CRC26.
   EntryPStart=$ENTRY
   EntryPEnd=$ENTRY
   EntryHe4Start=$ENTRY
@@ -122,11 +122,32 @@ if [ "$2" != "$ENTRY" ]; then
   DEFSHWRFLAG="CRC" 
 fi
 
-if [ "$2" = "CR" ]; then
-  echo EntryPStart: $EntryPStart
-  echo EntryHe4Start: $EntryHe4Start
-  echo EntryPEnd: $EntryPEnd
-  echo EntryHe4End: $EntryHe4End
+if [ ${PTYPE:0:2} = "CR" ]; then
+  if [ "$2" = "CR" ]; then     #No range specified
+    echo EntryPStart: $EntryPStart
+    echo EntryHe4Start: $EntryHe4Start
+    echo EntryPEnd: $EntryPEnd
+    echo EntryHe4End: $EntryHe4End
+  else
+    ENTRYRANGE=${PTYPE##CR}   #get the range if there is one
+    if [ -n "$ENTRYRANGE" ]; then
+      EntryPStart=${ENTRYRANGE%%-*}
+      EntryHe4Start=${ENTRYRANGE%%-*}
+      EntryPEnd=${ENTRYRANGE##*-}
+      EntryHe4End=${ENTRYRANGE##*-}
+      #Now do a check that they indeed were set.
+      if [ ! -n "EntryPStart" ] || [ ! -n "$EntryPEnd" ]; then
+        echo VAAuto:Fatal--EntryRange improperly defined: #PTYPE
+        echo VAAuto: Should be of the form CR1-25 oe CR4-4
+        exit 
+      fi
+      echo 'VAAuto: Limited EntryRanges Specified'
+      echo EntryPStart: $EntryPStart
+      echo EntryHe4Start: $EntryHe4Start
+      echo EntryPEnd: $EntryPEnd
+      echo EntryHe4End: $EntryHe4End
+    fi
+  fi
 fi
 
 if [ "$2" = "P" ]; then
@@ -184,7 +205,7 @@ function usage()
 {
   echo '***KSAuto.scr: Usage:'
   echo '  $1: Command. Do "KSAuto.scr ListCommands" to see list.'
-  echo '  $2 Type spec: Ex: G or P or He4_ or CR or CRA or CRB or CRC26 or E'
+  echo '  $2 Type spec: Ex: G, P, He4_, CR, CRA, CRB, CRC27, CR26-30 or E'
   echo '  $3 Season spec: Winter (ATM21) Summer (ATM22) Ex: W or S'
   echo '  $4 ArraySpec: Whipple, OldArray, NewArray, UpgradeArray. Ex: W, OA, NA or UA'
   echo '  $5 Zn List: Ex: 1,10,20,30,40,50,60,70 or "All"'
@@ -746,11 +767,11 @@ ARRAYCONFIG=$9
 REFDATAFILE=${10}
 
 
-if [ "$SPECPART" = "CRA" ] || [ "$SPECPART" = "CRB" ] || 
-   [ "${SPECPART#CRC}" != "$SPECPART" ]; then
+if  [ ${SPECPART:0:2} = "CR" ]; then
     SPECPART="CR"
-    echo SPECPART: $SPECPART
 fi
+
+echo SPECPART: $SPECPART
 
 lcl=$PWD
 source /etc/profile
