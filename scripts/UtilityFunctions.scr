@@ -373,7 +373,7 @@ function SgeFilePBSCmds()
    echo "#"$PBSCMD $QUEUE                        >>$sgeFile
    echo "#"$PBSCMD $WALLTIME                     >>$sgeFile
    echo "#"PBS -l nodes=1:ppn=1                  >>$sgeFile 
-   echo "#"$PBSCMD -l naccesspolicy=shared       >>$sgeFile
+   #echo "#"$PBSCMD -l naccesspolicy=shared       >>$sgeFile
  
  elif [ -n "$CORI" ] || [ -n "$EDISON" ]; then
    echo "#"$PBSCMD $QUEUE                        >>$sgeFile
