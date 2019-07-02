@@ -26,7 +26,7 @@ void PlotPedvarLevels(std::string fListFileName,int numSamples=7,double minRange
     {
 	VARootIO io(inputFileName.c_str(), true);
  	io.loadTheRootFile();
-        VAQStatsData *q = io.loadTheQStatsData();
+        const VAQStatsData *q = io.loadTheQStatsData();
         std::cout<<inputFileName<<": ";
 	std::cout<<q->getCameraAverageTraceVarTimeIndpt(0, numSamples)<<" "
 		 <<q->getCameraAverageTraceVarTimeIndpt(1, numSamples)<<" "
