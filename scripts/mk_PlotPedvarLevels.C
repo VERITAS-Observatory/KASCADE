@@ -2,6 +2,7 @@
 // CameraAverageTraceVarTime (Run SAvergae PedVar) and plots them. This is so 
 // that the user can determine which PeVar Lookupt Table to use.
 
+
 void mk_PlotPedvarLevels(std::string fListFileName,int numSamples=7,double minRange=.1, double maxRange=12.0)
 {
   std::cout<<"Pedvars are for NumSamples="<<numSamples<<std::endl;
@@ -26,7 +27,7 @@ void mk_PlotPedvarLevels(std::string fListFileName,int numSamples=7,double minRa
     {
 	VARootIO io(inputFileName.c_str(), true);
  	io.loadTheRootFile();
-        VAQStatsData *q = io.loadTheQStatsData();
+    const VAQStatsData *q = io.loadTheQStatsData();
 	Double_t pedvarT1=q->getCameraAverageTraceVarTimeIndpt(0, numSamples);
 	Double_t pedvarT2=q->getCameraAverageTraceVarTimeIndpt(1, numSamples);
 	Double_t pedvarT3=q->getCameraAverageTraceVarTimeIndpt(2, numSamples);
