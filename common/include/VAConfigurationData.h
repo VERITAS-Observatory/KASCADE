@@ -29,11 +29,11 @@
 // Algorithm configuation data
 // ----------------------------------------------------------------------------
 
-#ifdef _NOROOT
-   class VAConfigurationData
-#else
-   class VAConfigurationData: public TObject
-#endif
+//#ifdef _NOROOT
+class VAConfigurationData
+//#else
+// class VAConfigurationData: public TObject
+//#endif
 {
 public:
   VAConfigurationData(const std::string& name=""): fName(name), fConfig() { }
@@ -56,9 +56,9 @@ public:
   //! Set of Name/Value pairs which describe configuration of algorithm
   std::map<std::string, std::string>  fConfig;
 
-#ifndef _NOROOT
-  ClassDef(VAConfigurationData,1); // Class which contains algorithm name and configuration values
-#endif
+  //#ifndef _NOROOT
+  //C l a s s D e f (VAConfigurationData,1); // Class which contains algorithm name and configuration values
+  //#endif
 };
 
 std::ostream& operator<< (std::ostream& stream, 

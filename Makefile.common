@@ -37,10 +37,18 @@ TOPCOMMONLIBDIR = $(TOPCOMMONDIR)/$(LIBDIR)
 
 # -----------------------------------------------------------------------------
 #  VEGAS  defines
+# Depends wether we are using a cmake versionor not.
 # -----------------------------------------------------------------------------
-VEGASCMNINCDIR = -I$(VEGAS)/common/include
-VEGASCMNLIBDIR = -L$(VEGAS)/common/lib
-VEGAGCMNLIB = -lSP24commonLite
+ifdef VEGASMODULEVERSION 
+    VEGASCMNINCDIR = -I$(VEGAS)/include/common/include
+    VEGASCMNLIBDIR = -L$(VEGAS)/lib
+    VEGAGCMNLIB = -lVEGAScommon
+else
+    VEGASCMNINCDIR = -I$(VEGAS)/common/include
+    VEGASCMNLIBDIR = -L$(VEGAS)/common/lib  
+    VEGAGCMNLIB = -lSP24commonLite
+endif
+
 VEGASLDFLAGS = $(VEGASCMNLIBDIR) $(VEGAGCMNLIB)
 
 
@@ -83,7 +91,8 @@ ROOTGLIBS    := $(shell $(ROOTCONFIG) --glibs)
 
 
 ROOTCINT = $(ROOTBIN)rootcint
-ROOTCINTFLAGS = $(KASINCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
+#ROOTCINTFLAGS = $(KASINCFLAGS) -D__extension__="" -D__attribute__\\\(X\\\)="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
+ROOTCINTFLAGS = $(KASINCFLAGS) -D__extension__="" -D__const=const -D__restrict="" -D__signed=signed -D__volatile=volatile -D__BEGIN_DECLS= -D__END_DECLS= -D__THROW=
 
 #Set up place where F90 Modules will be made and kept.
 

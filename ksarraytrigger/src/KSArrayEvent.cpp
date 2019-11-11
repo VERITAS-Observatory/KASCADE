@@ -1602,7 +1602,7 @@ void KSArrayEvent::LoadTelescopePositionsFromList(
 				  VATime& FirstValidEventTime)
 // ************************************************************************
 {
-  ifstream in(pfDataIn->fTelescopePositionListFile.c_str());
+  std::ifstream in(pfDataIn->fTelescopePositionListFile.c_str());
   if(!in)
     {
       std::cout<<"ksArrayTrigger::LoadTelescopePositionsFromList - Can't "

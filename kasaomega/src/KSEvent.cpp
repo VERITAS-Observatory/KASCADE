@@ -255,7 +255,7 @@ KSEvent::KSEvent(KSTeFile* pTeFile, KSSegmentHeadData* pSegmentHead,
       // pfDataIn->fNewNoiseRate but that is done below somewhere(KSCamera).
       // ********************************************************************
       bool ifLO=false;  //Always want high gain. This is appropriate for
-                        //Gain corrected Charge,SignalToNoise from VATraceData
+                        //Gain corrected Charge, PedVar from VATraceData
                         //and Pedvars from VAQSatausData.
       uint16_t fTel=(uint16_t)pfDataIn->fTelescope;
       uint16_t winSize=(uint16_t)gFADCWinSize[fCameraType];
@@ -933,65 +933,52 @@ void KSEvent::CreateRootEvent(bool fPedestalEvent, VATime& EventTime)
       
   pfCalEvent->fTelEvents.at(0).fTelID=pfDataIn->fTelescope;
 
-  for(uint16_t i=0;i<fNumPixels;i++)  // No zero supression yet
-    {
-      // *************************************************************
-      // ONly good, 'Live' pixels go out to fTelEvents
-      // *******************************************************
-      if(!pfCamera->fPixel.at(i).fBadPixel)
-		{
-		  VATraceData chanData;
-		  chanData.fChanID=i;
-		  if(fCameraType==WHIPPLE490)
-			{
-			  if(!fPedestalEvent)
-				{
-				  chanData.fCharge=
-					pfCamera->fPixel.at(i).GetCharge(fFADCStartGateTimeNS,
-													 fPedestalEvent);
-				  chanData.fSignalToNoise=chanData.fCharge/
-					pfCamera->fPixel.at(i).fChargeVarPE;
-				}
-			  else
-				{
-				  chanData.fCharge=
-					pfCamera->fPedPixels.at(i).GetCharge(0,fPedestalEvent);
-				  chanData.fSignalToNoise=chanData.fCharge/
-					pfCamera->fPixel.at(i).fChargeVarPE;
-				}
-			  // *********************************************************
-			  // Now we apply the DigitalCountsPerPE for whipple onlyhere. 
-			  // For VERITAS499 this is applied within the KSFADC function
-			  // *********************************************************
-			  chanData.fCharge=
-				chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
-			}
-		  else if(fCameraType==VERITAS499) 
-			{
-			  if(!fPedestalEvent)
-				{
-				  //GetCharge for VERITAS499 returns FADC sum in dc.
-				  double fChargeStartTimeNS=fFADCStartGateTimeNS-
-					gFADCWindowOffsetNS[VERITAS499]+
-					gFADCChargeOffsetNS[VERITAS499];
-				  chanData.fCharge=pfCamera->fPixel.at(i).GetCharge(
-																	fChargeStartTimeNS, fPedestalEvent);
-				  chanData.fSignalToNoise=chanData.fCharge/
-					pfCamera->fPixel.at(i).fChargeVarDC;
-				}
-			  else
-				{
-				  chanData.fCharge=pfCamera->fPedPixels.at(i).GetCharge(
-																		gFADCChargeOffsetNS[VERITAS499],fPedestalEvent);
-				  chanData.fSignalToNoise=chanData.fCharge/
-					pfCamera->fPixel.at(i).fChargeVarDC;
-				}
-			}
-		  chanData.fHiLo=false;  //We assume always hi gain mode for now.
-		  chanData.fWindowWidth=gFADCWinSize[fCameraType];
-		  pfCalEvent->fTelEvents.at(0).fChanData.push_back(chanData);
-		}
+  for(uint16_t i=0;i<fNumPixels;i++) { // No zero supression yet 
+    // *************************************************************
+    // ONly good, 'Live' pixels go out to fTelEvents
+    // *******************************************************
+    if(!pfCamera->fPixel.at(i).fBadPixel) {
+      VATraceData chanData;
+      chanData.fChanID = i;
+      if(fCameraType == WHIPPLE490) {
+        if(!fPedestalEvent) {
+          chanData.fCharge = 
+            pfCamera->fPixel.at(i).GetCharge(fFADCStartGateTimeNS,
+                                             fPedestalEvent);
+          chanData.fPedVar = pfCamera->fPixel.at(i).fChargeVarPE;
+        }
+        else {
+          chanData.fCharge=
+            pfCamera->fPedPixels.at(i).GetCharge(0,fPedestalEvent);
+          chanData.fPedVar = pfCamera->fPixel.at(i).fChargeVarPE;
+        }
+        // *********************************************************
+        // Now we apply the DigitalCountsPerPE for whipple onlyhere. 
+        // For VERITAS499 this is applied within the KSFADC function
+        // *********************************************************
+        chanData.fCharge = chanData.fCharge*pfDataIn->fDigitalCountsPerPE;
+	  }
+      else if(fCameraType==VERITAS499)  {
+        if(!fPedestalEvent)	{
+          //GetCharge for VERITAS499 returns FADC sum in dc.
+          double fChargeStartTimeNS=fFADCStartGateTimeNS-
+            gFADCWindowOffsetNS[VERITAS499]+
+            gFADCChargeOffsetNS[VERITAS499];
+          chanData.fCharge=pfCamera->fPixel.at(i).GetCharge(fChargeStartTimeNS,
+                                                            fPedestalEvent);
+          chanData.fPedVar = pfCamera->fPixel.at(i).fChargeVarDC;
+        }
+        else {
+          chanData.fCharge = pfCamera->fPedPixels.at(i).GetCharge(
+                                                                  gFADCChargeOffsetNS[VERITAS499],fPedestalEvent);
+          chanData.fPedVar = pfCamera->fPixel.at(i).fChargeVarDC;
+        }
+      }
+      chanData.fHiLo=false;  //We assume always hi gain mode for now.
+      chanData.fWindowWidth=gFADCWinSize[fCameraType];
+      pfCalEvent->fTelEvents.at(0).fChanData.push_back(chanData);
     }
+  }
   // ****************************************************************
   
   // ****************************************************************

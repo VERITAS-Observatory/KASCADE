@@ -26,9 +26,9 @@
 
 #include "VAConfigurationData.h"
 
-#ifndef _NOROOT
-   ClassImp(VAConfigurationData)
-#endif
+//#ifndef _NOROOT
+//   ClassImp(VAConfigurationData)
+//#endif
 
 VAConfigurationData::~VAConfigurationData()
 {
