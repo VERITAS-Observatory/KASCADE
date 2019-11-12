@@ -62,6 +62,9 @@
 using namespace VConfigMaskUtil;
 // *************************************************************************
 
+bool fFirstOldYearFound;
+
+
 void usage(const std::string& progname,
            const VAOptions& command_line)
 {
@@ -87,51 +90,48 @@ void  CopyEventToOutputFile(VBankFileReader* pfReader, int PacketIndex,
   // *************************************************
   // Copy over simulation data banks in this packet
   // *************************************************
-  if (pfPacket->has(VGetKascadeSimulationDataBankName())  )
-    {
-      std::cout<<"ksFixYear - Missing KASCADE SimulationDataBank at "
-        "packet#: "<<PacketIndex<<std::endl;
-    } 
-  else
-    {
-      // **********************************************
-      // Copy over Simulation data bank in this 
-      // packet
-      // **********************************************
-      VSimulationData *pfSimData =pfPacket->get< VSimulationData >
-        (VGetSimulationDataBankName());
-      //packet index = array event number
-      pfSimData->fEventNumber = PacketIndex;
-      pfSimData->fRunNumber  = RunNumber;
+  if ( ! pfPacket->has(VGetKascadeSimulationDataBankName())  ) {
+    std::cout<<"ksFixYear - Missing KASCADE SimulationDataBank at "
+      "packet#: "<<PacketIndex<<std::endl;
+  } 
+  else {
+    // **********************************************
+    // Copy over Simulation data bank in this 
+    // packet
+    // **********************************************
+    VSimulationData *pfSimData =pfPacket->get< VSimulationData >
+      (VGetSimulationDataBankName());
+    //packet index = array event number
+    pfSimData->fEventNumber = PacketIndex;
+    pfSimData->fRunNumber  = RunNumber;
 
-      VSimulationData* pfWriteSimData = pfSimData->copySimData();
-      pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
+    VSimulationData* pfWriteSimData = pfSimData->copySimData();
+    pfWritePacket->put(VGetSimulationDataBankName(), pfWriteSimData);  
 
-      // **********************************************
-      // copy over Kascade simulation data bank in this 
-      // packet
-      // **********************************************
-      VKascadeSimulationData *pfKSimData = 
-        pfPacket->get< VKascadeSimulationData >
-        (VGetKascadeSimulationDataBankName());
-      //packet index = array event number
-      pfKSimData->fEventNumber = PacketIndex;
-      pfKSimData->fRunNumber  = RunNumber;
+    // **********************************************
+    // copy over Kascade simulation data bank in this 
+    // packet
+    // **********************************************
+    VKascadeSimulationData *pfKSimData = 
+      pfPacket->get< VKascadeSimulationData >
+      (VGetKascadeSimulationDataBankName());
+    //packet index = array event number
+    pfKSimData->fEventNumber = PacketIndex;
+    pfKSimData->fRunNumber  = RunNumber;
 
-      VKascadeSimulationData* pfWriteKSimData=pfKSimData->copyKascadeSimData();
-      pfWritePacket->put(VGetKascadeSimulationDataBankName(), 
-                         pfWriteKSimData);
-    }
+    VKascadeSimulationData* pfWriteKSimData=pfKSimData->copyKascadeSimData();
+    pfWritePacket->put(VGetKascadeSimulationDataBankName(), 
+                       pfWriteKSimData);
+  }
   
   // **********************************************
   // Now the ArrayEvents Fix year in array Trigger
   // *********************************************
-  if (!pfPacket->hasArrayEvent())
-    {
-      std::cout<<"ksFixYear - Missing ArrayEventin at packet#: "
-               <<PacketIndex<<std::endl;
-      return;
-    }
+  if (!pfPacket->hasArrayEvent()) {
+    std::cout<<"ksFixYear - Missing ArrayEventin at packet#: "
+             <<PacketIndex<<std::endl;
+    return;
+  }
 
   VArrayEvent*   pfAEIn     = NULL;
   VArrayTrigger* pfAT       = NULL;
@@ -147,8 +147,9 @@ void  CopyEventToOutputFile(VBankFileReader* pfReader, int PacketIndex,
   pfAT->setRunNumber(RunNumber);
   pfAT->setEventNumber(PacketIndex);
 
-  // *****************************************************************
-  // set the Year
+ 
+ // *****************************************************************
+  // set the Year.
   // *******************************************************************
   pfAT->setGPSYear(GPSYear);
 			  
@@ -164,6 +165,19 @@ void  CopyEventToOutputFile(VBankFileReader* pfReader, int PacketIndex,
   int fNumTriggeredTels =(int) pfAEIn->getNumEvents();
   for(int i=0;i<fNumTriggeredTels;i++) {
     VEvent* pfEvent = pfAEIn->getEvent(i);
+
+
+    // ***************************************************************
+    // Print out Old year (but only once)
+    // ***************************************************************
+    if (!fFirstOldYearFound) {
+      unsigned oldYear=  (unsigned)pfEvent->getGPSYear();
+      std::cout << "ksFixYear: OldYear: " << oldYear + 2000 << std::endl;
+      fFirstOldYearFound = true;
+      
+      std::cout << "#=10,000 events complete" << std::endl;
+    }
+
 
     // set the event number and year
     pfEvent->setEventNumber(PacketIndex);
@@ -198,41 +212,53 @@ int main(int argc, char** argv)
     // **********************************************************************
     std::string progname = *argv;
     VAOptions command_line(argc,argv);
-    
-    uint8_t GPSYear;
-    if( (command_line.findWithValue("NewYear",GPSYear,
-                                    "Year to change in all events")	
-         == VAOptions::FS_FOUND)) {
-      std::cout<<"ksFixYear - New Year"<< GPSYear<<std::endl;
+ 
+    bool goodOptions = true;
+   
+    int GPSYear=0;
+    if( (command_line.findWithValue("NewYear",GPSYear,"Year to change in all events")	
+         != VAOptions::FS_NOT_FOUND)) {
+      // Subtract base year.
+      GPSYear = GPSYear-2000;
+      std::cout<<"ksFixYear - New Year: "<< GPSYear + 2000 <<std::endl;
     }	
     else{
-      std::cout<<"ksFixYear - Fatal-- Year must be specified"<<std::endl;
-      exit(1);
+      std::cout<<"ksFixYear -- Year must be specified"<<std::endl;
+      goodOptions = false;
     }
     
     std::string fSourceFileName;
     if(! (command_line.findWithValue("SourceFile",fSourceFileName,
-                                     "Input file which wiil be duplicated to an "
-                                     "output file. ") 
-          == VAOptions::FS_FOUND) ) {
+                                     "Input file which wiil be duplicated to "
+                                     "an output file. ") 
+          != VAOptions::FS_NOT_FOUND) ) {
       
-      std::cout<<"ksFixYear - Fatal-- Source file must be specified"
+      std::cout<<"ksFixYear -- Source file must be specified"
                <<std::endl;
-      exit(1);
+      goodOptions = false;
+      
     }
-    
+    else {
+      std::cout << "ksFixYear - Input File: " << fSourceFileName
+                << std::endl;
+    }
+
+
     std::string fOutputFileName;
     if(! (command_line.findWithValue("OutputFile",fOutputFileName,
                                      "Input file wiil be duplicated to this "
                                      "output file. If no ouput file name "
                                      "specified, output file name will be the "
-                                     "input file prepended with 'V_'.")== 
-          VAOptions::FS_FOUND) ) {
-    }
-    else{
+                                     "input file prepended with 'V_'.")
+          != VAOptions::FS_NOT_FOUND) ) {
       fOutputFileName = "V_" + fSourceFileName;
     }
-        
+    std::cout<<"ksFixYear - Output File:  " << fOutputFileName << std::endl;    
+    
+    if ( !goodOptions) {
+      usage(progname, command_line);
+      exit(1);
+    }
 
     // -------------------------------------------------------------------
     // All the command line options that the program is able to  handle 
@@ -251,19 +277,11 @@ int main(int argc, char** argv)
     }
     argv++;
     argc--;
-    if(argc!=1) {
+    if(argc!=0) {
       usage(progname, command_line);
       exit(EXIT_FAILURE);
     }
     
-    std::cout<<"ksFixYear - Input File: "<<fSourceFileName
-             <<std::endl;
-    std::cout<<"ksFixYear - Output File:  "
-             <<fOutputFileName<<std::endl;
-  
-
-
-
     // ******************************************************************
     // Now we are ready to start. Begin by opening the input files;
     // We will then make 3 int vectors based on packet numbers: The first 
@@ -283,11 +301,15 @@ int main(int argc, char** argv)
       std::cout<<"ksFixYear--Output VBF file failed to open"<<std::endl;
       exit(1);
     }	      
-  
+    else{
+      std::cout<<"ksFixYear--Output VBF file opened"<<std::endl;
+    }
+
     int fNumVBFArrayEvents = pfReader->numPackets()-1;
 	
-    std::cout<<"ksFixYear: RunNumber: "<<pfWriter->getRunNumber()<<std::endl;
-
+    std::cout << "ksFixYear: Number VBF Array Events: " << fNumVBFArrayEvents 
+              << std::endl;
+    std::cout << "ksFixYear: RunNumber: " << pfWriter->getRunNumber() << std::endl;
   		  
     // ******************************************************
     // copy over the first packet, this is the header 
@@ -297,24 +319,42 @@ int main(int argc, char** argv)
     pfWriter->writePacket(0, pfPacket);
     delete pfPacket;
 
-    //Packet 0 for header  packets	 
+    //Packet 0 for header  packets
+    int missingPackets = 0;
+    fFirstOldYearFound = false;
+
     for(int packetIndex=1;packetIndex<fNumVBFArrayEvents;packetIndex++) { 
-      if(packetIndex%10000==0) {
+      if(packetIndex%100000==0) {
+        int tenThousand = packetIndex/100000;
+        std::cout<<tenThousand;
+        std::cout.flush();
+      }
+      else if(packetIndex%10000==0) {
         std::cout<<"#";
         std::cout.flush();
       }
     
 
-      if(!pfReader->hasPacket(packetIndex)) {
+      if(pfReader->hasPacket(packetIndex)) {
       
         CopyEventToOutputFile(pfReader, packetIndex, pfWriter, runNumber, 
                               GPSYear);
       }
+      else{
+        missingPackets++;
+      }
     } 
+     std::cout <<std::endl;
+     std::cout << "Missing Packets: " << missingPackets <<std::endl;
+
+
     // ***********************************
     // All done
     // Create the index file and writes the checksum.
     pfWriter->finish();
+
+    thetime=time(NULL);
+    std::cout<<"ksFixYear -  END------"<<ctime(&thetime)<<std::endl;
     return 0;
   }
   catch (const std::exception &e) {
