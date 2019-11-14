@@ -21,14 +21,16 @@ CPPTARGET2   = ksSumFiles.cpp
 CPPTARGET3   = ksMergeFiles.cpp
 CPPTARGET4   = ksCopyFile.cpp
 CPPTARGET5   = ksFixYear.cpp
+CPPTARGET6   = ksGetVBFFileGPSYear.cpp
 
 CPPTARGETS   = $(CPPTARGET1) $(CPPTARGET2) $(CPPTARGET3) $(CPPTARGET4) \
-	           $(CPPTARGET5)	 
+	           $(CPPTARGET5) $(CPPTARGET6)	 
 CPPTARGETOBJECTS   = $(addprefix $(TMPDIR)/, $(CPPTARGETS:.cpp=.o)) 
 CPPEXES      = $(addprefix $(BINDIR)/, $(CPPTARGETS:.cpp=)) 
 CPPSOURCES   = $(notdir $(shell ls $(SRCDIR)/*.cpp | grep -v $(CPPTARGET1) | \
                grep -v $(CPPTARGET2) | grep -v $(CPPTARGET3) | \
-	           grep -v $(CPPTARGET4) | grep -v $(CPPTARGET5) ))
+	       grep -v $(CPPTARGET4) | grep -v $(CPPTARGET5) | \
+	       grep -v $(CPPTARGET6) ))
 CPPOBJECTS = $(addprefix $(TMPDIR)/, $(CPPSOURCES:.cpp=.o)) 
 
 ifdef VEGAS
@@ -70,6 +72,10 @@ $(addprefix $(TMPDIR)/, $(CPPTARGET4:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 $(addprefix $(TMPDIR)/, $(CPPTARGET5:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS) $(VBFCFLAGS) \
 	 $<
+
+$(addprefix $(TMPDIR)/, $(CPPTARGET6:.cpp=.o)): $(TMPDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) -o $@ -c $(VEGASCMNINCDIR) $(CFLAGS) $(VBFCFLAGS) \
+	 $<
 # -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS 
 
 
@@ -95,6 +101,11 @@ $(addprefix $(BINDIR)/, $(CPPTARGET4:.cpp=)): $(LIBTARGET)
 
 $(addprefix $(BINDIR)/, $(CPPTARGET5:.cpp=)): $(LIBTARGET) 
 	$(F90) -o $(@) $(addprefix $(TMPDIR)/, $(CPPTARGET5:.cpp=.o)) $^  \
+	          $(VEGASLDFLAGS) $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) \
+	          $(ROOTLIBS) $(VBFLDFLAGS) $(VBFLIBS) 
+
+$(addprefix $(BINDIR)/, $(CPPTARGET6:.cpp=)): $(LIBTARGET) 
+	$(F90) -o $(@) $(addprefix $(TMPDIR)/, $(CPPTARGET6:.cpp=.o)) $^  \
 	          $(VEGASLDFLAGS) $(CLDFLAGS) $(KASLDFLAGS) $(KASLIBS) \
 	          $(ROOTLIBS) $(VBFLDFLAGS) $(VBFLIBS) 
 
