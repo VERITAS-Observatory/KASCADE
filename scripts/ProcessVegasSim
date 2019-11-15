@@ -61,59 +61,37 @@ echo at 1
 
 {
  while read DataFile  ; do
-   BaseFileName=${DataFile##/*/}
+   BaseFileName=${DataFile##/*/}   #remove path.
    ####################################################################
    # Make up the job script file that will be submitted below
    ####################################################################
    sgeFile=$lcl'/'$BaseFileName$JOBDESIGNATOR'.pbs'
-   echo at 2
    
    SgeFilePBSCmds $sgeFile   # In UtilityFunictions.scr: 
                              # Adds PBS or SBATCH commands to "pbs" files
-
-   echo at 3
    SgeFileBashCmds $sgeFile  # In UtilityFunictions.scr:
                              # Adds Batch commands to "pbs" files
-
-   echo module unload KASACADE                       >>$sgeFile
-   echo module load   KASACADE                       >>$sgeFile
    echo cd $lcl                                      >>$sgeFile
 
    #Fix the year (2006->2012) if we need to
-   echo Y=$($KASCADE/utilities/bin/ksGetVBFFileGPSYear \\ >>$sgeFile 
-   echo     -SourceFile $PEDVARFILENAME)             >>$sgeFile
-   echo if [ "$S" -ne "2012" ]; then                 >>$sgeFile 
-   echo   cp $PEDVARFILENAME $TMPPEDVARFILENAME      >>$sgeFile 
-   echo   $KASCADE/bin/ksFixYear -NewYear=2012  \\   >>$sgeFile 
-   echo   -SourceFile $TMPPEDVARFILENAME \\          >>$sgeFile 
-   echo   -OutputFile $PEDVARFILENAME                >>$sgeFile
-   echo fi                                           >>$sgeFile
+   echo module unload KASACADE                       >>$sgeFile
+   echo module load   KASACADE                       >>$sgeFile
+   echo ./$KASCADE/scripts/FixGPSYear $DataFile      >>$sgeFile 
    
    #Now process Year corrected file with the vegas script
    echo module unload vegas                          >>$sgeFile
    echo module load vegas/$VEGASVERSION              >>$sgeFile
    echo module list                                  >>$sgeFile
-
-echo $lcl'/'$VEGASSIMPRODFILENAME  \\             >>$sgeFile
+   echo $lcl'/'$VEGASSIMPRODFILENAME  \\             >>$sgeFile
    echo $DataFile' '  \\                             >>$sgeFile
    if test -n "$PEDVARFILENAME"
     then
      echo $PEDVARFILENAME  \\                        >>$sgeFile
-     #if test -n "$5"
-     # then  
-     #  echo $5  \\                                   >>$sgeFile
-     #fi 
    fi 
    echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
 
-   echo at 4
-
    chmod 700 $sgeFile
-echo at 5
-
    $QSUB -e 'W'$JOBDESIGNATOR$BaseFileName'.err' -o 'W'$JOBDESIGNATOR$BaseFileName'.log' $sgeFile
-   echo at 6
-   
   done
 }<$RUNLIST
 
