@@ -56,8 +56,6 @@ if [ -n "$PURDUE" ]; then
   #QUEUE=QUEUE2           #Standby queue
   #WALLTIME=04:00:00
 fi
-echo at 1
-
 
 {
  while read DataFile  ; do
@@ -74,9 +72,10 @@ echo at 1
    echo cd $lcl                                      >>$sgeFile
 
    #Fix the year (2006->2012) if we need to
-   echo module unload KASACADE                       >>$sgeFile
-   echo module load   KASACADE                       >>$sgeFile
-   echo $KASCADE/scripts/FixGPSYear $DataFile      >>$sgeFile 
+   echo module unload KASCADE                        >>$sgeFile
+   echo module load   KASCADE                        >>$sgeFile
+   echo $KASCADE/scripts/FixGPSYear.scr $DataFile \\ >>$sgeFile 
+   echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
    
    #Now process Year corrected file with the vegas script
    echo module unload vegas                          >>$sgeFile
@@ -88,7 +87,7 @@ echo at 1
     then
      echo $PEDVARFILENAME  \\                        >>$sgeFile
    fi 
-   echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
+   echo ' >>'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
 
    chmod 700 $sgeFile
    $QSUB -e 'W'$JOBDESIGNATOR$BaseFileName'.err' -o 'W'$JOBDESIGNATOR$BaseFileName'.log' $sgeFile
