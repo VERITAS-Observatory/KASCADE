@@ -1,0 +1,99 @@
+#!/bin/bash
+#This runs first 2 Vegas stages on Kascade sim files;
+#It is the base version with only defualt things enabled.
+#$1 .vbf  file to process. Prior and post extentison will be added>
+#   The Stage1/stage2 root file name will be $1 with .vbf chasnged to .root
+#   and if $2(below) defines PedVarBase it will be appeneded to begining of file 
+#   name. If FileBase is defined below the stage4/stage5 file will be the  
+#   stage1/stage2 filename with $FileBase inserted before the .root
+#$2 PedVarScaleing file to set noise(file name  or "dummy"): May define "PedVarFile"
+#################################################################################
+# Note we use $VEGAS/bin  for  vegas programs.
+#################################################################################
+
+Stage1Data=enable
+Stage2=enable
+
+echo Stage1Data:  $Stage1Data
+echo Stage2:      $Stage2 
+##############################################################################
+#Configurable options:
+#Stage1:
+ #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
+ #KASCADE Sims assume there are no camera rotations.
+ KASCADESimCameraRotationsOption='-AIFC_CameraRotation=1/0.0,2/0.0,3/0.0,4/0.0'
+
+echo KASCADESimCameraRotationsOption: $KASCADESimCameraRotationsOption
+#Stage2:
+ #NumEventsToAnalyseOption='-G_NumEventsToAnalyse=240000'
+ #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
+ #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1' #Depreciated (don't use)
+ #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
+                                                       #pedvars with vaDisplay
+ #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
+                                                       #muon-ring-fitting tree 
+ #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' #Makes timing-across-image tree
+
+ Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
+ #HillasFitOption='-HillasFitAlgorithum=2DEllipticalGaussian' 
+ #CleanUpMethod='-CleanUpApp=CleanUpStd'
+ #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
+
+ echo  Hillas2DOption: $Hillas2DOption
+#######################################################################
+#The following is an example of what should be in a seasons PedVarFile file:
+# IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.1,3/1.24,4/1.02'  #4.97
+# PedVarBase='PedVar4.97'
+# etc
+#######################################################################
+if [ -n "$2" ]; then
+  if [ -s "$2" ]; then
+    echo Inlcude: $2
+    .  $2                   # "." acts as "#include" in C++
+    echo PedVarBase: $PedVarBase
+    echo IncreasePedVarOption: $IncreasePedVarOption
+  fi
+fi
+
+
+##############################################################################
+# Define the necessary files
+##############################################################################
+VBFFileName=$1
+File=${VBFFileName%".root"}'.root' #allow for .root or .vbf file names on input
+#echo File: $File
+echo VBFFileName: $VBFFileName
+
+if [ "$File" = "$VBFFileName" ]; then
+    VBFFileName=${VBFFileName%".root"}'.vbf'
+    echo VBFFileName: $VBFFileName
+fi
+
+RootFileName=${VBFFileName%".vbf"}'.root'   #This will include any path.
+
+if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
+     RootFileName=$PedVarBase'_'${RootFileName##*/}
+fi
+echo RootFileName: $RootFileName
+
+#################################################################################
+#Now start the processing
+#################################################################################
+if [ -n "$Stage1Data" ]; then
+    echo Stage1Data: $Stage1Data
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
+        -RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
+	$MaxWindowWidthOption $KASCADESimCameraRotationsOption \
+	$VBFFileName $RootFileName
+fi
+
+if [ -n "$Stage2" ]; then
+    echo Stage2: $Stage2
+
+    $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
+	$BadPixelOption $NumEventsToAnalyseOption \
+	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
+        $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
+        $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
+fi
+

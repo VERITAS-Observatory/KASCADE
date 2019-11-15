@@ -260,3 +260,6 @@ if [ "$RUNOPT" = "Run" ]; then
      let dGroup=$((dGroup+1))
     done
 fi
+
+date
+echo 'ProcesAllESpec Done!'

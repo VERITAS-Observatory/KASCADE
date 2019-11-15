@@ -1,0 +1,46 @@
+# ###########################################################################
+# Convert all GPSYear values in a sim vbf file to new GPSYear. This lets us
+# correct error of setting all KASCSADE generated sim files (so far) to
+# year 2006 (V4/V5) even though sims were for V6.
+# $1 VBF File to fix GPSYear
+# $2(optional) New GPSYear to set ing file all events. Defaults to 2012 (V6)
+# ############################################################################
+
+function usage()
+{
+  echo '***FixGPSYear usage:'
+  echo '   $1 VBF File to fix GPSYear'
+  echo '   $2(optional) New GPSYear to set ing file all events.'
+  echo '     Defaults to 2012 (V6)'
+  echo ' EX: ./FixGPSYear.scr cosmicRay_zen40deg_az180deg9.vbf 2014'
+}
+
+if [ ! -n "$1" ]; then
+  usage
+  exit
+fi
+
+VBFFILENAME=$1
+
+Y=$($KASCADE/utilities/bin/ksGetVBFFileGPSYear -SourceFile $VBFFILENAME)
+if [ -n "$2" ]; then
+ let newYear=$2
+else
+ let newYear=2012
+fi
+let oldYear=$Y
+
+TMPVBFFILENAME=$VBFFILENAME'_'$Y
+
+if [ "$oldYear" -ne "$newYear" ]; then                  
+  echo Old GPSYear to Fix: $oldYear
+  mv -v $VBFFILENAME $TMPVBFFILENAME       
+  $KASCADE/bin/ksFixYear -NewYear=$newYear -SourceFile $TMPVBFFILENAME \
+  -OutputFile $VBFFILENAME                
+else
+  echo No need to fix GPSYear in file. Its good: $oldYear
+fi
+
+
+
+ 

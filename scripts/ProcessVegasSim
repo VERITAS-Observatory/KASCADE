@@ -1,6 +1,6 @@
 #$1 List of Sim.vbf or Sim.root files
 #$2 VegasProduction file name: 
-#       EX: VegasProductionStdCuts.scr
+#       EX: VegasProductionS1S2Sim.scr
 #$3 Job designator (ex A)
 #$4 Alternate VEGAS path (optional)
 #$5 PedVar file (optional)
@@ -9,11 +9,11 @@ function usage()
 {
  echo '***ProcessVegasSim usage:'
  echo '   $1:  List of Sim.vbf or Sim.root files'
- echo '   $2:  VegasProduction file name: Ex: VegasSimProductionStdCuts.scr'
+ echo '   $2:  VegasProduction file name: Ex: VegasSimProductionS1S2Sim.scr'
  echo '   $3:  Job designator. Ex "A" or "B5" or "MyVeryFavoriteJob"'
- echo '   $4:  Vegas Version (optional) Ex: 2.5.4 or 2.5.5M '
+ echo '   $4:  Vegas Version (optional) Ex: 2.6.0betaZAlpha '
  echo '   $5:  PedVar file name (optional and $4 must be specified )Ex: PedUA5.18 '
- echo ' EX: ./ProcessVegasSim 745677.vbf VegasSimProductionStdCuts.scr A1 2.5.5M PedNA6.44 '
+ echo ' EX: ./ProcessVegasSim cosmic40_45.vbf VegasSimProductionS1S2Sim.scr A1 2.6.0betaZAlpha PedNA6.44 '
  echo '***'
 }
 
@@ -36,7 +36,11 @@ JOBDESIGNATOR=$3
 VEGASVERSION=$4
 PEDVARFILENAME=$5
 
+TMPPEDVARFILENAME=$PEDVARFILENAME'_old'
+
+module unload KASCADE
 module unload vegas
+module load KASCADE
 module load vegas/$VEGASVERSION   #if VEGASVERSION not specified this just 
 module li                         #loads default vegas
 
@@ -47,10 +51,13 @@ SetupForHost    #From UtilityFunctions.scr:Specifics for cluster we are on
 let i=0
 if [ -n "$PURDUE" ]; then
   #Defualt is Physics queue with 10 hr walltime.
-  WALLTIME=30:00:00  #Extend WALLTIME from default
+  QUEUE=$PHYSICSQUEUE
+  WALLTIME=$PHYSICSWALLTIME
   #QUEUE=QUEUE2           #Standby queue
   #WALLTIME=04:00:00
 fi
+echo at 1
+
 
 {
  while read DataFile  ; do
@@ -59,34 +66,54 @@ fi
    # Make up the job script file that will be submitted below
    ####################################################################
    sgeFile=$lcl'/'$BaseFileName$JOBDESIGNATOR'.pbs'
-      
+   echo at 2
+   
    SgeFilePBSCmds $sgeFile   # In UtilityFunictions.scr: 
                              # Adds PBS or SBATCH commands to "pbs" files
 
+   echo at 3
    SgeFileBashCmds $sgeFile  # In UtilityFunictions.scr:
                              # Adds Batch commands to "pbs" files
 
+   echo module unload KASACADE                       >>$sgeFile
+   echo module load   KASACADE                       >>$sgeFile
+   echo cd $lcl                                      >>$sgeFile
+
+   #Fix the year (2006->2012) if we need to
+   echo Y=$($KASCADE/utilities/bin/ksGetVBFFileGPSYear \\ >>$sgeFile 
+   echo     -SourceFile $PEDVARFILENAME)             >>$sgeFile
+   echo if [ "$S" -ne "2012" ]; then                 >>$sgeFile 
+   echo   cp $PEDVARFILENAME $TMPPEDVARFILENAME      >>$sgeFile 
+   echo   $KASCADE/bin/ksFixYear -NewYear=2012  \\   >>$sgeFile 
+   echo   -SourceFile $TMPPEDVARFILENAME \\          >>$sgeFile 
+   echo   -OutputFile $PEDVARFILENAME                >>$sgeFile
+   echo fi                                           >>$sgeFile
+   
+   #Now process Year corrected file with the vegas script
    echo module unload vegas                          >>$sgeFile
    echo module load vegas/$VEGASVERSION              >>$sgeFile
    echo module list                                  >>$sgeFile
-   echo cd $lcl                                      >>$sgeFile
- 
-   echo $lcl'/'$VEGASSIMPRODFILENAME  \\             >>$sgeFile
+
+echo $lcl'/'$VEGASSIMPRODFILENAME  \\             >>$sgeFile
    echo $DataFile' '  \\                             >>$sgeFile
    if test -n "$PEDVARFILENAME"
     then
      echo $PEDVARFILENAME  \\                        >>$sgeFile
-     if test -n "$5"
-      then  
-       echo $5  \\                                   >>$sgeFile
-     fi 
+     #if test -n "$5"
+     # then  
+     #  echo $5  \\                                   >>$sgeFile
+     #fi 
    fi 
    echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
 
+   echo at 4
+
    chmod 700 $sgeFile
+echo at 5
 
    $QSUB -e 'W'$JOBDESIGNATOR$BaseFileName'.err' -o 'W'$JOBDESIGNATOR$BaseFileName'.log' $sgeFile
-
+   echo at 6
+   
   done
 }<$RUNLIST
 

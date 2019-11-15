@@ -84,77 +84,58 @@ EntryHe4Start=5
 EntryHe4End=45     #52265 GeV      #groupB end
 
 
-echo 2: $2
-
-if [ "$2" = "CRA" ]; then
-  EntryPStart=17
-  EntryPEnd=29
-  EntryHe4Start=17
-  EntryHe4End=29
-  echo EntryPStart: $EntryPStart
-  echo EntryHe4Start: $EntryHe4Start
-  echo EntryPEnd: $EntryPEnd
-  echo EntryHe4End: $EntryHe4End
-fi
-
-if [ "$2" = "CRB" ]; then
-  EntryPStart=30
-  EntryPEnd=45
-  EntryHe4Start=30
-  EntryHe4End=45
-  echo EntryPStart: $EntryPStart
-  echo EntryHe4Start: $EntryHe4Start
-  echo EntryPEnd: $EntryPEnd
-  echo EntryHe4End: $EntryHe4End
-fi
-
 PTYPE=$2
-ENTRY=${PTYPE##CRC}
-if [ "$2" != "$ENTRY" ]; then   #Its a single enrty spec. Ex CRC26.
-  EntryPStart=$ENTRY
-  EntryPEnd=$ENTRY
-  EntryHe4Start=$ENTRY
-  EntryHe4End=$ENTRY
-  echo CRC:EntryPStart: $EntryPStart
-  echo CRC:EntryHe4Start: $EntryHe4Start
-  echo CRC:EntryPEnd: $EntryPEnd
-  echo CRC:EntryHe4End: $EntryHe4End
-  DEFSHWRFLAG="CRC" 
-fi
+echo PTYPE: $PTYPE
 
 if [ ${PTYPE:0:2} = "CR" ]; then
-  if [ "$2" = "CR" ]; then     #No range specified
-    echo EntryPStart: $EntryPStart
-    echo EntryHe4Start: $EntryHe4Start
-    echo EntryPEnd: $EntryPEnd
-    echo EntryHe4End: $EntryHe4End
-  else
-    ENTRYRANGE=${PTYPE##CR}   #get the range if there is one
-    if [ -n "$ENTRYRANGE" ]; then
-      EntryPStart=${ENTRYRANGE%%-*}
-      EntryHe4Start=${ENTRYRANGE%%-*}
-      EntryPEnd=${ENTRYRANGE##*-}
-      EntryHe4End=${ENTRYRANGE##*-}
-      #Now do a check that they indeed were set.
-      if [ ! -n "EntryPStart" ] || [ ! -n "$EntryPEnd" ]; then
-        echo VAAuto:Fatal--EntryRange improperly defined: #PTYPE
-        echo VAAuto: Should be of the form CR1-25 oe CR4-4
-        exit 
-      fi
-      echo 'VAAuto: Limited EntryRanges Specified'
-      echo EntryPStart: $EntryPStart
-      echo EntryHe4Start: $EntryHe4Start
-      echo EntryPEnd: $EntryPEnd
-      echo EntryHe4End: $EntryHe4End
+  if [ "$PTYPE" = "CRA" ]; then
+    EntryPStart=17
+    EntryPEnd=29
+    EntryHe4Start=17
+    EntryHe4End=29
+  elif [ "$PTYPE" = "CRB" ]; then
+    EntryPStart=30
+    EntryPEnd=45
+    EntryHe4Start=30
+    EntryHe4End=45
+  elif [ "${PTYPE:0:3}" = "CRC" ]; then
+    ENTRY=${PTYPE##CRC}
+    if [ -n $ENTRY ]; then   #Its a single enrty spec. Ex CRC26.
+      EntryPStart=$ENTRY
+      EntryPEnd=$ENTRY
+      EntryHe4Start=$ENTRY
+      EntryHe4End=$ENTRY
+      DEFSHWRFLAG="CRC" 
+      echo 'KSAuto: Single CRC Entry Specified'
+    else
+      echo 'KSAuto: Fatal-No entry given for CRC spec.'
+      exit
     fi
+  elif [ -n ${PTYPE##CR} ]; then  #If no range defulat to inital spec.
+    ENTRYRANGE=${PTYPE##CR}   #get the range if there is one
+    EntryPStart=${ENTRYRANGE%%-*}
+    EntryHe4Start=${ENTRYRANGE%%-*}
+    EntryPEnd=${ENTRYRANGE##*-}
+    EntryHe4End=${ENTRYRANGE##*-}
+    #Now do a check that they indeed were set.
+    if [ ! -n "EntryPStart" ] || [ ! -n "$EntryPEnd" ]; then
+      echo VAAuto:Fatal--EntryRange improperly defined: #PTYPE
+      echo VAAuto: Should be of the form CR1-25 oe CR4-4
+      exit 
+    fi
+    echo 'KSAuto: Limited EntryRanges Specified'
   fi
+  echo EntryPStart: $EntryPStart        #If no range defulat to inital spec(at top).
+  echo EntryHe4Start: $EntryHe4Start
+  echo EntryPEnd: $EntryPEnd
+  echo EntryHe4End: $EntryHe4End
 fi
 
-if [ "$2" = "P" ]; then
+if [ "$PTYPE" = "P" ]; then
  EntryGEStart=$EntryPStart
  EntryGEEnd=$EntryPEnd
 fi
-if [ "$2" = "He4_" ]; then
+if [ "$PTYPE" = "He4_" ]; then
  EntryGEStart=$EntryHe4Start
  EntryGEEnd=$EntryHe4End
 fi
