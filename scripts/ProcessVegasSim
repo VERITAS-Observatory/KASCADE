@@ -76,7 +76,7 @@ echo at 1
    #Fix the year (2006->2012) if we need to
    echo module unload KASACADE                       >>$sgeFile
    echo module load   KASACADE                       >>$sgeFile
-   echo ./$KASCADE/scripts/FixGPSYear $DataFile      >>$sgeFile 
+   echo $KASCADE/scripts/FixGPSYear $DataFile      >>$sgeFile 
    
    #Now process Year corrected file with the vegas script
    echo module unload vegas                          >>$sgeFile
