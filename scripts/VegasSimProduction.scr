@@ -127,16 +127,16 @@ fi
 # Define the necessary files
 ##############################################################################
 VBFFileName=$1
-File=${VBFFileName%".root"}'.root' #allow for .root or .vbf file names on input
+File=${VBFFileName%.root}'.root' #allow for .root or .vbf file names on input
 #echo File: $File
 echo VBFFileName: $VBFFileName
 
 if [ "$File" = "$VBFFileName" ]; then
-    VBFFileName=${VBFFileName%".root"}'.vbf'
+    VBFFileName=${VBFFileName%.root}'.vbf'
     echo VBFFileName: $VBFFileName
 fi
 
-RootFileName=${VBFFileName%".vbf"}'.root'   #This will include any path.
+RootFileName=${VBFFileName%.vbf}'.root'   #This will include any path.
 
 if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
      RootFileName=$PedVarBase'_'${RootFileName##*/}
@@ -165,7 +165,7 @@ if [ -n "$Stage2" ]; then
         $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
 fi
 
-CutRootFileName=${VBFFileName%".vbf"}$FileBase'.root'
+CutRootFileName=${VBFFileName%.vbf}$FileBase'.root'
 if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
      CutRootFileName=$PedVarBase'_'${CutRootFileName##*/}
 fi
@@ -223,8 +223,8 @@ if [ -n "$Stage5" ]; then
       echo Stage5: $Stage5
 
       if [ -n "$OutputFileNameExt" ]; then
-        #OutputFileName=${VBFFileName%".vbf"}$FileBase$OutputFileNameExt'.root'
-        OutputFileName=${CutRootFileName%"Cuts.root"}$OutputFileNameExt'Cuts.root'
+        #OutputFileName=${VBFFileName%.vbf}$FileBase$OutputFileNameExt'.root'
+        OutputFileName=${CutRootFileName%Cuts.root}$OutputFileNameExt'Cuts.root'
 	OutputFileNameOpt='-outputFile='$OutputFileName
         echo OutputFileNameOpt: $OutputFileNameOpt
       fi

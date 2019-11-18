@@ -35,8 +35,8 @@ SourceDir=$PWD'/'$GSrcDir
 {
 while read File
 do
-  Fend=${File##*'.d'}
-  FStart=${File%%'.d'*}
+  Fend=${File##*.d}
+  FStart=${File%%.d*}
   FileSrc=$SourceDir'/'$File
 
   if test -n "$GSFNEW1"

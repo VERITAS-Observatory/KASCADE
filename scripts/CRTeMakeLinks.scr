@@ -44,8 +44,8 @@ ls $PSourceDir | grep 'te.d'   > List
 {
 while read File
 do
-  Fend=${File##*'.d'}
-  FStart=${File%%'.d'*}
+  Fend=${File##*.d}
+  FStart=${File%%.d*}
   FileSrc=$PSourceDir'/'$File
 
   if test -n $CRNEW1
@@ -82,8 +82,8 @@ ls $HSourceDir | grep 'te.d'   > List
 {
 while read File
 do
-  Fend=${File##*'.d'}
-  FStart=${File%%'.d'*}
+  Fend=${File##*.d}
+  FStart=${File%%.d*}
   FileSrc=$HSourceDir'/'$File
 
   if test -n $CRNEW1

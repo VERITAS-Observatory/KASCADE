@@ -80,15 +80,15 @@ Stage2=enable
 VBFFileName=$1
 VBFLSRFileName=$2
 
-LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
+LSRRootFile=${VBFLSRFileName%.cvbf}'.root'
 LSRRootFileName=${LSRRootFile##*/}
 
-File=${VBFFileName%".root"}'.root' #allow .root or .cvbf file names on input
+File=${VBFFileName%.root}'.root' #allow .root or .cvbf file names on input
 if [ "$File" = "$VBFFileName" ]; then
-    VBFFileName=${VBFFileName%".root"}'.cvbf'
+    VBFFileName=${VBFFileName%.root}'.cvbf'
 fi
 
-RootFile=${VBFFileName%".cvbf"}'.root'
+RootFile=${VBFFileName%.cvbf}'.root'
 RootFileName=${RootFile##*/}
 
 # A lot of the options used in the commands below are undefined and thus blank!

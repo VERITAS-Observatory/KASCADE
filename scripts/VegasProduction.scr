@@ -87,7 +87,7 @@ fi
 
 
 VBFLSRFileName=$2
-LSRRootFile=${VBFLSRFileName%".cvbf"}'.root'
+LSRRootFile=${VBFLSRFileName%.cvbf}'.root'
 LSRRootFileName=${LSRRootFile##*/}
 if [ -n "$Stage1Laser" ]; then
     $VEGAS/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
@@ -97,12 +97,12 @@ fi
 
 VBFFileName=$1
 
-File=${VBFFileName%".root"}'.root' #allow .root or .cvbf file names on input
+File=${VBFFileName%.root}'.root' #allow .root or .cvbf file names on input
 if [ "$File" = "$VBFFileName" ]; then
-    VBFFileName=${VBFFileName%".root"}'.cvbf'
+    VBFFileName=${VBFFileName%.root}'.cvbf'
 fi
 
-RootFile=${VBFFileName%".cvbf"}'.root'
+RootFile=${VBFFileName%.cvbf}'.root'
 RootFileName=${RootFile##*/}
 
 if [ -n "$Stage1Data" ]; then
@@ -121,7 +121,7 @@ if [ -n "$Stage2" ]; then
 fi
 
 
-CutRootFile=${VBFFileName%".cvbf"}$FileBase'.root'
+CutRootFile=${VBFFileName%.cvbf}$FileBase'.root'
 CutRootFileName=${CutRootFile##*/}
 
 echo CutRootFileName: $CutRootFileName

@@ -60,19 +60,28 @@ fi
 # Define the necessary files
 ##############################################################################
 VBFFileName=$1
-File=${VBFFileName%".root"}'.root' #allow for .root or .vbf file names on input
-#echo File: $File
-echo VBFFileName: $VBFFileName
+#allow for .root or .vbf file names on input
+File=${VBFFileName%.root}'.root'
+#If VBFFileName ends in .vbf File ends in .vbf.root
 
 if [ "$File" = "$VBFFileName" ]; then
-    VBFFileName=${VBFFileName%".root"}'.vbf'
-    echo VBFFileName: $VBFFileName
+    VBFFileName=${VBFFileName%.root}'.vbf'
+    echo Fixed VBFFileName: $VBFFileName
 fi
+echo VBFFileName: $VBFFileName
 
-RootFileName=${VBFFileName%".vbf"}'.root'   #This will include any path.
-
-if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
-     RootFileName=$PedVarBase'_'${RootFileName##*/}
+# ###############
+# Build ouput bile name from input file name.
+#If we have a PedVar file:
+#1. Remove Path and save it.
+#2. Prepend PedVarbase onto the VBF file and change extention from .vbf to .root
+#3. Perpend back the path. Output root file ends up in same directory as input
+#   .vbf file.
+RootFileName=${VBFFileName%.*}'.root'   #This will include any path.
+if [ -n "$PedVarBase" ]; then
+    InputPath=${RootFileName%/*}'/'       #This gets the path
+    OutputFileName=${RootFileName##*/}    #This removes the path
+    RootFileName=$InputPath$PedVarBase'_'$OutputFileName
 fi
 echo RootFileName: $RootFileName
 
