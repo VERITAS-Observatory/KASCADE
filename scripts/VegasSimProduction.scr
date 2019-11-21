@@ -1,22 +1,30 @@
 #!/bin/bash
 #This runs first 5 Vegas stages on Kascade sim files;
 #It is the base version with only defualt things enabled.
-#$1 .vbf  file to process. Prior and post extentison will be added>
-#   The Stage1/stage2 root file name will be $1 with .vbf chasnged to .root
-#   and if $2(below) defines PedVarBase it will be appeneded to begining of file name.
+#$1 .vbf  file to process. Prior and post extentison will be added to build 
+#   output file name from this if needed.
+#   The Stage1/stage2 root file name will be $1 with .vbf changed to .root
+#   and if $2(below) defines PedVarBase, it will be appeneded to begining of 
+#   file name. Dir path will be the same as the input file. ("" if no Path 
+#   given)
 #   If FileBase is defined below the stage4/stage5 file will be the stage1/stage2 
-#   filename with $FileBase inserted before the .root
+#   filename(including path)with $FileBase inserted before the .root
 #$2 PedVarScaleing file to set noise(file name  or "dummy"): May define "PedVarFile"
+#   We assume this file is in local dir.
 #################################################################################
 # Note we use $VEGAS/bin  for  vegas programs.
 #################################################################################
-#Make simLaser file (even if it already exists, this is very fast, but worry 
-#                     about dual processing on clusters)
-
+# File assumtions:
+#  input file name includes its path
+#  output file path will be same as input file
+#  PedVar file in local directory (no path)
+#  simLaser file in local directory
+# ###############################################################################
+#Base is nothing enable to start. Calling program must use sed to remove any "#"
+#FixGPSYearInVBF=enable
 #Stage1Laser=enable
 #Stage1Data=enable
 #Stage2=enable
-
 #Stage4=enable
 #Stage5=enable
 
@@ -38,17 +46,18 @@ echo KASCADESimCameraRotationsOption: $KASCADESimCameraRotationsOption
  #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
  #MakeTrackFromDriftOption='-MakeTrackFromDriftSim=1' #Depreciated (don't use)
  #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
-                                                       #pedvars with vaDisplay
+                                                        #pedvars with vaDisplay
  #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
- #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' #Makes timing-across-image tree
+ #Makes timing-across-image tree
+ #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic' 
 
  Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
  #HillasFitOption='-HillasFitAlgorithum=2DEllipticalGaussian' 
  #CleanUpMethod='-CleanUpApp=CleanUpStd'
  #IncreasePedVarOption='-PaddingApp=PaddingCustom -P_PedvarScaling=1.23'
-
  echo  Hillas2DOption: $Hillas2DOption
+
 #######################################################################
 #The following is an example of what should be in a seasons PedVarFile file:
 # IncreasePedVarOption='-PaddingApp=PaddingCustom -P_MultiPedvarScaling=1/1.0,2/1.1,3/1.24,4/1.02'  #4.97
@@ -67,6 +76,7 @@ fi
 ############################################################################
 #Following are place holders for the LGD options if we use them
 #defined by calling script using sed replacemnet, otherwise then are empty
+#DEPRECUATED: No long used starting with beta/2.6.0
 ############################################################################
 #LGDAlgorithumOption=
 #LGDTemplateOption=
@@ -115,6 +125,8 @@ fi
 
 
 #############################################################################
+# Note. The simLaser.root file will be placed in the local directory.
+#
 if [ -n "$Stage1Laser" ]; then
     echo Stage1Laser:$Stage1Laser
     $VEGAS/bin/vaStage1 -Stage1_RunMode=simLaser \
@@ -136,16 +148,30 @@ if [ "$File" = "$VBFFileName" ]; then
     echo VBFFileName: $VBFFileName
 fi
 
-RootFileName=${VBFFileName%.vbf}'.root'   #This will include any path.
-
-if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
-     RootFileName=$PedVarBase'_'${RootFileName##*/}
+# ###############
+# Build output file name from input file name.
+#If we have a PedVar file:
+#1. Remove Path and save it.
+#2. Prepend PedVarbase onto the VBF file and change extention from .vbf to .root
+#3. Perpend back the path. Output root file ends up in same directory as input
+#   .vbf file.
+RootFileName=${VBFFileName%.*}'.root'   #This will include any path.
+if [ -n "$PedVarBase" ]; then
+    InputPath=${RootFileName%/*}'/'       #This gets the path
+    OutputFileName=${RootFileName##*/}    #This removes the path
+    RootFileName=$InputPath$PedVarBase'_'$OutputFileName
 fi
 echo RootFileName: $RootFileName
+
 
 #################################################################################
 #Now start the processing
 #################################################################################
+
+if [ -n "$FixGPSYearInVBF" ]; then
+    $KASCADE/scripts/FixGPSYear.scr $VBFFileName
+fi
+
 if [ -n "$Stage1Data" ]; then
     echo Stage1Data: $Stage1Data
     $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
@@ -160,15 +186,27 @@ if [ -n "$Stage2" ]; then
     $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
 	$BadPixelOption $NumEventsToAnalyseOption \
 	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
-        $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
-	$LGDAlgorithumOption $LGDTemplateOption $LGDTranferFuntionOption \
-        $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
+    $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
+    $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
+fi
+#Depreciated:	$LGDAlgorithumOption $LGDTemplateOption $LGDTranferFuntionOption \
+
+
+# ###############
+# Build cuts file name from input file name.
+#If we have a PedVar file:
+#1. Remove Path and save it.
+#2. Prepend PedVarbase onto the VBF file and change extention from .vbf to .root
+#3. Perpend back the path. Output root file ends up in same directory as input
+#   .vbf file.
+CutRootFileName=${VBFFileName%.*}$FileBase'.root'#This will include any path.
+if [ -n "$PedVarBase" ]; then
+    InputPath=${CutRootFileName%/*}'/'       #This gets the path
+    OutputFileName=${CutRootFileName##*/}    #This removes the path
+    CutRootFileName=$InputPath$PedVarBase'_'$OutputFileName
 fi
 
-CutRootFileName=${VBFFileName%.vbf}$FileBase'.root'
-if [ -n "$PedVarBase" ]; then #For this,  Path is eliminated.
-     CutRootFileName=$PedVarBase'_'${CutRootFileName##*/}
-fi
+
 #########################################################
 # If we are cutting out a telelscope change the Telconfig in the CutRootFile name
 #########################################################
@@ -202,9 +240,7 @@ if [ -n "$CutTelescopeOption" ]; then
 fi
 ###########################################################
     
-
 echo CutRootFileName: $CutRootFileName
-
 
 if [ -n "$Stage4" ]; then
      echo Stage4: $Stage4
@@ -221,11 +257,10 @@ fi
 
 if [ -n "$Stage5" ]; then
       echo Stage5: $Stage5
-
       if [ -n "$OutputFileNameExt" ]; then
         #OutputFileName=${VBFFileName%.vbf}$FileBase$OutputFileNameExt'.root'
         OutputFileName=${CutRootFileName%Cuts.root}$OutputFileNameExt'Cuts.root'
-	OutputFileNameOpt='-outputFile='$OutputFileName
+	    OutputFileNameOpt='-outputFile='$OutputFileName
         echo OutputFileNameOpt: $OutputFileNameOpt
       fi
       

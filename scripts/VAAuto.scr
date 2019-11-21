@@ -1,31 +1,34 @@
 #!/bin/bash
 # This script is used to automate the generation and processing of the veritas 
 # KASCADE vbf files in 1:Noise levals, LT and EA tables.
-# The script has the followinf argument#$1 Command. Do "VAAuto.scr ListCommands" for a list!
+# The script has the followinf argument
+#$1 Command. Do "VAAuto.scr ListCommands" for a list!
 #$2 ksProduction season spec: Ex: W or S
 #$3 Array designation: W or OA or NA  or UA (Whipple, OldArray,NewArray, 
 #   UpgradeArray) 
-#  Note the UA.NA.OA extention also appears in argument $5
+#   Note the UA.NA.OA extention also appears in argument $5
 #$4 ksProduction Type spec: Ex: G or  P or He4_ or CR or E. Also CR may have 
-#                simset specification CR1-25
+#                simset specification CR1-25 (and others like it)
 #$5 MDL designation for VBF files: Ex MDL12UA or MDL15NA
 #$6 ZN values comma seperated list: Ex 1,10,20,30,40,50,60,70 or "All
 #$7 AZ values comma seperated list: Ex 0,45,90,135,180,225,270,315 or "All"
-#$8 wbl (offset) values comma seperated list:Ex: 0.0,0.25,0.5,0.75,1.0  or "All" (CR 
-#            ignores wbl, except in eSpec stage5 processing where it is the 
+#$8 wbl (offset) values comma seperated list:Ex: 0.0,0.25,0.5,0.75,1.0  or "All" 
+#            (CR ignores wbl, except in eSpec stage5 processing where it is the 
 #            aperture radius (1 value only)) 
 #$9 Threshold: Ex 45mv or 50mv
 #${10} PedVar comma seperated list: 5.18, 5.55 6.51 or "All" or "Base"
 #${11} Specifes Type of LT or DT table to use or make for LT,DT (Ex All or 050)
-#      for S4 and EA gen add particle type src of LT Ex. AllG or AllE or 050G or 050E. 
+#      for S4 and EA gen add particle type src of LT Ex. AllG or AllE or 050G 
+#      or 050E. 
 #      O50 and All default to Gamma type LT. (eSpec uses AllE)
-#${12} Root File name extention (ie.  Cuts type):  Ex. UpgradeMedium or NewArrayHard
-#      Default for LTCutsFile is LookUpTableStdCuts
-#  For Quality cuts (Stage4), file used would be $VERITASAPPS/tables/Quality${12}Cuts
+#${12} Root File name extention (ie.  Cuts type):  Ex. UpgradeMedium or 
+#      NewArrayHard. 
+#  Default for LTCutsFile is LookUpTableStdCuts
+#  For Quality cuts (Stage4), file would be $VERITASAPPS/tables/Quality${12}Cuts
 #  For Stage4, filename would extention be:  ${12}Cuts ending
 #  For Stage5, ZAlpha: {12}  would be something like: UpgradeMediumElectron or
 #      UpgradeMediumHadron or UpgradeMediumRecon
-#      Then ShowerCuts, file used would be $VERITASAPPS/tables/Shower7Sample${12}Cuts 
+#      Then ShowerCuts, file would be $VERITASAPPS/tables/Shower7Sample${12}Cuts 
 #
 #${13} (Optional)  Single telescope to cut for Stage4 Gen and EA gen.Ex: T1 or 
 #                  T2 or T3 or T4
@@ -82,8 +85,10 @@ function commandEnable()
     if [ "$1" = "GenerateSimLaserFile" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "GenerateStage2FromVBF" ]; then eval $1=enable; return 0; fi;  
     if [ "$1" = "CheckStage2Files" ]; then eval $1=enable; return 0; fi;     
-    if [ "$1" = "HTARPedVarZnOffsetS2ToArchive" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "HTARPedVarZnOffsetS2FromArchive" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "HTARPedVarZnOffsetS2ToArchive" ]; then eval $1=enable; 
+        return 0; fi;
+    if [ "$1" = "HTARPedVarZnOffsetS2FromArchive" ]; then eval $1=enable; 
+        return 0; fi;
 
     if [ "$1" = "GenerateSubLTListFiles" ]; then eval $1=enable; return 0; fi;         
     if [ "$1" = "GenerateSubLTConfigFiles" ]; then eval $1=enable; return 0; fi;       
@@ -92,24 +97,29 @@ function commandEnable()
     if [ "$1" = "BuildLTTree" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CheckLT" ]; then eval $1=enable; return 0; fi;
 
-    if [ "$1" = "GenerateDispSubLTListFiles" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "GenerateDispSubLTConfigFiles" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "ProduceDispSubLookupTables" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateDispSubLTListFiles" ]; then eval $1=enable; 
+        return 0; fi;
+    if [ "$1" = "GenerateDispSubLTConfigFiles" ]; then eval $1=enable; 
+        return 0; fi;
+    if [ "$1" = "ProduceDispSubLookupTables" ]; then eval $1=enable;return 0;fi;
     if [ "$1" = "CombineDispSubLT" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "BuildDispLTTree" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CheckDispLT" ]; then eval $1=enable; return 0; fi;
 
     if [ "$1" = "GenerateStage4FromStage2" ]; then eval $1=enable; return 0; fi; 
     if [ "$1" = "CheckStage4Files" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "HTARPedVarZnOffsetS4ToArchive" ]; then eval $1=enable; return 0; fi;  
-    if [ "$1" = "HTARPedVarZnOffsetS4FromArchive" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "HTARPedVarZnOffsetS4ToArchive" ]; then eval $1=enable; 
+        return 0; fi;  
+    if [ "$1" = "HTARPedVarZnOffsetS4FromArchive" ]; then eval $1=enable; 
+        return 0; fi;
 
-    if [ "$1" = "GenerateEASubLTListAndConfigFiles" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateEASubLTListAndConfigFiles" ]; then eval $1=enable; 
+        return 0; fi;
     if [ "$1" = "ProduceEASubLookupTables" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "CombineBuildCheckEALT" ]; then eval $1=enable; return 0; fi;
 
     if [ "$1" = "GenerateStage5Combined" ]; then eval $1=enable; return 0; fi;
-    if [ "$1" = "GenerateStage5CombinedRCE" ]; then eval $1=enable; return 0; fi;
+    if [ "$1" = "GenerateStage5CombinedRCE" ]; then eval $1=enable; return 0;fi;
     echo ' VAAuto: Invalid Command: '$1
     echo ' VAAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
     exit
@@ -180,14 +190,17 @@ function GenerateEAFileName()
   if [ "$a" = "U" ]; then
      Epoch=V6_PMTUpgrade
      SimModel=MDL12UA
+     GPSYear=2014
   fi
   if [ "$a" = "N" ]; then
      Epoch=V5_T1Move
-         SimModel=MDL15NA
+     SimModel=MDL15NA
+     GPSYear=2010
   fi
   if [ "$a" = "O" ]; then
      Epoch=V4_OldArray
      SimModel=MDL8OA
+     GPSYear=2006
   fi
 
   if [ "$2" = "W" ]; then
@@ -852,10 +865,10 @@ function BuildProduceLookupTables()
 #$3 LTCUTSFILE: Quality cuts file name
 #$4 ListName: File with list of input Stage2 files
 #$5 SubLTFileName: Output SubLT file name
-#################################################################################
-# Make a .pbs comand file fot this SubLt file generation. DDO NOT submit but do add 
-# its name to the QsubFileNameList. Later we willsubmit this list as a job array 
-# (after a little screwing around and cleanup)
+################################################################################
+# Make a .pbs comand file fot this SubLt file generation. DO NOT submit but do 
+# add its name to the QsubFileNameList. Later we willsubmit this list as a job 
+# array (after a little screwing around and cleanup)
 ################################################################################
 {
   local BASESUBLT=$1
@@ -895,7 +908,7 @@ function BuildProduceLookupTables()
      exit
   fi
 }
-#################################################################################
+#############################################################################
 
 function GenerateQsubNames()
 {
@@ -917,6 +930,11 @@ function GenerateQsubNames()
     rm $QsubLogs
   fi
 }
+# ****************************************************************************
+# ****************************************************************************
+
+
+
 
 ##############
 #Main Program:
@@ -927,7 +945,8 @@ echo 'Starting VAAuto at ' $(date)
 # Make sure KASCADE has been loaded
 #################################
 if [ ! -n "$KASCADE" ]; then
-    #Following needed for $KASCADE definition. Script files kept in $KASCADE/scripts
+    # Following needed for $KASCADE definition. Script files kept in 
+    # $KASCADE/scripts
     echo "VAUTO:  Loading KASCADE with 'module load KASCADE'"
     #Following needed to restore correct root version and set $VEGAS definitions
     echo "VAUTO:  Loading VEGAS   with 'module load vegas'"
@@ -962,8 +981,13 @@ fi
 commandEnable $1   #This will enable the specified command or exit if its not a 
                    #known command.
 
-lcl=$PWD
-SPECSEA=$2
+lcl=$PWD           #Note that the local directory is assumed to be the source 
+                   #and destination of input and output files
+
+# ################################
+# Get all hte argumenbtsa here (and nowhere else). Makes it easier to insert 
+# new arguments if we need them.SPECSEA=$2
+# ################################
 SPECCFG=$3
 SPECPART=$4
 SPECMDL=$5
@@ -972,7 +996,7 @@ SPECAZ=$7
 SPECWBL=$8
 SPECTHR=$9
 SPECPV=${10}
-LTWBL=${11}
+LTWBL=${11}      #Type of LT table
 CUTTYPE=${12}
 TELCUT=${13}
 
@@ -1004,89 +1028,43 @@ fi
 ############################
 if [ "$SPECCFG" = "UA" ]; then
     PMT="U"
-        PMT_Mfr=Photonis
-        PMT_mfr=photonis
     LTSEASON="ua"
 fi
 if [ "$SPECCFG" = "OA" ]; then
     PMT="O"
-        PMT_Mfr=Hamamatsu
-        PMT_mfr=hamamatsu
     LTSEASON="oa"
 fi
 if [ "$SPECCFG" = "NA" ]; then
     PMT="N"
-        PMT_Mfr=Hamamatsu
-        PMT_mfr=hamamatsu
-        LTSEASON="na"
+    LTSEASON="na"
 fi
 if [ "$SPECCFG" = "W" ]; then
     PMT=$SPECCFG
 fi
-# ###########################
-# See if we are to use the electron tables
-# ###########################
-len=${#LTWBL}
-if [ "$len" != "3" ]; then
-   PART=${LTWBL:3:1}
-   LTWBL=${LTWBL:0:3}
-   if [ "$PART" = "E" ]; then
-     LTPARTTYPE=Electrons
-     echo LTPARTTYPE for LT: $LTPARTTYPE
-   fi
-fi
-
-##############################
 
 SetupForHost        #From UtilityFumctions.
 
-if [ -n "$EDISON" ]; then
-  JobIDHost='edison'
-  ARCHIVE=/home/u/u15013/$SPECMDL'/'
-  VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
-  MaxQsubsDefault=9000
-  if [ -n "$EdisonMultipleSerial" ]; then  #This may be obsolete 2017-12-08
-    QUEUE='-p ccm_queue'       #Overrides shared queue
-    let MSJCount=0
-    let NUMCORESNODE=24
-    MaxQsubsDefault=9000
-  fi
-fi
 if [ -n "$CORI" ]; then
   JobIDHost='cori'
   ARCHIVE=/home/u/u15013/$SPECMDL'/'
   VBFDir=$ARCHIVE$SPECSEA$PMT$SPECPART$SPECMDL'VBF'     
   MaxQsubsDefault=9000
-  if [ -n "$CoriMultipleSerial" ]; then #This may be obsolete 2017-12-08
-    QUEUE='-p ccm_queue'       #Overrides shared queue
-    let MSJCount=0
-    let NUMCORESNODE=24
-    MaxQsubsDefault=9000
-  fi
-fi
-
-if [ -n "$CONTE" ]; then
-    ARCHIVE=/archive/fortress/group/veritas/simulations/
-    VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-    JobIDHost='conte-adm'
 fi
 
 if [ -n "$HALSTEAD" ]; then
+    JobIDHost='halstead-adm'
     ARCHIVE=/archive/fortress/group/veritas/simulations/
     VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
-    JobIDHost='halstead-adm'
 fi
 
 ########################################################################
-#To find the Zn,AZ,Offset and Pedvar  combinations first put $SPECZN,$SPECAZ,$SPECWBL and $SPECPV 
-#into arrays This is tricky. We save away the present Internal Filed Seperator
-#and then set IFS to a comma. We then use the -a option with the read command 
-#to read in our stings into arrays. Then we restore the IFS.
+# To find the Zn,AZ,Offset and Pedvar combinations first put $SPECZN,$SPECAZ,
+# $SPECWBL and $SPECPV into arrays. This is tricky. We save away the present 
+# Internal Filed Seperator and then set IFS to a comma. We then use the -a 
+# option with the read command to read in our stings into arrays. Then we 
+# restore the IFS.
 #########################################################################
-
-
 SAVEIFS=$IFS
-
 if [ $SPECZN = "All" ]; then
     Zenith=([0]=1 10 20 30 40 50 60 70)
 else  
@@ -1125,16 +1103,11 @@ else
     fi
 fi
 IFS=$SAVEIFS
-###########################################################################
 
-#Not Used?
-##Check if this is for 2D offsets, OffSetSpec is not defined(blank) if not
-#if [ "$SPECPART" = "G" ] || [ "$SPECPART" = "E" ]; then
-#    OffSetSpec="2D"
-#fi
-
-#For cosmicRays check if the use of simsets was specified
-#For example, if we want sims sets 1-25 we would have SPECPART="CR1-25"
+# ##########################################################################
+# For cosmicRays check if the use of simsets was specified
+# For example, if we want sims sets 1-25 we would have SPECPART="CR1-25"
+# #########################################################################
 if [ ${SPECPART:0:2} = "CR" ]; then
    SIMSETS=${SPECPART##CR}
    if [ -n "$SIMSETS" ]; then
@@ -1151,11 +1124,25 @@ if [ ${SPECPART:0:2} = "CR" ]; then
     SPECPART="CR"
 fi
 
-
-##########################################################################
-#Some defaults
-Samples=7
+# ##########################################################################
+# Lookup table setups
+# ##########################################################################
 HMode=H
+
+# ###########################
+# See if we are to use the electron tables. LTWBL is type of LT table
+# possible values: "All"or "050" or "ALLE" or "AllG"
+# Note that the bash construct ${#Variable} is length in characters of $vraiable
+# ###########################
+len=${#LTWBL}
+if [ "$len" != "3" ]; then  #AllE or AllG
+   PART=${LTWBL:3:1}        #"E" or "G"     
+   LTWBL=${LTWBL:0:3}       # "All" or "050"
+   if [ "$PART" = "E" ]; then
+     LTPARTTYPE=Electrons
+     echo LTPARTTYPE for LT: $LTPARTTYPE
+   fi
+fi
 
 ######################################
 #SubLT bin ave mode for length, width and EaxisEnergy tables:Mean or MEDIAN
@@ -1175,6 +1162,7 @@ if [ -n "$CUTTYPE" ]; then
 else
     LTCUTSFILE=$LTCUTSFILE'StdCuts'
 fi
+
 if [ -n "$ProduceSubLookupTables" ]; then
   if [ ! -e $LTCUTSFILE ]; then
       echo 'VAAuto: Fatal- Can not find file: '$LTCUTSFILE
@@ -1184,11 +1172,11 @@ if [ -n "$ProduceSubLookupTables" ]; then
   fi
 fi
 
-###############################################################
+# #################################
 # LookupTableDispCuts file has:
 #   DistanceUpper 0/1.38
 #   NTubesMin 0/5
-###############################################################
+# #################################
 DISPLTCUTSFILE=$VERITASAPPS'/tables/LookupTableDispCuts'
 if [ -n "$ProduceDispSubLookupTables" ]; then
     if [ ! -e $DISPLTCUTSFILE ]; then
@@ -1196,6 +1184,14 @@ if [ -n "$ProduceDispSubLookupTables" ]; then
         exit
     fi
 fi
+
+DTMWidthStr=0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.2,0.25,0.35
+DTMLengthStr=0.05,0.09,0.13,0.17,0.21,0.25,0.29,0.33,0.37,0.41,0.45,0.5,0.6,0.7,0.8
+
+
+#################
+#Some defaults
+Samples=7
 
 EACUTSFILE=$VERITASAPPS'/tables/Shower'$Samples'Sample'$CUTTYPE'Cuts'
 if [ -n "$ProduceEASubLookupTables" ]; then
@@ -1206,11 +1202,11 @@ if [ -n "$ProduceEASubLookupTables" ]; then
 fi
 
 #########################################
-#Default stringa for the config files.
+#Default strings for the config files.
 #########################################
 TelIDStr=0,1,2,3
 ZNStr=1,10,20,30,40,50,60,70
-ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0
+ABOStr=0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75,2.0  #Absolute Offset, ie. wobble
 AzStr=0,45,90,135,180,225,270,315
 
 if [ $SPECCFG = "UA" ]; then
@@ -1224,11 +1220,7 @@ if [ $SPECCFG = "NA" ] || [ $SPECCFG = "OA" ]; then
    NoiseStr=4.04,4.72,5.51,6.44,7.53,8.79,10.27,12.00
 fi
 
-
-DTMWidthStr=0.04,0.06,0.08,0.1,0.12,0.14,0.16,0.2,0.25,0.35
-DTMLengthStr=0.05,0.09,0.13,0.17,0.21,0.25,0.29,0.33,0.37,0.41,0.45,0.5,0.6,0.7,0.8
-
-#ZNStr
+#ZNStr: Convert to an array
 let iznEnd=${#Zenith[@]}
 if test $iznEnd -ne "8"
  then
@@ -1242,7 +1234,7 @@ if test $iznEnd -ne "8"
    done
 fi
 
-#ABOStr
+#ABOStr:Convert to an array (Absolute Offset ie. wobble)
 let iwblEnd=${#WblOffset[@]}
 if [ "$LTWBL" = "050" ]; then
     ABOStr=" "
@@ -1260,8 +1252,7 @@ else
    fi
 fi
 
-
-#AzStr
+#AzStr; Convert to an array
 let kazEnd=${#Azimuth[@]}
 if test $kazEnd -ne "8"
  then
@@ -1275,7 +1266,7 @@ if test $kazEnd -ne "8"
    done
 fi
 
-#NoiseStr
+#NoiseStr: Convert to an array
 let kpvarEnd=${#PedVar[@]}
 if test $kpvarEnd -ne "9"
  then
@@ -1330,6 +1321,8 @@ if [ -n "$TELCUT" ]; then
    echo 'VAAuto: Array configuration: '$TelConfig'  No '$TELCUT
 fi
 ###############################################################################
+
+
 if [ -n "$LimitSubmissions" ]; then
   if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || \
      [ -n "$HTARPedVarZnOffsetS2FromArchive" ] || \
@@ -1357,7 +1350,8 @@ if [ -n "$LimitSubmissions" ]; then
 fi
 
 ############################################################################
-# Sim Laser generation
+# Sim Laser generation. Note this is run on login node. 
+# Not submitted to cluster.
 ############################################################################
 
 if [ -n "$GenerateSimLaserFile" ]; then
@@ -1385,11 +1379,13 @@ if [ -n "$GenerateSimLaserFile" ]; then
     ####################################################################
        
     echo "VAAuto: Running VegasSimProductionLaser for simLaser generation"
+    echo "VAAuto: Running on this login node. Not on cluster"
     echo "VAAuto: This takes a couple of minutes"
     ./VegasSimProductionLaser.scr  DummyFileName >$lcl'/SimLaserFile.log'
-    echo "VAAuto: simLaser.root generated"
+    echo "VAAuto: simLaser.root generated in local directory"
 fi
 #############################################################################
+
 
 if [ -n "$GenerateStage2FromVBF" ]; then
   echo '##########################################################'
@@ -1398,14 +1394,14 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   ####################################################################
   #1: Setup the VegasSimProduction.scr we will use for these jobs.
   #2: Setup the QsubFileNameList and QsubsLogs file
-  #3:  For Halstead shorten the walltime for these Stage2 jobs.
+  #3: For Halstead shorten the walltime for these Stage2 jobs.
   ####################################################################
   cd $lcl
   date
 
   # ##################################################################
-  #Make sure VegasSimProduction.scr is set up correctly to get  
-  #Stage1 and Stage2
+  # Make sure VegasSimProduction.scr is set up correctly to get  
+  # Stage1 and Stage2
   # ##################################################################
   GetUniqueNumber
   VSProdFile=VegasSimProductionS1S2.$UNIQUE'.scr'
@@ -1422,7 +1418,15 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   #??????Sample size:We will need to set integration window size if 
   #different from 7?????? Not implimented yet.
   ##################################################################
-  sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g'      <$VSProdFile >tmp1
+  # I've added a check and fix of the year in the VBF file. GPSYear depends on 
+  # the season: OA = 2006, NA = 2010, UA= 2014. Set above.
+  # Before 2019-11-21 all UA(upgrade array) KASCADE sim files had GPSYear=2006
+  # In vaStag2(beta/2.6.0+) the LowGain template correcting code uses GPSYear 
+  # to determine which PMTs we were using OA/NA=Photonis, UA=Hamamatsu
+  #
+  sed '/FixGPSYearInVBF=enable/s/#FixGPSYearInVBF/FixGPSYearInVBF/g' $GPSYear \
+                                         <$VSProdFile >tmp2
+  sed '/Stage1Laser=enable/s/Stage1Laser/#Stage1Laser/g'      <tmp2 >tmp1
   sed '/#Stage1Data=enable/s/#Stage1Data/Stage1Data/g'        <tmp1 >tmp2
   sed '/#Stage2=enable/s/#Stage2/Stage2/g'                    <tmp2 >tmp1
   sed '/Stage4=enable/s/Stage4/#Stage4/g'                     <tmp1 >tmp2
@@ -1430,45 +1434,47 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   mv tmp1 $VSProdFile
 
   ####################################################################
-  # Check now to see if we are using a LowGain (LGD) capable vegas. 
-  # If so, enable definitions in the $VAProdFile(vegasSimProduction)file: 
-  # the -TE options.
-  # Look in vaStage2 config file to see if the TE options are mentioned. 
-  # That will tell us is we are using a LowGain (LGD) capable vegas.
+  # Assume from now on that we are using a LowGain (LGD) capable vegas. 
+  # We will need to make sure out simulations .vbf file has the year 
+  # appropriate for ther season. All sims (by my screwup) were made with 
+  # year 2006 (V4/V5).
+  # This is all DEPRECIATED as of use of vegas beta/2.6.0
   ####################################################################
-  runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
-  if [ -n "$runningLGD" ]; then
-    echo VAAuto: vaStage2 is LGD capable.
-    #########################################
-    #Define the file names needed in the options.
-    #########################################
-    if [ -n "$VEGASBASE" ]; then
-      if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
-        lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
-      else
-        if [ -n "$HALSTEAD" ]; then
-          lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
-        fi
-      fi
-    else
-      echo "VAAUTO--Fatal: This version of vegas does not define VEGASBASE"
-      echo "VAAUTO--Needed for LowGain analysis"
-      exit
-    fi
+  #runningLGD="$($VEGAS/bin/vaStage2 -h=all | grep TE_LowGainTransferFunctionFilePath)"
+  #if [ -n "$runningLGD" ]; then
+  #  echo VAAuto: vaStage2 is LGD capable.
+  #  #########################################
+  #  #Define the file names needed in the options.
+  #  #########################################
+  #  if [ -n "$VEGASBASE" ]; then
+  #    if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+  #      lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
+  #    else
+  #      if [ -n "$HALSTEAD" ]; then
+  #        lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
+  #      fi
+  #    fi
+  #  else
+  #    echo "VAAUTO--Fatal: This version of vegas does not define VEGASBASE"
+  #    echo "VAAUTO--Needed for LowGain analysis"
+  #    exit
+  #  fi
 
-    #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
-    echo PMT_Mfr: $PMT_Mfr
-    echo PMT_mfr: $PMT_mfr
-    echo ldgf: $lgdf
+  #   #Note:  Difference (cap/nocap) between PMT_Mfr and PMT_mfr 
+  #  echo PMT_Mfr: $PMT_Mfr
+  #  echo PMT_mfr: $PMT_mfr
+  #  echo ldgf: $lgdf
 
-    VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
-    VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
+  #  VTMPLT=$lgdf'/lowGainTemplateLookup'$PMT_Mfr'WithTimeSpread.root'
+  #  VTF=$lgdf'/'$PMT_mfr'_low_gain_to_high_gain_transfer.root'
 
 
-    sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
-    sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
-    sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
-  fi
+  #  sed "/#LGDAlg/s/#LGDAlgorithumOption=/LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'/g"  <$VSProdFile >tmp12
+  #  sed "/#LGDTempl/s,#LGDTemplateOption=,LGDTemplateOption='-TE_LowGainTemplateFilePath=$VTMPLT',g"  <tmp12 >tmp2
+  #  sed "/#LGDTranf/s,#LGDTranferFuntionOption=,LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath=$VTF',g"  <tmp2 >$VSProdFile
+  #fi
+  # ########################################################################
+
 
   chmod 755 $VSProdFile
   rm tmp2
@@ -1835,14 +1841,20 @@ fi
 
 MissingListName='CheckPedvarMissingList'
  
+
+
+# ############################################################################
+# ############################################################################
+# now we loop over Zn,AZ WblOffset and PedVar
+# ############################################################################
+# ############################################################################
+
+
 if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
    [ -n "$CheckStage2Files" ]           || [ -n "$GenerateDispSubLTConfigFiles" ] || \
    [ -n "$GenerateDispSubLTListFiles" ] || [ -n "$ProduceDispSubLookupTables" ]   || \
    [ -n "$CombineDispSubLT" ]; then
    
-  #############################################################################
-  #now we loop over Zn,AZ WblOffset and PedVar
-  #############################################################################
   #Zenith
   let izn=0
   let iznEnd=${#Zenith[@]}
@@ -1864,12 +1876,14 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         ZnAz=$ZN'_'$AZ'Deg'
       fi
      
-      #Construct the Disp Sub Lt Config File Name
+      # ###################################################################
+      # Construct the Disp Sub File Names
+      # ###################################################################
       DISPSUBLTBASE='DispSubLT'$SPECSEA$Samples'Sample'$ZnAz
       DispConfigName=$DISPSUBLTBASE$HMode'.config'
       DispListName=$DISPSUBLTBASE$HMode'List'
       DispSubLTFileName=$lcl'/'$DISPSUBLTBASE'.root'
-      #####################################################################
+      #*******************************************************************
 
       if [ -n "$GenerateDispSubLTConfigFiles" ]; then
         #############################################################
@@ -1998,18 +2012,18 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
             PedVarName=PedVar$PV
           fi  
    
-          # ***********************************************************************
+          # ******************************************************************
           #  Now all the things we can do for a particular Zn,AZ,WblOffset and 
           #  PedVar
-          # **********************************************************************
+          # ******************************************************************
           #Generate  file names
  
           FileName=$PedVarName'_'$BaseFileS2'.root'
 
-          # ***********************************************************************
-          #  GenerateStage2FromVBF and CheckStage2Files also need SimSet interation
-          #  is applicable
-          # ***********************************************************************
+          # ******************************************************************
+          #  GenerateStage2FromVBF and CheckStage2Files also need SimSet 
+          #  interation if applicable
+          # ******************************************************************
           if [ -n "$GenerateStage2FromVBF" ] || [ -n "$CheckStage2Files" ]; then
             # ###############################################################
             # Due to size and walltime limits we have divided the each CR vbf 
@@ -2045,18 +2059,18 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
                 # there is no QsubLimit procedure when using the job arrays (for 
                 # now).
                 # Eventually we will switch over to using the QSubListFile for  
-                # all clusters. Only Cori and Edison for now.
+                # all clusters. Only Cori for now.
                 #################################################################
 
                 cd $lcl
                 if [ "$sSimSetNum" = "0" ]; then
                   VBFNM=$VBFFILENAME
-                  BFNMS2=$BaseFileS2
+                  BFNMS2=$BaseFileS2   
                 else
                   VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
                   BFNMS2=$BaseFileS2$sSimSetNum
                 fi
-                if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+                if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
                   #######################################################
                   # BuildVegasSimProduction will create the .pbs file and add
                   # that file's name to the QsubFileNameList  file
@@ -2613,6 +2627,9 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         else
           ZnAz=$ZN'_'$AZ'Deg'
         fi
+        # #########################################################################
+        # Generate the VBF file name(no path yet)
+        # #########################################################################
         if [ "$SPECPART" = "CR" ]; then
           GenerateVBFName $SPECPART $SPECCFG $SPECSEA $ZN $AZ "-1" $SPECMDL #No wbl for CR
         else
