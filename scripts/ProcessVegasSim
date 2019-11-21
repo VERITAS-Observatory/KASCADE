@@ -36,9 +36,6 @@ JOBDESIGNATOR=$3
 VEGASVERSION=$4
 PEDVARFILENAME=$5
 
-TMPPEDVARFILENAME=$PEDVARFILENAME'_old'
-
-module unload KASCADE
 module unload vegas
 module load KASCADE
 module load vegas/$VEGASVERSION   #if VEGASVERSION not specified this just 
@@ -57,13 +54,15 @@ if [ -n "$PURDUE" ]; then
   #WALLTIME=04:00:00
 fi
 
+
 {
  while read DataFile  ; do
    BaseFileName=${DataFile##/*/}   #remove path.
+   LOGFILE=$PEDVARFILENAME'_'$BaseFileName$JOBDESIGNATOR
    ####################################################################
    # Make up the job script file that will be submitted below
    ####################################################################
-   sgeFile=$lcl'/'$BaseFileName$JOBDESIGNATOR'.pbs'
+   sgeFile=$lcl'/'$LOGFILE'.pbs'
    
    SgeFilePBSCmds $sgeFile   # In UtilityFunictions.scr: 
                              # Adds PBS or SBATCH commands to "pbs" files
@@ -75,7 +74,7 @@ fi
    echo module unload KASCADE                        >>$sgeFile
    echo module load   KASCADE                        >>$sgeFile
    echo $KASCADE/scripts/FixGPSYear.scr $DataFile \\ >>$sgeFile 
-   echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
+   echo ' >'$lcl'/'$LOGFILE'.log' >>$sgeFile
    
    #Now process Year corrected file with the vegas script
    echo module unload vegas                          >>$sgeFile
@@ -87,10 +86,10 @@ fi
     then
      echo $PEDVARFILENAME  \\                        >>$sgeFile
    fi 
-   echo ' >>'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
+   echo ' >>'$lcl'/'$LOGFILE'.log'                   >>$sgeFile
 
    chmod 700 $sgeFile
-   $QSUB -e 'W'$JOBDESIGNATOR$BaseFileName'.err' -o 'W'$JOBDESIGNATOR$BaseFileName'.log' $sgeFile
+   $QSUB -e 'W'$LOGFILE'.err' -o 'W'$LOGFILE'.log' $sgeFile
   done
 }<$RUNLIST
 
