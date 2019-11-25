@@ -986,8 +986,9 @@ lcl=$PWD           #Note that the local directory is assumed to be the source
 
 # ################################
 # Get all hte argumenbtsa here (and nowhere else). Makes it easier to insert 
-# new arguments if we need them.SPECSEA=$2
+# new arguments if we need them.
 # ################################
+SPECSEA=$2
 SPECCFG=$3
 SPECPART=$4
 SPECMDL=$5

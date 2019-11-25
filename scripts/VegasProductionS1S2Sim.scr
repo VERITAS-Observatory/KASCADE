@@ -79,9 +79,14 @@ echo VBFFileName: $VBFFileName
 #   .vbf file.
 RootFileName=${VBFFileName%.*}'.root'   #This will include any path.
 if [ -n "$PedVarBase" ]; then
-    InputPath=${RootFileName%/*}'/'       #This gets the path
-    OutputFileName=${RootFileName##*/}    #This removes the path
-    RootFileName=$InputPath$PedVarBase'_'$OutputFileName
+    InputPath=${RootFileName%/*}   #This gets the path(unless no path given)
+                                   #Then just gets all of original RootFileName
+    if [ $InputPath = $RootFileName ]; then  #Test if no path given
+        InputPath=""                          
+    fi
+    OutputFileName=${RootFileName##*/}    #This removes the path if ther is one
+                                          #Still ok if no path
+    RootFileName=$InputPath'/'$PedVarBase'_'$OutputFileName
 fi
 echo RootFileName: $RootFileName
 
