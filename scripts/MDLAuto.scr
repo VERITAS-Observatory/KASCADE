@@ -222,7 +222,7 @@ function CheckList()
     echo $FILEDIR "MDL"                                                 >>$sgeFile
     chmod 700 $sgeFile
 
-    qsub$QSUBEXT -V -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
+    $QSUB$QSUBEXT -e $sgeFile'.err' -o $sgeFile'.log' $sgeFile >$CHECKLOG
 
     local CHECKLOG=$lcl'/'$FileType'Check'$ZnAz'.log'
     local CLOG=$FileType'C'$ZnAz'.log'
@@ -283,8 +283,8 @@ function SubmitVegasProduction()
 
     chmod 775 $sgeFile 
     chmod 775 $VEGASScript
-    #echo qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile
-    qsub$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
+    #echo $QSUB$QSUBEXT -q $QUEUE -V -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile
+    $QSUB$QSUBEXT -q $QUEUE -e $DataFile'S5.pbs.err' -o $DataFile'S5.pbs.log' $sgeFile 
 }
 ###############################################################################
 
@@ -335,7 +335,7 @@ function SubmitVegasSimProduction()
   fi
 
   chmod 700 $sgeFile
-  qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
+  $QSUB$QSUBEXT -q $QUEUE -e $FilePedVar$FileBase'.err' -o $FilePedVar$FileBase'pbs.log' $sgeFile 
 }
 
 function SubmitQsubJobs()
@@ -374,7 +374,7 @@ function SubmitQsubJobs()
         echo adding: $sgeDoneFile
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
-       qsub$QSUBEXT -V -l $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
+       $QSUB$QSUBEXT -l $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
        #For Hammer pause between submissions
        if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ] ; then
          sleep 10

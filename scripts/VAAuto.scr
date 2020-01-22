@@ -529,7 +529,7 @@ function SubmitHtarToArchive()
 
   HTARpbsLog=$HTARFileName'HTARTo.pbs.log'
   HTARLOG=$lcl'/VAHTARTo.log'
-  qsub$QSUBEXT -V -e $HTARFileName'To.pbs.err' -o HTARpbsLog $sgeFile >$HTARLOG
+  $QSUB$QSUBEXT -e $HTARFileName'To.pbs.err' -o HTARpbsLog $sgeFile >$HTARLOG
 
   #####################################################################
   # We are now going to wait for the htar to finish.
@@ -606,7 +606,7 @@ function SubmitHtarFromArchive()
   chmod 700 $sgeFile
   HTARpbsLog=$Source'HTARFrom.pbs.log'
   HTARLOG=$local'/KSHTAR'$ZnAz'From.log'
-  qsub$QSUBEXT -V -e $Source'HTARFrom.pbs.err' -o $HTARpbsLog $sgeFile >$HTARLOG
+  $QSUB$QSUBEXT -e $Source'HTARFrom.pbs.err' -o $HTARpbsLog $sgeFile >$HTARLOG
 
   # And now cleanup
   cd $lcl
@@ -645,7 +645,7 @@ function SubmitMultipleSerialJobs()
   echo cd $lcl                                    >>$sgeFile
   echo ccmrun $MSJobList                          >>$sgeFile
   chmod 700 $sgeFile
-  qsub$QSUBEXT -q $QUEUE -V -e MSJ$$MSJId'pbs.err' -o MSJ$$MSJId'pbs..log' $sgeFile 
+  $QSUB$QSUBEXT -q $QUEUE -V -e MSJ$$MSJId'pbs.err' -o MSJ$$MSJId'pbs..log' $sgeFile 
 }  
 #####################################################################
 
@@ -774,7 +774,7 @@ function SubmitVegasSimProduction()
     fi
 
     chmod 700 $sgeFile
-    qsub$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase$IDUNIQUE'.err' -o $FilePedVar$FileBase$IDUNIQUE'pbs.log' $sgeFile 
+    $QSUB$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase$IDUNIQUE'.err' -o $FilePedVar$FileBase$IDUNIQUE'pbs.log' $sgeFile 
   fi
 }
 ##############################################################################
@@ -1939,7 +1939,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         echo '>'$lcl'/'$DISPSUBLTBASE'.log'             >>$sgeFile
         chmod 700 $sgeFile
 
-        qsub$QSUBEXT -q $QUEUE -V -e $DISPSUBLTBASE.qsub.err -o $DISPSUBLTBASE.qsub.log $sgeFile
+        $QSUB$QSUBEXT -q $QUEUE -V -e $DISPSUBLTBASE.qsub.err -o $DISPSUBLTBASE.qsub.log $sgeFile
       fi
       #*******************************************************************
     
@@ -2595,7 +2595,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
         chmod 700 $sgeFile
         
-        qsub$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+        $QSUB$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
       fi
       #*******************************************************************
 
@@ -2940,7 +2940,7 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
      echo root -b -q $Script '>'$lcl'/CombineSubLT.log'             >>$sgeFile
          
      chmod 700 $sgeFile
-     qsub$QSUBEXT -V -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
+     $QSUB$QSUBEXT -e $lcl'/CmbDisp.pbs.err' -o $lcl'/CmfDisp.pbs.log' $sgeFile >CmbDisp.log
   fi
 fi
 #**********************************************************************
