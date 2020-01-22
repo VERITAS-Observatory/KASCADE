@@ -124,17 +124,6 @@ fi
 #OutputMethodOptions='-Method=stereo -RemoveCutEvents=true' #Not used for sims
 
 
-#############################################################################
-# Note. The simLaser.root file will be placed in the local directory.
-#
-if [ -n "$Stage1Laser" ]; then
-    echo Stage1Laser:$Stage1Laser
-    $VEGAS/bin/vaStage1 -Stage1_RunMode=simLaser \
-        -AIF_DataSource=CompiledOnly $MaxWindowWidthOption \
-        -AIFC_OverrideArray=VC499_BASE -G_SimulationMode=1 dummyFileName \
-        simLaser.root
-fi
-
 ##############################################################################
 # Define the necessary files
 ##############################################################################
@@ -149,69 +138,31 @@ if [ "$File" = "$VBFFileName" ]; then
 fi
 
 # ###############
-# Build output file name from input file name.
+# Build output root and cut  root file names from input file name.
 #If we have a PedVar file:
 #1. Remove Path and save it.
 #2. Prepend PedVarbase onto the VBF file and change extention from .vbf to .root
 #3. Perpend back the path. Output root file ends up in same directory as input
 #   .vbf file.
 RootFileName=${VBFFileName%.*}'.root'   #This will include any path.
+CutRootFileName=${VBFFileName%.*}$FileBase'.root' #This will include any path.
+
 if [ -n "$PedVarBase" ]; then
     InputPath=${RootFileName%/*}   #This gets the path(unless no path given)
                                    #Then just get all of original RootFileName
     if [ $InputPath = $RootFileName ]; then  #Test if no path given
         InputPath=""                          
+    else
+        InputPath=$InputPath'/'
     fi
-    OutputFileName=${RootFileName##*/}    #This removes the path if ther is one
-                                          #Still ok if no path
-    RootFileName=$InputPath'/'$PedVarBase'_'$OutputFileName
+    OutputRootFileName=${RootFileName##*/} #This removes path if there is one
+                                           #Still ok if no path
+    RootFileName=$InputPath$PedVarBase'_'$OutputRootFileName
+
+    OutputCutRootFileName=${CutRootFileName##*/}
+    CutRootFileName=$InputPath$PedVarBase'_'$OutputCutRootFileName
 fi
 echo RootFileName: $RootFileName
-
-
-#################################################################################
-#Now start the processing
-#################################################################################
-
-if [ -n "$FixGPSYearInVBF" ]; then
-    $KASCADE/scripts/FixGPSYear.scr $VBFFileName
-fi
-
-if [ -n "$Stage1Data" ]; then
-    echo Stage1Data: $Stage1Data
-    $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
-	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
-	$MaxWindowWidthOption $KASCADESimCameraRotationsOption \
-	$VBFFileName $RootFileName
-fi
-
-if [ -n "$Stage2" ]; then
-    echo Stage2: $Stage2
-
-    $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
-	$BadPixelOption $NumEventsToAnalyseOption \
-	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
-    $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
-    $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
-fi
-#Depreciated:	$LGDAlgorithumOption $LGDTemplateOption $LGDTranferFuntionOption \
-
-
-# ###############
-# Build cuts file name from input file name.
-#If we have a PedVar file:
-#1. Remove Path and save it.
-#2. Prepend PedVarbase onto the VBF file and change extention from .vbf to .root
-#3. Perpend back the path. Output root file ends up in same directory as input
-#   .vbf file.
-CutRootFileName=${VBFFileName%.*}$FileBase'.root'#This will include any path.
-if [ -n "$PedVarBase" ]; then
-    InputPath=${CutRootFileName%/*}'/'       #This gets the path
-    OutputFileName=${CutRootFileName##*/}    #This removes the path
-    CutRootFileName=$InputPath$PedVarBase'_'$OutputFileName
-fi
-
-
 #########################################################
 # If we are cutting out a telelscope change the Telconfig in the CutRootFile name
 #########################################################
@@ -247,6 +198,41 @@ fi
     
 echo CutRootFileName: $CutRootFileName
 
+# ###############################################################################
+# Now start the processing
+#################################################################################
+# Note. The simLaser.root file will be placed in the local directory.
+#
+if [ -n "$Stage1Laser" ]; then
+    echo Stage1Laser:$Stage1Laser
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=simLaser \
+        -AIF_DataSource=CompiledOnly $MaxWindowWidthOption \
+        -AIFC_OverrideArray=VC499_BASE -G_SimulationMode=1 dummyFileName \
+        simLaser.root
+fi
+
+if [ -n "$FixGPSYearInVBF" ]; then
+    $KASCADE/scripts/FixGPSYear.scr $VBFFileName
+fi
+
+if [ -n "$Stage1Data" ]; then
+    echo Stage1Data: $Stage1Data
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=data -G_SimulationMode=1 \
+	-RHM_ObservingMode=drift -CRH_Algorithm=VASimulationRunHeaderFiller \
+	$MaxWindowWidthOption $KASCADESimCameraRotationsOption \
+	$VBFFileName $RootFileName
+fi
+
+if [ -n "$Stage2" ]; then
+    echo Stage2: $Stage2
+
+    $VEGAS/bin/vaStage2  -G_SimulationMode=1 $Hillas2DOption $HillasFitOption \
+	$BadPixelOption $NumEventsToAnalyseOption \
+	$MakeTrackFromDriftOption  $AddCalibratedEvents  $WindowWidthOption \
+        $EnableMuonDataOption $EnableImageTimingOption  $CleanUpMethod \
+        $IncreasePedVarOption $VBFFileName $RootFileName simLaser.root
+fi
+#Depreciated:	$LGDAlgorithumOption $LGDTemplateOption $LGDTranferFuntionOption \
 if [ -n "$Stage4" ]; then
      echo Stage4: $Stage4
      echo RootFileName: $RootFileName
@@ -261,14 +247,15 @@ if [ -n "$Stage4" ]; then
 fi
 
 if [ -n "$Stage5" ]; then
-      echo Stage5: $Stage5
-      if [ -n "$OutputFileNameExt" ]; then
+     echo Stage5: $Stage5
+     if [ -n "$OutputFileNameExt" ]; then
         #OutputFileName=${VBFFileName%.vbf}$FileBase$OutputFileNameExt'.root'
         OutputFileName=${CutRootFileName%Cuts.root}$OutputFileNameExt'Cuts.root'
 	    OutputFileNameOpt='-outputFile='$OutputFileName
         echo OutputFileNameOpt: $OutputFileNameOpt
-      fi
+     fi
       
-    $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCutsFile $OutputMethodOptions \
+     $VEGAS/bin/vaStage5 -cuts=$CutsDir/$ShowerCutsFile $OutputMethodOptions \
 	$Stage5ThetaSquareOption  -inputFile=$CutRootFileName $OutputFileNameOpt
 fi
+
