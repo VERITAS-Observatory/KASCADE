@@ -859,23 +859,25 @@ function BuildVegasSimProduction()
 }
 ##############################################################################
 
-function BuildProduceLookupTables()
-#$1 SUBLTBASE: Base name for input and output sublt, root and log files
-#$2 ConfigName: Configuration file name
-#$3 LTCUTSFILE: Quality cuts file name
-#$4 ListName: File with list of input Stage2 files
-#$5 SubLTFileName: Output SubLT file name
+function BuildProduceLTOrEALookupTables()
+#$1 SCRIPTNAME: 'produce_lookuptables' or 'makeEA'
+#$2 SUBLTBASE: Base name for input and output sublt, root and log files
+#$3 ConfigName: Configuration file name
+#$4 LTCUTSFILE: Quality cuts file name(LT) or ShowerCuts (EA)
+#$5 ListNames: File with list of input Stage2 files
+#$6 SubLTFileName: Output SubLT file name
 ################################################################################
-# Make a .pbs comand file fot this SubLt file generation. DO NOT submit but do 
-# add its name to the QsubFileNameList. Later we willsubmit this list as a job 
-# array (after a little screwing around and cleanup)
+# Make a .pbs comand file fot this SubLt or SubEAlt file generation. DO NOT 
+# submit but do add its name to the QsubFileNameList. Later we willsubmit 
+# this list as a job array (after a little screwing around and cleanup)
 ################################################################################
 {
-  local BASESUBLT=$1
-  local CNFGNAME=$2
-  local QLTYNAME=$3
-  local LISTNAME=$4
-  local SUBLTNAME=$5
+  local SCRIPTNAME=$1
+  local BASESUBLT=$2
+  local CNFGNAME=$3
+  local QLTYNAME=$4
+  local LISTNAME=$5
+  local SUBLTNAME=$6
   
   ################################################
   # Set up unique idientifier for this job
@@ -893,7 +895,7 @@ function BuildProduceLookupTables()
     SgeFileBashCmds  $sgeFile                       #In UtilityFunctions
             
     echo /usr/bin/time  \\                      >>$sgeFile
-    echo $VEGAS/bin/produce_lookuptables \\     >>$sgeFile
+    echo $VEGAS/bin/$SCRIPTNAME \\     >>$sgeFile
     echo -config $lcl'/'$CNFGNAME \\            >>$sgeFile
     echo -cuts $QLTYNAME  \\                    >>$sgeFile
     echo  $lcl'/'$LISTNAME   \\                 >>$sgeFile
@@ -904,7 +906,7 @@ function BuildProduceLookupTables()
     #Save this file name into the QsubFileNameList
     SgeFileCompleteAndSave $sgeFile              #In UtilityFunctions
   else
-     echo 'Fatal--BuildProduceLookupTables: Not setup for this cluster'
+     echo 'Fatal-- BuildProduceLTOrEALookupTables: Not setup for this cluster'
      exit
   fi
 }
@@ -1882,7 +1884,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
       # ###################################################################
       DISPSUBLTBASE='DispSubLT'$SPECSEA$Samples'Sample'$ZnAz
       DispConfigName=$DISPSUBLTBASE$HMode'.config'
-      DispListName=$DISPSUBLTBASE$HMode'List'
+      DispListNames=$DISPSUBLTBASE$HMode'List'
       DispSubLTFileName=$lcl'/'$DISPSUBLTBASE'.root'
       #*******************************************************************
 
@@ -1935,7 +1937,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         echo $VEGAS/bin/produceDispTables \\            >>$sgeFile
         echo -config $lcl'/'$DispConfigName \\          >>$sgeFile
         echo -cuts $DISPLTCUTSFILE  \\                  >>$sgeFile
-        echo  $lcl'/'$DispListName   \\                 >>$sgeFile
+        echo  $lcl'/'$DispListNames   \\                 >>$sgeFile
         echo  $DispSubLTFileName  \\                    >>$sgeFile
         echo '>'$lcl'/'$DISPSUBLTBASE'.log'             >>$sgeFile
         chmod 700 $sgeFile
@@ -2169,7 +2171,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
             # echo '# GenerateDispSubLTListFiles'
             # echo '##########################################################'
             cd $lcl
-            echo $FileName >>$DispListName
+            echo $FileName >>$DispListNames
           fi
           #******************************************************************
  
@@ -2310,20 +2312,12 @@ if [ -n "$HTARPedVarZnOffsetS4FromArchive" ]; then
   date
 fi  
 ##############################################################################
+
+
 if [ -n "$ProduceSubLookupTables" ]; then
   echo '##########################################################'
   echo '# ProduceSubLookupTables'
   echo '##########################################################'
-  cd $lcl
-  GetUniqueNumber
-  ####################################################################
-  # See note below in GenerateStage2FromVBF section on CORI use of Job 
-  # arrays. Requires a QsubFileNameList. Setup its name here.
-  # Eventual use on all clusters
-  ####################################################################
-  QsubFileNameList='PLT'$UNIQUE'AutoqsubList'
-  echo QsubFileNameList: $QsubFileNameList
-
   ########################################
   # produceLookupTables needs lots of memory
   ########################################
@@ -2337,6 +2331,7 @@ if [ -n "$ProduceSubLookupTables" ]; then
   date
 fi  
 ########################################################################
+
 if [ -n "$ProduceEASubLookupTables" ]; then
   echo '##########################################################'
   echo '# ProduceEASubLookupTables'
@@ -2350,6 +2345,20 @@ if [ -n "$ProduceEASubLookupTables" ]; then
   date
 fi  
 ##############################################################################
+
+if [ -n "$ProduceSubLookupTables" ] || [ -n "$ProduceEASubLookupTables" ]; then
+  cd $lcl
+  GetUniqueNumber
+  ####################################################################
+  # See note below in GenerateStage2FromVBF section on CORI use of Job 
+  # arrays. Requires a QsubFileNameList. Setup its name here.
+  # Eventual use on all clusters
+  ####################################################################
+  QsubFileNameList='PLT'$UNIQUE'AutoqsubList'
+  echo QsubFileNameList: $QsubFileNameList
+fi
+#############################################################################
+
 if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
   echo '##########################################################'
   echo '# HTARPedVarZnOffsetS2ToArchive'
@@ -2452,7 +2461,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
       SUBLTBASE=$EASPEC'SubLT'$SPECSEA$Samples'Sample'$ZN'Deg'$WBLSPEC$CUTTYPE
 
       ConfigName=$SUBLTBASE$HMode'.config'
-      ListName=$SUBLTBASE'List'
+      ListNames=$SUBLTBASE'List'
       SubLTFileName=$lcl'/'$SUBLTBASE'.root'
 
       #**********************************************************
@@ -2567,38 +2576,18 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
         ####################################################################
         # Make up the job script file that will be submitted below
         ###################################################################
-        BuildProduceLookupTables $SUBLTBASE $ConfigName $LTCUTSFILE $ListName $SubLTFileName
+        BuildProduceLTOrEALookupTables 'produce_lookuptables' $SUBLTBASE $ConfigName $LTCUTSFILE $ListNames $SubLTFileName
       fi
       #*******************************************************************
 
       if [ -n "$ProduceEASubLookupTables" ]; then
         ####################################################################
         # Make up the job script file that will be submitted below
-        ####################################################################
-        sgeFile=$lcl'/'$SUBLTBASE'.pbs'
-        echo "#"PBS $WALLTIME            >$sgeFile
-        echo "#PBS "$MEMREQUEST                  >>$sgeFile
-        if [ -n "$CONTE" ]; then
-          echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-          echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-          echo module load gcc/5.3.0                >>$sgeFile
-        fi
-        if [ -n "$PURDUE" ]; then
-            echo source /etc/profile                  >>$sgeFile
-            echo module load gcc/5.2.0              >>$sgeFile
-        fi
-        echo cd $lcl                                >>$sgeFile
-        echo $VEGAS/bin/makeEA \\                   >>$sgeFile
-        echo -config $lcl'/'$ConfigName \\          >>$sgeFile
-        echo -cuts $EACUTSFILE  \\                  >>$sgeFile
-        echo  $lcl'/'$ListName   \\                 >>$sgeFile
-        echo  $SubLTFileName  \\                    >>$sgeFile
-        echo '>'$lcl'/'$SUBLTBASE'.log'             >>$sgeFile
-        chmod 700 $sgeFile
-        
-        $QSUB$QSUBEXT -q $QUEUE -V -e $SUBLTBASE.qsub.err -o $SUBLTBASE.qsub.log  $sgeFile
+        ###################################################################
+        BuildProduceLTOrEALookupTables 'makeEA' $SUBLTBASE $ConfigName $EACUTSFILE $ListNames $SubLTFileName
       fi
       #*******************************************************************
+
 
       if [ -n "$CombineSubLT" ] || [ -n "$CombineBuildCheckEALT" ] ; then
         #*******************************************************************
@@ -2654,13 +2643,13 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
             # echo '# GenerateSubLTListFiles'
             # echo '##########################################################'
             cd $lcl
-            echo $PedVarS2FileName >>$ListName
+            echo $PedVarS2FileName >>$ListNames
           fi
           #******************************************************************
 
           if [ -n "$GenerateEASubLTListAndConfigFiles" ]; then
             cd $lcl
-            echo $PedVarS4FileName >>$ListName
+            echo $PedVarS4FileName >>$ListNames
           fi
           #******************************************************************
 
@@ -3080,7 +3069,7 @@ fi
 
 if [ -n "$CombineBuildCheckEALT" ]; then
    echo '##########################################################'
-   echo '# BuildEA '
+   echo '# CombineBuildCheckEALT '
    echo '##########################################################'
    EASPEC=EA
 
