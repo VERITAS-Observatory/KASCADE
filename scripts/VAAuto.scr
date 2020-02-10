@@ -2874,7 +2874,7 @@ if [ -n "$ProduceSubLookupTables" ] || [ -n "$ProduceEASubLookupTables" ]; then
     SubmitQsubJobs  $QsubFileNameList
   else
     echo 'VAAuto:: Failed to submit job arry. Bad cluster chosen?'
-    exit(1)
+    exit
   fi
 fi
 ##########################################################################
