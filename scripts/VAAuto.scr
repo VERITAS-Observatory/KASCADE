@@ -2415,7 +2415,7 @@ fi
 
 ##################################################################################
 if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]          || \
-   [ -n "$ProduceSubLookupTables" ]   || [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || \
+   [ -n "$$ProduceEASubLookupTables[ -n "$ProduceEASubLookupTables" ]ProduceSubLookupTables" ]   || [ -n "$HTARPedVarZnOffsetS2ToArchive" ]   || \
    [ -n "$CombineSubLT" ]             || [ -n "$HTARPedVarZnOffsetS2FromArchive" ] || \
    [ -n "$GenerateStage4FromStage2" ] || [ -n "$HTARPedVarZnOffsetS4ToArchive" ]   || \
    [ -n "$CheckStage4Files" ]         || [ -n "$HTARPedVarZnOffsetS4FromArchive" ] || \
@@ -2861,17 +2861,20 @@ if [ -n "$EdisonMultipleSerial" ]; then
 fi
 #########################################################################
 
-if [ -n "$ProduceSubLookupTables" ]; then
+if [ -n "$ProduceSubLookupTables" ] || [ -n "$ProduceEASubLookupTables" ]; then
   #echo '##########################################################'
-  #echo '#  ProduceSubLookupTables'
+  #echo '#  ProduceSubLookupTables or ProduceEASubLookupTables
   #echo '##########################################################'
         
   ######################################################################
   # For Cori JobArray only: generate Jobarry .pbs file for all the .pbs jobs
   # in the qsubFileNameList. SubmitQsubJobs is in UtilityFuncitons.scr
   ######################################################################
-  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
     SubmitQsubJobs  $QsubFileNameList
+  else
+    echo 'VAAuto:: Failed to submit job arry. Bad cluster chosen?'
+    exit(1)
   fi
 fi
 ##########################################################################

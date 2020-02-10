@@ -450,9 +450,9 @@ function SubmitQsubJobs()
     rm $QsubDoneList
   fi
 
-  if [[ -n "$CORI"  || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [ -n "$CORI" ]  && [ -n "$JobArray" ]; then
     ##############################################################
-    # If we are on Cori or Edison and JobArrays are enabled we need to take 
+    # If we are on Cori and JobArrays are enabled we need to take 
     # each file 
     # from the QsubList, remove all the SBATCH commands and give each of 
     # these new files an indexed name(unique also) so that they can be 
