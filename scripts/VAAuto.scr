@@ -2953,7 +2953,7 @@ if [ -n "$CombineBuildCheckEALT" ]; then
   #############################################################################
   Script='CombineEASubLT.C'
   echo '{'                                                             >$Script
-  echo ' .L combineEAKascade.C'                                        >>$Script
+  echo ' gROOT->LoadMacro("combineEAKascade.C")'                       >>$Script
   #echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$EAFILENAME'");' >>$Script
   echo '  combineEAKFromList("'$lcl'/'$SubLTList'","'$lcl'/'$EAFILENAME'");' >>$Script
   echo '}'                                                            >>$Script
