@@ -791,7 +791,7 @@ function BuildVegasSimProduction()
 # ray).
 #######################################################################
 # No track is kept on the number of jobs in the list. This is ok on CORI
-# and EDISON where the limit for the shared queue is 10,000
+# where the limit for the shared queue is 10,000
 # This routine is called once for each serial job to be submitted.
 # This is a sligtly modified version of the original SubmitVegasSimProduction
 # function
@@ -820,8 +820,6 @@ function BuildVegasSimProduction()
     fi
   fi
 
-
-
   ################################################
   # Make sure the VegasSimProduciton file exists
   ################################################
@@ -840,7 +838,7 @@ function BuildVegasSimProduction()
   # Check to see if we are on Cori. If so make the .pbs job, then add this 
   # job  to the qsub list file.
   #############################################
-  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
     ##############################################
     # Generate the veagsSimProduction command 
     ##############################################
@@ -889,7 +887,7 @@ function BuildProduceLTOrEALookupTables()
   # Check to see if we are on Cori. If so make the .pbs job, then add this 
   # job  to the qsub list file.
   #############################################
-  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
     sgeFile=$lcl'/PRLT'$IDUNIQUE$BASESUBLT'.pbs'
     SgeFilePBSCmds   $sgeFile                       #In UtilityFunctions
     SgeFileBashCmds  $sgeFile                       #In UtilityFunctions
@@ -1486,7 +1484,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   # Stage 2 only needs longer time if Halstead
   ###########################################################################
   WALLTIME=' -t 15:00:00'
-  MEMREQUEST='--mem=5GB'
+  MEMREQUEST='--mem=3GB'
   if [ -n "$HALSTEAD" ]; then
     WALLTIME='-l walltime=24:00:00'
     MEMREQUEST=" -l mem=8GB"
@@ -1573,10 +1571,11 @@ if [ -n "$GenerateStage4FromStage2" ]; then
   # Stage 4 only needs short time
   #############################################################################
   WALLTIME='-t 04:00:00'
-  MEMREQUEST='--mem=5GB'
+#  MEMREQUEST='--mem=1GB'  #This gets us chagred for  2 core on cori
+  MEMREQUEST='--mem=3GB'  #This gets us chagred for  4 core on cori
   if [ -n "$HALSTEAD" ]; then
     WALLTIME='-l walltime=04:00:00'
-    MEMREQUEST='-l mem=8GB'
+    MEMREQUEST='-l mem=7GB'
   fi
 fi
 ############################################################################
@@ -1588,7 +1587,7 @@ if [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; then
     echo '##########################################################'
   fi
   if [ -n "$GenerateStage5CombinedRCE" ]; then
-    echo '##########################################################'
+    echo '##############################################WUCRMDL12eSpecHiPedVarS2############'
     echo '# GenerateStage5CombinedRCE (Has RemoveCutEvents)'
     echo '##########################################################'
   fi
@@ -2090,7 +2089,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
 
                   BuildVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM 
                 else
-                   SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
+                  SubmitVegasSimProduction $PedVarFile $BFNMS2 $VSProdFile $VBFNM
                 fi
                 echo VAAuto--File:  $VBFNM 
               fi
@@ -2684,11 +2683,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
               else
                 VBFNM=${VBFFILENAME%%.vbf}$sSimSetNum'.vbf'
                 BFNMS2=$BaseFileS2$sSimSetNum
-              fi
+             fi
 
-              echo PedVarFile:  $PedVarFile 
-              echo $BaseFileS2: $BFNMS2 
-              echo VBFFILENAME: $VBFNM
+              #echo PedVarFile:  $PedVarFile 
+              #echo BaseFileS2: $BFNMS2 
+              #echo VBFFILENAME: $VBFNM
+              
 
               if [ -n "$GenerateStage4FromStage2" ]; then
                 #echo '##########################################################'
@@ -2702,7 +2702,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 # the VSProdFile has that info added to it with sed commands.
                 ###################################################
 
-                if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+                if [ -n "$CORI" ]  && [ -n "$JobArray" ]; then
                   #######################################################
                   # BuildVegasSimProduction will create the .pbs file and add
                   # that file's name to the QsubFileNameList  file
@@ -2732,8 +2732,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 # echo '# CheckStage4Files'
                 # echo '##########################################################'
                 cd $lcl
-               
-                #Check VARootIO can open and load file 
+                BaseFileS4=$BFNMS2$CUTTYPE'Cuts'
+                PedVarS4FileName=$PedVarName'_'$BaseFileS4'.root'
+                #echo BaseFileS4:     $BaseFileS4
+                echo PedVarS4FileName: $PedVarS4FileName
+
+                #Check VARootIO can open and load S4 file 
                 Arg=$lcl'/CheckStage4FileOK.C("'$PedVarS4FileName'")'
                
                 root -q -b -q $Arg >CheckStage4OK.log
@@ -2757,6 +2761,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                  } <CheckStage4FileOK.Result
                  #rm CheckStage4FileOK.Result
               fi
+              
               ##########################################################
                
               if [ -n "$GenerateStage5Combined" ] || \
@@ -2769,7 +2774,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 # than 1 hours or we have many to run in parallel 
                 #Cori and Edison values
                 WALLTIME='-t 20:00:00'
-                MEMREQUEST=" --mem=5GB"
+                MEMREQUEST=" --mem=2GB"
 	
 		#Halstead values
                 if [ -n "$HALSTEAD" ]; then
@@ -2787,7 +2792,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 # Also the VSProdFile will generate an Output file using  correct 
                 # OutputFileNameExt
                 ###################################################
-                if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+                if [ -n "$CORI" ] && [ -n "$JobArray" ]; then
                   #######################################################
                   # BuildVegasSimProduction will create the .pbs file and add
                   # that file's name to the QsubFileNameList  file
@@ -2812,10 +2817,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
               fi  #End of GenerateStage5Combined and GenerateStage5CombinedRCE
           
               sSimSetNum=$((sSimSetNum + 1))
-	     echo sSimSetNu: $sSimSetNu 
+	      #echo sSimSetNumA: $sSimSetNum
              done        #End of SimSet while loop
           fi           
-          
+
           ###############################################################
           let kpvar=$kpvar+1
          done                 #End of Pedvar while loop

@@ -2,7 +2,7 @@
 #$2 VegasProduction file name: 
 #       EX: VegasProductionS1S2Sim.scr
 #$3 Job designator (ex A)
-#$4 Alternate VEGAS path (optional)
+#$4 Alternate VEGAS module (optional)
 #$5 PedVar file (optional)
 
 function usage()
@@ -26,9 +26,9 @@ fi
 # Bring in Utility Functions(like:SetupForHost SgeFilePBSCmds SgeFileBashCmds )
 ##################
 if [ ! -e UtilityFunctions.scr ]; then
-    cp $KASCADEBASE/scripts/UtilityFunctions.scr ./
+    cp -v $KASCADEBASE/scripts/UtilityFunctions.scr ./
 fi
-source UtilityFunctions.scr
+source ./UtilityFunctions.scr
 
 RUNLIST=$1
 VEGASSIMPRODFILENAME=$2
@@ -57,7 +57,7 @@ fi
 
 {
  while read DataFile  ; do
-   BaseFileName=${DataFile##/*/}   #remove path.
+   BaseFileName=${DataFile##*/}   #remove path.
    LOGFILE=$PEDVARFILENAME'_'$BaseFileName$JOBDESIGNATOR
    ####################################################################
    # Make up the job script file that will be submitted below

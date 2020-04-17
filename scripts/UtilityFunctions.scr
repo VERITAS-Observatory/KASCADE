@@ -233,21 +233,7 @@ fi
 
  echo host: $host
  
- hostString=${host:0:6}
- if test  "$hostString" = "edison"  #Are we running on Edison
-  then
-   EDISON=enabled
-   QSUB='sbatch'
-   PBSCMD='SBATCH'
-   SBATCHDISK='-L SCRATCH'
-   QUEUE='-q shared'
-   WALLTIME='-t 12:00:00'
-   MEMREQUEST='--mem=6GB'
-   let SUBMITLIMIT=10000
-   echo '***Edison Cluster***'
- fi
- 
- hostString=${host:0:4}
+  hostString=${host:0:4}
  if test  "$hostString" = "cori"  #Are we running on Cori
   then
    CORI=enabled
@@ -255,12 +241,11 @@ fi
    PBSCMD='SBATCH'
    SBATCHDISK='-L SCRATCH'
    QUEUE='-q shared'
-   WALLTIME='-t 12:00:00'
-   MEMREQUEST='--mem=5GB'
+   WALLTIME='-t 30:00:00'
+   MEMREQUEST='--mem=1GB'   #Gets 1 cpu
    let SUBMITLIMIT=10000
    echo '***Cori/Haswell  Cluster***'
  fi
-
 
  hostString=${host:0:8}
  if test  "$hostString" = "halstead"  #Are we running on Halstead
