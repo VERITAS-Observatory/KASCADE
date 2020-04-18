@@ -1,7 +1,8 @@
 // **********************************************************************
 // Checks that various parts of the stage 5 file exist.
 // Same as CheckStage4FileOk.scr with additon of checking that the
-// CominbinedEventTree also exists.
+// CominbinedEventTree also exists and the removal of the ShowerDataTree
+// check..
 // **********************************************************************
 
 void CheckStage5FileOK(string fileName)
@@ -29,28 +30,28 @@ void CheckStage5FileOK(string fileName)
     os.close();
     return; 
   } 
-  //Probably want a ShowerData TTree check here.
-  TTree*  pfShowerDataTree = pfRootIO->loadTheShowerEventTree();
-  if(!pfShowerDataTree)
-   {
-     cout<<"Could not load the Shower Event Tree"<<endl;
-     badCode=3;
-     ofstream os("CheckStage5FileOK.Result");
-     os<<badCode<<endl;
-     os.close();
-     return; 
-   }
+  //No ShowerDataTree or SimulationEvent Tree in Stage5 file
+  //TTree*  pfShowerDataTree = pfRootIO->loadTheShowerEventTree();
+  //if(!pfShowerDataTree)
+  // {
+  //   cout<<"Could not load the Shower Event Tree"<<endl;
+  //   badCode=3;
+  //   ofstream os("CheckStage5FileOK.Result");
+  //   os<<badCode<<endl;
+  //   os.close();
+  //   return; 
+  // }
   
-  TTree* pfSimulatedEventTree = pfRootIO->loadTheSimulationEventTree();
-  if(!pfSimulatedEventTree)
-    {
-      cout<<" Could not load the simulated event tree"<<endl;
-      badCode=4;
-      ofstream os("CheckStage5FileOK.Result");
-      os<<badCode<<endl;
-      os.close();
-      return; 
-    }
+  //TTree* pfSimulatedEventTree = pfRootIO->loadTheSimulationEventTree();
+  //if(!pfSimulatedEventTree)
+  //  {
+  //    cout<<" Could not load the simulated event tree"<<endl;
+  //    badCode=4;
+  //    ofstream os("CheckStage5FileOK.Result");
+  //   os<<badCode<<endl;
+  //    os.close();
+  //    return; 
+  //  }
   
   TTree* pfCombinedEventTree = pfRootIO->loadTheCombinedEventTree();
   if(!pfCombinedEventTree)
