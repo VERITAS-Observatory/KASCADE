@@ -79,6 +79,7 @@ function commandEnable()
     echo '    GenerateEASubLTListAndConfigFiles  GenerateStage5Combined' 
     echo '    ProduceEASubLookupTables           GenerateStage5CombinedRCE'
     echo '    CombineBuildCheckEALT              (RCE is RemoveCutEvents)'
+    echo '                                       CheckStage5Files'
     exit
   else
     if [ "$1" = "GetVBFFileFromArchive" ]; then eval $1=enable; return 0; fi;
@@ -120,6 +121,7 @@ function commandEnable()
 
     if [ "$1" = "GenerateStage5Combined" ]; then eval $1=enable; return 0; fi;
     if [ "$1" = "GenerateStage5CombinedRCE" ]; then eval $1=enable; return 0;fi;
+    if [ "$1" = "CheckStage5Files" ]; then eval $1=enable; return 0; fi;
     echo ' VAAuto: Invalid Command: '$1
     echo ' VAAuto: Do "./VAAuto ListCommands" for a list of valid commands.'
     exit
@@ -1723,6 +1725,19 @@ if [ -n "$CheckStage4Files" ]; then
   ~/Switch.rootrcTo.rootrc_glenn.scr
 fi
 ############################################################################
+############################################################################
+
+if [ -n "$CheckStage5Files" ]; then
+  echo '##########################################################'
+  echo '# CheckStage5Files'
+  echo '##########################################################'
+  date 
+  if [ ! -e "CheckStage5FileOK.C" ]; then
+    cp $KASCADEBASE/scripts/CheckStage5FileOK.C .
+  fi
+  ~/Switch.rootrcTo.rootrc_glenn.scr
+fi
+############################################################################
 
 if [ -n "$GenerateDispSubLTListFiles" ]; then
    echo '##########################################################'
@@ -2420,7 +2435,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
    [ -n "$CheckStage4Files" ]         || [ -n "$HTARPedVarZnOffsetS4FromArchive" ] || \
    [ -n "$GenerateStage5Combined" ]   || [ -n "$GenerateStage5CombinedRCE" ]       || \
    [ -n "$CombineBuildCheckEALT" ]    || [ -n "$ProduceEASubLookupTables" ]        || \
-   [ -n "$GenerateEASubLTListAndConfigFiles" ] ; then
+   [ -n "$GenerateEASubLTListAndConfigFiles" ] || [ -n "$CheckStage5Files" ] ; then
 
   #****************************************************************************
   # For SubLT gen we make a seperate Sub LT config file for each of ZN Offset 
@@ -2451,7 +2466,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
       else
         WBLSPEC=$WBL'Wbl'
       fi
-      if [ -n "$CheckStage4Files" ]; then
+      if [ -n "$CheckStage4Files" ] ||  [ -n "$CheckStage5Files" ]; then
          echo $ZN':' $WBLSPEC >&2   #Print to stderr during operation to 
       fi                            #let user know things are running
 
@@ -2656,9 +2671,10 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
           #  GenerateStage4FromStage2 and CheckStage4Files also need SimSet interation
           #  is applicable
           # ***********************************************************************
-            echo At 1
+            #echo At 1
           if [ -n "$GenerateStage4FromStage2" ] ||  [ -n "$CheckStage4Files" ] || \
-             [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]; 
+             [ -n "$GenerateStage5Combined" ] || [ -n "$GenerateStage5CombinedRCE" ]  || \
+             [ -n "$CheckStage5Files" ]; 
            then
             # ###############################################################
             # Due to size and walltime limits we have divided the each CR vbf 
@@ -2759,7 +2775,7 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                   fi 
                    
                  } <CheckStage4FileOK.Result
-                 #rm CheckStage4FileOK.Result
+                 #rm CheckStage4FileOK.Resultq
               fi
               
               ##########################################################
@@ -2815,7 +2831,48 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
                 fi
              
               fi  #End of GenerateStage5Combined and GenerateStage5CombinedRCE
-          
+              # ###############################################################
+              
+              if [ -n "$CheckStage5Files" ]; then
+                # echo '##########################################################'
+                # echo '# CheckStage5Files'
+                # echo '##########################################################'
+                cd $lcl
+                BaseFileS5=$BFNMS2$CUTTYPE'Cuts'
+                PedVarS5FileName=$PedVarName'_'$BaseFileS5'.root'
+                #echo BaseFileS5:     $BaseFileS5
+                echo PedVarS5FileName: $PedVarS5FileName
+
+                #Check VARootIO can open and load S5 file 
+                Arg=$lcl'/CheckStage5FileOK.C("'$PedVarS5FileName'")'
+               
+                root -q -b -q $Arg >CheckStage5OK.log
+                 {
+                  read BAD
+                  let suzBAD="$BAD"
+                  if [ "$suzBAD" -lt "15" ]; then
+                    echo "Bad: "$PedVarS5FileName
+                    echo "Reason: "$suzBAD
+                    if [ $suzBAD -eq "1" ]; then
+                      echo "VAAuto: VARootIO failed to open" 
+                    fi
+                    #if [ $suzBAD -eq "2" ]; then
+                    #  echo "VAAuto: VARootIO failed to load"
+                    #fi
+                    if [ $suzBAD -eq "3" ]; then
+                      echo "VAAuto: VARootIO failed to find ShowerDataTree"
+                    fi
+                    if [ $suzBAD -eq "6" ]; then
+                      echo "VAAuto: VARootIO failed to find CombinedEventsTree"
+                    fi
+                  fi 
+                   
+                 } <CheckStage5FileOK.Result
+                 #rm CheckStage5FileOK.Resultq
+              fi
+              
+              ##########################################################
+                      
               sSimSetNum=$((sSimSetNum + 1))
 	      #echo sSimSetNumA: $sSimSetNum
              done        #End of SimSet while loop
