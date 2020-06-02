@@ -1,0 +1,38 @@
+function ExecHTAR
+{
+  PV=$1
+  ZN=$2
+  AZ=$3
+  nohup htar -cvf /home/u/u15013/simulations/WUCRMDL12eSpecHiPedVarS2/PedVar$PV'_CR_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen'$ZN'deg_az'$AZ'deg_simsetHiS2.tar' '*'$PV'*zen'$ZN'*az'$AZ'*deg'{?,??,???}'.root' >htar$PV'zn'$ZN'az'$AZ'S2To.log' &
+ }
+###############################################
+
+function usage
+{
+  echo ' $1:  Pedvar (Ex 5.55)'
+  echo ' $2:  Zenith (Ex. 20)'
+  echo ' $3:  Azimuth(optional) If not defined make 4 htar calls for az 0,45,180,315'
+echo ' Ex:  ./SaveS2.src 6.51 30  or ./SaveS2.src 8.97 40 45'
+  exit
+}
+
+###########################
+# Main
+###########################
+if [ ! -n "$2" ]; then
+  usage
+  exit
+fi
+
+PEDVAR=$1
+ZN=$2
+AZ=$3
+if [ ! -n "$AZ" ]; then
+  ExecHTAR $PEDVAR $ZN 0
+  ExecHTAR $PEDVAR $ZN 45
+  ExecHTAR $PEDVAR $ZN 180
+  ExecHTAR $PEDVAR $ZN 315
+else
+  ExecHTAR $PEDVAR $ZN $AZ
+fi
+

@@ -1,0 +1,28 @@
+function usage
+{
+        echo '  SaveS4 usage:'
+        echo '  $1: Pedvar (Ex 5.55 or 6.51 or 7.64)'
+        echo '  $2: Zenith  Ex: 30'
+        echo '  Ex: ./SaveS4.src 8.97 10'
+        exit
+}
+
+function ExecHTAR
+{
+  PV=$1
+  ZN=$2
+  AZ=$3
+  nohup htar -cvf /home/u/u15013/simulations/WUCRMDL12eSpecHiPedVarS4/PedVar$PV'_CR_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen'$ZN'deg_az'$AZ'S4.tar' '*'$PV'*zen'$ZN'*az'$AZ'*MediumCuts.root' >htar$PV'zn'$ZN'az'$AZ'S4To.log' &
+}
+
+if [ ! -n "$2" ]; then
+   usage
+fi
+
+PEDVAR=$1
+ZEN=$2
+
+ExecHTAR $PEDVAR $ZEN 0
+ExecHTAR $PEDVAR $ZEN 45
+ExecHTAR $PEDVAR $ZEN 180
+ExecHTAR $PEDVAR $ZEN 315

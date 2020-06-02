@@ -93,4 +93,4 @@ fi
   done
 }<$RUNLIST
 
-
+echo 'ProcessVegasSim Done!'

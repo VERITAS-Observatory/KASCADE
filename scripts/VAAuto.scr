@@ -1483,14 +1483,11 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   rm tmp2
         
   ###########################################################################
-  # Stage 2 only needs longer time if Halstead
+  # Stage 2 only needs longer time.
   ###########################################################################
-  WALLTIME=' -t 15:00:00'
+  WALLTIME=' -t 30:00:00'
   MEMREQUEST='--mem=3GB'
-  if [ -n "$HALSTEAD" ]; then
-    WALLTIME='-l walltime=24:00:00'
-    MEMREQUEST=" -l mem=8GB"
-  fi
+
 fi
 
 ############################################################################

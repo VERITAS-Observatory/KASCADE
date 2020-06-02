@@ -1,0 +1,35 @@
+function ExecHTAR
+{
+  PV=$1
+  ZN=$2
+  AZ=$3
+  CUTSTYPE=$4
+  nohup htar -cvf /home/u/u15013/simulations/WUCRMDL12eSpecHiPedVarS5/PedVar$PV'_CR_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen'$ZN'deg_az'$AZ$CUTSTYPE'S5.tar' '*'$PV'*zen'$ZN'*az'$AZ'*Medium'$CUTSTYPE'Cuts.root' >htar$PV'zn'$ZN'az'$AZ$CUTSTYPE'S5To.log' &
+ }
+###############################################
+
+function usage
+{
+  echo ' $1:  Pedvar (Ex 5.55)'
+  echo ' $2:  Zenith (Ex. 20)'
+  echo ' $3:  CutType (Ex. Hadron or Electron or Recon)'
+  echo ' Ex:  ./SaveS5.src 6.51 30 Hadron'
+  exit
+}
+
+###########################
+# Main
+###########################
+if [ ! -n "$1" ]; then
+  usage
+  exit
+fi
+
+PEDVAR=$1
+ZN=$2
+CUTTYPE=$3
+ExecHTAR $PEDVAR $ZN 0   $CUTTYPE
+ExecHTAR $PEDVAR $ZN 45  $CUTTYPE
+ExecHTAR $PEDVAR $ZN 180 $CUTTYPE
+ExecHTAR $PEDVAR $ZN 315 $CUTTYPE
+

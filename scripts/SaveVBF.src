@@ -1,0 +1,27 @@
+function ExecHTAR
+{
+  ZN=$1
+  AZ=$2
+  nohup htar -cvf '/home/u/u15013/simulations/WUCRMDL12UAVBFESpecHi/cosmicRay_MDL12UA_V6_PMTUpgrade_ATM21_KASCADE_zen'$ZN'deg_az'$AZ'deg_simsetHi.tar' 'cosmic*zen'$ZN'*az'$AZ'*.vbf' >'htarZN'$ZN'AZ'$AZ'VBFTo.log' &
+ }
+###############################################
+
+function usage
+{
+  echo ' $1:  Zenith (Ex. 20)'
+  exit
+}
+
+###########################
+# Main
+###########################
+if [ ! -n "$1" ]; then
+  usage
+  exit
+fi
+
+ZN=$1
+ExecHTAR $PEDVAR $ZN 0   
+ExecHTAR $PEDVAR $ZN 45  
+ExecHTAR $PEDVAR $ZN 180 
+ExecHTAR $PEDVAR $ZN 315
