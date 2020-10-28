@@ -1,6 +1,6 @@
 #$1 List of data.cvbf flasher.cvbf files
 #$2 VegasProduction file name:   Ex: "VegasProductionS1S2Data.scr"
-#$3 Identifying string for Job name (Ex: "A1")
+#$3 Identifying string for Job name (and possibly gt epock) (Ex: "A1" or "V6_2017-2018")
 #$4 Alternate VEGAS version (optional)Ex. "2.6.0betaZAlpha"
 
 
@@ -9,7 +9,7 @@ function usage()
  echo '***ProcessVegasDataStandbyQ usage:'
  echo '   $1:  List of data.cvbf flasher.cvbf files'
  echo '   $2:  VegasProduction file name:  Ex: "VegasProductionS1S2Data.scr"'
- echo '   $3:  Identifying string for Job. Ex: "A" or "B5" or "MyFavoriteJob"'
+ echo '   $3:  Identifying string for Job. (Possible gt ephoch)Ex: "A" or "V6_2017-2018"'
  echo '   $4:  Alternate VEGAS version (optional)Ex. "2.6.0betaZAlpha"'
  echo ' EX: ./ProcessVegasData runlist VegasProductionS1S2Data.scr A1 2.6.0betaZAlpha'
  echo '***'
@@ -43,7 +43,7 @@ SetupForHost    #From UtilityFunctions.scr:Specifics for cluster we are on
 
 let i=0
 if [ -n "$PURDUE" ]; then
-  #Defualt is Physics queue with 10 hr walltime.
+  #Switch to Standby queue with 4 hr walltime.
   QUEUE=$STANDBYQUEUE            #StandbyQueue
   WALLTIME=$STANDBYWALLTIME
 fi
@@ -70,6 +70,7 @@ fi
    echo $lcl'/'$VEGASPRODFILENAME  \\                >>$sgeFile
    echo $DataFile' '  \\                             >>$sgeFile
    echo $FlasherFile' '  \\                          >>$sgeFile
+   echo $JOBDESIGNATOR' ' \\                         >>$sgeFile
    echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
 
    chmod 700 $sgeFile
