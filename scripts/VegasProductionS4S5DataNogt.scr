@@ -1,0 +1,94 @@
+#!/bin/bash
+# *******************************************************************************
+# This is VegasProductionDataS4S5.scr to process a data file through Stages
+#4 and 5 Only.
+#******************************************************************************
+#This runs 4 and  5 vegas stages on normal file;
+#$1 .cvbf or .root file to process. (Ex. ./VData/33619.cvbf)
+#$2 .cvbf Laser or Flasher file           (Ex. ./VData/33616.cvbf)
+#$3 Vegas base dir path: Used when you want vegas from a different directory 
+#            than what VEGAS is set to in .bashrc (or equivalent)
+# ****************************************************************************
+
+lcl=$PWD
+Stage4=enable
+Stage5=enable
+
+ #Stage4         
+  #DenyTelescopeOption='-TelCombosToDeny=T1T4'
+  #SeperationAngleCutOption='-GC_SeparationCut=16'
+  #WindowSizeOption='-LTM_WindowSizeForNoise=12'
+
+  TableDir=$VERITASAPPS'/tables/'
+  CutsDir=$TableDir
+# This must be set before running:
+  CUTTYPE=UpgradeMedium
+  FileBase=$CUTTYPE         # Extention to put on the end of the 
+                             # stages 4-5 ouput files.Differntiates
+                             # between various cutfile posibilities
+  QualityCuts=Quality$CUTTYPE'Cuts'
+  ShowerCuts=Shower7Sample$CUTTYPE'Cuts'
+  Table='lt_Oct2012_ua_ATM21_7samples_vegasv250rc5_allOffsets_LZA_noise150fix.root'
+
+  OverrideLTCheckOption='-OverrideLTCheck=1'
+##############################################################################
+
+#Stage5
+  #OutputMethodOptions='-Method=combined -RemoveCutEvents=true'
+  OutputMethodOptions='-Method=combined'
+  #OutputMethodOptions='-Method=stereo -RemoveCutEvents=true'
+#############################################################################
+
+#Now process the file:
+if [ -n "$3" ]; then
+    VEGASORIG=$VEGAS
+    VEGAS=$3
+    export VEGAS=$VEGAS
+    echo VEGAS: $VEGAS
+fi
+
+VBFLSRFileName=$2
+LSRRootFile=${VBFLSRFileName%.cvbf}'.root'
+LSRRootFileName=${LSRRootFile##*/}
+VBFFileName=$1
+File=${VBFFileName%.root}'.root' #allow .root or .cvbf file names on input
+if [ "$File" = "$VBFFileName" ]; then
+    VBFFileName=${VBFFileName%.root}'.cvbf'
+fi
+RootFile=${VBFFileName%.cvbf}'.root'
+RootFileName=${RootFile##*/}
+
+echo VBFFileName: $VBFFileName
+echo RootFileName: $RootFileName
+echo LSRRootFileName: $LSRRootFileName
+
+CutRootFile=${VBFFileName%.cvbf}$FileBase'.root'
+CutRootFileName=${CutRootFile##*/}
+echo CutRootFileName: $CutRootFileName
+
+if [ -n "$Stage4" ]; then
+	echo copy stage2 root file:
+	cp -v $RootFileName $CutRootFileName
+	echo Table: $TableDir/$Table
+	echo Command: $VEGAS'/bin/vaStage4 -table='$TableDir/$Table \
+	    '-cuts='$CutsDir'/'$QualityCuts $DenyTelescopeOption  \
+            $CutTelescopeOption  $SeperationAngleCutOption $WindowSizeOption \
+	    -save_config=vaStage4.config  \
+	    $CutRootFileName
+
+	$VEGAS/bin/vaStage4 -table=$TableDir/$Table $OverrideLTCheckOption \
+	     '-cuts='$CutsDir'/'$QualityCuts $DenyTelescopeOption  \
+            $CutTelescopeOption $SeperationAngleCutOption $WindowSizeOption \
+	    -save_config=vaStage4.config  \
+	    $CutRootFileName
+fi
+
+if [ -n "$Stage5" ]; then
+    $VEGAS/bin/vaStage5 $OutputMethodOptions -inputFile=$CutRootFileName \
+	-cuts=$CutsDir'/'$ShowerCuts
+fi
+
+if [ -n "$3" ]; then
+    VEGAS=$VEGASORIG
+    export VEGAS=$VEGAS
+fi

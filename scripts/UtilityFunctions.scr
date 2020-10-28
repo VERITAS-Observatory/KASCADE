@@ -233,7 +233,7 @@ fi
 
  echo host: $host
  
-  hostString=${host:0:4}
+ hostString=${host:0:4}
  if test  "$hostString" = "cori"  #Are we running on Cori
   then
    CORI=enabled
@@ -241,34 +241,41 @@ fi
    PBSCMD='SBATCH'
    SBATCHDISK='-L SCRATCH'
    QUEUE='-q shared'
-   WALLTIME='-t 30:00:00'
-   MEMREQUEST='--mem=1GB'   #Gets 1 cpu
+   WALLTIME='-t 12:00:00'
+   MEMREQUEST='--mem=5GB'
    let SUBMITLIMIT=10000
    echo '***Cori/Haswell  Cluster***'
  fi
+
 
  hostString=${host:0:8}
  if test  "$hostString" = "halstead"  #Are we running on Halstead
   then
    HALSTEAD=enabled
-   QSUB='qsub -V'
-   PBSCMD='PBS'
+   QSUB='sbatch'
+   PBSCMD='SBATCH'
+#   QSUB='qsub -V'
+#   PBSCMD='PBS'
+   MEMREQUEST='--mem=8GB'
+#   MEMREQUEST=' -l mem=8GB'
+   let SUBMITLIMIT=975
 
-   QUEUE1='-q physics'
+   QUEUE1='-A physics'
    PHYSICSQUEUE=$QUEUE1
-   WALLTIME1='-l walltime=10:00:00'
+   WALLTIME1='-t 10:00:00'
+#   WALLTIME1='-l walltime=10:00:00'
    PHYSICSWALLTIME=$WALLTIME1
 
-   QUEUE2='-q standby'
+   QUEUE2='-A standby'
    STANDBYQUEUE=$QUEUE2
 
-   WALLTIME2='-l walltime=04:00:00'
+   WALLTIME='-t 04:00:00'
+#   WALLTIME2='-l walltime=04:00:00'
    STANDBYWALLTIME=$WALLTIME2
 
    QUEUE=$QUEUE1
    WALLTIME=$WALLTIME1
-   MEMREQUEST=' -l mem=8GB'
-   let SUBMITLIMIT=975
+
    echo '***Halstead Cluster:'$QUEUE' queue ***'
  fi
 
@@ -296,29 +303,6 @@ fi
    echo '***Rice Cluster:'$QUEUE' queue ***'
  fi
 
- hostString=${host:0:5}
- if test  "$hostString" = "conte"  #Are we running on conte
-  then
-   CONTE=enabled
-   QSUB='qsub -V'
-   PBSCMD='PBS'
- 
-   QUEUE1='-q physics'
-   PHYSICSQUEUE=$QUEUE1
-   WALLTIME1='-l walltime=30:00:00'
-   PHYSICSWALLTIME=$WALLTIME1
-
-   QUEUE2='-q standby'
-   STANDBYQUEUE=$QUEUE2
-   WALLTIME2='-l walltime=04:00:00'
-   STANDBYWALLTIME=$WALLTIME2
-
-   QUEUE=$QUEUE1
-   WALLTIME=$WALLTIME1
-   MEMREQUEST=' -l mem=8GB'
-   let SUBMITLIMIT=975
-   echo '***Conte Cluster:'$QUEUE' queue ***'
- fi
 
  hostString=${host:0:6}
  if test  "$hostString" = "flogin"  #Are we running on ANL Fusion
@@ -331,10 +315,10 @@ fi
    let SUBMITLIMIT=975
  fi
 
-if [ -n "$RICE" ] || [ -n "$CONTE" ] || [ -n "$HALSTEAD" ] ; then
+if [ -n "$RICE" ]  || [ -n "$HALSTEAD" ] ; then
    PURDUE=enabled
  fi
- if [ -n "$EDISON" ] || [ -n "$CORI" ] || [ -n "$FUSION" ]; then
+ if [ -n "$CORI" ] || [ -n "$FUSION" ]; then
   NERSCorARGN=enabled
  fi	
  if [ ! -n "$PURDUE" ] && [ ! -n "$ NERSCorARGN" ] && [ ! -n "$ISIS" ]  && [ ! -n "$FUSION" ]; then
@@ -358,22 +342,20 @@ function SgeFilePBSCmds()
  if [ -n "$PURDUE" ]; then  
    echo "#"$PBSCMD $QUEUE                        >>$sgeFile
    echo "#"$PBSCMD $WALLTIME                     >>$sgeFile
-   echo "#"PBS -l nodes=1:ppn=1                  >>$sgeFile 
-   echo "#"$PBSCMD -l naccesspolicy=shared       >>$sgeFile
+   echo "#"$PBSCMD -N 1                          >>$sgeFile
+   echo "#"$PBSCMD -n 1                          >>$sgeFile
+#   echo "#"PBS -l nodes=1:ppn=1                  >>$sgeFile 
+#   echo "#"$PBSCMD --shared                      >>$sgeFile
+#   echo "#"$PBSCMD -l naccesspolicy=shared       >>$sgeFile
  
- elif [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+ elif [ -n "$CORI" ]; then
    echo "#"$PBSCMD $QUEUE                        >>$sgeFile
    echo "#"$PBSCMD $WALLTIME                     >>$sgeFile
    echo "#"$PBSCMD -N 1                          >>$sgeFile
    echo "#"$PBSCMD -n 1                          >>$sgeFile
+   echo "#"$PBSCMD $MEMREQUEST                   >>$sgeFile
+   echo "#"$PBSCMD -C haswell                    >>$sgeFile
 
-   if [ -n "$EDISON" ] || [ -n "$CORI" ] ; then
-       echo "#"$PBSCMD $MEMREQUEST               >>$sgeFile
-   fi
-
-   if [ -n "$CORI" ]; then
-       echo "#"$PBSCMD -C haswell                >>$sgeFile
-   fi
 
    if [ -n "$SBATCHDISK" ]; then        
      echo "#"$PBSCMD $SBATCHDISK                 >>$sgeFile

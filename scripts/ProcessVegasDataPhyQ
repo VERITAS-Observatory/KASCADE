@@ -70,6 +70,7 @@ fi
    echo $lcl'/'$VEGASPRODFILENAME  \\                >>$sgeFile
    echo $DataFile' '  \\                             >>$sgeFile
    echo $FlasherFile' '  \\                          >>$sgeFile
+   echo $JOBDESIGNATOR' ' \\                         >>$sgeFile
    echo ' >'$lcl'/'$BaseFileName$JOBDESIGNATOR'.log' >>$sgeFile
 
    chmod 700 $sgeFile

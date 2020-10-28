@@ -1,0 +1,23 @@
+#!/bin/bash
+# *******************************************************************************
+# This is a version of VegasProduction.scr for Stage1 Flasher only.
+#******************************************************************************
+#$1 Flasher .cvbf file name for ProcessAll compatability(Sets log file name)
+#$2  Flasher .cvbf file name to process. (Ex. 88411.cvbf )
+#$3 Identifying string for Job name (Ex: "A1")
+# *****************************************************************************
+# Will produce file same name as flasher with .root extention insrtead of .cvbf
+# *****************************************************************************
+
+lcl=$PWD
+Stage1Laser=enable
+
+#Now process the file:
+VBFLSRFileName=$2
+
+LSRRootFile=${VBFLSRFileName%.cvbf}'.root'
+LSRRootFileName=${LSRRootFile##*/}
+if [ -n "$Stage1Laser" ]; then
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=laser $VBFLSRFileName \
+                                                              $LSRRootFileName
+fi
