@@ -385,6 +385,26 @@ function SgeFileBashCmds()
 }
 #########################################################################
 
+function SgeFileLoadVegasVersion()
+##########################################################################
+# Loads a vegas version if a module file for it exists
+# $1: This scipts name of output "pbs" file
+# $2: Vegas version to load
+####################################################################
+{
+  sgeFile=$1
+  VV=$2
+  if [ -n $VV ]; then
+    VER=$(module av-t 2>&1 vegas|xargs -n1|grep $VV) 
+    if [ ! -z $VER ]; then
+      echo    module unload vegas                       >>$sgeFile
+      echo    module load vegas/$VV                     >>$sgeFile 
+      echo    module list                               >>$sgeFile
+    fi
+  fi
+}
+#########################################################################
+
 function SgeFileCompleteAndSave()
 #########################################################################
 # Complete the .pbs file by adding Done command file creation

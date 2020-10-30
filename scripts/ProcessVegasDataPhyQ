@@ -1,7 +1,9 @@
 #$1 List of data.cvbf flasher.cvbf files
 #$2 VegasProduction file name:   Ex: "VegasProductionS1S2Data.scr"
-#$3 Identifying string for Job name (Ex: "A1")
-#$4 Alternate VEGAS version (optional)Ex. "2.6.0betaZAlpha"
+#$3 Identifying string for Job name or if gt scaling is to be used its the 
+#   epoch designation (Ex: "A1" or "V6_2017-2018")
+#$4  VEGAS version to use. Defulat is whatever is presently loaded.(optional)
+#    Ex. "2.6.0betaZAlpha"
 
 
 function usage()
@@ -9,9 +11,9 @@ function usage()
  echo '***ProcessVegasData usage:'
  echo '   $1:  List of data.cvbf flasher.cvbf files'
  echo '   $2:  VegasProduction file name:  Ex: "VegasProductionS1S2Data.scr"'
- echo '   $3:  Identifying string for Job. Ex: "A" or "B5" or "MyFavoriteJob"'
- echo '   $4:  Alternate VEGAS version (optional)Ex. "2.6.0betaZAlpha"'
- echo ' EX: ./ProcessVegasData runlist VegasProductionS1S2Data.scr A1 2.6.0betaZAlpha'
+ echo '   $3:  Identifying string or Epoch designation for Job. Ex: "A" or "V6_2017-2018" '
+ echo '   $4:  VEGAS version to use if not defualt (optional)Ex. "2.6.0betaZAlpha"'
+ echo ' EX: ./ProcessVegasData runlist VegasProductionS1S2Data.scr v6_2017-2018  2.5.8rc0'
  echo '***'
 }
 
@@ -31,11 +33,14 @@ source UtilityFunctions.scr
 RUNLIST=$1
 VEGASPRODFILENAME=$2
 JOBDESIGNATOR=$3
-VEGASVERSION=$4
+VV=$4
 
-module unload vegas
-module load vegas/$VEGASVERSION   #if VEGASVERSION not specified this just 
-module li                         #loads default vegas
+
+if [ -n $VV ]; then         # if VV not specified this just
+    module unload vegas     # uses presently loaded vegas.
+    module load vegas/$VV    
+fi                                    
+module list                       
 
 lcl="$PWD"
 
@@ -43,7 +48,7 @@ SetupForHost    #From UtilityFunctions.scr:Specifics for cluster we are on
 
 let i=0
 if [ -n "$PURDUE" ]; then
-  #Defualt is Physics queue with 10 hr walltime.
+  #Defualt is Physics queue with 12 hr walltime (I think).
   QUEUE=$PHYSICSQUEUE            #physics queue
   WALLTIME=$PHYSICSWALLTIME
 fi
@@ -60,12 +65,11 @@ fi
                              # Adds PBS or SBATCH commands to "pbs" files
 
    SgeFileBashCmds $sgeFile  # In UtilityFunictions.scr:
-                             # Adds Batch commands to "pbs" files
-   
-   echo module unload vegas                          >>$sgeFile
-   echo module load vegas/$VEGASVERSION              >>$sgeFile
-   echo module list                                  >>$sgeFile
-   echo cd $lcl                                      >>$sgeFile
+                             # Adds Bash commands to "pbs" files
+                             # Includes a module load KASCADE and a
+                             # module list command
+
+   SgeFileLoadVegasVersion $sgeFile $VV
  
    echo $lcl'/'$VEGASPRODFILENAME  \\                >>$sgeFile
    echo $DataFile' '  \\                             >>$sgeFile

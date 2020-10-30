@@ -1,85 +1,49 @@
 #!/bin/bash
 # *******************************************************************************
-# 2019-10-08 This is a clonned and modified version of Mary's mk_VegasProductionS1S2Data.scr
-# Only for Stage1 and stage2 production.
-# Only for vegas beta/2.6.0 or later versions. (lGD specfific)
-#  To be run from "rocessVegasData"
-#
-# This is a generic VegasProduction.scr. Be very careful before messing with it!
+# This is VegasProductionS1S2Data.scr 
+# Runs stages 1 and 2 on data files.  originally for 2.5.8
 #******************************************************************************
-#This runs first 2 vegas stages on normal file  files;
-#$1 .cvbf or .root file to process. (Ex. ./VData/33619.cvbf)
-#$2 .cvbf Laser or Flasher file           (Ex. ./VData/33616.cvbf)
-# EX: ./VegasProductionS1S2Data 75981.cvbf 75983.cvbf
-
-#####################################################################################
-#NOTE: calling routine will have done a module load vegas/VEGASVERSION  call to
-# set up the vegas we will use. This file assumes VEGASVERSION is beta/2.6.0 or later!
-#####################################################################################
-
-
+#This runs the first 2 vegas stages on normal data files;
+#$1 .cvbf  file to process. (Ex. ./VData/33619.cvbf)
+#$2 .cvbf Flasher file           (Ex. ./VData/33616.cvbf)
+#$3 Identifying string or epoch specification for gt scaling. Used also in Job 
+#     name and in log and err file names (Ex: "A1" or "V6_2017-2018")
+#******************************************************************************
 lcl=$PWD
+
 Stage1Data=enable
 Stage2=enable
 
+VBFFileName=$1
+VBFLSRFileName=$2
+JOBDESIGNATOR=$3
+
 ##############################################################################
 #Configurable options:
+ #Epochs:
+  #Epoch:V6_2017_2018
+  if [ "$JOBDESIGNATOR" = "V6_2017-2018" ]; then
+      ScaleGain='-QSCTD_ScaleGain 1/0.886,2/0.947,3/0.889,4/0.8891'
+      ScaleThroughput='-QSCTD_ScaleThroughput 1/0.720,2/0.815,3/0.733,4/0.737'
+      ScaleCharge='-S2A_ScaleCharge=1/0.638,2/0.773,3/0.651,4/0.655'
+  fi
+
  #Stage1:
   #MaxWindowWidthOption='-QSCTD_MaxSumWinWidth=12'
   #PointingCorrectionOption='-G_ReplaceTrackingParameters=TrackingCorr_T1_2007112toNOW,TrackingCorr_T2_2007112toNOW,TrackingCorr_T3_2007112toNOW,TrackingCorr_T4_2007112toNOW'
-
 ###############################################################################
 
  #Stage2:
   #WindowWidthOption='-TW_LowGainWindowWidth=12 -TW_HighGainWindowWidth=12'
-  #AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
+   AddCalibratedEvents='-Stage2_WriteCalibratedEvents=1' #To see pixels and 
                                                        #pedvars with vaDisplay
   #EnableMuonDataOption='-WriteMuonData=1 -MP_Algorithm=MuonParamBasic' #makes 
                                                        #muon-ring-fitting tree 
   #EnableImageTimingOption='-WriteImageTimingData=1 -ITP_Algorithm=ImageTimingParamBasic'                      #Makes timing-across-image tree
   Hillas2DOption='-Hillas2DCalc=Null' #Turn off for speed reasons.
   #HillasFitOption='-HillasFitAlgorithum=2DEllipticalGaussian' 
-
-####
-#July 16,2018 Low gain options for stage 2 from Dec 14 2017.
-# 2019-10-08 GHS: As far as I can tell these options should be automatically chosen 
-# for vegas beta/2.6.0 or later if defaults for:
-#  -TE_Algorithm=Auto   (should cause this to be set to:'TraceEvaluatorLowGainDiagnostics'
-#  -TE_UseDefaultLowGainFiles=1 (Should causefor V6:
-#         -TE_LowGainTemplateFilePath=lowGainTemplateLookupPhotonisWithTimeSpread.root 
-#         -TE_LowGainTransferFunctionFilePath=photonis_low_gain_to_high_gain_transfer.root
-# Specific settings are set below but commented out
-#lgdf=$VEGAS/../../common/lowGainDataFiles/
-#VTMPLT=$lgdf'lowGainTemplateLookupPhotonisWithTimeSpread.root'
-#VTF=$lgdf'photonis_low_gain_to_high_gain_transfer.root'
-#
-#LGDAlgorithumOption='-TE_Algorithm=TraceEvaluatorLowGainDiagnostics'
-#LGDTemplateOption='-TE_LowGainTemplateFilePath='$VTMPLT
-#LGDTranferFuntionOption='-TE_LowGainTransferFunctionFilePath='$VTF
-
-#echo Low_Gain_Options
-#echo VTMPLT: $VTMPLT 
-#echo VTF: $VTF
-
-#if [ ! -e "$VTMPLT" ]; then
-#    echo vtmplt file does not exist: $VTMPLT
-#exit
-#fi
-#if [ ! -e "$VTF" ]; then
-#    echo vtf file does not exist: $VTF
-#exit
-#fi
-
 #############################################################################
-#   OverrideLTCheckOption='-OverrideLTCheck=1'
-##############################################################################
-
-#Now process the files:
-
-
-VBFFileName=$1
-VBFLSRFileName=$2
-
+#Now process the file:
 LSRRootFile=${VBFLSRFileName%.cvbf}'.root'
 LSRRootFileName=${LSRRootFile##*/}
 
@@ -87,23 +51,22 @@ File=${VBFFileName%.root}'.root' #allow .root or .cvbf file names on input
 if [ "$File" = "$VBFFileName" ]; then
     VBFFileName=${VBFFileName%.root}'.cvbf'
 fi
-
-RootFile=${VBFFileName%.cvbf}'.root'
+RootFile=${VBFFileName%.cvbf}$JOBDESIGNATOR'.root'
 RootFileName=${RootFile##*/}
-
-# A lot of the options used in the commands below are undefined and thus blank!
-
-if [ -n "$Stage1Data" ]; then
-    $VEGAS/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
-    $PointingCorrectionOption $VBFFileName $RootFileName
-fi
 
 echo VBFFileName: $VBFFileName
 echo RootFileName: $RootFileName
 echo LSRRootFileName: $LSRRootFileName
 
+
+if [ -n "$Stage1Data" ]; then
+    $VEGAS/bin/vaStage1 -Stage1_RunMode=data $MaxWindowWidthOption \
+      $ScaleGain $ScaleThroughput $PointingCorrectionOption \
+      $VBFFileName $RootFileName
+fi
+
 if [ -n "$Stage2" ]; then
-    $VEGAS/bin/vaStage2  $AddCalibratedEvents $Hillas2DOption \
-    $LGDAlgorithumOption $LGDTemplateOption $LGDTranferFuntionOption \
-    $VBFFileName $RootFileName $LSRRootFileName
+    cmd=$VEGAS'/bin/vaStage2 '$AddCalibratedEvents' '$EnableMuonDataOption' '$WindowWidthOption' '$EnableImageTimingOption' '$Hillas2DOption' '$HillasFitOption' '$ScaleCharge' '$VBFFileName' '$RootFileName' '$LSRRootFileName
+    echo cmd: $cmd
+    $cmd
 fi
