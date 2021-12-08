@@ -249,32 +249,27 @@ fi
 
 
  hostString=${host:0:8}
- if test  "$hostString" = "halstead"  #Are we running on Halstead
-  then
+ if test  "$hostString" = "halstead"  #Are we running on Halstead which uses
+  then                                #slurm
    HALSTEAD=enabled
    QSUB='sbatch'
    PBSCMD='SBATCH'
-#   QSUB='qsub -V'
-#   PBSCMD='PBS'
    MEMREQUEST='--mem=8GB'
-#   MEMREQUEST=' -l mem=8GB'
    let SUBMITLIMIT=975
 
    QUEUE1='-A physics'
    PHYSICSQUEUE=$QUEUE1
    WALLTIME1='-t 10:00:00'
-#   WALLTIME1='-l walltime=10:00:00'
    PHYSICSWALLTIME=$WALLTIME1
 
    QUEUE2='-A standby'
    STANDBYQUEUE=$QUEUE2
-
-   WALLTIME='-t 04:00:00'
-#   WALLTIME2='-l walltime=04:00:00'
+   WALLTIME2='-t walltime=04:00:00'
    STANDBYWALLTIME=$WALLTIME2
 
+   #Default to Standby queue with its max waltime
    QUEUE=$QUEUE1
-   WALLTIME=$WALLTIME1
+   WALLTIME=$WALLTIME2
 
    echo '***Halstead Cluster:'$QUEUE' queue ***'
  fi
