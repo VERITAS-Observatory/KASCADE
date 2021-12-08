@@ -1,9 +1,10 @@
 #!/bin/bash
-#Utility functions for use with KSAuto,VAAuto,CRProcessAll,EProcessAll,GProcessAll,
-#                               ksProduction.scr
+#Utility functions for use with KSAuto,VAAuto,CRProcessAll,EProcessAll,
+#                               GProcessAll,ksProduction.scr
 # Glenn Sembroski
 # Purdue Univ
 # 2014-12-18
+# Updated 2021-12-08 (fix halstead walltime, cleanup
 #
 # Include in files with:
 #
@@ -12,13 +13,13 @@
 #:  fi
 #:  source UtilityFunctions.scr
 #
-###################################################################################
+###############################################################################
 # Functions:
 #    function DefineShowers: Loads the energy, start and end arrays.
 #    function GenerateVBFName()
 #    function GetUniqueNumber
 #
-#####################################################################################
+###############################################################################
 
 function GetUniqueNumber()
 {
@@ -26,10 +27,10 @@ function GetUniqueNumber()
   #second tick to get unique value. (least count is micro sec at best)
   let UNIQUE=$(date +10#%N)+$$     # The 10# prevents leading 0's causeing errors
 }
-####################################################################################
+###############################################################################
 
 function DefineShowers()
-##########################################################################
+###############################################################################
 # This function loads the energy, start,end arrays for the VERITAS KASCADE 
 # shower specifications.
 #$1: Particle type: EX. G or E or P or He4_
@@ -225,11 +226,11 @@ function SetupForHost()
  ###################################################################
  #Specifics for cluster we are runing on
  ###################################################################
-if [ -n "$NERSC_HOST" ]; then
- host=$NERSC_HOST
-else
- host=$(hostname)
-fi
+ if [ -n "$NERSC_HOST" ]; then
+  host=$NERSC_HOST 
+ else
+  host=$(hostname)
+ fi
 
  echo host: $host
  
@@ -242,7 +243,8 @@ fi
    SBATCHDISK='-L SCRATCH'
    QUEUE='-q shared'
    WALLTIME='-t 12:00:00'
-   MEMREQUEST='--mem=5GB'
+   #MEMREQUEST='--mem=1GB'   #Gets 2 cpu(minimum)
+   MEMREQUEST='--mem=3GB'   #Gets 4 cpu #for VaStage2
    let SUBMITLIMIT=10000
    echo '***Cori/Haswell  Cluster***'
  fi
