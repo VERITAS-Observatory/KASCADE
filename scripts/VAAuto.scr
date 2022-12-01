@@ -41,8 +41,6 @@ MaxQsubsDefault=450      # jobs but only want 9 at a time to run (limit for
                          # only make 450 submission in queue at one time
 
 JobArray=enabled         #For cori jobs arrays
-#EdisonMultipleSerial=enabled  #Temp switch to test out new Edison mutiple 
-                              #serial VegasSimProduction submission.
 ###############################################################################
 
 function commandEnable()
@@ -506,11 +504,6 @@ function SubmitHtarToArchive()
   sgeFile=$lcl'/'$HTARFileName'To.pbs'
   echo "#"PBS -q $QUEUE                                            >$sgeFile
   echo "#"PBS $WALLTIME                                           >>$sgeFile
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load gcc/5.3.0                                  >>$sgeFile
-    fi
   if [ -n "$PURDUE" ]; then  
     echo source /etc/profile                                      >>$sgeFile
     echo module load gcc/5.2.0                                    >>$sgeFile
@@ -537,23 +530,14 @@ function SubmitHtarToArchive()
   # We are now going to wait for the htar to finish.
   #####################################################################
 
-  if [ -n "$HAMMER" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Hammer "$QUEUE" queue complete."
-  fi
-  if [ -n "$HALSTEAD" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Halstead "$QUEUE" queue complete."
-  fi
-  if [ -n "$CONTE" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Conte "$QUEUE" queue complete."
+  if [ -n "$BELL" ]; then
+   echo "VAAuto: htar to archive "$HTARFileName" job submission to Bell "$QUEUE" queue complete."
   fi
 
   if [ -n "$CORI" ]; then
    echo "VAAuto: htar to archive "$HTARFileName" job submission to Cori cluster complete."
   fi
 
-  if [ -n "$EDISON" ]; then
-   echo "VAAuto: htar to archive "$HTARFileName" job submission to Edison cluster complete."
-  fi
   date
   cd $lcl
 }
@@ -583,11 +567,6 @@ function SubmitHtarFromArchive()
   sgeFile=$lcl'/'$Source'From.pbs'
   echo "#"PBS -q $QUEUE                               >$sgeFile
   echo "#"PBS $WALLTIME                              >>$sgeFile
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                   >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared            >>$sgeFile
-      echo module load gcc/5.3.0                     >>$sgeFile
-    fi
   if [ -n "$PURDUE" ]; then
     echo source /etc/profile                         >>$sgeFile
     echo module load gcc/5.2.0                       >>$sgeFile
@@ -619,8 +598,6 @@ function SubmitMultipleSerialJobs()
 #########################################################################
 #$1 Name of JobList file
 #$2 MSJ id.
-#########################################################################
-# This is just for Edison for now.
 ########################################################################
 {
   local MSJList=$1
@@ -636,9 +613,6 @@ function SubmitMultipleSerialJobs()
   local sgeFile=$lcl'/MSJ'$MSJId'.pbs'
   echo "#"PBS -l mppwidth=$NUMCORESNODE            >$sgeFile
   echo "#"PBS $WALLTIME                           >>$sgeFile
-  if [ -n "$EDISON" ]; then
-   echo 'module load ccm'                         >>$sgeFile
-  fi
   if [ -n "$PURDUE" ]; then
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/5.2.0                    >>$sgeFile
@@ -713,71 +687,29 @@ function SubmitVegasSimProduction()
      echo $VEGASDoneLog >>$QsubLogs                 #add the next one
   fi
 
-  #############################################
-  # Check to see if we are on Edison and if the Mutiple Serial Jobs(MSJ) mode 
-  # has been enabled. If so add this job command to the list file and if we 
-  # fill it up ($NUMCORESNODE) then make and submit the .pbs job and reset.
-  #############################################
-  if [ -n "$EDISON" ] && [ -n "$EdisonMultipleSerial" ]; then
-    if test $MSJCount -eq "0"  
-     then
-      GetUniqueNumber
-      MSJobList=MSJList$UNIQUE
-    fi
-    ####################
-    # Include the creation of the "Done" file in the command
-    # Note the addition of the  "(" and ";" and ")"  and "&"
-    ####################
-    local VSPCommandLine=$VSPCommand' &'   
-    #local VSPCommandLine='( '$VSPCommand'; echo Done >'$lcl'/'$VEGASDoneLog';) &'   
-    let MSJCount=$MSJCount+1
-    echo VSPCommandLine: $VSPCommandLine
-    if [ "$MSJCount" = "1" ]; then
-      echo MSJobList: $MSJobList
-      echo $VSPCommandLine >$MSJobList
-    else
-      echo $VSPCommandLine >> $MSJobList
-    fi
-    #cat $MSJobList
-    #Submit the MSJ job if it is time.
-    if [ "$MSJCount" = "$NUMCORESNODE" ]; then
-      SubmitMultipleSerialJob  $MSJobList
-      let MSJCount=0
-    fi
-    return
-  else
 
-    #############################################
-    # Generate pbs file for this job. (Normal method)  
-    #############################################
-    local sgeFile=$lcl'/'$FilePedVar$FileBase$IDUNIQUE'.pbs'
+   #############################################
+   # Generate pbs file for this job. (Normal method)  
+   #############################################
+   local sgeFile=$lcl'/'$FilePedVar$FileBase$IDUNIQUE'.pbs'
 
 
 
-    echo "#"PBS $WALLTIME                  >$sgeFile
-    echo "#PBS "$MEMREQUEST                        >>$sgeFile
-    if [ -n "$CARVER" ]; then
-      echo "#PBS -l nodes=1:ppn=1"                    >>$sgeFile
-    fi
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load gcc/5.3.0                      >>$sgeFile
-    fi
-    if [ -n "$PURDUE" ]; then
-      echo source /etc/profile                        >>$sgeFile
-      echo module load gcc/5.2.0                      >>$sgeFile
-    fi
-    echo cd $lcl                                      >>$sgeFile
-    echo $VSPCommand                                  >>$sgeFile
+   echo "#"PBS $WALLTIME                  >$sgeFile
+   echo "#PBS "$MEMREQUEST                        >>$sgeFile
+   if [ -n "$PURDUE" ]; then
+     echo source /etc/profile                        >>$sgeFile
+     echo module load gcc/5.2.0                      >>$sgeFile
+   fi
+   echo cd $lcl                                      >>$sgeFile
+   echo $VSPCommand                                  >>$sgeFile
 
-    if [ -n "$LimitSubmissions" ]; then
-       echo 'echo Done >'$lcl'/'$VEGASDoneLog         >>$sgeFile
-    fi
+   if [ -n "$LimitSubmissions" ]; then
+      echo 'echo Done >'$lcl'/'$VEGASDoneLog         >>$sgeFile
+   fi
 
-    chmod 700 $sgeFile
-    $QSUB$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase$IDUNIQUE'.err' -o $FilePedVar$FileBase$IDUNIQUE'pbs.log' $sgeFile 
-  fi
+   chmod 700 $sgeFile
+   $QSUB$QSUBEXT -q $QUEUE  -V -e $FilePedVar$FileBase$IDUNIQUE'.err' -o $FilePedVar$FileBase$IDUNIQUE'pbs.log' $sgeFile 
 }
 ##############################################################################
 
@@ -1054,8 +986,8 @@ if [ -n "$CORI" ]; then
   MaxQsubsDefault=9000
 fi
 
-if [ -n "$HALSTEAD" ]; then
-    JobIDHost='halstead-adm'
+if [ -n "$BELL" ]; then
+    JobIDHost='bell-adm'
     ARCHIVE=/archive/fortress/group/veritas/simulations/
     VBFDir=$ARCHIVE'/gammas/'$SPECSEA$PMT$SPECPART$SPECMDL'VBF'
 fi
@@ -1397,7 +1329,7 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   ####################################################################
   #1: Setup the VegasSimProduction.scr we will use for these jobs.
   #2: Setup the QsubFileNameList and QsubsLogs file
-  #3: For Halstead shorten the walltime for these Stage2 jobs.
+  #3: For Bell shorten the walltime for these Stage2 jobs.
   ####################################################################
   cd $lcl
   date
@@ -1450,11 +1382,11 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   #  #Define the file names needed in the options.
   #  #########################################
   #  if [ -n "$VEGASBASE" ]; then
-  #    if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+  #    if [ -n "$CORI" ] ; then
   #      lgdf=$VEGASBASE/common/lowGainDataFiles/   #on cori
   #    else
-  #      if [ -n "$HALSTEAD" ]; then
-  #        lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Halstead
+  #      if [ -n "$BELL" ]; then
+  #        lgdf=$VEGASBASE/common/lowGainDataFiles/   #on Bell
   #      fi
   #    fi
   #  else
@@ -1572,7 +1504,7 @@ if [ -n "$GenerateStage4FromStage2" ]; then
   WALLTIME='-t 04:00:00'
 #  MEMREQUEST='--mem=1GB'  #This gets us chagred for  2 core on cori
   MEMREQUEST='--mem=3GB'  #This gets us chagred for  4 core on cori
-  if [ -n "$HALSTEAD" ]; then
+  if [ -n "$BELL" ]; then
     WALLTIME='-l walltime=04:00:00'
     MEMREQUEST='-l mem=7GB'
   fi
@@ -1935,11 +1867,7 @@ if [ -n "$GetVBFFileFromArchive" ]      || [ -n "$GenerateStage2FromVBF" ] || \
         sgeFile=$lcl'/'$DISPSUBLTBASE'.pbs'
         echo "#"PBS $WALLTIME                >$sgeFile
         echo "#PBS "$MEMREQUEST                         >>$sgeFile
-        if [ -n "$CONTE" ]; then
-         echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-         echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-         echo module load gcc/5.3.0                     >>$sgeFile
-        fi
+
         if [ -n "$PURDUE" ]; then
           echo source /etc/profile                      >>$sgeFile
           echo module load gcc/5.2.0                    >>$sgeFile
@@ -2219,11 +2147,11 @@ if [ -n "$GenerateStage2FromVBF" ]; then
   #echo '##########################################################'
         
   ######################################################################
-  # For NERSC (Cori or Edison) JobArray only: generate Jobarry .pbs file for 
+  # For NERSC (Cori ) JobArray only: generate Jobarry .pbs file for 
   # all the .pbs jobs in the qsubFileNameList.
   # SubmitQsubJobs is in UtilityFuncitons.scr
   ######################################################################
-  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [[ -n "$CORI" ] && [ -n "$JobArray" ]; then
     SubmitQsubJobs  $QsubFileNameList
   fi
 fi
@@ -2336,9 +2264,6 @@ if [ -n "$ProduceSubLookupTables" ]; then
   if [ -n "$CORI" ]; then
     MEMREQUEST=" --mem=24GB"
   fi
-  if [ -n "$EDISON" ]; then
-    MEMREQUEST=" --mem=24GB"
-  fi
   date
 fi  
 ########################################################################
@@ -2350,7 +2275,7 @@ if [ -n "$ProduceEASubLookupTables" ]; then
   cd $lcl
   EASPEC=EA
   WALLTIME='-t 08:00:00'
-  if [ -n "$HALSTEAD" ]; then
+  if [ -n "$BELL" ]; then
     WALLTIME='-l walltime=04:00:00'
   fi
   date
@@ -2374,9 +2299,6 @@ if [ -n "$HTARPedVarZnOffsetS2ToArchive" ]; then
   echo '##########################################################'
   echo '# HTARPedVarZnOffsetS2ToArchive'
   echo '##########################################################'
-  if [ -n "$EDISON" ]; then
-    QUEUE=xfer
-    QSUBEXT=" "
   fi
   cd $lcl
   date
@@ -2785,12 +2707,12 @@ if [ -n "$GenerateSubLTConfigFiles" ] || [ -n "$GenerateSubLTListFiles" ]       
             
                 # OK! We are ready to run.  Need to submit since this will take more 
                 # than 1 hours or we have many to run in parallel 
-                #Cori and Edison values
+                #Cori  values
                 WALLTIME='-t 20:00:00'
                 MEMREQUEST=" --mem=2GB"
 	
-		#Halstead values
-                if [ -n "$HALSTEAD" ]; then
+		#Bell values
+                if [ -n "$BELL" ]; then
                   WALLTIME='-l walltime= 20:00:00'
                   MEMREQUEST=" -l mem=5GB"
                 fi
@@ -2894,31 +2816,17 @@ if [ -n "$GenerateStage4FromStage2" ] || [ -n "$GenerateStage5Combined" ] || \
    [ -n "$GenerateStage5CombinedRCE" ]; then
         
   ######################################################################
-  # For NERSC (Cori or Edison) JobArray only: generate Jobarry .pbs file for 
+  # For NERSC (Cori ) JobArray only: generate Jobarry .pbs file for 
   # all the .pbs jobs in the qsubFileNameList.
   # SubmitQsubJobs is in UtilityFuncitons.scr
   ######################################################################
-  if [[ -n "$CORI" || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [[ -n "$CORI" ] && [ -n "$JobArray" ]; then
     SubmitQsubJobs  $QsubFileNameList
   fi
 fi
 ##########################################################################
 
-################################
-#  Flush last MSJ job
-################################
-if [ -n "$EdisonMultipleSerial" ]; then
-  if [ -n "$GenerateStage2FromVBF" ]    || \
-     [ -n "$GenerateStage4FromStage2" ] || \
-     [ -n "$GenerateStage5Combined" ]   || \
-     [ -n "$GenerateStage5CombinedRCE" ]; then        
-     if [ $MSJCount -gt "0" ]; then
-       SubmitMultipleSerialJobs  $MSJobList
-     fi
-   let MSJCount=0
-  fi
-fi
-#########################################################################
+########################################################################
 
 if [ -n "$ProduceSubLookupTables" ] || [ -n "$ProduceEASubLookupTables" ]; then
   #echo '##########################################################'
@@ -2975,14 +2883,6 @@ if [ -n "$CombineSubLT" ] ||  [ -n "$CombineDispSubLT" ]; then
      echo "#"PBS -q $QUEUE                                           >$sgeFile
      echo "#"PBS $WALLTIME                                         >>$sgeFile
      echo "#PBS "$MEMREQUEST                                     >>$sgeFile
-     if [ -n "$CARVER" ]; then
-       echo "#PBS -l nodes=1:ppn=1"                               >>$sgeFile
-     fi
-     if [ -n "$CONTE" ]; then
-       echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-       echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-       echo module load gcc/5.3.0                                 >>$sgeFile
-     fi
      if [ -n "$PURDUE" ]; then  
        echo source /etc/profile                                   >>$sgeFile
        echo module load gcc/5.2.0                                 >>$sgeFile

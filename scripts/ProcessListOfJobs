@@ -10,16 +10,8 @@ then
   QUEUE=serial
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on Hammer
-then
-  QUEUE1=physics
-  QUEUE2=standby
-  QUEUE=$QUEUE1
-fi
-
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on Halstead
+hostString=${host:0:4}
+if test  "$hostString" = "bell"  #Are we running on Bell
 then
   QUEUE1=physics
   QUEUE2=standby

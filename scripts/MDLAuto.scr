@@ -267,9 +267,6 @@ function SubmitVegasProduction()
     #echo "#"PBS -l walltime=04:00:00                   >$sgeFile
     echo "#"PBS -l walltime=$WALLTIME                 >$sgeFile
     echo "#PBS -l "$MEMREQUEST                       >>$sgeFile
-    if [ -n "$CARVER" ]; then
-      echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
-    fi
     if [ -n "$PURDUE"]; then
       echo source /etc/profile                       >>$sgeFile
       echo module load gcc/4.7.2                     >>$sgeFile
@@ -315,9 +312,6 @@ function SubmitVegasSimProduction()
   sgeFile=$lcl'/'$FilePedVar$FileBase'.pbs'
   echo "#"PBS -l walltime=$WALLTIME                >$sgeFile
   echo "#PBS -l "$MEMREQUEST                      >>$sgeFile
-  if [ -n "$CARVER" ]; then
-    echo "#PBS -l nodes=1:ppn=1"                   >>$sgeFile
-  fi
   if [ -n "$PURDUE" ]; then
     echo source /etc/profile                      >>$sgeFile
     echo module load gcc/4.7.2                    >>$sgeFile
@@ -375,8 +369,8 @@ function SubmitQsubJobs()
 	echo $sgeDoneFile >>$QsubDoneList #add the next one
        
        $QSUB$QSUBEXT -l $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-       #For Hammer pause between submissions
-       if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ] ; then
+       #For BELL pause between submissions
+       if [ -n "$BELL" ]  ; then
          sleep 10
        fi
       done
@@ -563,20 +557,6 @@ SPECPV=$9
 host=$(hostname)
 echo host: $host
 
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
-  VDirBase=$SCRATCH'/simulations/veritas/'
-  #VDirBase=/global/scratch2/sd/u15013/simulations/veritas/
-  JobIDHost='edison'
-  QUEUE=serial
-  QSUBEXT='.serial'
-  MEMREQUEST=' vmem=8GB '
-  MaxQsubs=175  
-  echo '***Edison Cluster***'
-fi
-
 hostString=${host:0:5}
 if test  "$hostString" = "cori"  #Are we running on Cori
 then
@@ -590,28 +570,16 @@ then
   echo '***Cori Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on Hammer
+hostString=${host:0:4}
+if test  "$hostString" = "bell"  #Are we running on Bell?
 then
-  HAMMER=enabled
+  BELL=enabled
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='hammer-adm'
+  JobIDHost='bell-adm'
   QUEUE=physics
   #QUEUE=standby
   MaxQsubs=475  
-  echo ***Hammer Cluster***
-fi
-
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on Halstead
-then
-  HALSTEAD=enabled
-  VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='halstead-adm'
-  QUEUE=physics
-  #QUEUE=standby
-  MaxQsubs=475  
-  echo ***Halstead Cluster***
+  echo ***Bell Cluster***
 fi
 
 ###################################
@@ -897,14 +865,6 @@ if [ -n "$ProduceModelCosmicRayShowerVBF" ]; then
     echo QsubFileNameList: $QsubFileNameList
     if [ -e $QsubFileNameList ]; then
 	rm $QsubFileNameList
-    fi
-    if [ -n "$EDISON" ]; then
-	MEMREQUEST=' vmem=8GB '
-	echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
-    fi
-    if [ -n "$CARVER" ]; then
-	MEMREQUEST=' pvmem=8GB '
-	echo 'KSAuto: For Carver use #PBS '$MEMREQUEST
     fi
 
     if [ ! -e ksProduction.scr ]; then

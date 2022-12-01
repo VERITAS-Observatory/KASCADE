@@ -61,16 +61,10 @@ while [ -z "$host" ];
 done
 echo Running on $host
 
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on a Hammer node
+hostString=${host:0:4}
+if test  "$hostString" = "bell"  #Are we running on a Bell node?
 then
-  HAMMER=enabled
-fi
-
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on a Halstead node?
-then
-  HALSTEAD=enabled
+  BELL=enabled
 fi
 
 hostString=${host:0:1}
@@ -131,14 +125,6 @@ cd workingScratch          #This is a  sub dir of the data dir (PBS)
 #create working directory.
 mkdir $dirID
 
-#######################################################################
-#Following is supposed to make running on hammer node more robust
-#######################################################################
-#if [ -n "$HAMMER" ]; then
-#  lfs setstripe -c 1 $dirID
-#  lfs getstripe $dirID
-#fi
-#######################################################################
 
 cd $dirID
 

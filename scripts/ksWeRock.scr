@@ -54,11 +54,6 @@ source UtilityFunctions.scr
 
 SetupForHost
 
-#EDISON
-if [ -n "$EDISON" ]; then
-    dataDirBase=$lcl/../simulations
-    dstDir=$dataDirBase
-fi
 
 #CORI
 if [ -n "$CORI" ]; then

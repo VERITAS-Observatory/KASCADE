@@ -4,9 +4,7 @@
 #delimiters, not commas!) and transfers the .cvbf files to the carver local disk using
 # bbftp from the UCLA archive (unless they alread exist, or can be retrieved from the 
 # archives)
-# Also will update Carver and Purdue data archives if so instructed.
-#********************************************
-#Carver(NERSC): Run this on dtn01 
+# Also will update Purdue data archives if so instructed.
 #********************************************
 ##################################################################################
 #Arguments:
@@ -14,13 +12,13 @@
 #     Data run number( Ex 71223), and 4 flasher runs for that data run (Ex. 71218). 
 #     The 4 flasher runs may be duplicates.
 #$2  Source Directory name to put these files in (usually a source name). Ex Crab. 
-#     Also this will be the name of the source directories in the Carver and Purdue 
+#     Also this will be the name of the source directories in the  Purdue 
 #     Archive files.
 ###################################################################################
 # Archetecture ideas:
 #Create a function that reads in the loggen file and creates another 
 #file that has the full name of each requested file in it. Seach and remove 
-#duplicates. Later this file will be used to get date info for the Purdue and Carver 
+#duplicates. Later this file will be used to get date info for the Purdue. 
 #archives.  With this list of filenames we can search for their existance
 #locally or on the archives before we try to transfer them from UCLA.
 #####################################################################################
@@ -33,9 +31,7 @@ SkipExistingFiles=enabled           #Comment out this line to cause existing fil
                                     #on disk (and in archives) to be replaced
 
 #GetFilesFromPurdueArchive=enabled (Not yet implimented)
-#GetFilesFromCarverArchive=enabled(Not yet implimented)
 
-#SaveFilesToCarverArchive=enabled
 #SaveFilesToPurdueArchive=enabled(Not yet implimented)
 
 #####################################
@@ -139,7 +135,6 @@ function getFilesFromUCLA()
 ###############################################################################
 #Get the files in the list using bbftp. Simple transfer 1 file at a time
 #may have "exceed run time" problem
-#Carver: run this on dtn01
 ###############################################################################
 #Still to do:
 #1:No recovery yet for nonexistent files

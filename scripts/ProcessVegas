@@ -8,33 +8,16 @@ lcl="$PWD"
 let i=0
 host=$(hostname)
 echo host: $host
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on Hammer
+
+hostString=${host:0:4}
+if test  "$hostString" = "bell"  #Are we running on Bell
 then
-  HAMMER=enabled
+  BELL=enabled
   QUEUE=physics
   WALLTIME=30:00:00
   #QUEUE=standby
   #WALLTIME=04:00:00
-  echo ***HaMMER Cluster***
-fi
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on Halstead
-then
-  HALSTEAD=enabled
-  QUEUE=physics
-  WALLTIME=30:00:00
-  #QUEUE=standby
-  #WALLTIME=04:00:00
-  echo ***Halstead Cluster***
-fi
-hostString=${host:0:5}
-if test  "$hostString" = "conte"  #Are we running on Conte
-    then
-    CONTE=enabled
-    QUEUE=physics
-    WALLTIME=30:00:00
-    echo ***Conte Cluster***
+  echo ***Bell Cluster***
 fi
 
 {
@@ -46,16 +29,7 @@ fi
       sgeFile=$lcl'/'$BaseFileName$3'.pbs'
       echo "#"PBS -q $QUEUE                     >$sgeFile
       echo "#"PBS -l walltime=$WALLTIME         >>$sgeFile
-      if [ -n "$CARVER" ]; then
-        echo "#PBS -l nodes=1:ppn=1"            >>$sgeFile
-        echo "#PBS -l pvmem=20GB"                      >>$sgeFile
-      fi
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                                >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                         >>$sgeFile
-      echo module load devel                                      >>$sgeFile
-    fi
-      if [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ] || [ -n "$CONTE" ]; then  
+    if [ -n "$BELL" ] ; then  
         echo "#PBS -l mem=15GB"                       >>$sgeFile
         echo source /etc/profile                      >>$sgeFile
         echo module load gcc/4.7.2                    >>$sgeFile

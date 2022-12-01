@@ -16,40 +16,24 @@
 host=$(hostname)
 echo host: $host
 
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
-then
-  EDISON=enabled
-  USER=u15013
-  JobIDHost='edison09'
-  echo '***Carver Cluster***'
-fi
 
 hostString=${host:0:4}
 if test  "$hostString" = "cori"  #Are we running on Cori
 then
-  CARVER=enabled
+  CORI=enabled
   USER=u15013
   JobIDHost='cori09'
   echo '***Cori Cluster***'
 fi
 
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on Hammer
-then
-  HAMMER=enabled
-  USER=sembrosk
-  JobIDHost='hammer-adm'
-  echo '***Hammer Cluster***'
-fi
 
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on Halstead?
+hostString=${host:0:4}
+if test  "$hostString" = "bell"  #Are we running on Bell?
 then
-  HALSTEAD=enabled
+  BELL=enabled
   USER=sembrosk
-  JobIDHost='halstead-a'
-  echo '***Halstead Cluster***'
+  JobIDHost='bell-a'
+  echo '***Bell Cluster***'
 fi
 
 qstat -u $USER | grep R | xargs -n1 | grep $JobIDHost >g.tmp

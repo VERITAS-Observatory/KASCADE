@@ -5,6 +5,7 @@
 # Purdue Univ
 # 2014-12-18
 # Updated 2021-12-08 (fix halstead walltime, cleanup
+# Updated 2022-12-01 (Remove Halstead, it was retired . Add Bell)
 #
 # Include in files with:
 #
@@ -248,12 +249,10 @@ function SetupForHost()
    let SUBMITLIMIT=10000
    echo '***Cori/Haswell  Cluster***'
  fi
-
-
- hostString=${host:0:8}
- if test  "$hostString" = "halstead"  #Are we running on Halstead which uses
+hostString=${host:0:4}
+ if test  "$hostString" = "bell"  #Are we running on Bell which uses
   then                                #slurm
-   HALSTEAD=enabled
+   BELL=enabled
    QSUB='sbatch'
    PBSCMD='SBATCH'
    MEMREQUEST='--mem=8GB'
@@ -273,31 +272,7 @@ function SetupForHost()
    QUEUE=$QUEUE1
    WALLTIME=$WALLTIME2
 
-   echo '***Halstead Cluster:'$QUEUE' queue ***'
- fi
-
- hostString=${host:0:4}
- if test  "$hostString" = "rice"  #Are we running on Rice
-  then
-   RICE=enabled
-   QSUB='qsub -V'
-   PBSCMD='PBS'
-
-   QUEUE1='-q physics'
-   PHYSICSQUEUE=$QUEUE1
-   WALLTIME1='-l walltime=10:00:00'
-   PHYSICSWALLTIME=$WALLTIME1
-
-   QUEUE2='-q standby'
-   STANDBYQUEUE=$QUEUE2
-   WALLTIME2='-l walltime=04:00:00'
-   STANDBYWALLTIME=$WALLTIME2
-
-   QUEUE=$QUEUE1
-   WALLTIME=$WALLTIME1
-   MEMREQUEST=' -l mem=8GB'
-   let SUBMITLIMIT=975
-   echo '***Rice Cluster:'$QUEUE' queue ***'
+   echo '***Bell Cluster:'$QUEUE' queue ***'
  fi
 
 
@@ -312,7 +287,7 @@ function SetupForHost()
    let SUBMITLIMIT=975
  fi
 
-if [ -n "$RICE" ]  || [ -n "$HALSTEAD" ] ; then
+if [ -n "$BELL" ] ; then
    PURDUE=enabled
  fi
  if [ -n "$CORI" ] || [ -n "$FUSION" ]; then
@@ -487,7 +462,7 @@ function SubmitQsubJobs()
 	    echo $sgeDoneFile >>$QsubDoneList #add the next one
        
         $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-        #For Hammer pause between submissions
+        #For Purdue  pause between submissions
         if [ -n "$PURDUE" ] ; then
           sleep 2
         fi

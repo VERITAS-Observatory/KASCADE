@@ -23,8 +23,8 @@ if [ -n "$CORI" ]; then
    lgdf=$VEGAS/../../common/lowGainDataFiles   #on cori
    echo lgdfC: $lgdf
 fi
-if [ -n "$HALSTEAD" ]; then
-   lgdf=$VEGAS/../../common/lowGainDataFiles   #on Halstead
+if [ -n "$BELL" ]; then
+   lgdf=$VEGAS/../../common/lowGainDataFiles   #on Bell
    echo lgdfH: $lgdf
 fi
 DATADIR=$SCRATCH'/simulations/veritas'

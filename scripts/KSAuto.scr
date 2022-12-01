@@ -21,7 +21,7 @@ LimitSubmissions=enabled      #Enable if you want to generate limit number of
 #CheckByPBS=enabled
 #ExitOnTeCreationFailure=enabled  
 
-JobArray=enabled             #For Cori and Edison right now 
+JobArray=enabled             #For Cori right now 
 
 ############################################################
 # Force the Check files to match shower entry numberes to those used in 
@@ -500,10 +500,6 @@ function SubmitHtarToArchive()
   if [ -n "$CORI" ]; then
 	QSUB='sbatch -M escori'
   fi
-  if [ -n "$EDISON" ]; then
-        QSUB='sbatch -M esedison'
-        WALLTIME='-t 24:00:00'
-  fi
 
   sgeFile=$ShDr'HTAR.pbs'
   sgeDoneFile=$sgeFile'.Done'
@@ -515,18 +511,13 @@ function SubmitHtarToArchive()
   echo KSAuto: SubmitHtarToArchive:sgeFile: $sgeFile
 
   echo "#"!/bin/bash -l                         >$sgeFile
-  if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+  if [ -n "$CORI" ] ; then
     echo "#"SBATCH -q xfer                     >>$sgeFile
     echo "#"SBATCH $WALLTIME                   >>$sgeFile
   else
     echo "#"PBS $QUEUE                         >>$sgeFile
     echo "#"PBS $WALLTIME                      >>$sgeFile
     echo "#PBS " $MEMREQUEST                   >>$sgeFile
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1             >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared      >>$sgeFile
-      echo module load devel                   >>$sgeFile
-    fi
     if [ -n "$PURDUE" ]; then  
       echo source /etc/profile                 >>$sgeFile
       echo module load gcc/4.7.2               >>$sgeFile
@@ -580,9 +571,6 @@ function SubmitHtarFromArchive()
   if [ -n "$CORI" ]; then
 	QSUB='sbatch -M escori'
   fi
-  if [ -n "$EDISON" ]; then
-     	QSUB='sbatch -M esedison'
-  fi
   
   sgeFile=$Source'From.pbs'
   sgeDoneFile=$sgeFile'.Done'
@@ -591,18 +579,13 @@ function SubmitHtarFromArchive()
   fi
   sgeFile=$lcl'/'$sgeFile
   echo "#"!/bin/bash -l                                       >$sgeFile
-  if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+  if [ -n "$CORI" ] ; then
     echo "#"SBATCH -q xfer                                   >>$sgeFile
     echo "#"SBATCH $WALLTIME                                 >>$sgeFile
   else
     echo "#"PBS  $QUEUE                                      >>$sgeFile
     echo "#"PBS  $WALLTIME                                   >>$sgeFile
     echo "#PBS " $MEMREQUEST                                 >>$sgeFile
-    if [ -n "$CONTE" ]; then
-      echo "#"PBS -l nodes=1:ppn=1                           >>$sgeFile
-      echo "#"PBS -l naccesspolicy=shared                    >>$sgeFile
-      echo module load devel                                 >>$sgeFile
-    fi
     if [ -n "$PURDUE" ]; then
       echo source /etc/profile                               >>$sgeFile
       echo module load gcc/4.7.2                             >>$sgeFile
@@ -642,9 +625,9 @@ function SubmitQsubJobs()
     rm $QsubDoneList
   fi
 
-  if [[ -n "$CORI"  || -n "$EDISON" ]] && [ -n "$JobArray" ]; then
+  if [[ -n "$CORI"  ] && [ -n "$JobArray" ]; then
     ##############################################################
-    # If we are on Cori or Edison and JobArrays are enabled we need to take 
+    # If we are on Cori and JobArrays are enabled we need to take 
     # each file 
     # from the QsubList, remove all the SBATCH commands and give each of 
     # these new files an indexed name(unique also) so that they can be 
@@ -695,7 +678,7 @@ function SubmitQsubJobs()
 	    echo $sgeDoneFile >>$QsubDoneList #add the next one
        
         $QSUB $MEMREQUEST -e $sgeFile'.err' -o $sgeFile'.log' $sgeFileFull 
-        #For Hammer pause between submissions
+        #For Purdue pause between submissions
         if [ -n "$PURDUE" ] ; then
           sleep 2
         fi
@@ -771,42 +754,15 @@ if [ -n "$CORI" ]; then
   fi
 fi
 
-if [ -n "$EDISON" ]; then
+if [ -n "$BELL" ]; then  
   VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='edison'
-  WALLTIME='-t 12:00:00'
-  if [ -n "$LimitSubmissions" ]; then
-    let MaxQsubs=$SUBMITLIMIT
-    let MaxHTARQsubs=9
-  fi
-fi
-
-if [ -n "$HAMMER" ]; then  
-  VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='hammer-adm'
+  JobIDHost='bell-adm'
   if [ -n "$LimitSubmissions" ]; then
      let MaxQsubs=$SUBMITLIMIT
      let MaxHTARQsubs=9  
   fi
 fi
 
-if [ -n "$HALSTEAD" ]; then  
-  VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='halstead-adm'
-  if [ -n "$LimitSubmissions" ]; then
-     let MaxQsubs=$SUBMITLIMIT
-     let MaxHTARQsubs=9  
-  fi
-fi
-
-if [ -n "$CONTE" ]; then 
-  VDirBase=$SCRATCH'/simulations/veritas/'
-  JobIDHost='conte-adm'
-  if [ -n "$LimitSubmissions" ]; then
-     let MaxQsubs=$SUBMITLIMIT
-     let MaxHTARQsubs=9  
-  fi
-fi
 
 if [ -n "$FUSION" ]; then 
   ##############################################################
@@ -1030,10 +986,6 @@ while test $izn -lt $iznEnd
 	   if [ -e $QsubFileNameList ]; then
 	      rm $QsubFileNameList
            fi
-#           if [ -n "$EDISON" ]; then
-#	     MEMREQUEST=' -l vmem=8GB '
-#	     echo 'KSAuto: For Edison use #PBS '$MEMREQUEST
-#           fi
 
 	   if [ "$SPECPART" = "CR" ]; then
              ./ksProduction.scr $ksProdSpec ksallVBF$ZnAz'.scr' $Sort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End $DEFSHWRFLAG
@@ -1449,10 +1401,6 @@ while test $izn -lt $iznEnd
 	  if [ -e $QsubFileNameList ]; then
 	    rm $QsubFileNameList
           fi
-#         if [ -n "$EDISON" ]; then
-#	   MEMREQUEST=' -l vmem=8GB '
-#	   echo 'KSAuto: For EDISON use #PBS '$MEMREQUEST
-#         fi
 
 	 if [ "$SPECPART" = "CR" ]; then
              ./ksProduction.scr $Spec ksallVBF$ZnAz'.scr' $NoSort $QsubFileNameList $EntryPStart $EntryPEnd $EntryHe4Start $EntryHe4End $DEFSHWRFLAG

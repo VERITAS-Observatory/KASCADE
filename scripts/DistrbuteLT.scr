@@ -3,7 +3,6 @@
 
 #Assumes List file entries have full path name.
 CORI=enabled
-EDISON=enabled
 UCLA=enabled
 PURDUE=Enabled
 
@@ -32,16 +31,12 @@ lcl=$PWD
          hsi 'cd tables; put '$LTFILE';'
      fi
 
-     if [ -n "$EDISON" ]; then
-         echo To Edison ../tables:
-         cp -v $LTFILE $TOOLSDIR/../veritas_E/tables/ 
-     fi
-
+ 
      if [ -n "$PURDUE" ]; then
          echo To purdue ../tables:
-         scp $LTFILE sembrosk@hammer.rcac.purdue.edu:/group/veritas/apps/tables/
          echo To Purdue Archive:
-         scp $LTFILE sembrosk@hammer.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
+#         scp $LTFILE sembrosk@hammer.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
+#         scp $LTFILE sembrosk@hammer.rcac.purdue.edu:/archive/fortress/group/veritas/tables/
      fi
 
      if [ -n "$UCLA" ]; then

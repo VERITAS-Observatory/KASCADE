@@ -47,7 +47,6 @@ install: $(addsuffix -install,$(INSTALLTARGETS))
 $(addsuffix -install,$(INSTALLTARGETS)):
 	$(MAKE) -C $(@:-install=) install
 
-
 clean: $(addsuffix -clean,$(TARGETS))
 
 .PHONY: $(addsuffix -clean,$(TARGETS))

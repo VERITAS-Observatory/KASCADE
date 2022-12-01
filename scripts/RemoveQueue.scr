@@ -32,26 +32,11 @@ fi
 host=$(hostname)
 echo host: $host
 
-hostString=${host:0:6}
-if test  "$hostString" = "edison"  #Are we running on Edison
+hostString=${host:0:4}
+if test  "$hostString" = "bell"  #Are we running on Bell
 then
-  EDISON=enabled
-  QSUBEXT='.serial'
-  echo '***Edison Cluster***'
-fi
-
-hostString=${host:0:6}
-if test  "$hostString" = "hammer"  #Are we running on Hammer
-then
-  HAMMER=enabled
-  echo '***Hammer Cluster***'
-fi
-
-hostString=${host:0:8}
-if test  "$hostString" = "halstead"  #Are we running on Halstead
-then
-  HALSTEAD=enabled
-  echo '***Halstead Cluster***'
+  BELL=enabled
+  echo '***Bell Cluster***'
 fi
 
 hostString=${host:0:4}
@@ -64,29 +49,27 @@ fi
 if [ -e "$1" ]; then   #Does a file exist. Cheap and dirty way. Could screw up.
   FileName=$1
   echo Deleting from queue process ID\'s in file: $FileName
-  if [ -n "$EDISON" ] ||  [ -n "$CORI" ]; then
+  if [ -n "$CORI" ]; then
     source ~/.bashrc.ext
   fi
 
   while read FullJobid theRestOfTheLine
    do
-      if [ -n "$EDISON" ]; then
-         FullJobid=${FullJobid%%.*}
-      elif [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
+      if [ -n "$Bell" ]; then
          FullJobid=${FullJobid%%.*}
       fi
 
       echo $FullJobid
-      if [ -n "$CORI" ] ||[ -n "$EDISON" ] ; then
+      if [ -n "$CORI" ]  ; then
 	     scancel  $FullJobid
-      elif [ -n "$HAMMER" ] || [ -n "$HALSTEAD" ]; then
+      elif [ -n "$BELL" ]; then
          qdel  $FullJobid
       else
        qdel$QSUBEXT $FullJobid
      fi
   done<$FileName
 else
-  if [ -n "$EDISON" ] ||  [ -n "$CORI" ]; then
+  if  [ -n "$CORI" ]; then
     source ~/.bashrc.ext
   fi
   let i=$1
@@ -94,7 +77,7 @@ else
   echo $i $iEnd
   while test $i -le $iEnd
    do
-     if [ -n "$CORI" ] || [ -n "$EDISON" ]; then
+     if [ -n "$CORI" ] ; then
 	scancel  $i$3
      else
         qdel$QSUBEXT $i$3

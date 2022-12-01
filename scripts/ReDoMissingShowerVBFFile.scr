@@ -39,43 +39,13 @@ function setup()
     workingDir=$SCRATCH
   fi
 
-  if [ -n "$EDISON" ]; then
-    dataDirBase=$SCRATCH/simulations
-    echo Edison Data Dir: $dataDirBase
-    mkdir -vp $dataDirBase
-    workingDir=$SCRATCH
-    WALLTIME='-t 07:00:00'
-  fi
-
-  if [ -n "$HALSTEAD" ]; then
+  if [ -n "$BELL" ]; then
     dataDirBase=$SCRATCH'/simulations'
-    echo Halstead Data dir: $dataDirBase
+    echo Bell Data dir: $dataDirBase
     mkdir -vp $dataDirBase
     workingDir=$SCRATCH
       let NumParaFly=0
       let NumCores=48
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-  fi
-  if [ -n "$HAMMER" ]; then
-    dataDirBase=$SCRATCH'/simulations'
-    echo Hammer Data dir: $dataDirBase
-    mkdir -vp $dataDirBase
-    workingDir=$SCRATCH
-      let NumParaFly=0
-      let NumCores=48
-      let NumThreadsToUse=10
-      let MaxNumInParaFlyList=20
-  fi
-
-
-  if [ -n "$CONTE" ]; then
-    dataDirBase=$SCRATCH'/simulations'
-    echo Conte Data dir: $dataDirBase
-    mkdir -vp $dataDirBase
-    workingDir=$SCRATCH
-      let NumParaFly=0
-      let NumCores=16
       let NumThreadsToUse=10
       let MaxNumInParaFlyList=20
   fi
